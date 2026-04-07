@@ -1,0 +1,2712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Virtual Interview Lobby - JobFairX</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; background: #fff; color: #2d2d2d; min-height: 100vh; font-size: 14px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+
+/* ═══ TOP HEADER BAR ═══ */
+.lobby-topbar { width: 100%; height: 56px; background: #fff; border-bottom: 1px solid #d4d2d0; }
+.lobby-topbar-inner { padding: 0 32px; height: 100%; display: flex; align-items: center; justify-content: space-between; }
+.lobby-topbar-logo { font-size: 22px; font-weight: 800; color: #2557a7; letter-spacing: -0.5px; text-decoration: none; cursor: pointer; }
+.lobby-topbar-right { display: flex; align-items: center; gap: 6px; }
+.lobby-user-trigger { display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 6px 12px; border-radius: 8px; transition: background 0.15s; position: relative; }
+.lobby-user-trigger:hover { background: #f3f2ef; }
+.lobby-user-trigger svg.user-icon { width: 20px; height: 20px; color: #595959; }
+.lobby-user-trigger span { font-size: 14px; font-weight: 500; color: #2d2d2d; }
+.lobby-user-trigger svg.chevron { width: 14px; height: 14px; color: #999; }
+.lobby-user-menu { position: absolute; top: 42px; right: 0; background: #fff; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.12); border: 1px solid #d4d2d0; min-width: 220px; z-index: 500; display: none; padding: 6px 0; }
+.lobby-user-menu.open { display: block; }
+.lobby-user-menu-item { display: block; width: 100%; padding: 12px 18px; font-size: 14px; font-weight: 500; color: #2d2d2d; background: none; border: none; text-align: left; cursor: pointer; font-family: inherit; transition: background 0.1s; }
+.lobby-user-menu-item:hover { background: #f3f2ef; }
+
+.container { padding: 32px 32px 0; }
+.full-width { width: 100%; }
+.full-width-inner { max-width: 1200px; margin: 0 auto; padding: 0 32px; }
+
+/* Breadcrumb */
+.breadcrumb { display: inline-flex; align-items: center; gap: 6px; font-size: 16px; color: #2557a7; text-decoration: underline; font-weight: 700; margin-bottom: 24px; cursor: pointer; }
+.breadcrumb:hover { text-decoration: underline; }
+.breadcrumb svg { width: 16px; height: 16px; color: #2d2d2d; }
+
+/* Event header */
+.event-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; margin-bottom: 32px; padding-bottom: 0; }
+.event-header > div:first-child { flex: 1; min-width: 0; }
+.event-header h1 { font-size: 28px; font-weight: 700; color: #2d2d2d; line-height: 1.3; }
+.event-meta { display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: 16px; font-weight: 400; color: #595959; white-space: nowrap; flex-wrap: nowrap; }
+.event-meta .dot { width: 8px; height: 8px; border-radius: 50%; background: #2d2d2d; flex-shrink: 0; }
+.event-meta .sep { color: #d4d2d0; }
+
+/* Gray separator between header and tabs */
+.header-separator { display: none; }
+
+/* Three dot menu */
+.dots-btn { width: 40px; height: 40px; border-radius: 8px; border: 1px solid #d4d2d0; background: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s; position: relative; }
+.dots-btn:hover { background: #f3f2ef; border-color: #2557a7; }
+.dots-btn svg { width: 20px; height: 20px; }
+.dots-menu { position: absolute; top: 46px; right: 0; background: #fff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.12); border: 1px solid #d4d2d0; min-width: 260px; z-index: 500; display: none; padding: 8px 0; }
+.dots-menu.open { display: block; }
+.dots-menu-item { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 16px 24px; font-size: 16px; font-weight: 400; color: #2d2d2d; background: none; border: none; text-align: left; cursor: pointer; font-family: inherit; transition: background 0.1s; }
+.dots-menu-item:hover { background: #f3f2ef; }
+.dots-menu-item .external-icon { width: 16px; height: 16px; color: #595959; flex-shrink: 0; }
+
+
+/* Tabs — full width like Indeed */
+.tabs-wrapper { width: 100%; border-bottom: 3px solid #d4d2d0; }
+.tabs { display: flex; padding: 0 32px; }
+.tab { flex: 1; padding: 20px 16px; text-align: center; font-size: 16px; font-weight: 400; color: #595959; cursor: pointer; border-bottom: 4px solid transparent; margin-bottom: -3px; transition: all 0.15s; background: none; border-top: none; border-left: none; border-right: none; font-family: inherit; }
+.tab:hover { color: #2d2d2d; }
+.tab.active { color: #2d2d2d; border-bottom-color: #2d2d2d; font-weight: 700; }
+
+/* Tab panels — full width gray bg */
+.tab-panel-wrapper { width: 100%; background: #f3f2ef; padding: 24px 32px 0; }
+
+/* Status card (Interviewing has not begun) — like Indeed */
+.status-card { background: #fff; border-radius: 16px; padding: 32px 36px; display: flex; align-items: center; justify-content: space-between; gap: 24px; border: 1px solid #b0aeab; }
+.status-card-text h3 { font-size: 24px; font-weight: 700; color: #2d2d2d; margin-bottom: 6px; }
+.status-card-text p { font-size: 16px; font-weight: 400; color: #595959; line-height: 1.5; }
+.status-card-illustration { flex-shrink: 0; width: 140px; height: 100px; }
+
+/* Collapsible candidate review section */
+.review-section { background: #fff; border-radius: 16px; padding: 24px 28px; border: 1px solid #b0aeab; }
+.review-header { display: flex; align-items: center; cursor: pointer; gap: 10px; position: relative; }
+.review-header .collapse-arrow { font-size: 16px; font-weight: 400; color: #2d2d2d; transition: transform 0.2s; display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; }
+.review-header .collapse-arrow.collapsed { transform: rotate(180deg); }
+.review-header h3 { font-size: 20px; font-weight: 700; color: rgb(89, 89, 89); border-bottom: 2px solid transparent; padding-bottom: 2px; transition: border-color 0.15s; }
+.review-header:hover h3 { border-bottom-color: #0044B3; }
+.review-header .review-illustration { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); width: 110px; height: 76px; }
+.review-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+.review-table { table-layout: fixed; }
+.review-table thead th { padding: 14px 16px; text-align: left; font-size: 13px; font-weight: 400; color: #595959; border-bottom: 1px solid #d4d2d0; background: #f6f5f3; }
+.review-table thead th:nth-child(1) { width: 30%; }
+.review-table thead th:nth-child(2) { width: 25%; }
+.review-table thead th:nth-child(3) { width: 20%; }
+.review-table thead th:nth-child(4) { width: 25%; }
+.review-table thead th:first-child { border-radius: 8px 0 0 0; }
+.review-table thead th:last-child { border-radius: 0 8px 0 0; }
+.review-table tbody td { padding: 22px 16px; border-bottom: 1px solid #ebebeb; font-size: 14px; font-weight: 400; color: #2d2d2d; vertical-align: middle; }
+.review-table tbody tr:last-child td { border-bottom: none; }
+.review-table tbody tr:hover { background: #f6f5f3; }
+.review-table .name-cell { display: flex; align-items: center; gap: 10px; }
+.review-table .resume-icon { width: 20px; height: 20px; color: #0044B3; flex-shrink: 0; cursor: pointer; }
+.review-body.collapsed { display: none; }
+.review-name { font-size: 14px; font-weight: 700; color: #2d2d2d; margin-bottom: 8px; }
+.review-actions { display: flex; align-items: center; gap: 16px; }
+.review-actions a { font-size: 12px; font-weight: 400; color: #0044B3; text-decoration: underline; cursor: pointer; }
+.review-actions a:hover { color: #003399; }
+.review-job-title { font-size: 14px; font-weight: 400; color: #2d2d2d; }
+.review-job-location { font-size: 13px; color: #767676; margin-top: 3px; }
+.review-time { font-size: 14px; font-weight: 400; color: #2d2d2d; }
+.review-time-date { font-size: 13px; color: #767676; margin-top: 3px; }
+.review-interviewer { font-size: 14px; color: #2d2d2d; }
+.interview-actions { display: inline-flex; align-items: center; border: 1px solid #d4d2d0; border-radius: 8px; overflow: hidden; }
+.interview-btn { height: 36px; border: none; background: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s; color: #2d2d2d; font-family: inherit; position: relative; padding: 0 14px; font-size: 13px; font-weight: 600; }
+.interview-btn.rejoin { border-right: 1px solid #d4d2d0; }
+.interview-btn.rejoin:hover { background: #dcfce7; color: #166534; }
+.interview-btn.end:hover { background: #fef2f2; color: #991b1b; }
+.interview-btn .btn-tooltip { position: absolute; top: calc(100% + 6px); left: 50%; transform: translateX(-50%); background: #2d2d2d; color: #fff; font-size: 12px; font-weight: 400; padding: 4px 10px; border-radius: 4px; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 0.15s; z-index: 10; }
+.interview-btn:hover .btn-tooltip { opacity: 1; }
+.disposition-actions { display: inline-flex; align-items: center; border: 1px solid #d4d2d0; border-radius: 8px; overflow: hidden; }
+.disposition-btn { height: 36px; border: none; background: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s; font-family: inherit; position: relative; padding: 0 14px; font-size: 13px; font-weight: 600; }
+.disposition-btn.status { border-right: 1px solid #d4d2d0; }
+.disposition-btn.status.yes { color: #166534; }
+.disposition-btn.status.yes:hover { background: #dcfce7; }
+.disposition-btn.status.no { color: #991b1b; }
+.disposition-btn.status.no:hover { background: #fef2f2; }
+.disposition-btn.status.maybe { color: #854d0e; }
+.disposition-btn.status.maybe:hover { background: #fef9c3; }
+.disposition-btn.change { color: #2d2d2d; }
+.disposition-btn.change:hover { background: #e8f0fe; color: #0044B3; }
+.disposition-btn .btn-tooltip { position: absolute; top: calc(100% + 6px); left: 50%; transform: translateX(-50%); background: #2d2d2d; color: #fff; font-size: 12px; font-weight: 400; padding: 4px 10px; border-radius: 4px; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 0.15s; z-index: 10; }
+.disposition-btn:hover .btn-tooltip { opacity: 1; }
+.disposition-dropdown { display: none; position: absolute; top: calc(100% + 4px); right: 0; background: #fff; border: 1px solid #d4d2d0; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 20; min-width: 120px; overflow: hidden; }
+.disposition-dropdown.open { display: block; }
+.disposition-option { padding: 8px 14px; font-size: 13px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+.disposition-option:hover { background: #f5f5f4; }
+.disposition-option .dot { width: 8px; height: 8px; border-radius: 50%; }
+.disposition-option .dot.green { background: #166534; }
+.disposition-option .dot.red { background: #991b1b; }
+.disposition-option .dot.yellow { background: #854d0e; }
+.disposition-wrapper { position: relative; display: inline-flex; align-items: center; }
+.review-dots-wrapper { position: relative; }
+.review-dots { width: 32px; height: 32px; border-radius: 6px; border: 1px solid #d4d2d0; background: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s; color: #595959; }
+.review-dots:hover { background: #f0f5ff; border-color: #0044B3; color: #0044B3; }
+.review-dots svg { width: 16px; height: 16px; }
+.review-dropdown { position: absolute; top: 38px; right: 0; background: #fff; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); border: 1px solid #d4d2d0; min-width: 240px; z-index: 500; display: none; padding: 6px 0; }
+.review-dropdown.open { display: block; }
+.review-dropdown-item { display: block; width: 100%; padding: 12px 18px; font-size: 14px; font-weight: 500; color: #2d2d2d; background: none; border: none; text-align: left; cursor: pointer; font-family: inherit; transition: background 0.1s; }
+.review-dropdown-item:hover { background: #f3f2ef; }
+
+/* Dev toggle */
+.dev-toggle { display: flex; align-items: center; gap: 8px; padding: 5px 12px; background: #f3f2ef; border-radius: 6px; border: 1px solid #d4d2d0; }
+.dev-toggle-label { font-size: 11px; font-weight: 600; color: #767676; text-transform: uppercase; letter-spacing: 0.5px; }
+.dev-toggle-switch { display: flex; background: #e0e0e0; border-radius: 4px; overflow: hidden; }
+.dev-toggle-btn { padding: 4px 10px; font-size: 11px; font-weight: 700; border: none; background: transparent; cursor: pointer; font-family: inherit; color: #767676; transition: all 0.15s; }
+.dev-toggle-btn.active { background: #0044B3; color: #fff; }
+
+/* Pending section */
+.review-section.pending { border-top: 4px solid #e8a317; margin-bottom: 20px; }
+.pending-actions { display: inline-flex; align-items: center; border: 1px solid #d4d2d0; border-radius: 8px; overflow: hidden; }
+.pending-btn { height: 36px; border: none; background: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s; color: #2d2d2d; font-family: inherit; position: relative; }
+.pending-btn.accept { padding: 0 14px; font-size: 13px; font-weight: 600; border-right: 1px solid #d4d2d0; }
+.pending-btn.decline { padding: 0 14px; font-size: 13px; font-weight: 600; }
+.pending-btn.accept:hover { background: #dcfce7; color: #166534; }
+.pending-btn.decline { border-right: 1px solid #d4d2d0; }
+.pending-btn.decline:hover { background: #fef2f2; color: #991b1b; }
+.pending-btn.propose { padding: 0 14px; font-size: 13px; font-weight: 600; white-space: nowrap; }
+.pending-btn.propose:hover { background: #e8f0fe; color: #0044B3; }
+/* Join interview button */
+.join-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 20px; background: #0044B3; color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+.join-btn:hover { background: #003399; }
+.join-btn svg { width: 16px; height: 16px; }
+.pending-btn .btn-tooltip { display: none; position: absolute; top: calc(100% + 6px); left: 50%; transform: translateX(-50%); background: #2d2d2d; color: #fff; font-size: 12px; font-weight: 400; padding: 4px 8px; border-radius: 4px; white-space: nowrap; z-index: 100; pointer-events: none; }
+.pending-btn:hover .btn-tooltip { display: block; }
+
+/* Decline confirmation modal */
+.decline-modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.45); z-index: 9999; align-items: center; justify-content: center; }
+.decline-modal-overlay.open { display: flex; }
+.decline-modal { background: #fff; border-radius: 12px; width: 460px; max-width: 90vw; box-shadow: 0 8px 32px rgba(0,0,0,0.2); overflow: hidden; }
+.decline-modal-header { padding: 24px 24px 0; font-size: 18px; font-weight: 700; color: #2d2d2d; }
+.decline-modal-body { padding: 16px 24px 0; font-size: 14px; font-weight: 400; color: #595959; line-height: 1.5; }
+.decline-modal-body .candidate-name { font-weight: 700; color: #2d2d2d; }
+.decline-modal-checkbox { display: flex; align-items: center; gap: 8px; padding: 20px 24px 0; font-size: 13px; color: #595959; cursor: pointer; }
+.decline-modal-checkbox input { width: 16px; height: 16px; accent-color: #0044B3; cursor: pointer; }
+.decline-modal-actions { display: flex; justify-content: flex-end; gap: 12px; padding: 24px; }
+.decline-modal-actions button { padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+.decline-modal-actions .decline-cancel { background: #fff; border: 1px solid #d4d2d0; color: #2d2d2d; }
+.decline-modal-actions .decline-cancel:hover { background: #f3f2ef; }
+.decline-modal-actions .decline-confirm { background: #991b1b; border: none; color: #fff; }
+.decline-modal-actions .decline-confirm:hover { background: #7f1d1d; }
+
+/* Decline toast notification */
+.decline-toast { position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(20px); background: #2d2d2d; color: #fff; padding: 14px 24px; border-radius: 10px; font-size: 14px; font-weight: 400; display: flex; align-items: center; gap: 16px; z-index: 9999; opacity: 0; transition: opacity 0.3s, transform 0.3s; pointer-events: none; box-shadow: 0 4px 16px rgba(0,0,0,0.25); }
+.decline-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
+.decline-toast .toast-undo { color: #6cb4ff; font-weight: 600; cursor: pointer; text-decoration: underline; background: none; border: none; font-size: 14px; font-family: inherit; padding: 0; }
+.decline-toast .toast-undo:hover { color: #fff; }
+
+/* Resume modal */
+.resume-modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.45); z-index: 9999; align-items: flex-start; justify-content: center; padding-top: 40px; overflow-y: auto; }
+.resume-modal-overlay.open { display: flex; }
+.resume-modal { background: #fff; border-radius: 12px; width: 680px; max-width: 90vw; max-height: calc(100vh - 80px); box-shadow: 0 8px 32px rgba(0,0,0,0.2); display: flex; flex-direction: column; overflow: hidden; }
+.resume-modal-header { padding: 24px 28px; border-bottom: 1px solid #ebebeb; }
+.resume-modal-header-top { display: flex; align-items: flex-start; justify-content: space-between; }
+.resume-modal-name { font-size: 22px; font-weight: 700; color: #2d2d2d; }
+.resume-modal-download { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border: none; background: none; cursor: pointer; color: #595959; border-radius: 6px; transition: all 0.15s; margin-left: 10px; vertical-align: middle; position: relative; }
+.resume-modal-download:hover { background: #f3f2ef; color: #2d2d2d; }
+.resume-modal-download svg { width: 18px; height: 18px; }
+.resume-modal-download .btn-tooltip { display: none; position: absolute; top: calc(100% + 6px); left: 50%; transform: translateX(-50%); background: #2d2d2d; color: #fff; font-size: 12px; font-weight: 400; padding: 4px 8px; border-radius: 4px; white-space: nowrap; z-index: 100; pointer-events: none; }
+.resume-modal-download:hover .btn-tooltip { display: block; }
+.resume-modal-close { width: 32px; height: 32px; border: none; background: none; font-size: 22px; color: #595959; cursor: pointer; display: flex; align-items: center; justify-content: center; border-radius: 6px; transition: all 0.15s; }
+.resume-modal-close:hover { background: #f3f2ef; color: #2d2d2d; }
+.resume-modal-subtitle { font-size: 14px; font-weight: 400; color: #595959; margin-top: 4px; }
+.resume-modal-contact { display: flex; align-items: center; gap: 20px; margin-top: 12px; font-size: 13px; color: #595959; }
+.resume-modal-contact span { display: flex; align-items: center; }
+.resume-modal-btns { display: flex; align-items: center; margin-top: 16px; }
+.resume-modal-btns .pending-actions { display: inline-flex; }
+.resume-modal-body { padding: 24px 28px; overflow-y: auto; flex: 1; }
+.resume-section-title { display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 700; color: #2d2d2d; margin-bottom: 16px; }
+.resume-section-title svg { width: 18px; height: 18px; color: #595959; }
+.resume-job { margin-bottom: 24px; }
+.resume-job-header { display: flex; justify-content: space-between; align-items: flex-start; }
+.resume-job-title { font-size: 15px; font-weight: 700; color: #2d2d2d; }
+.resume-job-company { font-size: 14px; font-weight: 400; color: #595959; margin-top: 2px; }
+.resume-job-dates { font-size: 13px; font-weight: 400; color: #0044B3; }
+.resume-job-bullets { margin-top: 10px; padding-left: 18px; }
+.resume-job-bullets li { font-size: 14px; font-weight: 400; color: #595959; line-height: 1.6; margin-bottom: 4px; }
+.resume-section-divider { border: none; border-top: 1px solid #ebebeb; margin: 24px 0; }
+.resume-edu-title { font-size: 15px; font-weight: 700; color: #2d2d2d; }
+.resume-edu-school { font-size: 14px; font-weight: 400; color: #595959; margin-top: 2px; }
+.resume-edu-dates { font-size: 13px; font-weight: 400; color: #0044B3; }
+.resume-skills-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.resume-skill-tag { padding: 4px 12px; background: #f3f2ef; border-radius: 16px; font-size: 13px; font-weight: 400; color: #2d2d2d; }
+
+/* Message modal */
+.msg-modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.45); z-index: 9999; align-items: flex-start; justify-content: center; padding-top: 40px; }
+.msg-modal-overlay.open { display: flex; }
+.msg-modal { background: #fff; border-radius: 12px; width: 600px; max-width: 90vw; height: 580px; max-height: calc(100vh - 80px); box-shadow: 0 8px 32px rgba(0,0,0,0.2); display: flex; flex-direction: column; overflow: hidden; }
+.msg-modal-header { padding: 20px 24px; border-bottom: 1px solid #ebebeb; display: flex; justify-content: space-between; align-items: flex-start; }
+.msg-modal-header-text { }
+.msg-modal-title { font-size: 18px; font-weight: 700; color: #2d2d2d; }
+.msg-modal-to { font-size: 14px; font-weight: 400; color: #595959; margin-top: 2px; }
+.msg-modal-close { width: 32px; height: 32px; border: none; background: none; font-size: 22px; color: #595959; cursor: pointer; display: flex; align-items: center; justify-content: center; border-radius: 6px; transition: all 0.15s; }
+.msg-modal-close:hover { background: #f3f2ef; color: #2d2d2d; }
+.msg-modal-messages { flex: 1; overflow-y: auto; padding: 20px 24px; display: flex; flex-direction: column; gap: 16px; }
+.msg-bubble { max-width: 80%; padding: 12px 16px; border-radius: 12px; font-size: 14px; font-weight: 400; line-height: 1.5; }
+.msg-bubble.outgoing { align-self: flex-end; background: #3B82F6; color: #fff; border-bottom-right-radius: 4px; }
+.msg-bubble.incoming { align-self: flex-start; background: #f3f2ef; color: #2d2d2d; border-bottom-left-radius: 4px; }
+.msg-bubble.system { align-self: flex-start; background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; padding: 10px 16px; }
+.msg-bubble.system .system-label { font-weight: 700; font-size: 14px; }
+.msg-bubble.system .system-time { font-size: 13px; color: #22c55e; }
+.msg-meta { font-size: 12px; font-weight: 400; color: #767676; margin-top: 4px; }
+.msg-meta.outgoing { text-align: right; }
+.msg-meta.incoming { text-align: left; }
+.msg-meta .msg-sender { font-weight: 600; color: #2d2d2d; }
+.msg-compose { border-top: 1px solid #ebebeb; padding: 16px 24px; }
+.msg-char-count { text-align: right; font-size: 12px; color: #767676; margin-bottom: 6px; }
+.msg-textarea { width: 100%; height: 80px; border: 1px solid #d4d2d0; border-radius: 8px; padding: 12px; font-size: 14px; font-family: inherit; resize: none; color: #2d2d2d; line-height: 1.5; }
+.msg-textarea:focus { outline: none; border-color: #0044B3; }
+.msg-textarea::placeholder { color: #b0b0b0; }
+.msg-compose-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 12px; }
+.msg-compose-actions button { padding: 8px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+.msg-btn-cancel { background: #fff; border: 1px solid #d4d2d0; color: #2d2d2d; }
+.msg-btn-cancel:hover { background: #f3f2ef; }
+.msg-btn-send { background: #0044B3; border: none; color: #fff; }
+.msg-btn-send:hover { background: #003399; }
+
+/* Prepare section — full width gray bg */
+.prepare-wrapper { width: 100%; background: #f3f2ef; padding: 20px 32px 60px; }
+.prepare-section { }
+.prep-card { background: #fff; border-radius: 16px; overflow: hidden; }
+.prep-card-header { padding: 32px 36px 0; font-size: 22px; font-weight: 800; color: #2d2d2d; }
+.prep-row { display: flex; align-items: center; gap: 24px; padding: 28px 36px; border-bottom: 1px solid #ebebeb; }
+.prep-row:last-child { border-bottom: none; }
+.prep-illustration { flex-shrink: 0; width: 120px; height: 90px; }
+.prep-icon { width: 48px; height: 48px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.prep-icon svg { width: 24px; height: 24px; }
+.prep-text { flex: 1; }
+.prep-title { font-size: 16px; font-weight: 700; color: #2d2d2d; }
+.prep-desc { font-size: 14px; color: #767676; margin-top: 4px; }
+.prep-action { display: inline-block; font-size: 16px; color: #2557a7; font-weight: 700; cursor: pointer; text-decoration: none; white-space: nowrap; padding: 10px 20px; border: 2px solid #2557a7; border-radius: 8px; background: #fff; transition: background 0.15s; }
+.prep-action:hover { background: #f0f5ff; text-decoration: none; }
+
+/* ═══ ADD TEAM MEMBERS MODAL ═══ */
+.team-modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.55);
+  z-index: 1000;
+  align-items: center; justify-content: center;
+}
+.team-modal-overlay.open { display: flex; }
+
+.team-modal {
+  background: #fff;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 540px;
+  position: relative;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.2);
+  padding: 32px 36px;
+}
+
+.team-modal-close {
+  position: absolute;
+  top: 20px; right: 20px;
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; color: #595959;
+  font-family: inherit;
+  transition: background 0.15s;
+}
+.team-modal-close:hover { background: #f3f2ef; }
+
+.team-modal h2 {
+  font-size: 22px;
+  font-weight: 800;
+  color: #2d2d2d;
+  margin-bottom: 16px;
+  padding-right: 36px;
+}
+
+.team-modal-desc {
+  font-size: 15px;
+  color: #595959;
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+
+.team-modal-label {
+  font-size: 15px;
+  font-weight: 700;
+  color: #2d2d2d;
+  margin-bottom: 4px;
+}
+
+.team-modal-hint {
+  font-size: 13px;
+  color: #767676;
+  margin-bottom: 10px;
+}
+
+.team-modal-input-wrap {
+  display: flex;
+  align-items: center;
+  border: 1px solid #d4d2d0;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-bottom: 24px;
+  transition: border-color 0.15s;
+}
+.team-modal-input-wrap:focus-within { border-color: #2557a7; }
+
+.team-modal-input-wrap input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 15px;
+  font-family: inherit;
+  color: #2d2d2d;
+  background: transparent;
+}
+
+.team-modal-input-wrap .input-icon {
+  width: 28px; height: 28px;
+  border-radius: 6px;
+  background: #fee2e2;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+.team-modal-input-wrap .input-icon svg { width: 16px; height: 16px; color: #dc2626; }
+
+.team-modal-invited {
+  margin-bottom: 28px;
+}
+
+.team-modal-invited-label {
+  font-size: 15px;
+  font-weight: 700;
+  color: #2d2d2d;
+  margin-bottom: 8px;
+}
+
+.team-modal-invited-email {
+  font-size: 15px;
+  color: #595959;
+}
+
+.team-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  border-top: 1px solid #e8e6e3;
+  padding-top: 20px;
+}
+
+.btn-team-cancel {
+  font-size: 16px;
+  font-weight: 700;
+  color: #2d2d2d;
+  padding: 10px 24px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s;
+}
+.btn-team-cancel:hover { background: #f3f2ef; }
+
+.btn-team-send {
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  padding: 10px 28px;
+  border: none;
+  border-radius: 8px;
+  background: #2557a7;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s;
+}
+.btn-team-send:hover { background: #1a4080; }
+
+/* ═══ WELCOME MESSAGE MODAL ═══ */
+.welcome-modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.55);
+  z-index: 1000;
+  align-items: center; justify-content: center;
+}
+.welcome-modal-overlay.open { display: flex; }
+
+.welcome-modal {
+  background: #fff;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 560px;
+  position: relative;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.2);
+  padding: 32px 36px;
+}
+
+.welcome-modal-close {
+  position: absolute;
+  top: 20px; right: 20px;
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; color: #595959;
+  font-family: inherit;
+  transition: background 0.15s;
+}
+.welcome-modal-close:hover { background: #f3f2ef; }
+
+.welcome-modal h2 {
+  font-size: 22px;
+  font-weight: 800;
+  color: #2d2d2d;
+  margin-bottom: 24px;
+  padding-right: 36px;
+}
+
+.welcome-modal-label {
+  font-size: 15px;
+  font-weight: 700;
+  color: #2d2d2d;
+  margin-bottom: 4px;
+}
+
+.welcome-modal-hint {
+  font-size: 13px;
+  color: #767676;
+  margin-bottom: 12px;
+}
+
+.welcome-editor {
+  border: 1px solid #d4d2d0;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 28px;
+}
+
+.welcome-editor-toolbar {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  background: #f3f2ef;
+  border-bottom: 1px solid #d4d2d0;
+  gap: 4px;
+}
+
+.editor-btn {
+  width: 32px; height: 32px;
+  border: none; background: transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; color: #2d2d2d;
+  font-family: 'Georgia', serif;
+  transition: background 0.15s;
+}
+.editor-btn:hover { background: #e8e6e3; }
+.editor-btn.bold { font-weight: 800; font-family: 'Noto Sans', sans-serif; }
+.editor-btn.italic { font-style: italic; font-family: 'Georgia', serif; }
+
+.editor-btn-help {
+  margin-left: auto;
+  width: 28px; height: 28px;
+  border: 2px solid #d4d2d0;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 700; color: #595959;
+  font-family: 'Noto Sans', sans-serif;
+  transition: all 0.15s;
+}
+.editor-btn-help:hover { border-color: #2557a7; color: #2557a7; }
+
+.welcome-editor textarea {
+  width: 100%;
+  min-height: 160px;
+  border: none;
+  outline: none;
+  padding: 14px 16px;
+  font-size: 15px;
+  font-family: inherit;
+  color: #2d2d2d;
+  resize: vertical;
+  line-height: 1.6;
+}
+
+.welcome-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  border-top: 1px solid #e8e6e3;
+  padding-top: 20px;
+}
+
+.btn-welcome-cancel {
+  font-size: 16px; font-weight: 700;
+  color: #2d2d2d; padding: 10px 24px;
+  border: none; border-radius: 8px;
+  background: transparent; cursor: pointer;
+  font-family: inherit; transition: background 0.15s;
+}
+.btn-welcome-cancel:hover { background: #f3f2ef; }
+
+.btn-welcome-save {
+  font-size: 16px; font-weight: 700;
+  color: #fff; padding: 10px 28px;
+  border: none; border-radius: 8px;
+  background: #2557a7; cursor: pointer;
+  font-family: inherit; transition: background 0.15s;
+}
+.btn-welcome-save:hover { background: #1a4080; }
+
+/* ═══ AV TEST MODAL ═══ */
+.av-modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.55);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+.av-modal-overlay.open { display: flex; }
+
+.av-modal {
+  background: #fff;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 860px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.2);
+}
+
+.av-modal-close {
+  position: absolute;
+  top: 16px; right: 16px;
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; color: #595959;
+  font-family: inherit;
+  transition: background 0.15s;
+  z-index: 10;
+}
+.av-modal-close:hover { background: #f3f2ef; }
+
+/* Step 1 — Microphone access */
+.av-step1 { padding: 60px 40px 40px; text-align: center; }
+.av-step1 h2 { font-size: 26px; font-weight: 800; color: #2d2d2d; line-height: 1.3; margin-bottom: 32px; }
+.av-step1-illustration { width: 280px; height: 200px; margin: 0 auto 32px; }
+.av-step1-desc { font-size: 16px; color: #595959; margin-bottom: 48px; }
+.av-step1-footer { display: flex; justify-content: flex-end; }
+.btn-give-access {
+  background: #2557a7; color: #fff;
+  font-size: 16px; font-weight: 700;
+  padding: 12px 28px; border: none; border-radius: 8px;
+  cursor: pointer; font-family: inherit;
+  transition: background 0.15s;
+}
+.btn-give-access:hover { background: #1a4080; }
+
+/* Step 2 — AV Test */
+.av-step2 { display: none; padding: 32px 36px 36px; }
+.av-step2-header h2 { font-size: 24px; font-weight: 800; color: #2d2d2d; margin-bottom: 4px; }
+.av-step2-header p { font-size: 15px; color: #595959; margin-bottom: 20px; }
+
+/* Settings / Backgrounds tabs */
+.av-tabs { display: flex; gap: 24px; border-bottom: 2px solid #e8e6e3; margin-bottom: 20px; }
+.av-tab { padding: 10px 4px; font-size: 15px; font-weight: 600; color: #595959; cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; background: none; border-top: none; border-left: none; border-right: none; font-family: inherit; }
+.av-tab.active { color: #2d2d2d; border-bottom-color: #2d2d2d; font-weight: 700; }
+
+.av-test-layout { display: flex; gap: 20px; }
+.av-left { flex: 1; min-width: 0; }
+.av-right { width: 260px; flex-shrink: 0; display: flex; flex-direction: column; gap: 14px; }
+
+/* Network reminder */
+.network-reminder {
+  background: #fef7ea; border: 1px solid #f5deb3;
+  border-radius: 10px; padding: 16px 20px;
+  margin-bottom: 16px; display: flex; gap: 12px; align-items: flex-start;
+}
+.network-reminder-icon { width: 24px; height: 24px; flex-shrink: 0; margin-top: 2px; }
+.network-reminder-text { font-size: 13px; color: #2d2d2d; line-height: 1.6; }
+.network-reminder-text strong { display: block; font-size: 14px; font-weight: 700; margin-bottom: 2px; }
+.network-reminder-text a { color: #2d2d2d; text-decoration: underline; font-weight: 500; cursor: pointer; }
+.network-reminder-text a:hover { color: #2557a7; }
+
+/* Video preview */
+.video-preview {
+  width: 100%; aspect-ratio: 4/3;
+  background: linear-gradient(180deg, #87CEEB 0%, #87CEEB 55%, #a8c8e0 100%);
+  border-radius: 10px; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+}
+.video-preview-placeholder { text-align: center; color: #fff; }
+.video-preview-placeholder svg { width: 56px; height: 56px; opacity: 0.7; margin-bottom: 6px; }
+.video-preview-placeholder p { font-size: 13px; opacity: 0.8; }
+
+/* Control cards */
+.av-control-card {
+  background: #f3f2ef; border-radius: 10px;
+  padding: 16px; border: 1px solid #e8e6e3;
+}
+.av-control-label { font-size: 15px; font-weight: 700; color: #2d2d2d; margin-bottom: 10px; }
+.av-select {
+  width: 100%; padding: 8px 12px;
+  font-size: 13px; font-family: inherit;
+  border: 1px solid #d4d2d0; border-radius: 8px;
+  background: #fff; color: #2d2d2d; cursor: pointer;
+  margin-bottom: 10px;
+}
+.mic-level { display: flex; align-items: center; gap: 6px; margin-bottom: 10px; }
+.mic-level-label { font-size: 12px; color: #595959; white-space: nowrap; }
+.mic-level-bars { display: flex; gap: 3px; flex: 1; }
+.mic-bar { width: 8px; height: 12px; border-radius: 2px; background: #d4d2d0; }
+.mic-bar.active { background: #2e7d32; }
+
+.av-checkbox {
+  display: flex; align-items: center; gap: 8px;
+  cursor: pointer; margin-top: 6px; font-size: 13px; color: #2d2d2d;
+}
+.av-checkbox input { display: none; }
+.av-check-box {
+  width: 20px; height: 20px; border-radius: 5px;
+  border: 2px solid #d4d2d0; background: #fff;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  transition: all 0.15s;
+}
+.av-checkbox input:checked + .av-check-box { background: #2557a7; border-color: #2557a7; }
+.av-check-box svg { width: 12px; height: 12px; color: #fff; display: none; }
+.av-checkbox input:checked + .av-check-box svg { display: block; }
+
+.btn-test-speaker {
+  display: inline-block; font-size: 13px; font-weight: 700;
+  color: #2557a7; padding: 6px 14px;
+  border: 2px solid #2557a7; border-radius: 8px;
+  background: #fff; cursor: pointer; font-family: inherit;
+  transition: background 0.15s; margin-top: 4px;
+}
+.btn-test-speaker:hover { background: #f0f5ff; }
+
+/* Instructions sub-modal */
+.instructions-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.4);
+  z-index: 1100;
+  align-items: center; justify-content: center;
+}
+.instructions-overlay.open { display: flex; }
+.instructions-modal {
+  background: #fff; border-radius: 16px;
+  max-width: 580px; width: 90%; max-height: 80vh;
+  overflow-y: auto; padding: 32px; position: relative;
+}
+.instructions-modal-close {
+  position: absolute; top: 14px; right: 14px;
+  width: 32px; height: 32px; border-radius: 50%;
+  border: none; background: #f3f2ef; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; color: #595959; font-family: inherit;
+}
+.instructions-modal-close:hover { background: #e8e6e3; }
+.instructions-modal h3 { font-size: 20px; font-weight: 800; margin-bottom: 14px; padding-right: 36px; }
+.instructions-modal p { font-size: 14px; color: #595959; line-height: 1.7; margin-bottom: 12px; }
+.instructions-placeholder {
+  background: #f3f2ef; border-radius: 8px;
+  padding: 20px; font-size: 13px; color: #767676;
+  font-style: italic; text-align: center; margin-top: 12px;
+}
+</style>
+</head>
+<body>
+
+<!-- Top header bar -->
+<div class="lobby-topbar">
+  <div class="lobby-topbar-inner">
+    <a class="lobby-topbar-logo" href="visual.html">JobFairX</a>
+    <div class="lobby-topbar-right">
+      <div class="lobby-user-trigger" onclick="document.getElementById('lobby-user-menu').classList.toggle('open')">
+        <svg class="user-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span>scott@jobfairx.com</span>
+        <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+      </div>
+      <div class="lobby-user-menu" id="lobby-user-menu">
+        <button class="lobby-user-menu-item">Account settings</button>
+        <button class="lobby-user-menu-item">Sign out</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- Breadcrumb -->
+  <a class="breadcrumb" href="visual.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+    All JobFairX virtual interviews
+  </a>
+
+  <!-- Event header -->
+  <div class="event-header">
+    <div>
+      <h1>Dallas Healthcare Hiring Event</h1>
+      <div class="event-meta" id="eventMetaDefault">
+        <span class="dot"></span>
+        <span>Starts in <strong>2 weeks, 3 days</strong></span>
+        <span class="sep">|</span>
+        <span>Apr 22, 2026, 11:00 AM - 3:00 PM CT</span>
+      </div>
+      <div class="event-meta" id="eventMetaLive" style="display: none;">
+        <span class="dot" style="background: #16a34a;"></span>
+        <span style="color: #166534; font-weight: 700;">Event is live</span>
+        <span class="sep">|</span>
+        <span>Ends in <strong id="liveCountdown">2h 42m 18s</strong></span>
+        <span class="sep">|</span>
+        <span>Apr 22, 2026, 11:00 AM - 3:00 PM CT</span>
+      </div>
+    </div>
+    <div style="position:relative; flex-shrink:0;">
+      <button class="dots-btn" onclick="document.getElementById('dots-menu').classList.toggle('open')">
+        <svg viewBox="0 0 24 24" fill="#2557a7"><circle cx="6" cy="12" r="2.3"/><circle cx="12" cy="12" r="2.3"/><circle cx="18" cy="12" r="2.3"/></svg>
+      </button>
+      <div class="dots-menu" id="dots-menu">
+        <button class="dots-menu-item" onclick="openTeamModal()">Add team members</button>
+        <button class="dots-menu-item" onclick="openWelcomeModal()">Update welcome message</button>
+        <button class="dots-menu-item" onclick="openAvModal()">Test video and audio <svg class="external-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4a1 1 0 01-1 1H3a1 1 0 01-1-1V5a1 1 0 011-1h4"/><path d="M10 2h4v4"/><path d="M7 9L14 2"/></svg></button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- close container -->
+
+<!-- Gray separator -->
+<div class="header-separator"></div>
+
+<!-- Tabs — full width -->
+<div class="tabs-wrapper">
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab(this, 'waiting')">Waiting to interview (0)</button>
+    <button class="tab" onclick="switchTab(this, 'interviewing')">Interviewing (0)</button>
+    <button class="tab" onclick="switchTab(this, 'interviewed')">Interviewed (0)</button>
+    <button class="tab" onclick="switchTab(this, 'notyet')">Not yet interviewed (26)</button>
+  </div>
+</div>
+
+<!-- Tab panels -->
+
+<!-- Waiting to interview -->
+<div class="tab-panel" id="panel-waiting">
+  <div class="tab-panel-wrapper">
+
+    <!-- ACTIVE STATE -->
+    <div id="waitingActive" style="display: none;">
+      <div class="review-section">
+        <div class="review-header" style="cursor: default;">
+          <h3>4 candidates waiting to interview</h3>
+          <div class="dev-toggle" onclick="event.stopPropagation()" style="margin-left: auto; margin-right: 280px;">
+            <span class="dev-toggle-label">View:</span>
+            <div class="dev-toggle-switch">
+              <button class="dev-toggle-btn active" onclick="setLobbyMode('active', this)">Active</button>
+              <button class="dev-toggle-btn" onclick="setLobbyMode('empty', this)">Empty</button>
+              <button class="dev-toggle-btn" onclick="setLobbyMode('live', this)">Live</button>
+            </div>
+          </div>
+        </div>
+        <div class="review-body">
+          <table class="review-table" style="table-layout: fixed;">
+            <colgroup>
+              <col style="width: 30%;">
+              <col style="width: 25%;">
+              <col style="width: 22%;">
+              <col style="width: 23%;">
+            </colgroup>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Job title</th>
+                <th>Interview time</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <div class="review-name">Aisha Rahman</div>
+                  <div class="review-actions"><a onclick="openResumeModal(this)" style="cursor:pointer">View resume</a> <a onclick="openMsgModal(this)" style="cursor:pointer">Message</a></div>
+                </td>
+                <td>
+                  <div class="review-job-title">Registered Nurse</div>
+                </td>
+                <td>
+                  <div class="review-time">11:00 AM</div>
+                  <div class="review-time-date">Apr 22, 2026</div>
+                </td>
+                <td>
+                  <button class="join-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg> Join interview</button>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="review-name">James Cooper</div>
+                  <div class="review-actions"><a onclick="openResumeModal(this)" style="cursor:pointer">View resume</a> <a onclick="openMsgModal(this)" style="cursor:pointer">Message</a></div>
+                </td>
+                <td>
+                  <div class="review-job-title">Physical Therapist</div>
+                </td>
+                <td>
+                  <div class="review-time">11:00 AM</div>
+                  <div class="review-time-date">Apr 22, 2026</div>
+                </td>
+                <td>
+                  <button class="join-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg> Join interview</button>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="review-name">Sofia Martinez</div>
+                  <div class="review-actions"><a onclick="openResumeModal(this)" style="cursor:pointer">View resume</a> <a onclick="openMsgModal(this)" style="cursor:pointer">Message</a></div>
+                </td>
+                <td>
+                  <div class="review-job-title">Medical Assistant</div>
+                </td>
+                <td>
+                  <div class="review-time">11:30 AM</div>
+                  <div class="review-time-date">Apr 22, 2026</div>
+                </td>
+                <td>
+                  <button class="join-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg> Join interview</button>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="review-name">Derek Washington</div>
+                  <div class="review-actions"><a onclick="openResumeModal(this)" style="cursor:pointer">View resume</a> <a onclick="openMsgModal(this)" style="cursor:pointer">Message</a></div>
+                </td>
+                <td>
+                  <div class="review-job-title">Dental Hygienist</div>
+                </td>
+                <td>
+                  <div class="review-time">11:30 AM</div>
+                  <div class="review-time-date">Apr 22, 2026</div>
+                </td>
+                <td>
+                  <button class="join-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg> Join interview</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div><!-- /waitingActive -->
+
+    <!-- EMPTY STATE -->
+    <div id="waitingEmpty">
+      <div class="status-card">
+        <div class="status-card-text">
+          <h3>Interviewing has not begun</h3>
+          <p>Candidates will appear here once they start the interview and are waiting for you to join.</p>
+        </div>
+        <div class="dev-toggle" onclick="event.stopPropagation()" style="margin-right: 20px;">
+          <span class="dev-toggle-label">View:</span>
+          <div class="dev-toggle-switch">
+            <button class="dev-toggle-btn" onclick="setLobbyMode('active', this)">Active</button>
+            <button class="dev-toggle-btn active" onclick="setLobbyMode('empty', this)">Empty</button>
+            <button class="dev-toggle-btn" onclick="setLobbyMode('live', this)">Live</button>
+          </div>
+        </div>
+        <svg class="status-card-illustration" viewBox="0 0 140 100" fill="none">
+          <circle cx="55" cy="35" r="10" fill="#8fbc8f" opacity="0.7"/>
+          <circle cx="62" cy="28" r="8" fill="#7da67d" opacity="0.8"/>
+          <circle cx="50" cy="28" r="7" fill="#a8d5a8" opacity="0.6"/>
+          <rect x="54" y="44" width="4" height="16" rx="2" fill="#c17f59"/>
+          <rect x="48" y="58" width="16" height="8" rx="3" fill="#d4956b" opacity="0.5"/>
+          <rect x="80" y="38" width="28" height="4" rx="2" fill="#d4956b"/>
+          <rect x="104" y="30" width="4" height="36" rx="2" fill="#c17f59"/>
+          <rect x="80" y="42" width="4" height="24" rx="2" fill="#c17f59"/>
+          <rect x="96" y="42" width="4" height="24" rx="2" fill="#c17f59" opacity="0.6"/>
+          <rect x="108" y="30" width="4" height="12" rx="2" fill="#d4956b" opacity="0.7"/>
+          <rect x="70" y="66" width="50" height="6" rx="3" fill="#f0ebe4"/>
+          <rect x="78" y="72" width="4" height="14" rx="2" fill="#e0d6ca"/>
+          <rect x="108" y="72" width="4" height="14" rx="2" fill="#e0d6ca"/>
+          <circle cx="30" cy="55" r="8" fill="#e8ddd0" opacity="0.5"/>
+          <rect x="22" y="64" width="16" height="20" rx="4" fill="#e8ddd0" opacity="0.4"/>
+        </svg>
+      </div>
+    </div><!-- /waitingEmpty -->
+
+  </div>
+  <div class="prepare-wrapper" id="waitingPrepare">
+    <div class="prepare-section">
+      <div class="prep-card">
+        <div class="prep-card-header">Prepare for your interview</div>
+
+        <!-- Review your candidates -->
+        <div class="prep-row">
+          <svg class="prep-illustration" viewBox="0 0 120 90" fill="none">
+            <!-- Desk -->
+            <rect x="10" y="50" width="70" height="6" rx="3" fill="#e8e0d4"/>
+            <rect x="14" y="56" width="4" height="20" rx="2" fill="#d4c8b8"/>
+            <rect x="72" y="56" width="4" height="20" rx="2" fill="#d4c8b8"/>
+            <!-- Monitor -->
+            <rect x="22" y="16" width="46" height="34" rx="4" fill="#d6e4f7"/>
+            <rect x="26" y="20" width="38" height="26" rx="2" fill="#fff"/>
+            <rect x="42" y="50" width="6" height="4" fill="#c4b8a8"/>
+            <text x="45" y="38" font-size="18" font-weight="700" fill="#2557a7" text-anchor="middle" font-family="sans-serif">?</text>
+            <!-- Person -->
+            <circle cx="95" cy="30" r="10" fill="#e8a87c"/>
+            <rect x="85" y="42" width="20" height="24" rx="6" fill="#4a90d9"/>
+            <rect x="72" y="46" width="16" height="5" rx="2.5" fill="#e8a87c"/>
+          </svg>
+          <div class="prep-text">
+            <div class="prep-title">Review your candidates</div>
+            <div class="prep-desc">You have 10 candidates to review.</div>
+          </div>
+          <a class="prep-action" onclick="document.querySelectorAll('.tab')[3].click()">View candidates</a>
+        </div>
+
+        <!-- Add hiring team members -->
+        <div class="prep-row">
+          <svg class="prep-illustration" viewBox="0 0 120 90" fill="none">
+            <!-- Person 1 -->
+            <circle cx="35" cy="25" r="10" fill="#e8a87c"/>
+            <rect x="25" y="37" width="20" height="22" rx="6" fill="#d4956b"/>
+            <!-- Person 2 -->
+            <circle cx="65" cy="25" r="10" fill="#c9a87c"/>
+            <rect x="55" y="37" width="20" height="22" rx="6" fill="#4a90d9"/>
+            <!-- Person 3 (behind) -->
+            <circle cx="50" cy="18" r="8" fill="#a8c5a8" opacity="0.7"/>
+            <rect x="42" y="28" width="16" height="18" rx="5" fill="#7da67d" opacity="0.6"/>
+            <!-- Plus icon -->
+            <circle cx="95" cy="35" r="14" fill="#f0f5ff" stroke="#2557a7" stroke-width="2"/>
+            <rect x="93" y="27" width="4" height="16" rx="2" fill="#2557a7"/>
+            <rect x="87" y="33" width="16" height="4" rx="2" fill="#2557a7"/>
+          </svg>
+          <div class="prep-text">
+            <div class="prep-title">Add hiring team members to the interview</div>
+            <div class="prep-desc">You added 1 team member.</div>
+          </div>
+          <a class="prep-action" onclick="openTeamModal()">Add team members</a>
+        </div>
+
+        <!-- Personalize welcome message -->
+        <div class="prep-row">
+          <svg class="prep-illustration" viewBox="0 0 120 90" fill="none">
+            <!-- Monitor -->
+            <rect x="15" y="10" width="60" height="45" rx="5" fill="#d6e4f7"/>
+            <rect x="20" y="15" width="50" height="35" rx="3" fill="#fff"/>
+            <rect x="40" y="55" width="10" height="6" fill="#c4b8a8"/>
+            <rect x="30" y="60" width="30" height="4" rx="2" fill="#d4c8b8"/>
+            <!-- Chat bubble on screen -->
+            <rect x="26" y="22" width="38" height="14" rx="4" fill="#e8f4e8"/>
+            <rect x="28" y="25" width="20" height="2.5" rx="1" fill="#7da67d"/>
+            <rect x="28" y="30" width="14" height="2.5" rx="1" fill="#7da67d" opacity="0.6"/>
+            <!-- Decorative wave -->
+            <circle cx="95" cy="35" r="18" fill="#fef3e2" opacity="0.6"/>
+            <circle cx="100" cy="45" r="12" fill="#fde8d0" opacity="0.5"/>
+          </svg>
+          <div class="prep-text">
+            <div class="prep-title">Personalize welcome message</div>
+            <div class="prep-desc">Candidates will be able to see your welcome message when they enter your lobby.</div>
+          </div>
+          <a class="prep-action" onclick="openWelcomeModal()">Update welcome message</a>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Interviewing -->
+<div class="tab-panel" id="panel-interviewing" style="display:none;">
+  <div class="tab-panel-wrapper">
+
+    <!-- ACTIVE STATE -->
+    <div id="interviewingActive" style="display: none;">
+      <div class="review-section">
+        <div class="review-header" style="cursor: default;">
+          <h3>3 live interviews in progress</h3>
+          <div class="dev-toggle" onclick="event.stopPropagation()" style="margin-left: auto; margin-right: 280px;">
+            <span class="dev-toggle-label">View:</span>
+            <div class="dev-toggle-switch">
+              <button class="dev-toggle-btn active" onclick="setLobbyMode('active', this)">Active</button>
+              <button class="dev-toggle-btn" onclick="setLobbyMode('empty', this)">Empty</button>
+              <button class="dev-toggle-btn" onclick="setLobbyMode('live', this)">Live</button>
+            </div>
+          </div>
+        </div>
+        <div class="review-body">
+          <table class="review-table" style="table-layout: fixed;">
+            <colgroup>
+              <col style="width: 25%;">
+              <col style="width: 20%;">
+              <col style="width: 18%;">
+              <col style="width: 20%;">
+              <col style="width: 17%;">
+            </colgroup>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Job title</th>
+                <th>Interview time</th>
+                <th>Interviewer</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <div class="review-name">Aisha Rahman</div>
+                  <div class="review-actions"><a onclick="openResumeModal(this)" style="cursor:pointer">View resume</a> <a onclick="openMsgModal(this)" style="cursor:pointer">Message</a></div>
+                </td>
+                <td>
+                  <div class="review-job-title">Registered Nurse</div>
+                </td>
+                <td>
+                  <div class="review-time">11:00 AM</div>
+                </td>
+                <td>
+                  <div class="review-interviewer">Scott Harrison</div>
+                </td>
+                <td>
+                  <div class="interview-actions">
+                    <button class="interview-btn rejoin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;margin-right:6px;"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg> Rejoin<span class="btn-tooltip">Rejoin interview</span></button>
+                    <button class="interview-btn end">End<span class="btn-tooltip">End interview</span></button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="review-name">James Cooper</div>
+                  <div class="review-actions"><a onclick="openResumeModal(this)" style="cursor:pointer">View resume</a> <a onclick="openMsgModal(this)" style="cursor:pointer">Message</a></div>
+                </td>
+                <td>
+                  <div class="review-job-title">Physical Therapist</div>
+                </td>
+                <td>
+                  <div class="review-time">11:00 AM</div>
+                </td>
+                <td>
+                  <div class="review-interviewer">Maria Lopez</div>
+                </td>
+                <td>
+                  <div class="interview-actions">
+                    <button class="interview-btn rejoin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;margin-right:6px;"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg> Rejoin<span class="btn-tooltip">Rejoin interview</span></button>
+                    <button class="interview-btn end">End<span class="btn-tooltip">End interview</span></button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="review-name">Sofia Martinez</div>
+                  <div class="review-actions"><a onclick="openResumeModal(this)" style="cursor:pointer">View resume</a> <a onclick="openMsgModal(this)" style="cursor:pointer">Message</a></div>
+                </td>
+                <td>
+                  <div class="review-job-title">Medical Assistant</div>
+                </td>
+                <td>
+                  <div class="review-time">11:30 AM</div>
+                </td>
+                <td>
+                  <div class="review-interviewer">Scott Harrison</div>
+                </td>
+                <td>
+                  <div class="interview-actions">
+                    <button class="interview-btn rejoin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;margin-right:6px;"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg> Rejoin<span class="btn-tooltip">Rejoin interview</span></button>
+                    <button class="interview-btn end">End<span class="btn-tooltip">End interview</span></button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div><!-- /interviewingActive -->
+
+    <!-- EMPTY STATE -->
+    <div id="interviewingEmpty">
+      <div class="status-card">
+        <div class="status-card-text">
+          <h3>Interviewing has not begun</h3>
+          <p>Live interviews will appear here during the event.</p>
+        </div>
+        <div class="dev-toggle" onclick="event.stopPropagation()" style="margin-right: 20px;">
+          <span class="dev-toggle-label">View:</span>
+          <div class="dev-toggle-switch">
+            <button class="dev-toggle-btn" onclick="setLobbyMode('active', this)">Active</button>
+            <button class="dev-toggle-btn active" onclick="setLobbyMode('empty', this)">Empty</button>
+            <button class="dev-toggle-btn" onclick="setLobbyMode('live', this)">Live</button>
+          </div>
+        </div>
+        <svg class="status-card-illustration" viewBox="0 0 140 100" fill="none">
+          <circle cx="55" cy="35" r="10" fill="#8fbc8f" opacity="0.7"/>
+          <circle cx="62" cy="28" r="8" fill="#7da67d" opacity="0.8"/>
+          <circle cx="50" cy="28" r="7" fill="#a8d5a8" opacity="0.6"/>
+          <rect x="54" y="44" width="4" height="16" rx="2" fill="#c17f59"/>
+          <rect x="48" y="58" width="16" height="8" rx="3" fill="#d4956b" opacity="0.5"/>
+          <rect x="80" y="38" width="28" height="4" rx="2" fill="#d4956b"/>
+          <rect x="104" y="30" width="4" height="36" rx="2" fill="#c17f59"/>
+          <rect x="80" y="42" width="4" height="24" rx="2" fill="#c17f59"/>
+          <rect x="96" y="42" width="4" height="24" rx="2" fill="#c17f59" opacity="0.6"/>
+          <rect x="108" y="30" width="4" height="12" rx="2" fill="#d4956b" opacity="0.7"/>
+          <rect x="70" y="66" width="50" height="6" rx="3" fill="#f0ebe4"/>
+          <rect x="78" y="72" width="4" height="14" rx="2" fill="#e0d6ca"/>
+          <rect x="108" y="72" width="4" height="14" rx="2" fill="#e0d6ca"/>
+          <circle cx="30" cy="55" r="8" fill="#e8ddd0" opacity="0.5"/>
+          <rect x="22" y="64" width="16" height="20" rx="4" fill="#e8ddd0" opacity="0.4"/>
+        </svg>
+      </div>
+    </div><!-- /interviewingEmpty -->
+
+  </div>
+  <div class="prepare-wrapper" id="interviewingPrepare">
+    <div class="prepare-section">
+      <div class="prep-card">
+        <div class="prep-card-header">Prepare for your interview</div>
+
+        <!-- Review your candidates -->
+        <div class="prep-row">
+          <svg class="prep-illustration" viewBox="0 0 120 90" fill="none">
+            <rect x="10" y="50" width="70" height="6" rx="3" fill="#e8e0d4"/>
+            <rect x="14" y="56" width="4" height="20" rx="2" fill="#d4c8b8"/>
+            <rect x="72" y="56" width="4" height="20" rx="2" fill="#d4c8b8"/>
+            <rect x="22" y="16" width="46" height="34" rx="4" fill="#d6e4f7"/>
+            <rect x="26" y="20" width="38" height="26" rx="2" fill="#fff"/>
+            <rect x="42" y="50" width="6" height="4" fill="#c4b8a8"/>
+            <text x="45" y="38" font-size="18" font-weight="700" fill="#2557a7" text-anchor="middle" font-family="sans-serif">?</text>
+            <circle cx="95" cy="30" r="10" fill="#e8a87c"/>
+            <rect x="85" y="42" width="20" height="24" rx="6" fill="#4a90d9"/>
+            <rect x="72" y="46" width="16" height="5" rx="2.5" fill="#e8a87c"/>
+          </svg>
+          <div class="prep-text">
+            <div class="prep-title">Review your candidates</div>
+            <div class="prep-desc">You have 10 candidates to review.</div>
+          </div>
+          <a class="prep-action" onclick="document.querySelectorAll('.tab')[3].click()">View candidates</a>
+        </div>
+
+        <!-- Add hiring team members -->
+        <div class="prep-row">
+          <svg class="prep-illustration" viewBox="0 0 120 90" fill="none">
+            <circle cx="35" cy="25" r="10" fill="#e8a87c"/>
+            <rect x="25" y="37" width="20" height="22" rx="6" fill="#d4956b"/>
+            <circle cx="65" cy="25" r="10" fill="#c9a87c"/>
+            <rect x="55" y="37" width="20" height="22" rx="6" fill="#4a90d9"/>
+            <circle cx="50" cy="18" r="8" fill="#a8c5a8" opacity="0.7"/>
+            <rect x="42" y="28" width="16" height="18" rx="5" fill="#7da67d" opacity="0.6"/>
+            <circle cx="95" cy="35" r="14" fill="#f0f5ff" stroke="#2557a7" stroke-width="2"/>
+            <rect x="93" y="27" width="4" height="16" rx="2" fill="#2557a7"/>
+            <rect x="87" y="33" width="16" height="4" rx="2" fill="#2557a7"/>
+          </svg>
+          <div class="prep-text">
+            <div class="prep-title">Add hiring team members to the interview</div>
+            <div class="prep-desc">You added 1 team member.</div>
+          </div>
+          <a class="prep-action" onclick="openTeamModal()">Add team members</a>
+        </div>
+
+        <!-- Personalize welcome message -->
+        <div class="prep-row">
+          <svg class="prep-illustration" viewBox="0 0 120 90" fill="none">
+            <rect x="15" y="10" width="60" height="45" rx="5" fill="#d6e4f7"/>
+            <rect x="20" y="15" width="50" height="35" rx="3" fill="#fff"/>
+            <rect x="40" y="55" width="10" height="6" fill="#c4b8a8"/>
+            <rect x="30" y="60" width="30" height="4" rx="2" fill="#d4c8b8"/>
+            <rect x="26" y="22" width="38" height="14" rx="4" fill="#e8f4e8"/>
+            <rect x="28" y="25" width="20" height="2.5" rx="1" fill="#7da67d"/>
+            <rect x="28" y="30" width="14" height="2.5" rx="1" fill="#7da67d" opacity="0.6"/>
+            <circle cx="95" cy="35" r="18" fill="#fef3e2" opacity="0.6"/>
+            <circle cx="100" cy="45" r="12" fill="#fde8d0" opacity="0.5"/>
+          </svg>
+          <div class="prep-text">
+            <div class="prep-title">Personalize welcome message</div>
+            <div class="prep-desc">Candidates will be able to see your welcome message when they enter your lobby.</div>
+          </div>
+          <a class="prep-action" onclick="openWelcomeModal()">Update welcome message</a>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Interviewed -->
+<div class="tab-panel" id="panel-interviewed" style="display:none;">
+  <div class="tab-panel-wrapper" style="min-height: 300px;">
+
+    <!-- ACTIVE STATE -->
+    <div id="interviewedActive" style="display: none;">
+      <div class="review-section">
+        <div class="review-header" style="cursor: default;">
+          <h3>5 candidates interviewed</h3>
+          <div class="dev-toggle" onclick="event.stopPropagation()" style="margin-left: auto; margin-right: 280px;">
+            <span class="dev-toggle-label">View:</span>
+            <div class="dev-toggle-switch">
+              <button class="dev-toggle-btn active" onclick="setLobbyMode('active', this)">Active</button>
+              <button class="dev-toggle-btn" onclick="setLobbyMode('empty', this)">Empty</button>
+              <button class="dev-toggle-btn" onclick="setLobbyMode('live', this)">Live</button>
+            </div>
+          </div>
+        </div>
+        <div class="review-body">
+          <table class="review-table" style="table-layout: fixed;">
+            <colgroup>
+              <col style="width: 30%;">
+              <col style="width: 25%;">
+              <col style="width: 25%;">
+              <col style="width: 20%;">
+            </colgroup>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Job title</th>
+                <th>Interviewer</th>
+                <th>Disposition</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <div class="review-name">Aisha Rahman</div>
+                  <div class="review-actions"><a onclick="openResumeModal(this)" style="cursor:pointer">View resume</a> <a onclick="openMsgModal(this)" style="cursor:pointer">Message</a></div>
+                </td>
+                <td>
+                  <div class="review-job-title">Registered Nurse</div>
+                </td>
+                <td>
+                  <div class="review-interviewer">Scott Harrison</div>
+                </td>
+                <td>
+                  <div class="disposition-wrapper">
+                    <div class="disposition-actions">
+                      <button class="disposition-btn status yes" data-value="yes">&#10003; Yes<span class="btn-tooltip">Candidate marked as Yes</span></button>
+                      <button class="disposition-btn change" onclick="toggleDispositionDropdown(this)">Change<span class="btn-tooltip">Change disposition</span></button>
+                    </div>
+                    <div class="disposition-dropdown">
+                      <div class="disposition-option" onclick="changeDisposition(this, 'yes')"><span class="dot green"></span> Yes</div>
+                      <div class="disposition-option" onclick="changeDisposition(this, 'no')"><span class="dot red"></span> No</div>
+                      <div class="disposition-option" onclick="changeDisposition(this, 'maybe')"><span class="dot yellow"></span> Maybe</div>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="review-name">James Cooper</div>
+                  <div class="review-actions"><a onclick="openResumeModal(this)" style="cursor:pointer">View resume</a> <a onclick="openMsgModal(this)" style="cursor:pointer">Message</a></div>
+                </td>
+                <td>
+                  <div class="review-job-title">Physical Therapist</div>
+                </td>
+                <td>
+                  <div class="review-interviewer">Maria Lopez</div>
+                </td>
+                <td>
+                  <div class="disposition-wrapper">
+                    <div class="disposition-actions">
+                      <button class="disposition-btn status maybe" data-value="maybe">&#9679; Maybe<span class="btn-tooltip">Candidate marked as Maybe</span></button>
+                      <button class="disposition-btn change" onclick="toggleDispositionDropdown(this)">Change<span class="btn-tooltip">Change disposition</span></button>
+                    </div>
+                    <div class="disposition-dropdown">
+                      <div class="disposition-option" onclick="changeDisposition(this, 'yes')"><span class="dot green"></span> Yes</div>
+                      <div class="disposition-option" onclick="changeDisposition(this, 'no')"><span class="dot red"></span> No</div>
+                      <div class="disposition-option" onclick="changeDisposition(this, 'maybe')"><span class="dot yellow"></span> Maybe</div>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="review-name">Sofia Martinez</div>
+                  <div class="review-actions"><a onclick="openResumeModal(this)" style="cursor:pointer">View resume</a> <a onclick="openMsgModal(this)" style="cursor:pointer">Message</a></div>
+                </td>
+                <td>
+                  <div class="review-job-title">Medical Assistant</div>
+                </td>
+                <td>
+                  <div class="review-interviewer">Scott Harrison</div>
+                </td>
+                <td>
+                  <div class="disposition-wrapper">
+                    <div class="disposition-actions">
+                      <button class="disposition-btn status yes" data-value="yes">&#10003; Yes<span class="btn-tooltip">Candidate marked as Yes</span></button>
+                      <button class="disposition-btn change" onclick="toggleDispositionDropdown(this)">Change<span class="btn-tooltip">Change disposition</span></button>
+                    </div>
+                    <div class="disposition-dropdown">
+                      <div class="disposition-option" onclick="changeDisposition(this, 'yes')"><span class="dot green"></span> Yes</div>
+                      <div class="disposition-option" onclick="changeDisposition(this, 'no')"><span class="dot red"></span> No</div>
+                      <div class="disposition-option" onclick="changeDisposition(this, 'maybe')"><span class="dot yellow"></span> Maybe</div>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="review-name">Derek Washington</div>
+                  <div class="review-actions"><a onclick="openResumeModal(this)" style="cursor:pointer">View resume</a> <a onclick="openMsgModal(this)" style="cursor:pointer">Message</a></div>
+                </td>
+                <td>
+                  <div class="review-job-title">Dental Hygienist</div>
+                </td>
+                <td>
+                  <div class="review-interviewer">Scott Harrison</div>
+                </td>
+                <td>
+                  <div class="disposition-wrapper">
+                    <div class="disposition-actions">
+                      <button class="disposition-btn status no" data-value="no">&#10007; No<span class="btn-tooltip">Candidate marked as No</span></button>
+                      <button class="disposition-btn change" onclick="toggleDispositionDropdown(this)">Change<span class="btn-tooltip">Change disposition</span></button>
+                    </div>
+                    <div class="disposition-dropdown">
+                      <div class="disposition-option" onclick="changeDisposition(this, 'yes')"><span class="dot green"></span> Yes</div>
+                      <div class="disposition-option" onclick="changeDisposition(this, 'no')"><span class="dot red"></span> No</div>
+                      <div class="disposition-option" onclick="changeDisposition(this, 'maybe')"><span class="dot yellow"></span> Maybe</div>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="review-name">Tamara Williams</div>
+                  <div class="review-actions"><a onclick="openResumeModal(this)" style="cursor:pointer">View resume</a> <a onclick="openMsgModal(this)" style="cursor:pointer">Message</a></div>
+                </td>
+                <td>
+                  <div class="review-job-title">Certified Nursing Assistant</div>
+                </td>
+                <td>
+                  <div class="review-interviewer">Maria Lopez</div>
+                </td>
+                <td>
+                  <div class="disposition-wrapper">
+                    <div class="disposition-actions">
+                      <button class="disposition-btn status yes" data-value="yes">&#10003; Yes<span class="btn-tooltip">Candidate marked as Yes</span></button>
+                      <button class="disposition-btn change" onclick="toggleDispositionDropdown(this)">Change<span class="btn-tooltip">Change disposition</span></button>
+                    </div>
+                    <div class="disposition-dropdown">
+                      <div class="disposition-option" onclick="changeDisposition(this, 'yes')"><span class="dot green"></span> Yes</div>
+                      <div class="disposition-option" onclick="changeDisposition(this, 'no')"><span class="dot red"></span> No</div>
+                      <div class="disposition-option" onclick="changeDisposition(this, 'maybe')"><span class="dot yellow"></span> Maybe</div>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div><!-- /interviewedActive -->
+
+    <!-- EMPTY STATE -->
+    <div id="interviewedEmpty">
+      <div class="status-card">
+        <div class="status-card-text">
+          <h3>No one has been interviewed yet.</h3>
+        </div>
+        <div class="dev-toggle" onclick="event.stopPropagation()" style="margin-right: 20px;">
+          <span class="dev-toggle-label">View:</span>
+          <div class="dev-toggle-switch">
+            <button class="dev-toggle-btn" onclick="setLobbyMode('active', this)">Active</button>
+            <button class="dev-toggle-btn active" onclick="setLobbyMode('empty', this)">Empty</button>
+            <button class="dev-toggle-btn" onclick="setLobbyMode('live', this)">Live</button>
+          </div>
+        </div>
+        <svg class="status-card-illustration" viewBox="0 0 140 100" fill="none">
+          <circle cx="55" cy="35" r="10" fill="#8fbc8f" opacity="0.7"/>
+          <circle cx="62" cy="28" r="8" fill="#7da67d" opacity="0.8"/>
+          <circle cx="50" cy="28" r="7" fill="#a8d5a8" opacity="0.6"/>
+          <rect x="54" y="44" width="4" height="16" rx="2" fill="#c17f59"/>
+          <rect x="48" y="58" width="16" height="8" rx="3" fill="#d4956b" opacity="0.5"/>
+          <rect x="80" y="38" width="28" height="4" rx="2" fill="#d4956b"/>
+          <rect x="104" y="30" width="4" height="36" rx="2" fill="#c17f59"/>
+          <rect x="80" y="42" width="4" height="24" rx="2" fill="#c17f59"/>
+          <rect x="96" y="42" width="4" height="24" rx="2" fill="#c17f59" opacity="0.6"/>
+          <rect x="108" y="30" width="4" height="12" rx="2" fill="#d4956b" opacity="0.7"/>
+          <rect x="70" y="66" width="50" height="6" rx="3" fill="#f0ebe4"/>
+          <rect x="78" y="72" width="4" height="14" rx="2" fill="#e0d6ca"/>
+          <rect x="108" y="72" width="4" height="14" rx="2" fill="#e0d6ca"/>
+          <circle cx="30" cy="55" r="8" fill="#e8ddd0" opacity="0.5"/>
+          <rect x="22" y="64" width="16" height="20" rx="4" fill="#e8ddd0" opacity="0.4"/>
+        </svg>
+      </div>
+    </div><!-- /interviewedEmpty -->
+
+  </div>
+</div>
+
+<!-- Not yet interviewed -->
+<div class="tab-panel" id="panel-notyet" style="display:none;">
+  <div class="tab-panel-wrapper">
+    <!-- Dev toggle -->
+    <!-- ACTIVE STATE -->
+    <div id="notyetActive">
+    <!-- Pending Interview Requests -->
+    <div class="review-section pending">
+      <div class="review-header" onclick="togglePendingSection()">
+        <span class="collapse-arrow" id="pendingArrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><polyline points="6 15 12 9 18 15"/></svg></span>
+        <h3>18 candidates awaiting your response</h3>
+        <div class="dev-toggle" onclick="event.stopPropagation()" style="margin-left: auto; margin-right: 280px;">
+          <span class="dev-toggle-label">View:</span>
+          <div class="dev-toggle-switch">
+            <button class="dev-toggle-btn active" onclick="setLobbyMode('active', this)">Active</button>
+            <button class="dev-toggle-btn" onclick="setLobbyMode('empty', this)">Empty</button>
+            <button class="dev-toggle-btn" onclick="setLobbyMode('live', this)">Live</button>
+          </div>
+        </div>
+      </div>
+      <div class="review-body" id="pendingBody">
+        <table class="review-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Job title</th>
+              <th>Interview time</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div class="review-name">Tamara Williams</div>
+                <div class="review-actions"><a onclick="openResumeModal(this)" style="cursor:pointer">View resume</a> <a onclick="openMsgModal(this)" style="cursor:pointer">Message</a></div>
+              </td>
+              <td>
+                <div class="review-job-title">Registered Nurse</div>
+                <div class="review-job-location">Dallas, TX (On-site)</div>
+              </td>
+              <td>
+                <div class="review-time">9:00 AM</div>
+                <div class="review-time-date">Apr 22, 2026</div>
+              </td>
+              <td>
+                <div class="pending-actions">
+                  <button class="pending-btn accept" onclick="acceptInterview(this)">Accept<span class="btn-tooltip">Accept interview request</span></button>
+                  <button class="pending-btn decline" onclick="declineInterview(this)">Decline<span class="btn-tooltip">Decline interview request</span></button>
+                  <button class="pending-btn propose">Reschedule<span class="btn-tooltip">Propose new interview time</span></button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div class="review-name">Marcus Johnson</div>
+                <div class="review-actions"><a onclick="openResumeModal(this)" style="cursor:pointer">View resume</a> <a onclick="openMsgModal(this)" style="cursor:pointer">Message</a></div>
+              </td>
+              <td>
+                <div class="review-job-title">Web Developer</div>
+                <div class="review-job-location">Dallas, TX (Remote)</div>
+              </td>
+              <td>
+                <div class="review-time">9:30 AM</div>
+                <div class="review-time-date">Apr 22, 2026</div>
+              </td>
+              <td>
+                <div class="pending-actions">
+                  <button class="pending-btn accept" onclick="acceptInterview(this)">Accept<span class="btn-tooltip">Accept interview request</span></button>
+                  <button class="pending-btn decline" onclick="declineInterview(this)">Decline<span class="btn-tooltip">Decline interview request</span></button>
+                  <button class="pending-btn propose">Reschedule<span class="btn-tooltip">Propose new interview time</span></button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div class="review-name">Priya Patel</div>
+                <div class="review-actions"><a onclick="openResumeModal(this)" style="cursor:pointer">View resume</a> <a onclick="openMsgModal(this)" style="cursor:pointer">Message</a></div>
+              </td>
+              <td>
+                <div class="review-job-title">Frontend Developer</div>
+                <div class="review-job-location">Dallas, TX (Remote)</div>
+              </td>
+              <td>
+                <div class="review-time">10:00 AM</div>
+                <div class="review-time-date">Apr 22, 2026</div>
+              </td>
+              <td>
+                <div class="pending-actions">
+                  <button class="pending-btn accept" onclick="acceptInterview(this)">Accept<span class="btn-tooltip">Accept interview request</span></button>
+                  <button class="pending-btn decline" onclick="declineInterview(this)">Decline<span class="btn-tooltip">Decline interview request</span></button>
+                  <button class="pending-btn propose">Reschedule<span class="btn-tooltip">Propose new interview time</span></button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div class="review-name">Jordan Lee</div>
+                <div class="review-actions"><a onclick="openResumeModal(this)" style="cursor:pointer">View resume</a> <a onclick="openMsgModal(this)" style="cursor:pointer">Message</a></div>
+              </td>
+              <td>
+                <div class="review-job-title">Registered Nurse</div>
+                <div class="review-job-location">Dallas, TX (On-site)</div>
+              </td>
+              <td>
+                <div class="review-time">10:00 AM</div>
+                <div class="review-time-date">Apr 22, 2026</div>
+              </td>
+              <td>
+                <div class="pending-actions">
+                  <button class="pending-btn accept" onclick="acceptInterview(this)">Accept<span class="btn-tooltip">Accept interview request</span></button>
+                  <button class="pending-btn decline" onclick="declineInterview(this)">Decline<span class="btn-tooltip">Decline interview request</span></button>
+                  <button class="pending-btn propose">Reschedule<span class="btn-tooltip">Propose new interview time</span></button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div class="review-name">Keisha Brown</div>
+                <div class="review-actions"><a onclick="openResumeModal(this)" style="cursor:pointer">View resume</a> <a onclick="openMsgModal(this)" style="cursor:pointer">Message</a></div>
+              </td>
+              <td>
+                <div class="review-job-title">Full Stack Developer</div>
+                <div class="review-job-location">Dallas, TX (Remote)</div>
+              </td>
+              <td>
+                <div class="review-time">10:30 AM</div>
+                <div class="review-time-date">Apr 22, 2026</div>
+              </td>
+              <td>
+                <div class="pending-actions">
+                  <button class="pending-btn accept" onclick="acceptInterview(this)">Accept<span class="btn-tooltip">Accept interview request</span></button>
+                  <button class="pending-btn decline" onclick="declineInterview(this)">Decline<span class="btn-tooltip">Decline interview request</span></button>
+                  <button class="pending-btn propose">Reschedule<span class="btn-tooltip">Propose new interview time</span></button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div class="review-name">Daniel Ortiz</div>
+                <div class="review-actions"><a onclick="openResumeModal(this)" style="cursor:pointer">View resume</a> <a onclick="openMsgModal(this)" style="cursor:pointer">Message</a></div>
+              </td>
+              <td>
+                <div class="review-job-title">Web Developer</div>
+                <div class="review-job-location">Dallas, TX (Remote)</div>
+              </td>
+              <td>
+                <div class="review-time">11:00 AM</div>
+                <div class="review-time-date">Apr 22, 2026</div>
+              </td>
+              <td>
+                <div class="pending-actions">
+                  <button class="pending-btn accept" onclick="acceptInterview(this)">Accept<span class="btn-tooltip">Accept interview request</span></button>
+                  <button class="pending-btn decline" onclick="declineInterview(this)">Decline<span class="btn-tooltip">Decline interview request</span></button>
+                  <button class="pending-btn propose">Reschedule<span class="btn-tooltip">Propose new interview time</span></button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div class="review-name">Aisha Mohammed</div>
+                <div class="review-actions"><a onclick="openResumeModal(this)" style="cursor:pointer">View resume</a> <a onclick="openMsgModal(this)" style="cursor:pointer">Message</a></div>
+              </td>
+              <td>
+                <div class="review-job-title">Registered Nurse</div>
+                <div class="review-job-location">Dallas, TX (On-site)</div>
+              </td>
+              <td>
+                <div class="review-time">11:30 AM</div>
+                <div class="review-time-date">Apr 22, 2026</div>
+              </td>
+              <td>
+                <div class="pending-actions">
+                  <button class="pending-btn accept" onclick="acceptInterview(this)">Accept<span class="btn-tooltip">Accept interview request</span></button>
+                  <button class="pending-btn decline" onclick="declineInterview(this)">Decline<span class="btn-tooltip">Decline interview request</span></button>
+                  <button class="pending-btn propose">Reschedule<span class="btn-tooltip">Propose new interview time</span></button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div class="review-name">Ryan Cooper</div>
+                <div class="review-actions"><a onclick="openResumeModal(this)" style="cursor:pointer">View resume</a> <a onclick="openMsgModal(this)" style="cursor:pointer">Message</a></div>
+              </td>
+              <td>
+                <div class="review-job-title">Frontend Developer</div>
+                <div class="review-job-location">Dallas, TX (Remote)</div>
+              </td>
+              <td>
+                <div class="review-time">12:00 PM</div>
+                <div class="review-time-date">Apr 22, 2026</div>
+              </td>
+              <td>
+                <div class="pending-actions">
+                  <button class="pending-btn accept" onclick="acceptInterview(this)">Accept<span class="btn-tooltip">Accept interview request</span></button>
+                  <button class="pending-btn decline" onclick="declineInterview(this)">Decline<span class="btn-tooltip">Decline interview request</span></button>
+                  <button class="pending-btn propose">Reschedule<span class="btn-tooltip">Propose new interview time</span></button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Confirmed Interviews -->
+    <div class="review-section">
+      <div class="review-header" onclick="toggleReviewSection()">
+        <span class="collapse-arrow" id="reviewArrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><polyline points="6 15 12 9 18 15"/></svg></span>
+        <h3>18 candidates with upcoming interviews</h3>
+      </div>
+      <div class="review-body" id="reviewBody">
+        <table class="review-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Job title</th>
+              <th>Interview time</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div class="review-name">Michael Sanchez Reyes</div>
+                <div class="review-actions"><a onclick="openResumeModal(this)" style="cursor:pointer">View resume</a> <a onclick="openMsgModal(this)" style="cursor:pointer">Message</a></div>
+              </td>
+              <td>
+                <div class="review-job-title">Web Developer</div>
+                <div class="review-job-location">Dallas, TX (Remote)</div>
+              </td>
+              <td>
+                <div class="review-time">10:30 AM</div>
+                <div class="review-time-date">Apr 22, 2026</div>
+              </td>
+              <td>
+                <div class="pending-actions">
+                  <button class="pending-btn propose" style="border-right: 1px solid #d4d2d0;">Reschedule</button>
+                  <button class="pending-btn decline" style="border-right: none;">Cancel</button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div class="review-name">Babar Nawaz</div>
+                <div class="review-actions"><a onclick="openResumeModal(this)" style="cursor:pointer">View resume</a> <a onclick="openMsgModal(this)" style="cursor:pointer">Message</a></div>
+              </td>
+              <td>
+                <div class="review-job-title">Web Developer</div>
+                <div class="review-job-location">Dallas, TX (Remote)</div>
+              </td>
+              <td>
+                <div class="review-time">10:30 AM</div>
+                <div class="review-time-date">Apr 22, 2026</div>
+              </td>
+              <td>
+                <div class="pending-actions">
+                  <button class="pending-btn propose" style="border-right: 1px solid #d4d2d0;">Reschedule</button>
+                  <button class="pending-btn decline" style="border-right: none;">Cancel</button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div class="review-name">Michael Duvenary</div>
+                <div class="review-actions"><a onclick="openResumeModal(this)" style="cursor:pointer">View resume</a> <a onclick="openMsgModal(this)" style="cursor:pointer">Message</a></div>
+              </td>
+              <td>
+                <div class="review-job-title">Web Developer</div>
+                <div class="review-job-location">Dallas, TX (Remote)</div>
+              </td>
+              <td>
+                <div class="review-time">11:00 AM</div>
+                <div class="review-time-date">Apr 22, 2026</div>
+              </td>
+              <td>
+                <div class="pending-actions">
+                  <button class="pending-btn propose" style="border-right: 1px solid #d4d2d0;">Reschedule</button>
+                  <button class="pending-btn decline" style="border-right: none;">Cancel</button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div class="review-name">Jonathan Kleve</div>
+                <div class="review-actions"><a onclick="openResumeModal(this)" style="cursor:pointer">View resume</a> <a onclick="openMsgModal(this)" style="cursor:pointer">Message</a></div>
+              </td>
+              <td>
+                <div class="review-job-title">Registered Nurse</div>
+                <div class="review-job-location">Dallas, TX (On-site)</div>
+              </td>
+              <td>
+                <div class="review-time">11:00 AM</div>
+                <div class="review-time-date">Apr 22, 2026</div>
+              </td>
+              <td>
+                <div class="pending-actions">
+                  <button class="pending-btn propose" style="border-right: 1px solid #d4d2d0;">Reschedule</button>
+                  <button class="pending-btn decline" style="border-right: none;">Cancel</button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div class="review-name">Andy Pham</div>
+                <div class="review-actions"><a onclick="openResumeModal(this)" style="cursor:pointer">View resume</a> <a onclick="openMsgModal(this)" style="cursor:pointer">Message</a></div>
+              </td>
+              <td>
+                <div class="review-job-title">Web Developer</div>
+                <div class="review-job-location">Dallas, TX (Remote)</div>
+              </td>
+              <td>
+                <div class="review-time">11:30 AM</div>
+                <div class="review-time-date">Apr 22, 2026</div>
+              </td>
+              <td>
+                <div class="pending-actions">
+                  <button class="pending-btn propose" style="border-right: 1px solid #d4d2d0;">Reschedule</button>
+                  <button class="pending-btn decline" style="border-right: none;">Cancel</button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div class="review-name">Sarah Kim</div>
+                <div class="review-actions"><a onclick="openResumeModal(this)" style="cursor:pointer">View resume</a> <a onclick="openMsgModal(this)" style="cursor:pointer">Message</a></div>
+              </td>
+              <td>
+                <div class="review-job-title">Frontend Developer</div>
+                <div class="review-job-location">Dallas, TX (Remote)</div>
+              </td>
+              <td>
+                <div class="review-time">12:00 PM</div>
+                <div class="review-time-date">Apr 22, 2026</div>
+              </td>
+              <td>
+                <div class="pending-actions">
+                  <button class="pending-btn propose" style="border-right: 1px solid #d4d2d0;">Reschedule</button>
+                  <button class="pending-btn decline" style="border-right: none;">Cancel</button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div class="review-name">David Chen</div>
+                <div class="review-actions"><a onclick="openResumeModal(this)" style="cursor:pointer">View resume</a> <a onclick="openMsgModal(this)" style="cursor:pointer">Message</a></div>
+              </td>
+              <td>
+                <div class="review-job-title">Frontend Developer</div>
+                <div class="review-job-location">Dallas, TX (Remote)</div>
+              </td>
+              <td>
+                <div class="review-time">12:00 PM</div>
+                <div class="review-time-date">Apr 22, 2026</div>
+              </td>
+              <td>
+                <div class="pending-actions">
+                  <button class="pending-btn propose" style="border-right: 1px solid #d4d2d0;">Reschedule</button>
+                  <button class="pending-btn decline" style="border-right: none;">Cancel</button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div class="review-name">Rachel Torres</div>
+                <div class="review-actions"><a onclick="openResumeModal(this)" style="cursor:pointer">View resume</a> <a onclick="openMsgModal(this)" style="cursor:pointer">Message</a></div>
+              </td>
+              <td>
+                <div class="review-job-title">Full Stack Developer</div>
+                <div class="review-job-location">Dallas, TX (Remote)</div>
+              </td>
+              <td>
+                <div class="review-time">12:30 PM</div>
+                <div class="review-time-date">Apr 22, 2026</div>
+              </td>
+              <td>
+                <div class="pending-actions">
+                  <button class="pending-btn propose" style="border-right: 1px solid #d4d2d0;">Reschedule</button>
+                  <button class="pending-btn decline" style="border-right: none;">Cancel</button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    </div><!-- /notyetActive -->
+
+    <!-- EMPTY STATE -->
+    <div id="notyetEmpty" style="display: none;">
+      <div class="review-section pending">
+        <div class="review-header" style="cursor: default;">
+          <h3 style="font-size: 24px; font-weight: 700; color: #2d2d2d;">No candidates awaiting your response</h3>
+          <div class="dev-toggle" onclick="event.stopPropagation()" style="margin-left: auto; margin-right: 280px;">
+            <span class="dev-toggle-label">View:</span>
+            <div class="dev-toggle-switch">
+              <button class="dev-toggle-btn" onclick="setLobbyMode('active', this)">Active</button>
+              <button class="dev-toggle-btn active" onclick="setLobbyMode('empty', this)">Empty</button>
+              <button class="dev-toggle-btn" onclick="setLobbyMode('live', this)">Live</button>
+            </div>
+          </div>
+          <svg class="review-illustration" viewBox="0 0 80 56" fill="none">
+            <circle cx="40" cy="28" r="22" fill="#f0ebe4" stroke="#d4d2d0" stroke-width="1"/>
+            <circle cx="40" cy="28" r="16" fill="#fff" stroke="#d4d2d0" stroke-width="1"/>
+            <line x1="40" y1="28" x2="40" y2="18" stroke="#e8a317" stroke-width="2.5" stroke-linecap="round"/>
+            <line x1="40" y1="28" x2="48" y2="28" stroke="#c17f59" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="40" cy="28" r="2" fill="#e8a317"/>
+            <circle cx="40" cy="12" r="1.5" fill="#d4d2d0"/>
+            <circle cx="40" cy="44" r="1.5" fill="#d4d2d0"/>
+            <circle cx="24" cy="28" r="1.5" fill="#d4d2d0"/>
+            <circle cx="56" cy="28" r="1.5" fill="#d4d2d0"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="review-section">
+        <div class="review-header" style="cursor: default;">
+          <h3 style="font-size: 24px; font-weight: 700; color: #2d2d2d;">You have no upcoming interviews</h3>
+          <svg class="review-illustration" viewBox="0 0 80 56" fill="none">
+            <rect x="8" y="4" width="40" height="48" rx="4" fill="#f0ebe4" stroke="#d4d2d0" stroke-width="1"/>
+            <rect x="14" y="12" width="28" height="3" rx="1.5" fill="#d4d2d0"/>
+            <rect x="14" y="20" width="20" height="3" rx="1.5" fill="#d4d2d0"/>
+            <rect x="14" y="28" width="24" height="3" rx="1.5" fill="#d4d2d0"/>
+            <rect x="14" y="36" width="18" height="3" rx="1.5" fill="#d4d2d0"/>
+            <rect x="50" y="8" width="24" height="20" rx="3" fill="#e8ddd0"/>
+            <circle cx="62" cy="15" r="4" fill="#c17f59" opacity="0.6"/>
+            <rect x="56" y="22" width="12" height="2" rx="1" fill="#c17f59" opacity="0.4"/>
+          </svg>
+        </div>
+      </div>
+    </div><!-- /notyetEmpty -->
+
+  </div>
+</div>
+
+<!-- ═══ UPDATE WELCOME MESSAGE MODAL ═══ -->
+<div class="welcome-modal-overlay" id="welcome-modal-overlay">
+  <div class="welcome-modal">
+    <button class="welcome-modal-close" onclick="closeWelcomeModal()">&times;</button>
+    <h2>Update welcome message</h2>
+
+    <div class="welcome-modal-label">Message *</div>
+    <div class="welcome-modal-hint">Candidates will see this when they enter the interview lobby. Keep it short and simple.</div>
+
+    <div class="welcome-editor">
+      <div class="welcome-editor-toolbar">
+        <button class="editor-btn bold">B</button>
+        <button class="editor-btn italic">I</button>
+        <button class="editor-btn">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M5 3h8M5 7h8M5 11h8M2 3h0M2 7h0M2 11h0"/></svg>
+        </button>
+      </div>
+      <textarea placeholder=""></textarea>
+    </div>
+
+    <div class="welcome-modal-footer">
+      <button class="btn-welcome-cancel" onclick="closeWelcomeModal()">Cancel</button>
+      <button class="btn-welcome-save">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ADD TEAM MEMBERS MODAL ═══ -->
+<div class="team-modal-overlay" id="team-modal-overlay">
+  <div class="team-modal">
+    <button class="team-modal-close" onclick="closeTeamModal()">&times;</button>
+    <h2>Add hiring team members</h2>
+    <p class="team-modal-desc">Invite hiring team members to help you out. They'll receive an email invite.</p>
+
+    <div class="team-modal-label">Email: *</div>
+    <div class="team-modal-hint">Separate each email with a comma</div>
+    <div class="team-modal-input-wrap">
+      <input type="text" placeholder="">
+      <div class="input-icon">
+        <svg viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="8" r="6"/><circle cx="5.5" cy="8" r="1" fill="#fff"/><circle cx="8" cy="8" r="1" fill="#fff"/><circle cx="10.5" cy="8" r="1" fill="#fff"/></svg>
+      </div>
+    </div>
+
+    <div class="team-modal-invited">
+      <div class="team-modal-invited-label">Invited (1)</div>
+      <div class="team-modal-invited-email">scott@jobfairx.com</div>
+    </div>
+
+    <div class="team-modal-footer">
+      <button class="btn-team-cancel" onclick="closeTeamModal()">Cancel</button>
+      <button class="btn-team-send">Send</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ AV TEST MODAL ═══ -->
+<div class="av-modal-overlay" id="av-modal-overlay">
+  <div class="av-modal">
+    <button class="av-modal-close" onclick="closeAvModal()">&times;</button>
+
+    <!-- STEP 1: Allow microphone access -->
+    <div class="av-step1" id="av-step1">
+      <h2>To join the interview, allow microphone access</h2>
+      <svg class="av-step1-illustration" viewBox="0 0 280 200" fill="none">
+        <!-- Background blob -->
+        <ellipse cx="140" cy="115" rx="105" ry="85" fill="#f5deb3" opacity="0.35"/>
+        <ellipse cx="125" cy="125" rx="80" ry="70" fill="#f5deb3" opacity="0.25"/>
+        <!-- Laptop body -->
+        <rect x="50" y="40" width="180" height="115" rx="8" fill="#3a6b7c"/>
+        <rect x="57" y="46" width="166" height="102" rx="4" fill="#c8dae4"/>
+        <rect x="62" y="51" width="156" height="92" rx="2" fill="#dde8f0"/>
+        <!-- Camera dot -->
+        <circle cx="140" cy="43" r="2" fill="#5a8a9a"/>
+        <!-- Checklist on screen -->
+        <rect x="86" y="66" width="108" height="62" rx="5" fill="#fff" stroke="#e0e0e0" stroke-width="1"/>
+        <!-- Camera icon -->
+        <rect x="96" y="75" width="14" height="10" rx="2" fill="#3a6b7c"/>
+        <polygon points="110,76 116,80 110,84" fill="#3a6b7c"/>
+        <rect x="122" y="76" width="54" height="3.5" rx="1.5" fill="#c8c8c8"/>
+        <rect x="122" y="82" width="36" height="3.5" rx="1.5" fill="#d8d8d8"/>
+        <!-- Mic icon -->
+        <rect x="99" y="94" width="7" height="12" rx="3.5" fill="#3a6b7c"/>
+        <path d="M96 103 C96 108 109 108 109 103" stroke="#3a6b7c" stroke-width="1.2" fill="none"/>
+        <rect x="101.5" y="107" width="2" height="3.5" fill="#3a6b7c"/>
+        <rect x="122" y="96" width="54" height="3.5" rx="1.5" fill="#c8c8c8"/>
+        <rect x="122" y="102" width="40" height="3.5" rx="1.5" fill="#d8d8d8"/>
+        <!-- Checkmark -->
+        <rect x="96" y="115" width="16" height="12" rx="3" fill="#2e7d32"/>
+        <polyline points="100,121 103,124.5 108,118" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <!-- Laptop base -->
+        <rect x="38" y="155" width="204" height="7" rx="3.5" fill="#3a6b7c"/>
+        <rect x="115" y="151" width="50" height="4" rx="2" fill="#5a8a9a"/>
+      </svg>
+      <p class="av-step1-desc">For others to hear you, your browser will request access to your microphone</p>
+      <div class="av-step1-footer">
+        <button class="btn-give-access" onclick="goToStep2()">Give access</button>
+      </div>
+    </div>
+
+    <!-- STEP 2: AV Test -->
+    <div class="av-step2" id="av-step2">
+      <div class="av-step2-header">
+        <h2>Test video and audio connection</h2>
+        <p>Checking your connection helps ensure a smooth interview experience.</p>
+      </div>
+
+      <!-- Settings / Backgrounds tabs -->
+      <div class="av-tabs">
+        <button class="av-tab active" onclick="this.parentElement.querySelectorAll('.av-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active');">Settings</button>
+        <button class="av-tab" onclick="this.parentElement.querySelectorAll('.av-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active');">Backgrounds</button>
+      </div>
+
+      <div class="av-test-layout">
+        <!-- Left: Network reminder + Video preview -->
+        <div class="av-left">
+          <div class="network-reminder">
+            <svg class="network-reminder-icon" viewBox="0 0 24 24" fill="none">
+              <path d="M12 2L1 22h22L12 2z" fill="#d4956b" stroke="#c17f59" stroke-width="0.8"/>
+              <text x="12" y="18" font-size="12" font-weight="800" fill="#fff" text-anchor="middle" font-family="sans-serif">!</text>
+            </svg>
+            <div class="network-reminder-text">
+              <strong>Network Access Reminder</strong>
+              If your company has a restrictive network, ask your IT team to update your settings before conducting interviews. We recommend <a href="https://network-test.daily.co/index.html" target="_blank">testing the network</a> you'll be using beforehand. If errors occur, provide your IT team with these <a href="troubleshooting.html" target="_blank">instructions</a> for updating the allow list.
+            </div>
+          </div>
+          <div class="video-preview">
+            <div class="video-preview-placeholder">
+              <svg viewBox="0 0 64 64" fill="none" stroke="#fff" stroke-width="2">
+                <rect x="4" y="12" width="40" height="30" rx="4"/>
+                <polygon points="44,20 58,14 58,38 44,32"/>
+                <circle cx="24" cy="27" r="6"/>
+              </svg>
+              <p>Camera preview</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Controls -->
+        <div class="av-right">
+          <!-- Microphone -->
+          <div class="av-control-card">
+            <div class="av-control-label">Microphone</div>
+            <select class="av-select">
+              <option>Default - MacBook Pro M...</option>
+              <option>External Microphone</option>
+            </select>
+            <div class="mic-level">
+              <span class="mic-level-label">Microphone Input:</span>
+              <div class="mic-level-bars">
+                <div class="mic-bar active"></div>
+                <div class="mic-bar active"></div>
+                <div class="mic-bar active"></div>
+                <div class="mic-bar active"></div>
+                <div class="mic-bar active"></div>
+                <div class="mic-bar"></div>
+                <div class="mic-bar"></div>
+                <div class="mic-bar"></div>
+              </div>
+            </div>
+            <label class="av-checkbox">
+              <input type="checkbox">
+              <div class="av-check-box">
+                <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="2 6 4.5 9 10 3"/></svg>
+              </div>
+              <span>Suppress background noise</span>
+            </label>
+          </div>
+
+          <!-- Speaker -->
+          <div class="av-control-card">
+            <div class="av-control-label">Speaker</div>
+            <select class="av-select">
+              <option>Default - MacBook Pro S...</option>
+              <option>External Speakers</option>
+            </select>
+            <button class="btn-test-speaker">Test speaker</button>
+          </div>
+
+          <!-- Camera -->
+          <div class="av-control-card">
+            <div class="av-control-label">Camera</div>
+            <select class="av-select">
+              <option>MacBook Pro Camera</option>
+              <option>External Camera</option>
+            </select>
+            <label class="av-checkbox">
+              <input type="checkbox" checked>
+              <div class="av-check-box">
+                <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="2 6 4.5 9 10 3"/></svg>
+              </div>
+              <span>Mirror my video</span>
+            </label>
+            <label class="av-checkbox">
+              <input type="checkbox">
+              <div class="av-check-box">
+                <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="2 6 4.5 9 10 3"/></svg>
+              </div>
+              <span>Blur background</span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══ INSTRUCTIONS SUB-MODAL ═══ -->
+<div class="instructions-overlay" id="instructions-overlay">
+  <div class="instructions-modal">
+    <button class="instructions-modal-close" onclick="closeInstructions()">&times;</button>
+    <h3>IT Network Allow List Instructions</h3>
+    <p>If your company uses a restrictive network or firewall, your IT team may need to update the allow list to ensure a smooth video interview experience.</p>
+    <div class="instructions-placeholder">
+      Placeholder: Detailed IT instructions will be provided here.<br><br>
+      This will include domains, ports, and protocols that need to be allowed for video interviews to function properly.
+    </div>
+  </div>
+</div>
+
+<script>
+function switchTab(el, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.tab-panel').forEach(p => p.style.display = 'none');
+  document.getElementById('panel-' + id).style.display = 'block';
+}
+
+// Review section collapse/expand
+function toggleReviewSection() {
+  var body = document.getElementById('reviewBody');
+  var arrow = document.getElementById('reviewArrow');
+  body.classList.toggle('collapsed');
+  arrow.classList.toggle('collapsed');
+}
+
+function togglePendingSection() {
+  var body = document.getElementById('pendingBody');
+  var arrow = document.getElementById('pendingArrow');
+  body.classList.toggle('collapsed');
+  arrow.classList.toggle('collapsed');
+}
+
+// --- GLOBAL LOBBY MODE (Active / Empty / Live) ---
+var lobbyCountdownTimer = null;
+
+function setLobbyMode(mode, btn) {
+  // 1. Sync ALL toggle buttons across every tab to highlight the selected mode
+  var allToggles = document.querySelectorAll('.dev-toggle-switch');
+  allToggles.forEach(function(toggle) {
+    var btns = toggle.querySelectorAll('.dev-toggle-btn');
+    btns.forEach(function(b) {
+      var label = b.textContent.trim().toLowerCase();
+      if (label === mode) {
+        b.classList.add('active');
+      } else {
+        b.classList.remove('active');
+      }
+    });
+  });
+
+  // 2. Determine content mode: live shows Active content (event is happening)
+  var contentMode = (mode === 'live') ? 'active' : mode;
+
+  // 3. Switch content for each tab section
+  // Waiting to Interview
+  document.getElementById('waitingActive').style.display = contentMode === 'active' ? '' : 'none';
+  document.getElementById('waitingEmpty').style.display = contentMode === 'empty' ? '' : 'none';
+  document.getElementById('waitingPrepare').style.display = contentMode === 'empty' ? '' : 'none';
+
+  // Interviewing
+  document.getElementById('interviewingActive').style.display = contentMode === 'active' ? '' : 'none';
+  document.getElementById('interviewingEmpty').style.display = contentMode === 'empty' ? '' : 'none';
+  document.getElementById('interviewingPrepare').style.display = contentMode === 'empty' ? '' : 'none';
+
+  // Interviewed
+  document.getElementById('interviewedActive').style.display = contentMode === 'active' ? '' : 'none';
+  document.getElementById('interviewedEmpty').style.display = contentMode === 'empty' ? '' : 'none';
+
+  // Not Yet Interviewed
+  document.getElementById('notyetActive').style.display = contentMode === 'active' ? '' : 'none';
+  document.getElementById('notyetEmpty').style.display = contentMode === 'empty' ? '' : 'none';
+
+  // 4. Switch event header between default and live
+  document.getElementById('eventMetaDefault').style.display = (mode === 'live') ? 'none' : '';
+  document.getElementById('eventMetaLive').style.display = (mode === 'live') ? '' : 'none';
+
+  // 5. Start or stop countdown timer
+  if (mode === 'live') {
+    startLobbyCountdown();
+  } else {
+    stopLobbyCountdown();
+  }
+}
+
+function startLobbyCountdown() {
+  if (lobbyCountdownTimer) return; // already running
+  var totalSeconds = 2 * 3600 + 42 * 60 + 18; // 2h 42m 18s
+  var el = document.getElementById('liveCountdown');
+
+  function update() {
+    if (totalSeconds <= 0) {
+      el.textContent = '0h 0m 0s';
+      stopLobbyCountdown();
+      return;
+    }
+    var h = Math.floor(totalSeconds / 3600);
+    var m = Math.floor((totalSeconds % 3600) / 60);
+    var s = totalSeconds % 60;
+    el.textContent = h + 'h ' + m + 'm ' + s + 's';
+    totalSeconds--;
+  }
+
+  update(); // run immediately
+  lobbyCountdownTimer = setInterval(update, 1000);
+}
+
+function stopLobbyCountdown() {
+  if (lobbyCountdownTimer) {
+    clearInterval(lobbyCountdownTimer);
+    lobbyCountdownTimer = null;
+  }
+}
+
+function toggleDispositionDropdown(btn) {
+  var wrapper = btn.closest('.disposition-wrapper');
+  var dropdown = wrapper.querySelector('.disposition-dropdown');
+  document.querySelectorAll('.disposition-dropdown.open').forEach(function(d) {
+    if (d !== dropdown) d.classList.remove('open');
+  });
+  dropdown.classList.toggle('open');
+}
+
+function changeDisposition(option, value) {
+  var wrapper = option.closest('.disposition-wrapper');
+  var statusBtn = wrapper.querySelector('.disposition-btn.status');
+  var dropdown = wrapper.querySelector('.disposition-dropdown');
+  statusBtn.className = 'disposition-btn status ' + value;
+  statusBtn.setAttribute('data-value', value);
+  var labels = { yes: '&#10003; Yes', no: '&#10007; No', maybe: '&#9679; Maybe' };
+  var tooltips = { yes: 'Candidate marked as Yes', no: 'Candidate marked as No', maybe: 'Candidate marked as Maybe' };
+  statusBtn.innerHTML = labels[value] + '<span class="btn-tooltip">' + tooltips[value] + '</span>';
+  dropdown.classList.remove('open');
+}
+
+// Close disposition dropdowns when clicking outside
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.disposition-wrapper')) {
+    document.querySelectorAll('.disposition-dropdown.open').forEach(function(d) {
+      d.classList.remove('open');
+    });
+  }
+});
+
+// setWaitingDevMode and setNotyetDevMode replaced by global setLobbyMode above
+
+var acceptedRow = null;
+var acceptToastTimer = null;
+
+function acceptInterview(btn) {
+  var row = btn.closest('tr');
+  var name = row.querySelector('.review-name').textContent;
+
+  // Clear any existing accept toast
+  if (acceptToastTimer) { clearTimeout(acceptToastTimer); }
+  if (acceptedRow) { acceptedRow.remove(); acceptedRow = null; }
+
+  // Save for undo
+  acceptedRow = row;
+
+  // Hide the row
+  row.style.transition = 'opacity 0.3s';
+  row.style.opacity = '0';
+  setTimeout(function() { row.style.display = 'none'; }, 300);
+
+  // Show toast
+  var toast = document.getElementById('acceptToast');
+  document.getElementById('acceptToastMsg').textContent = name + "'s interview request accepted";
+  toast.classList.add('show');
+
+  // Auto-remove after 5 seconds
+  acceptToastTimer = setTimeout(function() {
+    toast.classList.remove('show');
+    if (acceptedRow) {
+      acceptedRow.remove();
+      acceptedRow = null;
+    }
+  }, 5000);
+}
+
+function undoAccept() {
+  if (acceptToastTimer) { clearTimeout(acceptToastTimer); acceptToastTimer = null; }
+  var toast = document.getElementById('acceptToast');
+  toast.classList.remove('show');
+
+  if (acceptedRow) {
+    acceptedRow.style.display = '';
+    setTimeout(function() {
+      acceptedRow.style.opacity = '1';
+      acceptedRow = null;
+    }, 10);
+  }
+}
+
+var skipDeclineWarning = false;
+var pendingDeclineRow = null;
+var declinedRow = null;
+var declinedRowParent = null;
+var declinedRowNext = null;
+var toastTimer = null;
+
+function declineInterview(btn) {
+  var row = btn.closest('tr');
+  if (skipDeclineWarning) {
+    executeDecline(row);
+    return;
+  }
+  pendingDeclineRow = row;
+  var name = row.querySelector('.review-name').textContent;
+  document.getElementById('declineCandidateName').textContent = name;
+  document.getElementById('declineModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeDeclineModal() {
+  document.getElementById('declineModal').classList.remove('open');
+  document.body.style.overflow = '';
+  pendingDeclineRow = null;
+}
+
+function confirmDecline() {
+  if (document.getElementById('declineDontAsk').checked) {
+    skipDeclineWarning = true;
+  }
+  document.getElementById('declineModal').classList.remove('open');
+  document.body.style.overflow = '';
+  if (pendingDeclineRow) {
+    executeDecline(pendingDeclineRow);
+    pendingDeclineRow = null;
+  }
+}
+
+function executeDecline(row) {
+  // Clear any existing toast/undo state
+  if (toastTimer) { clearTimeout(toastTimer); }
+  if (declinedRow) { declinedRow.remove(); declinedRow = null; }
+
+  var name = row.querySelector('.review-name').textContent;
+
+  // Save position for undo
+  declinedRowParent = row.parentElement;
+  declinedRowNext = row.nextElementSibling;
+  declinedRow = row;
+
+  // Hide the row
+  row.style.transition = 'opacity 0.3s';
+  row.style.opacity = '0';
+  setTimeout(function() { row.style.display = 'none'; }, 300);
+
+  // Show toast
+  var toast = document.getElementById('declineToast');
+  document.getElementById('declineToastMsg').textContent = name + "'s interview request declined";
+  toast.classList.add('show');
+
+  // Auto-remove after 5 seconds
+  toastTimer = setTimeout(function() {
+    toast.classList.remove('show');
+    if (declinedRow) {
+      declinedRow.remove();
+      declinedRow = null;
+    }
+  }, 5000);
+}
+
+function undoDecline() {
+  if (toastTimer) { clearTimeout(toastTimer); toastTimer = null; }
+  var toast = document.getElementById('declineToast');
+  toast.classList.remove('show');
+
+  if (declinedRow) {
+    declinedRow.style.display = '';
+    setTimeout(function() {
+      declinedRow.style.opacity = '1';
+      declinedRow = null;
+    }, 10);
+  }
+}
+
+function removeRow(row) {
+  row.style.transition = 'opacity 0.3s';
+  row.style.opacity = '0';
+  setTimeout(function() { row.remove(); }, 300);
+}
+
+// Resume modal
+var resumeSourceRow = null;
+var resumeData = {
+  'Tamara Williams': { email: 'tamara.williams@email.com', phone: '(214) 555-0183', location: 'Dallas, TX', jobs: [{ title: 'Registered Nurse', company: 'Baylor Scott & White', dates: 'March 2023 - Present', bullets: ['Provide direct patient care in a 32-bed medical-surgical unit', 'Administer medications and monitor patient vital signs', 'Collaborate with physicians on patient treatment plans', 'Mentor newly hired nurses during onboarding', 'Maintain accurate electronic health records'] }, { title: 'Staff Nurse', company: 'Texas Health Resources', dates: 'June 2020 - February 2023', bullets: ['Delivered patient care in emergency and ICU departments', 'Assisted with patient assessments and care coordination', 'Participated in quality improvement initiatives'] }], education: { degree: 'Bachelor of Science in Nursing', school: 'University of Texas at Arlington', dates: '2016 - 2020' }, skills: ['Patient Care', 'EMR/EHR', 'IV Therapy', 'Wound Care', 'BLS/ACLS Certified', 'Team Leadership'] },
+  'Marcus Johnson': { email: 'marcus.j@email.com', phone: '(469) 555-0247', location: 'Dallas, TX', jobs: [{ title: 'Web Developer', company: 'Digital Solutions Inc.', dates: 'January 2022 - Present', bullets: ['Build responsive web applications using React and Node.js', 'Optimize site performance and page load speeds', 'Collaborate with UX designers to implement new features', 'Write unit tests and maintain CI/CD pipelines'] }, { title: 'Junior Developer', company: 'StartUp Labs', dates: 'August 2019 - December 2021', bullets: ['Developed front-end components using JavaScript and CSS', 'Fixed bugs and improved existing codebase', 'Participated in code reviews and sprint planning'] }], education: { degree: 'B.S. Computer Science', school: 'University of North Texas', dates: '2015 - 2019' }, skills: ['JavaScript', 'React', 'Node.js', 'HTML/CSS', 'Git', 'REST APIs', 'TypeScript'] },
+  'Priya Patel': { email: 'priya.patel@email.com', phone: '(972) 555-0391', location: 'Dallas, TX', jobs: [{ title: 'Frontend Developer', company: 'TechForward', dates: 'May 2021 - Present', bullets: ['Develop and maintain customer-facing React applications', 'Implement responsive designs from Figma mockups', 'Improve web accessibility to WCAG 2.1 standards', 'Reduce bundle size by 40% through code splitting'] }], education: { degree: 'B.S. Information Technology', school: 'UT Dallas', dates: '2017 - 2021' }, skills: ['React', 'TypeScript', 'CSS/Sass', 'Figma', 'Accessibility', 'Jest'] }
+};
+
+function openResumeModal(link) {
+  var row = link.closest('tr');
+  resumeSourceRow = row;
+  var name = row.querySelector('.review-name').textContent;
+  var jobTitle = row.querySelector('.review-job-title').textContent;
+  var locEl = row.querySelector('.review-job-location');
+  var jobLocation = locEl ? locEl.textContent : '';
+
+  document.getElementById('resumeName').textContent = name;
+  document.getElementById('resumeSubtitle').textContent = jobLocation ? jobTitle + '  ·  ' + jobLocation : jobTitle;
+
+  var data = resumeData[name];
+  var contactHtml = '';
+  if (data) {
+    contactHtml = '<span>' + data.email + '</span>';
+    contactHtml += '<span>' + data.phone + '</span>';
+    contactHtml += '<span>' + data.location + '</span>';
+  } else {
+    contactHtml = '<span>candidate@email.com</span>';
+    contactHtml += '<span>(555) 555-0000</span>';
+    contactHtml += '<span>' + (jobLocation || 'Dallas, TX') + '</span>';
+  }
+  document.getElementById('resumeContact').innerHTML = contactHtml;
+
+  var bodyHtml = '';
+  if (data) {
+    bodyHtml += '<div class="resume-section-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg> Work experience</div>';
+    data.jobs.forEach(function(job) {
+      bodyHtml += '<div class="resume-job"><div class="resume-job-header"><div><div class="resume-job-title">' + job.title + '</div><div class="resume-job-company">' + job.company + '</div></div><div class="resume-job-dates">' + job.dates + '</div></div><ul class="resume-job-bullets">';
+      job.bullets.forEach(function(b) { bodyHtml += '<li>' + b + '</li>'; });
+      bodyHtml += '</ul></div>';
+    });
+    bodyHtml += '<hr class="resume-section-divider">';
+    bodyHtml += '<div class="resume-section-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2v-5"/></svg> Education</div>';
+    bodyHtml += '<div class="resume-job"><div class="resume-job-header"><div><div class="resume-edu-title">' + data.education.degree + '</div><div class="resume-edu-school">' + data.education.school + '</div></div><div class="resume-edu-dates">' + data.education.dates + '</div></div></div>';
+    bodyHtml += '<hr class="resume-section-divider">';
+    bodyHtml += '<div class="resume-section-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> Skills</div>';
+    bodyHtml += '<div class="resume-skills-list">';
+    data.skills.forEach(function(s) { bodyHtml += '<span class="resume-skill-tag">' + s + '</span>'; });
+    bodyHtml += '</div>';
+  } else {
+    bodyHtml += '<div class="resume-section-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg> Work experience</div>';
+    bodyHtml += '<div class="resume-job"><div class="resume-job-header"><div><div class="resume-job-title">' + jobTitle + '</div><div class="resume-job-company">Company Name</div></div><div class="resume-job-dates">2022 - Present</div></div><ul class="resume-job-bullets"><li>Performed duties related to ' + jobTitle + ' role</li><li>Collaborated with cross-functional teams</li><li>Contributed to key projects and initiatives</li></ul></div>';
+  }
+  document.getElementById('resumeBody').innerHTML = bodyHtml;
+
+  // Show/hide action buttons based on section
+  var isPending = !!row.closest('.review-section.pending');
+  document.querySelector('.resume-modal-btns').style.display = isPending ? '' : 'none';
+
+  document.getElementById('resumeModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeResumeModal() {
+  document.getElementById('resumeModal').classList.remove('open');
+  document.body.style.overflow = '';
+  resumeSourceRow = null;
+}
+
+function acceptFromResume() {
+  var row = resumeSourceRow;
+  document.getElementById('resumeModal').classList.remove('open');
+  document.body.style.overflow = '';
+  if (row) {
+    var btn = row.querySelector('.pending-btn.accept');
+    if (btn) acceptInterview(btn);
+  }
+  resumeSourceRow = null;
+}
+
+function declineFromResume() {
+  var row = resumeSourceRow;
+  document.getElementById('resumeModal').classList.remove('open');
+  document.body.style.overflow = '';
+  if (row) {
+    var btn = row.querySelector('.pending-btn.decline');
+    if (btn) declineInterview(btn);
+  }
+  resumeSourceRow = null;
+}
+
+// Message modal
+var msgData = {
+  'Tamara Williams': [
+    { sender: 'employer', name: 'You', text: 'Hi Tamara, thank you for applying to our Registered Nurse position. We would love to schedule an interview with you during our upcoming hiring event.', time: 'Apr 5 at 2:15 PM' },
+    { sender: 'candidate', name: 'Tamara Williams', text: 'Thank you so much! I am very excited about this opportunity. The interview time works great for me.', time: 'Apr 5 at 3:42 PM' },
+    { sender: 'employer', name: 'You', text: 'Wonderful! You will receive a confirmation with all the details. Looking forward to meeting you.', time: 'Apr 5 at 4:10 PM' }
+  ],
+  'Marcus Johnson': [
+    { sender: 'employer', name: 'You', text: 'Hi Marcus, we reviewed your application for the Web Developer role and would like to invite you for an interview at our Dallas hiring event.', time: 'Apr 4 at 10:00 AM' },
+    { sender: 'candidate', name: 'Marcus Johnson', text: 'That sounds great! I am available and looking forward to it. Is there anything I should prepare beforehand?', time: 'Apr 4 at 11:30 AM' },
+    { sender: 'employer', name: 'You', text: 'Just be ready to discuss your experience with React and Node.js. We will send you the details shortly.', time: 'Apr 4 at 11:45 AM' },
+    { sender: 'system', text: 'Interview time confirmed:', detail: 'Apr 22 at 9:30 AM', name: 'System', time: 'Apr 4 at 12:00 PM' }
+  ],
+  'Priya Patel': [
+    { sender: 'candidate', name: 'Priya Patel', text: 'Hello! I submitted my application for the Frontend Developer position. I wanted to follow up and express my strong interest in the role.', time: 'Apr 3 at 9:15 AM' },
+    { sender: 'employer', name: 'You', text: 'Hi Priya, thanks for reaching out. We have reviewed your application and would like to invite you to interview during our upcoming event on April 22nd.', time: 'Apr 3 at 2:30 PM' },
+    { sender: 'candidate', name: 'Priya Patel', text: 'That is perfect! I will be there. Thank you for the opportunity.', time: 'Apr 3 at 3:05 PM' }
+  ]
+};
+
+function openMsgModal(link) {
+  var row = link.closest('tr');
+  var name = row.querySelector('.review-name').textContent;
+  var jobTitle = row.querySelector('.review-job-title').textContent;
+  var firstName = name.split(' ')[0];
+
+  document.getElementById('msgTo').textContent = 'To: ' + name + ' · ' + jobTitle;
+  document.getElementById('msgTextarea').placeholder = 'Write a message to ' + firstName + '...';
+  document.getElementById('msgTextarea').value = '';
+  document.getElementById('msgCharCount').textContent = '0';
+
+  var messages = msgData[name] || [
+    { sender: 'employer', name: 'You', text: 'Hi ' + firstName + ', we would like to invite you for an interview at our upcoming hiring event.', time: 'Apr 5 at 10:00 AM' },
+    { sender: 'candidate', name: name, text: 'Thank you! I look forward to it.', time: 'Apr 5 at 11:30 AM' }
+  ];
+
+  var html = '';
+  messages.forEach(function(msg) {
+    if (msg.sender === 'system') {
+      html += '<div><div class="msg-bubble system"><div class="system-label">' + msg.text + '</div><div class="system-time">' + msg.detail + '</div></div>';
+      html += '<div class="msg-meta incoming"><span class="msg-sender">' + msg.name + '</span> ' + msg.time + '</div></div>';
+    } else {
+      var cls = msg.sender === 'employer' ? 'outgoing' : 'incoming';
+      html += '<div><div class="msg-bubble ' + cls + '">' + msg.text + '</div>';
+      html += '<div class="msg-meta ' + cls + '">' + msg.time + '  <span class="msg-sender">' + msg.name + '</span></div></div>';
+    }
+  });
+
+  document.getElementById('msgMessages').innerHTML = html;
+  document.getElementById('msgModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+
+  // Scroll to bottom
+  var msgContainer = document.getElementById('msgMessages');
+  msgContainer.scrollTop = msgContainer.scrollHeight;
+}
+
+function closeMsgModal() {
+  document.getElementById('msgModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function updateMsgCharCount() {
+  var textarea = document.getElementById('msgTextarea');
+  document.getElementById('msgCharCount').textContent = textarea.value.length;
+}
+
+function sendMessage() {
+  var textarea = document.getElementById('msgTextarea');
+  if (textarea.value.trim() === '') return;
+
+  // Add message to chat
+  var msgContainer = document.getElementById('msgMessages');
+  var now = new Date();
+  var timeStr = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' at ' + now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  var html = '<div><div class="msg-bubble outgoing">' + textarea.value + '</div>';
+  html += '<div class="msg-meta outgoing">' + timeStr + '  <span class="msg-sender">You</span></div></div>';
+  msgContainer.innerHTML += html;
+  msgContainer.scrollTop = msgContainer.scrollHeight;
+
+  textarea.value = '';
+  document.getElementById('msgCharCount').textContent = '0';
+
+  // Show toast
+  var toast = document.getElementById('acceptToast');
+  var toName = document.getElementById('msgTo').textContent.replace('To: ', '').split(' · ')[0];
+  document.getElementById('acceptToastMsg').textContent = 'Message sent to ' + toName;
+  toast.classList.add('show');
+  setTimeout(function() { toast.classList.remove('show'); }, 3000);
+}
+
+// Review dots dropdown
+function toggleReviewDots(e, btn) {
+  e.stopPropagation();
+  var menu = btn.parentElement.querySelector('.review-dropdown');
+  var wasOpen = menu.classList.contains('open');
+  document.querySelectorAll('.review-dropdown.open').forEach(function(m) { m.classList.remove('open'); });
+  if (!wasOpen) menu.classList.add('open');
+}
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.review-dots-wrapper')) {
+    document.querySelectorAll('.review-dropdown.open').forEach(function(m) { m.classList.remove('open'); });
+  }
+});
+
+// Welcome Message Modal
+function openWelcomeModal() {
+  document.getElementById('welcome-modal-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeWelcomeModal() {
+  document.getElementById('welcome-modal-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.getElementById('welcome-modal-overlay').addEventListener('click', function(e) {
+  if (e.target === this) closeWelcomeModal();
+});
+
+// Team Members Modal
+function openTeamModal() {
+  document.getElementById('team-modal-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeTeamModal() {
+  document.getElementById('team-modal-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.getElementById('team-modal-overlay').addEventListener('click', function(e) {
+  if (e.target === this) closeTeamModal();
+});
+
+// AV Modal
+function openAvModal() {
+  document.getElementById('av-step1').style.display = 'block';
+  document.getElementById('av-step2').style.display = 'none';
+  document.getElementById('av-modal-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeAvModal() {
+  document.getElementById('av-modal-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+function goToStep2() {
+  document.getElementById('av-step1').style.display = 'none';
+  document.getElementById('av-step2').style.display = 'block';
+}
+
+// Instructions sub-modal
+function openInstructions() {
+  document.getElementById('instructions-overlay').classList.add('open');
+}
+function closeInstructions() {
+  document.getElementById('instructions-overlay').classList.remove('open');
+}
+
+// Close modals on overlay click
+document.getElementById('av-modal-overlay').addEventListener('click', function(e) {
+  if (e.target === this) closeAvModal();
+});
+document.getElementById('instructions-overlay').addEventListener('click', function(e) {
+  if (e.target === this) closeInstructions();
+});
+
+// Close menus on click outside
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.dots-btn')) {
+    document.querySelectorAll('.dots-menu.open').forEach(m => m.classList.remove('open'));
+  }
+  if (!e.target.closest('.lobby-user-trigger')) {
+    document.querySelectorAll('.lobby-user-menu.open').forEach(m => m.classList.remove('open'));
+  }
+});
+</script>
+
+<!-- Accept Toast -->
+<div class="decline-toast" id="acceptToast">
+  <span id="acceptToastMsg"></span>
+  <button class="toast-undo" onclick="undoAccept()">Undo</button>
+</div>
+
+<!-- Decline Toast -->
+<div class="decline-toast" id="declineToast">
+  <span id="declineToastMsg"></span>
+  <button class="toast-undo" onclick="undoDecline()">Undo</button>
+</div>
+
+<!-- Message Modal -->
+<div class="msg-modal-overlay" id="msgModal">
+  <div class="msg-modal">
+    <div class="msg-modal-header">
+      <div class="msg-modal-header-text">
+        <div class="msg-modal-title">Send Message</div>
+        <div class="msg-modal-to" id="msgTo"></div>
+      </div>
+      <button class="msg-modal-close" onclick="closeMsgModal()">&times;</button>
+    </div>
+    <div class="msg-modal-messages" id="msgMessages"></div>
+    <div class="msg-compose">
+      <div class="msg-char-count"><span id="msgCharCount">0</span> / 2000</div>
+      <textarea class="msg-textarea" id="msgTextarea" placeholder="" maxlength="2000" oninput="updateMsgCharCount()"></textarea>
+      <div class="msg-compose-actions">
+        <button class="msg-btn-cancel" onclick="closeMsgModal()">Cancel</button>
+        <button class="msg-btn-send" onclick="sendMessage()">Send</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Resume Modal -->
+<div class="resume-modal-overlay" id="resumeModal">
+  <div class="resume-modal">
+    <div class="resume-modal-header">
+      <div class="resume-modal-header-top">
+        <div>
+          <div class="resume-modal-name"><span id="resumeName"></span><button class="resume-modal-download"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg><span class="btn-tooltip">Download resume</span></button></div>
+          <div class="resume-modal-subtitle" id="resumeSubtitle"></div>
+        </div>
+        <button class="resume-modal-close" onclick="closeResumeModal()">&times;</button>
+      </div>
+      <div class="resume-modal-contact" id="resumeContact"></div>
+      <div class="resume-modal-btns">
+        <div class="pending-actions">
+          <button class="pending-btn accept" onclick="acceptFromResume()">Accept<span class="btn-tooltip">Accept interview request</span></button>
+          <button class="pending-btn decline" onclick="declineFromResume()">Decline<span class="btn-tooltip">Decline interview request</span></button>
+          <button class="pending-btn propose" onclick="closeResumeModal()">Reschedule<span class="btn-tooltip">Propose new interview time</span></button>
+        </div>
+      </div>
+    </div>
+    <div class="resume-modal-body" id="resumeBody">
+      <!-- Populated by JS -->
+    </div>
+  </div>
+</div>
+
+<!-- Decline Confirmation Modal -->
+<div class="decline-modal-overlay" id="declineModal">
+  <div class="decline-modal">
+    <div class="decline-modal-header">Decline interview request</div>
+    <div class="decline-modal-body">Are you sure you want to decline the interview request from <span class="candidate-name" id="declineCandidateName"></span>? This action can't be undone and the candidate will be removed from your list.</div>
+    <label class="decline-modal-checkbox">
+      <input type="checkbox" id="declineDontAsk">
+      Don't show this message when I decline
+    </label>
+    <div class="decline-modal-actions">
+      <button class="decline-cancel" onclick="closeDeclineModal()">Cancel</button>
+      <button class="decline-confirm" onclick="confirmDecline()">Decline</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

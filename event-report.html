@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Event Report - JobFairX</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; background: #f3f2ef; color: #2d2d2d; min-height: 100vh; font-size: 14px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+
+/* ═══ TOP BAR ═══ */
+.topbar { position: fixed; top: 0; left: 0; right: 0; height: 56px; background: #fff; border-bottom: 1px solid #e0e0e0; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; z-index: 200; }
+.topbar-left { display: flex; align-items: center; gap: 12px; }
+.topbar-logo { font-size: 20px; font-weight: 800; color: #2557a7; letter-spacing: -0.5px; cursor: pointer; }
+.topbar-logo span { color: #2d2d2d; }
+.topbar-back { display: flex; align-items: center; gap: 8px; padding: 8px 16px; font-size: 14px; font-weight: 600; color: #2557a7; background: none; border: none; cursor: pointer; font-family: inherit; border-radius: 8px; margin-left: 16px; }
+.topbar-back:hover { background: #f0f5ff; }
+.topbar-back svg { width: 16px; height: 16px; }
+.topbar-right { display: flex; align-items: center; gap: 16px; font-size: 14px; color: #595959; }
+.topbar-right a { color: #595959; text-decoration: none; font-weight: 500; }
+.topbar-right a:hover { color: #2d2d2d; }
+
+/* ═══ MAIN CONTENT ═══ */
+.main { margin-top: 56px; padding: 32px 40px 60px; max-width: 1300px; margin-left: auto; margin-right: auto; }
+
+/* ═══ REPORT HEADER ═══ */
+.report-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
+.report-title { font-size: 24px; font-weight: 700; color: #2d2d2d; }
+.report-title span { font-weight: 400; color: #595959; }
+.event-selector { padding: 10px 18px; font-size: 14px; font-weight: 500; border: 1px solid #d4d2d0; border-radius: 8px; background: #fff; cursor: pointer; font-family: inherit; color: #2d2d2d; min-width: 300px; }
+
+/* ═══ DIVIDER ═══ */
+.report-divider { height: 1px; background: #e0e0e0; margin-bottom: 24px; }
+
+/* ═══ FILTERS ROW ═══ */
+.filters-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 16px; }
+.filters-left { display: flex; align-items: center; gap: 10px; }
+.filter-pill { padding: 10px 22px; font-size: 14px; font-weight: 600; border-radius: 24px; border: 1px solid #d4d2d0; background: #fff; color: #595959; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+.filter-pill:hover { border-color: #2557a7; color: #2557a7; }
+.filter-pill.active { background: #2557a7; color: #fff; border-color: #2557a7; }
+.filters-right { display: flex; align-items: center; gap: 12px; }
+.filter-by-label { font-size: 14px; font-weight: 600; color: #2d2d2d; }
+.filter-select { padding: 10px 18px; font-size: 14px; font-weight: 500; border: 1px solid #d4d2d0; border-radius: 8px; background: #fff; cursor: pointer; font-family: inherit; color: #2d2d2d; min-width: 140px; }
+.search-input { padding: 10px 18px; font-size: 14px; border: 1px solid #d4d2d0; border-radius: 8px; background: #fff; font-family: inherit; color: #2d2d2d; width: 200px; outline: none; }
+.search-input:focus { border-color: #2557a7; }
+.search-input::placeholder { color: #999; }
+
+/* ═══ TABLE ═══ */
+.report-table-card { background: #fff; border-radius: 12px; border: 1px solid #e0e0e0; overflow: hidden; }
+.report-table { width: 100%; border-collapse: collapse; }
+.report-table thead { background: #f3f2ef; }
+.report-table th { padding: 14px 20px; text-align: left; font-size: 14px; font-weight: 600; color: #595959; border-bottom: 1px solid #e0e0e0; }
+.report-table th:first-child { width: 40px; padding-left: 20px; }
+.report-table td { padding: 20px 20px; font-size: 14px; color: #2d2d2d; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }
+.report-table td:first-child { width: 40px; padding-left: 20px; }
+.report-table tr:last-child td { border-bottom: none; }
+.report-table tr:hover { background: #fafaf8; }
+
+.candidate-checkbox { width: 16px; height: 16px; border: 2px solid #d4d2d0; border-radius: 3px; cursor: pointer; accent-color: #2557a7; }
+.candidate-name { font-size: 15px; font-weight: 600; color: #2d2d2d; }
+.job-link { color: #2557a7; font-weight: 500; text-decoration: none; cursor: pointer; }
+.job-link:hover { text-decoration: underline; }
+.interviewer-name { font-size: 14px; color: #2d2d2d; }
+.no-show-badge { display: inline-block; padding: 4px 10px; font-size: 12px; font-weight: 600; background: #f0f5ff; color: #2557a7; border-radius: 6px; }
+
+/* Disposition */
+.disposition-select { padding: 8px 14px; font-size: 14px; font-weight: 500; border: 1px solid #d4d2d0; border-radius: 6px; background: #fff; cursor: pointer; font-family: inherit; color: #2d2d2d; min-width: 100px; }
+.disposition-text { font-size: 14px; color: #595959; }
+.row-dots { background: none; border: none; cursor: pointer; font-size: 20px; color: #767676; padding: 4px 8px; letter-spacing: 1px; }
+.row-dots:hover { color: #2d2d2d; }
+
+/* ═══ TABLE FOOTER ═══ */
+.report-footer { display: flex; align-items: center; justify-content: center; padding: 16px 20px; gap: 6px; }
+.page-btn { padding: 8px 16px; font-size: 13px; font-weight: 600; border: 1px solid #d4d2d0; border-radius: 6px; background: #fff; cursor: pointer; font-family: inherit; color: #595959; transition: all 0.15s; }
+.page-btn:hover:not(.disabled) { border-color: #2557a7; color: #2557a7; }
+.page-btn.active { background: #2557a7; color: #fff; border-color: #2557a7; }
+.page-btn.disabled { opacity: 0.4; cursor: default; }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-logo" onclick="window.open('visual.html','_self')">Job<span>FairX</span></div>
+    <button class="topbar-back" onclick="window.history.back()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><polyline points="12 19 5 12 12 5"/></svg>
+      Back to Dashboard
+    </button>
+  </div>
+  <div class="topbar-right">
+    <a href="#">Help</a>
+    <span>scott@jobfairx.com</span>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- Report Header -->
+  <div class="report-header">
+    <div class="report-title">Event Report <span>- Houston Veteran Hiring Event | Mar 18, 2026</span></div>
+    <select class="event-selector" onchange="switchReportEvent(this.value)">
+      <option value="houston">Houston Veteran Hiring Event | Mar 18, 2026</option>
+      <option value="dallas">Dallas Healthcare Hiring Event | Apr 22, 2026</option>
+      <option value="chicago">Chicago Technology Hiring Event | May 6, 2026</option>
+    </select>
+  </div>
+
+  <div class="report-divider"></div>
+
+  <!-- Filters -->
+  <div class="filters-row">
+    <div class="filters-left">
+      <button class="filter-pill active" onclick="filterDisposition('all', this)">All (17)</button>
+      <button class="filter-pill" onclick="filterDisposition('yes', this)">Yes (1)</button>
+      <button class="filter-pill" onclick="filterDisposition('maybe', this)">Maybe (4)</button>
+      <button class="filter-pill" onclick="filterDisposition('no', this)">No (1)</button>
+    </div>
+    <div class="filters-right">
+      <span class="filter-by-label">Filter By:</span>
+      <select class="filter-select">
+        <option>All Jobs</option>
+        <option>Operations Coordinator</option>
+        <option>Logistics Specialist</option>
+      </select>
+      <input type="text" class="search-input" placeholder="Search candidates" oninput="searchCandidates(this.value)">
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="report-table-card">
+    <table class="report-table">
+      <thead>
+        <tr>
+          <th><input type="checkbox" class="candidate-checkbox" onclick="toggleAllCheckboxes(this)"></th>
+          <th>Name</th>
+          <th>Job Title</th>
+          <th>Interviewer</th>
+          <th>Disposition</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="reportBody">
+        <tr class="report-row" data-disposition="maybe">
+          <td><input type="checkbox" class="candidate-checkbox"></td>
+          <td><span class="candidate-name">Aariah Bradley</span></td>
+          <td><a class="job-link">Registered Behavior Technician (RBT)</a></td>
+          <td><span class="interviewer-name">Tamar R</span></td>
+          <td><select class="disposition-select"><option>Select</option><option selected>Maybe</option><option>Yes</option><option>No</option></select></td>
+          <td><button class="row-dots">⋮</button></td>
+        </tr>
+        <tr class="report-row" data-disposition="maybe">
+          <td><input type="checkbox" class="candidate-checkbox"></td>
+          <td><span class="candidate-name">Adriana Kools</span></td>
+          <td><a class="job-link">Board Certified Assistant Behavior Analyst (BCaBA)</a></td>
+          <td><span class="interviewer-name">Tamar R</span></td>
+          <td><select class="disposition-select"><option>Select</option><option selected>Maybe</option><option>Yes</option><option>No</option></select></td>
+          <td><button class="row-dots">⋮</button></td>
+        </tr>
+        <tr class="report-row" data-disposition="">
+          <td><input type="checkbox" class="candidate-checkbox"></td>
+          <td><span class="candidate-name">Adrienne Fuller</span></td>
+          <td><a class="job-link">Registered Behavior Technician (RBT)</a></td>
+          <td><span class="no-show-badge">Candidate No Show</span></td>
+          <td><select class="disposition-select"><option selected>Select</option><option>Maybe</option><option>Yes</option><option>No</option></select></td>
+          <td><button class="row-dots">⋮</button></td>
+        </tr>
+        <tr class="report-row" data-disposition="no">
+          <td><input type="checkbox" class="candidate-checkbox"></td>
+          <td><span class="candidate-name">Arun Kurapati</span></td>
+          <td><a class="job-link">Board Certified Behavior Analyst (BCBA)</a></td>
+          <td><span class="interviewer-name">-</span></td>
+          <td><span class="disposition-text">Rejected</span></td>
+          <td><button class="row-dots">⋮</button></td>
+        </tr>
+        <tr class="report-row" data-disposition="">
+          <td><input type="checkbox" class="candidate-checkbox"></td>
+          <td><span class="candidate-name">Danielle Fryer</span></td>
+          <td><a class="job-link">Registered Behavior Technician (RBT)</a></td>
+          <td><span class="no-show-badge">Candidate No Show</span></td>
+          <td><select class="disposition-select"><option selected>Select</option><option>Maybe</option><option>Yes</option><option>No</option></select></td>
+          <td><button class="row-dots">⋮</button></td>
+        </tr>
+        <tr class="report-row" data-disposition="yes">
+          <td><input type="checkbox" class="candidate-checkbox"></td>
+          <td><span class="candidate-name">Dawnesha Woolfork</span></td>
+          <td><a class="job-link">Registered Behavior Technician (RBT)</a></td>
+          <td><span class="interviewer-name">Tamar R</span></td>
+          <td><select class="disposition-select"><option>Select</option><option>Maybe</option><option selected>Yes</option><option>No</option></select></td>
+          <td><button class="row-dots">⋮</button></td>
+        </tr>
+        <tr class="report-row" data-disposition="">
+          <td><input type="checkbox" class="candidate-checkbox"></td>
+          <td><span class="candidate-name">Elonda Henderson</span></td>
+          <td><a class="job-link">Registered Behavior Technician (RBT)</a></td>
+          <td><span class="no-show-badge">Candidate No Show</span></td>
+          <td><select class="disposition-select"><option selected>Select</option><option>Maybe</option><option>Yes</option><option>No</option></select></td>
+          <td><button class="row-dots">⋮</button></td>
+        </tr>
+        <tr class="report-row" data-disposition="maybe">
+          <td><input type="checkbox" class="candidate-checkbox"></td>
+          <td><span class="candidate-name">Jasmine Torres</span></td>
+          <td><a class="job-link">Registered Behavior Technician (RBT)</a></td>
+          <td><span class="interviewer-name">Tamar R</span></td>
+          <td><select class="disposition-select"><option>Select</option><option selected>Maybe</option><option>Yes</option><option>No</option></select></td>
+          <td><button class="row-dots">⋮</button></td>
+        </tr>
+        <tr class="report-row" data-disposition="maybe">
+          <td><input type="checkbox" class="candidate-checkbox"></td>
+          <td><span class="candidate-name">Marcus Williams</span></td>
+          <td><a class="job-link">Board Certified Behavior Analyst (BCBA)</a></td>
+          <td><span class="interviewer-name">Tamar R</span></td>
+          <td><select class="disposition-select"><option>Select</option><option selected>Maybe</option><option>Yes</option><option>No</option></select></td>
+          <td><button class="row-dots">⋮</button></td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="report-footer">
+      <button class="page-btn disabled">&larr; Previous</button>
+      <button class="page-btn active">1</button>
+      <button class="page-btn">2</button>
+      <button class="page-btn">Next &rarr;</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function filterDisposition(type, el) {
+  document.querySelectorAll('.filter-pill').forEach(function(p) { p.classList.remove('active'); });
+  el.classList.add('active');
+  document.querySelectorAll('.report-row').forEach(function(row) {
+    if (type === 'all') { row.style.display = ''; }
+    else { row.style.display = row.getAttribute('data-disposition') === type ? '' : 'none'; }
+  });
+}
+
+function searchCandidates(query) {
+  var q = query.toLowerCase();
+  document.querySelectorAll('.report-row').forEach(function(row) {
+    var name = row.querySelector('.candidate-name').textContent.toLowerCase();
+    row.style.display = name.includes(q) ? '' : 'none';
+  });
+}
+
+function toggleAllCheckboxes(master) {
+  document.querySelectorAll('#reportBody .candidate-checkbox').forEach(function(cb) {
+    cb.checked = master.checked;
+  });
+}
+
+function switchReportEvent(val) {
+  var events = {
+    houston: 'Houston Veteran Hiring Event | Mar 18, 2026',
+    dallas: 'Dallas Healthcare Hiring Event | Apr 22, 2026',
+    chicago: 'Chicago Technology Hiring Event | May 6, 2026'
+  };
+  document.querySelector('.report-title span').textContent = '- ' + events[val];
+}
+</script>
+</body>
+</html>

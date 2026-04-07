@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Test Video and Audio - JobFairX</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; background: #fff; color: #2d2d2d; min-height: 100vh; -webkit-font-smoothing: antialiased; font-size: 14px; line-height: 1.5; }
+
+.page-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 40px 32px 60px;
+}
+
+h1 {
+  font-size: 28px;
+  font-weight: 800;
+  color: #2d2d2d;
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  font-size: 16px;
+  color: #595959;
+  margin-bottom: 32px;
+}
+
+/* ═══ AV Test Layout ═══ */
+.av-test-layout {
+  display: flex;
+  gap: 24px;
+  background: #f9f8f6;
+  border-radius: 16px;
+  padding: 28px;
+  border: 1px solid #e8e6e3;
+}
+
+.av-left {
+  flex: 1;
+  min-width: 0;
+}
+
+.av-right {
+  width: 280px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ═══ Network Access Reminder ═══ */
+.network-reminder {
+  background: #fef7ea;
+  border: 1px solid #f5deb3;
+  border-radius: 12px;
+  padding: 20px 24px;
+  margin-bottom: 20px;
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.network-reminder-icon {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.network-reminder-text {
+  font-size: 14px;
+  color: #2d2d2d;
+  line-height: 1.6;
+}
+
+.network-reminder-text strong {
+  display: block;
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.network-reminder-text a {
+  color: #2d2d2d;
+  text-decoration: underline;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.network-reminder-text a:hover {
+  color: #2557a7;
+}
+
+/* ═══ Video Preview ═══ */
+.video-preview {
+  width: 100%;
+  aspect-ratio: 4/3;
+  background: linear-gradient(180deg, #87CEEB 0%, #87CEEB 60%, #b0d4e8 100%);
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.video-preview-placeholder {
+  text-align: center;
+  color: #fff;
+}
+
+.video-preview-placeholder svg {
+  width: 64px;
+  height: 64px;
+  opacity: 0.7;
+  margin-bottom: 8px;
+}
+
+.video-preview-placeholder p {
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+/* ═══ Control Cards ═══ */
+.control-card {
+  background: #f3f2ef;
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid #e8e6e3;
+}
+
+.control-card-label {
+  font-size: 16px;
+  font-weight: 700;
+  color: #2d2d2d;
+  margin-bottom: 12px;
+}
+
+.control-select {
+  width: 100%;
+  padding: 10px 14px;
+  font-size: 14px;
+  font-family: inherit;
+  border: 1px solid #d4d2d0;
+  border-radius: 8px;
+  background: #fff;
+  color: #2d2d2d;
+  cursor: pointer;
+  appearance: auto;
+  margin-bottom: 12px;
+}
+
+/* Microphone level indicator */
+.mic-level {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.mic-level-label {
+  font-size: 13px;
+  color: #595959;
+  white-space: nowrap;
+}
+
+.mic-level-bars {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+}
+
+.mic-bar {
+  width: 10px;
+  height: 14px;
+  border-radius: 3px;
+  background: #d4d2d0;
+}
+
+.mic-bar.active {
+  background: #2e7d32;
+}
+
+/* Checkbox */
+.control-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+.control-checkbox input[type="checkbox"] {
+  display: none;
+}
+
+.checkbox-visual {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border: 2px solid #d4d2d0;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+
+.control-checkbox input:checked + .checkbox-visual {
+  background: #2557a7;
+  border-color: #2557a7;
+}
+
+.checkbox-visual svg {
+  width: 14px;
+  height: 14px;
+  color: #fff;
+  display: none;
+}
+
+.control-checkbox input:checked + .checkbox-visual svg {
+  display: block;
+}
+
+.control-checkbox span {
+  font-size: 14px;
+  color: #2d2d2d;
+}
+
+/* Test speaker button */
+.btn-test-speaker {
+  display: inline-block;
+  font-size: 14px;
+  font-weight: 700;
+  color: #2557a7;
+  padding: 8px 16px;
+  border: 2px solid #2557a7;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s;
+  margin-top: 4px;
+}
+.btn-test-speaker:hover { background: #f0f5ff; }
+
+/* ═══ Instructions Modal ═══ */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-overlay.open {
+  display: flex;
+}
+
+.modal {
+  background: #fff;
+  border-radius: 16px;
+  max-width: 600px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  padding: 32px;
+  position: relative;
+}
+
+.modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: none;
+  background: #f3f2ef;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  color: #595959;
+  font-family: inherit;
+  transition: background 0.15s;
+}
+.modal-close:hover { background: #e8e6e3; }
+
+.modal h2 {
+  font-size: 22px;
+  font-weight: 800;
+  margin-bottom: 16px;
+  padding-right: 40px;
+}
+
+.modal p {
+  font-size: 15px;
+  color: #595959;
+  line-height: 1.7;
+  margin-bottom: 16px;
+}
+
+.modal .placeholder-note {
+  background: #f3f2ef;
+  border-radius: 8px;
+  padding: 20px;
+  font-size: 14px;
+  color: #767676;
+  font-style: italic;
+  text-align: center;
+  margin-top: 16px;
+}
+</style>
+</head>
+<body>
+
+<div class="page-container">
+  <h1>Test video and audio connection</h1>
+  <p class="subtitle">Checking your connection helps ensure a smooth interview experience.</p>
+
+  <div class="av-test-layout">
+    <!-- Left side: Network reminder + Video preview -->
+    <div class="av-left">
+
+      <!-- Network Access Reminder -->
+      <div class="network-reminder">
+        <svg class="network-reminder-icon" viewBox="0 0 28 28" fill="none">
+          <path d="M14 2L1 26h26L14 2z" fill="#d4956b" stroke="#c17f59" stroke-width="1"/>
+          <text x="14" y="21" font-size="14" font-weight="800" fill="#fff" text-anchor="middle" font-family="sans-serif">!</text>
+        </svg>
+        <div class="network-reminder-text">
+          <strong>Network Access Reminder</strong>
+          If your company has a restrictive network, ask your IT team to update your settings before conducting interviews. We recommend <a href="https://network-test.daily.co/index.html" target="_blank">testing the network</a> you'll be using beforehand. If errors occur, provide your IT team with these <a href="#" onclick="document.getElementById('instructions-modal').classList.add('open'); return false;">instructions</a> for updating the allow list.
+        </div>
+      </div>
+
+      <!-- Video Preview -->
+      <div class="video-preview">
+        <div class="video-preview-placeholder">
+          <svg viewBox="0 0 64 64" fill="none" stroke="#fff" stroke-width="2">
+            <rect x="4" y="12" width="40" height="30" rx="4"/>
+            <polygon points="44,20 58,14 58,38 44,32"/>
+            <circle cx="24" cy="27" r="6"/>
+          </svg>
+          <p>Camera preview</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Right side: Controls -->
+    <div class="av-right">
+
+      <!-- Microphone -->
+      <div class="control-card">
+        <div class="control-card-label">Microphone</div>
+        <select class="control-select">
+          <option>Default - MacBook Pro Microphone</option>
+          <option>External Microphone</option>
+        </select>
+        <div class="mic-level">
+          <span class="mic-level-label">Microphone Input:</span>
+          <div class="mic-level-bars">
+            <div class="mic-bar active"></div>
+            <div class="mic-bar active"></div>
+            <div class="mic-bar active"></div>
+            <div class="mic-bar active"></div>
+            <div class="mic-bar active"></div>
+            <div class="mic-bar"></div>
+            <div class="mic-bar"></div>
+            <div class="mic-bar"></div>
+          </div>
+        </div>
+        <label class="control-checkbox">
+          <input type="checkbox" checked>
+          <div class="checkbox-visual">
+            <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="2.5 7 5.5 10.5 11.5 3.5"/></svg>
+          </div>
+          <span>Suppress background noise</span>
+        </label>
+      </div>
+
+      <!-- Speaker -->
+      <div class="control-card">
+        <div class="control-card-label">Speaker</div>
+        <select class="control-select">
+          <option>Default - MacBook Pro Speakers</option>
+          <option>External Speakers</option>
+        </select>
+        <button class="btn-test-speaker">Test speaker</button>
+      </div>
+
+      <!-- Camera -->
+      <div class="control-card">
+        <div class="control-card-label">Camera</div>
+        <select class="control-select">
+          <option>MacBook Pro Camera</option>
+          <option>External Camera</option>
+        </select>
+        <label class="control-checkbox">
+          <input type="checkbox" checked>
+          <div class="checkbox-visual">
+            <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="2.5 7 5.5 10.5 11.5 3.5"/></svg>
+          </div>
+          <span>Mirror my video</span>
+        </label>
+        <label class="control-checkbox" style="margin-top: 12px;">
+          <input type="checkbox">
+          <div class="checkbox-visual">
+            <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="2.5 7 5.5 10.5 11.5 3.5"/></svg>
+          </div>
+          <span>Blur background</span>
+        </label>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Instructions Modal -->
+<div class="modal-overlay" id="instructions-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="document.getElementById('instructions-modal').classList.remove('open')">&times;</button>
+    <h2>IT Network Allow List Instructions</h2>
+    <p>If your company uses a restrictive network or firewall, your IT team may need to update the allow list to ensure a smooth video interview experience.</p>
+    <div class="placeholder-note">
+      Placeholder: Detailed IT instructions will be provided here.<br>
+      This will include domains, ports, and protocols that need to be allowed for video interviews to function properly.
+    </div>
+  </div>
+</div>
+
+<script>
+// Close modal on overlay click
+document.getElementById('instructions-modal').addEventListener('click', function(e) {
+  if (e.target === this) {
+    this.classList.remove('open');
+  }
+});
+</script>
+
+</body>
+</html>

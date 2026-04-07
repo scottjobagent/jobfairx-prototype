@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Edit Your Jobs & Settings - JobFairX</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; background: #f3f2ef; color: #2d2d2d; min-height: 100vh; font-size: 14px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+
+/* Container */
+.container { max-width: 820px; margin: 0 auto; padding: 32px 32px 60px; }
+
+/* Back link */
+.back-link { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: #2557a7; text-decoration: none; font-weight: 600; margin-bottom: 28px; cursor: pointer; }
+.back-link:hover { text-decoration: underline; }
+.back-link svg { width: 16px; height: 16px; }
+
+/* Header card */
+.header-card { background: #fff; border-radius: 12px; border: 1px solid #d4d2d0; padding: 40px 40px; margin-bottom: 28px; display: flex; align-items: center; justify-content: space-between; }
+.header-text h1 { font-size: 36px; font-weight: 700; color: #2d2d2d; line-height: 1.25; }
+.header-text .event-date { font-size: 16px; color: #767676; margin-top: 8px; font-weight: 500; }
+.header-illustration { width: 140px; height: 100px; flex-shrink: 0; }
+
+/* Section card */
+.section { background: #fff; border-radius: 12px; border: 1px solid #d4d2d0; margin-bottom: 22px; overflow: hidden; }
+.section-header { display: flex; align-items: center; justify-content: space-between; padding: 28px 36px 0; }
+.section-header h2 { font-size: 24px; font-weight: 700; color: #2d2d2d; }
+.section-pencil { width: 42px; height: 42px; border: none; background: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #2557a7; border-radius: 8px; transition: background 0.15s; }
+.section-pencil:hover { background: #f0f5ff; }
+.section-pencil svg { width: 24px; height: 24px; fill: #2557a7; stroke: none; }
+.section-divider { height: 1px; background: #e0e0e0; margin: 18px 36px 0; }
+.section-body { padding: 26px 36px 32px; }
+
+/* Toggle switch */
+.toggle-row { display: flex; align-items: center; gap: 14px; }
+.toggle-switch { position: relative; width: 48px; height: 28px; flex-shrink: 0; }
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+.toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: #d4d2d0; border-radius: 28px; transition: 0.25s; }
+.toggle-slider:before { content: ''; position: absolute; height: 22px; width: 22px; left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: 0.25s; }
+.toggle-switch input:checked + .toggle-slider { background: #2557a7; }
+.toggle-switch input:checked + .toggle-slider:before { transform: translateX(20px); }
+.toggle-label { font-size: 16px; color: #2d2d2d; font-weight: 500; }
+
+/* Job card inside Interviewing For */
+.job-card { padding: 26px 0; }
+.job-card-top { display: flex; align-items: flex-start; justify-content: space-between; }
+.job-name { font-size: 18px; font-weight: 700; color: #2d2d2d; }
+.job-pay { font-size: 14px; color: #2557a7; text-decoration: underline; margin-top: 5px; }
+.job-desc { font-size: 14px; color: #767676; margin-top: 14px; line-height: 1.7; }
+.edit-btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 20px; border-radius: 8px; border: 1px solid #d4d2d0; background: #fff; font-size: 14px; font-weight: 600; color: #2d2d2d; cursor: pointer; font-family: inherit; transition: all 0.15s; white-space: nowrap; }
+.edit-btn:hover { background: #f6f5f3; border-color: #2d2d2d; }
+.edit-btn svg { width: 16px; height: 16px; }
+.job-card-actions { display: flex; align-items: center; gap: 14px; }
+.remove-link { font-size: 14px; font-weight: 600; color: #2557a7; cursor: pointer; text-decoration: none; }
+.remove-link:hover { text-decoration: underline; }
+
+/* Add job buttons */
+.add-job-row { display: flex; gap: 12px; margin-top: 24px; padding-top: 20px; border-top: 1px solid #ebebeb; }
+.add-job-btn { padding: 12px 26px; border-radius: 8px; border: 1px solid #d4d2d0; background: #fff; font-size: 14px; font-weight: 700; color: #2557a7; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+.add-job-btn:hover { background: #f0f5ff; border-color: #2557a7; }
+
+/* Summary text */
+.summary-text { font-size: 16px; color: #595959; line-height: 1.7; }
+
+/* ═══ Custom Email Expandable Section ═══ */
+.custom-email-section { display: none; margin-top: 24px; }
+.custom-email-section.open { display: block; }
+
+.ce-subheading { font-size: 18px; font-weight: 800; color: #2d2d2d; margin-bottom: 10px; margin-top: 24px; }
+.ce-subheading:first-child { margin-top: 0; }
+.ce-description { font-size: 15px; color: #595959; line-height: 1.7; margin-bottom: 20px; }
+
+.ce-checklist { list-style: none; padding: 0; margin-bottom: 28px; }
+.ce-checklist li { display: flex; align-items: flex-start; gap: 12px; padding: 10px 0; font-size: 15px; color: #595959; line-height: 1.5; }
+.ce-check-icon { width: 24px; height: 24px; flex-shrink: 0; color: #2557a7; margin-top: 1px; }
+
+.ce-form { border: 1px solid #d4d2d0; border-radius: 10px; overflow: hidden; margin-bottom: 20px; }
+.ce-form-row { display: flex; align-items: center; padding: 14px 20px; border-bottom: 1px solid #e8e6e3; gap: 12px; }
+.ce-form-row:last-child { border-bottom: none; }
+.ce-form-label { font-size: 14px; font-weight: 400; color: #595959; white-space: nowrap; min-width: 60px; }
+.ce-form-value { font-size: 15px; color: #2d2d2d; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; flex: 1; }
+.ce-tag { display: inline-flex; align-items: center; background: #f3f2ef; border: 1px solid #d4d2d0; border-radius: 6px; padding: 4px 12px; font-size: 13px; font-weight: 600; color: #2d2d2d; white-space: nowrap; }
+.ce-form-select { padding: 6px 12px; font-size: 14px; font-family: inherit; border: 1px solid #d4d2d0; border-radius: 6px; background: #fff; color: #767676; cursor: pointer; }
+.ce-form-input { border: none; outline: none; font-size: 15px; font-family: inherit; color: #2d2d2d; flex: 1; min-width: 100px; }
+
+.ce-editor { border: 1px solid #d4d2d0; border-radius: 10px; overflow: hidden; margin-bottom: 20px; }
+.ce-editor-toolbar { display: flex; align-items: center; padding: 8px 12px; background: #f3f2ef; border-bottom: 1px solid #d4d2d0; gap: 4px; }
+.ce-editor-btn { width: 32px; height: 32px; border: none; background: transparent; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; color: #2d2d2d; font-family: 'Georgia', serif; transition: background 0.15s; }
+.ce-editor-btn:hover { background: #e8e6e3; }
+.ce-editor-btn.bold { font-weight: 800; font-family: 'Noto Sans', sans-serif; }
+.ce-editor-btn.italic { font-style: italic; font-family: 'Georgia', serif; }
+.ce-editor textarea { width: 100%; min-height: 180px; border: none; outline: none; padding: 14px 16px; font-size: 15px; font-family: inherit; color: #2d2d2d; resize: vertical; line-height: 1.6; }
+
+.ce-footer-note { display: flex; align-items: center; gap: 10px; font-size: 14px; color: #595959; }
+
+.ce-actions { display: flex; align-items: center; justify-content: flex-end; gap: 16px; margin-top: 28px; padding-top: 24px; }
+.ce-btn-cancel { background: none; border: none; font-size: 16px; font-weight: 700; color: #2557a7; cursor: pointer; font-family: inherit; padding: 10px 20px; border-radius: 8px; transition: background 0.15s; }
+.ce-btn-cancel:hover { background: #f0f5ff; }
+.ce-btn-update { background: #2557a7; border: none; font-size: 16px; font-weight: 700; color: #fff; cursor: pointer; font-family: inherit; padding: 12px 28px; border-radius: 8px; transition: background 0.15s; }
+.ce-btn-update:hover { background: #1c4587; }
+
+/* ═══ Interview Details Expandable Section ═══ */
+.id-expand { display: none; }
+.id-expand.open { display: block; }
+
+.id-field { margin-bottom: 32px; }
+.id-field:last-of-type { margin-bottom: 0; }
+.id-field-label { font-size: 18px; font-weight: 800; color: #2d2d2d; display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.id-lock-icon { width: 18px; height: 18px; color: #999; flex-shrink: 0; }
+.id-field-hint { font-size: 15px; color: #595959; line-height: 1.6; margin-bottom: 14px; }
+.id-field-value { font-size: 16px; color: #2d2d2d; font-weight: 400; }
+
+.id-number-input { width: 80px; padding: 12px 16px; font-size: 16px; font-family: inherit; color: #2d2d2d; border: 1px solid #d4d2d0; border-radius: 8px; outline: none; transition: border-color 0.15s; }
+.id-number-input:focus { border-color: #2557a7; }
+
+.id-recommendation { font-size: 15px; color: #595959; line-height: 1.7; margin-top: 16px; }
+
+.id-editor { border: 1px solid #d4d2d0; border-radius: 10px; overflow: hidden; }
+.id-editor-toolbar { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f3f2ef; border-bottom: 1px solid #d4d2d0; }
+.id-editor-toolbar-left { display: flex; gap: 4px; }
+.id-editor-btn { width: 32px; height: 32px; border: none; background: transparent; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; color: #2d2d2d; font-family: 'Georgia', serif; transition: background 0.15s; }
+.id-editor-btn:hover { background: #e8e6e3; }
+.id-editor-btn.bold { font-weight: 800; font-family: 'Noto Sans', sans-serif; }
+.id-editor-btn.italic { font-style: italic; font-family: 'Georgia', serif; }
+.id-editor-btn.help { font-family: 'Noto Sans', sans-serif; color: #767676; font-size: 15px; font-weight: 600; width: 28px; height: 28px; border: 2px solid #d4d2d0; border-radius: 50%; }
+.id-editor textarea { width: 100%; min-height: 140px; border: none; outline: none; padding: 14px 16px; font-size: 15px; font-family: inherit; color: #767676; resize: vertical; line-height: 1.6; background: #fff; }
+
+.app-link-input { width: 100%; padding: 14px 16px; font-size: 16px; font-family: inherit; color: #2d2d2d; border: 1px solid #d4d2d0; border-radius: 8px; outline: none; transition: border-color 0.15s; }
+.app-link-input:focus { border-color: #2557a7; }
+
+/* ═══ Interview Settings Expandable Section ═══ */
+.is-group { margin-bottom: 28px; }
+.is-group-label { font-size: 18px; font-weight: 800; color: #2d2d2d; margin-bottom: 6px; }
+.is-group-hint { font-size: 14px; color: #595959; margin-bottom: 12px; }
+.is-field-label { font-size: 16px; font-weight: 700; color: #2d2d2d; margin-bottom: 6px; }
+.is-field-hint { font-size: 14px; color: #595959; margin-bottom: 10px; }
+.is-email-input { width: 100%; padding: 12px 16px; font-size: 15px; font-family: inherit; color: #2d2d2d; border: 1px solid #d4d2d0; border-radius: 8px; outline: none; transition: border-color 0.15s; }
+.is-email-input:focus { border-color: #2557a7; }
+.is-email-chip { display: inline-flex; align-items: center; gap: 8px; background: #f3f2ef; border: 1px solid #d4d2d0; border-radius: 20px; padding: 6px 14px; font-size: 14px; color: #2d2d2d; margin-bottom: 8px; }
+.is-email-chip-x { background: none; border: none; font-size: 16px; color: #767676; cursor: pointer; padding: 0; line-height: 1; font-family: inherit; }
+.is-email-chip-x:hover { color: #2d2d2d; }
+.is-divider { height: 1px; background: #e8e6e3; margin: 24px 0; }
+.is-toggle-row { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+.is-toggle-label { font-size: 16px; color: #2d2d2d; font-weight: 500; }
+
+.id-actions { display: flex; align-items: center; justify-content: flex-end; gap: 16px; margin-top: 28px; padding-top: 24px; }
+
+/* ═══ Screening Expandable Section ═══ */
+.screening-expand { display: none; }
+.screening-expand.open { display: block; }
+
+.screening-heading { font-size: 18px; font-weight: 800; color: #2d2d2d; margin-bottom: 10px; margin-top: 0; }
+.screening-subtext { font-size: 15px; color: #595959; line-height: 1.7; margin-bottom: 24px; }
+
+.screening-jobs-container { border: 1px solid #d4d2d0; border-radius: 10px; overflow: hidden; margin-bottom: 20px; }
+.screening-job-row { display: flex; align-items: center; justify-content: space-between; padding: 18px 20px; border-bottom: 1px solid #ebebeb; }
+.screening-job-row:last-child { border-bottom: none; }
+
+.screening-job-name { font-size: 16px; font-weight: 700; color: #2557a7; min-width: 140px; }
+.screening-job-status { display: flex; align-items: center; gap: 12px; }
+.screening-badge { display: inline-flex; align-items: center; padding: 6px 12px; font-size: 13px; font-weight: 600; border-radius: 6px; }
+.screening-badge.none { background: #f3f2ef; color: #767676; }
+.screening-badge.added { background: #e8f5e9; color: #2d7a2d; }
+
+.screening-action-btn { border-radius: 20px; border: none; cursor: pointer; font-family: inherit; transition: all 0.15s; white-space: nowrap; }
+.screening-action-btn.add { padding: 8px 18px; font-size: 14px; font-weight: 600; background: #0044B3; color: white; }
+.screening-action-btn.add:hover { background: #003399; }
+.screening-action-btn.edit { padding: 6px 16px; font-size: 16px; font-weight: 700; background: white; border: 2px solid #0044B3; color: #0044B3; }
+.screening-action-btn.edit:hover { background: #f0f5ff; border-color: #003399; }
+.screening-action-remove { font-size: 14px; font-weight: 600; color: #d32f2f; cursor: pointer; text-decoration: none; }
+.screening-action-remove:hover { text-decoration: underline; }
+
+.screening-multiple-link { display: inline-flex; align-items: center; gap: 6px; color: #2557a7; text-decoration: none; font-size: 15px; font-weight: 600; cursor: pointer; margin-bottom: 24px; }
+.screening-multiple-link:hover { text-decoration: underline; }
+
+.screening-actions { display: flex; align-items: center; justify-content: flex-end; gap: 16px; margin-top: 24px; padding-top: 20px; }
+.screening-close-btn { background: #0044B3; color: white; border: none; padding: 12px 28px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; }
+.screening-close-btn:hover { background: #003399; }
+
+/* Modal Overlay */
+.modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); z-index: 1000; align-items: center; justify-content: center; }
+.modal-overlay.open { display: flex; }
+
+.modal-card { background: white; border-radius: 12px; padding: 32px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; position: relative; }
+
+.modal-close-btn { position: absolute; top: 20px; right: 20px; background: none; border: none; font-size: 28px; color: #767676; cursor: pointer; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; line-height: 1; }
+.modal-close-btn:hover { color: #2d2d2d; }
+
+.modal-title { font-size: 20px; font-weight: 700; color: #2d2d2d; margin-bottom: 4px; }
+.modal-title-sub { font-size: 14px; color: #595959; margin-bottom: 24px; }
+
+.modal-form-group { margin-bottom: 24px; }
+.modal-label { display: block; font-size: 14px; font-weight: 600; color: #2d2d2d; margin-bottom: 8px; }
+.modal-label.required::after { content: ' *'; color: #d32f2f; }
+
+.modal-textarea { width: 100%; padding: 12px 16px; font-size: 15px; font-family: inherit; color: #2d2d2d; border: 1px solid #d4d2d0; border-radius: 8px; outline: none; min-height: 100px; resize: vertical; }
+.modal-textarea:focus { border-color: #2557a7; }
+
+.modal-select, .modal-input { width: 100%; padding: 12px 16px; font-size: 15px; font-family: inherit; color: #2d2d2d; border: 1px solid #d4d2d0; border-radius: 8px; outline: none; }
+.modal-select:focus, .modal-input:focus { border-color: #2557a7; }
+.modal-select { background: white; cursor: pointer; }
+
+.modal-row { display: flex; gap: 12px; }
+.modal-row .modal-form-group { flex: 1; margin-bottom: 0; }
+
+.modal-conditional { display: none; }
+.modal-conditional.show { display: block; }
+
+.modal-actions { display: flex; gap: 12px; margin-top: 28px; justify-content: flex-end; }
+.modal-btn-cancel { background: white; border: 1px solid #d4d2d0; color: #2d2d2d; padding: 10px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; }
+.modal-btn-cancel:hover { background: #f6f5f3; }
+.modal-btn-save { background: #0044B3; color: white; border: none; padding: 10px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; }
+.modal-btn-save:hover { background: #003399; }
+
+.modal-jobs-list { max-height: 300px; overflow-y: auto; border: 1px solid #d4d2d0; border-radius: 8px; margin-bottom: 20px; }
+.modal-job-checkbox { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-bottom: 1px solid #ebebeb; }
+.modal-job-checkbox:last-child { border-bottom: none; }
+.modal-job-checkbox input { cursor: pointer; width: 18px; height: 18px; }
+.modal-job-checkbox-label { font-size: 15px; color: #2d2d2d; cursor: pointer; flex: 1; }
+.modal-job-checkbox-label.disabled { color: #999; cursor: not-allowed; }
+.modal-job-checkbox input:disabled { cursor: not-allowed; opacity: 0.5; }
+.modal-checkbox-sub { font-size: 13px; color: #999; margin-left: 30px; margin-top: -8px; margin-bottom: 4px; }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <a class="back-link" href="visual.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+    Back to dashboard
+  </a>
+
+  <!-- HEADER CARD -->
+  <div class="header-card">
+    <div class="header-text">
+      <h1>Edit your Jobs<br>& Settings</h1>
+    </div>
+    <svg class="header-illustration" viewBox="0 0 140 100" fill="none">
+      <rect x="10" y="52" width="110" height="34" rx="4" fill="#f0ebe4"/>
+      <rect x="22" y="36" width="44" height="32" rx="4" fill="#e0d6ca"/>
+      <rect x="27" y="41" width="34" height="22" rx="2" fill="#fff" stroke="#d4c4b0" stroke-width="1"/>
+      <rect x="31" y="48" width="24" height="2" rx="1" fill="#d4d2d0"/>
+      <rect x="31" y="53" width="18" height="2" rx="1" fill="#d4d2d0"/>
+      <circle cx="92" cy="40" r="11" fill="#8fbc8f" opacity="0.7"/>
+      <circle cx="100" cy="33" r="9" fill="#7da67d" opacity="0.8"/>
+      <circle cx="86" cy="31" r="7" fill="#a8d5a8" opacity="0.6"/>
+      <rect x="90" y="50" width="4" height="18" rx="2" fill="#c17f59"/>
+      <rect x="76" y="58" width="6" height="12" rx="2" fill="#d4956b" opacity="0.5"/>
+      <circle cx="54" cy="28" r="8" fill="#f0c8a0"/>
+      <rect x="48" y="36" width="13" height="9" rx="3" fill="#2557a7" opacity="0.8"/>
+    </svg>
+  </div>
+
+  <!-- SECTION: EVENT DETAILS -->
+  <div class="section">
+    <div class="section-header">
+      <h2>Event details</h2>
+    </div>
+    <div class="section-divider"></div>
+    <div class="section-body">
+      <p class="summary-text">Dallas Healthcare Hiring Event<br>April 22, 2026 &middot; 11:00 AM – 3:00 PM</p>
+    </div>
+  </div>
+
+  <!-- SECTION: CUSTOM EMAILS -->
+  <div class="section">
+    <div class="section-header">
+      <h2>Custom emails</h2>
+      <button class="section-pencil" title="Edit custom emails" onclick="toggleCustomEmail(true)"><svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button>
+    </div>
+    <div class="section-divider"></div>
+    <div class="section-body">
+      <div class="toggle-row">
+        <label class="toggle-switch">
+          <input type="checkbox" id="customEmailToggle" onchange="toggleCustomEmail(this.checked)">
+          <span class="toggle-slider"></span>
+        </label>
+        <span class="toggle-label">Send a custom email to all candidates</span>
+      </div>
+
+      <!-- Expandable Custom Email Form -->
+      <div class="custom-email-section" id="customEmailSection">
+
+        <h3 class="ce-subheading">How this works</h3>
+        <p class="ce-description">When a candidate is invited to your event, they'll receive your custom email instead of the default JobFairX invitation. This lets you personalize the message with your company's voice and any details candidates should know before the interview.</p>
+
+        <h3 class="ce-subheading">Things to include</h3>
+        <ul class="ce-checklist">
+          <li>
+            <svg class="ce-check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+            <span>A warm greeting that reflects your company culture</span>
+          </li>
+          <li>
+            <svg class="ce-check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+            <span>Details about the interview format, duration, or what to expect</span>
+          </li>
+          <li>
+            <svg class="ce-check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+            <span>Any preparation steps candidates should complete beforehand</span>
+          </li>
+        </ul>
+
+        <!-- Email Form -->
+        <div class="ce-form">
+          <div class="ce-form-row">
+            <span class="ce-form-label">To</span>
+            <div class="ce-form-value">
+              <span class="ce-tag">All new applicants</span>
+            </div>
+          </div>
+          <div class="ce-form-row">
+            <span class="ce-form-label">From</span>
+            <div class="ce-form-value">
+              <select class="ce-form-select">
+                <option>Select an email address</option>
+                <option>scott@jobfairx.com</option>
+              </select>
+            </div>
+          </div>
+          <div class="ce-form-row">
+            <span class="ce-form-label">Subject</span>
+            <div class="ce-form-value">
+              <span class="ce-tag">Applicant's first name</span>
+              <input class="ce-form-input" type="text" placeholder=", you're invited to interview at Dallas Healthcare Hiring Event">
+            </div>
+          </div>
+          <div class="ce-form-row">
+            <span class="ce-form-label">Greeting</span>
+            <div class="ce-form-value">
+              <span style="font-size:15px; color:#2d2d2d;">Hi</span>
+              <span class="ce-tag">Applicant's first name</span>
+              <span style="font-size:15px; color:#2d2d2d;">,</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Rich Text Editor -->
+        <div class="ce-editor">
+          <div class="ce-editor-toolbar">
+            <button class="ce-editor-btn bold" title="Bold">B</button>
+            <button class="ce-editor-btn italic" title="Italic">I</button>
+            <button class="ce-editor-btn" title="List">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><circle cx="2" cy="3" r="1.5"/><rect x="5" y="2" width="10" height="2" rx="1"/><circle cx="2" cy="8" r="1.5"/><rect x="5" y="7" width="10" height="2" rx="1"/><circle cx="2" cy="13" r="1.5"/><rect x="5" y="12" width="10" height="2" rx="1"/></svg>
+            </button>
+          </div>
+          <textarea placeholder="Write your custom email message here..."></textarea>
+        </div>
+
+        <div class="ce-footer-note">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#595959" stroke-width="1.5"><circle cx="8" cy="8" r="6.5"/><path d="M8 5v0m0 2.5v4" stroke-linecap="round"/></svg>
+          <span>Use <span class="ce-tag" style="display:inline-flex; margin: 0 4px;">Applicant's first name</span> to personalize each email automatically.</span>
+        </div>
+
+        <!-- Cancel / Update buttons -->
+        <div class="ce-actions">
+          <button class="ce-btn-cancel" onclick="toggleCustomEmail(false)">Cancel</button>
+          <button class="ce-btn-update" onclick="toggleCustomEmail(false)">Update</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION: INTERVIEWING FOR -->
+  <div class="section">
+    <div class="section-header">
+      <h2>Interviewing For</h2>
+    </div>
+    <div class="section-divider"></div>
+    <div class="section-body">
+      <div class="job-card">
+        <div class="job-card-top">
+          <div>
+            <div class="job-name">Registered Nurse</div>
+            <div class="job-pay">$55,000 – $72,000 / year, Full-time</div>
+          </div>
+          <div class="job-card-actions">
+            <a class="remove-link">Remove</a>
+            <button class="edit-btn" onclick="window.open('job-posting.html','_blank')">Edit <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3"/></svg></button>
+          </div>
+        </div>
+        <div class="job-desc">
+          We are seeking a compassionate and skilled Registered Nurse to join our healthcare team. The ideal candidate will provide high-quality patient care in a fast-paced environment and collaborate with a multidisciplinary team to ensure the best outco...
+        </div>
+      </div>
+
+      <div class="job-card" style="border-top:1px solid #ebebeb;">
+        <div class="job-card-top">
+          <div>
+            <div class="job-name">Medical Assistant</div>
+            <div class="job-pay">$38,000 – $48,000 / year, Full-time</div>
+          </div>
+          <div class="job-card-actions">
+            <a class="remove-link">Remove</a>
+            <button class="edit-btn" onclick="window.open('job-posting.html','_blank')">Edit <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3"/></svg></button>
+          </div>
+        </div>
+        <div class="job-desc">
+          Join our growing clinic as a Medical Assistant supporting physicians and nurses in delivering excellent patient care. You will handle clinical and administrative duties including patient intake, vitals, scheduling, and electronic health recor...
+        </div>
+      </div>
+      <div class="add-job-row">
+        <button class="add-job-btn">Create a new job</button>
+        <button class="add-job-btn">Add an existing job</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION: INTERVIEW DETAILS -->
+  <div class="section">
+    <div class="section-header">
+      <h2>Interview details</h2>
+      <button class="section-pencil" title="Edit interview details" onclick="toggleInterviewDetails(true)"><svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button>
+    </div>
+    <div class="section-divider"></div>
+    <div class="section-body">
+      <p class="summary-text" id="interviewDetailsSummary">2 spots available for each 30-minute time slot | Start Advertising Date: 04/07/2026 | Attendance instructions added</p>
+
+      <!-- Expandable Interview Details Edit -->
+      <div class="id-expand" id="interviewDetailsExpand">
+
+        <!-- Interview time slot duration (locked) -->
+        <div class="id-field">
+          <div class="id-field-label">
+            Interview time slot duration
+            <svg class="id-lock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+          </div>
+          <p class="id-field-hint">This allows job seekers to select from multiple scheduling options.</p>
+          <p class="id-field-value">30 min</p>
+        </div>
+
+        <!-- How many interviews per time slot (editable) -->
+        <div class="id-field">
+          <div class="id-field-label">
+            How many interviews is your team able to conduct during each time slot? *
+          </div>
+          <p class="id-field-hint">This cap can help optimize the distribution of interviews across time slots. The number of interviews is not guaranteed.</p>
+          <input class="id-number-input" type="number" id="interviewsPerSlot" value="3" min="1" max="20">
+          <p class="id-recommendation">Based on your selection, you can expect to plan for <strong id="candidateCount">3</strong> candidates to show up per time slot. We recommend staffing 1 interviewer for each expected candidate, so if you don't think you'll be able to staff <strong id="staffCount">3</strong> interviewers at the event, we suggest setting a lower number here.</p>
+        </div>
+
+        <!-- Cancel / Update buttons -->
+        <div class="id-actions">
+          <button class="ce-btn-cancel" onclick="toggleInterviewDetails(false)">Cancel</button>
+          <button class="ce-btn-update" onclick="toggleInterviewDetails(false)">Update</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION: SCREENING -->
+  <div class="section">
+    <div class="section-header">
+      <h2>Screening</h2>
+      <button class="section-pencil" title="Edit screening" onclick="toggleScreening(true)"><svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button>
+    </div>
+    <div class="section-divider"></div>
+    <div class="section-body">
+      <p class="summary-text" id="screeningSummary">Screening has been added to 0 of 2 jobs within this event.</p>
+
+      <!-- Expandable Screening Edit -->
+      <div class="screening-expand" id="screeningExpand">
+        <h3 class="screening-heading">Screen candidates for your requirements</h3>
+        <p class="screening-subtext">Candidates will answer your screening questions prior to completing an application and will be eliminated from consideration.</p>
+
+        <div class="screening-jobs-container">
+          <div class="screening-job-row">
+            <div class="screening-job-name">Registered Nurse</div>
+            <div class="screening-job-status">
+              <span class="screening-badge none" id="rn-badge">No screening added</span>
+              <button class="screening-action-btn add" id="rn-btn" onclick="openAddScreener('Registered Nurse', 0)">Add screening</button>
+            </div>
+          </div>
+          <div class="screening-job-row">
+            <div class="screening-job-name">Medical Assistant</div>
+            <div class="screening-job-status">
+              <span class="screening-badge none" id="ma-badge">No screening added</span>
+              <button class="screening-action-btn add" id="ma-btn" onclick="openAddScreener('Medical Assistant', 1)">Add screening</button>
+            </div>
+          </div>
+        </div>
+
+        <a class="screening-multiple-link" onclick="openMultipleScreening()">
+          <span>+</span>
+          <span>Add screening to multiple jobs</span>
+        </a>
+
+        <div class="screening-actions">
+          <button class="screening-close-btn" onclick="toggleScreening(false)">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION: APPLICATION LINK -->
+  <div class="section">
+    <div class="section-header">
+      <h2>Application link</h2>
+      <button class="section-pencil" title="Edit application link" onclick="toggleAppLink(true)"><svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button>
+    </div>
+    <div class="section-divider"></div>
+    <div class="section-body">
+      <p class="summary-text" id="appLinkSummary">Do you want candidates to complete a job application? Add an application URL.</p>
+
+      <!-- Expandable Application Link Edit -->
+      <div class="id-expand" id="appLinkExpand" style="margin-top:16px;">
+        <p style="font-size:14px; color:#595959; margin-bottom:10px;">The URL must link to a specific job application</p>
+        <input class="app-link-input" type="url" id="appLinkInput" style="padding:10px 14px; font-size:15px;">
+        <div class="id-actions" style="margin-top:16px; padding-top:0;">
+          <button class="ce-btn-cancel" onclick="toggleAppLink(false)">Cancel</button>
+          <button class="ce-btn-update" onclick="toggleAppLink(false)">Update</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION: INTERVIEW SETTINGS -->
+  <div class="section">
+    <div class="section-header">
+      <h2>Interview settings</h2>
+      <button class="section-pencil" title="Edit interview settings" onclick="toggleInterviewSettings(true)"><svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button>
+    </div>
+    <div class="section-divider"></div>
+    <div class="section-body">
+      <p class="summary-text" id="interviewSettingsSummary">2 interviewer(s) added | 1 daily update recipient(s) | 1 accommodations contact(s) | JobFairX Virtual Interviews</p>
+
+      <!-- Expandable Interview Settings Edit -->
+      <div class="id-expand" id="interviewSettingsExpand">
+
+        <!-- Who will be interviewing -->
+        <div class="is-group">
+          <div class="is-group-label">Who will be interviewing candidates?</div>
+          <p class="is-group-hint">Separate emails with commas.</p>
+
+          <div class="is-field-label">Enter the interviewers' email addresses. *</div>
+          <p class="is-field-hint">All interviewers will need a JobFairX account to access the event.</p>
+          <div class="is-email-input" style="min-height:48px; display:flex; align-items:center; flex-wrap:wrap; gap:8px; padding:10px 16px; cursor:text;" onclick="this.querySelector('input')?.focus()">
+            <span class="is-email-chip">scott@jobfairx.com <button class="is-email-chip-x" title="Remove">&times;</button></span>
+            <input type="email" placeholder="Add email..." style="border:none; outline:none; font-size:14px; font-family:inherit; flex:1; min-width:120px; padding:0;">
+          </div>
+        </div>
+
+        <div class="is-divider"></div>
+
+        <!-- Who needs updates -->
+        <div class="is-group">
+          <div class="is-group-label">Who needs to receive updates? *</div>
+
+          <div class="is-field-label">Enter the email addresses for those who need to receive updates. *</div>
+          <div class="is-email-input" style="min-height:48px; display:flex; align-items:center; flex-wrap:wrap; gap:8px; padding:10px 16px; cursor:text;" onclick="this.querySelector('input')?.focus()">
+            <input type="email" placeholder="Add email..." style="border:none; outline:none; font-size:14px; font-family:inherit; flex:1; min-width:120px; padding:0;">
+          </div>
+        </div>
+
+        <div class="is-divider"></div>
+
+        <!-- Cancel / Update buttons -->
+        <div class="id-actions" style="margin-top:0; padding-top:0;">
+          <button class="ce-btn-cancel" onclick="toggleInterviewSettings(false)">Cancel</button>
+          <button class="ce-btn-update" onclick="toggleInterviewSettings(false)">Update</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- MODAL: Add Screener Question -->
+<div class="modal-overlay" id="addScreenerModal">
+  <div class="modal-card">
+    <button class="modal-close-btn" onclick="closeModal('addScreenerModal')" title="Close">&times;</button>
+    <h3 class="modal-title">Add Screener Question</h3>
+
+    <form onsubmit="saveScreenerQuestion(event)">
+      <div class="modal-form-group">
+        <label class="modal-label required">Question Text</label>
+        <textarea class="modal-textarea" id="questionText" placeholder="Enter your screening question..." required></textarea>
+      </div>
+
+      <div class="modal-row">
+        <div class="modal-form-group">
+          <label class="modal-label required">Response Type</label>
+          <select class="modal-select" id="responseType" onchange="updateConditionalFields()" required>
+            <option value="">Select response type</option>
+            <option value="yesno">Yes/No</option>
+            <option value="numeric">Numeric</option>
+          </select>
+        </div>
+        <div class="modal-form-group">
+          <label class="modal-label required">Must-have qualification</label>
+          <select class="modal-select" id="mustHave" required>
+            <option value="">Select option</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="modal-conditional" id="requiredResponseField">
+        <div class="modal-form-group">
+          <label class="modal-label required">Required response</label>
+          <select class="modal-select" id="requiredResponse" required>
+            <option value="">Select response</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="modal-conditional" id="requiredMinimumField">
+        <div class="modal-form-group">
+          <label class="modal-label required">Required minimum</label>
+          <select class="modal-select" id="requiredMinimum" required>
+            <option value="">Select minimum</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+            <option value="9">9</option>
+            <option value="10">10</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="modal-btn-cancel" onclick="closeModal('addScreenerModal')">Cancel</button>
+        <button type="submit" class="modal-btn-save">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL: Add Screening to Multiple Jobs -->
+<div class="modal-overlay" id="multipleScreeningModal">
+  <div class="modal-card">
+    <button class="modal-close-btn" onclick="closeModal('multipleScreeningModal')" title="Close">&times;</button>
+    <h3 class="modal-title">Add screening to multiple jobs</h3>
+    <p class="modal-title-sub">Set up screening for these jobs <span style="color:#d32f2f;">*</span></p>
+
+    <div class="modal-form-group">
+      <div class="modal-jobs-list" id="multipleJobsList">
+        <div class="modal-job-checkbox">
+          <input type="checkbox" id="job-0-multi" value="0">
+          <label for="job-0-multi" class="modal-job-checkbox-label">Registered Nurse</label>
+        </div>
+        <div class="modal-job-checkbox">
+          <input type="checkbox" id="job-1-multi" value="1">
+          <label for="job-1-multi" class="modal-job-checkbox-label">Medical Assistant</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button type="button" class="modal-btn-cancel" onclick="closeModal('multipleScreeningModal')">Cancel</button>
+      <button type="button" class="modal-btn-save" onclick="proceedMultipleScreening()">Next</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function toggleInterviewDetails(show) {
+  var expand = document.getElementById('interviewDetailsExpand');
+  var summary = document.getElementById('interviewDetailsSummary');
+  if (show) {
+    expand.classList.add('open');
+    summary.style.display = 'none';
+  } else {
+    expand.classList.remove('open');
+    summary.style.display = '';
+  }
+}
+
+// Update recommendation text when number changes
+var slotInput = document.getElementById('interviewsPerSlot');
+if (slotInput) {
+  slotInput.addEventListener('input', function() {
+    var val = this.value || '0';
+    document.getElementById('candidateCount').textContent = val;
+    document.getElementById('staffCount').textContent = val;
+  });
+}
+
+function toggleInterviewSettings(show) {
+  var expand = document.getElementById('interviewSettingsExpand');
+  var summary = document.getElementById('interviewSettingsSummary');
+  if (show) {
+    expand.classList.add('open');
+    summary.style.display = 'none';
+  } else {
+    expand.classList.remove('open');
+    summary.style.display = '';
+  }
+}
+
+function toggleAppLink(show) {
+  var expand = document.getElementById('appLinkExpand');
+  var summary = document.getElementById('appLinkSummary');
+  if (show) {
+    expand.classList.add('open');
+    summary.style.display = 'none';
+  } else {
+    expand.classList.remove('open');
+    summary.style.display = '';
+  }
+}
+
+function toggleCustomEmail(show) {
+  var section = document.getElementById('customEmailSection');
+  var toggle = document.getElementById('customEmailToggle');
+  if (show) {
+    section.classList.add('open');
+    toggle.checked = true;
+  } else {
+    section.classList.remove('open');
+    toggle.checked = false;
+  }
+}
+
+/* ═══ Screening Functions ═══ */
+var screeningData = [
+  { jobIndex: 0, jobName: 'Registered Nurse', hasScreening: false, question: null },
+  { jobIndex: 1, jobName: 'Medical Assistant', hasScreening: false, question: null }
+];
+
+var currentScreeningJobIndex = null;
+var currentScreeningMode = null; // 'edit' or 'add'
+
+function toggleScreening(show) {
+  var expand = document.getElementById('screeningExpand');
+  var summary = document.getElementById('screeningSummary');
+  if (show) {
+    expand.classList.add('open');
+    summary.style.display = 'none';
+  } else {
+    expand.classList.remove('open');
+    summary.style.display = '';
+  }
+}
+
+function updateScreeningSummary() {
+  var count = screeningData.filter(function(job) { return job.hasScreening; }).length;
+  document.getElementById('screeningSummary').textContent = 'Screening has been added to ' + count + ' of 2 jobs within this event.';
+}
+
+function openAddScreener(jobName, jobIndex) {
+  currentScreeningJobIndex = jobIndex;
+  currentScreeningMode = 'add';
+
+  // Reset form
+  document.getElementById('questionText').value = '';
+  document.getElementById('responseType').value = '';
+  document.getElementById('mustHave').value = '';
+  document.getElementById('requiredResponse').value = '';
+  document.getElementById('requiredMinimum').value = '';
+  updateConditionalFields();
+
+  openModal('addScreenerModal');
+}
+
+function openMultipleScreening() {
+  // Update job list - disable jobs that already have screening
+  for (var i = 0; i < screeningData.length; i++) {
+    var checkbox = document.getElementById('job-' + i + '-multi');
+    var label = checkbox.nextElementSibling;
+
+    checkbox.checked = false;
+    if (screeningData[i].hasScreening) {
+      checkbox.disabled = true;
+      label.classList.add('disabled');
+      label.textContent = screeningData[i].jobName + ' (has screening associated)';
+    } else {
+      checkbox.disabled = false;
+      label.classList.remove('disabled');
+      label.textContent = screeningData[i].jobName;
+    }
+  }
+
+  openModal('multipleScreeningModal');
+}
+
+function proceedMultipleScreening() {
+  var selected = [];
+  for (var i = 0; i < screeningData.length; i++) {
+    var checkbox = document.getElementById('job-' + i + '-multi');
+    if (checkbox.checked) {
+      selected.push(i);
+    }
+  }
+
+  if (selected.length === 0) {
+    alert('Please select at least one job');
+    return;
+  }
+
+  // Store selected jobs
+  var selectedJobs = selected;
+
+  closeModal('multipleScreeningModal');
+
+  // Open the screener modal for the first selected job
+  currentScreeningJobIndex = selectedJobs[0];
+  currentScreeningMode = 'add';
+
+  // Reset form
+  document.getElementById('questionText').value = '';
+  document.getElementById('responseType').value = '';
+  document.getElementById('mustHave').value = '';
+  updateConditionalFields();
+
+  openModal('addScreenerModal');
+}
+
+function saveScreenerQuestion(event) {
+  event.preventDefault();
+
+  if (currentScreeningJobIndex === null) return;
+
+  var questionText = document.getElementById('questionText').value;
+  var responseType = document.getElementById('responseType').value;
+  var mustHave = document.getElementById('mustHave').value;
+  var requiredResponse = document.getElementById('requiredResponse').value;
+  var requiredMinimum = document.getElementById('requiredMinimum').value;
+
+  // Mark job as having screening
+  screeningData[currentScreeningJobIndex].hasScreening = true;
+  screeningData[currentScreeningJobIndex].question = {
+    text: questionText,
+    responseType: responseType,
+    mustHave: mustHave,
+    requiredResponse: requiredResponse,
+    requiredMinimum: requiredMinimum
+  };
+
+  updateJobRowUI(currentScreeningJobIndex);
+  updateScreeningSummary();
+  closeModal('addScreenerModal');
+}
+
+function updateJobRowUI(jobIndex) {
+  var job = screeningData[jobIndex];
+  var badgeId = jobIndex === 0 ? 'rn-badge' : 'ma-badge';
+  var btnId = jobIndex === 0 ? 'rn-btn' : 'ma-btn';
+  var badge = document.getElementById(badgeId);
+  var btn = document.getElementById(btnId);
+
+  if (job.hasScreening) {
+    badge.textContent = 'Screening added';
+    badge.classList.remove('none');
+    badge.classList.add('added');
+
+    // Replace with remove and edit buttons
+    btn.textContent = 'Edit';
+    btn.className = 'screening-action-btn edit';
+    btn.onclick = function() { openEditScreener(job.jobName, jobIndex); };
+
+    // Add remove link if not already there
+    var jobRow = btn.closest('.screening-job-status');
+    if (!jobRow.querySelector('.screening-action-remove')) {
+      var removeLink = document.createElement('a');
+      removeLink.className = 'screening-action-remove';
+      removeLink.textContent = 'Remove';
+      removeLink.onclick = function() { removeScreening(jobIndex); };
+      jobRow.insertBefore(removeLink, btn);
+    }
+  }
+}
+
+function openEditScreener(jobName, jobIndex) {
+  currentScreeningJobIndex = jobIndex;
+  currentScreeningMode = 'edit';
+
+  var job = screeningData[jobIndex];
+  if (job.question) {
+    document.getElementById('questionText').value = job.question.text;
+    document.getElementById('responseType').value = job.question.responseType;
+    document.getElementById('mustHave').value = job.question.mustHave;
+    document.getElementById('requiredResponse').value = job.question.requiredResponse || '';
+    document.getElementById('requiredMinimum').value = job.question.requiredMinimum || '';
+    updateConditionalFields();
+  }
+
+  openModal('addScreenerModal');
+}
+
+function removeScreening(jobIndex) {
+  screeningData[jobIndex].hasScreening = false;
+  screeningData[jobIndex].question = null;
+
+  var badgeId = jobIndex === 0 ? 'rn-badge' : 'ma-badge';
+  var btnId = jobIndex === 0 ? 'rn-btn' : 'ma-btn';
+  var badge = document.getElementById(badgeId);
+  var btn = document.getElementById(btnId);
+
+  badge.textContent = 'No screening added';
+  badge.classList.add('none');
+  badge.classList.remove('added');
+
+  btn.textContent = 'Add screening';
+  btn.className = 'screening-action-btn add';
+  btn.onclick = function() { openAddScreener(screeningData[jobIndex].jobName, jobIndex); };
+
+  // Remove the remove link
+  var jobRow = btn.closest('.screening-job-status');
+  var removeLink = jobRow.querySelector('.screening-action-remove');
+  if (removeLink) {
+    removeLink.remove();
+  }
+
+  updateScreeningSummary();
+}
+
+function updateConditionalFields() {
+  var responseType = document.getElementById('responseType').value;
+  var requiredResponseField = document.getElementById('requiredResponseField');
+  var requiredMinimumField = document.getElementById('requiredMinimumField');
+
+  if (responseType === 'yesno') {
+    requiredResponseField.classList.add('show');
+    requiredMinimumField.classList.remove('show');
+    document.getElementById('requiredResponse').required = true;
+    document.getElementById('requiredMinimum').required = false;
+  } else if (responseType === 'numeric') {
+    requiredResponseField.classList.remove('show');
+    requiredMinimumField.classList.add('show');
+    document.getElementById('requiredResponse').required = false;
+    document.getElementById('requiredMinimum').required = true;
+  } else {
+    requiredResponseField.classList.remove('show');
+    requiredMinimumField.classList.remove('show');
+    document.getElementById('requiredResponse').required = false;
+    document.getElementById('requiredMinimum').required = false;
+  }
+}
+
+function openModal(modalId) {
+  var modal = document.getElementById(modalId);
+  modal.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal(modalId) {
+  var modal = document.getElementById(modalId);
+  modal.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// Close modal when clicking overlay
+document.addEventListener('click', function(event) {
+  if (event.target.classList.contains('modal-overlay')) {
+    event.target.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+});
+</script>
+
+</body>
+</html>
