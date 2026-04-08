@@ -325,6 +325,8 @@ tbody tr:last-child td { border-bottom: none; }
 .iv-resume-modal-download:hover .iv-btn-tooltip { display: block; }
 .iv-resume-modal-close { width: 32px; height: 32px; border: none; background: none; font-size: 22px; color: #595959; cursor: pointer; display: flex; align-items: center; justify-content: center; border-radius: 6px; transition: all 0.15s; }
 .iv-resume-modal-close:hover { background: #f3f2ef; color: #2d2d2d; }
+.iv-resume-modal-btns { display: flex; align-items: center; margin-top: 16px; }
+.iv-resume-modal-btns .iv-pending-actions { display: inline-flex; }
 .iv-resume-modal-subtitle { font-size: 14px; font-weight: 400; color: #595959; margin-top: 4px; }
 .iv-resume-modal-contact { display: flex; align-items: center; gap: 20px; margin-top: 12px; font-size: 13px; color: #595959; }
 .iv-resume-modal-contact span { display: flex; align-items: center; }
@@ -1760,6 +1762,13 @@ tbody tr:last-child td { border-bottom: none; }
             <button class="iv-resume-modal-close" onclick="ivCloseResumeModal()">&times;</button>
           </div>
           <div class="iv-resume-modal-contact" id="ivResumeContact"></div>
+          <div class="iv-resume-modal-btns" id="ivResumeBtns" style="display: none;">
+            <div class="iv-pending-actions">
+              <button class="iv-pending-btn accept" onclick="ivAcceptFromResume()">Accept<span class="iv-btn-tooltip">Accept interview request</span></button>
+              <button class="iv-pending-btn decline" onclick="ivDeclineFromResume()">Decline<span class="iv-btn-tooltip">Decline interview request</span></button>
+              <button class="iv-pending-btn propose" onclick="ivCloseResumeModal()">Reschedule<span class="iv-btn-tooltip">Propose new interview time</span></button>
+            </div>
+          </div>
         </div>
         <div class="iv-resume-modal-body" id="ivResumeBody"></div>
       </div>
@@ -2279,8 +2288,28 @@ function ivOpenResumeModal(link) {
     bodyHtml += '<div class="iv-resume-job"><div class="iv-resume-job-header"><div><div class="iv-resume-job-title">' + jobTitle + '</div><div class="iv-resume-job-company">Company Name</div></div><div class="iv-resume-job-dates">2022 - Present</div></div><ul class="iv-resume-job-bullets"><li>Performed duties related to ' + jobTitle + ' role</li><li>Collaborated with cross-functional teams</li><li>Contributed to key projects and initiatives</li></ul></div>';
   }
   document.getElementById('ivResumeBody').innerHTML = bodyHtml;
+
+  // Show action buttons only when opened from Pending section
+  var isPending = !!row.closest('#ivPendingActive');
+  document.getElementById('ivResumeBtns').style.display = isPending ? '' : 'none';
+  window.ivResumeCurrentRow = row;
+
   document.getElementById('ivResumeModal').classList.add('open');
   document.body.style.overflow = 'hidden';
+}
+
+function ivAcceptFromResume() {
+  if (window.ivResumeCurrentRow) {
+    window.ivResumeCurrentRow.style.display = 'none';
+  }
+  ivCloseResumeModal();
+}
+
+function ivDeclineFromResume() {
+  if (window.ivResumeCurrentRow) {
+    window.ivResumeCurrentRow.style.display = 'none';
+  }
+  ivCloseResumeModal();
 }
 
 function ivCloseResumeModal() {
