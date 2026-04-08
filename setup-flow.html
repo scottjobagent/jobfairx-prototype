@@ -923,11 +923,27 @@ function populateReview() {
     reviewTitle.style.color = '#991b1b';
   }
 
-  // Location
-  var locLabel = document.getElementById('customSelectLabel');
+  // Location — combine location type + address if applicable
+  var locType = document.getElementById('jobLocationTypeLabel');
   var reviewLoc = document.getElementById('reviewLocation');
-  if (locLabel && locLabel.textContent.trim() && locLabel.textContent !== 'Select') {
-    reviewLoc.textContent = locLabel.textContent;
+  var locText = '';
+  var locTypeVal = locType ? locType.textContent.trim() : '';
+
+  if (locTypeVal === 'In person') {
+    var addr = document.getElementById('jobLocation');
+    locText = addr && addr.value.trim() ? addr.value.trim() + ' (In person)' : 'In person';
+  } else if (locTypeVal === 'Fully remote') {
+    locText = 'Fully remote';
+  } else if (locTypeVal === 'Hybrid') {
+    var addr = document.getElementById('hybridLocation');
+    locText = addr && addr.value.trim() ? addr.value.trim() + ' (Hybrid)' : 'Hybrid';
+  } else if (locTypeVal === 'On the road') {
+    var addr = document.getElementById('onRoadAddress');
+    locText = addr && addr.value.trim() ? addr.value.trim() + ' (On the road)' : 'On the road';
+  }
+
+  if (locText) {
+    reviewLoc.textContent = locText;
     reviewLoc.style.color = '#2d2d2d';
   } else {
     reviewLoc.textContent = 'Add location';
