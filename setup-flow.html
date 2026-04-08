@@ -488,8 +488,8 @@ body.collapsed .main { margin-left: 60px; }
     <div class="pay-section">
       <div class="pay-title">Pay</div>
       <div class="pay-subtitle">Review the pay we estimated for your job and adjust as needed. Check your local minimum wage. <span class="info-icon">i</span></div>
-      <!-- Pay By dropdown (shared, sits above the rows) -->
-      <div class="pay-row" style="margin-bottom: 16px;">
+      <!-- Range row: Show pay by | Minimum | to | Maximum | Rate -->
+      <div class="pay-row" id="payRowRange">
         <div class="pay-field auto">
           <div class="pay-field-label">Show pay by</div>
           <div class="pay-custom-select" id="payBySelect">
@@ -517,10 +517,6 @@ body.collapsed .main { margin-left: 60px; }
             </div>
           </div>
         </div>
-      </div>
-
-      <!-- Range row: Minimum | to | Maximum | Rate -->
-      <div class="pay-row" id="payRowRange">
         <div class="pay-field">
           <div class="pay-field-label">Minimum</div>
           <div class="pay-input-wrap">
@@ -569,10 +565,37 @@ body.collapsed .main { margin-left: 60px; }
         </div>
       </div>
 
-      <!-- Single amount row: [Label] | Rate (for Starting/Maximum/Exact) -->
+      <!-- Single amount row: Show pay by | Amount | Rate (for Starting/Maximum/Exact) -->
       <div class="pay-row hidden" id="payRowSingle">
+        <div class="pay-field auto">
+          <div class="pay-field-label">Show pay by</div>
+          <div class="pay-custom-select" id="payBySelect2">
+            <div class="pay-custom-trigger" onclick="togglePaySelect('payBySelect2')">
+              <span id="payByLabel2">Starting amount</span>
+              <svg class="pay-custom-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+            <div class="pay-custom-panel">
+              <div class="pay-custom-option" data-value="range" onclick="selectPayByOption(this)">
+                <svg class="pco-check hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                Range
+              </div>
+              <div class="pay-custom-option selected" data-value="starting" onclick="selectPayByOption(this)">
+                <svg class="pco-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                Starting amount
+              </div>
+              <div class="pay-custom-option" data-value="maximum" onclick="selectPayByOption(this)">
+                <svg class="pco-check hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                Maximum amount
+              </div>
+              <div class="pay-custom-option" data-value="exact" onclick="selectPayByOption(this)">
+                <svg class="pco-check hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                Exact amount
+              </div>
+            </div>
+          </div>
+        </div>
         <div class="pay-field">
-          <div class="pay-field-label" id="paySingleLabel">Minimum</div>
+          <div class="pay-field-label" id="paySingleLabel">Amount</div>
           <div class="pay-input-wrap">
             <span class="pay-input-prefix">$</span>
             <input type="text" class="pay-input" value="22.63">
@@ -751,11 +774,36 @@ function selectPayOption(el, selectId, labelId) {
 }
 
 function selectPayByOption(el) {
-  selectPayOption(el, 'payBySelect', 'payByLabel');
   var value = el.getAttribute('data-value');
   var rangeRow = document.getElementById('payRowRange');
   var singleRow = document.getElementById('payRowSingle');
   var singleLabel = document.getElementById('paySingleLabel');
+  var parentSelect = el.closest('.pay-custom-select');
+
+  // Close the dropdown and update its label
+  var labelMap = { range: 'Range', starting: 'Starting amount', maximum: 'Maximum amount', exact: 'Exact amount' };
+
+  // Update checkmarks in BOTH dropdowns
+  ['payBySelect', 'payBySelect2'].forEach(function(selId) {
+    var sel = document.getElementById(selId);
+    if (sel) {
+      sel.querySelectorAll('.pay-custom-option').forEach(function(opt) {
+        var check = opt.querySelector('.pco-check');
+        if (opt.getAttribute('data-value') === value) {
+          opt.classList.add('selected');
+          if (check) check.classList.remove('hidden');
+        } else {
+          opt.classList.remove('selected');
+          if (check) check.classList.add('hidden');
+        }
+      });
+      sel.classList.remove('open');
+    }
+  });
+
+  // Update both labels
+  document.getElementById('payByLabel').textContent = labelMap[value];
+  document.getElementById('payByLabel2').textContent = labelMap[value];
 
   if (value === 'range') {
     rangeRow.classList.remove('hidden');
@@ -763,13 +811,7 @@ function selectPayByOption(el) {
   } else {
     rangeRow.classList.add('hidden');
     singleRow.classList.remove('hidden');
-    if (value === 'starting') {
-      singleLabel.textContent = 'Minimum';
-    } else if (value === 'maximum') {
-      singleLabel.textContent = 'Maximum';
-    } else if (value === 'exact') {
-      singleLabel.textContent = 'Amount';
-    }
+    singleLabel.textContent = 'Amount';
   }
 }
 
