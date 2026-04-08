@@ -322,7 +322,7 @@ body.collapsed .main { margin-left: 60px; }
       </div>
     </div>
 
-    <!-- Job location (shown for In person, Hybrid, On the road) -->
+    <!-- In person: job location (default visible) -->
     <div class="form-group" id="jobLocationGroup">
       <label class="form-label">What is the job location? *</label>
       <div class="form-hint">Enter a street address or ZIP code</div>
@@ -330,7 +330,14 @@ body.collapsed .main { margin-left: 60px; }
       <div class="field-error" id="jobLocationError"><svg viewBox="0 0 24 24" fill="#991b1b"><circle cx="12" cy="12" r="10"/><path d="M12 8v4" stroke="#fff" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="16" r="1" fill="#fff"/></svg>Add a job location.</div>
     </div>
 
-    <!-- Remote: reside question (shown only for Fully remote) -->
+    <!-- Hybrid: street address -->
+    <div class="form-group" id="hybridLocationGroup" style="display: none;">
+      <label class="form-label">Street address *</label>
+      <input type="text" class="form-input" id="hybridLocation" placeholder="">
+      <div class="field-error" id="hybridLocationError"><svg viewBox="0 0 24 24" fill="#991b1b"><circle cx="12" cy="12" r="10"/><path d="M12 8v4" stroke="#fff" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="16" r="1" fill="#fff"/></svg>Add a street address.</div>
+    </div>
+
+    <!-- Remote: reside question -->
     <div class="form-group" id="resideQuestionGroup" style="display: none;">
       <div class="form-label">Are employees required to reside in a specific location?</div>
       <div class="reside-radio-option selected" onclick="selectResideOption('yes', this)">
@@ -343,11 +350,31 @@ body.collapsed .main { margin-left: 60px; }
       </div>
     </div>
 
-    <!-- Remote: reside location field (shown when Yes is selected) -->
+    <!-- Remote: reside location field -->
     <div class="form-group" id="resideLocationGroup" style="display: none;">
       <label class="form-label">In what location must employees reside? *</label>
       <input type="text" class="form-input" id="resideLocation" placeholder="">
       <div class="field-error" id="resideLocationError"><svg viewBox="0 0 24 24" fill="#991b1b"><circle cx="12" cy="12" r="10"/><path d="M12 8v4" stroke="#fff" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="16" r="1" fill="#fff"/></svg>Add a location.</div>
+    </div>
+
+    <!-- On the road: consistent starting location question -->
+    <div class="form-group" id="onRoadQuestionGroup" style="display: none;">
+      <div class="form-label">Does this job have a consistent starting location?</div>
+      <div class="reside-radio-option selected" onclick="selectOnRoadOption('yes', this)">
+        <div class="radio-input"><div class="radio-input-dot"></div></div>
+        <div class="radio-label">Yes</div>
+      </div>
+      <div class="reside-radio-option" onclick="selectOnRoadOption('no', this)">
+        <div class="radio-input"><div class="radio-input-dot"></div></div>
+        <div class="radio-label">No</div>
+      </div>
+    </div>
+
+    <!-- On the road: starting location address (Yes) -->
+    <div class="form-group" id="onRoadAddressGroup" style="display: none;">
+      <label class="form-label" id="onRoadAddressLabel">Enter the street address of the starting location *</label>
+      <input type="text" class="form-input" id="onRoadAddress" placeholder="">
+      <div class="field-error" id="onRoadAddressError"><svg viewBox="0 0 24 24" fill="#991b1b"><circle cx="12" cy="12" r="10"/><path d="M12 8v4" stroke="#fff" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="16" r="1" fill="#fff"/></svg>Add an address.</div>
     </div>
 
     <!-- Continue button -->
@@ -404,7 +431,9 @@ function setupFieldValidation(inputId, errorId) {
 
 setupFieldValidation('jobTitle', 'jobTitleError');
 setupFieldValidation('jobLocation', 'jobLocationError');
+setupFieldValidation('hybridLocation', 'hybridLocationError');
 setupFieldValidation('resideLocation', 'resideLocationError');
+setupFieldValidation('onRoadAddress', 'onRoadAddressError');
 
 // Custom select dropdown
 function toggleCustomSelect(id) {
@@ -435,21 +464,32 @@ function selectCustomOption(el) {
   // Handle conditional fields based on location type
   var value = el.getAttribute('data-value');
   var jobLocationGroup = document.getElementById('jobLocationGroup');
+  var hybridLocationGroup = document.getElementById('hybridLocationGroup');
   var resideQuestionGroup = document.getElementById('resideQuestionGroup');
   var resideLocationGroup = document.getElementById('resideLocationGroup');
+  var onRoadQuestionGroup = document.getElementById('onRoadQuestionGroup');
+  var onRoadAddressGroup = document.getElementById('onRoadAddressGroup');
 
-  if (value === 'remote') {
-    // Hide job location, show reside question
-    jobLocationGroup.style.display = 'none';
+  // Hide all conditional groups first
+  jobLocationGroup.style.display = 'none';
+  hybridLocationGroup.style.display = 'none';
+  resideQuestionGroup.style.display = 'none';
+  resideLocationGroup.style.display = 'none';
+  onRoadQuestionGroup.style.display = 'none';
+  onRoadAddressGroup.style.display = 'none';
+
+  if (value === 'in-person') {
+    jobLocationGroup.style.display = 'block';
+  } else if (value === 'hybrid') {
+    hybridLocationGroup.style.display = 'block';
+  } else if (value === 'remote') {
     resideQuestionGroup.style.display = 'block';
-    // Check if Yes is selected — if so show reside location
     var yesSelected = resideQuestionGroup.querySelector('.reside-radio-option:first-child').classList.contains('selected');
     resideLocationGroup.style.display = yesSelected ? 'block' : 'none';
-  } else {
-    // Show job location, hide reside question and reside location
-    jobLocationGroup.style.display = 'block';
-    resideQuestionGroup.style.display = 'none';
-    resideLocationGroup.style.display = 'none';
+  } else if (value === 'on-the-road') {
+    onRoadQuestionGroup.style.display = 'block';
+    var yesSelected = onRoadQuestionGroup.querySelector('.reside-radio-option:first-child').classList.contains('selected');
+    onRoadAddressGroup.style.display = yesSelected ? 'block' : 'none';
   }
 }
 
@@ -463,6 +503,23 @@ function selectResideOption(value, el) {
     resideLocationGroup.style.display = 'block';
   } else {
     resideLocationGroup.style.display = 'none';
+  }
+}
+
+function selectOnRoadOption(value, el) {
+  var group = el.closest('#onRoadQuestionGroup');
+  group.querySelectorAll('.reside-radio-option').forEach(function(o) { o.classList.remove('selected'); });
+  el.classList.add('selected');
+
+  var onRoadAddressGroup = document.getElementById('onRoadAddressGroup');
+  var onRoadAddressLabel = document.getElementById('onRoadAddressLabel');
+
+  if (value === 'yes') {
+    onRoadAddressGroup.style.display = 'block';
+    onRoadAddressLabel.textContent = 'Enter the street address of the starting location *';
+  } else {
+    onRoadAddressGroup.style.display = 'block';
+    onRoadAddressLabel.textContent = 'What is the operating area for this job? *';
   }
 }
 
