@@ -112,8 +112,12 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
 .id-field-hint { font-size: 15px; color: #595959; line-height: 1.6; margin-bottom: 14px; }
 .id-field-value { font-size: 16px; color: #2d2d2d; font-weight: 400; }
 
-.id-number-input { width: 80px; padding: 12px 16px; font-size: 16px; font-family: inherit; color: #2d2d2d; border: 1px solid #d4d2d0; border-radius: 8px; outline: none; transition: border-color 0.15s; }
-.id-number-input:focus { border-color: #2557a7; }
+.id-number-wrap { display: inline-flex; align-items: center; border: 2px solid #a8a8a8; border-radius: 10px; overflow: hidden; }
+.id-number-btn { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; border: none; background: #f3f2ef; cursor: pointer; color: #2d2d2d; transition: background 0.15s; }
+.id-number-btn:hover { background: #e5e4e1; }
+.id-number-input { width: 60px; height: 44px; border: none; border-left: 2px solid #a8a8a8; border-right: 2px solid #a8a8a8; text-align: center; font-size: 16px; font-weight: 700; font-family: inherit; color: #2d2d2d; outline: none; background: #fff; -moz-appearance: textfield; }
+.id-number-input::-webkit-outer-spin-button,
+.id-number-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 
 .id-recommendation { font-size: 15px; color: #595959; line-height: 1.7; margin-top: 16px; }
 
@@ -438,7 +442,15 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
             How many interviews is your team able to conduct during each time slot? *
           </div>
           <p class="id-field-hint">This cap can help optimize the distribution of interviews across time slots. The number of interviews is not guaranteed.</p>
-          <input class="id-number-input" type="number" id="interviewsPerSlot" value="3" min="1" max="20">
+          <div class="id-number-wrap">
+            <button class="id-number-btn" onclick="adjustSlotCount(-1)">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </button>
+            <input type="number" class="id-number-input" id="interviewsPerSlot" value="3" min="1" max="20" readonly>
+            <button class="id-number-btn" onclick="adjustSlotCount(1)">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </button>
+          </div>
           <p class="id-recommendation">Based on your selection, you can expect to plan for <strong id="candidateCount">3</strong> candidates to show up per time slot. We recommend staffing 1 interviewer for each expected candidate, so if you don't think you'll be able to staff <strong id="staffCount">3</strong> interviewers at the event, we suggest setting a lower number here.</p>
         </div>
 
@@ -679,14 +691,15 @@ function toggleInterviewDetails(show) {
   }
 }
 
-// Update recommendation text when number changes
-var slotInput = document.getElementById('interviewsPerSlot');
-if (slotInput) {
-  slotInput.addEventListener('input', function() {
-    var val = this.value || '0';
-    document.getElementById('candidateCount').textContent = val;
-    document.getElementById('staffCount').textContent = val;
-  });
+// Interview count spinner
+function adjustSlotCount(delta) {
+  var input = document.getElementById('interviewsPerSlot');
+  var val = parseInt(input.value) + delta;
+  if (val < 1) val = 1;
+  if (val > 20) val = 20;
+  input.value = val;
+  document.getElementById('candidateCount').textContent = val;
+  document.getElementById('staffCount').textContent = val;
 }
 
 function toggleInterviewSettings(show) {
