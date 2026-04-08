@@ -234,6 +234,8 @@ tbody tr:last-child td { border-bottom: none; }
 .iv-review-section { background: #fff; border-radius: 16px; padding: 24px 28px; border: 1px solid #b0aeab; }
 .iv-review-header { display: flex; align-items: center; gap: 10px; }
 .iv-review-header h3 { font-size: 20px; font-weight: 700; color: rgb(89, 89, 89); }
+.iv-needs-review-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; background: #fef2f2; color: #991b1b; margin-left: 12px; vertical-align: middle; }
+.iv-needs-review-badge svg { width: 14px; height: 14px; flex-shrink: 0; }
 .iv-review-table { width: 100%; border-collapse: collapse; margin-top: 16px; table-layout: fixed; }
 .iv-review-table th { text-align: left; font-size: 13px; font-weight: 600; color: #767676; padding: 12px 14px; border-bottom: 1px solid #ebebeb; }
 .iv-review-table td { padding: 16px 14px; border-bottom: 1px solid #f3f2ef; vertical-align: middle; }
@@ -1610,7 +1612,7 @@ tbody tr:last-child td { border-bottom: none; }
         <div id="ivPendingActive" style="display: none;">
           <div class="iv-review-section">
             <div class="iv-review-header">
-              <h3>18 pending interview requests</h3>
+              <h3>18 pending interview requests <span class="iv-needs-review-badge"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#991b1b"/><path d="M12 8v4M12 16h.01" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>Needs review</span></h3>
               <div class="dev-toggle" style="margin-left: auto;">
                 <span class="dev-toggle-label">State:</span>
                 <div class="dev-toggle-switch">
@@ -2086,7 +2088,12 @@ function filterIvByEvent() {
   upcomingHeaders.forEach(function(h) { h.textContent = upcomingCount + ' upcoming interview' + (upcomingCount !== 1 ? 's' : ''); });
 
   var pendingHeader = document.querySelector('#ivPendingActive h3');
-  if (pendingHeader) pendingHeader.textContent = visibleCounts.pending + ' pending interview request' + (visibleCounts.pending !== 1 ? 's' : '');
+  if (pendingHeader) {
+    var badge = pendingHeader.querySelector('.iv-needs-review-badge');
+    pendingHeader.textContent = visibleCounts.pending + ' pending interview request' + (visibleCounts.pending !== 1 ? 's' : '');
+    if (badge) pendingHeader.appendChild(document.createTextNode(' '));
+    if (badge) pendingHeader.appendChild(badge);
+  }
 
   var pastHeader = document.querySelector('#ivPastActive h3');
   if (pastHeader) pastHeader.textContent = visibleCounts.past + ' past interview' + (visibleCounts.past !== 1 ? 's' : '');
