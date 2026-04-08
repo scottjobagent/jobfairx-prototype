@@ -1817,18 +1817,28 @@ var plusSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke
 
 function toggleChip(el) {
   var group = el.closest('.chip-group');
-  var wasSelected = el.classList.contains('selected');
+  var isMultiSelect = (group.id === 'benefitsChips');
 
-  // Deselect all chips in this group first (single-select)
-  group.querySelectorAll('.chip').forEach(function(chip) {
-    chip.classList.remove('selected');
-    chip.querySelector('svg').outerHTML = plusSvg;
-  });
-
-  // Toggle the clicked chip (if it wasn't already selected, select it)
-  if (!wasSelected) {
-    el.classList.add('selected');
-    el.querySelector('svg').outerHTML = checkSvg;
+  if (isMultiSelect) {
+    // Multi-select: just toggle this chip
+    el.classList.toggle('selected');
+    var svg = el.querySelector('svg');
+    if (el.classList.contains('selected')) {
+      svg.outerHTML = checkSvg;
+    } else {
+      svg.outerHTML = plusSvg;
+    }
+  } else {
+    // Single-select: deselect all others first
+    var wasSelected = el.classList.contains('selected');
+    group.querySelectorAll('.chip').forEach(function(chip) {
+      chip.classList.remove('selected');
+      chip.querySelector('svg').outerHTML = plusSvg;
+    });
+    if (!wasSelected) {
+      el.classList.add('selected');
+      el.querySelector('svg').outerHTML = checkSvg;
+    }
   }
 }
 
@@ -2096,7 +2106,7 @@ var templateData = {
     location: 'Austin, TX 78701',
     locationType: 'In person',
     jobType: ['Part-time'],
-    benefits: ['Health insurance'],
+    benefits: ['Health insurance', 'Paid time off', 'Flexible schedule'],
     shift: ['Day shift'],
     schedule: ['3×12'],
     payMin: '16.00', payMax: '21.00', rate: 'per hour',
@@ -2106,7 +2116,7 @@ var templateData = {
     location: 'San Antonio, TX 78201',
     locationType: 'On the road',
     jobType: ['Full-time'],
-    benefits: ['Flexible schedule'],
+    benefits: ['Health insurance', 'Paid time off', 'Flexible schedule'],
     shift: ['Day shift'],
     schedule: ['Monday to Friday'],
     payMin: '14.50', payMax: '19.00', rate: 'per hour',
@@ -2158,6 +2168,20 @@ function selectSingleChip(groupSelector, value) {
   });
 }
 
+function selectMultipleChips(groupSelector, values) {
+  var chips = document.querySelectorAll(groupSelector + ' .chip');
+  chips.forEach(function(chip) {
+    var text = chip.textContent.trim();
+    if (values.indexOf(text) !== -1) {
+      chip.classList.add('selected');
+      chip.querySelector('svg').outerHTML = checkSvg;
+    } else {
+      chip.classList.remove('selected');
+      chip.querySelector('svg').outerHTML = plusSvg;
+    }
+  });
+}
+
 function prefillStep2(jobName, data) {
   // Job title
   document.getElementById('jobTitle').value = jobName;
@@ -2169,8 +2193,8 @@ function prefillStep2(jobName, data) {
   document.querySelectorAll('#payRowRange .pay-input')[0].value = data.payMin;
   document.querySelectorAll('#payRowRange .pay-input')[1].value = data.payMax;
 
-  // Benefits chips (single-select)
-  selectSingleChip('#benefitsChips', data.benefits[0]);
+  // Benefits chips (multi-select)
+  selectMultipleChips('#benefitsChips', data.benefits);
 
   // Shift chips (single-select)
   selectSingleChip('#shiftChips', data.shift[0]);
