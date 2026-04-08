@@ -123,8 +123,20 @@ body.collapsed .main { margin-left: 60px; }
 .form-input:focus { border-color: #0044B3; box-shadow: 0 0 0 2px #0044B3; }
 .form-input.error { border-color: #991b1b; box-shadow: 0 0 0 2px #991b1b; }
 .form-input.valid { border-color: #0044B3; box-shadow: none; }
-.form-select { width: 100%; padding: 14px 40px 14px 20px; font-size: 16px; font-family: inherit; color: #2d2d2d; border: 2px solid #767676; border-radius: 10px; outline: none; background: #fff; cursor: pointer; appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23767676' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 18px center; transition: border-color 0.15s, box-shadow 0.15s; }
-.form-select:focus { border-color: #0044B3; box-shadow: 0 0 0 2px #0044B3; }
+/* Custom dropdown */
+.custom-select { position: relative; }
+.custom-select-trigger { width: 100%; padding: 14px 40px 14px 20px; font-size: 16px; font-family: inherit; color: #2d2d2d; border: 2px solid #767676; border-radius: 10px; outline: none; background: #fff; cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s; display: flex; align-items: center; justify-content: space-between; user-select: none; }
+.custom-select-trigger:hover { border-color: #595959; }
+.custom-select.open .custom-select-trigger { border-color: #0044B3; box-shadow: 0 0 0 2px #0044B3; }
+.custom-select-arrow { width: 18px; height: 18px; position: absolute; right: 18px; top: 50%; transform: translateY(-50%); transition: transform 0.2s ease; color: #767676; pointer-events: none; }
+.custom-select.open .custom-select-arrow { transform: translateY(-50%) rotate(180deg); }
+.custom-select-panel { position: absolute; top: calc(100% + 6px); left: 0; right: 0; background: #fff; border: 1px solid #d4d2d0; border-radius: 10px; box-shadow: 0 4px 16px rgba(0,0,0,0.1); z-index: 100; display: none; overflow: hidden; }
+.custom-select.open .custom-select-panel { display: block; }
+.custom-select-option { display: flex; align-items: center; gap: 12px; padding: 16px 20px; font-size: 16px; color: #2d2d2d; cursor: pointer; transition: background 0.1s; }
+.custom-select-option:hover { background: #f3f2ef; }
+.custom-select-option.selected { background: #f3f2ef; }
+.custom-select-check { width: 20px; height: 20px; flex-shrink: 0; color: #2d2d2d; }
+.custom-select-check.hidden { visibility: hidden; }
 .form-hint { font-size: 14px; color: #595959; margin-bottom: 8px; }
 .field-error { display: none; align-items: center; gap: 6px; margin-top: 8px; font-size: 14px; color: #991b1b; font-weight: 400; }
 .field-error.visible { display: flex; }
@@ -276,11 +288,30 @@ body.collapsed .main { margin-left: 60px; }
     <!-- Job location type -->
     <div class="form-group" style="margin-bottom: 24px;">
       <label class="form-label">Job location type *</label>
-      <select class="form-select" id="jobLocationType">
-        <option value="in-person">In person</option>
-        <option value="remote">Remote</option>
-        <option value="hybrid">Hybrid</option>
-      </select>
+      <div class="custom-select" id="jobLocationTypeSelect">
+        <div class="custom-select-trigger" onclick="toggleCustomSelect('jobLocationTypeSelect')">
+          <span id="jobLocationTypeLabel">In person</span>
+        </div>
+        <svg class="custom-select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        <div class="custom-select-panel">
+          <div class="custom-select-option selected" data-value="in-person" onclick="selectCustomOption(this)">
+            <svg class="custom-select-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            In person
+          </div>
+          <div class="custom-select-option" data-value="remote" onclick="selectCustomOption(this)">
+            <svg class="custom-select-check hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            Fully remote: no on-site work required
+          </div>
+          <div class="custom-select-option" data-value="hybrid" onclick="selectCustomOption(this)">
+            <svg class="custom-select-check hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            Hybrid: some on-site work required
+          </div>
+          <div class="custom-select-option" data-value="on-the-road" onclick="selectCustomOption(this)">
+            <svg class="custom-select-check hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            On the road
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Job location -->
@@ -345,6 +376,40 @@ function setupFieldValidation(inputId, errorId) {
 
 setupFieldValidation('jobTitle', 'jobTitleError');
 setupFieldValidation('jobLocation', 'jobLocationError');
+
+// Custom select dropdown
+function toggleCustomSelect(id) {
+  var select = document.getElementById(id);
+  var isOpen = select.classList.contains('open');
+  // Close all custom selects first
+  document.querySelectorAll('.custom-select').forEach(function(s) { s.classList.remove('open'); });
+  if (!isOpen) select.classList.add('open');
+}
+
+function selectCustomOption(el) {
+  var select = el.closest('.custom-select');
+  var label = select.querySelector('span');
+  // Remove selected from all options, hide all checks
+  select.querySelectorAll('.custom-select-option').forEach(function(opt) {
+    opt.classList.remove('selected');
+    opt.querySelector('.custom-select-check').classList.add('hidden');
+  });
+  // Select this option
+  el.classList.add('selected');
+  el.querySelector('.custom-select-check').classList.remove('hidden');
+  // Get just the text (not the SVG text)
+  var text = el.textContent.trim();
+  label.textContent = text;
+  // Close dropdown
+  select.classList.remove('open');
+}
+
+// Close custom select when clicking outside
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.custom-select')) {
+    document.querySelectorAll('.custom-select').forEach(function(s) { s.classList.remove('open'); });
+  }
+});
 
 function selectPostType(type, el) {
   document.querySelectorAll('.radio-option').forEach(function(o) { o.classList.remove('selected'); });
