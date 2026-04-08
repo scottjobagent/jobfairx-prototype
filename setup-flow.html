@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Set Up Your Jobs & Settings - JobFairX</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; background: #fff; color: #2d2d2d; min-height: 100vh; font-size: 14px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+
+/* Top bar */
+.topbar { background: #0044B3; padding: 14px 32px; display: flex; align-items: center; }
+.topbar-logo { font-size: 22px; font-weight: 800; color: #fff; letter-spacing: -0.5px; text-decoration: none; }
+
+/* Container */
+.container { max-width: 720px; margin: 0 auto; padding: 48px 32px 80px; }
+
+/* Page title */
+.page-title { font-size: 32px; font-weight: 700; color: #2d2d2d; margin-bottom: 40px; line-height: 1.25; }
+
+/* Section divider */
+.section-divider { height: 1px; background: #d4d2d0; margin: 32px 0; }
+
+/* Radio group */
+.radio-group-label { font-size: 16px; font-weight: 700; color: #2d2d2d; margin-bottom: 20px; }
+.radio-option { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 14px; cursor: pointer; }
+.radio-option:last-child { margin-bottom: 0; }
+.radio-input { width: 20px; height: 20px; border: 2px solid #767676; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; margin-top: 2px; cursor: pointer; transition: border-color 0.15s; }
+.radio-option.selected .radio-input { border-color: #2d2d2d; }
+.radio-input-dot { width: 10px; height: 10px; border-radius: 50%; background: #2d2d2d; display: none; }
+.radio-option.selected .radio-input-dot { display: block; }
+.radio-label { font-size: 16px; color: #2d2d2d; font-weight: 400; }
+.radio-badge { display: inline-block; padding: 2px 10px; border-radius: 4px; font-size: 12px; font-weight: 700; background: #e8f5e9; color: #2d7a2d; margin-top: 4px; }
+
+/* Previous jobs list */
+.previous-jobs { display: none; margin-top: 16px; margin-left: 32px; }
+.previous-jobs.visible { display: block; }
+.previous-job-item { display: flex; align-items: center; gap: 12px; padding: 14px 0; border-bottom: 1px solid #ebebeb; cursor: pointer; }
+.previous-job-item:last-child { border-bottom: none; }
+.previous-job-radio { width: 18px; height: 18px; border: 2px solid #767676; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+.previous-job-item.selected .previous-job-radio { border-color: #2d2d2d; }
+.previous-job-dot { width: 9px; height: 9px; border-radius: 50%; background: #2d2d2d; display: none; }
+.previous-job-item.selected .previous-job-dot { display: block; }
+.previous-job-name { font-size: 15px; color: #2d2d2d; font-weight: 400; }
+
+/* Form fields */
+.form-group { margin-bottom: 32px; }
+.form-label { display: block; font-size: 16px; font-weight: 700; color: #2d2d2d; margin-bottom: 8px; }
+.form-input { width: 100%; padding: 12px 16px; font-size: 16px; font-family: inherit; color: #2d2d2d; border: 1px solid #767676; border-radius: 4px; outline: none; transition: border-color 0.15s; }
+.form-input:focus { border-color: #2d2d2d; box-shadow: 0 0 0 1px #2d2d2d; }
+.form-select { width: 100%; padding: 12px 40px 12px 16px; font-size: 16px; font-family: inherit; color: #2d2d2d; border: 1px solid #767676; border-radius: 4px; outline: none; background: #fff; cursor: pointer; appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23767676' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; transition: border-color 0.15s; }
+.form-select:focus { border-color: #2d2d2d; box-shadow: 0 0 0 1px #2d2d2d; }
+.form-hint { font-size: 14px; color: #595959; margin-bottom: 8px; }
+
+/* Expand candidate search */
+.expand-section { margin-top: 32px; }
+.expand-title { font-size: 16px; font-weight: 700; color: #2d2d2d; margin-bottom: 6px; }
+.expand-subtitle { font-size: 14px; color: #595959; margin-bottom: 12px; }
+.expand-subtitle a { color: #0044B3; text-decoration: underline; }
+.checkbox-row { display: flex; align-items: flex-start; gap: 10px; }
+.checkbox-input { width: 20px; height: 20px; border: 2px solid #767676; border-radius: 4px; flex-shrink: 0; cursor: pointer; margin-top: 2px; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+.checkbox-input.checked { background: #0044B3; border-color: #0044B3; }
+.checkbox-check { display: none; }
+.checkbox-input.checked .checkbox-check { display: block; }
+.checkbox-label { font-size: 14px; color: #2d2d2d; }
+.checkbox-label a { color: #0044B3; text-decoration: none; font-weight: 500; }
+.checkbox-label a:hover { text-decoration: underline; }
+.checkbox-hint { font-size: 13px; color: #595959; margin-top: 2px; }
+
+/* Bottom actions */
+.bottom-actions { display: flex; align-items: center; justify-content: flex-end; padding-top: 40px; }
+.continue-btn { display: inline-flex; align-items: center; gap: 8px; padding: 14px 32px; border-radius: 8px; border: none; background: #0044B3; color: #fff; font-size: 16px; font-weight: 700; cursor: pointer; font-family: inherit; transition: background 0.15s; }
+.continue-btn:hover { background: #003399; }
+.continue-btn svg { width: 18px; height: 18px; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="topbar-logo">JobFairX</a>
+</div>
+
+<div class="container">
+  <h1 class="page-title">Create a job post</h1>
+
+  <!-- How would you like to post your job? -->
+  <div class="radio-group-label">How would you like to post your job? *</div>
+  <div class="radio-option" onclick="selectPostType('template', this)">
+    <div class="radio-input"><div class="radio-input-dot"></div></div>
+    <div>
+      <div class="radio-label">Use a previous job as a template</div>
+      <div class="radio-badge">Save time</div>
+    </div>
+  </div>
+  <div class="radio-option selected" onclick="selectPostType('new', this)">
+    <div class="radio-input"><div class="radio-input-dot"></div></div>
+    <div class="radio-label">Create a brand new post</div>
+  </div>
+
+  <!-- Previous jobs list (shown when template is selected) -->
+  <div class="previous-jobs" id="previousJobs">
+    <div class="previous-job-item" onclick="selectPreviousJob(this)">
+      <div class="previous-job-radio"><div class="previous-job-dot"></div></div>
+      <div class="previous-job-name">Registered Nurse</div>
+    </div>
+    <div class="previous-job-item" onclick="selectPreviousJob(this)">
+      <div class="previous-job-radio"><div class="previous-job-dot"></div></div>
+      <div class="previous-job-name">Medical Assistant</div>
+    </div>
+    <div class="previous-job-item" onclick="selectPreviousJob(this)">
+      <div class="previous-job-radio"><div class="previous-job-dot"></div></div>
+      <div class="previous-job-name">CNA - Certified Nursing Assistant</div>
+    </div>
+    <div class="previous-job-item" onclick="selectPreviousJob(this)">
+      <div class="previous-job-radio"><div class="previous-job-dot"></div></div>
+      <div class="previous-job-name">Home Health Aide</div>
+    </div>
+    <div class="previous-job-item" onclick="selectPreviousJob(this)">
+      <div class="previous-job-radio"><div class="previous-job-dot"></div></div>
+      <div class="previous-job-name">Patient Care Technician</div>
+    </div>
+    <div class="previous-job-item" onclick="selectPreviousJob(this)">
+      <div class="previous-job-radio"><div class="previous-job-dot"></div></div>
+      <div class="previous-job-name">LPN - Licensed Practical Nurse</div>
+    </div>
+  </div>
+
+  <div class="section-divider"></div>
+
+  <!-- Job title -->
+  <div class="form-group">
+    <label class="form-label">Job title *</label>
+    <input type="text" class="form-input" id="jobTitle" placeholder="">
+  </div>
+
+  <div class="section-divider"></div>
+
+  <!-- Job location type -->
+  <div class="form-group" style="margin-bottom: 24px;">
+    <label class="form-label">Job location type *</label>
+    <select class="form-select" id="jobLocationType">
+      <option value="in-person">In person</option>
+      <option value="remote">Remote</option>
+      <option value="hybrid">Hybrid</option>
+    </select>
+  </div>
+
+  <!-- Job location -->
+  <div class="form-group" id="jobLocationGroup">
+    <label class="form-label">What is the job location? *</label>
+    <div class="form-hint">Enter a street address or ZIP code</div>
+    <input type="text" class="form-input" id="jobLocation" placeholder="">
+  </div>
+
+  <!-- Expand your candidate search -->
+  <div class="expand-section">
+    <div class="expand-title">Expand your candidate search</div>
+    <div class="expand-subtitle">Over <a href="#">10 million</a> active job seekers are open to relocating.</div>
+    <div class="checkbox-row" onclick="toggleCheckbox(this)">
+      <div class="checkbox-input">
+        <svg class="checkbox-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <div>
+        <div class="checkbox-label">I'm interested in attracting candidates open to relocation <a href="#">How it works</a></div>
+        <div class="checkbox-hint">Marking your interest helps improve our recommendations.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Continue button -->
+  <div class="bottom-actions">
+    <button class="continue-btn" onclick="window.location.href='setup-flow.html?step=2'">Continue <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><polyline points="12 5 19 12 12 19"/></svg></button>
+  </div>
+</div>
+
+<script>
+function selectPostType(type, el) {
+  document.querySelectorAll('.radio-option').forEach(function(o) { o.classList.remove('selected'); });
+  el.classList.add('selected');
+  var prevJobs = document.getElementById('previousJobs');
+  if (type === 'template') {
+    prevJobs.classList.add('visible');
+  } else {
+    prevJobs.classList.remove('visible');
+  }
+}
+
+function selectPreviousJob(el) {
+  document.querySelectorAll('.previous-job-item').forEach(function(j) { j.classList.remove('selected'); });
+  el.classList.add('selected');
+  // Auto-fill the job title
+  var jobName = el.querySelector('.previous-job-name').textContent;
+  document.getElementById('jobTitle').value = jobName;
+}
+
+function toggleCheckbox(row) {
+  var box = row.querySelector('.checkbox-input');
+  box.classList.toggle('checked');
+}
+</script>
+</body>
+</html>
