@@ -1816,12 +1816,19 @@ var checkSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strok
 var plusSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
 
 function toggleChip(el) {
-  el.classList.toggle('selected');
-  var svg = el.querySelector('svg');
-  if (el.classList.contains('selected')) {
-    svg.outerHTML = checkSvg;
-  } else {
-    svg.outerHTML = plusSvg;
+  var group = el.closest('.chip-group');
+  var wasSelected = el.classList.contains('selected');
+
+  // Deselect all chips in this group first (single-select)
+  group.querySelectorAll('.chip').forEach(function(chip) {
+    chip.classList.remove('selected');
+    chip.querySelector('svg').outerHTML = plusSvg;
+  });
+
+  // Toggle the clicked chip (if it wasn't already selected, select it)
+  if (!wasSelected) {
+    el.classList.add('selected');
+    el.querySelector('svg').outerHTML = checkSvg;
   }
 }
 
@@ -2088,20 +2095,20 @@ var templateData = {
   'CNA - Certified Nursing Assistant': {
     location: 'Austin, TX 78701',
     locationType: 'In person',
-    jobType: ['Full-time', 'Part-time'],
-    benefits: ['Health insurance', 'Paid time off', 'Flexible schedule'],
-    shift: ['Day shift', 'Evening shift', 'Night shift'],
-    schedule: ['3×12', 'Rotating weekends'],
+    jobType: ['Part-time'],
+    benefits: ['Health insurance'],
+    shift: ['Day shift'],
+    schedule: ['3×12'],
     payMin: '16.00', payMax: '21.00', rate: 'per hour',
     description: '<p><strong>Job Summary</strong></p><p>We are hiring a Certified Nursing Assistant to provide hands-on care and support to patients in our facility. You will work closely with nurses and other healthcare professionals to ensure patient comfort and well-being.</p><p><strong>Duties</strong></p><p>Assist patients with daily living activities including bathing, dressing, and feeding</p><p>Monitor and record vital signs and report changes to nursing staff</p><p>Help patients with mobility, transfers, and range-of-motion exercises</p><p>Maintain clean and safe patient environments</p>'
   },
   'Home Health Aide': {
     location: 'San Antonio, TX 78201',
     locationType: 'On the road',
-    jobType: ['Full-time', 'Part-time'],
-    benefits: ['Health insurance', 'Paid time off', 'Flexible schedule'],
+    jobType: ['Full-time'],
+    benefits: ['Flexible schedule'],
     shift: ['Day shift'],
-    schedule: ['Monday to Friday', 'Choose your own hours'],
+    schedule: ['Monday to Friday'],
     payMin: '14.50', payMax: '19.00', rate: 'per hour',
     description: '<p><strong>Job Summary</strong></p><p>We are seeking a caring Home Health Aide to provide in-home support to patients who need assistance with daily activities. You will travel to patient homes and deliver personalized care with compassion and professionalism.</p><p><strong>Duties</strong></p><p>Assist clients with personal care including bathing, grooming, and dressing</p><p>Help with light housekeeping, meal preparation, and medication reminders</p><p>Provide companionship and emotional support to clients</p><p>Document care activities and report concerns to supervising nurse</p>'
   }
@@ -2137,66 +2144,39 @@ function continueFromStep1() {
   goToStep(2);
 }
 
+function selectSingleChip(groupSelector, value) {
+  var chips = document.querySelectorAll(groupSelector + ' .chip');
+  chips.forEach(function(chip) {
+    var text = chip.textContent.trim();
+    if (text === value) {
+      chip.classList.add('selected');
+      chip.querySelector('svg').outerHTML = checkSvg;
+    } else {
+      chip.classList.remove('selected');
+      chip.querySelector('svg').outerHTML = plusSvg;
+    }
+  });
+}
+
 function prefillStep2(jobName, data) {
   // Job title
   document.getElementById('jobTitle').value = jobName;
 
-  // Job type chips
-  var jobTypeChips = document.querySelectorAll('#jobTypeChips .chip');
-  jobTypeChips.forEach(function(chip) {
-    var text = chip.textContent.trim();
-    if (data.jobType.indexOf(text) !== -1) {
-      chip.classList.add('selected');
-      // Swap to check icon
-      chip.querySelector('svg').innerHTML = '<polyline points="20 6 9 17 4 12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>';
-    } else {
-      chip.classList.remove('selected');
-      chip.querySelector('svg').innerHTML = '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>';
-    }
-  });
+  // Job type chips (single-select — use first value)
+  selectSingleChip('#jobTypeChips', data.jobType[0]);
 
   // Pay
   document.querySelectorAll('#payRowRange .pay-input')[0].value = data.payMin;
   document.querySelectorAll('#payRowRange .pay-input')[1].value = data.payMax;
 
-  // Benefits chips
-  var benefitsChips = document.querySelectorAll('#benefitsChips .chip');
-  benefitsChips.forEach(function(chip) {
-    var text = chip.textContent.trim();
-    if (data.benefits.indexOf(text) !== -1) {
-      chip.classList.add('selected');
-      chip.querySelector('svg').innerHTML = '<polyline points="20 6 9 17 4 12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>';
-    } else {
-      chip.classList.remove('selected');
-      chip.querySelector('svg').innerHTML = '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>';
-    }
-  });
+  // Benefits chips (single-select)
+  selectSingleChip('#benefitsChips', data.benefits[0]);
 
-  // Shift chips
-  var shiftChips = document.querySelectorAll('#shiftChips .chip');
-  shiftChips.forEach(function(chip) {
-    var text = chip.textContent.trim();
-    if (data.shift.indexOf(text) !== -1) {
-      chip.classList.add('selected');
-      chip.querySelector('svg').innerHTML = '<polyline points="20 6 9 17 4 12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>';
-    } else {
-      chip.classList.remove('selected');
-      chip.querySelector('svg').innerHTML = '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>';
-    }
-  });
+  // Shift chips (single-select)
+  selectSingleChip('#shiftChips', data.shift[0]);
 
-  // Schedule chips
-  var scheduleChips = document.querySelectorAll('#scheduleChips .chip');
-  scheduleChips.forEach(function(chip) {
-    var text = chip.textContent.trim();
-    if (data.schedule.indexOf(text) !== -1) {
-      chip.classList.add('selected');
-      chip.querySelector('svg').innerHTML = '<polyline points="20 6 9 17 4 12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>';
-    } else {
-      chip.classList.remove('selected');
-      chip.querySelector('svg').innerHTML = '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>';
-    }
-  });
+  // Schedule chips (single-select)
+  selectSingleChip('#scheduleChips', data.schedule[0]);
 
   // Job description
   document.getElementById('jobDescEditor').innerHTML = data.description;
