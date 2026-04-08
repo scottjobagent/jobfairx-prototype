@@ -7,14 +7,71 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; background: #fff; color: #2d2d2d; min-height: 100vh; font-size: 14px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; background: #f3f2ef; color: #2d2d2d; min-height: 100vh; font-size: 14px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
 
-/* Top bar */
-.topbar { background: #0044B3; padding: 14px 32px; display: flex; align-items: center; }
-.topbar-logo { font-size: 22px; font-weight: 800; color: #fff; letter-spacing: -0.5px; text-decoration: none; }
+/* ═══ SIDEBAR ═══ */
+.sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: 220px; background: #2d2d2d; display: flex; flex-direction: column; z-index: 300; transition: width 0.2s ease; overflow: hidden; }
+.sidebar.collapsed { width: 60px; }
+.sidebar.collapsed .nav-text,
+.sidebar.collapsed .badge,
+.sidebar.collapsed .collapse-text { display: none; }
+.sidebar.collapsed .nav-item { justify-content: center; padding: 10px 0; }
+.sidebar.collapsed .nav-item svg { margin: 0; }
+.sidebar.collapsed .collapse-btn { justify-content: center; }
 
-/* Container */
-.container { max-width: 720px; margin: 0 auto; padding: 48px 32px 80px; }
+.sidebar-collapse { padding: 18px 16px 12px; }
+.collapse-btn { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 6px; border: none; background: transparent; cursor: pointer; font-size: 15px; font-weight: 600; color: rgba(255,255,255,0.9); font-family: inherit; transition: all 0.15s; width: 100%; }
+.collapse-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
+.collapse-btn svg { width: 20px; height: 20px; flex-shrink: 0; color: rgba(255,255,255,0.9); }
+
+.sidebar-nav { flex: 1; padding: 8px 12px; overflow-y: auto; }
+.nav-group { margin-bottom: 6px; }
+.nav-item { display: flex; align-items: center; gap: 14px; padding: 16px 18px; border-radius: 10px; font-size: 17px; font-weight: 500; color: rgba(255,255,255,0.85); cursor: pointer; transition: all 0.12s; text-decoration: none; letter-spacing: -0.1px; }
+.nav-item:hover { background: rgba(255,255,255,0.1); color: #fff; }
+.nav-item.active { background: rgba(255,255,255,0.18); color: #fff; font-weight: 700; }
+.nav-item svg { width: 24px; height: 24px; flex-shrink: 0; color: rgba(255,255,255,0.7); }
+.nav-item.active svg { color: #fff; }
+.nav-item .badge { margin-left: auto; background: #4b8df8; color: #fff; font-size: 12px; font-weight: 700; padding: 2px 9px; border-radius: 10px; min-width: 24px; text-align: center; }
+
+/* Sidebar credits */
+.sidebar-credits { padding: 12px 12px 16px; border-top: 1px solid rgba(255,255,255,0.1); }
+.sidebar.collapsed .sidebar-credits { display: none; }
+.credits-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; padding: 0 4px; }
+.credits-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: rgba(255,255,255,0.45); }
+.credits-link { font-size: 12px; font-weight: 600; color: #4b8df8; text-decoration: none; cursor: pointer; }
+.credits-link:hover { text-decoration: underline; color: #6ea8ff; }
+.credits-grid { display: flex; background: rgba(255,255,255,0.06); border-radius: 8px; overflow: hidden; }
+.credit-col { flex: 1; text-align: center; padding: 10px 4px 8px; }
+.credit-col + .credit-col { border-left: 1px solid rgba(255,255,255,0.08); }
+.credit-num { font-size: 22px; font-weight: 800; color: #fff; line-height: 1; margin-bottom: 2px; }
+.credit-tier { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: rgba(255,255,255,0.4); }
+
+/* ═══ TOP HEADER ═══ */
+.topbar { position: fixed; top: 0; left: 220px; right: 0; height: 52px; background: #fff; border-bottom: 1px solid #d4d2d0; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; z-index: 200; transition: left 0.2s ease; }
+body.collapsed .topbar { left: 60px; }
+.topbar-logo { font-size: 22px; font-weight: 800; color: #0044B3; letter-spacing: -0.5px; text-decoration: none; cursor: pointer; }
+.topbar-left { display: flex; align-items: center; gap: 16px; }
+.topbar-right { display: flex; align-items: center; gap: 4px; }
+.topbar-divider { width: 1px; height: 24px; background: #d4d2d0; margin: 0 10px; }
+
+/* Help dropdown */
+.help-trigger { display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 6px 12px; border-radius: 8px; transition: background 0.15s; position: relative; }
+.help-trigger:hover { background: #f3f2ef; }
+.help-trigger svg { width: 22px; height: 22px; color: #595959; }
+.help-trigger span { font-size: 14px; font-weight: 500; color: #595959; }
+
+/* User dropdown */
+.user-trigger { display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 6px 12px; border-radius: 8px; transition: background 0.15s; position: relative; }
+.user-trigger:hover { background: #f3f2ef; }
+.user-trigger span { font-size: 13px; font-weight: 500; color: #2d2d2d; }
+.user-trigger svg { width: 14px; height: 14px; color: #999; }
+
+/* ═══ MAIN CONTENT ═══ */
+.main { margin-left: 220px; margin-top: 52px; min-height: calc(100vh - 52px); padding: 24px 28px 40px; transition: margin-left 0.2s ease; }
+body.collapsed .main { margin-left: 60px; }
+
+/* ═══ SETUP FLOW CONTENT ═══ */
+.setup-container { max-width: 720px; padding: 24px 0 80px; }
 
 /* Page title */
 .page-title { font-size: 32px; font-weight: 700; color: #2d2d2d; margin-bottom: 40px; line-height: 1.25; }
@@ -77,104 +134,171 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
 </head>
 <body>
 
-<div class="topbar">
-  <a class="topbar-logo">JobFairX</a>
+<!-- ═══ SIDEBAR ═══ -->
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-collapse">
+    <button class="collapse-btn" onclick="toggleSidebar()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      <span class="collapse-text">Collapse</span>
+    </button>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-group">
+      <a class="nav-item" href="visual.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        <span class="nav-text">Dashboard</span>
+      </a>
+      <a class="nav-item" href="visual.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <span class="nav-text">Interviews</span>
+        <span class="badge">24</span>
+      </a>
+      <a class="nav-item" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span class="nav-text">Messaging</span>
+      </a>
+    </div>
+  </nav>
+
+  <div class="sidebar-credits">
+    <div class="credits-header">
+      <span class="credits-label">Event Credits</span>
+      <a class="credits-link">Manage</a>
+    </div>
+    <div class="credits-grid">
+      <div class="credit-col">
+        <div class="credit-num">2</div>
+        <div class="credit-tier">Available</div>
+      </div>
+      <div class="credit-col">
+        <div class="credit-num">3</div>
+        <div class="credit-tier">Used</div>
+      </div>
+    </div>
+  </div>
 </div>
 
-<div class="container">
-  <h1 class="page-title">Create a job post</h1>
-
-  <!-- How would you like to post your job? -->
-  <div class="radio-group-label">How would you like to post your job? *</div>
-  <div class="radio-option" onclick="selectPostType('template', this)">
-    <div class="radio-input"><div class="radio-input-dot"></div></div>
-    <div>
-      <div class="radio-label">Use a previous job as a template</div>
-      <div class="radio-badge">Save time</div>
+<!-- ═══ TOP HEADER ═══ -->
+<div class="topbar">
+  <div class="topbar-left">
+    <a class="topbar-logo">JobFairX</a>
+  </div>
+  <div class="topbar-right">
+    <div class="help-trigger">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <span>Help</span>
+    </div>
+    <div class="topbar-divider"></div>
+    <div class="user-trigger">
+      <span>Scott Johnson</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
     </div>
   </div>
-  <div class="radio-option selected" onclick="selectPostType('new', this)">
-    <div class="radio-input"><div class="radio-input-dot"></div></div>
-    <div class="radio-label">Create a brand new post</div>
-  </div>
+</div>
 
-  <!-- Previous jobs list (shown when template is selected) -->
-  <div class="previous-jobs" id="previousJobs">
-    <div class="previous-job-item" onclick="selectPreviousJob(this)">
-      <div class="previous-job-radio"><div class="previous-job-dot"></div></div>
-      <div class="previous-job-name">Registered Nurse</div>
-    </div>
-    <div class="previous-job-item" onclick="selectPreviousJob(this)">
-      <div class="previous-job-radio"><div class="previous-job-dot"></div></div>
-      <div class="previous-job-name">Medical Assistant</div>
-    </div>
-    <div class="previous-job-item" onclick="selectPreviousJob(this)">
-      <div class="previous-job-radio"><div class="previous-job-dot"></div></div>
-      <div class="previous-job-name">CNA - Certified Nursing Assistant</div>
-    </div>
-    <div class="previous-job-item" onclick="selectPreviousJob(this)">
-      <div class="previous-job-radio"><div class="previous-job-dot"></div></div>
-      <div class="previous-job-name">Home Health Aide</div>
-    </div>
-    <div class="previous-job-item" onclick="selectPreviousJob(this)">
-      <div class="previous-job-radio"><div class="previous-job-dot"></div></div>
-      <div class="previous-job-name">Patient Care Technician</div>
-    </div>
-    <div class="previous-job-item" onclick="selectPreviousJob(this)">
-      <div class="previous-job-radio"><div class="previous-job-dot"></div></div>
-      <div class="previous-job-name">LPN - Licensed Practical Nurse</div>
-    </div>
-  </div>
+<!-- ═══ MAIN CONTENT ═══ -->
+<div class="main">
+  <div class="setup-container">
+    <h1 class="page-title">Create a job post</h1>
 
-  <div class="section-divider"></div>
-
-  <!-- Job title -->
-  <div class="form-group">
-    <label class="form-label">Job title *</label>
-    <input type="text" class="form-input" id="jobTitle" placeholder="">
-  </div>
-
-  <div class="section-divider"></div>
-
-  <!-- Job location type -->
-  <div class="form-group" style="margin-bottom: 24px;">
-    <label class="form-label">Job location type *</label>
-    <select class="form-select" id="jobLocationType">
-      <option value="in-person">In person</option>
-      <option value="remote">Remote</option>
-      <option value="hybrid">Hybrid</option>
-    </select>
-  </div>
-
-  <!-- Job location -->
-  <div class="form-group" id="jobLocationGroup">
-    <label class="form-label">What is the job location? *</label>
-    <div class="form-hint">Enter a street address or ZIP code</div>
-    <input type="text" class="form-input" id="jobLocation" placeholder="">
-  </div>
-
-  <!-- Expand your candidate search -->
-  <div class="expand-section">
-    <div class="expand-title">Expand your candidate search</div>
-    <div class="expand-subtitle">Over <a href="#">10 million</a> active job seekers are open to relocating.</div>
-    <div class="checkbox-row" onclick="toggleCheckbox(this)">
-      <div class="checkbox-input">
-        <svg class="checkbox-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-      </div>
+    <!-- How would you like to post your job? -->
+    <div class="radio-group-label">How would you like to post your job? *</div>
+    <div class="radio-option" onclick="selectPostType('template', this)">
+      <div class="radio-input"><div class="radio-input-dot"></div></div>
       <div>
-        <div class="checkbox-label">I'm interested in attracting candidates open to relocation <a href="#">How it works</a></div>
-        <div class="checkbox-hint">Marking your interest helps improve our recommendations.</div>
+        <div class="radio-label">Use a previous job as a template</div>
+        <div class="radio-badge">Save time</div>
       </div>
     </div>
-  </div>
+    <div class="radio-option selected" onclick="selectPostType('new', this)">
+      <div class="radio-input"><div class="radio-input-dot"></div></div>
+      <div class="radio-label">Create a brand new post</div>
+    </div>
 
-  <!-- Continue button -->
-  <div class="bottom-actions">
-    <button class="continue-btn" onclick="window.location.href='setup-flow.html?step=2'">Continue <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><polyline points="12 5 19 12 12 19"/></svg></button>
+    <!-- Previous jobs list (shown when template is selected) -->
+    <div class="previous-jobs" id="previousJobs">
+      <div class="previous-job-item" onclick="selectPreviousJob(this)">
+        <div class="previous-job-radio"><div class="previous-job-dot"></div></div>
+        <div class="previous-job-name">Registered Nurse</div>
+      </div>
+      <div class="previous-job-item" onclick="selectPreviousJob(this)">
+        <div class="previous-job-radio"><div class="previous-job-dot"></div></div>
+        <div class="previous-job-name">Medical Assistant</div>
+      </div>
+      <div class="previous-job-item" onclick="selectPreviousJob(this)">
+        <div class="previous-job-radio"><div class="previous-job-dot"></div></div>
+        <div class="previous-job-name">CNA - Certified Nursing Assistant</div>
+      </div>
+      <div class="previous-job-item" onclick="selectPreviousJob(this)">
+        <div class="previous-job-radio"><div class="previous-job-dot"></div></div>
+        <div class="previous-job-name">Home Health Aide</div>
+      </div>
+      <div class="previous-job-item" onclick="selectPreviousJob(this)">
+        <div class="previous-job-radio"><div class="previous-job-dot"></div></div>
+        <div class="previous-job-name">Patient Care Technician</div>
+      </div>
+      <div class="previous-job-item" onclick="selectPreviousJob(this)">
+        <div class="previous-job-radio"><div class="previous-job-dot"></div></div>
+        <div class="previous-job-name">LPN - Licensed Practical Nurse</div>
+      </div>
+    </div>
+
+    <div class="section-divider"></div>
+
+    <!-- Job title -->
+    <div class="form-group">
+      <label class="form-label">Job title *</label>
+      <input type="text" class="form-input" id="jobTitle" placeholder="">
+    </div>
+
+    <div class="section-divider"></div>
+
+    <!-- Job location type -->
+    <div class="form-group" style="margin-bottom: 24px;">
+      <label class="form-label">Job location type *</label>
+      <select class="form-select" id="jobLocationType">
+        <option value="in-person">In person</option>
+        <option value="remote">Remote</option>
+        <option value="hybrid">Hybrid</option>
+      </select>
+    </div>
+
+    <!-- Job location -->
+    <div class="form-group" id="jobLocationGroup">
+      <label class="form-label">What is the job location? *</label>
+      <div class="form-hint">Enter a street address or ZIP code</div>
+      <input type="text" class="form-input" id="jobLocation" placeholder="">
+    </div>
+
+    <!-- Expand your candidate search -->
+    <div class="expand-section">
+      <div class="expand-title">Expand your candidate search</div>
+      <div class="expand-subtitle">Over <a href="#">10 million</a> active job seekers are open to relocating.</div>
+      <div class="checkbox-row" onclick="toggleCheckbox(this)">
+        <div class="checkbox-input">
+          <svg class="checkbox-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div>
+          <div class="checkbox-label">I'm interested in attracting candidates open to relocation <a href="#">How it works</a></div>
+          <div class="checkbox-hint">Marking your interest helps improve our recommendations.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Continue button -->
+    <div class="bottom-actions">
+      <button class="continue-btn" onclick="window.location.href='setup-flow.html?step=2'">Continue <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><polyline points="12 5 19 12 12 19"/></svg></button>
+    </div>
   </div>
 </div>
 
 <script>
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('collapsed');
+  document.body.classList.toggle('collapsed');
+}
+
 function selectPostType(type, el) {
   document.querySelectorAll('.radio-option').forEach(function(o) { o.classList.remove('selected'); });
   el.classList.add('selected');
@@ -189,7 +313,6 @@ function selectPostType(type, el) {
 function selectPreviousJob(el) {
   document.querySelectorAll('.previous-job-item').forEach(function(j) { j.classList.remove('selected'); });
   el.classList.add('selected');
-  // Auto-fill the job title
   var jobName = el.querySelector('.previous-job-name').textContent;
   document.getElementById('jobTitle').value = jobName;
 }
