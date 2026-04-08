@@ -853,6 +853,7 @@ tbody tr:last-child td { border-bottom: none; }
                   <button class="action-menu-item" onclick="window.open('edit-post.html?event=dallas','_blank')">Edit</button>
                   <button class="action-menu-item" onclick="window.open('share-preview.html?event=dallas','_blank')">Share</button>
                   <button class="action-menu-item" onclick="window.open('lobby.html','_blank')">Go to lobby</button>
+                  <button class="action-menu-item" onclick="openPackageModal('growth')">Package details</button>
                 </div>
               </div>
             </td>
@@ -888,6 +889,7 @@ tbody tr:last-child td { border-bottom: none; }
                   <button class="action-menu-item" onclick="window.open('edit-post.html?event=chicago','_blank')">Edit</button>
                   <button class="action-menu-item" onclick="window.open('share-preview.html?event=chicago','_blank')">Share</button>
                   <button class="action-menu-item" onclick="window.open('lobby.html','_blank')">Go to lobby</button>
+                  <button class="action-menu-item" onclick="openPackageModal('pro')">Package details</button>
                 </div>
               </div>
               <button class="intake-btn" onclick="window.open('edit-post.html?event=chicago','_blank')">Complete setup</button>
@@ -930,6 +932,7 @@ tbody tr:last-child td { border-bottom: none; }
                   <button class="action-menu-item" onclick="window.open('setup-flow.html','_blank')">Edit</button>
                   <button class="action-menu-item" onclick="window.open('share-preview.html?event=atlanta','_blank')">Share</button>
                   <button class="action-menu-item" onclick="window.open('lobby.html','_blank')">Go to lobby</button>
+                  <button class="action-menu-item" onclick="openPackageModal('starter')">Package details</button>
                 </div>
               </div>
               <button class="intake-btn" onclick="window.open('setup-flow.html','_blank')">Complete setup</button>
@@ -2644,6 +2647,79 @@ document.addEventListener('click', function(e) {
 
 function closeSetupComplete() {
   document.getElementById('setupCompleteModal').classList.remove('open');
+}
+</script>
+
+<!-- Package Details Modal -->
+<style>
+.pkg-modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 10000; align-items: center; justify-content: center; }
+.pkg-modal-overlay.open { display: flex; }
+.pkg-modal { background: #fff; border-radius: 14px; padding: 36px 32px; max-width: 420px; width: 90%; position: relative; box-shadow: 0 8px 32px rgba(0,0,0,0.18); }
+.pkg-modal-close { position: absolute; top: 14px; right: 14px; background: none; border: none; font-size: 22px; color: #767676; cursor: pointer; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 6px; }
+.pkg-modal-close:hover { color: #2d2d2d; background: #f3f2ef; }
+.pkg-modal-tier { display: inline-block; padding: 4px 14px; border-radius: 20px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px; }
+.pkg-modal-tier.starter { background: #f3f2ef; color: #595959; }
+.pkg-modal-tier.growth { background: #e8f5e9; color: #166534; }
+.pkg-modal-tier.pro { background: #eff6ff; color: #1e40af; }
+.pkg-modal h2 { font-size: 22px; font-weight: 700; color: #2d2d2d; margin: 0 0 24px; }
+.pkg-detail-row { display: flex; align-items: center; justify-content: space-between; padding: 16px 0; border-bottom: 1px solid #ebebeb; }
+.pkg-detail-row:last-child { border-bottom: none; }
+.pkg-detail-label { display: flex; align-items: center; gap: 10px; font-size: 15px; color: #2d2d2d; font-weight: 500; }
+.pkg-detail-icon { width: 20px; height: 20px; color: #767676; }
+.pkg-detail-value { font-size: 15px; font-weight: 700; color: #2d2d2d; }
+.pkg-detail-value .pkg-used { color: #0044B3; }
+.pkg-detail-value .pkg-total { color: #767676; font-weight: 400; }
+.pkg-modal-footer { margin-top: 24px; padding-top: 20px; border-top: 1px solid #ebebeb; text-align: center; }
+.pkg-modal-footer a { font-size: 14px; font-weight: 600; color: #0044B3; text-decoration: none; cursor: pointer; }
+.pkg-modal-footer a:hover { text-decoration: underline; }
+</style>
+
+<div class="pkg-modal-overlay" id="packageModal" onclick="if(event.target===this)closePackageModal()">
+  <div class="pkg-modal">
+    <button class="pkg-modal-close" onclick="closePackageModal()">&times;</button>
+    <div class="pkg-modal-tier" id="pkgTierBadge">Starter</div>
+    <h2>Package Details</h2>
+    <div class="pkg-detail-row">
+      <div class="pkg-detail-label">
+        <svg class="pkg-detail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
+        Jobs
+      </div>
+      <div class="pkg-detail-value"><span class="pkg-used" id="pkgJobsUsed">1</span> <span class="pkg-total">of <span id="pkgJobsTotal">1</span></span></div>
+    </div>
+    <div class="pkg-detail-row">
+      <div class="pkg-detail-label">
+        <svg class="pkg-detail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+        Recruiter seats
+      </div>
+      <div class="pkg-detail-value"><span class="pkg-used" id="pkgSeatsUsed">1</span> <span class="pkg-total">of <span id="pkgSeatsTotal">1</span></span></div>
+    </div>
+    <div class="pkg-modal-footer">
+      <a onclick="closePackageModal()">Need more? Upgrade your package</a>
+    </div>
+  </div>
+</div>
+
+<script>
+var packageInfo = {
+  starter: { tier: 'Starter', jobs: 1, seats: 1, jobsUsed: 1, seatsUsed: 1 },
+  growth:  { tier: 'Growth',  jobs: 3, seats: 5, jobsUsed: 1, seatsUsed: 2 },
+  pro:     { tier: 'Pro',     jobs: 6, seats: 'Unlimited', jobsUsed: 3, seatsUsed: 4 }
+};
+
+function openPackageModal(pkg) {
+  var info = packageInfo[pkg];
+  var badge = document.getElementById('pkgTierBadge');
+  badge.textContent = info.tier;
+  badge.className = 'pkg-modal-tier ' + pkg;
+  document.getElementById('pkgJobsUsed').textContent = info.jobsUsed;
+  document.getElementById('pkgJobsTotal').textContent = info.jobs;
+  document.getElementById('pkgSeatsUsed').textContent = info.seatsUsed;
+  document.getElementById('pkgSeatsTotal').textContent = info.seats;
+  document.getElementById('packageModal').classList.add('open');
+}
+
+function closePackageModal() {
+  document.getElementById('packageModal').classList.remove('open');
 }
 </script>
 
