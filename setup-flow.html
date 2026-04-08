@@ -149,6 +149,13 @@ body.collapsed .progress-bar-track { left: 60px; }
 .seat-limit-msg { display: none; align-items: center; gap: 8px; margin-top: 10px; font-size: 14px; font-weight: 600; color: #991b1b; }
 .seat-limit-icon { width: 16px; height: 16px; flex-shrink: 0; }
 
+/* Job limit message */
+.job-limit-card { display: none; background: #fef2f2; border: 1px solid #f5c6cb; border-radius: 10px; padding: 24px 28px; margin-bottom: 24px; }
+.job-limit-card.visible { display: block; }
+.job-limit-text { font-size: 15px; font-weight: 600; color: #991b1b; margin-bottom: 8px; }
+.job-limit-link { font-size: 14px; font-weight: 600; color: #0044B3; text-decoration: none; cursor: pointer; }
+.job-limit-link:hover { text-decoration: underline; }
+
 /* Form fields */
 .form-group { margin-bottom: 32px; }
 .form-label { display: block; font-size: 16px; font-weight: 700; color: #2d2d2d; margin-bottom: 8px; }
@@ -691,6 +698,12 @@ body.collapsed .progress-bar-track { left: 60px; }
     </div>
 
     </div><!-- /#newPostFields -->
+
+    <!-- Job limit message (shown when at capacity) -->
+    <div class="job-limit-card" id="jobLimitCard">
+      <div class="job-limit-text">You've posted 1 of 1 job on your Starter plan.</div>
+      <a class="job-limit-link">Click here to add an additional job</a>
+    </div>
 
     <!-- Continue button -->
     <div class="bottom-actions">
@@ -2171,13 +2184,22 @@ var templateData = {
 var isTemplatePath = false;
 var currentPostType = 'new';
 
+// Package config for this event (Atlanta = Starter)
+var eventPackage = { tier: 'Starter', jobsTotal: 1, jobsUsed: 1 };
+
 function continueFromStep1() {
+  // Check job limit
+  if (eventPackage.jobsUsed >= eventPackage.jobsTotal) {
+    document.getElementById('jobLimitCard').classList.add('visible');
+    document.getElementById('jobLimitCard').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
+
   var isTemplate = (currentPostType === 'template');
 
   if (isTemplate) {
     var selectedJob = document.querySelector('.pj-item.selected');
     if (!selectedJob) {
-      // No job selected — flash the panel or do nothing
       return;
     }
     var jobName = selectedJob.querySelector('.pj-item-title').textContent;
@@ -2187,7 +2209,6 @@ function continueFromStep1() {
     }
     isTemplatePath = true;
     document.getElementById('step2Title').textContent = 'Review Job Details';
-    // Show read-only job title at top of Step 2
     document.getElementById('templateJobTitleGroup').style.display = '';
     document.getElementById('templateJobTitle').value = jobName;
   } else {
