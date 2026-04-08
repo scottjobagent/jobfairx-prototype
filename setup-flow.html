@@ -185,15 +185,20 @@ body.collapsed .main { margin-left: 60px; }
 .pay-input-prefix { padding: 10px 0 10px 14px; font-size: 16px; color: #595959; font-weight: 500; }
 .pay-input { border: none; outline: none; padding: 10px 14px 10px 6px; font-size: 16px; font-family: inherit; color: #2d2d2d; width: 100px; }
 .pay-to { font-size: 14px; color: #595959; padding: 0 4px; align-self: center; margin-bottom: 8px; }
-.pay-select-wrap { border: 2px solid #a8a8a8; border-radius: 10px; overflow: hidden; background: #fff; transition: border-color 0.15s; }
-.pay-select-wrap:focus-within { border-color: #0044B3; }
-.pay-select { border: none; outline: none; padding: 10px 32px 10px 14px; font-size: 16px; font-family: inherit; color: #2d2d2d; background: #fff; cursor: pointer; appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23767676' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; }
-
-/* Expected hours */
-.hours-section { margin-top: 28px; }
-.hours-title { font-size: 16px; font-weight: 700; color: #2d2d2d; margin-bottom: 10px; }
-.hours-row { display: flex; align-items: flex-end; gap: 12px; flex-wrap: wrap; }
-.hours-label { font-size: 14px; color: #595959; align-self: center; margin-bottom: 8px; }
+/* Pay custom dropdowns */
+.pay-custom-select { position: relative; display: inline-block; }
+.pay-custom-trigger { display: flex; align-items: center; gap: 8px; padding: 10px 36px 10px 14px; border: 2px solid #a8a8a8; border-radius: 10px; background: #fff; cursor: pointer; font-size: 16px; font-family: inherit; color: #2d2d2d; white-space: nowrap; transition: border-color 0.15s; position: relative; }
+.pay-custom-trigger:hover { border-color: #595959; }
+.pay-custom-select.open .pay-custom-trigger { border-color: #0044B3; box-shadow: 0 0 0 2px #0044B3; }
+.pay-custom-arrow { width: 16px; height: 16px; position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #767676; transition: transform 0.2s ease; pointer-events: none; }
+.pay-custom-select.open .pay-custom-arrow { transform: translateY(-50%) rotate(180deg); }
+.pay-custom-panel { position: absolute; top: calc(100% + 4px); left: 0; min-width: 100%; background: #fff; border: 1px solid #d4d2d0; border-radius: 10px; box-shadow: 0 4px 16px rgba(0,0,0,0.1); z-index: 100; display: none; overflow: hidden; }
+.pay-custom-select.open .pay-custom-panel { display: block; }
+.pay-custom-option { display: flex; align-items: center; gap: 10px; padding: 14px 18px; font-size: 16px; color: #2d2d2d; cursor: pointer; transition: background 0.1s; white-space: nowrap; }
+.pay-custom-option:hover { background: #f3f2ef; }
+.pay-custom-option.selected { background: #f3f2ef; }
+.pay-custom-option .pco-check { width: 18px; height: 18px; flex-shrink: 0; color: #2d2d2d; }
+.pay-custom-option .pco-check.hidden { visibility: hidden; }
 
 /* Benefits / Shift / Schedule sections */
 .tag-section { margin-top: 32px; }
@@ -484,24 +489,40 @@ body.collapsed .main { margin-left: 60px; }
       <div class="pay-row">
         <div class="pay-field">
           <div class="pay-field-label">Show pay by</div>
-          <div class="pay-select-wrap">
-            <select class="pay-select">
-              <option>Range</option>
-              <option>Starting amount</option>
-              <option>Maximum amount</option>
-              <option>Exact amount</option>
-            </select>
+          <div class="pay-custom-select" id="payBySelect">
+            <div class="pay-custom-trigger" onclick="togglePaySelect('payBySelect')">
+              <span id="payByLabel">Range</span>
+              <svg class="pay-custom-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+            <div class="pay-custom-panel">
+              <div class="pay-custom-option selected" data-value="range" onclick="selectPayByOption(this)">
+                <svg class="pco-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                Range
+              </div>
+              <div class="pay-custom-option" data-value="starting" onclick="selectPayByOption(this)">
+                <svg class="pco-check hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                Starting amount
+              </div>
+              <div class="pay-custom-option" data-value="maximum" onclick="selectPayByOption(this)">
+                <svg class="pco-check hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                Maximum amount
+              </div>
+              <div class="pay-custom-option" data-value="exact" onclick="selectPayByOption(this)">
+                <svg class="pco-check hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                Exact amount
+              </div>
+            </div>
           </div>
         </div>
-        <div class="pay-field">
-          <div class="pay-field-label">Minimum</div>
+        <div class="pay-field" id="payMinField">
+          <div class="pay-field-label" id="payMinLabel">Minimum</div>
           <div class="pay-input-wrap">
             <span class="pay-input-prefix">$</span>
-            <input type="text" class="pay-input" value="22.63">
+            <input type="text" class="pay-input" id="payMinInput" value="22.63">
           </div>
         </div>
-        <div class="pay-to">to</div>
-        <div class="pay-field">
+        <div class="pay-to" id="payToText">to</div>
+        <div class="pay-field" id="payMaxField">
           <div class="pay-field-label">Maximum</div>
           <div class="pay-input-wrap">
             <span class="pay-input-prefix">$</span>
@@ -510,41 +531,35 @@ body.collapsed .main { margin-left: 60px; }
         </div>
         <div class="pay-field">
           <div class="pay-field-label">Rate</div>
-          <div class="pay-select-wrap">
-            <select class="pay-select">
-              <option>per hour</option>
-              <option>per day</option>
-              <option>per week</option>
-              <option>per month</option>
-              <option>per year</option>
-            </select>
+          <div class="pay-custom-select" id="rateSelect">
+            <div class="pay-custom-trigger" onclick="togglePaySelect('rateSelect')">
+              <span id="rateLabel">per hour</span>
+              <svg class="pay-custom-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+            <div class="pay-custom-panel">
+              <div class="pay-custom-option selected" data-value="per-hour" onclick="selectPayOption(this, 'rateSelect', 'rateLabel')">
+                <svg class="pco-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                per hour
+              </div>
+              <div class="pay-custom-option" data-value="per-day" onclick="selectPayOption(this, 'rateSelect', 'rateLabel')">
+                <svg class="pco-check hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                per day
+              </div>
+              <div class="pay-custom-option" data-value="per-week" onclick="selectPayOption(this, 'rateSelect', 'rateLabel')">
+                <svg class="pco-check hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                per week
+              </div>
+              <div class="pay-custom-option" data-value="per-month" onclick="selectPayOption(this, 'rateSelect', 'rateLabel')">
+                <svg class="pco-check hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                per month
+              </div>
+              <div class="pay-custom-option" data-value="per-year" onclick="selectPayOption(this, 'rateSelect', 'rateLabel')">
+                <svg class="pco-check hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                per year
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
-
-    <!-- Expected hours -->
-    <div class="hours-section">
-      <div class="hours-title">Expected hours</div>
-      <div class="hours-row">
-        <div class="pay-field">
-          <div class="pay-field-label">Show by</div>
-          <div class="pay-select-wrap">
-            <select class="pay-select">
-              <option>Fixed hours</option>
-              <option>Range</option>
-              <option>Maximum</option>
-              <option>Minimum</option>
-            </select>
-          </div>
-        </div>
-        <div class="pay-field">
-          <div class="pay-field-label">Fixed at</div>
-          <div class="pay-input-wrap">
-            <input type="text" class="pay-input" placeholder="" style="padding-left: 14px;">
-          </div>
-        </div>
-        <div class="hours-label">Hours per week</div>
       </div>
     </div>
 
@@ -665,6 +680,64 @@ function toggleImportantCheckbox(row) {
   var box = row.querySelector('.checkbox-input');
   box.classList.toggle('checked');
 }
+
+// Pay custom selects
+function togglePaySelect(id) {
+  var select = document.getElementById(id);
+  var isOpen = select.classList.contains('open');
+  document.querySelectorAll('.pay-custom-select').forEach(function(s) { s.classList.remove('open'); });
+  if (!isOpen) select.classList.add('open');
+}
+
+function selectPayOption(el, selectId, labelId) {
+  var select = document.getElementById(selectId);
+  select.querySelectorAll('.pay-custom-option').forEach(function(opt) {
+    opt.classList.remove('selected');
+    opt.querySelector('.pco-check').classList.add('hidden');
+  });
+  el.classList.add('selected');
+  el.querySelector('.pco-check').classList.remove('hidden');
+  document.getElementById(labelId).textContent = el.textContent.trim();
+  select.classList.remove('open');
+}
+
+function selectPayByOption(el) {
+  selectPayOption(el, 'payBySelect', 'payByLabel');
+  var value = el.getAttribute('data-value');
+  var minField = document.getElementById('payMinField');
+  var maxField = document.getElementById('payMaxField');
+  var toText = document.getElementById('payToText');
+  var minLabel = document.getElementById('payMinLabel');
+
+  if (value === 'range') {
+    minField.style.display = 'flex';
+    minLabel.textContent = 'Minimum';
+    toText.style.display = 'block';
+    maxField.style.display = 'flex';
+  } else if (value === 'starting') {
+    minField.style.display = 'flex';
+    minLabel.textContent = 'Minimum';
+    toText.style.display = 'none';
+    maxField.style.display = 'none';
+  } else if (value === 'maximum') {
+    minField.style.display = 'flex';
+    minLabel.textContent = 'Maximum';
+    toText.style.display = 'none';
+    maxField.style.display = 'none';
+  } else if (value === 'exact') {
+    minField.style.display = 'flex';
+    minLabel.textContent = 'Amount';
+    toText.style.display = 'none';
+    maxField.style.display = 'none';
+  }
+}
+
+// Close pay selects on outside click
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.pay-custom-select')) {
+    document.querySelectorAll('.pay-custom-select').forEach(function(s) { s.classList.remove('open'); });
+  }
+});
 
 function toggleDropdown(id) {
   var menu = document.getElementById(id);
