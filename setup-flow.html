@@ -135,6 +135,7 @@ body.collapsed .progress-bar-track { left: 60px; }
 .pj-item-title { font-size: 16px; font-weight: 600; color: #2d2d2d; }
 .pj-item-meta { font-size: 14px; color: #767676; margin-top: 3px; }
 .pj-no-results { padding: 24px 20px; font-size: 14px; color: #767676; text-align: center; display: none; }
+.form-input.readonly { background: #f3f2ef; color: #767676; cursor: not-allowed; border-color: #e5e4e1; }
 
 /* Form fields */
 .form-group { margin-bottom: 32px; }
@@ -676,7 +677,7 @@ body.collapsed .progress-bar-track { left: 60px; }
 
     <!-- Continue button -->
     <div class="bottom-actions">
-      <button class="continue-btn" onclick="goToStep(2)">Continue <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><polyline points="12 5 19 12 12 19"/></svg></button>
+      <button class="continue-btn" onclick="continueFromStep1()">Continue <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><polyline points="12 5 19 12 12 19"/></svg></button>
     </div>
   </div>
   </div>
@@ -685,9 +686,17 @@ body.collapsed .progress-bar-track { left: 60px; }
   <div class="step-content" id="step2">
   <div class="step-gray-bg">
   <div class="setup-container">
-    <div class="title-card"><h1 class="page-title">Add job details</h1></div>
+    <div class="title-card"><h1 class="page-title" id="step2Title">Add job details</h1></div>
 
     <div class="form-card">
+
+    <!-- Template job title (read-only, shown only on template path) -->
+    <div class="form-group" id="templateJobTitleGroup" style="display: none;">
+      <div class="form-label">Job title</div>
+      <input type="text" class="form-input readonly" id="templateJobTitle" readonly>
+      <div class="section-divider" style="margin-top: 24px;"></div>
+    </div>
+
     <!-- Job type -->
     <div class="form-group">
       <div class="form-label">Job type <span class="required">*</span></div>
@@ -2040,6 +2049,7 @@ document.addEventListener('click', function(e) {
 });
 
 function selectPostType(type, el) {
+  currentPostType = type;
   document.querySelectorAll('.radio-option').forEach(function(o) { o.classList.remove('selected'); });
   el.classList.add('selected');
   var prevJobs = document.getElementById('previousJobs');
@@ -2051,6 +2061,145 @@ function selectPostType(type, el) {
     prevJobs.classList.remove('visible');
     newPostFields.style.display = '';
   }
+}
+
+// Template data for each previous job
+var templateData = {
+  'Registered Nurse': {
+    location: 'Dallas, TX 75201',
+    locationType: 'In person',
+    jobType: ['Full-time'],
+    benefits: ['Health insurance', 'Paid time off', 'Dental insurance', '401(k)', 'Vision insurance'],
+    shift: ['Day shift', 'Night shift'],
+    schedule: ['3×12', 'Rotating weekends'],
+    payMin: '32.50', payMax: '45.00', rate: 'per hour',
+    description: '<p><strong>Job Summary</strong></p><p>We are seeking a compassionate and skilled Registered Nurse to join our healthcare team. You will provide direct patient care, coordinate treatment plans, and collaborate with physicians and other healthcare professionals to deliver exceptional patient outcomes.</p><p><strong>Duties</strong></p><p>Assess patient health conditions through physical exams and medical history review</p><p>Administer medications, injections, and IV fluids as prescribed by physicians</p><p>Monitor vital signs and document patient progress in electronic health records</p><p>Educate patients and families about treatment plans, medications, and post-discharge care</p><p>Collaborate with interdisciplinary team members to develop individualized care plans</p>'
+  },
+  'Medical Assistant': {
+    location: 'Houston, TX 77001',
+    locationType: 'In person',
+    jobType: ['Full-time'],
+    benefits: ['Health insurance', 'Paid time off', '401(k)'],
+    shift: ['Day shift'],
+    schedule: ['Monday to Friday'],
+    payMin: '18.00', payMax: '24.50', rate: 'per hour',
+    description: '<p><strong>Job Summary</strong></p><p>We are looking for a detail-oriented Medical Assistant to support our clinical team. You will handle both administrative and clinical tasks, ensuring smooth daily operations and excellent patient experiences.</p><p><strong>Duties</strong></p><p>Greet patients and prepare them for examinations by taking vital signs and medical histories</p><p>Assist physicians during exams and minor procedures</p><p>Schedule appointments, manage referrals, and handle insurance verifications</p><p>Maintain clean and organized examination rooms and restock supplies</p>'
+  },
+  'CNA - Certified Nursing Assistant': {
+    location: 'Austin, TX 78701',
+    locationType: 'In person',
+    jobType: ['Full-time', 'Part-time'],
+    benefits: ['Health insurance', 'Paid time off', 'Flexible schedule'],
+    shift: ['Day shift', 'Evening shift', 'Night shift'],
+    schedule: ['3×12', 'Rotating weekends'],
+    payMin: '16.00', payMax: '21.00', rate: 'per hour',
+    description: '<p><strong>Job Summary</strong></p><p>We are hiring a Certified Nursing Assistant to provide hands-on care and support to patients in our facility. You will work closely with nurses and other healthcare professionals to ensure patient comfort and well-being.</p><p><strong>Duties</strong></p><p>Assist patients with daily living activities including bathing, dressing, and feeding</p><p>Monitor and record vital signs and report changes to nursing staff</p><p>Help patients with mobility, transfers, and range-of-motion exercises</p><p>Maintain clean and safe patient environments</p>'
+  },
+  'Home Health Aide': {
+    location: 'San Antonio, TX 78201',
+    locationType: 'On the road',
+    jobType: ['Full-time', 'Part-time'],
+    benefits: ['Health insurance', 'Paid time off', 'Flexible schedule'],
+    shift: ['Day shift'],
+    schedule: ['Monday to Friday', 'Choose your own hours'],
+    payMin: '14.50', payMax: '19.00', rate: 'per hour',
+    description: '<p><strong>Job Summary</strong></p><p>We are seeking a caring Home Health Aide to provide in-home support to patients who need assistance with daily activities. You will travel to patient homes and deliver personalized care with compassion and professionalism.</p><p><strong>Duties</strong></p><p>Assist clients with personal care including bathing, grooming, and dressing</p><p>Help with light housekeeping, meal preparation, and medication reminders</p><p>Provide companionship and emotional support to clients</p><p>Document care activities and report concerns to supervising nurse</p>'
+  }
+};
+
+var isTemplatePath = false;
+var currentPostType = 'new';
+
+function continueFromStep1() {
+  var isTemplate = (currentPostType === 'template');
+
+  if (isTemplate) {
+    var selectedJob = document.querySelector('.pj-item.selected');
+    if (!selectedJob) {
+      // No job selected — flash the panel or do nothing
+      return;
+    }
+    var jobName = selectedJob.querySelector('.pj-item-title').textContent;
+    var data = templateData[jobName];
+    if (data) {
+      prefillStep2(jobName, data);
+    }
+    isTemplatePath = true;
+    document.getElementById('step2Title').textContent = 'Review Job Details';
+    // Show read-only job title at top of Step 2
+    document.getElementById('templateJobTitleGroup').style.display = '';
+    document.getElementById('templateJobTitle').value = jobName;
+  } else {
+    isTemplatePath = false;
+    document.getElementById('step2Title').textContent = 'Add job details';
+    document.getElementById('templateJobTitleGroup').style.display = 'none';
+  }
+  goToStep(2);
+}
+
+function prefillStep2(jobName, data) {
+  // Job title
+  document.getElementById('jobTitle').value = jobName;
+
+  // Job type chips
+  var jobTypeChips = document.querySelectorAll('#jobTypeChips .chip');
+  jobTypeChips.forEach(function(chip) {
+    var text = chip.textContent.trim();
+    if (data.jobType.indexOf(text) !== -1) {
+      chip.classList.add('selected');
+      // Swap to check icon
+      chip.querySelector('svg').innerHTML = '<polyline points="20 6 9 17 4 12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>';
+    } else {
+      chip.classList.remove('selected');
+      chip.querySelector('svg').innerHTML = '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>';
+    }
+  });
+
+  // Pay
+  document.querySelectorAll('#payRowRange .pay-input')[0].value = data.payMin;
+  document.querySelectorAll('#payRowRange .pay-input')[1].value = data.payMax;
+
+  // Benefits chips
+  var benefitsChips = document.querySelectorAll('#benefitsChips .chip');
+  benefitsChips.forEach(function(chip) {
+    var text = chip.textContent.trim();
+    if (data.benefits.indexOf(text) !== -1) {
+      chip.classList.add('selected');
+      chip.querySelector('svg').innerHTML = '<polyline points="20 6 9 17 4 12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>';
+    } else {
+      chip.classList.remove('selected');
+      chip.querySelector('svg').innerHTML = '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>';
+    }
+  });
+
+  // Shift chips
+  var shiftChips = document.querySelectorAll('#shiftChips .chip');
+  shiftChips.forEach(function(chip) {
+    var text = chip.textContent.trim();
+    if (data.shift.indexOf(text) !== -1) {
+      chip.classList.add('selected');
+      chip.querySelector('svg').innerHTML = '<polyline points="20 6 9 17 4 12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>';
+    } else {
+      chip.classList.remove('selected');
+      chip.querySelector('svg').innerHTML = '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>';
+    }
+  });
+
+  // Schedule chips
+  var scheduleChips = document.querySelectorAll('#scheduleChips .chip');
+  scheduleChips.forEach(function(chip) {
+    var text = chip.textContent.trim();
+    if (data.schedule.indexOf(text) !== -1) {
+      chip.classList.add('selected');
+      chip.querySelector('svg').innerHTML = '<polyline points="20 6 9 17 4 12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>';
+    } else {
+      chip.classList.remove('selected');
+      chip.querySelector('svg').innerHTML = '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>';
+    }
+  });
+
+  // Job description
+  document.getElementById('jobDescEditor').innerHTML = data.description;
 }
 
 // Job title suggestions
