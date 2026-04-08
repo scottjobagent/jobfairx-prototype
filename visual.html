@@ -146,6 +146,8 @@ tbody tr:last-child td { border-bottom: none; }
 .cell-live-indicator { display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 13px; font-weight: 600; color: #166534; }
 .cell-live-indicator .live-dot { width: 8px; height: 8px; border-radius: 50%; background: #16a34a; animation: dashLivePulse 2s ease-in-out infinite; }
 @keyframes dashLivePulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+.cell-setup-complete { display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 13px; font-weight: 600; color: #166534; }
+.setup-complete-dot { width: 8px; height: 8px; border-radius: 50%; background: #16a34a; flex-shrink: 0; }
 
 /* Actions column */
 .actions-cell { display: flex; align-items: center; gap: 8px; position: relative; }
@@ -861,6 +863,7 @@ tbody tr:last-child td { border-bottom: none; }
             <td>
               <div class="cell-location">Virtual interviews</div>
               <a class="cell-lobby" onclick="window.open('lobby.html','_blank')">Go to lobby</a>
+              <div class="cell-setup-complete"><span class="setup-complete-dot"></span> Setup complete</div>
             </td>
             <td>
               <div class="setup-summary">
@@ -2634,13 +2637,6 @@ document.addEventListener('click', function(e) {
   }
 });
 
-// Setup complete modal
-window.addEventListener('DOMContentLoaded', function() {
-  if (window.location.search.indexOf('setup=complete') !== -1) {
-    document.getElementById('setupCompleteModal').classList.add('open');
-    history.replaceState(null, '', window.location.pathname);
-  }
-});
 function closeSetupComplete() {
   document.getElementById('setupCompleteModal').classList.remove('open');
 }
@@ -2677,6 +2673,14 @@ function closeSetupComplete() {
     <button class="setup-modal-btn" onclick="closeSetupComplete()">Got it</button>
   </div>
 </div>
+
+<script>
+// Check for setup=complete AFTER modal HTML is in the DOM
+if (window.location.search.indexOf('setup=complete') !== -1) {
+  document.getElementById('setupCompleteModal').classList.add('open');
+  history.replaceState(null, '', window.location.pathname);
+}
+</script>
 
 </body>
 </html>
