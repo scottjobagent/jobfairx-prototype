@@ -177,8 +177,10 @@ body.collapsed .main { margin-left: 60px; }
 .pay-title { font-size: 16px; font-weight: 700; color: #2d2d2d; margin-bottom: 4px; }
 .pay-subtitle { font-size: 14px; color: #595959; margin-bottom: 20px; line-height: 1.5; }
 .pay-subtitle .info-icon { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 50%; background: #2d2d2d; color: #fff; font-size: 11px; font-weight: 700; margin-left: 4px; vertical-align: middle; cursor: help; }
-.pay-row { display: flex; align-items: flex-end; gap: 12px; flex-wrap: wrap; }
-.pay-field { display: flex; flex-direction: column; gap: 6px; }
+.pay-row { display: flex; align-items: flex-end; gap: 16px; }
+.pay-row.hidden { display: none; }
+.pay-field { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 0; }
+.pay-field.auto { flex: 0 0 auto; }
 .pay-field-label { font-size: 14px; font-weight: 700; color: #2d2d2d; }
 .pay-input-wrap { display: flex; align-items: center; border: 2px solid #a8a8a8; border-radius: 10px; overflow: hidden; background: #fff; transition: border-color 0.15s; }
 .pay-input-wrap:focus-within { border-color: #0044B3; }
@@ -486,8 +488,9 @@ body.collapsed .main { margin-left: 60px; }
     <div class="pay-section">
       <div class="pay-title">Pay</div>
       <div class="pay-subtitle">Review the pay we estimated for your job and adjust as needed. Check your local minimum wage. <span class="info-icon">i</span></div>
-      <div class="pay-row">
-        <div class="pay-field">
+      <!-- Pay By dropdown (shared, sits above the rows) -->
+      <div class="pay-row" style="margin-bottom: 16px;">
+        <div class="pay-field auto">
           <div class="pay-field-label">Show pay by</div>
           <div class="pay-custom-select" id="payBySelect">
             <div class="pay-custom-trigger" onclick="togglePaySelect('payBySelect')">
@@ -514,22 +517,26 @@ body.collapsed .main { margin-left: 60px; }
             </div>
           </div>
         </div>
-        <div class="pay-field" id="payMinField">
-          <div class="pay-field-label" id="payMinLabel">Minimum</div>
+      </div>
+
+      <!-- Range row: Minimum | to | Maximum | Rate -->
+      <div class="pay-row" id="payRowRange">
+        <div class="pay-field">
+          <div class="pay-field-label">Minimum</div>
           <div class="pay-input-wrap">
             <span class="pay-input-prefix">$</span>
-            <input type="text" class="pay-input" id="payMinInput" value="22.63">
+            <input type="text" class="pay-input" value="22.63">
           </div>
         </div>
-        <div class="pay-to" id="payToText">to</div>
-        <div class="pay-field" id="payMaxField">
+        <div class="pay-to">to</div>
+        <div class="pay-field">
           <div class="pay-field-label">Maximum</div>
           <div class="pay-input-wrap">
             <span class="pay-input-prefix">$</span>
             <input type="text" class="pay-input" value="27.25">
           </div>
         </div>
-        <div class="pay-field">
+        <div class="pay-field auto">
           <div class="pay-field-label">Rate</div>
           <div class="pay-custom-select" id="rateSelect">
             <div class="pay-custom-trigger" onclick="togglePaySelect('rateSelect')">
@@ -554,6 +561,48 @@ body.collapsed .main { margin-left: 60px; }
                 per month
               </div>
               <div class="pay-custom-option" data-value="per-year" onclick="selectPayOption(this, 'rateSelect', 'rateLabel')">
+                <svg class="pco-check hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                per year
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Single amount row: [Label] | Rate (for Starting/Maximum/Exact) -->
+      <div class="pay-row hidden" id="payRowSingle">
+        <div class="pay-field">
+          <div class="pay-field-label" id="paySingleLabel">Minimum</div>
+          <div class="pay-input-wrap">
+            <span class="pay-input-prefix">$</span>
+            <input type="text" class="pay-input" value="22.63">
+          </div>
+        </div>
+        <div class="pay-field auto">
+          <div class="pay-field-label">Rate</div>
+          <div class="pay-custom-select" id="rateSelect2">
+            <div class="pay-custom-trigger" onclick="togglePaySelect('rateSelect2')">
+              <span id="rateLabel2">per hour</span>
+              <svg class="pay-custom-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+            <div class="pay-custom-panel">
+              <div class="pay-custom-option selected" data-value="per-hour" onclick="selectPayOption(this, 'rateSelect2', 'rateLabel2')">
+                <svg class="pco-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                per hour
+              </div>
+              <div class="pay-custom-option" data-value="per-day" onclick="selectPayOption(this, 'rateSelect2', 'rateLabel2')">
+                <svg class="pco-check hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                per day
+              </div>
+              <div class="pay-custom-option" data-value="per-week" onclick="selectPayOption(this, 'rateSelect2', 'rateLabel2')">
+                <svg class="pco-check hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                per week
+              </div>
+              <div class="pay-custom-option" data-value="per-month" onclick="selectPayOption(this, 'rateSelect2', 'rateLabel2')">
+                <svg class="pco-check hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                per month
+              </div>
+              <div class="pay-custom-option" data-value="per-year" onclick="selectPayOption(this, 'rateSelect2', 'rateLabel2')">
                 <svg class="pco-check hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                 per year
               </div>
@@ -704,31 +753,23 @@ function selectPayOption(el, selectId, labelId) {
 function selectPayByOption(el) {
   selectPayOption(el, 'payBySelect', 'payByLabel');
   var value = el.getAttribute('data-value');
-  var minField = document.getElementById('payMinField');
-  var maxField = document.getElementById('payMaxField');
-  var toText = document.getElementById('payToText');
-  var minLabel = document.getElementById('payMinLabel');
+  var rangeRow = document.getElementById('payRowRange');
+  var singleRow = document.getElementById('payRowSingle');
+  var singleLabel = document.getElementById('paySingleLabel');
 
   if (value === 'range') {
-    minField.style.display = 'flex';
-    minLabel.textContent = 'Minimum';
-    toText.style.display = 'block';
-    maxField.style.display = 'flex';
-  } else if (value === 'starting') {
-    minField.style.display = 'flex';
-    minLabel.textContent = 'Minimum';
-    toText.style.display = 'none';
-    maxField.style.display = 'none';
-  } else if (value === 'maximum') {
-    minField.style.display = 'flex';
-    minLabel.textContent = 'Maximum';
-    toText.style.display = 'none';
-    maxField.style.display = 'none';
-  } else if (value === 'exact') {
-    minField.style.display = 'flex';
-    minLabel.textContent = 'Amount';
-    toText.style.display = 'none';
-    maxField.style.display = 'none';
+    rangeRow.classList.remove('hidden');
+    singleRow.classList.add('hidden');
+  } else {
+    rangeRow.classList.add('hidden');
+    singleRow.classList.remove('hidden');
+    if (value === 'starting') {
+      singleLabel.textContent = 'Minimum';
+    } else if (value === 'maximum') {
+      singleLabel.textContent = 'Maximum';
+    } else if (value === 'exact') {
+      singleLabel.textContent = 'Amount';
+    }
   }
 }
 
