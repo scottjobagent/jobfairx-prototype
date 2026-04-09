@@ -235,7 +235,7 @@ select.field-input { cursor: pointer; background-color: #fff; }
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
       <div class="user-menu" id="user-menu">
         <a class="user-menu-item" href="account-billing.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Account &amp; Billing</a>
-        <button class="user-menu-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>Give Feedback</button>
+        <button class="user-menu-item" onclick="openFeedbackModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>Give Feedback</button>
         <div class="user-menu-divider"></div>
         <button class="user-menu-item danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>Sign Out</button>
       </div>
@@ -661,6 +661,193 @@ function showToast(message) {
   setTimeout(function() { toast.classList.remove('show'); }, 2400);
 }
 
+</script>
+
+<!-- ═══ FEEDBACK MODAL ═══ -->
+<style>
+.fb-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 2000; align-items: flex-start; justify-content: center; padding: 5vh 20px; overflow-y: auto; }
+.fb-overlay.open { display: flex; }
+.fb-card { background: #fff; border-radius: 12px; padding: 36px 40px; max-width: 680px; width: 100%; position: relative; box-shadow: 0 20px 60px rgba(0,0,0,0.25); font-family: inherit; }
+.fb-close { position: absolute; top: 20px; right: 20px; background: none; border: none; font-size: 28px; color: #767676; cursor: pointer; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; line-height: 1; padding: 0; border-radius: 6px; transition: background 0.15s; }
+.fb-close:hover { background: #f6f5f3; color: #2d2d2d; }
+.fb-title { font-size: 24px; font-weight: 700; color: #2d2d2d; margin-bottom: 6px; letter-spacing: -0.01em; }
+.fb-sub { font-size: 15px; color: #767676; margin-bottom: 28px; }
+.fb-section { margin-bottom: 28px; }
+.fb-label { font-size: 16px; font-weight: 700; color: #2d2d2d; margin-bottom: 14px; }
+.fb-required { color: #dc2626; }
+.fb-optional { color: #9ca3af; font-weight: 400; }
+.fb-emoji-row { display: flex; gap: 10px; justify-content: space-between; }
+.fb-emoji { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 16px 8px; background: #fff; border: 2px solid #e5e7eb; border-radius: 12px; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+.fb-emoji:hover { border-color: #0044B3; background: #f5f9ff; }
+.fb-emoji.selected { border-color: #0044B3; background: #f0f5ff; }
+.fb-emoji-icon { font-size: 32px; line-height: 1; }
+.fb-emoji-label { font-size: 13px; font-weight: 600; color: #595959; }
+.fb-emoji.selected .fb-emoji-label { color: #0044B3; }
+.fb-followups { display: none; margin-bottom: 28px; }
+.fb-card.has-rating .fb-followups { display: block; }
+.fb-followup-card { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 18px 22px; background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 12px; margin-bottom: 12px; }
+.fb-followup-card:last-child { margin-bottom: 0; }
+.fb-followup-text { flex: 1; min-width: 0; }
+.fb-followup-title { font-size: 15px; font-weight: 700; color: #2d2d2d; margin-bottom: 4px; }
+.fb-followup-desc { font-size: 13px; color: #767676; line-height: 1.4; }
+.fb-chip-row { display: flex; gap: 8px; flex-shrink: 0; }
+.fb-chip { padding: 8px 14px; background: #fff; border: 1px solid #d4d2d0; border-radius: 999px; font-size: 13px; font-weight: 600; color: #2d2d2d; cursor: pointer; font-family: inherit; transition: all 0.15s; white-space: nowrap; }
+.fb-chip:hover { border-color: #0044B3; }
+.fb-chip.selected { border-color: #0044B3; background: #f0f5ff; color: #0044B3; }
+.fb-textarea-wrap { position: relative; }
+.fb-textarea { width: 100%; min-height: 96px; padding: 14px 16px; font-size: 15px; font-family: inherit; color: #2d2d2d; border: 1px solid #d4d2d0; border-radius: 10px; outline: none; resize: vertical; transition: border-color 0.15s, box-shadow 0.15s; box-sizing: border-box; }
+.fb-textarea:focus { border-color: #0044B3; box-shadow: 0 0 0 2px rgba(0,68,179,0.15); }
+.fb-textarea::placeholder { color: #9ca3af; }
+.fb-char-counter { position: absolute; bottom: 12px; right: 16px; font-size: 12px; color: #9ca3af; pointer-events: none; background: #fff; padding: 0 4px; }
+.fb-actions { display: flex; justify-content: flex-end; gap: 12px; padding-top: 8px; }
+.fb-btn-cancel { background: #fff; border: 1px solid #d4d2d0; color: #2d2d2d; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+.fb-btn-cancel:hover { background: #f6f5f3; border-color: #2d2d2d; }
+.fb-btn-submit { background: #0044B3; color: #fff; border: none; padding: 12px 28px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; transition: background 0.15s; }
+.fb-btn-submit:hover:not(:disabled) { background: #003399; }
+.fb-btn-submit:disabled { background: #cbd5e1; cursor: not-allowed; }
+@media (max-width: 680px) {
+  .fb-card { padding: 28px 22px; }
+  .fb-emoji-row { gap: 6px; }
+  .fb-emoji { padding: 12px 4px; }
+  .fb-emoji-icon { font-size: 26px; }
+  .fb-emoji-label { font-size: 11px; }
+  .fb-followup-card { flex-direction: column; align-items: stretch; gap: 12px; }
+  .fb-chip-row { justify-content: space-between; }
+}
+</style>
+<div class="fb-overlay" id="feedbackModal" onclick="if(event.target===this)closeFeedbackModal()">
+  <div class="fb-card" id="feedbackCard">
+    <button class="fb-close" onclick="closeFeedbackModal()" aria-label="Close">&times;</button>
+    <div class="fb-title">Give Feedback</div>
+    <div class="fb-sub">Help us make JobFairX better for you</div>
+    <div class="fb-section">
+      <div class="fb-label">How's your experience? <span class="fb-required">*</span></div>
+      <div class="fb-emoji-row">
+        <button type="button" class="fb-emoji" data-value="amazing" onclick="selectExperience(this)"><span class="fb-emoji-icon">&#128525;</span><span class="fb-emoji-label">Amazing</span></button>
+        <button type="button" class="fb-emoji" data-value="good" onclick="selectExperience(this)"><span class="fb-emoji-icon">&#128578;</span><span class="fb-emoji-label">Good</span></button>
+        <button type="button" class="fb-emoji" data-value="okay" onclick="selectExperience(this)"><span class="fb-emoji-icon">&#128528;</span><span class="fb-emoji-label">Okay</span></button>
+        <button type="button" class="fb-emoji" data-value="poor" onclick="selectExperience(this)"><span class="fb-emoji-icon">&#128533;</span><span class="fb-emoji-label">Poor</span></button>
+        <button type="button" class="fb-emoji" data-value="terrible" onclick="selectExperience(this)"><span class="fb-emoji-icon">&#128544;</span><span class="fb-emoji-label">Terrible</span></button>
+      </div>
+    </div>
+    <div class="fb-followups">
+      <div class="fb-label">A few quick follow-ups <span class="fb-optional">(optional)</span></div>
+      <div class="fb-followup-card">
+        <div class="fb-followup-text">
+          <div class="fb-followup-title">How was your event setup?</div>
+          <div class="fb-followup-desc">Creating events, adding jobs, configuring settings</div>
+        </div>
+        <div class="fb-chip-row">
+          <button type="button" class="fb-chip" data-group="setup" data-value="great" onclick="selectFollowup(this)">&#128077; Great</button>
+          <button type="button" class="fb-chip" data-group="setup" data-value="okay" onclick="selectFollowup(this)">&#128076; Okay</button>
+          <button type="button" class="fb-chip" data-group="setup" data-value="needs-work" onclick="selectFollowup(this)">&#128078; Needs work</button>
+        </div>
+      </div>
+      <div class="fb-followup-card">
+        <div class="fb-followup-text">
+          <div class="fb-followup-title">Happy with interview volume?</div>
+          <div class="fb-followup-desc">Number and quality of candidates you connected with</div>
+        </div>
+        <div class="fb-chip-row">
+          <button type="button" class="fb-chip" data-group="interviews" data-value="great" onclick="selectFollowup(this)">&#128077; Great</button>
+          <button type="button" class="fb-chip" data-group="interviews" data-value="okay" onclick="selectFollowup(this)">&#128076; Okay</button>
+          <button type="button" class="fb-chip" data-group="interviews" data-value="needs-work" onclick="selectFollowup(this)">&#128078; Needs work</button>
+        </div>
+      </div>
+      <div class="fb-followup-card">
+        <div class="fb-followup-text">
+          <div class="fb-followup-title">How was our support?</div>
+          <div class="fb-followup-desc">Help resources, responsiveness, issue resolution</div>
+        </div>
+        <div class="fb-chip-row">
+          <button type="button" class="fb-chip" data-group="support" data-value="great" onclick="selectFollowup(this)">&#128077; Great</button>
+          <button type="button" class="fb-chip" data-group="support" data-value="okay" onclick="selectFollowup(this)">&#128076; Okay</button>
+          <button type="button" class="fb-chip" data-group="support" data-value="needs-work" onclick="selectFollowup(this)">&#128078; Needs work</button>
+        </div>
+      </div>
+    </div>
+    <div class="fb-section">
+      <div class="fb-label">Anything else? <span class="fb-optional">(optional)</span></div>
+      <div class="fb-textarea-wrap">
+        <textarea class="fb-textarea" id="fbTextarea" maxlength="500" placeholder="Tell us more about your experience..." oninput="updateFbCount()"></textarea>
+        <div class="fb-char-counter"><span id="fbCharCount">0</span>/500</div>
+      </div>
+    </div>
+    <div class="fb-actions">
+      <button class="fb-btn-cancel" onclick="closeFeedbackModal()">Cancel</button>
+      <button class="fb-btn-submit" id="fbSubmitBtn" disabled onclick="submitFeedback()">Submit feedback</button>
+    </div>
+  </div>
+</div>
+<script>
+var fbState = { experience: null, followups: {}, text: '' };
+function openFeedbackModal() {
+  document.querySelectorAll('.user-menu').forEach(function(m) { m.classList.remove('open'); });
+  resetFeedback();
+  document.getElementById('feedbackModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeFeedbackModal() {
+  document.getElementById('feedbackModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+function resetFeedback() {
+  fbState = { experience: null, followups: {}, text: '' };
+  document.querySelectorAll('#feedbackModal .fb-emoji').forEach(function(b) { b.classList.remove('selected'); });
+  document.querySelectorAll('#feedbackModal .fb-chip').forEach(function(b) { b.classList.remove('selected'); });
+  document.getElementById('feedbackCard').classList.remove('has-rating');
+  document.getElementById('fbTextarea').value = '';
+  document.getElementById('fbCharCount').textContent = '0';
+  document.getElementById('fbSubmitBtn').disabled = true;
+}
+function selectExperience(btn) {
+  fbState.experience = btn.dataset.value;
+  document.querySelectorAll('#feedbackModal .fb-emoji').forEach(function(b) { b.classList.remove('selected'); });
+  btn.classList.add('selected');
+  document.getElementById('feedbackCard').classList.add('has-rating');
+  document.getElementById('fbSubmitBtn').disabled = false;
+}
+function selectFollowup(btn) {
+  var group = btn.dataset.group, value = btn.dataset.value;
+  if (fbState.followups[group] === value) {
+    delete fbState.followups[group];
+    btn.classList.remove('selected');
+    return;
+  }
+  fbState.followups[group] = value;
+  document.querySelectorAll('#feedbackModal .fb-chip[data-group="' + group + '"]').forEach(function(b) { b.classList.remove('selected'); });
+  btn.classList.add('selected');
+}
+function updateFbCount() {
+  var ta = document.getElementById('fbTextarea');
+  fbState.text = ta.value;
+  document.getElementById('fbCharCount').textContent = ta.value.length;
+}
+function submitFeedback() {
+  if (!fbState.experience) return;
+  console.log('Feedback submitted:', JSON.parse(JSON.stringify(fbState)));
+  closeFeedbackModal();
+  fbToast('Thanks for your feedback!');
+}
+function fbToast(msg) {
+  if (typeof showToast === 'function') { showToast(msg); return; }
+  var t = document.getElementById('fb-toast-el');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'fb-toast-el';
+    t.style.cssText = 'position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#2d2d2d;color:#fff;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:600;z-index:10001;box-shadow:0 4px 12px rgba(0,0,0,0.15);';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.display = 'block';
+  setTimeout(function(){ t.style.display = 'none'; }, 2400);
+}
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    var modal = document.getElementById('feedbackModal');
+    if (modal && modal.classList.contains('open')) closeFeedbackModal();
+  }
+});
 </script>
 
 </body>
