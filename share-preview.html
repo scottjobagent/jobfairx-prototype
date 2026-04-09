@@ -57,16 +57,12 @@ a { color: inherit; text-decoration: none; }
 
 /* Job picker */
 .sch-job-field { margin-bottom: 20px; }
-.sch-job-label { display: block; font-size: 14px; font-weight: 700; color: #2d2d2d; margin-bottom: 6px; }
+.sch-job-label { display: block; font-size: 14px; font-weight: 600; color: #2d2d2d; margin-bottom: 6px; }
 .sch-job-label .req { color: #991b1b; }
 .sch-job-select { width: 100%; padding: 12px 14px; font-size: 14px; font-family: inherit; border: 1px solid #d4d2d0; border-radius: 8px; color: #2d2d2d; appearance: none; background: #fff url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23767676' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 14px center; cursor: pointer; }
 .sch-job-select:focus { outline: none; border-color: #0044B3; }
 .sch-job-static { font-size: 15px; font-weight: 700; color: #2d2d2d; padding: 4px 0; }
 .sch-job-static-sub { font-size: 13px; color: #767676; margin-top: 2px; font-weight: 500; }
-
-/* Slots empty hint (shown when 2+ jobs and none picked) */
-.sch-slots-empty { padding: 24px 16px; text-align: center; border: 1px dashed #d4d2d0; border-radius: 10px; margin-bottom: 16px; }
-.sch-slots-empty-text { font-size: 13px; color: #767676; }
 
 .sch-content { display: block; }
 .sch-title { font-size: 20px; font-weight: 800; color: #2d2d2d; margin-bottom: 12px; }
@@ -75,7 +71,7 @@ a { color: inherit; text-decoration: none; }
 .sch-method-desc { font-size: 13px; color: #767676; margin-left: 26px; }
 .sch-divider { height: 1px; background: #ebebeb; margin: 20px 0; }
 
-.sch-select-label { font-size: 18px; font-weight: 800; color: #2d2d2d; margin-bottom: 6px; }
+.sch-select-label { font-size: 14px; font-weight: 600; color: #2d2d2d; margin-bottom: 6px; }
 .sch-tz { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #767676; margin-bottom: 14px; }
 .sch-tz svg { width: 14px; height: 14px; }
 .sch-date { font-size: 14px; font-weight: 700; color: #2d2d2d; margin-bottom: 10px; }
@@ -93,8 +89,6 @@ a { color: inherit; text-decoration: none; }
 .sch-time { font-size: 14px; font-weight: 700; color: #2d2d2d; }
 .sch-tz-inline { font-size: 13px; color: #595959; font-weight: 500; margin-left: 6px; }
 .sch-remaining { font-size: 13px; color: #767676; margin-left: auto; }
-.sch-remaining.low { color: #b8651c; font-weight: 600; }
-.sch-remaining.none { color: #991b1b; font-weight: 600; }
 
 .sch-btn { display: block; width: 100%; padding: 14px; border-radius: 8px; border: none; background: #0044B3; color: #fff; font-size: 15px; font-weight: 700; cursor: pointer; font-family: inherit; transition: background 0.15s; }
 .sch-btn:hover:not(:disabled) { background: #003399; }
@@ -165,26 +159,25 @@ a { color: inherit; text-decoration: none; }
         </svg>
         <span>This will be a virtual interview on JobFairX</span>
       </div>
-      <div class="sch-method-desc">You'll receive an email confirmation once the recruiter accepts your request.</div>
 
       <div class="sch-divider"></div>
 
       <!-- Job picker (dropdown if 2+ jobs, static label if 1 job) -->
       <div class="sch-job-field" id="schJobField"></div>
 
-      <div class="sch-select-label">Select a time</div>
-      <div class="sch-tz" id="schTz">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-        <span id="schTzLabel">Central Time (CDT)</span>
-      </div>
-      <div class="sch-date" id="schDate">Friday, April 17, 2026</div>
+      <!-- Time block: hidden until a job is picked -->
+      <div id="schTimeBlock" style="display:none;">
+        <div class="sch-select-label">Select a time</div>
+        <div class="sch-tz" id="schTz">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          <span id="schTzLabel">Central Time (CDT)</span>
+        </div>
+        <div class="sch-date" id="schDate">Friday, April 17, 2026</div>
 
-      <div class="sch-slots" id="schSlots"></div>
-      <div class="sch-slots-empty" id="schSlotsEmpty" style="display:none;">
-        <div class="sch-slots-empty-text">Select a job above to see available interview times.</div>
-      </div>
+        <div class="sch-slots" id="schSlots"></div>
 
-      <button class="sch-btn" id="schBtn" disabled>Request interview</button>
+        <button class="sch-btn" id="schBtn" disabled>Request interview</button>
+      </div>
     </div>
 
     <!-- Success -->
@@ -464,9 +457,9 @@ function renderJobPicker() {
 }
 
 function showSlotsEmpty() {
+  // Hide the entire time block until a job is picked
+  document.getElementById('schTimeBlock').style.display = 'none';
   document.getElementById('schSlots').innerHTML = '';
-  document.getElementById('schSlots').style.display = 'none';
-  document.getElementById('schSlotsEmpty').style.display = 'block';
   document.getElementById('schBtn').disabled = true;
 }
 
@@ -521,9 +514,9 @@ function selectJob(jobId) {
   var sel = document.getElementById('schJobSelect');
   if (sel && sel.value !== jobId) sel.value = jobId;
 
-  // Show slots container
+  // Reveal time block and render slots
+  document.getElementById('schTimeBlock').style.display = 'block';
   document.getElementById('schSlots').style.display = 'block';
-  document.getElementById('schSlotsEmpty').style.display = 'none';
   document.getElementById('schSuccess').classList.remove('active');
   document.getElementById('schContent').style.display = 'block';
 
@@ -539,12 +532,11 @@ function renderSlots() {
     var row = document.createElement('div');
     row.className = 'sch-slot';
     if (slot.remaining === 0) row.classList.add('full');
-    var remainingClass = slot.remaining === 0 ? 'none' : (slot.remaining === 1 ? 'low' : '');
-    var remainingText = slot.remaining === 0 ? 'Full' : (slot.remaining + ' spot' + (slot.remaining === 1 ? '' : 's') + ' remaining');
+    var remainingText = slot.remaining + ' spot' + (slot.remaining === 1 ? '' : 's') + ' remaining';
     row.innerHTML =
       '<div class="sch-radio"></div>' +
       '<div class="sch-time">' + slot.time + '<span class="sch-tz-inline">' + currentEvent.tz.split(' ').slice(-1)[0].replace(/[()]/g,'') + '</span></div>' +
-      '<div class="sch-remaining ' + remainingClass + '">' + remainingText + '</div>';
+      '<div class="sch-remaining">' + remainingText + '</div>';
     row.addEventListener('click', function() {
       if (slot.remaining === 0) return;
       selectedSlotIdx = idx;
