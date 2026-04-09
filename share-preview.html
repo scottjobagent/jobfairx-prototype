@@ -197,8 +197,8 @@ a { color: inherit; text-decoration: none; }
 <!-- Dev toggle -->
 <div class="dev-toggle">
   <span class="dev-toggle-label">Dev</span>
-  <button class="dev-toggle-btn" id="devBtn1" onclick="loadEvent('atlanta')">1 job</button>
-  <button class="dev-toggle-btn" id="devBtn2" onclick="loadEvent('dallas')">3 jobs</button>
+  <button class="dev-toggle-btn" id="devBtn1" onclick="loadEvent('dallas')">1 job</button>
+  <button class="dev-toggle-btn" id="devBtn2" onclick="loadEvent('chicago')">3 jobs</button>
 </div>
 
 <script>
@@ -232,48 +232,6 @@ var EVENTS = {
           { time: '2:30 PM',  remaining: 1 }
         ]
       },
-      {
-        id: 'ma',
-        title: 'Medical Assistant',
-        company: 'Texas Health Resources',
-        pay: '$22 – $28 an hour, Full-time',
-        location: 'Plano, TX',
-        desc: [
-          'Support physicians and nurses in a busy outpatient clinic. Take vitals, prepare exam rooms, assist with minor procedures, and maintain accurate patient records.',
-          'Requirements: Medical Assistant certification, strong communication skills, and the ability to multitask in a fast-paced environment.'
-        ],
-        slots: [
-          { time: '11:00 AM', remaining: 1 },
-          { time: '11:30 AM', remaining: 1 },
-          { time: '12:00 PM', remaining: 1 },
-          { time: '12:30 PM', remaining: 1 },
-          { time: '1:00 PM',  remaining: 0 },
-          { time: '1:30 PM',  remaining: 1 },
-          { time: '2:00 PM',  remaining: 1 },
-          { time: '2:30 PM',  remaining: 1 }
-        ]
-      },
-      {
-        id: 'pt',
-        title: 'Physical Therapist',
-        company: 'Methodist Health System',
-        pay: '$78,000 – $95,000 a year, Full-time',
-        location: 'Dallas, TX',
-        desc: [
-          'Evaluate and treat patients recovering from injury or surgery. Develop individualized rehabilitation plans and collaborate with the clinical team on patient progress.',
-          'Requirements: Doctorate in Physical Therapy (DPT), Texas PT license, and 2+ years of clinical experience preferred.'
-        ],
-        slots: [
-          { time: '11:00 AM', remaining: 2 },
-          { time: '11:30 AM', remaining: 1 },
-          { time: '12:00 PM', remaining: 1 },
-          { time: '12:30 PM', remaining: 1 },
-          { time: '1:00 PM',  remaining: 1 },
-          { time: '1:30 PM',  remaining: 1 },
-          { time: '2:00 PM',  remaining: 0 },
-          { time: '2:30 PM',  remaining: 1 }
-        ]
-      }
     ]
   },
   chicago: {
@@ -283,8 +241,8 @@ var EVENTS = {
     tz: 'Central Time (CDT)',
     jobs: [
       {
-        id: 'fe',
-        title: 'Frontend Engineer',
+        id: 'se',
+        title: 'Software Engineer',
         company: 'Relativity',
         pay: '$120,000 – $155,000 a year, Full-time',
         location: 'Chicago, IL (Hybrid)',
@@ -325,14 +283,14 @@ var EVENTS = {
         ]
       },
       {
-        id: 'ds',
-        title: 'Data Scientist',
+        id: 'ux',
+        title: 'UX Designer',
         company: 'Morningstar',
-        pay: '$130,000 – $165,000 a year, Full-time',
+        pay: '$110,000 – $140,000 a year, Full-time',
         location: 'Chicago, IL (Hybrid)',
         desc: [
-          'Design and ship ML models that drive investment insights for millions of users. Partner closely with engineering and product on end-to-end delivery.',
-          'Requirements: MS or PhD in a quantitative field, strong Python/SQL, and experience productionizing ML.'
+          'Design delightful end-to-end experiences that help millions of users invest with confidence. Own research, wireframes, prototypes, and hand-off.',
+          'Requirements: 4+ years of product design experience, a strong portfolio, and fluency in Figma and modern design systems.'
         ],
         slots: [
           { time: '11:00 AM', remaining: 1 },
@@ -390,7 +348,12 @@ function getEventKey() {
   return EVENTS[key] ? key : 'dallas';
 }
 
-function loadEvent(key) {
+function getJobParam() {
+  var params = new URLSearchParams(window.location.search);
+  return params.get('job');
+}
+
+function loadEvent(key, preSelectJobId) {
   if (!EVENTS[key]) return;
   currentEvent = EVENTS[key];
   selectedJobId = null;
@@ -409,8 +372,14 @@ function loadEvent(key) {
   renderJobPicker();
   updateDevToggle(key);
 
-  // Auto-select if only one job
-  if (currentEvent.jobs.length === 1) {
+  // If a specific job was requested via URL, pre-select it (works for
+  // both 1-job and multi-job events). Otherwise auto-select if only one job.
+  var matchingJob = preSelectJobId
+    ? currentEvent.jobs.find(function(j) { return j.id === preSelectJobId; })
+    : null;
+  if (matchingJob) {
+    selectJob(matchingJob.id);
+  } else if (currentEvent.jobs.length === 1) {
     selectJob(currentEvent.jobs[0].id);
   } else {
     showSlotsEmpty();
@@ -418,7 +387,7 @@ function loadEvent(key) {
 }
 
 function init() {
-  loadEvent(getEventKey());
+  loadEvent(getEventKey(), getJobParam());
 }
 
 function updateDevToggle(key) {
