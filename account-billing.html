@@ -430,38 +430,41 @@ body.collapsed .main { margin-left: 60px; }
     <div class="modal-title">Edit payment method</div>
     <div class="modal-title-sub">Update the card on file for event credits and subscriptions.</div>
 
-    <div class="modal-form-group">
-      <label class="modal-label">Cardholder Name</label>
-      <input class="modal-input" id="payNameInput" type="text">
+    <div class="modal-row triple">
+      <div class="modal-form-group">
+        <label class="modal-label">Card Number</label>
+        <input class="modal-input" id="payCardNumberInput" type="text" inputmode="numeric" autocomplete="off" placeholder="1234 5678 9012 3456">
+      </div>
+      <div class="modal-form-group">
+        <label class="modal-label">Expiration</label>
+        <input class="modal-input" id="payExpInput" type="text" inputmode="numeric" autocomplete="off" placeholder="MM/YY" maxlength="5">
+      </div>
+      <div class="modal-form-group">
+        <label class="modal-label">Security Code</label>
+        <input class="modal-input" id="payCvcInput" type="text" inputmode="numeric" autocomplete="off" placeholder="CVC" maxlength="4">
+      </div>
     </div>
+
     <div class="modal-form-group">
-      <label class="modal-label">Last 4 digits</label>
-      <input class="modal-input" id="payLast4Input" type="text" maxlength="4" placeholder="1234">
+      <label class="modal-label">Name on Card</label>
+      <input class="modal-input" id="payNameInput" type="text" autocomplete="off">
     </div>
+
     <div class="modal-row">
       <div class="modal-form-group">
-        <label class="modal-label">Expiration Month</label>
-        <select class="modal-select" id="payMonthInput">
-          <option>01</option><option>02</option><option>03</option><option>04</option>
-          <option>05</option><option>06</option><option>07</option><option>08</option>
-          <option>09</option><option>10</option><option>11</option><option>12</option>
+        <label class="modal-label">Country</label>
+        <select class="modal-select" id="payCountryInput" onchange="populateStates('payCountryInput', 'payStateInput')">
+          <option value="US">United States</option>
+          <option value="CA">Canada</option>
         </select>
       </div>
       <div class="modal-form-group">
-        <label class="modal-label">Expiration Year</label>
-        <select class="modal-select" id="payYearInput">
-          <option>2026</option><option>2027</option><option>2028</option>
-          <option>2029</option><option>2030</option><option>2031</option>
-        </select>
+        <label class="modal-label">State</label>
+        <select class="modal-select" id="payStateInput"></select>
       </div>
       <div class="modal-form-group">
-        <label class="modal-label">Card Brand</label>
-        <select class="modal-select" id="payBrandInput">
-          <option>Visa</option>
-          <option>Mastercard</option>
-          <option>Amex</option>
-          <option>Discover</option>
-        </select>
+        <label class="modal-label">ZIP Code</label>
+        <input class="modal-input" id="payZipInput" type="text" autocomplete="off">
       </div>
     </div>
 
@@ -557,37 +560,121 @@ function saveAddress() {
   showToast('Billing address updated');
 }
 
+// ═══ State data and helpers ═══
+var STATES_BY_COUNTRY = {
+  US: [
+    ['AL','Alabama'],['AK','Alaska'],['AZ','Arizona'],['AR','Arkansas'],['CA','California'],
+    ['CO','Colorado'],['CT','Connecticut'],['DE','Delaware'],['DC','District of Columbia'],
+    ['FL','Florida'],['GA','Georgia'],['HI','Hawaii'],['ID','Idaho'],['IL','Illinois'],
+    ['IN','Indiana'],['IA','Iowa'],['KS','Kansas'],['KY','Kentucky'],['LA','Louisiana'],
+    ['ME','Maine'],['MD','Maryland'],['MA','Massachusetts'],['MI','Michigan'],['MN','Minnesota'],
+    ['MS','Mississippi'],['MO','Missouri'],['MT','Montana'],['NE','Nebraska'],['NV','Nevada'],
+    ['NH','New Hampshire'],['NJ','New Jersey'],['NM','New Mexico'],['NY','New York'],
+    ['NC','North Carolina'],['ND','North Dakota'],['OH','Ohio'],['OK','Oklahoma'],['OR','Oregon'],
+    ['PA','Pennsylvania'],['RI','Rhode Island'],['SC','South Carolina'],['SD','South Dakota'],
+    ['TN','Tennessee'],['TX','Texas'],['UT','Utah'],['VT','Vermont'],['VA','Virginia'],
+    ['WA','Washington'],['WV','West Virginia'],['WI','Wisconsin'],['WY','Wyoming']
+  ],
+  CA: [
+    ['AB','Alberta'],['BC','British Columbia'],['MB','Manitoba'],['NB','New Brunswick'],
+    ['NL','Newfoundland and Labrador'],['NS','Nova Scotia'],['NT','Northwest Territories'],
+    ['NU','Nunavut'],['ON','Ontario'],['PE','Prince Edward Island'],['QC','Quebec'],
+    ['SK','Saskatchewan'],['YT','Yukon']
+  ]
+};
+
+function populateStates(countrySelectId, stateSelectId, preserveValue) {
+  var country = document.getElementById(countrySelectId).value;
+  var stateSelect = document.getElementById(stateSelectId);
+  var previous = preserveValue || '';
+  stateSelect.innerHTML = '';
+  (STATES_BY_COUNTRY[country] || []).forEach(function(pair) {
+    var opt = document.createElement('option');
+    opt.value = pair[0];
+    opt.textContent = pair[1];
+    stateSelect.appendChild(opt);
+  });
+  if (previous) stateSelect.value = previous;
+}
+
+// Auto-detect card brand from first digit (simplified for prototype)
+function detectBrand(cardNumber) {
+  var n = (cardNumber || '').replace(/\s+/g, '');
+  if (!n) return 'Visa';
+  var first = n.charAt(0);
+  if (first === '4') return 'Visa';
+  if (first === '5' || first === '2') return 'Mastercard';
+  if (first === '3') return 'Amex';
+  if (first === '6') return 'Discover';
+  return 'Visa';
+}
+
+// Stored payment billing (not shown on card, kept in memory)
+var paymentBilling = { country: 'US', state: 'IL', zip: '60601' };
+
 function openPaymentModal() {
+  document.getElementById('payCardNumberInput').value = '';
+  document.getElementById('payExpInput').value = document.getElementById('pay-expiry').textContent.replace(/^(\d{2})\/\d{2}(\d{2})$/, '$1/$2');
+  document.getElementById('payCvcInput').value = '';
   document.getElementById('payNameInput').value = document.getElementById('pay-name').textContent;
-  document.getElementById('payLast4Input').value = document.getElementById('pay-last4').textContent;
-  var exp = document.getElementById('pay-expiry').textContent.split('/');
-  document.getElementById('payMonthInput').value = exp[0];
-  document.getElementById('payYearInput').value = exp[1];
-  var brandBadge = document.getElementById('pay-brand-badge');
-  var brandText = brandBadge.textContent;
-  var brandMap = { 'VISA': 'Visa', 'MASTERCARD': 'Mastercard', 'AMEX': 'Amex', 'DISCOVER': 'Discover' };
-  document.getElementById('payBrandInput').value = brandMap[brandText] || 'Visa';
+
+  document.getElementById('payCountryInput').value = paymentBilling.country;
+  populateStates('payCountryInput', 'payStateInput', paymentBilling.state);
+  document.getElementById('payZipInput').value = paymentBilling.zip;
+
   openModal('paymentModal');
 }
 
 function savePayment() {
+  var cardNumber = document.getElementById('payCardNumberInput').value.replace(/\s+/g, '');
+  var exp = document.getElementById('payExpInput').value.trim();
   var name = document.getElementById('payNameInput').value;
-  var last4 = document.getElementById('payLast4Input').value;
-  var month = document.getElementById('payMonthInput').value;
-  var year = document.getElementById('payYearInput').value;
-  var brand = document.getElementById('payBrandInput').value;
 
+  // Parse last 4 from card number (fallback to current if left blank)
+  var last4 = cardNumber.length >= 4 ? cardNumber.slice(-4) : document.getElementById('pay-last4').textContent;
+
+  // Parse MM/YY → MM/20YY for display
+  var expDisplay = document.getElementById('pay-expiry').textContent;
+  var m = exp.match(/^(\d{2})\/(\d{2})$/);
+  if (m) expDisplay = m[1] + '/20' + m[2];
+
+  // Auto-detect brand
+  var brand = cardNumber ? detectBrand(cardNumber) : (document.getElementById('pay-brand-badge').textContent || 'VISA');
+  if (typeof brand === 'string') {
+    brand = brand.charAt(0).toUpperCase() + brand.slice(1).toLowerCase();
+  }
+
+  // Update display
   document.getElementById('pay-name').textContent = name;
   document.getElementById('pay-last4').textContent = last4;
-  document.getElementById('pay-expiry').textContent = month + '/' + year;
+  document.getElementById('pay-expiry').textContent = expDisplay;
 
   var badge = document.getElementById('pay-brand-badge');
   badge.textContent = brand.toUpperCase();
   badge.className = 'card-brand-badge ' + brand.toLowerCase();
 
+  // Persist billing silently
+  paymentBilling.country = document.getElementById('payCountryInput').value;
+  paymentBilling.state = document.getElementById('payStateInput').value;
+  paymentBilling.zip = document.getElementById('payZipInput').value;
+
   closeModal('paymentModal');
   showToast('Payment method updated');
 }
+
+// Expiration auto-format MM/YY
+document.addEventListener('DOMContentLoaded', function() {
+  var expInput = document.getElementById('payExpInput');
+  if (expInput) {
+    expInput.addEventListener('input', function(e) {
+      var v = e.target.value.replace(/\D/g, '').slice(0, 4);
+      if (v.length >= 3) v = v.slice(0, 2) + '/' + v.slice(2);
+      e.target.value = v;
+    });
+  }
+  // Prime the state dropdown on first load
+  populateStates('payCountryInput', 'payStateInput', paymentBilling.state);
+});
 
 // Toast
 function showToast(message) {
