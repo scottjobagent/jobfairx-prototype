@@ -148,6 +148,10 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
 .is-email-chip { display: inline-flex; align-items: center; gap: 8px; background: #f3f2ef; border: 1px solid #d4d2d0; border-radius: 20px; padding: 6px 14px; font-size: 14px; color: #2d2d2d; margin-bottom: 8px; }
 .is-email-chip-x { background: none; border: none; font-size: 16px; color: #767676; cursor: pointer; padding: 0; line-height: 1; font-family: inherit; }
 .is-email-chip-x:hover { color: #2d2d2d; }
+.email-error { font-size: 13px; color: #991b1b; margin-top: 6px; display: none; }
+.email-error.show { display: block; }
+.edit-toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); background: #2d2d2d; color: #fff; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; z-index: 10000; display: none; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+.edit-toast.show { display: block; }
 .is-divider { height: 1px; background: #e8e6e3; margin: 24px 0; }
 .is-toggle-row { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
 .is-toggle-label { font-size: 16px; color: #2d2d2d; font-weight: 500; }
@@ -592,7 +596,7 @@ body.collapsed .main { margin-left: 60px; }
           <div class="id-field-label">
             How many interviews is your team able to conduct during each time slot? <span class="required">*</span>
           </div>
-          <p class="id-field-hint">This cap can help optimize the distribution of interviews across time slots. The number of interviews is not guaranteed.</p>
+          <p class="id-field-hint">This cap can help optimize the distribution of interviews across time slots. Interview volume may vary based on the roles you post.</p>
           <div class="id-number-wrap">
             <button class="id-number-btn" onclick="adjustSlotCount(-1)">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -628,7 +632,7 @@ body.collapsed .main { margin-left: 60px; }
       <!-- Expandable Screening Edit -->
       <div class="screening-expand" id="screeningExpand">
         <h3 class="screening-heading">Screen candidates for your requirements</h3>
-        <p class="screening-subtext">Candidates will answer your screening questions prior to completing an application and will be eliminated from consideration.</p>
+        <p class="screening-subtext">Candidates will answer your screening questions prior to completing an application and will be filtered out based on your requirements.</p>
 
         <div class="screening-jobs-container">
           <div class="screening-job-row">
@@ -705,6 +709,7 @@ body.collapsed .main { margin-left: 60px; }
             <span class="is-email-chip">scott@jobfairx.com <button class="is-email-chip-x" title="Remove">&times;</button></span>
             <input type="email" placeholder="Add email..." class="is-email-box-input">
           </div>
+          <div class="email-error" id="interviewerEmailError">Enter a valid email address.</div>
         </div>
 
         <div class="is-divider"></div>
@@ -717,6 +722,7 @@ body.collapsed .main { margin-left: 60px; }
           <div class="is-email-box" onclick="this.querySelector('input')?.focus()">
             <input type="email" placeholder="Add email..." class="is-email-box-input">
           </div>
+          <div class="email-error" id="updatesEmailError">Enter a valid email address.</div>
         </div>
 
         <div class="is-divider"></div>
@@ -829,7 +835,17 @@ body.collapsed .main { margin-left: 60px; }
   </div>
 </div>
 
+<!-- Success Toast -->
+<div class="edit-toast" id="editToast">Changes saved</div>
+
 <script>
+function showToast(msg) {
+  var toast = document.getElementById('editToast');
+  toast.textContent = msg || 'Changes saved';
+  toast.classList.add('show');
+  setTimeout(function() { toast.classList.remove('show'); }, 2500);
+}
+
 function toggleInterviewDetails(show) {
   var expand = document.getElementById('interviewDetailsExpand');
   var summary = document.getElementById('interviewDetailsSummary');
