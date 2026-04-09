@@ -48,26 +48,8 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
 .val-display { display: block; }
 .val-placeholder { color: #a8a8a8; font-style: italic; }
 
-/* Inline editor */
-.val-editor { display: none; margin-top: 10px; }
-.review-row.editing .val-display { display: none; }
-.review-row.editing .val-editor { display: block; }
-.review-row.editing .review-edit-btn { display: none; }
-
-.edit-input { width: 100%; padding: 12px 16px; font-size: 15px; font-family: inherit; color: #2d2d2d; border: 2px solid #a8a8a8; border-radius: 8px; outline: none; transition: border-color 0.15s, box-shadow 0.15s; background: #fff; }
-.edit-input:focus { border-color: #0044B3; box-shadow: 0 0 0 2px rgba(0,68,179,0.15); }
-textarea.edit-input { min-height: 140px; resize: vertical; line-height: 1.55; }
-
-.edit-hint { font-size: 13px; color: #767676; margin-top: 6px; }
-
-.edit-actions { display: flex; gap: 10px; margin-top: 14px; }
-.edit-btn-save { padding: 10px 20px; border-radius: 8px; border: none; background: #0044B3; color: #fff; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; transition: background 0.15s; }
-.edit-btn-save:hover { background: #003399; }
-.edit-btn-cancel { padding: 10px 20px; border-radius: 8px; border: 1px solid #d4d2d0; background: #fff; color: #2d2d2d; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; transition: all 0.15s; }
-.edit-btn-cancel:hover { background: #f3f2ef; }
-
 /* Description preview */
-.review-desc-preview { max-height: 100px; overflow: hidden; position: relative; }
+.review-desc-preview { max-height: 100px; overflow: hidden; position: relative; white-space: pre-wrap; }
 .review-desc-preview.expanded { max-height: none; }
 .review-show-full { color: #0044B3; font-weight: 700; font-size: 14px; cursor: pointer; margin-top: 8px; display: inline-block; background: none; border: none; font-family: inherit; padding: 0; }
 .review-show-full:hover { text-decoration: underline; }
@@ -85,6 +67,62 @@ textarea.edit-input { min-height: 140px; resize: vertical; line-height: 1.55; }
 .job-dev-btn { background: transparent; border: none; color: #d1d5db; font-family: inherit; font-size: 12px; font-weight: 600; padding: 7px 14px; border-radius: 999px; cursor: pointer; transition: all 0.15s; }
 .job-dev-btn:hover { color: #fff; }
 .job-dev-btn.active { background: #0044B3; color: #fff; }
+
+/* ═══ Modal shell (used by all 6 field editors) ═══ */
+.modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; align-items: flex-start; justify-content: center; z-index: 1000; overflow-y: auto; padding: 56px 20px; }
+.modal-backdrop.open { display: flex; }
+.modal-card { background: #fff; border-radius: 12px; width: 100%; max-width: 560px; box-shadow: 0 20px 60px rgba(0,0,0,0.25); display: flex; flex-direction: column; max-height: calc(100vh - 112px); overflow: hidden; }
+.modal-card.wide { max-width: 680px; }
+.modal-card.tall { max-width: 780px; }
+.modal-header { display: flex; align-items: center; justify-content: space-between; padding: 24px 28px 16px; border-bottom: 1px solid #ebebeb; flex-shrink: 0; }
+.modal-title { font-size: 20px; font-weight: 700; color: #2d2d2d; }
+.modal-close { width: 32px; height: 32px; border: none; background: transparent; border-radius: 6px; cursor: pointer; color: #595959; display: flex; align-items: center; justify-content: center; transition: background 0.15s; }
+.modal-close:hover { background: #f3f2ef; }
+.modal-close svg { width: 20px; height: 20px; }
+.modal-body { padding: 24px 28px; overflow-y: auto; flex: 1 1 auto; }
+.modal-body .form-hint { font-size: 14px; color: #595959; margin-bottom: 14px; line-height: 1.5; }
+.modal-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 28px 22px; border-top: 1px solid #ebebeb; flex-shrink: 0; }
+.modal-btn-cancel { padding: 11px 22px; border-radius: 8px; border: 1px solid #d4d2d0; background: #fff; color: #2d2d2d; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+.modal-btn-cancel:hover { background: #f3f2ef; }
+.modal-btn-save { padding: 11px 26px; border-radius: 8px; border: none; background: #0044B3; color: #fff; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; transition: background 0.15s; }
+.modal-btn-save:hover { background: #003399; }
+
+/* ═══ Chip group (ported from setup-flow step 2) ═══ */
+.chip-group { display: flex; flex-wrap: wrap; gap: 10px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 999px; border: 2px solid transparent; background: #f0efed; font-size: 13px; font-weight: 500; color: #2d2d2d; cursor: pointer; font-family: inherit; transition: all 0.15s; user-select: none; }
+.chip:hover { background: #e5e4e1; }
+.chip.selected { background: #fff; border-color: #2d2d2d; }
+.chip svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+/* ═══ Pay widget (ported from setup-flow step 2) ═══ */
+.pay-row { display: flex; align-items: flex-end; gap: 14px; flex-wrap: wrap; }
+.pay-row.hidden { display: none; }
+.pay-field { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 0; }
+.pay-field.auto { flex: 0 0 auto; }
+.pay-field-label { font-size: 14px; font-weight: 700; color: #2d2d2d; }
+.pay-input-wrap { display: flex; align-items: center; border: 2px solid #a8a8a8; border-radius: 10px; overflow: hidden; background: #fff; transition: border-color 0.15s; }
+.pay-input-wrap:focus-within { border-color: #0044B3; }
+.pay-input-prefix { padding: 12px 0 12px 14px; font-size: 16px; color: #595959; font-weight: 500; }
+.pay-input { border: none; outline: none; padding: 12px 12px 12px 6px; font-size: 16px; font-family: inherit; color: #2d2d2d; width: 100%; min-width: 80px; background: transparent; }
+.pay-to { font-size: 14px; color: #595959; padding: 0 4px; align-self: center; margin-bottom: 10px; }
+
+.pay-custom-select { position: relative; display: inline-block; }
+.pay-custom-trigger { display: flex; align-items: center; gap: 8px; padding: 12px 40px 12px 16px; border: 2px solid #a8a8a8; border-radius: 10px; background: #fff; cursor: pointer; font-size: 15px; font-family: inherit; color: #2d2d2d; white-space: nowrap; transition: border-color 0.15s; position: relative; min-width: 170px; }
+.pay-custom-trigger:hover { border-color: #595959; }
+.pay-custom-select.open .pay-custom-trigger { border-color: #0044B3; box-shadow: 0 0 0 2px rgba(0,68,179,0.15); }
+.pay-custom-arrow { width: 16px; height: 16px; position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #767676; transition: transform 0.2s ease; pointer-events: none; }
+.pay-custom-select.open .pay-custom-arrow { transform: translateY(-50%) rotate(180deg); }
+.pay-custom-panel { position: absolute; top: calc(100% + 4px); left: 0; min-width: 100%; background: #fff; border: 1px solid #d4d2d0; border-radius: 10px; box-shadow: 0 4px 16px rgba(0,0,0,0.12); z-index: 100; display: none; overflow: hidden; }
+.pay-custom-select.open .pay-custom-panel { display: block; }
+.pay-custom-option { display: flex; align-items: center; gap: 10px; padding: 12px 16px; font-size: 15px; color: #2d2d2d; cursor: pointer; transition: background 0.1s; white-space: nowrap; }
+.pay-custom-option:hover { background: #f3f2ef; }
+.pay-custom-option.selected { background: #f3f2ef; }
+.pay-custom-option .pco-check { width: 18px; height: 18px; flex-shrink: 0; color: #2d2d2d; }
+.pay-custom-option .pco-check.hidden { visibility: hidden; }
+
+/* Description textarea inside modal */
+.modal-textarea { width: 100%; min-height: 260px; padding: 14px 16px; font-size: 15px; font-family: inherit; color: #2d2d2d; border: 2px solid #a8a8a8; border-radius: 10px; outline: none; resize: vertical; line-height: 1.6; background: #fff; transition: border-color 0.15s; }
+.modal-textarea:focus { border-color: #0044B3; box-shadow: 0 0 0 2px rgba(0,68,179,0.15); }
 </style>
 </head>
 <body>
@@ -121,66 +159,50 @@ textarea.edit-input { min-height: 140px; resize: vertical; line-height: 1.55; }
       </tr>
 
       <!-- Job type -->
-      <tr class="review-row" data-field="jobType" data-editor="select" data-options="Full-time|Part-time|Contract|Temporary|Internship">
+      <tr class="review-row" data-field="jobType">
         <td>Job type</td>
-        <td class="val-cell">
-          <span class="val-display" data-display="jobType"></span>
-          <div class="val-editor"></div>
-        </td>
-        <td><button class="review-edit-btn" onclick="beginEdit(this)" title="Edit"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button></td>
+        <td class="val-cell"><span class="val-display" data-display="jobType"></span></td>
+        <td><button class="review-edit-btn" onclick="openModal('jobType')" title="Edit"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button></td>
       </tr>
 
       <!-- Pay -->
-      <tr class="review-row" data-field="pay" data-editor="text">
+      <tr class="review-row" data-field="pay">
         <td>Pay</td>
-        <td class="val-cell">
-          <span class="val-display" data-display="pay"></span>
-          <div class="val-editor"></div>
-        </td>
-        <td><button class="review-edit-btn" onclick="beginEdit(this)" title="Edit"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button></td>
+        <td class="val-cell"><span class="val-display" data-display="pay"></span></td>
+        <td><button class="review-edit-btn" onclick="openModal('pay')" title="Edit"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button></td>
       </tr>
 
       <!-- Benefits -->
-      <tr class="review-row" data-field="benefits" data-editor="textarea" data-hint="Comma-separated list works best (e.g. Health insurance, Dental, 401k)">
+      <tr class="review-row" data-field="benefits">
         <td>Benefits</td>
-        <td class="val-cell">
-          <span class="val-display" data-display="benefits"></span>
-          <div class="val-editor"></div>
-        </td>
-        <td><button class="review-edit-btn" onclick="beginEdit(this)" title="Edit"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button></td>
+        <td class="val-cell"><span class="val-display" data-display="benefits"></span></td>
+        <td><button class="review-edit-btn" onclick="openModal('benefits')" title="Edit"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button></td>
       </tr>
 
       <!-- Standard Shift -->
-      <tr class="review-row" data-field="shift" data-editor="text" data-hint="e.g. Day shift, Night shift, Evening">
+      <tr class="review-row" data-field="shift">
         <td>Standard Shift</td>
-        <td class="val-cell">
-          <span class="val-display" data-display="shift"></span>
-          <div class="val-editor"></div>
-        </td>
-        <td><button class="review-edit-btn" onclick="beginEdit(this)" title="Edit"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button></td>
+        <td class="val-cell"><span class="val-display" data-display="shift"></span></td>
+        <td><button class="review-edit-btn" onclick="openModal('shift')" title="Edit"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button></td>
       </tr>
 
       <!-- Weekly Schedule -->
-      <tr class="review-row" data-field="schedule" data-editor="text" data-hint="e.g. Monday to Friday, Weekends as needed">
+      <tr class="review-row" data-field="schedule">
         <td>Weekly Schedule</td>
-        <td class="val-cell">
-          <span class="val-display" data-display="schedule"></span>
-          <div class="val-editor"></div>
-        </td>
-        <td><button class="review-edit-btn" onclick="beginEdit(this)" title="Edit"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button></td>
+        <td class="val-cell"><span class="val-display" data-display="schedule"></span></td>
+        <td><button class="review-edit-btn" onclick="openModal('schedule')" title="Edit"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button></td>
       </tr>
 
       <!-- Job description -->
-      <tr class="review-row" data-field="desc" data-editor="textarea">
+      <tr class="review-row" data-field="desc">
         <td>Job description</td>
         <td class="val-cell">
           <div class="val-display">
             <div class="review-desc-preview" id="descPreview"></div>
             <button class="review-show-full" id="descShowFull" onclick="toggleDescPreview()">Show full description</button>
           </div>
-          <div class="val-editor"></div>
         </td>
-        <td><button class="review-edit-btn" onclick="beginEdit(this)" title="Edit"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button></td>
+        <td><button class="review-edit-btn" onclick="openModal('desc')" title="Edit"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button></td>
       </tr>
     </table>
   </div><!-- /.form-card -->
@@ -193,71 +215,271 @@ textarea.edit-input { min-height: 140px; resize: vertical; line-height: 1.55; }
 </div>
 </div>
 
+<!-- ═══════════════════════════════════════════════════════════════════
+     MODALS — one per field, each mirrors setup-flow step 2 input style
+     ═══════════════════════════════════════════════════════════════════ -->
+
+<!-- Job type modal (single-select chips) -->
+<div class="modal-backdrop" id="modal-jobType" onclick="onBackdropClick(event,'jobType')">
+  <div class="modal-card" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title">Job type</div>
+      <button class="modal-close" onclick="closeModal('jobType')" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-hint">Select the job type that best describes this position.</div>
+      <div class="chip-group" id="jobTypeChips" data-select="single"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-btn-cancel" onclick="closeModal('jobType')">Cancel</button>
+      <button class="modal-btn-save" onclick="saveModal('jobType')">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Pay modal (full pay widget from setup-flow) -->
+<div class="modal-backdrop" id="modal-pay" onclick="onBackdropClick(event,'pay')">
+  <div class="modal-card tall" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title">Pay</div>
+      <button class="modal-close" onclick="closeModal('pay')" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-hint">Choose how to display pay for this job. Adjust as needed.</div>
+
+      <!-- Range row: Show pay by | Minimum | to | Maximum | Rate -->
+      <div class="pay-row" id="payRowRange">
+        <div class="pay-field auto">
+          <div class="pay-field-label">Show pay by</div>
+          <div class="pay-custom-select" id="payBySelect">
+            <div class="pay-custom-trigger" onclick="togglePaySelect('payBySelect')">
+              <span id="payByLabel">Range</span>
+              <svg class="pay-custom-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+            <div class="pay-custom-panel">
+              <div class="pay-custom-option" data-value="range" onclick="selectPayByOption(this)"><svg class="pco-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Range</div>
+              <div class="pay-custom-option" data-value="starting" onclick="selectPayByOption(this)"><svg class="pco-check hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Starting amount</div>
+              <div class="pay-custom-option" data-value="maximum" onclick="selectPayByOption(this)"><svg class="pco-check hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Maximum amount</div>
+              <div class="pay-custom-option" data-value="exact" onclick="selectPayByOption(this)"><svg class="pco-check hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Exact amount</div>
+            </div>
+          </div>
+        </div>
+        <div class="pay-field">
+          <div class="pay-field-label">Minimum</div>
+          <div class="pay-input-wrap"><span class="pay-input-prefix">$</span><input type="text" class="pay-input" id="payMin" value=""></div>
+        </div>
+        <div class="pay-to">to</div>
+        <div class="pay-field">
+          <div class="pay-field-label">Maximum</div>
+          <div class="pay-input-wrap"><span class="pay-input-prefix">$</span><input type="text" class="pay-input" id="payMax" value=""></div>
+        </div>
+      </div>
+
+      <!-- Single amount row -->
+      <div class="pay-row hidden" id="payRowSingle">
+        <div class="pay-field auto">
+          <div class="pay-field-label">Show pay by</div>
+          <div class="pay-custom-select" id="payBySelect2">
+            <div class="pay-custom-trigger" onclick="togglePaySelect('payBySelect2')">
+              <span id="payByLabel2">Starting amount</span>
+              <svg class="pay-custom-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+            <div class="pay-custom-panel">
+              <div class="pay-custom-option" data-value="range" onclick="selectPayByOption(this)"><svg class="pco-check hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Range</div>
+              <div class="pay-custom-option" data-value="starting" onclick="selectPayByOption(this)"><svg class="pco-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Starting amount</div>
+              <div class="pay-custom-option" data-value="maximum" onclick="selectPayByOption(this)"><svg class="pco-check hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Maximum amount</div>
+              <div class="pay-custom-option" data-value="exact" onclick="selectPayByOption(this)"><svg class="pco-check hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Exact amount</div>
+            </div>
+          </div>
+        </div>
+        <div class="pay-field">
+          <div class="pay-field-label" id="paySingleLabel">Amount</div>
+          <div class="pay-input-wrap"><span class="pay-input-prefix">$</span><input type="text" class="pay-input" id="paySingle" value=""></div>
+        </div>
+      </div>
+
+      <!-- Rate row (always visible, below) -->
+      <div class="pay-row" style="margin-top: 16px;">
+        <div class="pay-field auto">
+          <div class="pay-field-label">Rate</div>
+          <div class="pay-custom-select" id="rateSelect">
+            <div class="pay-custom-trigger" onclick="togglePaySelect('rateSelect')">
+              <span id="rateLabel">per year</span>
+              <svg class="pay-custom-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+            <div class="pay-custom-panel">
+              <div class="pay-custom-option" data-value="per hour" onclick="selectPayOption(this,'rateSelect','rateLabel')"><svg class="pco-check hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>per hour</div>
+              <div class="pay-custom-option" data-value="per day" onclick="selectPayOption(this,'rateSelect','rateLabel')"><svg class="pco-check hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>per day</div>
+              <div class="pay-custom-option" data-value="per week" onclick="selectPayOption(this,'rateSelect','rateLabel')"><svg class="pco-check hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>per week</div>
+              <div class="pay-custom-option" data-value="per month" onclick="selectPayOption(this,'rateSelect','rateLabel')"><svg class="pco-check hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>per month</div>
+              <div class="pay-custom-option selected" data-value="per year" onclick="selectPayOption(this,'rateSelect','rateLabel')"><svg class="pco-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>per year</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-btn-cancel" onclick="closeModal('pay')">Cancel</button>
+      <button class="modal-btn-save" onclick="saveModal('pay')">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Benefits modal (multi-select chips) -->
+<div class="modal-backdrop" id="modal-benefits" onclick="onBackdropClick(event,'benefits')">
+  <div class="modal-card wide" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title">Benefits</div>
+      <button class="modal-close" onclick="closeModal('benefits')" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-hint">Select all benefits that apply. You can pick more than one.</div>
+      <div class="chip-group" id="benefitsChips" data-select="multi"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-btn-cancel" onclick="closeModal('benefits')">Cancel</button>
+      <button class="modal-btn-save" onclick="saveModal('benefits')">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Standard Shift modal -->
+<div class="modal-backdrop" id="modal-shift" onclick="onBackdropClick(event,'shift')">
+  <div class="modal-card" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title">Standard Shift</div>
+      <button class="modal-close" onclick="closeModal('shift')" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-hint">Select the standard shift for this position.</div>
+      <div class="chip-group" id="shiftChips" data-select="single"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-btn-cancel" onclick="closeModal('shift')">Cancel</button>
+      <button class="modal-btn-save" onclick="saveModal('shift')">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Weekly Schedule modal -->
+<div class="modal-backdrop" id="modal-schedule" onclick="onBackdropClick(event,'schedule')">
+  <div class="modal-card" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title">Weekly Schedule</div>
+      <button class="modal-close" onclick="closeModal('schedule')" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-hint">Select the weekly schedule for this position.</div>
+      <div class="chip-group" id="scheduleChips" data-select="single"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-btn-cancel" onclick="closeModal('schedule')">Cancel</button>
+      <button class="modal-btn-save" onclick="saveModal('schedule')">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Description modal -->
+<div class="modal-backdrop" id="modal-desc" onclick="onBackdropClick(event,'desc')">
+  <div class="modal-card tall" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title">Job description</div>
+      <button class="modal-close" onclick="closeModal('desc')" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-hint">Edit the job description. You can include responsibilities, requirements, and benefits.</div>
+      <textarea class="modal-textarea" id="descTextarea"></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-btn-cancel" onclick="closeModal('desc')">Cancel</button>
+      <button class="modal-btn-save" onclick="saveModal('desc')">Save</button>
+    </div>
+  </div>
+</div>
+
 <!-- Dev toggle: preview different jobs -->
 <div class="job-dev" id="jobDev"></div>
 
 <script>
+/* ---------- Chip option definitions (mirror setup-flow step 2 exactly) ---------- */
+var JOB_TYPE_OPTIONS = ['Full-time','Part-time','Contract','Temporary','Internship'];
+var BENEFIT_OPTIONS = [
+  'Health insurance','Paid time off','Dental insurance','401(k)','Vision insurance',
+  'Flexible schedule','Tuition reimbursement','Life insurance','401(k) matching',
+  'Retirement plan','Referral program','Employee discount','Flexible spending account',
+  'Health savings account','Relocation assistance','Parental leave',
+  'Professional development assistance','Employee assistance program','Other'
+];
+var SHIFT_OPTIONS = ['Day shift','Night shift','Evening shift','Overnight shift','Other','None'];
+var SCHEDULE_OPTIONS = [
+  'Weekly as needed','Monday to Friday','Rotating weekends','Every weekend','No weekends',
+  'Choose your own hours','3\u00d712','5\u00d78','4\u00d710','4\u00d712','Other','None'
+];
+
+var CHECK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+var PLUS_SVG  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
+
 /* ---------- Seed data (mirrors dashboard) ---------- */
 var JOBS = {
   ma: {
     event: 'dallas',
     eventName: 'Dallas Healthcare Hiring Event',
     title: 'Medical Assistant',
-    location: 'Dallas, TX · In person',
+    location: 'Dallas, TX \u00b7 In person',
     jobType: 'Full-time',
-    pay: '$38,000 – $48,000 / year',
-    benefits: 'Health insurance, Dental, Vision, 401(k), Paid time off',
+    pay: '$38,000 \u2013 $48,000 / year',
+    benefits: 'Health insurance, Dental insurance, Vision insurance, 401(k), Paid time off',
     shift: 'Day shift',
     schedule: 'Monday to Friday',
-    desc: "Join our growing clinic as a Medical Assistant supporting physicians and nurses in delivering excellent patient care. You will handle clinical and administrative duties including patient intake, vitals, scheduling, and electronic health records.\n\nResponsibilities:\n• Patient intake and vitals\n• Assist physicians with exams\n• Maintain accurate EHR records\n• Schedule follow-up appointments\n\nRequirements:\n• Medical Assistant certification\n• 1+ year of clinical experience preferred\n• Strong organizational and communication skills"
+    desc: "Join our growing clinic as a Medical Assistant supporting physicians and nurses in delivering excellent patient care. You will handle clinical and administrative duties including patient intake, vitals, scheduling, and electronic health records.\n\nResponsibilities:\n\u2022 Patient intake and vitals\n\u2022 Assist physicians with exams\n\u2022 Maintain accurate EHR records\n\u2022 Schedule follow-up appointments\n\nRequirements:\n\u2022 Medical Assistant certification\n\u2022 1+ year of clinical experience preferred\n\u2022 Strong organizational and communication skills"
   },
   rn: {
     event: 'dallas',
     eventName: 'Dallas Healthcare Hiring Event',
     title: 'Registered Nurse',
-    location: 'Dallas, TX · In person',
+    location: 'Dallas, TX \u00b7 In person',
     jobType: 'Full-time',
-    pay: '$55,000 – $72,000 / year',
-    benefits: 'Health insurance, Dental, Vision, 401(k), Paid time off',
-    shift: 'Day shift, 12-hour shifts',
-    schedule: 'Monday to Friday, Rotating weekends',
-    desc: "We are seeking a compassionate and skilled Registered Nurse to join our healthcare team. The ideal candidate will provide high-quality patient care in a fast-paced environment and collaborate with a multidisciplinary team to ensure the best outcomes for every patient.\n\nResponsibilities:\n• Assess patient conditions and develop nursing care plans\n• Administer medications and treatments per physician orders\n• Monitor patient progress and document observations\n• Educate patients and families on health management\n\nRequirements:\n• Active RN license in Texas\n• BLS certification\n• Minimum 1 year of clinical experience preferred"
+    pay: '$55,000 \u2013 $72,000 / year',
+    benefits: 'Health insurance, Dental insurance, Vision insurance, 401(k), Paid time off',
+    shift: 'Day shift',
+    schedule: 'Rotating weekends',
+    desc: "We are seeking a compassionate and skilled Registered Nurse to join our healthcare team. The ideal candidate will provide high-quality patient care in a fast-paced environment and collaborate with a multidisciplinary team to ensure the best outcomes for every patient.\n\nResponsibilities:\n\u2022 Assess patient conditions and develop nursing care plans\n\u2022 Administer medications and treatments per physician orders\n\u2022 Monitor patient progress and document observations\n\u2022 Educate patients and families on health management\n\nRequirements:\n\u2022 Active RN license in Texas\n\u2022 BLS certification\n\u2022 Minimum 1 year of clinical experience preferred"
   },
   se: {
     event: 'chicago',
     eventName: 'Chicago Technology Hiring Event',
     title: 'Software Engineer',
-    location: 'Chicago, IL · Hybrid',
+    location: 'Chicago, IL \u00b7 Hybrid',
     jobType: 'Full-time',
-    pay: '$115,000 – $145,000 / year',
-    benefits: 'Health insurance, Dental, Vision, 401(k) matching, Unlimited PTO, Stock options',
+    pay: '$115,000 \u2013 $145,000 / year',
+    benefits: 'Health insurance, Dental insurance, Vision insurance, 401(k) matching, Paid time off',
     shift: 'Day shift',
     schedule: 'Monday to Friday',
-    desc: "Join our growing engineering team to build and scale our core platform. You'll work with modern technologies, collaborate across product and design, and contribute to system architecture decisions.\n\nResponsibilities:\n• Design, build, and maintain high-quality, scalable services\n• Write clean, well-tested, maintainable code\n• Participate in code reviews and architectural discussions\n• Partner with PM and design on new features\n\nRequirements:\n• 3+ years of professional software engineering experience\n• Strong fundamentals in data structures and algorithms\n• Experience with modern web frameworks"
+    desc: "Join our growing engineering team to build and scale our core platform. You'll work with modern technologies, collaborate across product and design, and contribute to system architecture decisions.\n\nResponsibilities:\n\u2022 Design, build, and maintain high-quality, scalable services\n\u2022 Write clean, well-tested, maintainable code\n\u2022 Participate in code reviews and architectural discussions\n\u2022 Partner with PM and design on new features\n\nRequirements:\n\u2022 3+ years of professional software engineering experience\n\u2022 Strong fundamentals in data structures and algorithms\n\u2022 Experience with modern web frameworks"
   },
   devops: {
     event: 'chicago',
     eventName: 'Chicago Technology Hiring Event',
     title: 'DevOps Engineer',
-    location: 'Chicago, IL · Hybrid',
+    location: 'Chicago, IL \u00b7 Hybrid',
     jobType: 'Full-time',
-    pay: '$125,000 – $155,000 / year',
-    benefits: 'Health insurance, Dental, Vision, 401(k) matching, Unlimited PTO',
+    pay: '$125,000 \u2013 $155,000 / year',
+    benefits: 'Health insurance, Dental insurance, Vision insurance, 401(k) matching, Paid time off',
     shift: 'Day shift',
-    schedule: 'Monday to Friday, On-call rotation',
-    desc: "We're looking for a DevOps Engineer to own our infrastructure and deployment pipelines. You'll work closely with engineering to build reliable, observable, and secure systems.\n\nResponsibilities:\n• Maintain and improve CI/CD pipelines\n• Manage cloud infrastructure (AWS)\n• Monitor system health and respond to incidents\n• Drive infrastructure-as-code adoption\n\nRequirements:\n• 3+ years of DevOps or SRE experience\n• Strong Linux and scripting skills\n• Experience with Kubernetes, Terraform, and AWS"
+    schedule: 'Monday to Friday',
+    desc: "We're looking for a DevOps Engineer to own our infrastructure and deployment pipelines. You'll work closely with engineering to build reliable, observable, and secure systems.\n\nResponsibilities:\n\u2022 Maintain and improve CI/CD pipelines\n\u2022 Manage cloud infrastructure (AWS)\n\u2022 Monitor system health and respond to incidents\n\u2022 Drive infrastructure-as-code adoption\n\nRequirements:\n\u2022 3+ years of DevOps or SRE experience\n\u2022 Strong Linux and scripting skills\n\u2022 Experience with Kubernetes, Terraform, and AWS"
   },
   ux: {
     event: 'chicago',
     eventName: 'Chicago Technology Hiring Event',
     title: 'UX Designer',
-    location: 'Chicago, IL · Hybrid',
+    location: 'Chicago, IL \u00b7 Hybrid',
     jobType: 'Full-time',
-    pay: '$95,000 – $125,000 / year',
-    benefits: 'Health insurance, Dental, Vision, 401(k) matching, Unlimited PTO',
+    pay: '$95,000 \u2013 $125,000 / year',
+    benefits: 'Health insurance, Dental insurance, Vision insurance, 401(k) matching, Paid time off',
     shift: 'Day shift',
     schedule: 'Monday to Friday',
-    desc: "We're hiring a UX Designer to shape the experience of our product end-to-end. You'll partner with PM and engineering to research, prototype, and ship thoughtful user experiences.\n\nResponsibilities:\n• Lead design for complex product areas\n• Conduct user research and usability testing\n• Prototype and iterate quickly\n• Contribute to and evolve the design system\n\nRequirements:\n• 3+ years of product design experience\n• Strong portfolio demonstrating end-to-end product work\n• Experience with Figma"
+    desc: "We're hiring a UX Designer to shape the experience of our product end-to-end. You'll partner with PM and engineering to research, prototype, and ship thoughtful user experiences.\n\nResponsibilities:\n\u2022 Lead design for complex product areas\n\u2022 Conduct user research and usability testing\n\u2022 Prototype and iterate quickly\n\u2022 Contribute to and evolve the design system\n\nRequirements:\n\u2022 3+ years of product design experience\n\u2022 Strong portfolio demonstrating end-to-end product work\n\u2022 Experience with Figma"
   }
 };
 
@@ -278,12 +500,8 @@ function loadJob(jobId) {
   state.original = Object.assign({}, JOBS[jobId]);
   state.dirty = false;
   document.body.classList.remove('dirty');
-  // Close any open editors
-  document.querySelectorAll('.review-row.editing').forEach(function(r) { r.classList.remove('editing'); });
   renderAll();
-  // Update browser tab title so the dev toggle still communicates context
-  document.title = 'Edit Job — ' + state.data.title + ' · ' + state.data.eventName;
-  // Update dev toggle active state
+  document.title = 'Edit Job \u2014 ' + state.data.title + ' \u00b7 ' + state.data.eventName;
   document.querySelectorAll('.job-dev-btn').forEach(function(b) {
     b.classList.toggle('active', b.dataset.job === jobId);
   });
@@ -304,7 +522,7 @@ function renderField(field) {
   var el = document.querySelector('[data-display="' + field + '"]');
   if (!el) return;
   var val = state.data[field];
-  if (val && val.trim()) {
+  if (val && String(val).trim()) {
     el.textContent = val;
     el.classList.remove('val-placeholder');
   } else {
@@ -335,80 +553,260 @@ function toggleDescPreview() {
   btn.textContent = expanded ? 'Show less' : 'Show full description';
 }
 
-/* ---------- Inline editor ---------- */
-function beginEdit(btn) {
-  var row = btn.closest('.review-row');
-  var field = row.dataset.field;
-  var editorType = row.dataset.editor;
-
-  // Close any other open rows
-  document.querySelectorAll('.review-row.editing').forEach(function(r) {
-    if (r !== row) cancelEdit(r);
-  });
-
-  var editor = row.querySelector('.val-editor');
-  editor.innerHTML = buildEditorHtml(field, editorType, row);
-  row.classList.add('editing');
-
-  var input = editor.querySelector('.edit-input');
-  if (input) {
-    input.focus();
-    if (input.select) input.select();
-  }
-}
-
-function buildEditorHtml(field, type, row) {
-  var current = state.data[field] || '';
-  var hint = row.dataset.hint || '';
+/* ═══ Chip group builder ═══ */
+function buildChipGroup(containerId, options, selectedValues) {
+  var container = document.getElementById(containerId);
+  if (!container) return;
   var html = '';
+  options.forEach(function(opt) {
+    var isSel = selectedValues.indexOf(opt) !== -1;
+    var svg = isSel ? CHECK_SVG : PLUS_SVG;
+    html += '<div class="chip' + (isSel ? ' selected' : '') + '" data-value="' + escapeAttr(opt) + '" onclick="toggleChip(this)">' + svg + escapeHtml(opt) + '</div>';
+  });
+  container.innerHTML = html;
+}
 
-  if (type === 'select') {
-    var opts = (row.dataset.options || '').split('|');
-    html += '<select class="edit-input">';
-    opts.forEach(function(opt) {
-      var sel = opt === current ? ' selected' : '';
-      html += '<option value="' + escapeAttr(opt) + '"' + sel + '>' + escapeHtml(opt) + '</option>';
+function toggleChip(el) {
+  var group = el.closest('.chip-group');
+  var mode = group.getAttribute('data-select');
+  if (mode === 'multi') {
+    el.classList.toggle('selected');
+    var svg = el.querySelector('svg');
+    if (el.classList.contains('selected')) {
+      svg.outerHTML = CHECK_SVG;
+    } else {
+      svg.outerHTML = PLUS_SVG;
+    }
+  } else {
+    var wasSelected = el.classList.contains('selected');
+    group.querySelectorAll('.chip').forEach(function(chip) {
+      chip.classList.remove('selected');
+      chip.querySelector('svg').outerHTML = PLUS_SVG;
     });
-    html += '</select>';
-  } else if (type === 'textarea') {
-    html += '<textarea class="edit-input">' + escapeHtml(current) + '</textarea>';
-  } else {
-    html += '<input type="text" class="edit-input" value="' + escapeAttr(current) + '">';
+    if (!wasSelected) {
+      el.classList.add('selected');
+      el.querySelector('svg').outerHTML = CHECK_SVG;
+    }
   }
-
-  if (hint) html += '<div class="edit-hint">' + escapeHtml(hint) + '</div>';
-
-  html += '<div class="edit-actions">';
-  html += '  <button class="edit-btn-save" onclick="commitEdit(this)">Done</button>';
-  html += '  <button class="edit-btn-cancel" onclick="cancelEditBtn(this)">Cancel</button>';
-  html += '</div>';
-  return html;
 }
 
-function commitEdit(btn) {
-  var row = btn.closest('.review-row');
-  var field = row.dataset.field;
-  var input = row.querySelector('.edit-input');
-  var newVal = input.value;
-  state.data[field] = newVal;
-  row.classList.remove('editing');
-  if (field === 'desc') {
-    renderDesc();
+function getSelectedChipValues(containerId) {
+  var out = [];
+  document.querySelectorAll('#' + containerId + ' .chip.selected').forEach(function(chip) {
+    out.push(chip.getAttribute('data-value'));
+  });
+  return out;
+}
+
+/* ═══ Pay widget ═══ */
+function togglePaySelect(id) {
+  var select = document.getElementById(id);
+  var isOpen = select.classList.contains('open');
+  document.querySelectorAll('.pay-custom-select').forEach(function(s) { s.classList.remove('open'); });
+  if (!isOpen) select.classList.add('open');
+}
+
+function selectPayOption(el, selectId, labelId) {
+  var select = document.getElementById(selectId);
+  select.querySelectorAll('.pay-custom-option').forEach(function(opt) {
+    opt.classList.remove('selected');
+    opt.querySelector('.pco-check').classList.add('hidden');
+  });
+  el.classList.add('selected');
+  el.querySelector('.pco-check').classList.remove('hidden');
+  document.getElementById(labelId).textContent = el.textContent.trim();
+  select.classList.remove('open');
+}
+
+function selectPayByOption(el) {
+  var value = el.getAttribute('data-value');
+  var rangeRow = document.getElementById('payRowRange');
+  var singleRow = document.getElementById('payRowSingle');
+  var singleLabel = document.getElementById('paySingleLabel');
+  var labelMap = { range: 'Range', starting: 'Starting amount', maximum: 'Maximum amount', exact: 'Exact amount' };
+
+  ['payBySelect','payBySelect2'].forEach(function(selId) {
+    var sel = document.getElementById(selId);
+    if (!sel) return;
+    sel.querySelectorAll('.pay-custom-option').forEach(function(opt) {
+      var check = opt.querySelector('.pco-check');
+      if (opt.getAttribute('data-value') === value) {
+        opt.classList.add('selected');
+        if (check) check.classList.remove('hidden');
+      } else {
+        opt.classList.remove('selected');
+        if (check) check.classList.add('hidden');
+      }
+    });
+    sel.classList.remove('open');
+  });
+  document.getElementById('payByLabel').textContent = labelMap[value];
+  document.getElementById('payByLabel2').textContent = labelMap[value];
+
+  if (value === 'range') {
+    rangeRow.classList.remove('hidden');
+    singleRow.classList.add('hidden');
   } else {
-    renderField(field);
+    rangeRow.classList.add('hidden');
+    singleRow.classList.remove('hidden');
+    if (value === 'starting') singleLabel.textContent = 'Starting amount';
+    else if (value === 'maximum') singleLabel.textContent = 'Maximum amount';
+    else if (value === 'exact') singleLabel.textContent = 'Exact amount';
+    else singleLabel.textContent = 'Amount';
   }
+}
+
+// Close pay selects on outside click (only when clicking inside the modal body)
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.pay-custom-select')) {
+    document.querySelectorAll('.pay-custom-select').forEach(function(s) { s.classList.remove('open'); });
+  }
+});
+
+/* ═══ Pay parse / format helpers ═══ */
+function parsePay(str) {
+  // Returns { mode, min, max, single, rate }
+  // str examples:
+  //   "$55,000 – $72,000 / year"
+  //   "$22.63 / hour"
+  //   "Starting at $40,000 / year"
+  //   "Up to $80,000 / year"
+  var result = { mode: 'range', min: '', max: '', single: '', rate: 'per year' };
+  if (!str) return result;
+  var s = String(str);
+  // Rate
+  var rateMatch = s.match(/\/\s*(hour|day|week|month|year)/i);
+  if (rateMatch) result.rate = 'per ' + rateMatch[1].toLowerCase();
+
+  // Strip rate suffix for amount parsing
+  var amtPart = s.replace(/\/\s*(hour|day|week|month|year).*$/i, '').trim();
+  amtPart = amtPart.replace(/^Starting at\s+/i, function() { result.mode = 'starting'; return ''; });
+  amtPart = amtPart.replace(/^Up to\s+/i, function() { result.mode = 'maximum'; return ''; });
+
+  // Range: "$X – $Y" (en-dash or hyphen)
+  var rangeMatch = amtPart.match(/\$([0-9,.]+)\s*[\u2013\-]\s*\$([0-9,.]+)/);
+  if (rangeMatch) {
+    result.mode = 'range';
+    result.min = rangeMatch[1];
+    result.max = rangeMatch[2];
+    return result;
+  }
+  // Single: "$X"
+  var singleMatch = amtPart.match(/\$([0-9,.]+)/);
+  if (singleMatch) {
+    if (result.mode === 'range') result.mode = 'exact';
+    result.single = singleMatch[1];
+  }
+  return result;
+}
+
+function formatPay(mode, min, max, single, rate) {
+  var rateSuffix = rate ? ' / ' + rate.replace(/^per\s+/, '') : '';
+  if (mode === 'range') {
+    return '$' + (min || '0') + ' \u2013 $' + (max || '0') + rateSuffix;
+  }
+  if (mode === 'starting') return 'Starting at $' + (single || '0') + rateSuffix;
+  if (mode === 'maximum') return 'Up to $' + (single || '0') + rateSuffix;
+  return '$' + (single || '0') + rateSuffix; // exact
+}
+
+function populatePayModal() {
+  var parsed = parsePay(state.data.pay);
+  document.getElementById('payMin').value = parsed.min;
+  document.getElementById('payMax').value = parsed.max;
+  document.getElementById('paySingle').value = parsed.single || parsed.min || '';
+  // Trigger the pay-by option to set mode + row visibility
+  var sel = document.querySelector('#payBySelect .pay-custom-option[data-value="' + parsed.mode + '"]');
+  if (sel) selectPayByOption(sel);
+  // Rate
+  var rateOpt = document.querySelector('#rateSelect .pay-custom-option[data-value="' + parsed.rate + '"]');
+  if (rateOpt) selectPayOption(rateOpt, 'rateSelect', 'rateLabel');
+}
+
+function readPayFromModal() {
+  var mode = (document.querySelector('#payBySelect .pay-custom-option.selected') || {}).getAttribute
+    ? document.querySelector('#payBySelect .pay-custom-option.selected').getAttribute('data-value')
+    : 'range';
+  var rate = document.getElementById('rateLabel').textContent.trim();
+  var min = document.getElementById('payMin').value.trim();
+  var max = document.getElementById('payMax').value.trim();
+  var single = document.getElementById('paySingle').value.trim();
+  return formatPay(mode, min, max, single, rate);
+}
+
+/* ═══ Benefits/shift/schedule parse helpers ═══ */
+function csvToArray(str) {
+  if (!str) return [];
+  return String(str).split(',').map(function(s) { return s.trim(); }).filter(Boolean);
+}
+function arrayToCsv(arr) {
+  return (arr || []).join(', ');
+}
+
+/* ═══ Modal open/close/save ═══ */
+function openModal(field) {
+  // Populate modal content based on field and current state
+  if (field === 'jobType') {
+    var current = state.data.jobType ? [state.data.jobType] : [];
+    buildChipGroup('jobTypeChips', JOB_TYPE_OPTIONS, current);
+  } else if (field === 'benefits') {
+    var currentBenefits = csvToArray(state.data.benefits);
+    buildChipGroup('benefitsChips', BENEFIT_OPTIONS, currentBenefits);
+  } else if (field === 'shift') {
+    var currentShift = state.data.shift ? [state.data.shift] : [];
+    buildChipGroup('shiftChips', SHIFT_OPTIONS, currentShift);
+  } else if (field === 'schedule') {
+    var currentSched = state.data.schedule ? [state.data.schedule] : [];
+    buildChipGroup('scheduleChips', SCHEDULE_OPTIONS, currentSched);
+  } else if (field === 'pay') {
+    populatePayModal();
+  } else if (field === 'desc') {
+    document.getElementById('descTextarea').value = state.data.desc || '';
+  }
+  var modal = document.getElementById('modal-' + field);
+  if (modal) modal.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal(field) {
+  var modal = document.getElementById('modal-' + field);
+  if (modal) modal.classList.remove('open');
+  // Restore body scroll only if no other modals are open
+  if (!document.querySelector('.modal-backdrop.open')) {
+    document.body.style.overflow = '';
+  }
+}
+
+function onBackdropClick(evt, field) {
+  if (evt.target.classList.contains('modal-backdrop')) {
+    closeModal(field);
+  }
+}
+
+function saveModal(field) {
+  if (field === 'jobType') {
+    var vals = getSelectedChipValues('jobTypeChips');
+    state.data.jobType = vals[0] || '';
+  } else if (field === 'benefits') {
+    var bvals = getSelectedChipValues('benefitsChips');
+    state.data.benefits = arrayToCsv(bvals);
+  } else if (field === 'shift') {
+    var svals = getSelectedChipValues('shiftChips');
+    state.data.shift = svals[0] || '';
+  } else if (field === 'schedule') {
+    var schVals = getSelectedChipValues('scheduleChips');
+    state.data.schedule = schVals[0] || '';
+  } else if (field === 'pay') {
+    state.data.pay = readPayFromModal();
+  } else if (field === 'desc') {
+    state.data.desc = document.getElementById('descTextarea').value;
+  }
+
+  if (field === 'desc') renderDesc();
+  else renderField(field);
+
   markDirty();
-}
-
-function cancelEditBtn(btn) {
-  var row = btn.closest('.review-row');
-  cancelEdit(row);
-}
-
-function cancelEdit(row) {
-  row.classList.remove('editing');
-  var editor = row.querySelector('.val-editor');
-  if (editor) editor.innerHTML = '';
+  closeModal(field);
 }
 
 function markDirty() {
@@ -421,20 +819,11 @@ function markDirty() {
 }
 
 function saveAll() {
-  // Close any open editor first (so in-flight typing is committed)
-  var openRow = document.querySelector('.review-row.editing');
-  if (openRow) {
-    var btn = openRow.querySelector('.edit-btn-save');
-    if (btn) commitEdit(btn);
-  }
-  // Persist: in a real app this would hit an API. Here we just update the seed.
   JOBS[state.jobId] = Object.assign({}, state.data);
   state.original = Object.assign({}, state.data);
   state.dirty = false;
   document.body.classList.remove('dirty');
-  // Close the tab so the user returns to edit-post where they came from.
   try { window.close(); } catch (e) {}
-  // Fallback if window.close is blocked (e.g., tab wasn't opened via window.open)
   setTimeout(function() {
     if (!window.closed) {
       var eventKey = state.data ? state.data.event : 'dallas';
@@ -465,6 +854,17 @@ function devSwitchJob(jobId) {
   if (state.dirty && !confirm('Unsaved changes will be lost. Continue?')) return;
   loadJob(jobId);
 }
+
+/* ---------- ESC key closes any open modal ---------- */
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    var open = document.querySelector('.modal-backdrop.open');
+    if (open) {
+      var field = open.id.replace('modal-', '');
+      closeModal(field);
+    }
+  }
+});
 
 /* ---------- Warn on unload ---------- */
 window.addEventListener('beforeunload', function(e) {
