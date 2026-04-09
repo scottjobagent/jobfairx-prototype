@@ -1511,7 +1511,15 @@ function recomputeEditPackageUsage() {
       sub.textContent = "Published jobs can be edited but not removed. Upgrade your package to add more.";
     }
   } else {
-    addRow.style.display = 'flex';
+    // When setup-jobs-incomplete, the empty-state card owns the CTA and the
+    // CSS rule `body.setup-jobs-incomplete .add-job-row { display: none; }`
+    // hides this row. Clear the inline style so the class rule wins; setting
+    // it to 'flex' here would override the hide rule via specificity.
+    if (jobsIncomplete) {
+      addRow.style.display = '';
+    } else {
+      addRow.style.display = 'flex';
+    }
     cap.style.display = 'none';
   }
 }
