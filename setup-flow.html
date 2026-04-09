@@ -227,7 +227,17 @@ body.collapsed .progress-bar-track { left: 60px; }
 .jd-header-title { font-size: 36px; font-weight: 700; color: #2d2d2d; }
 .jd-header-img { width: 140px; height: auto; }
 .jd-jobs-card { background: #fff; border-radius: 12px; padding: 32px 40px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
-.jd-subtitle { font-size: 18px; font-weight: 700; color: #2d2d2d; margin-bottom: 24px; }
+.jd-subtitle { font-size: 18px; font-weight: 700; color: #2d2d2d; margin-bottom: 4px; }
+.jd-package-meta { font-size: 13px; color: #595959; margin-bottom: 24px; line-height: 1.5; }
+.jd-package-meta .pkg-sep { color: #9ca3af; margin: 0 4px; }
+.jd-capacity-msg { display: none; padding: 18px 20px; background: #fafafa; border: 1px solid #ebebeb; border-radius: 8px; }
+.jd-cap-title { font-size: 14px; font-weight: 600; color: #2d2d2d; margin-bottom: 4px; }
+.jd-cap-sub { font-size: 13px; color: #595959; }
+.pkg-dev { position: fixed; bottom: 20px; right: 20px; background: #1f2937; color: #fff; border-radius: 999px; padding: 6px; display: flex; align-items: center; gap: 4px; box-shadow: 0 6px 20px rgba(0,0,0,0.25); z-index: 9999; font-size: 12px; }
+.pkg-dev-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #9ca3af; padding: 0 10px 0 12px; }
+.pkg-dev-btn { background: transparent; border: none; color: #d1d5db; font-family: inherit; font-size: 12px; font-weight: 600; padding: 7px 14px; border-radius: 999px; cursor: pointer; transition: all 0.15s; }
+.pkg-dev-btn:hover { color: #fff; }
+.pkg-dev-btn.active { background: #0044B3; color: #fff; }
 .jd-job-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; }
 .jd-job-info { flex: 1; }
 .jd-job-title { font-size: 24px; font-weight: 700; color: #2d2d2d; margin-bottom: 8px; }
@@ -1129,6 +1139,7 @@ body.collapsed .progress-bar-track { left: 60px; }
     <!-- Jobs card -->
     <div class="jd-jobs-card">
       <div class="jd-subtitle">Here's a look at your selected job(s):</div>
+      <div class="jd-package-meta" id="jdPackageMeta">Growth package<span class="pkg-sep">&middot;</span>2 of 3 jobs added</div>
 
       <!-- Job 1: Frontend Developer (hardcoded) -->
       <div class="jd-job-entry" id="step5Job1">
@@ -1170,7 +1181,7 @@ body.collapsed .progress-bar-track { left: 60px; }
 
       <hr class="jd-actions-divider">
 
-      <div class="jd-action-btns">
+      <div class="jd-action-btns" id="jdActionBtns">
         <button class="jd-action-btn" onclick="goToStep(1)">
           <svg viewBox="0 0 24 24" fill="none" stroke="#0044B3" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
           Create new job
@@ -1179,6 +1190,18 @@ body.collapsed .progress-bar-track { left: 60px; }
           <svg viewBox="0 0 24 24" fill="none" stroke="#0044B3" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
           Add an existing job
         </button>
+      </div>
+      <div class="jd-capacity-msg" id="jdCapacityMsg">
+        <div class="jd-cap-title" id="jdCapTitle"></div>
+        <div class="jd-cap-sub" id="jdCapSub"></div>
+      </div>
+
+      <!-- Dev toggle: preview Starter / Growth / Pro states -->
+      <div class="pkg-dev">
+        <span class="pkg-dev-label">Dev</span>
+        <button class="pkg-dev-btn" id="pkgDevStarter" onclick="setPackagePreview('starter')">Starter</button>
+        <button class="pkg-dev-btn active" id="pkgDevGrowth" onclick="setPackagePreview('growth')">Growth</button>
+        <button class="pkg-dev-btn" id="pkgDevPro" onclick="setPackagePreview('pro')">Pro</button>
       </div>
     </div>
 
@@ -2691,9 +2714,77 @@ function confirmRemoveJob(jobId, jobName) {
     document.getElementById(pendingRemoveJobId).style.display = 'none';
     closeSetupModal('removeJobModal');
     pendingRemoveJobId = null;
+    recomputePackageUsage();
   };
   openSetupModal('removeJobModal');
 }
+
+/* ═══ Step 5: Package usage ═══ */
+var PACKAGE_LIMITS = { starter: 1, growth: 3, pro: 6 };
+var PACKAGE_NAMES = { starter: 'Starter', growth: 'Growth', pro: 'Pro' };
+var currentPackage = 'growth';
+
+function setPackagePreview(pkg) {
+  if (!PACKAGE_LIMITS[pkg]) return;
+  currentPackage = pkg;
+  // Toggle dev button active state
+  ['Starter','Growth','Pro'].forEach(function(name) {
+    var btn = document.getElementById('pkgDev' + name);
+    if (btn) btn.classList.toggle('active', name.toLowerCase() === pkg);
+  });
+  // For Starter demo, hide the first job so the state is at 1/1
+  var job1 = document.getElementById('step5Job1');
+  if (job1) {
+    job1.style.display = (pkg === 'starter') ? 'none' : '';
+  }
+  // Also ensure job2 is visible (in case it was removed)
+  var job2 = document.getElementById('step5Job2');
+  if (job2) job2.style.display = '';
+  recomputePackageUsage();
+}
+
+function recomputePackageUsage() {
+  var entries = document.querySelectorAll('.jd-job-entry');
+  var visible = 0;
+  entries.forEach(function(el) {
+    if (el.style.display !== 'none') visible++;
+  });
+  var limit = PACKAGE_LIMITS[currentPackage];
+  var name = PACKAGE_NAMES[currentPackage];
+
+  // Update the meta line
+  var meta = document.getElementById('jdPackageMeta');
+  if (meta) {
+    meta.innerHTML = name + ' package<span class="pkg-sep">&middot;</span>' + visible + ' of ' + limit + ' jobs added';
+  }
+
+  // Toggle buttons vs capacity message
+  var btns = document.getElementById('jdActionBtns');
+  var cap = document.getElementById('jdCapacityMsg');
+  if (!btns || !cap) return;
+
+  if (visible >= limit) {
+    btns.style.display = 'none';
+    cap.style.display = 'block';
+    var title = document.getElementById('jdCapTitle');
+    var sub = document.getElementById('jdCapSub');
+    if (currentPackage === 'starter') {
+      title.textContent = "You've added your job";
+      sub.textContent = "Ready to continue, or remove the job above to add a different one.";
+    } else {
+      title.textContent = "You've added all " + limit + " jobs in your " + name + " package";
+      sub.textContent = "To add a different job, remove one above.";
+    }
+  } else {
+    btns.style.display = 'flex';
+    cap.style.display = 'none';
+  }
+}
+
+// Initialize on load
+document.addEventListener('DOMContentLoaded', function() {
+  recomputePackageUsage();
+});
 
 /* ═══ Step 4: Review Interview Details ═══ */
 function populateStep7Review() {
