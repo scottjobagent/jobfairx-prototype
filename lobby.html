@@ -772,6 +772,14 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
 .schedule-textarea { width: 100%; min-height: 120px; padding: 14px 16px; font-size: 14px; border: 1px solid #d4d2d0; border-radius: 8px; font-family: inherit; color: #2d2d2d; resize: vertical; outline: none; box-sizing: border-box; }
 .schedule-textarea:focus { border-color: #0044B3; box-shadow: 0 0 0 2px rgba(0,68,179,0.15); }
 .schedule-textarea::placeholder { color: #b0b0b0; }
+
+.schedule-field.has-error .schedule-input,
+.schedule-field.has-error .schedule-select { border-color: #991b1b; box-shadow: 0 0 0 2px rgba(153,27,27,0.12); }
+.schedule-field-error { display: none; margin-top: 6px; font-size: 13px; color: #991b1b; font-weight: 400; }
+.schedule-field.has-error .schedule-field-error { display: block; }
+.sched-modal-btn-blue svg { width: 14px; height: 14px; margin-left: 6px; vertical-align: middle; }
+.sched-toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); background: #2d2d2d; color: #fff; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; z-index: 10001; display: none; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+.sched-toast.show { display: block; }
 </style>
 </head>
 <body>
@@ -2793,7 +2801,7 @@ document.addEventListener('click', function(e) {
     </div>
     <div class="sched-modal-footer">
       <button class="sched-modal-btn" onclick="closeScheduleModal()">Cancel</button>
-      <button class="sched-modal-btn sched-modal-btn-blue" id="scheduleProposeBtn" onclick="submitScheduleModal()">Propose New Time</button>
+      <button class="sched-modal-btn sched-modal-btn-blue" id="scheduleProposeBtn" onclick="submitScheduleModal()">Send&nbsp;<svg viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></button>
     </div>
   </div>
 </div>
@@ -2808,11 +2816,29 @@ function scheduleSlotMarkup(tzLabel) {
   SCHEDULE_TIME_OPTIONS.forEach(function(t) { opts += '<option>' + t + '</option>'; });
   return '<div class="schedule-slot">'
     + '<div class="schedule-slot-fields">'
-    +   '<div class="schedule-field"><label>Interview Date <span class="req">*</span></label><input type="date" class="schedule-input"></div>'
-    +   '<div class="schedule-field"><label>Start Time (' + tzLabel + ') <span class="req">*</span></label><select class="schedule-select">' + opts + '</select></div>'
+    +   '<div class="schedule-field" data-field="date"><label>Interview Date <span class="req">*</span></label><input type="date" class="schedule-input" onchange="clearScheduleFieldError(this)"><div class="schedule-field-error">Interview date is required</div></div>'
+    +   '<div class="schedule-field" data-field="time"><label>Start Time (' + tzLabel + ') <span class="req">*</span></label><select class="schedule-select" onchange="clearScheduleFieldError(this)">' + opts + '</select><div class="schedule-field-error">Start time is required</div></div>'
     + '</div>'
     + '<button type="button" class="schedule-slot-remove" onclick="removeScheduleSlot(this)" aria-label="Remove time slot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button>'
     + '</div>';
+}
+
+function clearScheduleFieldError(input) {
+  var field = input.closest('.schedule-field');
+  if (field) field.classList.remove('has-error');
+}
+
+function showSchedToast(msg) {
+  var toast = document.getElementById('schedToast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.className = 'sched-toast';
+    toast.id = 'schedToast';
+    document.body.appendChild(toast);
+  }
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(function() { toast.classList.remove('show'); }, 2800);
 }
 
 function updateScheduleSlotState() {
@@ -2835,7 +2861,42 @@ function removeScheduleSlot(btn) {
 }
 
 function submitScheduleModal() {
+  var slots = document.querySelectorAll('#scheduleSlots .schedule-slot');
+  var completeCount = 0;
+  var hasAnyError = false;
+
+  document.querySelectorAll('#scheduleSlots .schedule-field').forEach(function(f) { f.classList.remove('has-error'); });
+
+  slots.forEach(function(slot) {
+    var dateField = slot.querySelector('.schedule-field[data-field="date"]');
+    var timeField = slot.querySelector('.schedule-field[data-field="time"]');
+    var dateVal = dateField.querySelector('.schedule-input').value;
+    var timeVal = timeField.querySelector('.schedule-select').value;
+
+    if (dateVal && timeVal) {
+      completeCount++;
+    } else if (dateVal || timeVal) {
+      if (!dateVal) dateField.classList.add('has-error');
+      if (!timeVal) timeField.classList.add('has-error');
+      hasAnyError = true;
+    }
+  });
+
+  if (completeCount === 0 && !hasAnyError) {
+    var first = slots[0];
+    if (first) {
+      first.querySelector('.schedule-field[data-field="date"]').classList.add('has-error');
+      first.querySelector('.schedule-field[data-field="time"]').classList.add('has-error');
+    }
+    return;
+  }
+
+  if (hasAnyError || completeCount === 0) return;
+
+  var name = (document.getElementById('scheduleTitle').textContent || '').replace(/^Schedule with\s*/, '') || 'candidate';
+  var msg = (completeCount === 1 ? 'Interview time sent to ' : 'Interview times sent to ') + name;
   closeScheduleModal();
+  showSchedToast(msg);
 }
 
 function closeScheduleModal() {
