@@ -3,128 +3,483 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dallas Healthcare Hiring Event - JobFairX</title>
+<title>Virtual Interviews - JobFairX</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; background: #f3f2ef; color: #2d2d2d; min-height: 100vh; font-size: 14px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+a { color: inherit; text-decoration: none; }
 
-/* Top bar */
-.topbar { position: sticky; top: 0; height: 56px; background: #fff; border-bottom: 1px solid #d4d2d0; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; z-index: 200; }
-.topbar-logo { font-size: 22px; font-weight: 800; color: #0044B3; letter-spacing: -0.5px; }
+/* Public header — JobFairX homepage chrome */
+.util-bar { background: #0a1628; color: #fff; text-align: center; padding: 10px 16px; font-size: 13px; }
+.util-bar a { color: #fff; text-decoration: underline; font-weight: 600; margin-left: 6px; }
+.site-nav { background: #fff; border-bottom: 1px solid #e5e7eb; height: 72px; display: flex; align-items: center; padding: 0 40px; }
+.site-nav-inner { max-width: 1200px; width: 100%; margin: 0 auto; display: flex; align-items: center; gap: 40px; }
+.site-logo { font-size: 26px; font-weight: 800; color: #0044B3; letter-spacing: -0.5px; }
+.site-links { display: flex; gap: 32px; flex: 1; }
+.site-links a { font-size: 15px; font-weight: 600; color: #2d2d2d; }
+.site-links a:hover { color: #0044B3; }
+.site-right { display: flex; align-items: center; gap: 24px; }
+.site-right .sign-in { font-size: 15px; font-weight: 600; color: #2d2d2d; }
+.site-right .sign-in:hover { color: #0044B3; }
+.site-cta { background: #0044B3; color: #fff !important; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 700; }
+.site-cta:hover { background: #003399; }
 
-/* Main layout */
-.container { max-width: 960px; margin: 32px auto; padding: 0 24px; display: grid; grid-template-columns: 1fr 360px; gap: 24px; }
+/* Page body */
+.page { max-width: 1100px; margin: 32px auto 64px; padding: 0 24px; display: grid; grid-template-columns: 1fr 380px; gap: 24px; align-items: start; }
 
-/* Left: Job posting card */
-.posting-card { background: #fff; border-radius: 12px; border: 1px solid #d4d2d0; padding: 32px; }
-.posting-event { font-size: 22px; font-weight: 700; color: #2d2d2d; margin-bottom: 4px; }
-.posting-company { font-size: 14px; color: #767676; margin-bottom: 20px; }
-.posting-divider { height: 1px; background: #ebebeb; margin: 20px 0; }
+/* Left card — event + jobs */
+.left-card { background: #fff; border-radius: 12px; border: 1px solid #d4d2d0; padding: 32px; }
+.event-title { font-size: 24px; font-weight: 800; color: #2d2d2d; margin-bottom: 4px; }
+.event-sub { font-size: 14px; color: #767676; }
+.jobs-divider { height: 1px; background: #ebebeb; margin: 24px 0 8px; }
 
-.posting-job-title { font-size: 16px; font-weight: 700; color: #0044B3; margin-bottom: 4px; }
-.posting-job-meta { font-size: 14px; color: #595959; margin-bottom: 2px; }
-.posting-job-chevron { float: right; width: 20px; height: 20px; color: #0044B3; cursor: pointer; margin-top: 4px; }
+.job-row { border-bottom: 1px solid #ebebeb; padding: 18px 4px; cursor: pointer; position: relative; transition: background 0.15s; }
+.job-row:last-child { border-bottom: none; }
+.job-row:hover { background: #fafafa; }
+.job-row.selected { background: #f5f9ff; }
+.job-row.selected .job-title { color: #003399; }
+.job-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.job-head-main { flex: 1; min-width: 0; }
+.job-title { font-size: 16px; font-weight: 700; color: #0044B3; text-decoration: underline; margin-bottom: 4px; }
+.job-meta { font-size: 14px; color: #595959; }
+.job-chev { width: 24px; height: 24px; color: #595959; flex-shrink: 0; transition: transform 0.2s; }
+.job-row.expanded .job-chev { transform: rotate(180deg); }
+.job-body { display: none; padding-top: 14px; font-size: 14px; color: #595959; line-height: 1.7; }
+.job-row.expanded .job-body { display: block; }
+.job-body p { margin-bottom: 10px; }
+.job-body p:last-child { margin-bottom: 0; }
+.job-body ul { padding-left: 20px; margin-bottom: 10px; }
+.job-body ul li { margin-bottom: 4px; }
 
-.posting-section-title { font-size: 16px; font-weight: 700; color: #2d2d2d; margin-bottom: 8px; }
-.posting-body { font-size: 14px; color: #595959; line-height: 1.7; }
-.posting-disclaimer { margin-top: 24px; font-size: 12px; color: #999; line-height: 1.5; }
+/* Right card — scheduler */
+.right-card { background: #fff; border-radius: 12px; border: 1px solid #d4d2d0; padding: 28px; position: sticky; top: 24px; }
+.sch-empty { text-align: center; padding: 24px 8px; }
+.sch-empty-icon { width: 48px; height: 48px; margin: 0 auto 12px; color: #d4d2d0; }
+.sch-empty-title { font-size: 15px; font-weight: 700; color: #2d2d2d; margin-bottom: 6px; }
+.sch-empty-desc { font-size: 13px; color: #767676; line-height: 1.6; }
 
-/* Right: Interview details sidebar */
-.details-card { background: #fff; border-radius: 12px; border: 1px solid #d4d2d0; padding: 28px; height: fit-content; position: sticky; top: 76px; }
-.details-title { font-size: 18px; font-weight: 700; margin-bottom: 16px; }
-.details-date { font-size: 14px; font-weight: 700; color: #2d2d2d; }
-.details-time { font-size: 14px; color: #767676; margin-bottom: 16px; }
-.details-method { font-size: 14px; font-weight: 700; color: #2d2d2d; margin-top: 4px; }
-.details-method-desc { font-size: 13px; color: #767676; margin-bottom: 16px; }
-.details-slots { font-size: 14px; font-weight: 700; color: #2d2d2d; margin-bottom: 20px; }
+.sch-content { display: none; }
+.sch-content.active { display: block; }
+.sch-title { font-size: 20px; font-weight: 800; color: #2d2d2d; margin-bottom: 12px; }
+.sch-method { display: flex; align-items: center; gap: 8px; font-size: 14px; color: #595959; margin-bottom: 4px; }
+.sch-method svg { width: 18px; height: 18px; color: #2d2d2d; flex-shrink: 0; }
+.sch-method-desc { font-size: 13px; color: #767676; margin-left: 26px; }
+.sch-divider { height: 1px; background: #ebebeb; margin: 20px 0; }
 
-.details-field { margin-bottom: 16px; }
-.details-field label { display: block; font-size: 14px; font-weight: 700; color: #2d2d2d; margin-bottom: 6px; }
-.details-field .required { color: #991b1b; }
-.details-select { width: 100%; padding: 12px 14px; font-size: 14px; font-family: inherit; border: 1px solid #d4d2d0; border-radius: 8px; color: #2d2d2d; appearance: none; background: #fff url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23767676' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 14px center; }
+.sch-select-label { font-size: 18px; font-weight: 800; color: #2d2d2d; margin-bottom: 6px; }
+.sch-tz { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #767676; margin-bottom: 14px; }
+.sch-tz svg { width: 14px; height: 14px; }
+.sch-date { font-size: 14px; font-weight: 700; color: #2d2d2d; margin-bottom: 10px; }
 
-.schedule-btn { display: block; width: 100%; padding: 14px; border-radius: 8px; border: none; background: #0044B3; color: #fff; font-size: 16px; font-weight: 700; cursor: pointer; font-family: inherit; text-align: center; transition: background 0.15s; margin-top: 8px; }
-.schedule-btn:hover { background: #003399; }
+.sch-slots { border: 1px solid #e5e7eb; border-radius: 10px; overflow: hidden; margin-bottom: 16px; }
+.sch-slot { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-bottom: 1px solid #e5e7eb; cursor: pointer; background: #fff; transition: background 0.15s; }
+.sch-slot:last-child { border-bottom: none; }
+.sch-slot:hover { background: #fafafa; }
+.sch-slot.selected { background: #f5f9ff; }
+.sch-slot.full { cursor: not-allowed; opacity: 0.55; }
+.sch-slot.full:hover { background: #fff; }
+.sch-radio { width: 18px; height: 18px; border-radius: 50%; border: 2px solid #d4d2d0; flex-shrink: 0; background: #fff; position: relative; }
+.sch-slot.selected .sch-radio { border-color: #0044B3; }
+.sch-slot.selected .sch-radio::after { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 8px; height: 8px; border-radius: 50%; background: #0044B3; }
+.sch-time { font-size: 14px; font-weight: 700; color: #2d2d2d; }
+.sch-tz-inline { font-size: 13px; color: #595959; font-weight: 500; margin-left: 6px; }
+.sch-remaining { font-size: 13px; color: #767676; margin-left: auto; }
+.sch-remaining.low { color: #b8651c; font-weight: 600; }
+.sch-remaining.none { color: #991b1b; font-weight: 600; }
 
-.back-link { display: inline-flex; align-items: center; gap: 6px; font-size: 16px; color: #0044B3; text-decoration: underline; font-weight: 700; margin-bottom: 24px; cursor: pointer; }
-.back-link:hover { color: #003399; }
-.back-link svg { width: 18px; height: 18px; }
+.sch-btn { display: block; width: 100%; padding: 14px; border-radius: 8px; border: none; background: #0044B3; color: #fff; font-size: 15px; font-weight: 700; cursor: pointer; font-family: inherit; transition: background 0.15s; }
+.sch-btn:hover:not(:disabled) { background: #003399; }
+.sch-btn:disabled { background: #c5cbd4; cursor: not-allowed; }
 
-@media (max-width: 768px) {
-  .container { grid-template-columns: 1fr; }
-  .details-card { position: static; }
+/* Success */
+.sch-success { display: none; text-align: center; padding: 16px 8px; }
+.sch-success.active { display: block; }
+.sch-success-icon { width: 56px; height: 56px; margin: 0 auto 14px; color: #166534; }
+.sch-success-title { font-size: 18px; font-weight: 800; color: #2d2d2d; margin-bottom: 8px; }
+.sch-success-desc { font-size: 14px; color: #595959; line-height: 1.6; }
+
+@media (max-width: 900px) {
+  .page { grid-template-columns: 1fr; }
+  .right-card { position: static; }
+  .site-links { display: none; }
+  .site-nav { padding: 0 20px; }
 }
 </style>
 </head>
 <body>
 
-<header class="topbar">
-  <span class="topbar-logo">JobFairX</span>
-</header>
-
-<a class="back-link" href="visual.html">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-  Back to dashboard
-</a>
-
-<div class="container">
-
-  <!-- Left: Job posting -->
-  <div class="posting-card">
-    <div class="posting-event">Dallas Healthcare Hiring Event</div>
-    <div class="posting-company">JobFairX</div>
-    <div class="posting-divider"></div>
-
-    <div style="position:relative;">
-      <svg class="posting-job-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
-      <div class="posting-job-title">Registered Nurse</div>
-      <div class="posting-job-meta">$55,000 – $72,000 a year, Full-time</div>
-      <div class="posting-job-meta">Dallas, TX (Remote)</div>
+<!-- Public JobFairX header -->
+<div class="util-bar">
+  Are you an employer hiring? <a href="#">Learn more about our hiring events →</a>
+</div>
+<nav class="site-nav">
+  <div class="site-nav-inner">
+    <a href="#" class="site-logo">JobFairX</a>
+    <div class="site-links">
+      <a href="#">Upcoming Job Fairs</a>
+      <a href="#">Search Jobs</a>
+      <a href="#">FAQ's</a>
     </div>
-
-    <div class="posting-divider"></div>
-
-    <div class="posting-section-title">What is a virtual interview?</div>
-    <div class="posting-body">
-      Virtual interviews help employers connect with job seekers when they are not in the same physical location. Since hiring is a human process, employers would like to talk with you online (chat, video or phone) to see if you meet the requirements for the job.
-    </div>
-
-    <div class="posting-disclaimer">
-      This is a virtual interview for a hiring event hosted by JobFairX. JobFairX facilitates the connection between employers and candidates but makes no guarantee regarding the accuracy of the details in this posting.
+    <div class="site-right">
+      <a href="#" class="sign-in">Sign In</a>
+      <a href="#" class="site-cta">Job Seeker Registration</a>
     </div>
   </div>
+</nav>
 
-  <!-- Right: Interview details -->
-  <div class="details-card">
-    <div class="details-title">Interview Details</div>
-    <div class="details-date">Wednesday, April 22, 2026</div>
-    <div class="details-time">11:00 AM - 3:00 PM US/Central</div>
+<div class="page">
 
-    <div class="details-method">Interviewing via video</div>
-    <div class="details-method-desc">You'll receive an email on how to connect</div>
+  <!-- Left: event + jobs list -->
+  <div class="left-card">
+    <div class="event-title" id="eventTitle">Dallas Virtual Interviews</div>
+    <div class="event-sub" id="eventSub">Dallas, TX · Multiple employers</div>
+    <div class="jobs-divider"></div>
+    <div id="jobsList"></div>
+  </div>
 
-    <div class="details-slots">14 slots left</div>
+  <!-- Right: scheduler -->
+  <div class="right-card">
 
-    <div class="details-field">
-      <label>Job title <span class="required">*</span></label>
-      <select class="details-select">
-        <option>Registered Nurse</option>
-      </select>
+    <!-- Empty state -->
+    <div class="sch-empty" id="schEmpty">
+      <svg class="sch-empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <rect x="3" y="4" width="18" height="18" rx="2"/>
+        <path d="M16 2v4M8 2v4M3 10h18"/>
+      </svg>
+      <div class="sch-empty-title">Select a job to see interview times</div>
+      <div class="sch-empty-desc">Pick a job on the left and available interview slots will appear here.</div>
     </div>
 
-    <div class="details-field">
-      <label>Job location <span class="required">*</span></label>
-      <select class="details-select">
-        <option>United States</option>
-        <option>Dallas, TX</option>
-      </select>
+    <!-- Populated scheduler -->
+    <div class="sch-content" id="schContent">
+      <div class="sch-title">Request your interview</div>
+      <div class="sch-method">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="2" y="6" width="14" height="12" rx="2"/>
+          <path d="M22 8l-6 4 6 4V8z"/>
+        </svg>
+        <span>This will be a virtual interview on JobFairX</span>
+      </div>
+      <div class="sch-method-desc">You'll receive an email confirmation once the recruiter accepts your request.</div>
+
+      <div class="sch-divider"></div>
+
+      <div class="sch-select-label">Select a time</div>
+      <div class="sch-tz" id="schTz">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        <span id="schTzLabel">Central Time (CDT)</span>
+      </div>
+      <div class="sch-date" id="schDate">Friday, April 17, 2026</div>
+
+      <div class="sch-slots" id="schSlots"></div>
+
+      <button class="sch-btn" id="schBtn" disabled>Request interview</button>
     </div>
 
-    <button class="schedule-btn">Schedule an interview</button>
+    <!-- Success -->
+    <div class="sch-success" id="schSuccess">
+      <svg class="sch-success-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+        <path d="M22 4L12 14.01l-3-3"/>
+      </svg>
+      <div class="sch-success-title">Interview requested</div>
+      <div class="sch-success-desc" id="schSuccessDesc">The recruiter will review your request and email you a confirmation shortly.</div>
+    </div>
+
   </div>
 
 </div>
+
+<script>
+/* ---------- Event data ---------- */
+var EVENTS = {
+  dallas: {
+    title: 'Dallas Virtual Interviews',
+    sub: 'Dallas, TX · Healthcare employers',
+    date: 'Friday, April 17, 2026',
+    tz: 'Central Time (CDT)',
+    jobs: [
+      {
+        id: 'rn',
+        title: 'Registered Nurse',
+        company: 'Baylor Scott & White Health',
+        pay: '$65,000 – $88,000 a year, Full-time',
+        location: 'Dallas, TX',
+        desc: [
+          'Provide high-quality patient care in a fast-paced clinical environment. Collaborate with physicians, care teams, and families to develop and execute care plans.',
+          'Requirements: Active RN license in Texas, BLS certification, and 1+ year of clinical experience. BSN preferred.',
+          'Benefits include competitive pay, medical/dental/vision, 401(k) match, tuition reimbursement, and generous PTO.'
+        ],
+        slots: [
+          { time: '11:00 AM', remaining: 1 },
+          { time: '11:30 AM', remaining: 2 },
+          { time: '12:00 PM', remaining: 1 },
+          { time: '12:30 PM', remaining: 0 },
+          { time: '1:00 PM',  remaining: 1 },
+          { time: '1:30 PM',  remaining: 1 },
+          { time: '2:00 PM',  remaining: 2 },
+          { time: '2:30 PM',  remaining: 1 }
+        ]
+      },
+      {
+        id: 'ma',
+        title: 'Medical Assistant',
+        company: 'Texas Health Resources',
+        pay: '$22 – $28 an hour, Full-time',
+        location: 'Plano, TX',
+        desc: [
+          'Support physicians and nurses in a busy outpatient clinic. Take vitals, prepare exam rooms, assist with minor procedures, and maintain accurate patient records.',
+          'Requirements: Medical Assistant certification, strong communication skills, and the ability to multitask in a fast-paced environment.'
+        ],
+        slots: [
+          { time: '11:00 AM', remaining: 1 },
+          { time: '11:30 AM', remaining: 1 },
+          { time: '12:00 PM', remaining: 1 },
+          { time: '12:30 PM', remaining: 1 },
+          { time: '1:00 PM',  remaining: 0 },
+          { time: '1:30 PM',  remaining: 1 },
+          { time: '2:00 PM',  remaining: 1 },
+          { time: '2:30 PM',  remaining: 1 }
+        ]
+      },
+      {
+        id: 'pt',
+        title: 'Physical Therapist',
+        company: 'Methodist Health System',
+        pay: '$78,000 – $95,000 a year, Full-time',
+        location: 'Dallas, TX',
+        desc: [
+          'Evaluate and treat patients recovering from injury or surgery. Develop individualized rehabilitation plans and collaborate with the clinical team on patient progress.',
+          'Requirements: Doctorate in Physical Therapy (DPT), Texas PT license, and 2+ years of clinical experience preferred.'
+        ],
+        slots: [
+          { time: '11:00 AM', remaining: 2 },
+          { time: '11:30 AM', remaining: 1 },
+          { time: '12:00 PM', remaining: 1 },
+          { time: '12:30 PM', remaining: 1 },
+          { time: '1:00 PM',  remaining: 1 },
+          { time: '1:30 PM',  remaining: 1 },
+          { time: '2:00 PM',  remaining: 0 },
+          { time: '2:30 PM',  remaining: 1 }
+        ]
+      }
+    ]
+  },
+  chicago: {
+    title: 'Chicago Virtual Interviews',
+    sub: 'Chicago, IL · Technology employers',
+    date: 'Thursday, April 23, 2026',
+    tz: 'Central Time (CDT)',
+    jobs: [
+      {
+        id: 'fe',
+        title: 'Frontend Engineer',
+        company: 'Relativity',
+        pay: '$120,000 – $155,000 a year, Full-time',
+        location: 'Chicago, IL (Hybrid)',
+        desc: [
+          'Build and ship delightful user-facing features in React and TypeScript. Partner with designers and product managers to define the next generation of our platform.',
+          'Requirements: 3+ years of production React experience, strong CSS fundamentals, and a track record of shipping polished UI at scale.'
+        ],
+        slots: [
+          { time: '11:00 AM', remaining: 1 },
+          { time: '11:30 AM', remaining: 1 },
+          { time: '12:00 PM', remaining: 2 },
+          { time: '12:30 PM', remaining: 1 },
+          { time: '1:00 PM',  remaining: 1 },
+          { time: '1:30 PM',  remaining: 1 },
+          { time: '2:00 PM',  remaining: 1 },
+          { time: '2:30 PM',  remaining: 1 }
+        ]
+      },
+      {
+        id: 'devops',
+        title: 'DevOps Engineer',
+        company: 'Tempus AI',
+        pay: '$140,000 – $175,000 a year, Full-time',
+        location: 'Chicago, IL (Remote OK)',
+        desc: [
+          'Own our cloud infrastructure across AWS. Build resilient CI/CD pipelines, improve observability, and champion developer velocity.',
+          'Requirements: Strong Terraform + Kubernetes experience, incident response chops, and a pragmatic approach to reliability.'
+        ],
+        slots: [
+          { time: '11:00 AM', remaining: 1 },
+          { time: '11:30 AM', remaining: 0 },
+          { time: '12:00 PM', remaining: 1 },
+          { time: '12:30 PM', remaining: 1 },
+          { time: '1:00 PM',  remaining: 1 },
+          { time: '1:30 PM',  remaining: 1 },
+          { time: '2:00 PM',  remaining: 1 },
+          { time: '2:30 PM',  remaining: 0 }
+        ]
+      },
+      {
+        id: 'ds',
+        title: 'Data Scientist',
+        company: 'Morningstar',
+        pay: '$130,000 – $165,000 a year, Full-time',
+        location: 'Chicago, IL (Hybrid)',
+        desc: [
+          'Design and ship ML models that drive investment insights for millions of users. Partner closely with engineering and product on end-to-end delivery.',
+          'Requirements: MS or PhD in a quantitative field, strong Python/SQL, and experience productionizing ML.'
+        ],
+        slots: [
+          { time: '11:00 AM', remaining: 1 },
+          { time: '11:30 AM', remaining: 1 },
+          { time: '12:00 PM', remaining: 1 },
+          { time: '12:30 PM', remaining: 1 },
+          { time: '1:00 PM',  remaining: 0 },
+          { time: '1:30 PM',  remaining: 1 },
+          { time: '2:00 PM',  remaining: 1 },
+          { time: '2:30 PM',  remaining: 1 }
+        ]
+      }
+    ]
+  },
+  atlanta: {
+    title: 'Atlanta Virtual Interviews',
+    sub: 'Atlanta, GA · Diversity hiring event',
+    date: 'Tuesday, April 28, 2026',
+    tz: 'Eastern Time (EDT)',
+    jobs: [
+      {
+        id: 'mkt',
+        title: 'Marketing Coordinator',
+        company: 'Cox Enterprises',
+        pay: '$58,000 – $72,000 a year, Full-time',
+        location: 'Atlanta, GA',
+        desc: [
+          'Support the marketing team across campaign execution, content calendars, and performance reporting. A great entry point into a high-growth team.',
+          'Requirements: 1-2 years of marketing experience, strong writing skills, and comfort with analytics tools.'
+        ],
+        slots: [
+          { time: '11:00 AM', remaining: 1 },
+          { time: '11:30 AM', remaining: 1 },
+          { time: '12:00 PM', remaining: 0 },
+          { time: '12:30 PM', remaining: 1 },
+          { time: '1:00 PM',  remaining: 1 },
+          { time: '1:30 PM',  remaining: 1 },
+          { time: '2:00 PM',  remaining: 1 },
+          { time: '2:30 PM',  remaining: 0 }
+        ]
+      }
+    ]
+  }
+};
+
+/* ---------- State ---------- */
+var selectedJobId = null;
+var selectedSlotIdx = null;
+var currentEvent = null;
+
+/* ---------- Setup ---------- */
+function getEventKey() {
+  var params = new URLSearchParams(window.location.search);
+  var key = (params.get('event') || 'dallas').toLowerCase();
+  return EVENTS[key] ? key : 'dallas';
+}
+
+function init() {
+  var key = getEventKey();
+  currentEvent = EVENTS[key];
+  document.title = currentEvent.title + ' - JobFairX';
+  document.getElementById('eventTitle').textContent = currentEvent.title;
+  document.getElementById('eventSub').textContent = currentEvent.sub;
+  document.getElementById('schDate').textContent = currentEvent.date;
+  document.getElementById('schTzLabel').textContent = currentEvent.tz;
+  renderJobs();
+}
+
+function renderJobs() {
+  var list = document.getElementById('jobsList');
+  list.innerHTML = '';
+  currentEvent.jobs.forEach(function(job) {
+    var row = document.createElement('div');
+    row.className = 'job-row';
+    row.dataset.jobId = job.id;
+    row.innerHTML =
+      '<div class="job-head">' +
+        '<div class="job-head-main">' +
+          '<div class="job-title">' + job.title + '</div>' +
+          '<div class="job-meta">' + job.company + '</div>' +
+          '<div class="job-meta">' + job.pay + '</div>' +
+          '<div class="job-meta">' + job.location + '</div>' +
+        '</div>' +
+        '<svg class="job-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>' +
+      '</div>' +
+      '<div class="job-body">' +
+        job.desc.map(function(p) { return '<p>' + p + '</p>'; }).join('') +
+      '</div>';
+    row.addEventListener('click', function() { selectJob(job.id); });
+    list.appendChild(row);
+  });
+}
+
+function selectJob(jobId) {
+  selectedJobId = jobId;
+  selectedSlotIdx = null;
+
+  // Update left rows
+  document.querySelectorAll('.job-row').forEach(function(r) {
+    if (r.dataset.jobId === jobId) {
+      r.classList.add('selected', 'expanded');
+    } else {
+      r.classList.remove('selected', 'expanded');
+    }
+  });
+
+  // Swap right panel from empty → content
+  document.getElementById('schEmpty').style.display = 'none';
+  document.getElementById('schSuccess').classList.remove('active');
+  var content = document.getElementById('schContent');
+  content.classList.add('active');
+
+  renderSlots();
+  updateBtn();
+}
+
+function renderSlots() {
+  var job = currentEvent.jobs.find(function(j) { return j.id === selectedJobId; });
+  var wrap = document.getElementById('schSlots');
+  wrap.innerHTML = '';
+  job.slots.forEach(function(slot, idx) {
+    var row = document.createElement('div');
+    row.className = 'sch-slot';
+    if (slot.remaining === 0) row.classList.add('full');
+    var remainingClass = slot.remaining === 0 ? 'none' : (slot.remaining === 1 ? 'low' : '');
+    var remainingText = slot.remaining === 0 ? 'Full' : (slot.remaining + ' spot' + (slot.remaining === 1 ? '' : 's') + ' remaining');
+    row.innerHTML =
+      '<div class="sch-radio"></div>' +
+      '<div class="sch-time">' + slot.time + '<span class="sch-tz-inline">' + currentEvent.tz.split(' ').slice(-1)[0].replace(/[()]/g,'') + '</span></div>' +
+      '<div class="sch-remaining ' + remainingClass + '">' + remainingText + '</div>';
+    row.addEventListener('click', function() {
+      if (slot.remaining === 0) return;
+      selectedSlotIdx = idx;
+      document.querySelectorAll('.sch-slot').forEach(function(s) { s.classList.remove('selected'); });
+      row.classList.add('selected');
+      updateBtn();
+    });
+    wrap.appendChild(row);
+  });
+}
+
+function updateBtn() {
+  document.getElementById('schBtn').disabled = selectedSlotIdx === null;
+}
+
+document.getElementById('schBtn').addEventListener('click', function() {
+  if (selectedSlotIdx === null) return;
+  var job = currentEvent.jobs.find(function(j) { return j.id === selectedJobId; });
+  var slot = job.slots[selectedSlotIdx];
+  document.getElementById('schContent').classList.remove('active');
+  document.getElementById('schSuccess').classList.add('active');
+  document.getElementById('schSuccessDesc').textContent =
+    'Your request for ' + job.title + ' at ' + slot.time + ' has been sent. The recruiter will review and email you a confirmation shortly.';
+});
+
+init();
+</script>
 
 </body>
 </html>
