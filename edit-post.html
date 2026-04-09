@@ -26,7 +26,43 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
 /* Section card */
 .section { background: #fff; border-radius: 12px; border: 1px solid #d4d2d0; margin-bottom: 22px; overflow: hidden; }
 .section-header { display: flex; align-items: center; justify-content: space-between; padding: 28px 36px 0; }
+.section-header-left { display: flex; align-items: center; gap: 12px; min-width: 0; }
 .section-header h2 { font-size: 22px; font-weight: 700; color: #2d2d2d; }
+
+/* ═══ INCOMPLETE SETUP STATE ═══ */
+.incomplete-banner { display: none; background: #fef2f2; border: 1px solid #fecaca; border-left: 4px solid #991b1b; border-radius: 10px; padding: 18px 22px; margin-bottom: 22px; align-items: center; justify-content: space-between; gap: 16px; }
+body.setup-incomplete .incomplete-banner { display: flex; }
+.incomplete-banner-content { display: flex; align-items: center; gap: 14px; flex: 1; min-width: 0; }
+.incomplete-banner-icon { width: 32px; height: 32px; border-radius: 50%; background: #991b1b; color: #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.incomplete-banner-icon svg { width: 18px; height: 18px; }
+.incomplete-banner-text { min-width: 0; }
+.incomplete-banner-title { font-size: 15px; font-weight: 700; color: #991b1b; margin-bottom: 2px; }
+.incomplete-banner-sub { font-size: 13px; color: #7f1d1d; line-height: 1.4; }
+.incomplete-banner-btn { flex-shrink: 0; background: #991b1b; color: #fff; border: none; padding: 11px 20px; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit; transition: background 0.15s; }
+.incomplete-banner-btn:hover { background: #7f1d1d; }
+
+.section-incomplete-badge { display: none; align-items: center; gap: 6px; padding: 4px 10px; background: #fee2e2; color: #991b1b; border-radius: 999px; font-size: 12px; font-weight: 700; }
+.section-incomplete-badge svg { width: 13px; height: 13px; }
+body.setup-incomplete .interview-details-section .section-incomplete-badge { display: inline-flex; }
+
+body.setup-incomplete #interviewDetailsSummary { display: none; }
+.incomplete-summary { display: none; align-items: center; gap: 8px; color: #991b1b; font-weight: 600; font-size: 15px; margin-top: 2px; }
+.incomplete-summary svg { width: 16px; height: 16px; flex-shrink: 0; }
+body.setup-incomplete .incomplete-summary { display: flex; }
+
+body.setup-incomplete .interview-details-section { border-color: #fecaca; box-shadow: 0 0 0 1px #fecaca; }
+.interview-details-section.focus-flash { animation: idFlash 1.4s ease-out; }
+@keyframes idFlash {
+  0%   { box-shadow: 0 0 0 8px rgba(153,27,27,0.25); }
+  60%  { box-shadow: 0 0 0 4px rgba(153,27,27,0.12); }
+  100% { box-shadow: 0 0 0 1px #fecaca; }
+}
+
+.state-dev { position: fixed; bottom: 72px; right: 20px; background: #1f2937; color: #fff; border-radius: 999px; padding: 6px; display: flex; align-items: center; gap: 4px; box-shadow: 0 6px 20px rgba(0,0,0,0.25); z-index: 500; }
+.state-dev-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #9ca3af; padding: 0 10px 0 12px; }
+.state-dev-btn { background: transparent; border: none; color: #d1d5db; font-family: inherit; font-size: 12px; font-weight: 600; padding: 7px 14px; border-radius: 999px; cursor: pointer; transition: all 0.15s; }
+.state-dev-btn:hover { color: #fff; }
+.state-dev-btn.active { background: #0044B3; color: #fff; }
 .section-pencil { width: 42px; height: 42px; border: none; background: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #0044B3; border-radius: 8px; transition: background 0.15s; }
 .section-pencil:hover { background: #f0f5ff; }
 .section-pencil svg { width: 24px; height: 24px; fill: #0044B3; stroke: none; }
@@ -422,6 +458,20 @@ body.collapsed .main { margin-left: 60px; }
     </svg>
   </div>
 
+  <!-- Incomplete setup banner (only visible when body.setup-incomplete) -->
+  <div class="incomplete-banner" id="incompleteBanner">
+    <div class="incomplete-banner-content">
+      <div class="incomplete-banner-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v5"/><path d="M12 17h.01"/></svg>
+      </div>
+      <div class="incomplete-banner-text">
+        <div class="incomplete-banner-title">Your interview setup isn't finished</div>
+        <div class="incomplete-banner-sub">Finish your interview details so candidates can sign up for time slots.</div>
+      </div>
+    </div>
+    <button class="incomplete-banner-btn" onclick="jumpToInterviewDetails()">Complete now</button>
+  </div>
+
   <!-- SECTION: EVENT DETAILS -->
   <div class="section">
     <div class="section-header">
@@ -429,7 +479,7 @@ body.collapsed .main { margin-left: 60px; }
     </div>
     <div class="section-divider"></div>
     <div class="section-body">
-      <p class="summary-text">Dallas Healthcare Hiring Event<br>April 22, 2026 &middot; 11:00 AM – 3:00 PM</p>
+      <p class="summary-text" id="eventDetailsSummary">Dallas Healthcare Hiring Event<br>April 22, 2026 &middot; 11:00 AM – 3:00 PM</p>
     </div>
   </div>
 
@@ -611,14 +661,24 @@ body.collapsed .main { margin-left: 60px; }
   </div>
 
   <!-- SECTION: INTERVIEW DETAILS -->
-  <div class="section">
+  <div class="section interview-details-section" id="interviewDetailsSection">
     <div class="section-header">
-      <h2>Interview details</h2>
+      <div class="section-header-left">
+        <h2>Interview details</h2>
+        <span class="section-incomplete-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v5"/><path d="M12 17h.01"/></svg>
+          Incomplete
+        </span>
+      </div>
       <button class="section-pencil" title="Edit interview details" onclick="toggleInterviewDetails(true)"><svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button>
     </div>
     <div class="section-divider"></div>
     <div class="section-body">
       <p class="summary-text" id="interviewDetailsSummary">2 spots available for each 30-minute time slot | Start Advertising Date: 04/07/2026 | Attendance instructions added</p>
+      <p class="incomplete-summary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v5"/><path d="M12 17h.01"/></svg>
+        Not set up yet — add your time slots, start advertising date, and attendance instructions.
+      </p>
 
       <!-- Expandable Interview Details Edit -->
       <div class="id-expand" id="interviewDetailsExpand">
@@ -1450,6 +1510,49 @@ function recomputeEditPackageUsage() {
 
 document.addEventListener('DOMContentLoaded', recomputeEditPackageUsage);
 
+/* ---------- Event-specific state (Complete vs Incomplete) ---------- */
+var EVENT_META = {
+  dallas:  { name: 'Dallas Healthcare Hiring Event',  date: 'April 22, 2026 &middot; 11:00 AM – 3:00 PM', complete: true  },
+  chicago: { name: 'Chicago Technology Hiring Event', date: 'May 6, 2026 &middot; 11:00 AM – 3:00 PM',    complete: false },
+  atlanta: { name: 'Atlanta Diversity Hiring Event',  date: 'April 5, 2026 &middot; 11:00 AM – 3:00 PM',  complete: false }
+};
+
+function getEventKey() {
+  var params = new URLSearchParams(window.location.search);
+  var key = (params.get('event') || 'dallas').toLowerCase();
+  return EVENT_META[key] ? key : 'dallas';
+}
+
+function setSetupState(complete) {
+  document.body.classList.toggle('setup-incomplete', !complete);
+  var c = document.getElementById('stateDevComplete');
+  var i = document.getElementById('stateDevIncomplete');
+  if (c) c.classList.toggle('active', complete);
+  if (i) i.classList.toggle('active', !complete);
+}
+
+function applyEventFromUrl() {
+  var key = getEventKey();
+  var meta = EVENT_META[key];
+  var summary = document.getElementById('eventDetailsSummary');
+  if (summary) summary.innerHTML = meta.name + '<br>' + meta.date;
+  setSetupState(meta.complete);
+}
+
+function jumpToInterviewDetails() {
+  var section = document.getElementById('interviewDetailsSection');
+  if (!section) return;
+  section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  // Auto-open the interview details edit form so the user can finish it.
+  toggleInterviewDetails(true);
+  // Re-trigger the focus-flash animation every time.
+  section.classList.remove('focus-flash');
+  void section.offsetWidth;
+  section.classList.add('focus-flash');
+}
+
+document.addEventListener('DOMContentLoaded', applyEventFromUrl);
+
 /* ---------- Inline job edit ---------- */
 function toggleJobEdit(btn) {
   var card = btn.closest('.job-card');
@@ -1516,6 +1619,13 @@ function saveJobEdit(btn) {
   <button class="pkg-dev-btn" id="pkgDevStarter" onclick="setPackagePreview('starter')">Starter</button>
   <button class="pkg-dev-btn active" id="pkgDevGrowth" onclick="setPackagePreview('growth')">Growth</button>
   <button class="pkg-dev-btn" id="pkgDevPro" onclick="setPackagePreview('pro')">Pro</button>
+</div>
+
+<!-- Setup state dev toggle -->
+<div class="state-dev">
+  <span class="state-dev-label">Setup</span>
+  <button class="state-dev-btn active" id="stateDevComplete" onclick="setSetupState(true)">Complete</button>
+  <button class="state-dev-btn" id="stateDevIncomplete" onclick="setSetupState(false)">Incomplete</button>
 </div>
 
 </body>
