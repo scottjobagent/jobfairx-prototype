@@ -267,14 +267,14 @@ tbody tr:last-child td { border-bottom: none; }
 .iv-disposition-actions .iv-disposition-btn:last-child { border-radius: 0 7px 7px 0; }
 .iv-disposition-btn { height: 36px; border: none; background: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s; font-family: inherit; position: relative; padding: 0 14px; font-size: 13px; font-weight: 600; }
 .iv-disposition-btn.status { border-right: 1px solid #d4d2d0; }
-.iv-disposition-btn.status.yes { color: #166534; }
-.iv-disposition-btn.status.yes:hover { background: #dcfce7; }
-.iv-disposition-btn.status.no { color: #991b1b; }
-.iv-disposition-btn.status.no:hover { background: #fef2f2; }
-.iv-disposition-btn.status.maybe { color: #854d0e; }
-.iv-disposition-btn.status.maybe:hover { background: #fef9c3; }
-.iv-disposition-btn.status.noshow { color: #595959; }
-.iv-disposition-btn.status.noshow:hover { background: #f3f2ef; }
+.iv-disposition-btn.status.yes { color: #166534; background: #dcfce7; }
+.iv-disposition-btn.status.yes:hover { background: #bbf7d0; }
+.iv-disposition-btn.status.no { color: #991b1b; background: #fee2e2; }
+.iv-disposition-btn.status.no:hover { background: #fecaca; }
+.iv-disposition-btn.status.maybe { color: #854d0e; background: #fef9c3; }
+.iv-disposition-btn.status.maybe:hover { background: #fef08a; }
+.iv-disposition-btn.status.noshow { color: #595959; background: #f3f2ef; }
+.iv-disposition-btn.status.noshow:hover { background: #e5e5e5; }
 .iv-disposition-btn.change { color: #2d2d2d; }
 .iv-disposition-btn.change:hover { background: #e8f0fe; color: #0044B3; }
 .iv-disposition-btn .iv-btn-tooltip { position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%); background: #2d2d2d; color: #fff; font-size: 12px; font-weight: 400; padding: 4px 8px; border-radius: 4px; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 0.15s; z-index: 10; }
@@ -2641,12 +2641,20 @@ function openMsgModal(el) {
 var SCHEDULE_TIME_OPTIONS = ['8:00 AM','8:30 AM','9:00 AM','9:30 AM','10:00 AM','10:30 AM','11:00 AM','11:30 AM','12:00 PM','12:30 PM','1:00 PM','1:30 PM','2:00 PM','2:30 PM','3:00 PM','3:30 PM','4:00 PM','4:30 PM','5:00 PM'];
 var SCHEDULE_TZ_LABEL = 'CDT';
 
+function getTodayISO() {
+  var d = new Date();
+  var m = String(d.getMonth() + 1).padStart(2, '0');
+  var day = String(d.getDate()).padStart(2, '0');
+  return d.getFullYear() + '-' + m + '-' + day;
+}
+
 function scheduleSlotMarkup(tzLabel) {
   var opts = '<option value="">Start time</option>';
   SCHEDULE_TIME_OPTIONS.forEach(function(t) { opts += '<option>' + t + '</option>'; });
+  var today = getTodayISO();
   return '<div class="schedule-slot">'
     + '<div class="schedule-slot-fields">'
-    +   '<div class="schedule-field" data-field="date"><label>Interview Date <span class="req">*</span></label><input type="date" class="schedule-input" onchange="clearScheduleFieldError(this)"><div class="schedule-field-error">Interview date is required</div></div>'
+    +   '<div class="schedule-field" data-field="date"><label>Interview Date <span class="req">*</span></label><input type="date" class="schedule-input" min="' + today + '" onchange="clearScheduleFieldError(this)"><div class="schedule-field-error">Interview date is required</div></div>'
     +   '<div class="schedule-field" data-field="time"><label>Start Time (' + tzLabel + ') <span class="req">*</span></label><select class="schedule-select" onchange="clearScheduleFieldError(this)">' + opts + '</select><div class="schedule-field-error">Start time is required</div></div>'
     + '</div>'
     + '<button type="button" class="schedule-slot-remove" onclick="removeScheduleSlot(this)" aria-label="Remove time slot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button>'
@@ -2685,11 +2693,24 @@ function submitScheduleModal() {
   // Clear previous errors
   document.querySelectorAll('#scheduleSlots .schedule-field').forEach(function(f) { f.classList.remove('has-error'); });
 
+  var todayISO = getTodayISO();
   slots.forEach(function(slot) {
     var dateField = slot.querySelector('.schedule-field[data-field="date"]');
     var timeField = slot.querySelector('.schedule-field[data-field="time"]');
     var dateVal = dateField.querySelector('.schedule-input').value;
     var timeVal = timeField.querySelector('.schedule-select').value;
+
+    // Past-date guard
+    if (dateVal && dateVal < todayISO) {
+      dateField.classList.add('has-error');
+      var errDiv = dateField.querySelector('.schedule-field-error');
+      if (errDiv) errDiv.textContent = 'Date cannot be in the past';
+      hasAnyError = true;
+      return;
+    } else {
+      var errDiv2 = dateField.querySelector('.schedule-field-error');
+      if (errDiv2) errDiv2.textContent = 'Interview date is required';
+    }
 
     if (dateVal && timeVal) {
       completeCount++;
