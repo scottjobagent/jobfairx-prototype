@@ -85,6 +85,8 @@ body.collapsed .progress-bar-track { left: 60px; }
 
 /* Page title */
 .page-title { font-size: 36px; font-weight: 700; color: #2d2d2d; margin-bottom: 40px; line-height: 1.25; }
+.addjob-sub { font-size: 16px; color: #595959; margin-top: -28px; margin-bottom: 32px; font-weight: 400; line-height: 1.5; }
+.addjob-sub strong { color: #2d2d2d; font-weight: 700; }
 
 /* Section divider */
 .section-divider { height: 1px; background: #d4d2d0; margin: 32px 0; }
@@ -522,7 +524,8 @@ body.collapsed .progress-bar-track { left: 60px; }
   <!-- STEP 1: Create a job post -->
   <div class="step-content active" id="step1">
   <div class="setup-container">
-    <h1 class="page-title">Create a job post</h1>
+    <h1 class="page-title" id="step1Title">Create a job post</h1>
+    <div class="addjob-sub" id="step1AddJobSub" style="display:none;">Adding to <strong id="step1AddJobEventName">—</strong></div>
 
     <div class="pkg-meta" id="step1PackageMeta">Growth package<span class="pkg-sep">&middot;</span>2 of 3 jobs added</div>
 
@@ -1196,7 +1199,7 @@ body.collapsed .progress-bar-track { left: 60px; }
     <div class="jd-nav-card">
       <div class="bottom-actions-split" style="padding-top: 0;">
         <button class="back-btn" onclick="goToStep(3)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><polyline points="12 19 5 12 12 5"/></svg> Back</button>
-        <button class="continue-btn" onclick="goToStep(5)">Continue <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><polyline points="12 5 19 12 12 19"/></svg></button>
+        <button class="continue-btn" id="step4ContinueBtn" onclick="goToStep(5)">Continue <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><polyline points="12 5 19 12 12 19"/></svg></button>
       </div>
     </div>
 
@@ -2779,12 +2782,106 @@ function recomputePackageUsage() {
       seatCap.style.display = 'none';
     }
   }
+
+  // In add-job mode the package meter is driven by the target event, not the dev toggle.
+  if (typeof IS_ADD_JOB_MODE !== 'undefined' && IS_ADD_JOB_MODE && ADD_JOB_EVENT) {
+    var s1 = document.getElementById('step1PackageMeta');
+    if (s1) {
+      s1.innerHTML = '<span class="pkg-check">&#10003;</span>' + ADD_JOB_EVENT.pkg +
+        ' package<span class="pkg-sep">&middot;</span>' +
+        ADD_JOB_EVENT.used + ' of ' + ADD_JOB_EVENT.limit + ' jobs added';
+      s1.classList.remove('is-full');
+    }
+    var jd = document.getElementById('jdPackageMeta');
+    if (jd) {
+      jd.innerHTML = '<span class="pkg-check">&#10003;</span>' + ADD_JOB_EVENT.pkg +
+        ' package<span class="pkg-sep">&middot;</span>' +
+        (ADD_JOB_EVENT.used + 1) + ' of ' + ADD_JOB_EVENT.limit + ' jobs added';
+    }
+  }
 }
 
 // Initialize on load
 document.addEventListener('DOMContentLoaded', function() {
   recomputePackageUsage();
+  applyAddJobModeIfNeeded();
 });
+
+/* ═══ Add-job mode ═══
+ * Entered via `?mode=add-job&event=<key>`. Opens setup-flow in a new tab from
+ * edit-post.html when the user needs to add jobs to an existing event.
+ * Visually identical to onboarding — only copy, package meter, progress bar
+ * length, and the step 4 terminal CTA change.
+ */
+var ADD_JOB_EVENTS = {
+  dallas:  { name: 'Dallas Healthcare Hiring Event',  pkg: 'Growth',  limit: 3, used: 1 },
+  chicago: { name: 'Chicago Technology Hiring Event', pkg: 'Growth',  limit: 3, used: 0 },
+  atlanta: { name: 'Atlanta Diversity Hiring Event',  pkg: 'Growth',  limit: 3, used: 0 }
+};
+var IS_ADD_JOB_MODE = false;
+var ADD_JOB_EVENT = null;
+
+function applyAddJobModeIfNeeded() {
+  var params = new URLSearchParams(window.location.search);
+  if ((params.get('mode') || '').toLowerCase() !== 'add-job') return;
+  var key = (params.get('event') || 'dallas').toLowerCase();
+  if (!ADD_JOB_EVENTS[key]) key = 'dallas';
+  IS_ADD_JOB_MODE = true;
+  ADD_JOB_EVENT = ADD_JOB_EVENTS[key];
+
+  // Step 1 copy
+  var title = document.getElementById('step1Title');
+  var sub   = document.getElementById('step1AddJobSub');
+  var subName = document.getElementById('step1AddJobEventName');
+  if (title) title.textContent = 'Add a job';
+  if (subName) subName.textContent = ADD_JOB_EVENT.name;
+  if (sub) sub.style.display = 'block';
+
+  // Document title (browser tab)
+  document.title = 'Add a job - ' + ADD_JOB_EVENT.name;
+
+  // Package meter on step 1 reflects the target event's real usage
+  var step1Meta = document.getElementById('step1PackageMeta');
+  if (step1Meta) {
+    step1Meta.innerHTML = '<span class="pkg-check">&#10003;</span>' + ADD_JOB_EVENT.pkg +
+      ' package<span class="pkg-sep">&middot;</span>' +
+      ADD_JOB_EVENT.used + ' of ' + ADD_JOB_EVENT.limit + ' jobs added';
+    step1Meta.classList.remove('is-full');
+  }
+
+  // Package meter on step 4 (jobs list)
+  var jdMeta = document.getElementById('jdPackageMeta');
+  if (jdMeta) {
+    jdMeta.innerHTML = '<span class="pkg-check">&#10003;</span>' + ADD_JOB_EVENT.pkg +
+      ' package<span class="pkg-sep">&middot;</span>' +
+      (ADD_JOB_EVENT.used + 1) + ' of ' + ADD_JOB_EVENT.limit + ' jobs added';
+  }
+
+  // Progress bar represents steps 1–4 only in add-job mode
+  totalSteps = 4;
+  var pct = Math.round((1 / totalSteps) * 100);
+  var fill = document.getElementById('progressBarFill');
+  if (fill) fill.style.width = pct + '%';
+
+  // Step 4 terminal CTA → Save & close (closes the tab)
+  var cta = document.getElementById('step4ContinueBtn');
+  if (cta) {
+    cta.innerHTML = 'Save &amp; close <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+    cta.onclick = saveAndCloseAddJob;
+  }
+}
+
+function saveAndCloseAddJob() {
+  // In prototype land there's nothing to persist — the dev will wire real save.
+  // Close the tab; the parent edit-post page will re-render on focus.
+  try { window.close(); } catch (e) {}
+  // Fallback if window.close is blocked (e.g., tab wasn't opened via window.open)
+  setTimeout(function() {
+    if (!window.closed) {
+      window.location.href = 'edit-post.html?event=' + (new URLSearchParams(window.location.search).get('event') || 'dallas');
+    }
+  }, 150);
+}
 
 /* ═══ Step 4: Review Interview Details ═══ */
 function populateStep7Review() {
