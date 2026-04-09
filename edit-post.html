@@ -64,7 +64,10 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
 /* Package meta line + at-capacity panel (shared pattern across flow) */
 .pkg-meta { font-size: 13px; color: #595959; line-height: 1.5; margin-bottom: 20px; }
 .pkg-meta .pkg-sep { color: #9ca3af; margin: 0 4px; }
-.pkg-capacity-panel { display: none; padding: 18px 20px; background: #fafafa; border: 1px solid #ebebeb; border-radius: 8px; margin-top: 24px; }
+.pkg-meta.is-full { color: #2d2d2d; font-weight: 600; }
+.pkg-meta .pkg-check { display: none; color: #0044B3; font-weight: 700; margin-right: 6px; }
+.pkg-meta.is-full .pkg-check { display: inline; }
+.pkg-capacity-panel { display: none; padding: 18px 20px; background: #fafafa; border: 1px solid #ebebeb; border-radius: 8px; margin-top: 24px; border-left: 3px solid #0044B3; }
 .pkg-cap-title { font-size: 14px; font-weight: 600; color: #2d2d2d; margin-bottom: 4px; }
 .pkg-cap-sub { font-size: 13px; color: #595959; }
 
@@ -1380,7 +1383,8 @@ function recomputeEditPackageUsage() {
 
   var meta = document.getElementById('editPackageMeta');
   if (meta) {
-    meta.innerHTML = name + ' package<span class="pkg-sep">&middot;</span>' + visible + ' of ' + limit + ' jobs added';
+    meta.innerHTML = '<span class="pkg-check">&#10003;</span>' + name + ' package<span class="pkg-sep">&middot;</span>' + visible + ' of ' + limit + ' jobs added';
+    meta.classList.toggle('is-full', visible >= limit);
   }
 
   var addRow = document.getElementById('editAddJobRow');

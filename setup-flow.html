@@ -127,7 +127,10 @@ body.collapsed .progress-bar-track { left: 60px; }
 /* Unified package meta line (Step 1, Step 5, Step 6, edit-post) */
 .pkg-meta { font-size: 13px; color: #595959; margin-bottom: 24px; line-height: 1.5; }
 .pkg-meta .pkg-sep { color: #9ca3af; margin: 0 4px; }
-.pkg-capacity-panel { display: none; padding: 18px 20px; background: #fafafa; border: 1px solid #ebebeb; border-radius: 8px; margin-bottom: 20px; }
+.pkg-meta.is-full { color: #2d2d2d; font-weight: 600; }
+.pkg-meta .pkg-check { display: none; color: #0044B3; font-weight: 700; margin-right: 6px; }
+.pkg-meta.is-full .pkg-check { display: inline; }
+.pkg-capacity-panel { display: none; padding: 18px 20px; background: #fafafa; border: 1px solid #ebebeb; border-radius: 8px; margin-bottom: 20px; border-left: 3px solid #0044B3; }
 .pkg-cap-title { font-size: 14px; font-weight: 600; color: #2d2d2d; margin-bottom: 4px; }
 .pkg-cap-sub { font-size: 13px; color: #595959; }
 
@@ -2710,7 +2713,8 @@ function recomputePackageUsage() {
   var step1Used = Math.max(0, limit - 1);
   var step1Meta = document.getElementById('step1PackageMeta');
   if (step1Meta) {
-    step1Meta.innerHTML = name + ' package<span class="pkg-sep">&middot;</span>' + step1Used + ' of ' + limit + ' jobs added';
+    step1Meta.innerHTML = '<span class="pkg-check">&#10003;</span>' + name + ' package<span class="pkg-sep">&middot;</span>' + step1Used + ' of ' + limit + ' jobs added';
+    step1Meta.classList.remove('is-full');
   }
   // Step 1 is never at capacity in the preview (user wouldn't reach it if full)
   var step1Form = document.getElementById('step1FormContent');
@@ -2724,7 +2728,8 @@ function recomputePackageUsage() {
   entries.forEach(function(el) { if (el.style.display !== 'none') visible++; });
   var jdMeta = document.getElementById('jdPackageMeta');
   if (jdMeta) {
-    jdMeta.innerHTML = name + ' package<span class="pkg-sep">&middot;</span>' + visible + ' of ' + limit + ' jobs added';
+    jdMeta.innerHTML = '<span class="pkg-check">&#10003;</span>' + name + ' package<span class="pkg-sep">&middot;</span>' + visible + ' of ' + limit + ' jobs added';
+    jdMeta.classList.toggle('is-full', visible >= limit);
   }
   var btns = document.getElementById('jdActionBtns');
   var jdCap = document.getElementById('jdCapacityMsg');
@@ -2752,11 +2757,14 @@ function recomputePackageUsage() {
   var seatCap  = document.getElementById('seatCapacityPanel');
   if (seatMeta) {
     if (seats === 'unlimited') {
-      seatMeta.innerHTML = name + ' package<span class="pkg-sep">&middot;</span>Unlimited recruiter seats';
+      seatMeta.innerHTML = '<span class="pkg-check">&#10003;</span>' + name + ' package<span class="pkg-sep">&middot;</span>Unlimited recruiter seats';
+      seatMeta.classList.remove('is-full');
     } else if (currentPackage === 'starter') {
-      seatMeta.innerHTML = name + ' package<span class="pkg-sep">&middot;</span>1 of 1 recruiter seats added';
+      seatMeta.innerHTML = '<span class="pkg-check">&#10003;</span>' + name + ' package<span class="pkg-sep">&middot;</span>1 of 1 recruiter seats added';
+      seatMeta.classList.add('is-full');
     } else {
-      seatMeta.innerHTML = name + ' package<span class="pkg-sep">&middot;</span>2 of ' + seats + ' recruiter seats added';
+      seatMeta.innerHTML = '<span class="pkg-check">&#10003;</span>' + name + ' package<span class="pkg-sep">&middot;</span>2 of ' + seats + ' recruiter seats added';
+      seatMeta.classList.remove('is-full');
     }
   }
   if (seatCap) {
