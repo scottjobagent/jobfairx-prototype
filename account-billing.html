@@ -130,6 +130,11 @@ body.collapsed .main { margin-left: 60px; }
 .display-block { font-size: 16px; font-weight: 400; color: #2d2d2d; line-height: 1.7; }
 .display-block .muted { color: #767676; }
 
+/* Inline edit: swap read-only display with edit form */
+.section.editing .payment-display { display: none; }
+.section:not(.editing) .edit-form { display: none; }
+select.field-input { cursor: pointer; background-color: #fff; }
+
 .payment-row { display: flex; align-items: center; gap: 18px; }
 .card-brand-badge { display: inline-flex; align-items: center; justify-content: center; padding: 6px 12px; background: #f0f5ff; border-radius: 6px; font-size: 12px; font-weight: 800; color: #0044B3; letter-spacing: 0.5px; }
 .card-brand-badge.mastercard { background: #fff4f0; color: #c4183c; }
@@ -343,34 +348,104 @@ body.collapsed .main { margin-left: 60px; }
     </div>
 
     <!-- Billing Address -->
-    <div class="section">
+    <div class="section" id="section-billing-address">
       <div class="section-header">
         <h2>Billing address</h2>
-        <button class="section-pencil" title="Edit billing address" onclick="openAddressModal()"><svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button>
+        <button class="section-pencil" title="Edit billing address" onclick="startEdit('section-billing-address')"><svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button>
       </div>
       <div class="section-divider"></div>
       <div class="section-body">
-        <div class="display-block" id="address-display">
-          <div id="addr-street">123 Innovation Blvd, Suite 400</div>
-          <div><span id="addr-city">Chicago</span>, <span id="addr-state">IL</span> <span id="addr-zip">60601</span></div>
-          <div class="muted" id="addr-country">United States</div>
+        <div class="field-grid">
+          <div class="full">
+            <label class="field-label">Street Address</label>
+            <div class="field-value" data-field="addrStreet">123 Innovation Blvd, Suite 400</div>
+            <input class="field-input" data-field-input="addrStreet" type="text" value="123 Innovation Blvd, Suite 400">
+          </div>
+          <div>
+            <label class="field-label">City</label>
+            <div class="field-value" data-field="addrCity">Chicago</div>
+            <input class="field-input" data-field-input="addrCity" type="text" value="Chicago">
+          </div>
+          <div>
+            <label class="field-label">ZIP Code</label>
+            <div class="field-value" data-field="addrZip">60601</div>
+            <input class="field-input" data-field-input="addrZip" type="text" value="60601">
+          </div>
+          <div>
+            <label class="field-label">Country</label>
+            <div class="field-value" data-field="addrCountry">United States</div>
+            <select class="field-input" id="addrCountrySel" data-field-input="addrCountry" data-display="text" data-linked-state="addrStateSel" onchange="populateStates('addrCountrySel','addrStateSel')">
+              <option value="US">United States</option>
+              <option value="CA">Canada</option>
+            </select>
+          </div>
+          <div>
+            <label class="field-label">State</label>
+            <div class="field-value" data-field="addrState">IL</div>
+            <select class="field-input" id="addrStateSel" data-field-input="addrState"></select>
+          </div>
+        </div>
+        <div class="section-edit-actions">
+          <button class="btn-cancel" onclick="cancelEdit('section-billing-address')">Cancel</button>
+          <button class="btn-save" onclick="saveEdit('section-billing-address', 'Billing address updated')">Save</button>
         </div>
       </div>
     </div>
 
     <!-- Payment Method -->
-    <div class="section">
+    <div class="section" id="section-payment">
       <div class="section-header">
         <h2>Payment method</h2>
-        <button class="section-pencil" title="Edit payment method" onclick="openPaymentModal()"><svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button>
+        <button class="section-pencil" title="Edit payment method" onclick="startEditPayment()"><svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button>
       </div>
       <div class="section-divider"></div>
       <div class="section-body">
-        <div class="payment-row">
-          <span class="card-brand-badge" id="pay-brand-badge">VISA</span>
-          <div>
-            <div class="card-number">•••• •••• •••• <span id="pay-last4">4242</span></div>
-            <div class="card-meta">Expires <span id="pay-expiry">09/2027</span> · <span id="pay-name">Nick Barattini</span></div>
+        <div class="payment-display">
+          <div class="payment-row">
+            <span class="card-brand-badge" id="pay-brand-badge">VISA</span>
+            <div>
+              <div class="card-number">•••• •••• •••• <span id="pay-last4">4242</span></div>
+              <div class="card-meta">Expires <span id="pay-expiry">09/2027</span> · <span id="pay-name">Nick Barattini</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="edit-form">
+          <div class="field-grid">
+            <div class="full">
+              <label class="field-label">Card Number</label>
+              <input class="field-input" id="payCardNumberInput" type="text" inputmode="numeric" autocomplete="off" placeholder="1234 5678 9012 3456">
+            </div>
+            <div>
+              <label class="field-label">Expiration</label>
+              <input class="field-input" id="payExpInput" type="text" inputmode="numeric" autocomplete="off" placeholder="MM/YY" maxlength="5">
+            </div>
+            <div>
+              <label class="field-label">Security Code</label>
+              <input class="field-input" id="payCvcInput" type="text" inputmode="numeric" autocomplete="off" placeholder="CVC" maxlength="4">
+            </div>
+            <div class="full">
+              <label class="field-label">Name on Card</label>
+              <input class="field-input" id="payNameInput" type="text" autocomplete="off">
+            </div>
+            <div>
+              <label class="field-label">Country</label>
+              <select class="field-input" id="payCountryInput" onchange="populateStates('payCountryInput','payStateInput')">
+                <option value="US">United States</option>
+                <option value="CA">Canada</option>
+              </select>
+            </div>
+            <div>
+              <label class="field-label">State</label>
+              <select class="field-input" id="payStateInput"></select>
+            </div>
+            <div class="full">
+              <label class="field-label">ZIP Code</label>
+              <input class="field-input" id="payZipInput" type="text" autocomplete="off">
+            </div>
+          </div>
+          <div class="section-edit-actions">
+            <button class="btn-cancel" onclick="cancelPayment()">Cancel</button>
+            <button class="btn-save" onclick="savePayment()">Save</button>
           </div>
         </div>
       </div>
@@ -380,100 +455,6 @@ body.collapsed .main { margin-left: 60px; }
 
 </div><!-- /.container -->
 </div><!-- /.main -->
-
-<!-- ═══ BILLING ADDRESS MODAL ═══ -->
-<div class="modal-overlay" id="addressModal">
-  <div class="modal-card">
-    <button class="modal-close-btn" onclick="closeModal('addressModal')">&times;</button>
-    <div class="modal-title">Edit billing address</div>
-    <div class="modal-title-sub">Update where invoices and receipts are addressed.</div>
-
-    <div class="modal-form-group">
-      <label class="modal-label">Street Address</label>
-      <input class="modal-input" id="addrStreetInput" type="text">
-    </div>
-    <div class="modal-row">
-      <div class="modal-form-group">
-        <label class="modal-label">City</label>
-        <input class="modal-input" id="addrCityInput" type="text">
-      </div>
-      <div class="modal-form-group">
-        <label class="modal-label">State</label>
-        <input class="modal-input" id="addrStateInput" type="text">
-      </div>
-      <div class="modal-form-group">
-        <label class="modal-label">ZIP Code</label>
-        <input class="modal-input" id="addrZipInput" type="text">
-      </div>
-    </div>
-    <div class="modal-form-group">
-      <label class="modal-label">Country</label>
-      <select class="modal-select" id="addrCountryInput">
-        <option>United States</option>
-        <option>Canada</option>
-        <option>United Kingdom</option>
-        <option>Australia</option>
-      </select>
-    </div>
-
-    <div class="modal-actions">
-      <button class="btn-cancel" onclick="closeModal('addressModal')">Cancel</button>
-      <button class="btn-save-lg" onclick="saveAddress()">Save address</button>
-    </div>
-  </div>
-</div>
-
-<!-- ═══ PAYMENT METHOD MODAL ═══ -->
-<div class="modal-overlay" id="paymentModal">
-  <div class="modal-card">
-    <button class="modal-close-btn" onclick="closeModal('paymentModal')">&times;</button>
-    <div class="modal-title">Edit payment method</div>
-    <div class="modal-title-sub">Update the card on file for event credits and subscriptions.</div>
-
-    <div class="modal-row triple">
-      <div class="modal-form-group">
-        <label class="modal-label">Card Number</label>
-        <input class="modal-input" id="payCardNumberInput" type="text" inputmode="numeric" autocomplete="off" placeholder="1234 5678 9012 3456">
-      </div>
-      <div class="modal-form-group">
-        <label class="modal-label">Expiration</label>
-        <input class="modal-input" id="payExpInput" type="text" inputmode="numeric" autocomplete="off" placeholder="MM/YY" maxlength="5">
-      </div>
-      <div class="modal-form-group">
-        <label class="modal-label">Security Code</label>
-        <input class="modal-input" id="payCvcInput" type="text" inputmode="numeric" autocomplete="off" placeholder="CVC" maxlength="4">
-      </div>
-    </div>
-
-    <div class="modal-form-group">
-      <label class="modal-label">Name on Card</label>
-      <input class="modal-input" id="payNameInput" type="text" autocomplete="off">
-    </div>
-
-    <div class="modal-row">
-      <div class="modal-form-group">
-        <label class="modal-label">Country</label>
-        <select class="modal-select" id="payCountryInput" onchange="populateStates('payCountryInput', 'payStateInput')">
-          <option value="US">United States</option>
-          <option value="CA">Canada</option>
-        </select>
-      </div>
-      <div class="modal-form-group">
-        <label class="modal-label">State</label>
-        <select class="modal-select" id="payStateInput"></select>
-      </div>
-      <div class="modal-form-group">
-        <label class="modal-label">ZIP Code</label>
-        <input class="modal-input" id="payZipInput" type="text" autocomplete="off">
-      </div>
-    </div>
-
-    <div class="modal-actions">
-      <button class="btn-cancel" onclick="closeModal('paymentModal')">Cancel</button>
-      <button class="btn-save-lg" onclick="savePayment()">Save payment</button>
-    </div>
-  </div>
-</div>
 
 <!-- ═══ TOAST ═══ -->
 <div class="toast" id="toast">Saved</div>
@@ -523,6 +504,15 @@ function cancelEdit(sectionId) {
   sec.querySelectorAll('[data-field-input]').forEach(function(input) {
     if (input.dataset.snapshot !== undefined) input.value = input.dataset.snapshot;
   });
+  // If this section has a linked country -> state pair, rebuild state options
+  // after restoring the country snapshot, then re-select the snapshot state.
+  var countrySel = sec.querySelector('[data-linked-state]');
+  if (countrySel) {
+    var stateId = countrySel.dataset.linkedState;
+    var stateEl = document.getElementById(stateId);
+    var stateVal = stateEl && stateEl.dataset.snapshot !== undefined ? stateEl.dataset.snapshot : '';
+    populateStates(countrySel.id, stateId, stateVal);
+  }
   sec.classList.remove('editing');
 }
 
@@ -531,33 +521,15 @@ function saveEdit(sectionId, message) {
   sec.querySelectorAll('[data-field-input]').forEach(function(input) {
     var key = input.dataset.fieldInput;
     var display = sec.querySelector('[data-field="' + key + '"]');
-    if (display) display.textContent = input.value;
+    if (!display) return;
+    if (input.tagName === 'SELECT' && input.dataset.display === 'text') {
+      display.textContent = input.options[input.selectedIndex].text;
+    } else {
+      display.textContent = input.value;
+    }
   });
   sec.classList.remove('editing');
   showToast(message);
-}
-
-// Modals
-function openModal(id) { document.getElementById(id).classList.add('open'); }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-
-function openAddressModal() {
-  document.getElementById('addrStreetInput').value = document.getElementById('addr-street').textContent;
-  document.getElementById('addrCityInput').value = document.getElementById('addr-city').textContent;
-  document.getElementById('addrStateInput').value = document.getElementById('addr-state').textContent;
-  document.getElementById('addrZipInput').value = document.getElementById('addr-zip').textContent;
-  document.getElementById('addrCountryInput').value = document.getElementById('addr-country').textContent;
-  openModal('addressModal');
-}
-
-function saveAddress() {
-  document.getElementById('addr-street').textContent = document.getElementById('addrStreetInput').value;
-  document.getElementById('addr-city').textContent = document.getElementById('addrCityInput').value;
-  document.getElementById('addr-state').textContent = document.getElementById('addrStateInput').value;
-  document.getElementById('addr-zip').textContent = document.getElementById('addrZipInput').value;
-  document.getElementById('addr-country').textContent = document.getElementById('addrCountryInput').value;
-  closeModal('addressModal');
-  showToast('Billing address updated');
 }
 
 // ═══ State data and helpers ═══
@@ -612,7 +584,7 @@ function detectBrand(cardNumber) {
 // Stored payment billing (not shown on card, kept in memory)
 var paymentBilling = { country: 'US', state: 'IL', zip: '60601' };
 
-function openPaymentModal() {
+function startEditPayment() {
   document.getElementById('payCardNumberInput').value = '';
   document.getElementById('payExpInput').value = document.getElementById('pay-expiry').textContent.replace(/^(\d{2})\/\d{2}(\d{2})$/, '$1/$2');
   document.getElementById('payCvcInput').value = '';
@@ -622,7 +594,11 @@ function openPaymentModal() {
   populateStates('payCountryInput', 'payStateInput', paymentBilling.state);
   document.getElementById('payZipInput').value = paymentBilling.zip;
 
-  openModal('paymentModal');
+  document.getElementById('section-payment').classList.add('editing');
+}
+
+function cancelPayment() {
+  document.getElementById('section-payment').classList.remove('editing');
 }
 
 function savePayment() {
@@ -658,7 +634,7 @@ function savePayment() {
   paymentBilling.state = document.getElementById('payStateInput').value;
   paymentBilling.zip = document.getElementById('payZipInput').value;
 
-  closeModal('paymentModal');
+  document.getElementById('section-payment').classList.remove('editing');
   showToast('Payment method updated');
 }
 
@@ -672,8 +648,9 @@ document.addEventListener('DOMContentLoaded', function() {
       e.target.value = v;
     });
   }
-  // Prime the state dropdown on first load
+  // Prime the state dropdowns on first load
   populateStates('payCountryInput', 'payStateInput', paymentBilling.state);
+  populateStates('addrCountrySel', 'addrStateSel', 'IL');
 });
 
 // Toast
@@ -684,12 +661,6 @@ function showToast(message) {
   setTimeout(function() { toast.classList.remove('show'); }, 2400);
 }
 
-// Close modals on overlay click
-document.querySelectorAll('.modal-overlay').forEach(function(overlay) {
-  overlay.addEventListener('click', function(e) {
-    if (e.target === overlay) overlay.classList.remove('open');
-  });
-});
 </script>
 
 </body>
