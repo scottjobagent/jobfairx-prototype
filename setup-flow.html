@@ -124,27 +124,20 @@ body.collapsed .progress-bar-track { left: 60px; }
 .form-input.readonly { background: #f3f2ef; color: #767676; cursor: not-allowed; border-color: #e5e4e1; }
 
 /* Package indicator pill */
-.pkg-indicator { display: inline-flex; align-items: center; gap: 8px; background: #f3f2ef; border: 1px solid #e5e4e1; border-radius: 8px; padding: 10px 16px; margin-bottom: 28px; font-size: 14px; color: #595959; cursor: pointer; user-select: none; transition: border-color 0.15s; }
-.pkg-indicator:hover { border-color: #a8a8a8; }
-.pkg-indicator-icon { width: 16px; height: 16px; color: #767676; flex-shrink: 0; }
-.pkg-indicator strong { font-weight: 700; color: #2d2d2d; }
-.pkg-indicator .pkg-count { font-weight: 700; color: #2d2d2d; }
-.pkg-indicator.open .pkg-count { color: #16a34a; }
+/* Unified package meta line (Step 1, Step 5, Step 6, edit-post) */
+.pkg-meta { font-size: 13px; color: #595959; margin-bottom: 24px; line-height: 1.5; }
+.pkg-meta .pkg-sep { color: #9ca3af; margin: 0 4px; }
+.pkg-capacity-panel { display: none; padding: 18px 20px; background: #fafafa; border: 1px solid #ebebeb; border-radius: 8px; margin-bottom: 20px; }
+.pkg-cap-title { font-size: 14px; font-weight: 600; color: #2d2d2d; margin-bottom: 4px; }
+.pkg-cap-sub { font-size: 13px; color: #595959; }
 
 /* Recruiter seat note */
-.seat-note { display: flex; align-items: center; gap: 8px; background: #f0f5ff; border-radius: 8px; padding: 12px 16px; margin-bottom: 20px; font-size: 14px; color: #2d2d2d; }
-.seat-note-icon { width: 18px; height: 18px; color: #0044B3; flex-shrink: 0; }
 .seat-limit-msg { display: none; align-items: center; gap: 8px; margin-top: 10px; font-size: 14px; font-weight: 600; color: #991b1b; }
 .email-error { font-size: 13px; color: #991b1b; margin-top: 6px; display: none; }
 .email-error.show { display: block; }
 .seat-limit-icon { width: 16px; height: 16px; flex-shrink: 0; }
 
 /* Job limit message */
-.job-limit-card { display: none; background: #fef2f2; border: 1px solid #f5c6cb; border-radius: 10px; padding: 24px 28px; margin-bottom: 24px; }
-.job-limit-card.visible { display: block; }
-.job-limit-text { font-size: 15px; font-weight: 600; color: #991b1b; margin-bottom: 8px; }
-.job-limit-link { font-size: 14px; font-weight: 600; color: #0044B3; text-decoration: none; cursor: pointer; }
-.job-limit-link:hover { text-decoration: underline; }
 
 /* Form fields */
 .form-group { margin-bottom: 32px; }
@@ -228,11 +221,7 @@ body.collapsed .progress-bar-track { left: 60px; }
 .jd-header-img { width: 140px; height: auto; }
 .jd-jobs-card { background: #fff; border-radius: 12px; padding: 32px 40px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
 .jd-subtitle { font-size: 18px; font-weight: 700; color: #2d2d2d; margin-bottom: 4px; }
-.jd-package-meta { font-size: 13px; color: #595959; margin-bottom: 24px; line-height: 1.5; }
-.jd-package-meta .pkg-sep { color: #9ca3af; margin: 0 4px; }
-.jd-capacity-msg { display: none; padding: 18px 20px; background: #fafafa; border: 1px solid #ebebeb; border-radius: 8px; }
-.jd-cap-title { font-size: 14px; font-weight: 600; color: #2d2d2d; margin-bottom: 4px; }
-.jd-cap-sub { font-size: 13px; color: #595959; }
+/* Step 5 uses shared .pkg-meta and .pkg-capacity-panel above */
 .pkg-dev { position: fixed; bottom: 20px; right: 20px; background: #1f2937; color: #fff; border-radius: 999px; padding: 6px; display: flex; align-items: center; gap: 4px; box-shadow: 0 6px 20px rgba(0,0,0,0.25); z-index: 9999; font-size: 12px; }
 .pkg-dev-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #9ca3af; padding: 0 10px 0 12px; }
 .pkg-dev-btn { background: transparent; border: none; color: #d1d5db; font-family: inherit; font-size: 12px; font-weight: 600; padding: 7px 14px; border-radius: 999px; cursor: pointer; transition: all 0.15s; }
@@ -532,10 +521,15 @@ body.collapsed .progress-bar-track { left: 60px; }
   <div class="setup-container">
     <h1 class="page-title">Create a job post</h1>
 
-    <div class="pkg-indicator" id="pkgPill" onclick="togglePackageLimit()" title="Click to toggle job limit for testing">
-      <svg class="pkg-indicator-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
-      <strong>Starter plan</strong> &middot; Posting <span class="pkg-count" id="pkgCountText">1 of 1</span> job
+    <div class="pkg-meta" id="step1PackageMeta">Growth package<span class="pkg-sep">&middot;</span>2 of 3 jobs added</div>
+
+    <!-- At-capacity panel (shown when package limit reached) -->
+    <div class="pkg-capacity-panel" id="step1CapacityPanel">
+      <div class="pkg-cap-title" id="step1CapTitle"></div>
+      <div class="pkg-cap-sub" id="step1CapSub"></div>
     </div>
+
+    <div id="step1FormContent">
 
     <!-- How would you like to post your job? -->
     <div class="radio-group-label">How would you like to post your job? <span class="required">*</span></div>
@@ -705,11 +699,7 @@ body.collapsed .progress-bar-track { left: 60px; }
 
     </div><!-- /#newPostFields -->
 
-    <!-- Job limit message (shown when at capacity) -->
-    <div class="job-limit-card" id="jobLimitCard">
-      <div class="job-limit-text">You've posted 1 of 1 job on your Starter plan.</div>
-      <a class="job-limit-link">Click here to add an additional job</a>
-    </div>
+    </div><!-- /#step1FormContent -->
 
     <!-- Continue button -->
     <div class="bottom-actions">
@@ -1139,7 +1129,7 @@ body.collapsed .progress-bar-track { left: 60px; }
     <!-- Jobs card -->
     <div class="jd-jobs-card">
       <div class="jd-subtitle">Here's a look at your selected job(s):</div>
-      <div class="jd-package-meta" id="jdPackageMeta">Growth package<span class="pkg-sep">&middot;</span>2 of 3 jobs added</div>
+      <div class="pkg-meta" id="jdPackageMeta">Growth package<span class="pkg-sep">&middot;</span>2 of 3 jobs added</div>
 
       <!-- Job 1: Frontend Developer (hardcoded) -->
       <div class="jd-job-entry" id="step5Job1">
@@ -1191,18 +1181,12 @@ body.collapsed .progress-bar-track { left: 60px; }
           Add an existing job
         </button>
       </div>
-      <div class="jd-capacity-msg" id="jdCapacityMsg">
-        <div class="jd-cap-title" id="jdCapTitle"></div>
-        <div class="jd-cap-sub" id="jdCapSub"></div>
+      <div class="pkg-capacity-panel" id="jdCapacityMsg">
+        <div class="pkg-cap-title" id="jdCapTitle"></div>
+        <div class="pkg-cap-sub" id="jdCapSub"></div>
       </div>
 
       <!-- Dev toggle: preview Starter / Growth / Pro states -->
-      <div class="pkg-dev">
-        <span class="pkg-dev-label">Dev</span>
-        <button class="pkg-dev-btn" id="pkgDevStarter" onclick="setPackagePreview('starter')">Starter</button>
-        <button class="pkg-dev-btn active" id="pkgDevGrowth" onclick="setPackagePreview('growth')">Growth</button>
-        <button class="pkg-dev-btn" id="pkgDevPro" onclick="setPackagePreview('pro')">Pro</button>
-      </div>
     </div>
 
     <!-- Back / Continue -->
@@ -1281,9 +1265,10 @@ body.collapsed .progress-bar-track { left: 60px; }
 
       <!-- Who will be interviewing -->
       <div class="is-field-group">
-        <div class="seat-note">
-          <svg class="seat-note-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
-          1 recruiter seat available on your Starter plan
+        <div class="pkg-meta" id="seatPackageMeta">Growth package<span class="pkg-sep">&middot;</span>2 of 5 recruiter seats added</div>
+        <div class="pkg-capacity-panel" id="seatCapacityPanel">
+          <div class="pkg-cap-title" id="seatCapTitle"></div>
+          <div class="pkg-cap-sub" id="seatCapSub"></div>
         </div>
         <div class="is-label">Who will be interviewing candidates?</div>
         <p class="is-hint">Separate emails with commas.</p>
@@ -2237,36 +2222,7 @@ var templateData = {
 var isTemplatePath = false;
 var currentPostType = 'new';
 
-// Package config for this event (Atlanta = Starter)
-var eventPackage = { tier: 'Starter', jobsTotal: 1, jobsUsed: 1 };
-
-function togglePackageLimit() {
-  var pill = document.getElementById('pkgPill');
-  var countText = document.getElementById('pkgCountText');
-  var limitCard = document.getElementById('jobLimitCard');
-
-  if (eventPackage.jobsUsed >= eventPackage.jobsTotal) {
-    // Switch to open (not full)
-    eventPackage.jobsUsed = 0;
-    countText.textContent = '0 of 1';
-    pill.classList.add('open');
-    if (limitCard) limitCard.classList.remove('visible');
-  } else {
-    // Switch to full
-    eventPackage.jobsUsed = 1;
-    countText.textContent = '1 of 1';
-    pill.classList.remove('open');
-  }
-}
-
 function continueFromStep1() {
-  // Check job limit
-  if (eventPackage.jobsUsed >= eventPackage.jobsTotal) {
-    document.getElementById('jobLimitCard').classList.add('visible');
-    document.getElementById('jobLimitCard').scrollIntoView({ behavior: 'smooth', block: 'center' });
-    return;
-  }
-
   var isTemplate = (currentPostType === 'template');
 
   if (isTemplate) {
@@ -2719,9 +2675,10 @@ function confirmRemoveJob(jobId, jobName) {
   openSetupModal('removeJobModal');
 }
 
-/* ═══ Step 5: Package usage ═══ */
+/* ═══ Unified package usage display (Steps 1, 5, 6) ═══ */
 var PACKAGE_LIMITS = { starter: 1, growth: 3, pro: 6 };
-var PACKAGE_NAMES = { starter: 'Starter', growth: 'Growth', pro: 'Pro' };
+var PACKAGE_SEATS  = { starter: 1, growth: 5, pro: 'unlimited' };
+var PACKAGE_NAMES  = { starter: 'Starter', growth: 'Growth', pro: 'Pro' };
 var currentPackage = 'growth';
 
 function setPackagePreview(pkg) {
@@ -2732,7 +2689,7 @@ function setPackagePreview(pkg) {
     var btn = document.getElementById('pkgDev' + name);
     if (btn) btn.classList.toggle('active', name.toLowerCase() === pkg);
   });
-  // For Starter demo, hide the first job so the state is at 1/1
+  // For Starter demo on Step 5, hide the first job so the state is at 1/1
   var job1 = document.getElementById('step5Job1');
   if (job1) {
     job1.style.display = (pkg === 'starter') ? 'none' : '';
@@ -2744,40 +2701,75 @@ function setPackagePreview(pkg) {
 }
 
 function recomputePackageUsage() {
-  var entries = document.querySelectorAll('.jd-job-entry');
-  var visible = 0;
-  entries.forEach(function(el) {
-    if (el.style.display !== 'none') visible++;
-  });
   var limit = PACKAGE_LIMITS[currentPackage];
   var name = PACKAGE_NAMES[currentPackage];
+  var seats = PACKAGE_SEATS[currentPackage];
 
-  // Update the meta line
-  var meta = document.getElementById('jdPackageMeta');
-  if (meta) {
-    meta.innerHTML = name + ' package<span class="pkg-sep">&middot;</span>' + visible + ' of ' + limit + ' jobs added';
+  // ── Step 1: meta line reflects state BEFORE adding a job ──
+  // Starter 0/1, Growth 2/3, Pro 5/6 (always in normal/non-capacity state on Step 1)
+  var step1Used = Math.max(0, limit - 1);
+  var step1Meta = document.getElementById('step1PackageMeta');
+  if (step1Meta) {
+    step1Meta.innerHTML = name + ' package<span class="pkg-sep">&middot;</span>' + step1Used + ' of ' + limit + ' jobs added';
+  }
+  // Step 1 is never at capacity in the preview (user wouldn't reach it if full)
+  var step1Form = document.getElementById('step1FormContent');
+  var step1Cap  = document.getElementById('step1CapacityPanel');
+  if (step1Form) step1Form.style.display = '';
+  if (step1Cap) step1Cap.style.display = 'none';
+
+  // ── Step 5: meta line reflects visible job entries ──
+  var entries = document.querySelectorAll('.jd-job-entry');
+  var visible = 0;
+  entries.forEach(function(el) { if (el.style.display !== 'none') visible++; });
+  var jdMeta = document.getElementById('jdPackageMeta');
+  if (jdMeta) {
+    jdMeta.innerHTML = name + ' package<span class="pkg-sep">&middot;</span>' + visible + ' of ' + limit + ' jobs added';
+  }
+  var btns = document.getElementById('jdActionBtns');
+  var jdCap = document.getElementById('jdCapacityMsg');
+  if (btns && jdCap) {
+    if (visible >= limit) {
+      btns.style.display = 'none';
+      jdCap.style.display = 'block';
+      var title = document.getElementById('jdCapTitle');
+      var sub = document.getElementById('jdCapSub');
+      if (currentPackage === 'starter') {
+        title.textContent = "You've added your job";
+        sub.textContent = "Ready to continue, or remove the job above to add a different one.";
+      } else {
+        title.textContent = "You've added all " + limit + " jobs included with your " + name + " package";
+        sub.textContent = "To add a different job, remove one above.";
+      }
+    } else {
+      btns.style.display = 'flex';
+      jdCap.style.display = 'none';
+    }
   }
 
-  // Toggle buttons vs capacity message
-  var btns = document.getElementById('jdActionBtns');
-  var cap = document.getElementById('jdCapacityMsg');
-  if (!btns || !cap) return;
-
-  if (visible >= limit) {
-    btns.style.display = 'none';
-    cap.style.display = 'block';
-    var title = document.getElementById('jdCapTitle');
-    var sub = document.getElementById('jdCapSub');
-    if (currentPackage === 'starter') {
-      title.textContent = "You've added your job";
-      sub.textContent = "Ready to continue, or remove the job above to add a different one.";
+  // ── Step 6: recruiter seat meta line ──
+  var seatMeta = document.getElementById('seatPackageMeta');
+  var seatCap  = document.getElementById('seatCapacityPanel');
+  if (seatMeta) {
+    if (seats === 'unlimited') {
+      seatMeta.innerHTML = name + ' package<span class="pkg-sep">&middot;</span>Unlimited recruiter seats';
+    } else if (currentPackage === 'starter') {
+      seatMeta.innerHTML = name + ' package<span class="pkg-sep">&middot;</span>1 of 1 recruiter seats added';
     } else {
-      title.textContent = "You've added all " + limit + " jobs in your " + name + " package";
-      sub.textContent = "To add a different job, remove one above.";
+      seatMeta.innerHTML = name + ' package<span class="pkg-sep">&middot;</span>2 of ' + seats + ' recruiter seats added';
     }
-  } else {
-    btns.style.display = 'flex';
-    cap.style.display = 'none';
+  }
+  if (seatCap) {
+    if (currentPackage === 'starter') {
+      // Starter is at capacity the moment they add themselves
+      seatCap.style.display = 'block';
+      var sTitle = document.getElementById('seatCapTitle');
+      var sSub = document.getElementById('seatCapSub');
+      if (sTitle) sTitle.textContent = "You've added your recruiter seat";
+      if (sSub) sSub.textContent = "Ready to continue. Remove the interviewer above to swap them out.";
+    } else {
+      seatCap.style.display = 'none';
+    }
   }
 }
 
@@ -3032,6 +3024,14 @@ document.addEventListener('keydown', function(e) {
   }
 });
 </script>
+
+<!-- Global package dev toggle — visible on every step -->
+<div class="pkg-dev">
+  <span class="pkg-dev-label">Package</span>
+  <button class="pkg-dev-btn" id="pkgDevStarter" onclick="setPackagePreview('starter')">Starter</button>
+  <button class="pkg-dev-btn active" id="pkgDevGrowth" onclick="setPackagePreview('growth')">Growth</button>
+  <button class="pkg-dev-btn" id="pkgDevPro" onclick="setPackagePreview('pro')">Pro</button>
+</div>
 
 </body>
 </html>

@@ -61,6 +61,20 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
 .add-job-btn { padding: 10px 22px; border-radius: 8px; border: 1px solid #d4d2d0; background: #fff; font-size: 14px; font-weight: 700; color: #0044B3; cursor: pointer; font-family: inherit; transition: all 0.15s; }
 .add-job-btn:hover { background: #f0f5ff; border-color: #0044B3; }
 
+/* Package meta line + at-capacity panel (shared pattern across flow) */
+.pkg-meta { font-size: 13px; color: #595959; line-height: 1.5; margin-bottom: 20px; }
+.pkg-meta .pkg-sep { color: #9ca3af; margin: 0 4px; }
+.pkg-capacity-panel { display: none; padding: 18px 20px; background: #fafafa; border: 1px solid #ebebeb; border-radius: 8px; margin-top: 24px; }
+.pkg-cap-title { font-size: 14px; font-weight: 600; color: #2d2d2d; margin-bottom: 4px; }
+.pkg-cap-sub { font-size: 13px; color: #595959; }
+
+/* Package dev toggle (fixed bottom-right) */
+.pkg-dev { position: fixed; bottom: 20px; right: 20px; background: #1f2937; color: #fff; border-radius: 999px; padding: 6px; display: flex; align-items: center; gap: 4px; box-shadow: 0 6px 20px rgba(0,0,0,0.25); z-index: 9999; font-size: 12px; }
+.pkg-dev-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #9ca3af; padding: 0 10px 0 12px; }
+.pkg-dev-btn { background: transparent; border: none; color: #d1d5db; font-family: inherit; font-size: 12px; font-weight: 600; padding: 7px 14px; border-radius: 999px; cursor: pointer; transition: all 0.15s; }
+.pkg-dev-btn:hover { color: #fff; }
+.pkg-dev-btn.active { background: #0044B3; color: #fff; }
+
 /* Summary text */
 .summary-text { font-size: 16px; color: #595959; line-height: 1.7; }
 
@@ -509,6 +523,8 @@ body.collapsed .main { margin-left: 60px; }
     </div>
     <div class="section-divider"></div>
     <div class="section-body">
+      <div class="pkg-meta" id="editPackageMeta">Growth package<span class="pkg-sep">&middot;</span>2 of 3 jobs added</div>
+      <div id="editJobsWrap">
       <div class="job-card">
         <div class="job-card-top">
           <div>
@@ -540,9 +556,14 @@ body.collapsed .main { margin-left: 60px; }
           Join our growing clinic as a Medical Assistant supporting physicians and nurses in delivering excellent patient care. You will handle clinical and administrative duties including patient intake, vitals, scheduling, and electronic health recor...
         </div>
       </div>
-      <div class="add-job-row">
+      <div class="add-job-row" id="editAddJobRow">
         <button class="add-job-btn">Create a new job</button>
         <button class="add-job-btn">Add an existing job</button>
+      </div>
+      </div><!-- /#editJobsWrap -->
+      <div class="pkg-capacity-panel" id="editCapacityPanel">
+        <div class="pkg-cap-title" id="editCapTitle"></div>
+        <div class="pkg-cap-sub" id="editCapSub"></div>
       </div>
     </div>
   </div>
@@ -1329,7 +1350,71 @@ document.addEventListener('keydown', function(e) {
     if (modal && modal.classList.contains('open')) closeFeedbackModal();
   }
 });
+
+/* ═══ Package usage display ═══ */
+var PACKAGE_LIMITS = { starter: 1, growth: 3, pro: 6 };
+var PACKAGE_NAMES  = { starter: 'Starter', growth: 'Growth', pro: 'Pro' };
+var currentPackage = 'growth';
+
+function setPackagePreview(pkg) {
+  if (!PACKAGE_LIMITS[pkg]) return;
+  currentPackage = pkg;
+  ['Starter','Growth','Pro'].forEach(function(name) {
+    var btn = document.getElementById('pkgDev' + name);
+    if (btn) btn.classList.toggle('active', name.toLowerCase() === pkg);
+  });
+  // For Starter demo, hide the second job card so state is 1/1
+  var cards = document.querySelectorAll('#editJobsWrap .job-card');
+  if (cards.length >= 2) {
+    cards[1].style.display = (pkg === 'starter') ? 'none' : '';
+  }
+  recomputeEditPackageUsage();
+}
+
+function recomputeEditPackageUsage() {
+  var limit = PACKAGE_LIMITS[currentPackage];
+  var name = PACKAGE_NAMES[currentPackage];
+  var cards = document.querySelectorAll('#editJobsWrap .job-card');
+  var visible = 0;
+  cards.forEach(function(c) { if (c.style.display !== 'none') visible++; });
+
+  var meta = document.getElementById('editPackageMeta');
+  if (meta) {
+    meta.innerHTML = name + ' package<span class="pkg-sep">&middot;</span>' + visible + ' of ' + limit + ' jobs added';
+  }
+
+  var addRow = document.getElementById('editAddJobRow');
+  var cap = document.getElementById('editCapacityPanel');
+  if (!addRow || !cap) return;
+
+  if (visible >= limit) {
+    addRow.style.display = 'none';
+    cap.style.display = 'block';
+    var title = document.getElementById('editCapTitle');
+    var sub = document.getElementById('editCapSub');
+    if (currentPackage === 'starter') {
+      title.textContent = "You've added your job";
+      sub.textContent = "This is the one job included with your Starter package.";
+    } else {
+      title.textContent = "You've added all " + limit + " jobs included with your " + name + " package";
+      sub.textContent = "To add a different job, remove one above.";
+    }
+  } else {
+    addRow.style.display = 'flex';
+    cap.style.display = 'none';
+  }
+}
+
+document.addEventListener('DOMContentLoaded', recomputeEditPackageUsage);
 </script>
+
+<!-- Global package dev toggle -->
+<div class="pkg-dev">
+  <span class="pkg-dev-label">Package</span>
+  <button class="pkg-dev-btn" id="pkgDevStarter" onclick="setPackagePreview('starter')">Starter</button>
+  <button class="pkg-dev-btn active" id="pkgDevGrowth" onclick="setPackagePreview('growth')">Growth</button>
+  <button class="pkg-dev-btn" id="pkgDevPro" onclick="setPackagePreview('pro')">Pro</button>
+</div>
 
 </body>
 </html>
