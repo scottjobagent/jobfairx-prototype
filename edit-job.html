@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Edit Job - JobFairX</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; background: #f3f2ef; color: #2d2d2d; min-height: 100vh; font-size: 14px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+
+.container { max-width: 820px; margin: 0 auto; padding: 32px 32px 60px; }
+
+.back-link { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: #0044B3; text-decoration: none; font-weight: 600; margin-bottom: 28px; cursor: pointer; background: none; border: none; font-family: inherit; }
+.back-link:hover { text-decoration: underline; }
+.back-link svg { width: 16px; height: 16px; }
+
+.header-card { background: #fff; border-radius: 12px; border: 1px solid #d4d2d0; padding: 32px 40px; margin-bottom: 22px; }
+.header-card h1 { font-size: 30px; font-weight: 700; color: #2d2d2d; line-height: 1.25; }
+.header-sub { font-size: 15px; color: #767676; margin-top: 8px; font-weight: 400; }
+.header-sub strong { color: #2d2d2d; font-weight: 600; }
+
+/* Card */
+.form-card { background: #fff; border-radius: 12px; border: 1px solid #d4d2d0; padding: 32px 40px; margin-bottom: 22px; }
+.card-title { font-size: 20px; font-weight: 700; color: #2d2d2d; margin-bottom: 20px; }
+
+/* Review table (ported from setup-flow step 3) */
+.review-table { width: 100%; border-collapse: collapse; }
+.review-row { border-bottom: 1px solid #e5e4e1; }
+.review-row:last-child { border-bottom: none; }
+.review-row td { padding: 18px 0; vertical-align: top; font-size: 16px; font-weight: 400; color: #2d2d2d; line-height: 1.5; }
+.review-row td:first-child { font-weight: 700; width: 180px; padding-right: 24px; white-space: nowrap; }
+.review-row td.val-cell { word-wrap: break-word; }
+.review-row td:last-child { width: 44px; text-align: right; padding-left: 16px; }
+
+.review-edit-btn { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border: none; background: transparent; border-radius: 6px; cursor: pointer; color: #0044B3; transition: background 0.15s; }
+.review-edit-btn:hover { background: #f3f2ef; }
+.review-edit-btn svg { width: 18px; height: 18px; }
+
+.review-lock { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 6px; color: #a8a8a8; cursor: help; position: relative; }
+.review-lock svg { width: 16px; height: 16px; }
+.review-lock:hover::after {
+  content: "Can't change after posting";
+  position: absolute; right: 44px; top: 50%; transform: translateY(-50%);
+  background: #2d2d2d; color: #fff; font-size: 12px; font-weight: 500;
+  padding: 6px 10px; border-radius: 6px; white-space: nowrap; z-index: 10;
+}
+.review-row.locked td:first-child { color: #767676; }
+.review-row.locked .val-cell { color: #767676; }
+
+.val-display { display: block; }
+.val-placeholder { color: #a8a8a8; font-style: italic; }
+
+/* Inline editor */
+.val-editor { display: none; margin-top: 10px; }
+.review-row.editing .val-display { display: none; }
+.review-row.editing .val-editor { display: block; }
+.review-row.editing { background: #f9fbff; }
+.review-row.editing td:first-child { padding-left: 16px; }
+.review-row.editing td { padding-top: 20px; padding-bottom: 20px; }
+.review-row.editing .review-edit-btn { display: none; }
+
+.edit-input { width: 100%; padding: 12px 16px; font-size: 15px; font-family: inherit; color: #2d2d2d; border: 2px solid #a8a8a8; border-radius: 8px; outline: none; transition: border-color 0.15s, box-shadow 0.15s; background: #fff; }
+.edit-input:focus { border-color: #0044B3; box-shadow: 0 0 0 2px rgba(0,68,179,0.15); }
+textarea.edit-input { min-height: 140px; resize: vertical; line-height: 1.55; }
+
+.edit-hint { font-size: 13px; color: #767676; margin-top: 6px; }
+
+.edit-actions { display: flex; gap: 10px; margin-top: 14px; }
+.edit-btn-save { padding: 10px 20px; border-radius: 8px; border: none; background: #0044B3; color: #fff; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; transition: background 0.15s; }
+.edit-btn-save:hover { background: #003399; }
+.edit-btn-cancel { padding: 10px 20px; border-radius: 8px; border: 1px solid #d4d2d0; background: #fff; color: #2d2d2d; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+.edit-btn-cancel:hover { background: #f3f2ef; }
+
+/* Description preview */
+.desc-preview { max-height: 100px; overflow: hidden; position: relative; }
+.desc-preview.expanded { max-height: none; }
+.desc-show-full { color: #0044B3; font-weight: 700; font-size: 14px; cursor: pointer; margin-top: 8px; display: inline-block; background: none; border: none; font-family: inherit; padding: 0; }
+.desc-show-full:hover { text-decoration: underline; }
+
+/* Bottom action bar */
+.bottom-bar { background: #fff; border-radius: 12px; border: 1px solid #d4d2d0; padding: 22px 32px; display: flex; align-items: center; justify-content: space-between; }
+.bottom-bar .left { font-size: 13px; color: #767676; }
+.bottom-bar-actions { display: flex; gap: 12px; }
+.bottom-cancel { padding: 12px 26px; border-radius: 8px; border: 1px solid #d4d2d0; background: #fff; color: #2d2d2d; font-size: 15px; font-weight: 700; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+.bottom-cancel:hover { background: #f3f2ef; }
+.bottom-save { padding: 12px 28px; border-radius: 8px; border: none; background: #0044B3; color: #fff; font-size: 15px; font-weight: 700; cursor: pointer; font-family: inherit; transition: background 0.15s; }
+.bottom-save:hover { background: #003399; }
+.bottom-save:disabled { background: #a8a8a8; cursor: not-allowed; }
+
+/* Toast */
+.toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(20px); background: #2d2d2d; color: #fff; padding: 14px 26px; border-radius: 10px; font-size: 14px; font-weight: 600; box-shadow: 0 6px 24px rgba(0,0,0,0.22); opacity: 0; transition: all 0.25s; z-index: 999; display: flex; align-items: center; gap: 10px; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast svg { width: 18px; height: 18px; color: #4ade80; }
+
+/* Unsaved-changes dot */
+.dirty-dot { display: none; width: 8px; height: 8px; border-radius: 50%; background: #0044B3; margin-left: 8px; }
+body.dirty .dirty-dot { display: inline-block; }
+
+/* Dev toggle (choose which job to preview) */
+.job-dev { position: fixed; bottom: 20px; right: 20px; background: #1f2937; color: #fff; border-radius: 999px; padding: 6px; display: flex; align-items: center; gap: 4px; box-shadow: 0 6px 20px rgba(0,0,0,0.25); z-index: 500; }
+.job-dev-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #9ca3af; padding: 0 10px 0 12px; }
+.job-dev-btn { background: transparent; border: none; color: #d1d5db; font-family: inherit; font-size: 12px; font-weight: 600; padding: 7px 14px; border-radius: 999px; cursor: pointer; transition: all 0.15s; }
+.job-dev-btn:hover { color: #fff; }
+.job-dev-btn.active { background: #0044B3; color: #fff; }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <button class="back-link" onclick="goBack()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><polyline points="12 19 5 12 12 5"/></svg>
+    Back to Edit Jobs &amp; Settings
+  </button>
+
+  <div class="header-card">
+    <h1>Edit job<span class="dirty-dot" title="Unsaved changes"></span></h1>
+    <div class="header-sub">Update your job posting for <strong id="headerEventName">—</strong>. Job title and location can't be changed after posting.</div>
+  </div>
+
+  <div class="form-card">
+    <div class="card-title">Job details</div>
+
+    <table class="review-table">
+      <!-- Job title (LOCKED) -->
+      <tr class="review-row locked" data-field="title">
+        <td>Job title</td>
+        <td class="val-cell"><span class="val-display" data-display="title"></span></td>
+        <td>
+          <span class="review-lock" title="Can't change after posting">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+          </span>
+        </td>
+      </tr>
+
+      <!-- Location (LOCKED) -->
+      <tr class="review-row locked" data-field="location">
+        <td>Location</td>
+        <td class="val-cell"><span class="val-display" data-display="location"></span></td>
+        <td>
+          <span class="review-lock" title="Can't change after posting">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+          </span>
+        </td>
+      </tr>
+
+      <!-- Job type -->
+      <tr class="review-row" data-field="jobType" data-editor="select" data-options="Full-time|Part-time|Contract|Temporary|Internship">
+        <td>Job type</td>
+        <td class="val-cell">
+          <span class="val-display" data-display="jobType"></span>
+          <div class="val-editor"></div>
+        </td>
+        <td><button class="review-edit-btn" onclick="beginEdit(this)" title="Edit"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button></td>
+      </tr>
+
+      <!-- Pay -->
+      <tr class="review-row" data-field="pay" data-editor="text">
+        <td>Pay</td>
+        <td class="val-cell">
+          <span class="val-display" data-display="pay"></span>
+          <div class="val-editor"></div>
+        </td>
+        <td><button class="review-edit-btn" onclick="beginEdit(this)" title="Edit"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button></td>
+      </tr>
+
+      <!-- Benefits -->
+      <tr class="review-row" data-field="benefits" data-editor="textarea" data-hint="Comma-separated list works best (e.g. Health insurance, Dental, 401k)">
+        <td>Benefits</td>
+        <td class="val-cell">
+          <span class="val-display" data-display="benefits"></span>
+          <div class="val-editor"></div>
+        </td>
+        <td><button class="review-edit-btn" onclick="beginEdit(this)" title="Edit"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button></td>
+      </tr>
+
+      <!-- Standard Shift -->
+      <tr class="review-row" data-field="shift" data-editor="text" data-hint="e.g. Day shift, Night shift, Evening">
+        <td>Standard Shift</td>
+        <td class="val-cell">
+          <span class="val-display" data-display="shift"></span>
+          <div class="val-editor"></div>
+        </td>
+        <td><button class="review-edit-btn" onclick="beginEdit(this)" title="Edit"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button></td>
+      </tr>
+
+      <!-- Weekly Schedule -->
+      <tr class="review-row" data-field="schedule" data-editor="text" data-hint="e.g. Monday to Friday, Weekends as needed">
+        <td>Weekly Schedule</td>
+        <td class="val-cell">
+          <span class="val-display" data-display="schedule"></span>
+          <div class="val-editor"></div>
+        </td>
+        <td><button class="review-edit-btn" onclick="beginEdit(this)" title="Edit"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button></td>
+      </tr>
+
+      <!-- Job description -->
+      <tr class="review-row" data-field="desc" data-editor="textarea">
+        <td>Job description</td>
+        <td class="val-cell">
+          <div class="val-display">
+            <div class="desc-preview" id="descPreview"></div>
+            <button class="desc-show-full" id="descShowFull" onclick="toggleDescPreview()">Show full description</button>
+          </div>
+          <div class="val-editor"></div>
+        </td>
+        <td><button class="review-edit-btn" onclick="beginEdit(this)" title="Edit"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button></td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="bottom-bar">
+    <div class="left">Changes save to this job posting. Candidates won't be notified.</div>
+    <div class="bottom-bar-actions">
+      <button class="bottom-cancel" onclick="goBack()">Cancel</button>
+      <button class="bottom-save" id="bottomSave" onclick="saveAll()">Save changes</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+  <span id="toastMsg">Changes saved</span>
+</div>
+
+<!-- Dev toggle: preview different jobs -->
+<div class="job-dev" id="jobDev"></div>
+
+<script>
+/* ---------- Seed data (mirrors dashboard) ---------- */
+var JOBS = {
+  ma: {
+    event: 'dallas',
+    eventName: 'Dallas Healthcare Hiring Event',
+    title: 'Medical Assistant',
+    location: 'Dallas, TX · In person',
+    jobType: 'Full-time',
+    pay: '$38,000 – $48,000 / year',
+    benefits: 'Health insurance, Dental, Vision, 401(k), Paid time off',
+    shift: 'Day shift',
+    schedule: 'Monday to Friday',
+    desc: "Join our growing clinic as a Medical Assistant supporting physicians and nurses in delivering excellent patient care. You will handle clinical and administrative duties including patient intake, vitals, scheduling, and electronic health records.\n\nResponsibilities:\n• Patient intake and vitals\n• Assist physicians with exams\n• Maintain accurate EHR records\n• Schedule follow-up appointments\n\nRequirements:\n• Medical Assistant certification\n• 1+ year of clinical experience preferred\n• Strong organizational and communication skills"
+  },
+  rn: {
+    event: 'dallas',
+    eventName: 'Dallas Healthcare Hiring Event',
+    title: 'Registered Nurse',
+    location: 'Dallas, TX · In person',
+    jobType: 'Full-time',
+    pay: '$55,000 – $72,000 / year',
+    benefits: 'Health insurance, Dental, Vision, 401(k), Paid time off',
+    shift: 'Day shift, 12-hour shifts',
+    schedule: 'Monday to Friday, Rotating weekends',
+    desc: "We are seeking a compassionate and skilled Registered Nurse to join our healthcare team. The ideal candidate will provide high-quality patient care in a fast-paced environment and collaborate with a multidisciplinary team to ensure the best outcomes for every patient.\n\nResponsibilities:\n• Assess patient conditions and develop nursing care plans\n• Administer medications and treatments per physician orders\n• Monitor patient progress and document observations\n• Educate patients and families on health management\n\nRequirements:\n• Active RN license in Texas\n• BLS certification\n• Minimum 1 year of clinical experience preferred"
+  },
+  se: {
+    event: 'chicago',
+    eventName: 'Chicago Technology Hiring Event',
+    title: 'Software Engineer',
+    location: 'Chicago, IL · Hybrid',
+    jobType: 'Full-time',
+    pay: '$115,000 – $145,000 / year',
+    benefits: 'Health insurance, Dental, Vision, 401(k) matching, Unlimited PTO, Stock options',
+    shift: 'Day shift',
+    schedule: 'Monday to Friday',
+    desc: "Join our growing engineering team to build and scale our core platform. You'll work with modern technologies, collaborate across product and design, and contribute to system architecture decisions.\n\nResponsibilities:\n• Design, build, and maintain high-quality, scalable services\n• Write clean, well-tested, maintainable code\n• Participate in code reviews and architectural discussions\n• Partner with PM and design on new features\n\nRequirements:\n• 3+ years of professional software engineering experience\n• Strong fundamentals in data structures and algorithms\n• Experience with modern web frameworks"
+  },
+  devops: {
+    event: 'chicago',
+    eventName: 'Chicago Technology Hiring Event',
+    title: 'DevOps Engineer',
+    location: 'Chicago, IL · Hybrid',
+    jobType: 'Full-time',
+    pay: '$125,000 – $155,000 / year',
+    benefits: 'Health insurance, Dental, Vision, 401(k) matching, Unlimited PTO',
+    shift: 'Day shift',
+    schedule: 'Monday to Friday, On-call rotation',
+    desc: "We're looking for a DevOps Engineer to own our infrastructure and deployment pipelines. You'll work closely with engineering to build reliable, observable, and secure systems.\n\nResponsibilities:\n• Maintain and improve CI/CD pipelines\n• Manage cloud infrastructure (AWS)\n• Monitor system health and respond to incidents\n• Drive infrastructure-as-code adoption\n\nRequirements:\n• 3+ years of DevOps or SRE experience\n• Strong Linux and scripting skills\n• Experience with Kubernetes, Terraform, and AWS"
+  },
+  ux: {
+    event: 'chicago',
+    eventName: 'Chicago Technology Hiring Event',
+    title: 'UX Designer',
+    location: 'Chicago, IL · Hybrid',
+    jobType: 'Full-time',
+    pay: '$95,000 – $125,000 / year',
+    benefits: 'Health insurance, Dental, Vision, 401(k) matching, Unlimited PTO',
+    shift: 'Day shift',
+    schedule: 'Monday to Friday',
+    desc: "We're hiring a UX Designer to shape the experience of our product end-to-end. You'll partner with PM and engineering to research, prototype, and ship thoughtful user experiences.\n\nResponsibilities:\n• Lead design for complex product areas\n• Conduct user research and usability testing\n• Prototype and iterate quickly\n• Contribute to and evolve the design system\n\nRequirements:\n• 3+ years of product design experience\n• Strong portfolio demonstrating end-to-end product work\n• Experience with Figma"
+  }
+};
+
+var DESC_LIMIT = 260;
+var state = { jobId: 'rn', data: null, original: null, dirty: false };
+
+/* ---------- Bootstrap ---------- */
+function getJobIdFromUrl() {
+  var p = new URLSearchParams(window.location.search);
+  var j = (p.get('job') || '').toLowerCase();
+  return JOBS[j] ? j : 'rn';
+}
+
+function loadJob(jobId) {
+  if (!JOBS[jobId]) jobId = 'rn';
+  state.jobId = jobId;
+  state.data = Object.assign({}, JOBS[jobId]);
+  state.original = Object.assign({}, JOBS[jobId]);
+  state.dirty = false;
+  document.body.classList.remove('dirty');
+  // Close any open editors
+  document.querySelectorAll('.review-row.editing').forEach(function(r) { r.classList.remove('editing'); });
+  renderAll();
+  // Update header
+  document.getElementById('headerEventName').textContent = state.data.eventName;
+  // Update dev toggle active state
+  document.querySelectorAll('.job-dev-btn').forEach(function(b) {
+    b.classList.toggle('active', b.dataset.job === jobId);
+  });
+}
+
+function renderAll() {
+  document.querySelector('[data-display="title"]').textContent = state.data.title;
+  document.querySelector('[data-display="location"]').textContent = state.data.location;
+  renderField('jobType');
+  renderField('pay');
+  renderField('benefits');
+  renderField('shift');
+  renderField('schedule');
+  renderDesc();
+}
+
+function renderField(field) {
+  var el = document.querySelector('[data-display="' + field + '"]');
+  if (!el) return;
+  var val = state.data[field];
+  if (val && val.trim()) {
+    el.textContent = val;
+    el.classList.remove('val-placeholder');
+  } else {
+    el.textContent = 'Not set';
+    el.classList.add('val-placeholder');
+  }
+}
+
+function renderDesc() {
+  var preview = document.getElementById('descPreview');
+  var showBtn = document.getElementById('descShowFull');
+  var desc = state.data.desc || '';
+  preview.textContent = desc;
+  preview.classList.remove('expanded');
+  showBtn.textContent = 'Show full description';
+  if (desc.length > DESC_LIMIT) {
+    showBtn.style.display = 'inline-block';
+  } else {
+    showBtn.style.display = 'none';
+    preview.classList.add('expanded');
+  }
+}
+
+function toggleDescPreview() {
+  var preview = document.getElementById('descPreview');
+  var btn = document.getElementById('descShowFull');
+  var expanded = preview.classList.toggle('expanded');
+  btn.textContent = expanded ? 'Show less' : 'Show full description';
+}
+
+/* ---------- Inline editor ---------- */
+function beginEdit(btn) {
+  var row = btn.closest('.review-row');
+  var field = row.dataset.field;
+  var editorType = row.dataset.editor;
+
+  // Close any other open rows
+  document.querySelectorAll('.review-row.editing').forEach(function(r) {
+    if (r !== row) cancelEdit(r);
+  });
+
+  var editor = row.querySelector('.val-editor');
+  editor.innerHTML = buildEditorHtml(field, editorType, row);
+  row.classList.add('editing');
+
+  var input = editor.querySelector('.edit-input');
+  if (input) {
+    input.focus();
+    if (input.select) input.select();
+  }
+}
+
+function buildEditorHtml(field, type, row) {
+  var current = state.data[field] || '';
+  var hint = row.dataset.hint || '';
+  var html = '';
+
+  if (type === 'select') {
+    var opts = (row.dataset.options || '').split('|');
+    html += '<select class="edit-input">';
+    opts.forEach(function(opt) {
+      var sel = opt === current ? ' selected' : '';
+      html += '<option value="' + escapeAttr(opt) + '"' + sel + '>' + escapeHtml(opt) + '</option>';
+    });
+    html += '</select>';
+  } else if (type === 'textarea') {
+    html += '<textarea class="edit-input">' + escapeHtml(current) + '</textarea>';
+  } else {
+    html += '<input type="text" class="edit-input" value="' + escapeAttr(current) + '">';
+  }
+
+  if (hint) html += '<div class="edit-hint">' + escapeHtml(hint) + '</div>';
+
+  html += '<div class="edit-actions">';
+  html += '  <button class="edit-btn-save" onclick="commitEdit(this)">Save</button>';
+  html += '  <button class="edit-btn-cancel" onclick="cancelEditBtn(this)">Cancel</button>';
+  html += '</div>';
+  return html;
+}
+
+function commitEdit(btn) {
+  var row = btn.closest('.review-row');
+  var field = row.dataset.field;
+  var input = row.querySelector('.edit-input');
+  var newVal = input.value;
+  state.data[field] = newVal;
+  row.classList.remove('editing');
+  if (field === 'desc') {
+    renderDesc();
+  } else {
+    renderField(field);
+  }
+  markDirty();
+}
+
+function cancelEditBtn(btn) {
+  var row = btn.closest('.review-row');
+  cancelEdit(row);
+}
+
+function cancelEdit(row) {
+  row.classList.remove('editing');
+  var editor = row.querySelector('.val-editor');
+  if (editor) editor.innerHTML = '';
+}
+
+function markDirty() {
+  var dirty = false;
+  for (var k in state.original) {
+    if (state.original[k] !== state.data[k]) { dirty = true; break; }
+  }
+  state.dirty = dirty;
+  document.body.classList.toggle('dirty', dirty);
+}
+
+function saveAll() {
+  // Close any open editor first (so in-flight typing is committed)
+  var openRow = document.querySelector('.review-row.editing');
+  if (openRow) {
+    var btn = openRow.querySelector('.edit-btn-save');
+    if (btn) commitEdit(btn);
+  }
+  // Persist: in a real app this would hit an API. Here we just update the seed.
+  JOBS[state.jobId] = Object.assign({}, state.data);
+  state.original = Object.assign({}, state.data);
+  state.dirty = false;
+  document.body.classList.remove('dirty');
+  showToast('Changes saved');
+}
+
+function goBack() {
+  if (state.dirty) {
+    if (!confirm('You have unsaved changes. Leave without saving?')) return;
+  }
+  // Close the tab if we were opened in a new window, otherwise navigate back.
+  if (window.opener && !window.opener.closed) {
+    window.close();
+    return;
+  }
+  // Try to go back to the edit-post page for this event
+  var eventKey = state.data ? state.data.event : 'dallas';
+  window.location.href = 'edit-post.html?event=' + eventKey;
+}
+
+function showToast(msg) {
+  var toast = document.getElementById('toast');
+  document.getElementById('toastMsg').textContent = msg;
+  toast.classList.add('show');
+  setTimeout(function() { toast.classList.remove('show'); }, 2200);
+}
+
+/* ---------- Helpers ---------- */
+function escapeHtml(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+function escapeAttr(s) {
+  return escapeHtml(s).replace(/"/g, '&quot;');
+}
+
+/* ---------- Dev toggle ---------- */
+function renderDevToggle() {
+  var dev = document.getElementById('jobDev');
+  var html = '<span class="job-dev-label">Job</span>';
+  Object.keys(JOBS).forEach(function(id) {
+    var job = JOBS[id];
+    html += '<button class="job-dev-btn" data-job="' + id + '" onclick="devSwitchJob(\'' + id + '\')">' + escapeHtml(job.title) + '</button>';
+  });
+  dev.innerHTML = html;
+}
+function devSwitchJob(jobId) {
+  if (state.dirty && !confirm('Unsaved changes will be lost. Continue?')) return;
+  loadJob(jobId);
+}
+
+/* ---------- Warn on unload ---------- */
+window.addEventListener('beforeunload', function(e) {
+  if (state.dirty) {
+    e.preventDefault();
+    e.returnValue = '';
+  }
+});
+
+/* ---------- Init ---------- */
+document.addEventListener('DOMContentLoaded', function() {
+  renderDevToggle();
+  loadJob(getJobIdFromUrl());
+});
+</script>
+
+</body>
+</html>
