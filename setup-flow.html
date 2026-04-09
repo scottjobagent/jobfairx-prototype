@@ -335,6 +335,20 @@ body.collapsed .progress-bar-track { left: 60px; }
 /* Screening Modals */
 .sc-modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
 .sc-modal-overlay.open { display: flex; }
+.confirm-modal-box { background: #fff; border-radius: 12px; width: 440px; max-width: 90vw; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+.confirm-modal-header { display: flex; align-items: center; justify-content: space-between; padding: 24px 28px 16px; }
+.confirm-modal-header h3 { font-size: 18px; font-weight: 700; color: #2d2d2d; }
+.confirm-modal-close { background: none; border: none; cursor: pointer; padding: 4px; color: #767676; font-size: 22px; }
+.confirm-modal-close:hover { color: #2d2d2d; }
+.confirm-modal-divider { height: 1px; background: #e0e0e0; }
+.confirm-modal-body { padding: 24px 28px; }
+.confirm-modal-text { font-size: 15px; color: #2d2d2d; line-height: 1.5; }
+.confirm-modal-warning { font-size: 14px; color: #767676; margin-top: 8px; }
+.confirm-modal-footer { padding: 16px 28px 24px; display: flex; align-items: center; justify-content: flex-end; gap: 12px; }
+.confirm-modal-btn { padding: 12px 28px; font-size: 14px; font-weight: 700; border-radius: 8px; cursor: pointer; font-family: inherit; border: 1px solid #d4d2d0; background: #fff; color: #2d2d2d; transition: all 0.15s; }
+.confirm-modal-btn:hover { background: #f6f5f3; }
+.confirm-modal-btn-danger { background: #991b1b; color: #fff; border: none; }
+.confirm-modal-btn-danger:hover { background: #7f1d1d; }
 .sc-modal-card { background: white; border-radius: 12px; padding: 32px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; position: relative; }
 .sc-modal-close { position: absolute; top: 20px; right: 20px; background: none; border: none; font-size: 28px; color: #767676; cursor: pointer; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; line-height: 1; }
 .sc-modal-close:hover { color: #2d2d2d; }
@@ -1149,7 +1163,7 @@ body.collapsed .progress-bar-track { left: 60px; }
               $104,039.24 - $125,294.57 a year
             </div>
           </div>
-          <button class="jd-remove-btn" onclick="document.getElementById('step5Job1').style.display='none'">Remove job</button>
+          <button class="jd-remove-btn" onclick="confirmRemoveJob('step5Job1', 'Frontend Developer')">Remove job</button>
         </div>
         <div class="jd-desc-title">Job Summary</div>
         <div class="jd-desc-text" id="step5Desc1">We are seeking a dynamic and innovative Frontend Developer to join our vibrant tech team! In this role, you will be at the forefront of creating engaging, responsive, and user-friendly web interfaces that elevate our digital...</div>
@@ -1169,7 +1183,7 @@ body.collapsed .progress-bar-track { left: 60px; }
             Henderson, NV 89052
           </div>
         </div>
-        <button class="jd-remove-btn" onclick="document.getElementById('step5Job2').style.display='none'">Remove job</button>
+        <button class="jd-remove-btn" onclick="confirmRemoveJob('step5Job2', 'Sales Associate')">Remove job</button>
       </div>
 
       <div class="jd-desc-title">Job Summary</div>
@@ -1603,6 +1617,25 @@ body.collapsed .progress-bar-track { left: 60px; }
     <div class="sc-modal-actions">
       <button type="button" class="sc-modal-btn-cancel" onclick="closeSetupModal('setupMultipleScreeningModal')">Cancel</button>
       <button type="button" class="sc-modal-btn-save" onclick="proceedMultipleScreeningSetup()">Next</button>
+    </div>
+  </div>
+</div>
+
+<!-- Remove Job Confirmation Modal -->
+<div class="sc-modal-overlay" id="removeJobModal">
+  <div class="confirm-modal-box">
+    <div class="confirm-modal-header">
+      <h3 id="removeJobTitle">Remove this job?</h3>
+      <button class="confirm-modal-close" onclick="closeSetupModal('removeJobModal')">&times;</button>
+    </div>
+    <div class="confirm-modal-divider"></div>
+    <div class="confirm-modal-body">
+      <p class="confirm-modal-text" id="removeJobText">Are you sure you want to remove this job from the event?</p>
+      <p class="confirm-modal-warning">You can add it back later from the job details step.</p>
+    </div>
+    <div class="confirm-modal-footer">
+      <button class="confirm-modal-btn" onclick="closeSetupModal('removeJobModal')">Keep Job</button>
+      <button class="confirm-modal-btn confirm-modal-btn-danger" id="removeJobConfirmBtn">Remove Job</button>
     </div>
   </div>
 </div>
@@ -2670,6 +2703,19 @@ function openSetupModal(modalId) {
 function closeSetupModal(modalId) {
   document.getElementById(modalId).classList.remove('open');
   document.body.style.overflow = '';
+}
+
+var pendingRemoveJobId = null;
+function confirmRemoveJob(jobId, jobName) {
+  pendingRemoveJobId = jobId;
+  document.getElementById('removeJobTitle').textContent = 'Remove ' + jobName + '?';
+  document.getElementById('removeJobText').textContent = 'Are you sure you want to remove ' + jobName + ' from this event?';
+  document.getElementById('removeJobConfirmBtn').onclick = function() {
+    document.getElementById(pendingRemoveJobId).style.display = 'none';
+    closeSetupModal('removeJobModal');
+    pendingRemoveJobId = null;
+  };
+  openSetupModal('removeJobModal');
 }
 
 /* ═══ Step 4: Review Interview Details ═══ */
