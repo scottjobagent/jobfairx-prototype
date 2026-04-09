@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Account & Billing - JobFairX</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; background: #f3f2ef; color: #2d2d2d; min-height: 100vh; font-size: 14px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+
+/* ═══ SIDEBAR ═══ */
+.sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: 220px; background: #2d2d2d; display: flex; flex-direction: column; z-index: 300; transition: width 0.2s ease; overflow: hidden; }
+.sidebar.collapsed { width: 60px; }
+.sidebar.collapsed .nav-text,
+.sidebar.collapsed .badge,
+.sidebar.collapsed .collapse-text { display: none; }
+.sidebar.collapsed .nav-item { justify-content: center; padding: 10px 0; }
+.sidebar.collapsed .nav-item svg { margin: 0; }
+.sidebar.collapsed .collapse-btn { justify-content: center; }
+
+.sidebar-collapse { padding: 18px 16px 12px; }
+.collapse-btn { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 6px; border: none; background: transparent; cursor: pointer; font-size: 15px; font-weight: 600; color: rgba(255,255,255,0.9); font-family: inherit; transition: all 0.15s; width: 100%; }
+.collapse-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
+.collapse-btn svg { width: 20px; height: 20px; flex-shrink: 0; color: rgba(255,255,255,0.9); }
+
+.sidebar-nav { flex: 1; padding: 8px 12px; overflow-y: auto; }
+.nav-group { margin-bottom: 6px; }
+.nav-item { display: flex; align-items: center; gap: 14px; padding: 16px 18px; border-radius: 10px; font-size: 17px; font-weight: 500; color: rgba(255,255,255,0.85); cursor: pointer; transition: all 0.12s; text-decoration: none; letter-spacing: -0.1px; }
+.nav-item:hover { background: rgba(255,255,255,0.1); color: #fff; }
+.nav-item.active { background: rgba(255,255,255,0.18); color: #fff; font-weight: 700; }
+.nav-item svg { width: 24px; height: 24px; flex-shrink: 0; color: rgba(255,255,255,0.7); }
+.nav-item.active svg { color: #fff; }
+
+.sidebar-credits { padding: 12px 12px 16px; border-top: 1px solid rgba(255,255,255,0.1); }
+.sidebar.collapsed .sidebar-credits { display: none; }
+.credits-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; padding: 0 4px; }
+.credits-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: rgba(255,255,255,0.45); }
+.credits-link { font-size: 12px; font-weight: 600; color: #0044B3; text-decoration: none; cursor: pointer; }
+.credits-link:hover { text-decoration: underline; color: #003399; }
+.credits-grid { display: flex; background: rgba(255,255,255,0.06); border-radius: 8px; overflow: hidden; }
+.credit-col { flex: 1; text-align: center; padding: 10px 4px 8px; }
+.credit-col + .credit-col { border-left: 1px solid rgba(255,255,255,0.08); }
+.credit-num { font-size: 22px; font-weight: 800; color: #fff; line-height: 1; margin-bottom: 2px; }
+.credit-tier { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: rgba(255,255,255,0.4); }
+
+/* ═══ TOP HEADER ═══ */
+.topbar { position: fixed; top: 0; left: 220px; right: 0; height: 56px; background: #fff; border-bottom: 1px solid #d4d2d0; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; z-index: 200; transition: left 0.2s ease; }
+body.collapsed .topbar { left: 60px; }
+.topbar-logo { font-size: 22px; font-weight: 800; color: #0044B3; letter-spacing: -0.5px; text-decoration: none; cursor: pointer; }
+.topbar-left { display: flex; align-items: center; gap: 16px; }
+.topbar-right { display: flex; align-items: center; gap: 4px; }
+
+.user-trigger { display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 6px 12px; border-radius: 8px; transition: background 0.15s; position: relative; }
+.user-trigger:hover { background: #f3f2ef; }
+.user-trigger span { font-size: 13px; font-weight: 500; color: #2d2d2d; }
+.user-trigger svg { width: 14px; height: 14px; color: #999; }
+.user-menu { position: absolute; top: 42px; right: 0; background: #fff; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.12); border: 1px solid #d4d2d0; min-width: 220px; z-index: 500; display: none; padding: 6px 0; }
+.user-menu.open { display: block; }
+.user-menu-item { display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 18px; font-size: 14px; font-weight: 500; color: #2d2d2d; background: none; border: none; text-align: left; cursor: pointer; font-family: inherit; transition: background 0.1s; text-decoration: none; }
+.user-menu-item:hover { background: #f3f2ef; }
+.user-menu-item svg { width: 20px; height: 20px; color: #595959; }
+.user-menu-divider { height: 1px; background: #ebebeb; margin: 4px 0; }
+.user-menu-item.danger { color: #c4183c; }
+.user-menu-item.danger svg { color: #c4183c; }
+
+/* ═══ MAIN ═══ */
+.main { margin-left: 220px; margin-top: 56px; min-height: calc(100vh - 56px); transition: margin-left 0.2s ease; }
+body.collapsed .main { margin-left: 60px; }
+
+.container { max-width: 820px; margin: 0 auto; padding: 32px 32px 60px; }
+
+.back-link { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: #0044B3; text-decoration: none; font-weight: 600; margin-bottom: 20px; cursor: pointer; }
+.back-link:hover { text-decoration: underline; }
+.back-link svg { width: 16px; height: 16px; }
+
+.page-title { font-size: 32px; font-weight: 700; color: #2d2d2d; margin-bottom: 24px; }
+
+/* ═══ TABS ═══ */
+.tabs { display: flex; gap: 8px; border-bottom: 1px solid #d4d2d0; margin-bottom: 28px; }
+.tab { display: flex; align-items: center; gap: 8px; padding: 12px 18px; background: none; border: none; font-size: 15px; font-weight: 600; color: #595959; cursor: pointer; font-family: inherit; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s; }
+.tab:hover { color: #2d2d2d; }
+.tab.active { color: #0044B3; border-bottom-color: #0044B3; }
+.tab svg { width: 18px; height: 18px; }
+
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* ═══ SECTION CARDS ═══ */
+.section { background: #fff; border-radius: 12px; border: 1px solid #d4d2d0; margin-bottom: 22px; overflow: hidden; }
+.section-header { display: flex; align-items: center; justify-content: space-between; padding: 24px 32px; border-bottom: 1px solid #ebebeb; }
+.section-header h2 { font-size: 20px; font-weight: 700; color: #2d2d2d; }
+.section-body { padding: 28px 32px; }
+
+.section-edit-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 8px; border: 1px solid #d4d2d0; background: #fff; font-size: 13px; font-weight: 700; color: #2d2d2d; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+.section-edit-btn:hover { background: #f6f5f3; border-color: #2d2d2d; }
+.section-edit-btn svg { width: 14px; height: 14px; }
+
+/* ═══ FIELD GRID ═══ */
+.field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px 24px; }
+.field-grid .full { grid-column: 1 / -1; }
+
+.field-label { display: block; font-size: 13px; font-weight: 600; color: #595959; margin-bottom: 6px; }
+.field-value { font-size: 15px; font-weight: 500; color: #2d2d2d; min-height: 22px; }
+.field-value.muted { color: #767676; font-weight: 400; }
+
+.field-input { width: 100%; padding: 10px 14px; font-size: 15px; font-family: inherit; color: #2d2d2d; border: 1px solid #d4d2d0; border-radius: 8px; outline: none; transition: border-color 0.15s, box-shadow 0.15s; background: #fff; }
+.field-input:focus { border-color: #0044B3; box-shadow: 0 0 0 2px rgba(0,68,179,0.15); }
+.field-input[readonly] { background: #f6f5f3; color: #767676; cursor: not-allowed; }
+
+/* Hide input by default, show when editing */
+.section.editing .field-value { display: none; }
+.section.editing .field-input { display: block; }
+.section:not(.editing) .field-input { display: none; }
+.section:not(.editing) .section-edit-actions { display: none; }
+.section.editing .section-edit-btn { display: none; }
+
+.section-edit-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; padding-top: 20px; border-top: 1px solid #ebebeb; }
+.btn-cancel { background: #fff; border: 1px solid #d4d2d0; color: #2d2d2d; padding: 10px 22px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+.btn-cancel:hover { background: #f6f5f3; border-color: #2d2d2d; }
+.btn-save { background: #0044B3; color: #fff; border: none; padding: 10px 24px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; transition: background 0.15s; }
+.btn-save:hover { background: #003399; }
+
+/* ═══ Display row (billing address, payment method) ═══ */
+.display-block { font-size: 15px; color: #2d2d2d; line-height: 1.7; }
+.display-block .muted { color: #767676; }
+
+.payment-row { display: flex; align-items: center; gap: 18px; }
+.card-brand-badge { display: inline-flex; align-items: center; justify-content: center; padding: 6px 12px; background: #f0f5ff; border-radius: 6px; font-size: 12px; font-weight: 800; color: #0044B3; letter-spacing: 0.5px; }
+.card-brand-badge.mastercard { background: #fff4f0; color: #c4183c; }
+.card-brand-badge.amex { background: #eef4ff; color: #0044B3; }
+.card-brand-badge.discover { background: #fff7e6; color: #b8651c; }
+.card-number { font-size: 15px; font-weight: 600; color: #2d2d2d; letter-spacing: 0.5px; }
+.card-meta { font-size: 13px; color: #767676; margin-top: 2px; }
+
+/* ═══ Modal ═══ */
+.modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); z-index: 1000; align-items: center; justify-content: center; }
+.modal-overlay.open { display: flex; }
+
+.modal-card { background: #fff; border-radius: 12px; padding: 32px; max-width: 520px; width: 90%; max-height: 90vh; overflow-y: auto; position: relative; }
+.modal-close-btn { position: absolute; top: 20px; right: 20px; background: none; border: none; font-size: 28px; color: #767676; cursor: pointer; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; line-height: 1; }
+.modal-close-btn:hover { color: #2d2d2d; }
+
+.modal-title { font-size: 20px; font-weight: 700; color: #2d2d2d; margin-bottom: 4px; }
+.modal-title-sub { font-size: 14px; color: #595959; margin-bottom: 24px; }
+
+.modal-form-group { margin-bottom: 20px; }
+.modal-label { display: block; font-size: 13px; font-weight: 600; color: #595959; margin-bottom: 6px; }
+
+.modal-input, .modal-select { width: 100%; padding: 11px 14px; font-size: 15px; font-family: inherit; color: #2d2d2d; border: 1px solid #d4d2d0; border-radius: 8px; outline: none; transition: border-color 0.15s, box-shadow 0.15s; }
+.modal-input:focus, .modal-select:focus { border-color: #0044B3; box-shadow: 0 0 0 2px rgba(0,68,179,0.15); }
+.modal-select { background: #fff; cursor: pointer; }
+
+.modal-row { display: flex; gap: 12px; }
+.modal-row .modal-form-group { flex: 1; margin-bottom: 0; }
+.modal-row.triple .modal-form-group:first-child { flex: 2; }
+
+.modal-actions { display: flex; gap: 12px; margin-top: 28px; justify-content: flex-end; }
+
+/* ═══ Toast ═══ */
+.toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); background: #2d2d2d; color: #fff; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; z-index: 10000; display: none; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+.toast.show { display: block; }
+
+@media (max-width: 680px) {
+  .field-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ SIDEBAR ═══ -->
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-collapse">
+    <button class="collapse-btn" onclick="toggleSidebar()" title="Collapse sidebar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      <span class="collapse-text">Collapse</span>
+    </button>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-group">
+      <a class="nav-item" href="visual.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        <span class="nav-text">Dashboard</span>
+      </a>
+      <a class="nav-item" href="visual.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4-4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+        <span class="nav-text">Interviews</span>
+      </a>
+      <a class="nav-item" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+        <span class="nav-text">Messaging</span>
+      </a>
+    </div>
+  </div>
+  <div class="sidebar-credits">
+    <div class="credits-header">
+      <span class="credits-label">Event Credits</span>
+      <a class="credits-link">Get Credits</a>
+    </div>
+    <div class="credits-grid">
+      <div class="credit-col">
+        <div class="credit-num">2</div>
+        <div class="credit-tier">Starter</div>
+      </div>
+      <div class="credit-col">
+        <div class="credit-num">1</div>
+        <div class="credit-tier">Growth</div>
+      </div>
+      <div class="credit-col">
+        <div class="credit-num">0</div>
+        <div class="credit-tier">Pro</div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══ TOP BAR ═══ -->
+<header class="topbar">
+  <div class="topbar-left">
+    <a class="topbar-logo" href="visual.html">JobFairX</a>
+  </div>
+  <div class="topbar-right">
+    <div class="user-trigger" onclick="toggleDropdown('user-menu')">
+      <span>scott@jobfairx.com</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+      <div class="user-menu" id="user-menu">
+        <a class="user-menu-item" href="account-billing.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Account &amp; Billing</a>
+        <button class="user-menu-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>Give Feedback</button>
+        <div class="user-menu-divider"></div>
+        <button class="user-menu-item danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>Sign Out</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ═══ MAIN CONTENT ═══ -->
+<div class="main">
+<div class="container">
+
+  <a class="back-link" href="visual.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+    Back to dashboard
+  </a>
+
+  <h1 class="page-title">Account &amp; Billing</h1>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab active" data-tab="account" onclick="switchTab('account')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Account
+    </button>
+    <button class="tab" data-tab="billing" onclick="switchTab('billing')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+      Billing
+    </button>
+  </div>
+
+  <!-- ═══ ACCOUNT TAB ═══ -->
+  <div class="tab-panel active" id="panel-account">
+
+    <div class="section" id="section-account">
+      <div class="section-header">
+        <h2>Your information</h2>
+        <button class="section-edit-btn" onclick="startEdit('section-account')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Edit
+        </button>
+      </div>
+      <div class="section-body">
+        <div class="field-grid">
+          <div>
+            <label class="field-label">First Name</label>
+            <div class="field-value" data-field="firstName">Sarah</div>
+            <input class="field-input" data-field-input="firstName" type="text" value="Sarah">
+          </div>
+          <div>
+            <label class="field-label">Last Name</label>
+            <div class="field-value" data-field="lastName">Mitchell</div>
+            <input class="field-input" data-field-input="lastName" type="text" value="Mitchell">
+          </div>
+          <div>
+            <label class="field-label">Company Name</label>
+            <div class="field-value" data-field="companyName">Acme Healthcare</div>
+            <input class="field-input" data-field-input="companyName" type="text" value="Acme Healthcare">
+          </div>
+          <div>
+            <label class="field-label">Job Title</label>
+            <div class="field-value" data-field="jobTitle">Talent Acquisition Manager</div>
+            <input class="field-input" data-field-input="jobTitle" type="text" value="Talent Acquisition Manager">
+          </div>
+          <div>
+            <label class="field-label">Email</label>
+            <div class="field-value" data-field="email">admin@acmehealthcare.com</div>
+            <input class="field-input" data-field-input="email" type="email" value="admin@acmehealthcare.com">
+          </div>
+          <div>
+            <label class="field-label">Phone</label>
+            <div class="field-value" data-field="phone">(555) 123-4567</div>
+            <input class="field-input" data-field-input="phone" type="tel" value="(555) 123-4567">
+          </div>
+        </div>
+        <div class="section-edit-actions">
+          <button class="btn-cancel" onclick="cancelEdit('section-account')">Cancel</button>
+          <button class="btn-save" onclick="saveEdit('section-account', 'Account updated')">Save</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══ BILLING TAB ═══ -->
+  <div class="tab-panel" id="panel-billing">
+
+    <!-- Company Info -->
+    <div class="section" id="section-company">
+      <div class="section-header">
+        <h2>Company information</h2>
+        <button class="section-edit-btn" onclick="startEdit('section-company')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Edit
+        </button>
+      </div>
+      <div class="section-body">
+        <div class="field-grid">
+          <div class="full">
+            <label class="field-label">Company Name</label>
+            <div class="field-value" data-field="billingCompany">Acme Healthcare</div>
+            <input class="field-input" data-field-input="billingCompany" type="text" value="Acme Healthcare">
+          </div>
+          <div class="full">
+            <label class="field-label">Billing Email</label>
+            <div class="field-value" data-field="billingEmail">billing@acmehealthcare.com</div>
+            <input class="field-input" data-field-input="billingEmail" type="email" value="billing@acmehealthcare.com">
+          </div>
+        </div>
+        <div class="section-edit-actions">
+          <button class="btn-cancel" onclick="cancelEdit('section-company')">Cancel</button>
+          <button class="btn-save" onclick="saveEdit('section-company', 'Company information updated')">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Billing Address -->
+    <div class="section">
+      <div class="section-header">
+        <h2>Billing address</h2>
+        <button class="section-edit-btn" onclick="openAddressModal()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Edit
+        </button>
+      </div>
+      <div class="section-body">
+        <div class="display-block" id="address-display">
+          <div id="addr-street">123 Innovation Blvd, Suite 400</div>
+          <div><span id="addr-city">Chicago</span>, <span id="addr-state">IL</span> <span id="addr-zip">60601</span></div>
+          <div class="muted" id="addr-country">United States</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Payment Method -->
+    <div class="section">
+      <div class="section-header">
+        <h2>Payment method</h2>
+        <button class="section-edit-btn" onclick="openPaymentModal()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Edit
+        </button>
+      </div>
+      <div class="section-body">
+        <div class="payment-row">
+          <span class="card-brand-badge" id="pay-brand-badge">VISA</span>
+          <div>
+            <div class="card-number">•••• •••• •••• <span id="pay-last4">4242</span></div>
+            <div class="card-meta">Expires <span id="pay-expiry">09/2027</span> · <span id="pay-name">Nick Barattini</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div><!-- /.container -->
+</div><!-- /.main -->
+
+<!-- ═══ BILLING ADDRESS MODAL ═══ -->
+<div class="modal-overlay" id="addressModal">
+  <div class="modal-card">
+    <button class="modal-close-btn" onclick="closeModal('addressModal')">&times;</button>
+    <div class="modal-title">Edit billing address</div>
+    <div class="modal-title-sub">Update where invoices and receipts are addressed.</div>
+
+    <div class="modal-form-group">
+      <label class="modal-label">Street Address</label>
+      <input class="modal-input" id="addrStreetInput" type="text">
+    </div>
+    <div class="modal-row">
+      <div class="modal-form-group">
+        <label class="modal-label">City</label>
+        <input class="modal-input" id="addrCityInput" type="text">
+      </div>
+      <div class="modal-form-group">
+        <label class="modal-label">State</label>
+        <input class="modal-input" id="addrStateInput" type="text">
+      </div>
+      <div class="modal-form-group">
+        <label class="modal-label">ZIP Code</label>
+        <input class="modal-input" id="addrZipInput" type="text">
+      </div>
+    </div>
+    <div class="modal-form-group">
+      <label class="modal-label">Country</label>
+      <select class="modal-select" id="addrCountryInput">
+        <option>United States</option>
+        <option>Canada</option>
+        <option>United Kingdom</option>
+        <option>Australia</option>
+      </select>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('addressModal')">Cancel</button>
+      <button class="btn-save" onclick="saveAddress()">Save address</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PAYMENT METHOD MODAL ═══ -->
+<div class="modal-overlay" id="paymentModal">
+  <div class="modal-card">
+    <button class="modal-close-btn" onclick="closeModal('paymentModal')">&times;</button>
+    <div class="modal-title">Edit payment method</div>
+    <div class="modal-title-sub">Update the card on file for event credits and subscriptions.</div>
+
+    <div class="modal-form-group">
+      <label class="modal-label">Cardholder Name</label>
+      <input class="modal-input" id="payNameInput" type="text">
+    </div>
+    <div class="modal-form-group">
+      <label class="modal-label">Last 4 digits</label>
+      <input class="modal-input" id="payLast4Input" type="text" maxlength="4" placeholder="1234">
+    </div>
+    <div class="modal-row">
+      <div class="modal-form-group">
+        <label class="modal-label">Expiration Month</label>
+        <select class="modal-select" id="payMonthInput">
+          <option>01</option><option>02</option><option>03</option><option>04</option>
+          <option>05</option><option>06</option><option>07</option><option>08</option>
+          <option>09</option><option>10</option><option>11</option><option>12</option>
+        </select>
+      </div>
+      <div class="modal-form-group">
+        <label class="modal-label">Expiration Year</label>
+        <select class="modal-select" id="payYearInput">
+          <option>2026</option><option>2027</option><option>2028</option>
+          <option>2029</option><option>2030</option><option>2031</option>
+        </select>
+      </div>
+      <div class="modal-form-group">
+        <label class="modal-label">Card Brand</label>
+        <select class="modal-select" id="payBrandInput">
+          <option>Visa</option>
+          <option>Mastercard</option>
+          <option>Amex</option>
+          <option>Discover</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('paymentModal')">Cancel</button>
+      <button class="btn-save" onclick="savePayment()">Save payment</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ TOAST ═══ -->
+<div class="toast" id="toast">Saved</div>
+
+<script>
+// Sidebar
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('collapsed');
+  document.body.classList.toggle('collapsed');
+}
+
+// User dropdown
+function toggleDropdown(id) {
+  var menu = document.getElementById(id);
+  var isOpen = menu.classList.contains('open');
+  document.querySelectorAll('.user-menu').forEach(function(m) { m.classList.remove('open'); });
+  if (!isOpen) menu.classList.add('open');
+}
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.user-trigger')) {
+    document.querySelectorAll('.user-menu').forEach(function(m) { m.classList.remove('open'); });
+  }
+});
+
+// Tabs
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(function(t) { t.classList.toggle('active', t.dataset.tab === name); });
+  document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.toggle('active', p.id === 'panel-' + name); });
+  // Exit any in-progress edits when changing tabs
+  document.querySelectorAll('.section.editing').forEach(function(s) { cancelEdit(s.id); });
+}
+
+// Inline edit for Account / Company sections
+function startEdit(sectionId) {
+  var sec = document.getElementById(sectionId);
+  // Snapshot current values in case of cancel
+  sec.querySelectorAll('[data-field-input]').forEach(function(input) {
+    input.dataset.snapshot = input.value;
+  });
+  sec.classList.add('editing');
+  var firstInput = sec.querySelector('.field-input');
+  if (firstInput) firstInput.focus();
+}
+
+function cancelEdit(sectionId) {
+  var sec = document.getElementById(sectionId);
+  sec.querySelectorAll('[data-field-input]').forEach(function(input) {
+    if (input.dataset.snapshot !== undefined) input.value = input.dataset.snapshot;
+  });
+  sec.classList.remove('editing');
+}
+
+function saveEdit(sectionId, message) {
+  var sec = document.getElementById(sectionId);
+  sec.querySelectorAll('[data-field-input]').forEach(function(input) {
+    var key = input.dataset.fieldInput;
+    var display = sec.querySelector('[data-field="' + key + '"]');
+    if (display) display.textContent = input.value;
+  });
+  sec.classList.remove('editing');
+  showToast(message);
+}
+
+// Modals
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function openAddressModal() {
+  document.getElementById('addrStreetInput').value = document.getElementById('addr-street').textContent;
+  document.getElementById('addrCityInput').value = document.getElementById('addr-city').textContent;
+  document.getElementById('addrStateInput').value = document.getElementById('addr-state').textContent;
+  document.getElementById('addrZipInput').value = document.getElementById('addr-zip').textContent;
+  document.getElementById('addrCountryInput').value = document.getElementById('addr-country').textContent;
+  openModal('addressModal');
+}
+
+function saveAddress() {
+  document.getElementById('addr-street').textContent = document.getElementById('addrStreetInput').value;
+  document.getElementById('addr-city').textContent = document.getElementById('addrCityInput').value;
+  document.getElementById('addr-state').textContent = document.getElementById('addrStateInput').value;
+  document.getElementById('addr-zip').textContent = document.getElementById('addrZipInput').value;
+  document.getElementById('addr-country').textContent = document.getElementById('addrCountryInput').value;
+  closeModal('addressModal');
+  showToast('Billing address updated');
+}
+
+function openPaymentModal() {
+  document.getElementById('payNameInput').value = document.getElementById('pay-name').textContent;
+  document.getElementById('payLast4Input').value = document.getElementById('pay-last4').textContent;
+  var exp = document.getElementById('pay-expiry').textContent.split('/');
+  document.getElementById('payMonthInput').value = exp[0];
+  document.getElementById('payYearInput').value = exp[1];
+  var brandBadge = document.getElementById('pay-brand-badge');
+  var brandText = brandBadge.textContent;
+  var brandMap = { 'VISA': 'Visa', 'MASTERCARD': 'Mastercard', 'AMEX': 'Amex', 'DISCOVER': 'Discover' };
+  document.getElementById('payBrandInput').value = brandMap[brandText] || 'Visa';
+  openModal('paymentModal');
+}
+
+function savePayment() {
+  var name = document.getElementById('payNameInput').value;
+  var last4 = document.getElementById('payLast4Input').value;
+  var month = document.getElementById('payMonthInput').value;
+  var year = document.getElementById('payYearInput').value;
+  var brand = document.getElementById('payBrandInput').value;
+
+  document.getElementById('pay-name').textContent = name;
+  document.getElementById('pay-last4').textContent = last4;
+  document.getElementById('pay-expiry').textContent = month + '/' + year;
+
+  var badge = document.getElementById('pay-brand-badge');
+  badge.textContent = brand.toUpperCase();
+  badge.className = 'card-brand-badge ' + brand.toLowerCase();
+
+  closeModal('paymentModal');
+  showToast('Payment method updated');
+}
+
+// Toast
+function showToast(message) {
+  var toast = document.getElementById('toast');
+  toast.textContent = message || 'Saved';
+  toast.classList.add('show');
+  setTimeout(function() { toast.classList.remove('show'); }, 2400);
+}
+
+// Close modals on overlay click
+document.querySelectorAll('.modal-overlay').forEach(function(overlay) {
+  overlay.addEventListener('click', function(e) {
+    if (e.target === overlay) overlay.classList.remove('open');
+  });
+});
+</script>
+
+</body>
+</html>
