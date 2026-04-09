@@ -2110,6 +2110,19 @@ function switchTab(el, id) {
   document.getElementById('panel-' + id).style.display = 'block';
 }
 
+// Read ?tab= query param and activate the matching tab on load
+(function() {
+  var TAB_IDS = ['waiting', 'interviewing', 'interviewed', 'notyet'];
+  document.addEventListener('DOMContentLoaded', function() {
+    var params = new URLSearchParams(window.location.search);
+    var requested = params.get('tab');
+    if (!requested || TAB_IDS.indexOf(requested) === -1) return;
+    var tabs = document.querySelectorAll('.tabs .tab');
+    var idx = TAB_IDS.indexOf(requested);
+    if (tabs[idx]) switchTab(tabs[idx], requested);
+  });
+})();
+
 // Review section collapse/expand
 function toggleReviewSection() {
   var body = document.getElementById('reviewBody');
