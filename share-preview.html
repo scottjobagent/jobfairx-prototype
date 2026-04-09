@@ -377,12 +377,21 @@ function loadEvent(key, preSelectJobId) {
   var matchingJob = preSelectJobId
     ? currentEvent.jobs.find(function(j) { return j.id === preSelectJobId; })
     : null;
+  var jobToOpen = null;
   if (matchingJob) {
     selectJob(matchingJob.id);
+    jobToOpen = matchingJob.id;
   } else if (currentEvent.jobs.length === 1) {
     selectJob(currentEvent.jobs[0].id);
+    jobToOpen = currentEvent.jobs[0].id;
   } else {
     showSlotsEmpty();
+  }
+  // Open the starting job's details by default so the user sees the
+  // description right away. The chevron will toggle it closed on click.
+  if (jobToOpen) {
+    var startRow = document.querySelector('.job-row[data-job-id="' + jobToOpen + '"]');
+    if (startRow) startRow.classList.add('expanded');
   }
 }
 
@@ -461,7 +470,16 @@ function renderJobs() {
       '<div class="job-body">' +
         job.desc.map(function(p) { return '<p>' + p + '</p>'; }).join('') +
       '</div>';
-    row.addEventListener('click', function() { selectJob(job.id); });
+    row.addEventListener('click', function() {
+      // Toggle expand on this row; collapse siblings so only one is open.
+      var wasExpanded = row.classList.contains('expanded');
+      document.querySelectorAll('.job-row').forEach(function(r) {
+        if (r !== row) r.classList.remove('expanded');
+      });
+      row.classList.toggle('expanded', !wasExpanded);
+      // Keep scheduler selection in sync (no-op styling for single-job events).
+      selectJob(job.id);
+    });
     list.appendChild(row);
   });
 }
@@ -470,12 +488,21 @@ function selectJob(jobId) {
   selectedJobId = jobId;
   selectedSlotIdx = null;
 
-  // Update left rows
+  var isSingleJob = currentEvent.jobs.length === 1;
+
+  // Update left rows. Only show the blue "selected" highlight in multi-job
+  // mode — for a single-job event the selection is implicit and shouldn't
+  // paint a background. Expand/collapse is handled by the row click handler,
+  // not here, so we don't touch the expanded class.
   document.querySelectorAll('.job-row').forEach(function(r) {
     if (r.dataset.jobId === jobId) {
-      r.classList.add('selected', 'expanded');
+      if (isSingleJob) {
+        r.classList.remove('selected');
+      } else {
+        r.classList.add('selected');
+      }
     } else {
-      r.classList.remove('selected', 'expanded');
+      r.classList.remove('selected');
     }
   });
 
