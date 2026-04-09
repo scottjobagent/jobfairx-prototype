@@ -142,6 +142,10 @@ tbody tr:last-child td { border-bottom: none; }
 .actions-cell { display: flex; align-items: center; gap: 8px; position: relative; }
 .action-pencil { width: 38px; height: 38px; border-radius: 8px; border: 1px solid #d4d2d0; background: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s; color: #0044B3; }
 .action-pencil:hover { background: #f0f5ff; border-color: #0044B3; }
+.action-pencil.disabled,
+.action-pencil[disabled] { background: #f6f5f3; border-color: #e5e4e1; color: #a8a8a8; cursor: not-allowed; }
+.action-pencil.disabled:hover,
+.action-pencil[disabled]:hover { background: #f6f5f3; border-color: #e5e4e1; }
 .action-dots { width: 38px; height: 38px; border-radius: 8px; border: 1px solid #d4d2d0; background: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s; color: #0044B3; }
 .action-dots:hover { background: #f0f5ff; border-color: #0044B3; }
 .action-pencil svg { width: 18px; height: 18px; }
@@ -150,6 +154,10 @@ tbody tr:last-child td { border-bottom: none; }
 .action-menu.open { display: block; }
 .action-menu-item { display: block; width: 100%; padding: 12px 18px; font-size: 14px; font-weight: 500; color: #2d2d2d; background: none; border: none; text-align: left; cursor: pointer; font-family: inherit; transition: background 0.1s; }
 .action-menu-item:hover { background: #f3f2ef; }
+.action-menu-item.disabled,
+.action-menu-item[disabled] { color: #a8a8a8; cursor: not-allowed; }
+.action-menu-item.disabled:hover,
+.action-menu-item[disabled]:hover { background: transparent; }
 .cell-job { color: #0044B3; font-weight: 400; font-size: 14px; text-decoration: none; display: inline-block; margin-bottom: 2px; cursor: pointer; }
 .cell-job:hover { text-decoration: underline; }
 .cell-candidates { color: #2d2d2d; font-size: 14px; font-weight: 400; }
@@ -848,14 +856,14 @@ tbody tr:last-child td { border-bottom: none; }
           </tr>
         </thead>
         <tbody>
-          <tr class="ev-row upcoming">
+          <tr class="ev-row upcoming" data-event="dallas">
             <td>
               <div class="actions-cell">
-                <button class="action-pencil" title="Edit" onclick="window.open('edit-post.html?event=dallas','_blank')"><svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M16.293 2.293a2.828 2.828 0 114 4l-11 11a1 1 0 01-.39.242l-4.5 1.5a.75.75 0 01-.942-.942l1.5-4.5a1 1 0 01.242-.39l11.09-11.09z"/></svg></button>
+                <button class="action-pencil" title="Edit" data-action="edit" onclick="handleEventAction(this, 'edit-post.html?event=dallas')"><svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M16.293 2.293a2.828 2.828 0 114 4l-11 11a1 1 0 01-.39.242l-4.5 1.5a.75.75 0 01-.942-.942l1.5-4.5a1 1 0 01.242-.39l11.09-11.09z"/></svg></button>
                 <button class="action-dots" onclick="toggleMenu(this)"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="6" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="18" cy="12" r="2"/></svg></button>
                 <div class="action-menu">
-                  <button class="action-menu-item" onclick="window.open('edit-post.html?event=dallas','_blank')">Edit</button>
-                  <button class="action-menu-item" onclick="window.open('share-preview.html?event=dallas','_blank')">Share</button>
+                  <button class="action-menu-item" data-action="edit" onclick="handleEventAction(this, 'edit-post.html?event=dallas')">Edit</button>
+                  <button class="action-menu-item" data-action="share" onclick="handleEventAction(this, 'share-preview.html?event=dallas')">Share</button>
                   <button class="action-menu-item" onclick="window.open('lobby.html','_blank')">Go to lobby</button>
                 </div>
               </div>
@@ -2580,7 +2588,39 @@ function setDevMode(mode, btn) {
     } else {
       if (setupCompleteDot) setupCompleteDot.style.display = '';
     }
+
+    // Toggle disabled state on Dallas row actions (edit + share) when live
+    applyLiveActionState(mode === 'live');
   }
+}
+
+function applyLiveActionState(isLive) {
+  var dallasRow = document.querySelector('#upcomingTable .ev-row[data-event="dallas"]');
+  if (!dallasRow) return;
+  var editTip = "Can't edit a live event";
+  var shareTip = "Sharing ended when the event started";
+  var pencil = dallasRow.querySelector('.action-pencil[data-action="edit"]');
+  var editItem = dallasRow.querySelector('.action-menu-item[data-action="edit"]');
+  var shareItem = dallasRow.querySelector('.action-menu-item[data-action="share"]');
+  [pencil, editItem, shareItem].forEach(function(el) {
+    if (!el) return;
+    if (isLive) {
+      el.classList.add('disabled');
+      el.setAttribute('disabled', 'disabled');
+      if (el === pencil || el === editItem) el.setAttribute('title', editTip);
+      else el.setAttribute('title', shareTip);
+    } else {
+      el.classList.remove('disabled');
+      el.removeAttribute('disabled');
+      if (el === pencil) el.setAttribute('title', 'Edit');
+      else el.removeAttribute('title');
+    }
+  });
+}
+
+function handleEventAction(btn, url) {
+  if (btn.classList.contains('disabled') || btn.hasAttribute('disabled')) return;
+  window.open(url, '_blank');
 }
 
 function switchReportEvent(val) {
