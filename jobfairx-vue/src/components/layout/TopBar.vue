@@ -15,8 +15,10 @@ const route = useRoute()
 const navItems = [
   { to: '/dashboard', label: 'Dashboard' },
   { to: '/lobby', label: 'Lobby' },
-  { to: '/jobs', label: 'Jobs' },
-  { to: '/candidates', label: 'Candidates' },
+  { to: '/edit-post', label: 'Edit post' },
+  { to: '/edit-job', label: 'Edit job' },
+  { to: '/account-billing', label: 'Account' },
+  { to: '/troubleshooting', label: 'Help' },
 ] as const
 
 const isActive = (to: string): boolean => route.path.startsWith(to)
