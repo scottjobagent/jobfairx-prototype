@@ -49,7 +49,7 @@ const devModes: Array<{ value: DevMode; label: string }> = [
       <a class="text-[22px] font-extrabold text-brand-blue tracking-[-0.5px] no-underline cursor-pointer">
         JobFairX
       </a>
-      <div class="flex items-center gap-2 py-[5px] px-3 bg-[#f3f2ef] rounded-md border border-[#d4d2d0]">
+      <div class="flex items-center gap-2 py-[5px] px-3 bg-[#f3f2ef] rounded-sm border border-[#d4d2d0]">
         <span class="text-[11px] font-semibold text-text-tertiary uppercase tracking-[0.5px]">View:</span>
         <div class="flex bg-[#e0e0e0] rounded-[4px] overflow-hidden">
           <button
@@ -74,7 +74,7 @@ const devModes: Array<{ value: DevMode; label: string }> = [
     <div class="flex items-center gap-1">
       <div
         ref="userTriggerRef"
-        class="flex items-center gap-1.5 cursor-pointer py-1.5 px-3 rounded-lg transition-colors relative hover:bg-[#f3f2ef]"
+        class="flex items-center gap-1.5 cursor-pointer py-1.5 px-3 rounded transition-colors relative hover:bg-[#f3f2ef]"
         @click.stop="toggleUserMenu"
       >
         <span class="text-base font-normal text-text-primary">scott@jobfairx.com</span>

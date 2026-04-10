@@ -163,7 +163,7 @@ const isLive = computed<boolean>(() => devMode.value === 'live')
         </p>
         <button
           type="button"
-          class="inline-flex items-center justify-center gap-2 py-3 px-6 rounded-lg text-base font-bold bg-brand-blue text-white border-none cursor-pointer transition-all hover:bg-brand-blue-dark mb-8"
+          class="inline-flex items-center justify-center gap-2 py-3 px-6 rounded text-lg font-bold bg-brand-blue text-white border-none cursor-pointer transition-all hover:bg-brand-blue-dark mb-8"
         >
           Register for an event
         </button>
@@ -178,7 +178,7 @@ const isLive = computed<boolean>(() => devMode.value === 'live')
           <h1 class="text-[24px] font-bold text-text-primary">Tesla</h1>
           <button
             type="button"
-            class="inline-flex items-center justify-center gap-2 py-3 px-6 rounded-lg text-base font-bold bg-brand-blue text-white border-none cursor-pointer transition-all hover:bg-brand-blue-dark"
+            class="inline-flex items-center justify-center gap-2 py-3 px-6 rounded text-lg font-bold bg-brand-blue text-white border-none cursor-pointer transition-all hover:bg-brand-blue-dark"
           >
             Register for an event
           </button>
@@ -190,7 +190,7 @@ const isLive = computed<boolean>(() => devMode.value === 'live')
         <div class="flex gap-2">
           <button
             type="button"
-            class="py-3 px-6 text-sm font-bold cursor-pointer rounded-lg transition-all border border-transparent font-inherit"
+            class="py-3 px-6 text-base font-bold cursor-pointer rounded transition-all border border-transparent font-inherit"
             :class="
               activeTab === 'upcoming'
                 ? 'bg-[#2d2d2d] text-white'
@@ -202,7 +202,7 @@ const isLive = computed<boolean>(() => devMode.value === 'live')
           </button>
           <button
             type="button"
-            class="py-3 px-6 text-sm font-bold cursor-pointer rounded-lg transition-all border border-transparent font-inherit"
+            class="py-3 px-6 text-base font-bold cursor-pointer rounded transition-all border border-transparent font-inherit"
             :class="
               activeTab === 'complete'
                 ? 'bg-[#2d2d2d] text-white'
@@ -216,7 +216,7 @@ const isLive = computed<boolean>(() => devMode.value === 'live')
         <div class="relative flex items-center gap-2.5">
           <button
             type="button"
-            class="inline-flex items-center gap-2 py-2.5 px-5 rounded-lg border border-[#d4d2d0] bg-white text-sm font-bold text-brand-blue cursor-pointer transition-all hover:border-brand-blue hover:bg-[#f8faff]"
+            class="inline-flex items-center gap-2 py-2.5 px-5 rounded border border-[#d4d2d0] bg-white text-base font-bold text-brand-blue cursor-pointer transition-all hover:border-brand-blue hover:bg-[#f8faff]"
             @click.stop="toggleSearchMenu"
           >
             Search Hiring Events
@@ -228,16 +228,16 @@ const isLive = computed<boolean>(() => devMode.value === 'live')
             v-if="searchMenuOpen"
             class="absolute top-full right-0 mt-1 bg-white rounded-[10px] shadow-menu border border-[#d4d2d0] min-w-[280px] z-[500] py-1.5"
           >
-            <button type="button" class="block w-full py-3 px-[18px] text-sm font-medium text-text-primary bg-none border-none text-left cursor-pointer transition-colors hover:bg-[#f3f2ef]">
+            <button type="button" class="block w-full py-3 px-[18px] text-base font-medium text-text-primary bg-none border-none text-left cursor-pointer transition-colors hover:bg-[#f3f2ef]">
               Dallas Healthcare - Apr 22
             </button>
-            <button type="button" class="block w-full py-3 px-[18px] text-sm font-medium text-text-primary bg-none border-none text-left cursor-pointer transition-colors hover:bg-[#f3f2ef]">
+            <button type="button" class="block w-full py-3 px-[18px] text-base font-medium text-text-primary bg-none border-none text-left cursor-pointer transition-colors hover:bg-[#f3f2ef]">
               Chicago Technology - May 6
             </button>
-            <button type="button" class="block w-full py-3 px-[18px] text-sm font-medium text-text-primary bg-none border-none text-left cursor-pointer transition-colors hover:bg-[#f3f2ef]">
+            <button type="button" class="block w-full py-3 px-[18px] text-base font-medium text-text-primary bg-none border-none text-left cursor-pointer transition-colors hover:bg-[#f3f2ef]">
               Atlanta Diversity - Apr 5
             </button>
-            <button type="button" class="block w-full py-3 px-[18px] text-sm font-medium text-text-primary bg-none border-none text-left cursor-pointer transition-colors hover:bg-[#f3f2ef]">
+            <button type="button" class="block w-full py-3 px-[18px] text-base font-medium text-text-primary bg-none border-none text-left cursor-pointer transition-colors hover:bg-[#f3f2ef]">
               Houston Veteran - Mar 18
             </button>
           </div>
@@ -264,11 +264,11 @@ const isLive = computed<boolean>(() => devMode.value === 'live')
               class="transition-colors hover:bg-[#f6f5f3] [&>td]:border-b [&>td]:border-[#ebebeb] last:[&>td]:border-b-0"
             >
               <!-- Actions -->
-              <td class="py-6 px-[22px] text-sm align-top">
+              <td class="py-6 px-[22px] text-base align-top">
                 <div class="flex items-center gap-2 relative">
                   <button
                     type="button"
-                    class="w-[38px] h-[38px] rounded-lg border border-[#d4d2d0] bg-white flex items-center justify-center cursor-pointer transition-all text-brand-blue hover:bg-[#f0f5ff] hover:border-brand-blue"
+                    class="w-[38px] h-[38px] rounded border border-[#d4d2d0] bg-white flex items-center justify-center cursor-pointer transition-all text-brand-blue hover:bg-[#f0f5ff] hover:border-brand-blue"
                     title="Edit"
                   >
                     <svg viewBox="0 0 24 24" fill="currentColor" class="w-[18px] h-[18px]">
@@ -277,7 +277,7 @@ const isLive = computed<boolean>(() => devMode.value === 'live')
                   </button>
                   <button
                     type="button"
-                    class="w-[38px] h-[38px] rounded-lg border border-[#d4d2d0] bg-white flex items-center justify-center cursor-pointer transition-all text-brand-blue hover:bg-[#f0f5ff] hover:border-brand-blue"
+                    class="w-[38px] h-[38px] rounded border border-[#d4d2d0] bg-white flex items-center justify-center cursor-pointer transition-all text-brand-blue hover:bg-[#f0f5ff] hover:border-brand-blue"
                     @click.stop="toggleRowMenu(ev.id)"
                   >
                     <svg viewBox="0 0 24 24" fill="currentColor" class="w-[18px] h-[18px]">
@@ -290,31 +290,31 @@ const isLive = computed<boolean>(() => devMode.value === 'live')
                     v-if="openRowMenuId === ev.id"
                     class="absolute top-[44px] left-0 bg-white rounded-[10px] shadow-menu border border-[#d4d2d0] min-w-[180px] z-[500] py-1.5"
                   >
-                    <button type="button" class="block w-full py-3 px-[18px] text-sm font-medium text-text-primary bg-none border-none text-left cursor-pointer transition-colors hover:bg-[#f3f2ef]">Edit</button>
-                    <button type="button" class="block w-full py-3 px-[18px] text-sm font-medium text-text-primary bg-none border-none text-left cursor-pointer transition-colors hover:bg-[#f3f2ef]">Share</button>
-                    <button type="button" class="block w-full py-3 px-[18px] text-sm font-medium text-text-primary bg-none border-none text-left cursor-pointer transition-colors hover:bg-[#f3f2ef]">Go to lobby</button>
+                    <button type="button" class="block w-full py-3 px-[18px] text-base font-medium text-text-primary bg-none border-none text-left cursor-pointer transition-colors hover:bg-[#f3f2ef]">Edit</button>
+                    <button type="button" class="block w-full py-3 px-[18px] text-base font-medium text-text-primary bg-none border-none text-left cursor-pointer transition-colors hover:bg-[#f3f2ef]">Share</button>
+                    <button type="button" class="block w-full py-3 px-[18px] text-base font-medium text-text-primary bg-none border-none text-left cursor-pointer transition-colors hover:bg-[#f3f2ef]">Go to lobby</button>
                   </div>
                 </div>
                 <button
                   v-if="!ev.setupComplete"
                   type="button"
-                  class="inline-flex items-center mt-2 py-[7px] px-[18px] rounded-lg border-none bg-brand-blue text-white text-xs font-bold cursor-pointer transition-colors hover:bg-brand-blue-dark"
+                  class="inline-flex items-center mt-2 py-[7px] px-[18px] rounded border-none bg-brand-blue text-white text-xs font-bold cursor-pointer transition-colors hover:bg-brand-blue-dark"
                 >
                   Complete setup
                 </button>
               </td>
 
               <!-- Event Details -->
-              <td class="py-6 px-[22px] text-sm align-top">
-                <span class="font-normal text-text-primary text-sm">{{ ev.name }}</span>
+              <td class="py-6 px-[22px] text-base align-top">
+                <span class="font-normal text-text-primary text-base">{{ ev.name }}</span>
                 <div class="mt-1">
-                  <span class="text-sm text-text-primary font-normal">{{ ev.dateLabel }}</span>
-                  <span class="text-sm text-text-tertiary font-normal"> · {{ ev.timeLabel }}</span>
+                  <span class="text-base text-text-primary font-normal">{{ ev.dateLabel }}</span>
+                  <span class="text-base text-text-tertiary font-normal"> · {{ ev.timeLabel }}</span>
                 </div>
-                <div class="mt-1 text-sm text-text-tertiary font-normal">{{ ev.packageLabel }}</div>
+                <div class="mt-1 text-base text-text-tertiary font-normal">{{ ev.packageLabel }}</div>
                 <div
                   v-if="!ev.setupComplete"
-                  class="inline-flex items-center gap-1.5 py-1 px-3 rounded-md text-xs font-bold mt-2 bg-[#fef2f2] text-[#991b1b]"
+                  class="inline-flex items-center gap-1.5 py-1 px-3 rounded-sm text-xs font-bold mt-2 bg-[#fef2f2] text-[#991b1b]"
                 >
                   <svg viewBox="0 0 24 24" fill="none" class="w-3.5 h-3.5">
                     <circle cx="12" cy="12" r="10" fill="#991b1b" />
@@ -325,8 +325,8 @@ const isLive = computed<boolean>(() => devMode.value === 'live')
               </td>
 
               <!-- Interview Location -->
-              <td class="py-6 px-[22px] text-sm align-top">
-                <div class="text-sm text-text-primary font-normal">Virtual interviews</div>
+              <td class="py-6 px-[22px] text-base align-top">
+                <div class="text-base text-text-primary font-normal">Virtual interviews</div>
                 <a class="inline-flex items-center gap-1 text-xs text-brand-blue font-normal underline mt-1 cursor-pointer">
                   Go to lobby
                 </a>
@@ -347,9 +347,9 @@ const isLive = computed<boolean>(() => devMode.value === 'live')
               </td>
 
               <!-- Interview Setup -->
-              <td class="py-6 px-[22px] text-sm align-top">
-                <div v-if="ev.setupComplete" class="text-sm text-text-primary font-normal leading-relaxed">
-                  <a class="text-brand-blue no-underline text-sm font-normal cursor-pointer">2 interviewers</a>
+              <td class="py-6 px-[22px] text-base align-top">
+                <div v-if="ev.setupComplete" class="text-base text-text-primary font-normal leading-relaxed">
+                  <a class="text-brand-blue no-underline text-base font-normal cursor-pointer">2 interviewers</a>
                 </div>
                 <div v-else class="inline-flex items-center gap-1.5 text-[13px] text-[#991b1b] font-semibold">
                   <svg viewBox="0 0 24 24" fill="none" class="w-[18px] h-[18px] flex-shrink-0">
@@ -361,10 +361,10 @@ const isLive = computed<boolean>(() => devMode.value === 'live')
               </td>
 
               <!-- Job Titles -->
-              <td class="py-6 px-[22px] text-sm align-top">
+              <td class="py-6 px-[22px] text-base align-top">
                 <template v-if="ev.jobs.length > 0">
                   <div v-for="(job, jidx) in ev.jobs" :key="jidx">
-                    <a class="text-brand-blue font-normal text-sm no-underline cursor-pointer hover:underline">
+                    <a class="text-brand-blue font-normal text-base no-underline cursor-pointer hover:underline">
                       {{ job.title }}
                     </a>
                   </div>
@@ -379,10 +379,10 @@ const isLive = computed<boolean>(() => devMode.value === 'live')
               </td>
 
               <!-- Candidates -->
-              <td class="py-6 px-[22px] text-sm align-top text-text-primary font-normal">
-                <div class="text-sm font-normal text-text-primary">{{ ev.candidatesPending }} pending</div>
-                <div class="text-sm font-normal text-text-primary">{{ ev.candidatesUpcoming }} upcoming</div>
-                <a class="block text-sm text-brand-blue no-underline mt-0.5 font-normal cursor-pointer hover:underline">
+              <td class="py-6 px-[22px] text-base align-top text-text-primary font-normal">
+                <div class="text-base font-normal text-text-primary">{{ ev.candidatesPending }} pending</div>
+                <div class="text-base font-normal text-text-primary">{{ ev.candidatesUpcoming }} upcoming</div>
+                <a class="block text-base text-brand-blue no-underline mt-0.5 font-normal cursor-pointer hover:underline">
                   Manage applicants
                 </a>
               </td>
@@ -393,13 +393,13 @@ const isLive = computed<boolean>(() => devMode.value === 'live')
         <!-- Table footer pagination -->
         <div class="py-3.5 px-5 border-t border-[#ebebeb] flex items-center justify-center">
           <div class="flex items-center gap-1">
-            <button type="button" class="h-8 px-3 rounded-md border-none bg-transparent text-[13px] font-medium text-text-tertiary opacity-35 cursor-default">
+            <button type="button" class="h-8 px-3 rounded-sm border-none bg-transparent text-[13px] font-medium text-text-tertiary opacity-35 cursor-default">
               ← Previous
             </button>
-            <button type="button" class="h-8 px-3 rounded-md border-none bg-[#2d2d2d] text-[13px] font-medium text-white cursor-pointer">
+            <button type="button" class="h-8 px-3 rounded-sm border-none bg-[#2d2d2d] text-[13px] font-medium text-white cursor-pointer">
               1
             </button>
-            <button type="button" class="h-8 px-3 rounded-md border-none bg-transparent text-[13px] font-medium text-text-tertiary opacity-35 cursor-default">
+            <button type="button" class="h-8 px-3 rounded-sm border-none bg-transparent text-[13px] font-medium text-text-tertiary opacity-35 cursor-default">
               Next →
             </button>
           </div>
@@ -423,11 +423,11 @@ const isLive = computed<boolean>(() => devMode.value === 'live')
               :key="ev.id"
               class="transition-colors hover:bg-[#f6f5f3] [&>td]:border-b [&>td]:border-[#ebebeb] last:[&>td]:border-b-0"
             >
-              <td class="py-6 px-[22px] text-sm align-top">
+              <td class="py-6 px-[22px] text-base align-top">
                 <div class="flex items-center gap-2 relative">
                   <button
                     type="button"
-                    class="w-[38px] h-[38px] rounded-lg border border-[#d4d2d0] bg-white flex items-center justify-center cursor-pointer transition-all text-brand-blue hover:bg-[#f0f5ff] hover:border-brand-blue"
+                    class="w-[38px] h-[38px] rounded border border-[#d4d2d0] bg-white flex items-center justify-center cursor-pointer transition-all text-brand-blue hover:bg-[#f0f5ff] hover:border-brand-blue"
                     @click.stop="toggleRowMenu(ev.id)"
                   >
                     <svg viewBox="0 0 24 24" fill="currentColor" class="w-[18px] h-[18px]">
@@ -440,25 +440,25 @@ const isLive = computed<boolean>(() => devMode.value === 'live')
                     v-if="openRowMenuId === ev.id"
                     class="absolute top-[44px] left-0 bg-white rounded-[10px] shadow-menu border border-[#d4d2d0] min-w-[180px] z-[500] py-1.5"
                   >
-                    <button type="button" class="block w-full py-3 px-[18px] text-sm font-medium text-text-primary bg-none border-none text-left cursor-pointer transition-colors hover:bg-[#f3f2ef]">View Event Report</button>
-                    <button type="button" class="block w-full py-3 px-[18px] text-sm font-medium text-text-primary bg-none border-none text-left cursor-pointer transition-colors hover:bg-[#f3f2ef]">Export Signups</button>
+                    <button type="button" class="block w-full py-3 px-[18px] text-base font-medium text-text-primary bg-none border-none text-left cursor-pointer transition-colors hover:bg-[#f3f2ef]">View Event Report</button>
+                    <button type="button" class="block w-full py-3 px-[18px] text-base font-medium text-text-primary bg-none border-none text-left cursor-pointer transition-colors hover:bg-[#f3f2ef]">Export Signups</button>
                   </div>
                 </div>
               </td>
-              <td class="py-6 px-[22px] text-sm align-top">
-                <span class="font-normal text-text-primary text-sm">{{ ev.name }}</span>
+              <td class="py-6 px-[22px] text-base align-top">
+                <span class="font-normal text-text-primary text-base">{{ ev.name }}</span>
                 <div class="mt-1">
-                  <span class="text-sm text-text-primary font-normal">{{ ev.dateLabel }}</span>
-                  <span class="text-sm text-text-tertiary font-normal"> · {{ ev.timeLabel }}</span>
+                  <span class="text-base text-text-primary font-normal">{{ ev.dateLabel }}</span>
+                  <span class="text-base text-text-tertiary font-normal"> · {{ ev.timeLabel }}</span>
                 </div>
               </td>
-              <td class="py-6 px-[22px] text-sm align-top">
-                <a v-for="(job, jidx) in ev.jobs" :key="jidx" class="block text-brand-blue font-normal text-sm no-underline cursor-pointer hover:underline">
+              <td class="py-6 px-[22px] text-base align-top">
+                <a v-for="(job, jidx) in ev.jobs" :key="jidx" class="block text-brand-blue font-normal text-base no-underline cursor-pointer hover:underline">
                   {{ job.title }}
                 </a>
               </td>
-              <td class="py-6 px-[22px] text-sm align-top">
-                <a class="block text-sm text-brand-blue no-underline font-normal cursor-pointer hover:underline">
+              <td class="py-6 px-[22px] text-base align-top">
+                <a class="block text-base text-brand-blue no-underline font-normal cursor-pointer hover:underline">
                   View event report
                 </a>
               </td>
