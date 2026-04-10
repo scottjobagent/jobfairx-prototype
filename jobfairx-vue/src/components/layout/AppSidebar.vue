@@ -37,7 +37,7 @@ const isDashboardActive = computed<boolean>(() => {
 
 // Shared sizing/layout classes for every nav-item.
 const navItemBase =
-  'flex items-center gap-3.5 rounded-[10px] text-[17px] cursor-pointer transition-all no-underline tracking-[-0.1px]'
+  'flex items-center gap-3.5 rounded-[10px] text-[17px] cursor-pointer transition-all no-underline tracking-[-0.1px] max-[1024px]:!justify-center max-[1024px]:!py-2.5 max-[1024px]:!px-0'
 
 // Build the full class string for a nav-item given its active state.
 // NOTE: we emit EITHER `font-medium` or `font-bold`, never both, so there
@@ -55,11 +55,11 @@ const navItemClass = (active: boolean): string => {
 
 <template>
   <nav
-    class="fixed left-0 top-0 bottom-0 bg-[#2d2d2d] z-[300] flex flex-col overflow-hidden transition-[width] duration-200 ease-out"
+    class="fixed left-0 top-0 bottom-0 bg-[#2d2d2d] z-[300] flex flex-col overflow-hidden transition-[width] duration-200 ease-out max-[1024px]:!w-[64px]"
     :class="sidebarCollapsed ? 'w-[60px]' : 'w-[220px]'"
   >
     <!-- Collapse button -->
-    <div class="pt-[18px] px-4 pb-3">
+    <div class="pt-[18px] px-4 pb-3 max-[1024px]:hidden">
       <button
         type="button"
         class="flex items-center gap-2.5 py-2 px-2.5 rounded-sm bg-transparent text-[15px] font-semibold text-white/90 hover:bg-white/10 hover:text-white transition-all w-full"
@@ -85,7 +85,7 @@ const navItemClass = (active: boolean): string => {
             <rect x="3" y="14" width="7" height="7" rx="1" />
             <rect x="14" y="14" width="7" height="7" rx="1" />
           </svg>
-          <span v-if="!sidebarCollapsed">Dashboard</span>
+          <span v-if="!sidebarCollapsed" class="max-[1024px]:hidden">Dashboard</span>
         </a>
 
         <!-- Interviews -->
@@ -95,7 +95,7 @@ const navItemClass = (active: boolean): string => {
             <circle cx="9" cy="7" r="4" />
             <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
           </svg>
-          <span v-if="!sidebarCollapsed">Interviews</span>
+          <span v-if="!sidebarCollapsed" class="max-[1024px]:hidden">Interviews</span>
         </a>
 
         <!-- Messaging -->
@@ -103,7 +103,7 @@ const navItemClass = (active: boolean): string => {
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-6 h-6 flex-shrink-0 text-white/70">
             <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
           </svg>
-          <span v-if="!sidebarCollapsed">Messaging</span>
+          <span v-if="!sidebarCollapsed" class="max-[1024px]:hidden">Messaging</span>
         </a>
       </div>
     </div>
@@ -111,7 +111,7 @@ const navItemClass = (active: boolean): string => {
     <!-- Credits panel (hidden when collapsed) -->
     <div
       v-if="!sidebarCollapsed"
-      class="px-3 pt-3 pb-4 border-t border-white/10"
+      class="px-3 pt-3 pb-4 border-t border-white/10 max-[1024px]:hidden"
     >
       <div class="flex items-center justify-between mb-2.5 px-1">
         <span class="text-[11px] font-bold uppercase tracking-[0.8px] text-white/45">Event Credits</span>

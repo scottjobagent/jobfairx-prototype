@@ -19,7 +19,7 @@ const { sidebarCollapsed } = useLayoutState()
     <AppSidebar />
     <AppTopbar />
     <main
-      class="min-h-[calc(100vh-56px)] mt-[56px] px-7 pt-6 pb-10 transition-[margin-left] duration-200 ease-out"
+      class="min-h-[calc(100vh-56px)] mt-[56px] px-7 pt-6 pb-10 transition-[margin-left] duration-200 ease-out max-[1024px]:!ml-[64px]"
       :class="sidebarCollapsed ? 'ml-[60px]' : 'ml-[220px]'"
     >
       <router-view />

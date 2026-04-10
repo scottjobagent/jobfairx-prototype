@@ -41,7 +41,7 @@ const devModes: Array<{ value: DevMode; label: string }> = [
 
 <template>
   <header
-    class="fixed top-0 right-0 h-14 bg-white border-b border-[#d4d2d0] flex items-center justify-between px-6 z-[200] transition-[left] duration-200 ease-out"
+    class="fixed top-0 right-0 h-14 bg-white border-b border-[#d4d2d0] flex items-center justify-between px-6 z-[200] transition-[left] duration-200 ease-out max-[1024px]:!left-[64px]"
     :class="sidebarCollapsed ? 'left-[60px]' : 'left-[220px]'"
   >
     <!-- Left: logo + dev toggle -->
