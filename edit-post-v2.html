@@ -230,6 +230,10 @@ body.setup-jobs-incomplete .add-job-row { display: none; }
 .email-error { font-size: 13px; color: #991b1b; margin-top: 6px; display: none; }
 .email-error.show { display: block; }
 
+/* Seat limit shake */
+@keyframes shake { 0%, 100% { transform: translateX(0); } 20%, 60% { transform: translateX(-4px); } 40%, 80% { transform: translateX(4px); } }
+.is-email-box.shake { animation: shake 0.4s ease; border-color: #991b1b; box-shadow: 0 0 0 2px rgba(153,27,27,0.15); }
+
 /* Seat indicator */
 .is-seat-indicator { display: flex; align-items: center; gap: 0; font-size: 13px; color: #595959; margin-top: 8px; margin-bottom: 4px; }
 .is-seat-pkg { font-weight: 500; }
@@ -1338,9 +1342,13 @@ function addInterviewerEmail(input) {
     return false;
   }
 
-  // Check seat limit
+  // Check seat limit — keep email in input and shake the box
   if (getInterviewerCount() >= getCurrentSeatLimit()) {
-    input.value = '';
+    var box = document.getElementById('interviewerEmailBox');
+    box.classList.remove('shake');
+    void box.offsetWidth; // trigger reflow to restart animation
+    box.classList.add('shake');
+    setTimeout(function() { box.classList.remove('shake'); }, 500);
     return false;
   }
 
