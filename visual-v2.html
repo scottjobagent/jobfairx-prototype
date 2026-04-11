@@ -171,6 +171,21 @@ tbody tr:last-child td { border-bottom: none; }
 .status-badge.setup { background: #fef2f2; color: #991b1b; }
 .status-badge.live { background: #f0fdf4; color: #166534; }
 .status-badge.invited { background: #f3f2ef; color: #595959; }
+
+/* ═══ INTERVIEWER WELCOME MODAL ═══ */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 9999; align-items: center; justify-content: center; }
+.modal-overlay.active { display: flex; }
+.modal-card { background: #fff; border-radius: 12px; width: 440px; max-width: 90vw; padding: 32px; box-shadow: 0 8px 30px rgba(0,0,0,0.18); text-align: center; }
+.modal-icon { width: 48px; height: 48px; background: #e8f0fe; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
+.modal-icon svg { width: 24px; height: 24px; color: #0044B3; }
+.modal-title { font-size: 20px; font-weight: 700; color: #2d2d2d; margin-bottom: 8px; }
+.modal-subtitle { font-size: 14px; color: #595959; margin-bottom: 20px; line-height: 1.5; }
+.modal-event-card { background: #f3f2ef; border-radius: 8px; padding: 16px; margin-bottom: 20px; text-align: left; }
+.modal-event-name { font-size: 15px; font-weight: 600; color: #2d2d2d; margin-bottom: 4px; }
+.modal-event-detail { font-size: 13px; color: #595959; }
+.modal-note { font-size: 13px; color: #767676; margin-bottom: 24px; line-height: 1.5; }
+.modal-btn { display: inline-block; padding: 10px 32px; background: #0044B3; color: #fff; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; font-family: inherit; transition: background 0.15s; }
+.modal-btn:hover { background: #003399; }
 .status-badge svg { width: 14px; height: 14px; }
 .intake-btn { display: inline-flex; align-items: center; margin-top: 8px; padding: 7px 18px; border-radius: 8px; border: none; background: #0044B3; color: #fff; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; transition: background 0.15s; }
 .intake-btn:hover { background: #003399; }
@@ -400,6 +415,8 @@ tbody tr:last-child td { border-bottom: none; }
 .msg-filter-btn { display: flex; align-items: center; gap: 8px; padding: 8px 14px; font-size: 13px; font-weight: 500; color: #595959; background: #fff; border: 1px solid #d4d2d0; border-radius: 8px; cursor: pointer; font-family: inherit; flex: 1; }
 .msg-filter-btn svg { width: 16px; height: 16px; color: #767676; }
 .msg-filter-btn:hover { border-color: #0044B3; color: #2d2d2d; }
+.msg-filter-dropdown { display: none; position: absolute; top: 100%; z-index: 10; background: #fff; border: 1px solid #d4d2d0; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); min-width: 220px; }
+.msg-filter-dropdown.open { display: block; }
 .msg-thread-list { flex: 1; overflow-y: auto; }
 .msg-thread { display: flex; flex-direction: column; padding: 16px 20px; border-bottom: 1px solid #f0f0f0; cursor: pointer; transition: background 0.1s; position: relative; }
 .msg-thread:hover { background: #f8f8f6; }
@@ -433,7 +450,7 @@ tbody tr:last-child td { border-bottom: none; }
 .msg-chat-input-bolt { width: 36px; height: 36px; border-radius: 50%; border: none; background: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #767676; }
 
 /* Messaging Empty State */
-.msg-empty-list-panel { width: 420px; min-width: 420px; border-right: 1px solid #e0e0e0; display: flex; flex-direction: column; background: #fff; }
+.msg-empty-list-panel { width: 420px; min-width: 420px; border-right: 1px solid #e0e0e0; display: flex; flex-direction: column; background: #fff; position: relative; }
 .msg-empty-header { padding: 20px 20px 0; }
 .msg-empty-header-top { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
 .msg-empty-header-top h2 { font-size: 20px; font-weight: 700; color: #2d2d2d; }
@@ -790,6 +807,7 @@ tbody tr:last-child td { border-bottom: none; }
         <button class="dev-toggle-btn active" onclick="setDevMode('active', this)">Active</button>
         <button class="dev-toggle-btn" onclick="setDevMode('empty', this)">Empty</button>
         <button class="dev-toggle-btn" onclick="setDevMode('live', this)">Live</button>
+        <button class="dev-toggle-btn" onclick="setDevMode('interviewer', this)">Interviewer</button>
       </div>
     </div>
   </div>
@@ -1869,9 +1887,31 @@ tbody tr:last-child td { border-bottom: none; }
               </button>
             </div>
           </div>
-          <div class="msg-empty-search">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-            <span>Search conversations...</span>
+          <div class="msg-filters" style="padding: 0 20px;">
+            <button class="msg-filter-btn" onclick="toggleDropdown('msg-empty-events-dd')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+              All Events
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;margin-left:auto;"><path d="M6 9l6 6 6-6"/></svg>
+            </button>
+            <button class="msg-filter-btn" onclick="toggleDropdown('msg-empty-jobs-dd')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 3h-8v4h8z"/></svg>
+              All Jobs
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;margin-left:auto;"><path d="M6 9l6 6 6-6"/></svg>
+            </button>
+          </div>
+          <div class="msg-filter-dropdown" id="msg-empty-events-dd" style="left:20px; top:140px;">
+            <button class="search-events-item" onclick="selectMsgFilter(this,'msg-empty-events-dd','All Events')">All Events</button>
+            <button class="search-events-item" onclick="selectMsgFilter(this,'msg-empty-events-dd','Dallas Healthcare')">Dallas Healthcare - Apr 22</button>
+            <button class="search-events-item" onclick="selectMsgFilter(this,'msg-empty-events-dd','Chicago Technology')">Chicago Technology - May 6</button>
+            <button class="search-events-item" onclick="selectMsgFilter(this,'msg-empty-events-dd','Atlanta Diversity')">Atlanta Diversity - Apr 5</button>
+            <button class="search-events-item" onclick="selectMsgFilter(this,'msg-empty-events-dd','NYC Entry Level')">New York City Entry Level - Apr 10</button>
+            <button class="search-events-item" onclick="selectMsgFilter(this,'msg-empty-events-dd','Houston Veteran')">Houston Veteran - Mar 18</button>
+          </div>
+          <div class="msg-filter-dropdown" id="msg-empty-jobs-dd" style="left:200px; top:140px;">
+            <button class="search-events-item" onclick="selectMsgFilter(this,'msg-empty-jobs-dd','All Jobs')">All Jobs</button>
+            <button class="search-events-item" onclick="selectMsgFilter(this,'msg-empty-jobs-dd','RBT Trainee')">Registered Behavior Technician Trainee</button>
+            <button class="search-events-item" onclick="selectMsgFilter(this,'msg-empty-jobs-dd','Customer Service')">Customer Service Rep</button>
+            <button class="search-events-item" onclick="selectMsgFilter(this,'msg-empty-jobs-dd','Sales Associate')">Sales Associate</button>
           </div>
           <div class="msg-empty-list-body">
             <svg class="msg-empty-list-icon" viewBox="0 0 48 48" fill="none">
@@ -1940,17 +1980,31 @@ tbody tr:last-child td { border-bottom: none; }
               Archived
             </button>
           </div>
-          <div class="msg-filters">
-            <button class="msg-filter-btn">
+          <div class="msg-filters" style="position:relative;">
+            <button class="msg-filter-btn" onclick="toggleDropdown('msg-active-events-dd')">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
               All Events
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;margin-left:auto;"><path d="M6 9l6 6 6-6"/></svg>
             </button>
-            <button class="msg-filter-btn">
+            <button class="msg-filter-btn" onclick="toggleDropdown('msg-active-jobs-dd')">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 3h-8v4h8z"/></svg>
               All Jobs
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;margin-left:auto;"><path d="M6 9l6 6 6-6"/></svg>
             </button>
+            <div class="msg-filter-dropdown" id="msg-active-events-dd" style="left:0;">
+              <button class="search-events-item" onclick="selectMsgFilter(this,'msg-active-events-dd','All Events')">All Events</button>
+              <button class="search-events-item" onclick="selectMsgFilter(this,'msg-active-events-dd','Dallas Healthcare')">Dallas Healthcare - Apr 22</button>
+              <button class="search-events-item" onclick="selectMsgFilter(this,'msg-active-events-dd','Chicago Technology')">Chicago Technology - May 6</button>
+              <button class="search-events-item" onclick="selectMsgFilter(this,'msg-active-events-dd','Atlanta Diversity')">Atlanta Diversity - Apr 5</button>
+              <button class="search-events-item" onclick="selectMsgFilter(this,'msg-active-events-dd','NYC Entry Level')">New York City Entry Level - Apr 10</button>
+              <button class="search-events-item" onclick="selectMsgFilter(this,'msg-active-events-dd','Houston Veteran')">Houston Veteran - Mar 18</button>
+            </div>
+            <div class="msg-filter-dropdown" id="msg-active-jobs-dd" style="left:50%;">
+              <button class="search-events-item" onclick="selectMsgFilter(this,'msg-active-jobs-dd','All Jobs')">All Jobs</button>
+              <button class="search-events-item" onclick="selectMsgFilter(this,'msg-active-jobs-dd','RBT Trainee')">Registered Behavior Technician Trainee</button>
+              <button class="search-events-item" onclick="selectMsgFilter(this,'msg-active-jobs-dd','Customer Service')">Customer Service Rep</button>
+              <button class="search-events-item" onclick="selectMsgFilter(this,'msg-active-jobs-dd','Sales Associate')">Sales Associate</button>
+            </div>
           </div>
         </div>
         <div class="msg-thread-list">
@@ -2120,7 +2174,23 @@ function toggleDropdown(id) {
   if (!wasOpen) menu.classList.add('open');
 }
 function closeAllDropdowns() {
-  document.querySelectorAll('.action-menu.open, .user-menu.open, .search-events-menu.open').forEach(m => m.classList.remove('open'));
+  document.querySelectorAll('.action-menu.open, .user-menu.open, .search-events-menu.open, .msg-filter-dropdown.open').forEach(m => m.classList.remove('open'));
+}
+function selectMsgFilter(item, ddId, label) {
+  var dd = document.getElementById(ddId);
+  dd.classList.remove('open');
+  // Update the button text to show selected filter
+  var btn = dd.previousElementSibling || dd.parentElement.querySelector('.msg-filter-btn');
+  // Find the correct button based on dropdown id
+  var isEvents = ddId.indexOf('events') !== -1;
+  var btns = dd.closest('.msg-filters').querySelectorAll('.msg-filter-btn');
+  var targetBtn = isEvents ? btns[0] : btns[1];
+  if (targetBtn) {
+    var svgs = targetBtn.querySelectorAll('svg');
+    var iconSvg = svgs[0] ? svgs[0].outerHTML : '';
+    var chevronSvg = svgs[svgs.length - 1] ? svgs[svgs.length - 1].outerHTML : '';
+    targetBtn.innerHTML = iconSvg + '\n              ' + label + '\n              ' + chevronSvg;
+  }
 }
 document.addEventListener('click', function(e) {
   if (!e.target.closest('.action-dots') && !e.target.closest('.action-menu') && !e.target.closest('.user-trigger') && !e.target.closest('.search-events-btn') && !e.target.closest('.search-events-menu')) {
@@ -2594,6 +2664,9 @@ function setDevMode(mode, btn) {
   // Remove any existing live indicators
   document.querySelectorAll('.cell-live-indicator').forEach(function(el) { el.remove(); });
 
+  // Always dismiss modal when switching modes
+  document.getElementById('interviewerWelcomeModal').classList.remove('active');
+
   if (mode === 'empty') {
     activeHeader.style.display = 'none';
     filterRow.style.display = 'none';
@@ -2601,6 +2674,46 @@ function setDevMode(mode, btn) {
     completedSection.classList.remove('active');
     reportView.classList.remove('active');
     emptyState.classList.add('active');
+  } else if (mode === 'interviewer') {
+    emptyState.classList.remove('active');
+    activeHeader.style.display = '';
+    filterRow.style.display = '';
+    // Reset to Upcoming tab
+    document.querySelectorAll('.tab-pill').forEach(function(t) { t.classList.remove('active'); });
+    document.querySelector('.tab-pill').classList.add('active');
+    upcomingTable.style.display = '';
+    completedSection.classList.remove('active');
+    reportView.classList.remove('active');
+    // Show only the NYC (interviewer) row
+    document.querySelectorAll('#upcomingTable .ev-row').forEach(function(r) {
+      if (r.dataset.event === 'nyc') {
+        r.style.display = '';
+      } else {
+        r.style.display = 'none';
+      }
+    });
+    // Update upcoming count to 1
+    var upcomingPill = document.querySelector('.tab-pill');
+    if (upcomingPill) {
+      var countSpan = upcomingPill.querySelector('.count');
+      if (countSpan) countSpan.textContent = '1';
+    }
+    // Update completed count to 0
+    var completedPill = document.querySelectorAll('.tab-pill')[1];
+    if (completedPill) {
+      var cCountSpan = completedPill.querySelector('.count');
+      if (cCountSpan) cCountSpan.textContent = '0';
+    }
+    // Filter search dropdown to only NYC
+    document.querySelectorAll('#search-events-menu .search-events-item').forEach(function(item) {
+      item.style.display = item.textContent.indexOf('New York') !== -1 ? '' : 'none';
+    });
+    // Set sidebar credits to 0
+    var creditNums = document.querySelectorAll('.credit-num');
+    creditNums.forEach(function(el) { el.textContent = '0'; });
+    // Show welcome modal
+    document.getElementById('interviewerWelcomeModal').classList.add('active');
+    applyLiveActionState(false);
   } else if (mode === 'live' || mode === 'active') {
     emptyState.classList.remove('active');
     activeHeader.style.display = '';
@@ -2613,6 +2726,27 @@ function setDevMode(mode, btn) {
     document.querySelectorAll('#upcomingTable .ev-row').forEach(function(r) {
       r.style.display = r.classList.contains('upcoming') ? '' : 'none';
     });
+    // Restore upcoming count to 4
+    var upPill = document.querySelector('.tab-pill');
+    if (upPill) {
+      var uCount = upPill.querySelector('.count');
+      if (uCount) uCount.textContent = '4';
+    }
+    // Restore completed count to 1
+    var cPill = document.querySelectorAll('.tab-pill')[1];
+    if (cPill) {
+      var cCount = cPill.querySelector('.count');
+      if (cCount) cCount.textContent = '1';
+    }
+    // Restore search dropdown (show all events)
+    document.querySelectorAll('#search-events-menu .search-events-item').forEach(function(item) {
+      item.style.display = '';
+    });
+    // Restore sidebar credits
+    var creditNums = document.querySelectorAll('.credit-num');
+    if (creditNums[0]) creditNums[0].textContent = '2';
+    if (creditNums[1]) creditNums[1].textContent = '1';
+    if (creditNums[2]) creditNums[2].textContent = '0';
 
     // Toggle setup complete vs live indicator
     var setupCompleteDot = document.querySelector('#upcomingTable .cell-setup-complete');
@@ -3129,6 +3263,21 @@ document.addEventListener('keydown', function(e) {
   }
 });
 </script>
+
+<!-- Interviewer Welcome Modal -->
+<div class="modal-overlay" id="interviewerWelcomeModal">
+  <div class="modal-card">
+    <div class="modal-title">Welcome to JobFairX</div>
+    <div class="modal-subtitle">You've been invited to interview by Stacy Smith at Acme Corporation</div>
+    <div class="modal-event-card">
+      <div class="modal-event-name">New York City Entry Level Hiring Event</div>
+      <div class="modal-event-detail">Apr 10, 2026 &middot; 11:00 AM – 3:00 PM ET</div>
+      <div class="modal-event-detail" style="margin-top: 4px;">Growth Package &middot; Virtual Interviews</div>
+    </div>
+    <div class="modal-note">We auto-created your account using your email address. You have full access to manage this event, interview candidates, and message applicants.</div>
+    <button class="modal-btn" onclick="document.getElementById('interviewerWelcomeModal').classList.remove('active')">Go to dashboard</button>
+  </div>
+</div>
 
 </body>
 </html>
