@@ -1604,6 +1604,7 @@ tbody tr:last-child td { border-bottom: none; }
             <div class="iv-event-dropdown-item" onclick="selectIvEvent(this)">Dallas Healthcare Hiring Event</div>
             <div class="iv-event-dropdown-item" onclick="selectIvEvent(this)">Atlanta Diversity Hiring Event</div>
             <div class="iv-event-dropdown-item" onclick="selectIvEvent(this)">Chicago Technology Hiring Event</div>
+            <div class="iv-event-dropdown-item" onclick="selectIvEvent(this)">New York City Entry Level Hiring Event</div>
           </div>
         </div>
       </div>
@@ -1637,6 +1638,7 @@ tbody tr:last-child td { border-bottom: none; }
               <button class="dev-toggle-btn active" onclick="setIvUpcomingDevMode('empty', this)">Empty</button>
               <button class="dev-toggle-btn" onclick="setIvUpcomingDevMode('active', this)">Active</button>
               <button class="dev-toggle-btn" onclick="setIvUpcomingDevMode('live', this)">Live</button>
+              <button class="dev-toggle-btn" onclick="setIvUpcomingDevMode('interviewer', this)">Interviewer</button>
             </div>
           </div>
           <h2>You don't have upcoming interviews</h2>
@@ -1665,6 +1667,7 @@ tbody tr:last-child td { border-bottom: none; }
                   <button class="dev-toggle-btn" onclick="setIvUpcomingDevMode('empty', this)">Empty</button>
                   <button class="dev-toggle-btn active" onclick="setIvUpcomingDevMode('active', this)">Active</button>
                   <button class="dev-toggle-btn" onclick="setIvUpcomingDevMode('live', this)">Live</button>
+                  <button class="dev-toggle-btn" onclick="setIvUpcomingDevMode('interviewer', this)">Interviewer</button>
                 </div>
               </div>
             </div>
@@ -1699,6 +1702,7 @@ tbody tr:last-child td { border-bottom: none; }
                   <button class="dev-toggle-btn" onclick="setIvUpcomingDevMode('empty', this)">Empty</button>
                   <button class="dev-toggle-btn" onclick="setIvUpcomingDevMode('active', this)">Active</button>
                   <button class="dev-toggle-btn active" onclick="setIvUpcomingDevMode('live', this)">Live</button>
+                  <button class="dev-toggle-btn" onclick="setIvUpcomingDevMode('interviewer', this)">Interviewer</button>
                 </div>
               </div>
             </div>
@@ -2317,9 +2321,36 @@ function setIvUpcomingDevMode(mode, btn) {
   document.querySelectorAll('#iv-panel-0 .dev-toggle-btn').forEach(function(b) {
     if (b.textContent.trim().toLowerCase() === mode) b.classList.add('active');
   });
-  document.getElementById('ivUpcomingEmpty').style.display = mode === 'empty' ? '' : 'none';
-  document.getElementById('ivUpcomingActive').style.display = mode === 'active' ? '' : 'none';
-  document.getElementById('ivUpcomingLive').style.display = mode === 'live' ? '' : 'none';
+
+  if (mode === 'interviewer') {
+    // Show empty state for interviewer (same view, just filtered dropdown)
+    document.getElementById('ivUpcomingEmpty').style.display = '';
+    document.getElementById('ivUpcomingActive').style.display = 'none';
+    document.getElementById('ivUpcomingLive').style.display = 'none';
+    // Filter event dropdown to only NYC
+    document.querySelectorAll('#ivEventDropdown .iv-event-dropdown-item').forEach(function(item) {
+      var text = item.textContent.trim();
+      item.style.display = (text === 'All hiring events' || text.indexOf('New York') !== -1) ? '' : 'none';
+    });
+    // Set dropdown button to show just NYC
+    var filterBtn = document.querySelector('.iv-event-filter-btn');
+    if (filterBtn) {
+      filterBtn.childNodes[0].textContent = 'New York City Entry Level Hiring Event ';
+    }
+  } else {
+    document.getElementById('ivUpcomingEmpty').style.display = mode === 'empty' ? '' : 'none';
+    document.getElementById('ivUpcomingActive').style.display = mode === 'active' ? '' : 'none';
+    document.getElementById('ivUpcomingLive').style.display = mode === 'live' ? '' : 'none';
+    // Restore event dropdown (show all items)
+    document.querySelectorAll('#ivEventDropdown .iv-event-dropdown-item').forEach(function(item) {
+      item.style.display = '';
+    });
+    // Restore dropdown button text
+    var filterBtn = document.querySelector('.iv-event-filter-btn');
+    if (filterBtn) {
+      filterBtn.childNodes[0].textContent = 'All hiring events ';
+    }
+  }
 
   // Show/hide live banner based on mode + selected event
   updateIvLiveBanner();
