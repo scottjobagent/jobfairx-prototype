@@ -233,7 +233,7 @@ body.setup-jobs-incomplete .add-job-row { display: none; }
 .email-error.show { display: block; }
 
 /* Seat indicator */
-.is-seat-indicator { display: inline-flex; align-items: center; gap: 0; background: #f3f2ef; border: 1px solid #d4d2d0; border-radius: 999px; padding: 6px 16px; font-size: 13px; color: #595959; margin-bottom: 16px; }
+.is-seat-indicator { display: inline-flex; align-items: center; gap: 0; background: #f3f2ef; border: 1px solid #d4d2d0; border-radius: 999px; padding: 6px 16px; font-size: 13px; color: #595959; margin-top: 10px; margin-bottom: 6px; }
 .is-seat-pkg { font-weight: 600; color: #2d2d2d; }
 .is-seat-sep { color: #9ca3af; margin: 0 6px; }
 .is-seat-count { font-weight: 500; }
@@ -819,17 +819,17 @@ body.collapsed .main { margin-left: 60px; }
         <!-- Who will be interviewing -->
         <div class="is-group">
           <div class="is-group-label">Who will be interviewing candidates?</div>
-          <div class="is-seat-indicator" id="seatIndicator">
-            <span class="is-seat-pkg">Growth package</span>
-            <span class="is-seat-sep">&middot;</span>
-            <span class="is-seat-count" id="seatCountText">1 of 5 interviewer seats used</span>
-          </div>
 
           <div class="is-field-label">Enter the interviewers' email addresses. <span class="required">*</span></div>
           <p class="is-field-hint">All interviewers will need a JobFairX account to access the event.</p>
           <div class="is-email-box" id="interviewerEmailBox" onclick="this.querySelector('input')?.focus()">
             <span class="is-email-chip">scott@jobfairx.com <button class="is-email-chip-x" onclick="removeInterviewerChip(this)" title="Remove">&times;</button></span>
             <input type="email" placeholder="Add email..." class="is-email-box-input" id="interviewerEmailInput" onkeydown="handleInterviewerKeydown(event)" onblur="handleInterviewerBlur(this)">
+          </div>
+          <div class="is-seat-indicator" id="seatIndicator">
+            <span class="is-seat-pkg" id="seatPkgName">Growth package</span>
+            <span class="is-seat-sep">&middot;</span>
+            <span class="is-seat-count" id="seatCountText">1 of 5 interviewer seats used</span>
           </div>
           <div class="email-error" id="interviewerEmailError">Enter a valid email address.</div>
           <div class="email-error" id="interviewerDupeError" style="display:none;">This email has already been added.</div>
@@ -1269,7 +1269,12 @@ document.addEventListener('click', function(event) {
 });
 
 /* ═══ INTERVIEWER EMAIL LOGIC ═══ */
-var PACKAGE_MAX_SEATS = 5; // Growth = 5 seats
+var PACKAGE_SEAT_LIMITS = { starter: 1, growth: 5, pro: Infinity };
+var PACKAGE_SEAT_NAMES = { starter: 'Starter', growth: 'Growth', pro: 'Pro' };
+
+function getCurrentSeatLimit() {
+  return PACKAGE_SEAT_LIMITS[currentPackage] || 5;
+}
 
 function getInterviewerCount() {
   return document.querySelectorAll('#interviewerEmailBox .is-email-chip').length;
@@ -1277,16 +1282,28 @@ function getInterviewerCount() {
 
 function updateSeatCounter() {
   var count = getInterviewerCount();
+  var limit = getCurrentSeatLimit();
+  var pkgName = PACKAGE_SEAT_NAMES[currentPackage] || 'Growth';
   var countText = document.getElementById('seatCountText');
+  var pkgLabel = document.getElementById('seatPkgName');
   var indicator = document.getElementById('seatIndicator');
   var limitMsg = document.getElementById('seatLimitMsg');
-  countText.textContent = count + ' of ' + PACKAGE_MAX_SEATS + ' interviewer seat' + (PACKAGE_MAX_SEATS !== 1 ? 's' : '') + ' used';
-  if (count >= PACKAGE_MAX_SEATS) {
-    indicator.classList.add('is-full');
-    limitMsg.classList.add('show');
-  } else {
+
+  pkgLabel.textContent = pkgName + ' package';
+
+  if (limit === Infinity) {
+    countText.textContent = count + ' interviewer' + (count !== 1 ? 's' : '') + ' added';
     indicator.classList.remove('is-full');
     limitMsg.classList.remove('show');
+  } else {
+    countText.textContent = count + ' of ' + limit + ' interviewer seat' + (limit !== 1 ? 's' : '') + ' used';
+    if (count >= limit) {
+      indicator.classList.add('is-full');
+      limitMsg.classList.add('show');
+    } else {
+      indicator.classList.remove('is-full');
+      limitMsg.classList.remove('show');
+    }
   }
 }
 
@@ -1328,7 +1345,7 @@ function addInterviewerEmail(input) {
   }
 
   // Check seat limit
-  if (getInterviewerCount() >= PACKAGE_MAX_SEATS) {
+  if (getInterviewerCount() >= getCurrentSeatLimit()) {
     input.value = '';
     return false;
   }
@@ -1603,6 +1620,8 @@ function setPackagePreview(pkg) {
     cards[1].style.display = (pkg === 'starter') ? 'none' : '';
   }
   recomputeEditPackageUsage();
+  // Also update interviewer seat counter for the new package
+  updateSeatCounter();
 }
 
 function recomputeEditPackageUsage() {
