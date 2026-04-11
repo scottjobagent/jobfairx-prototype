@@ -3,362 +3,30 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Updates April 10 – JobFairX Employer Dashboard</title>
+<title>Virtual Interview Lobby - JobFairX</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-/* ═══════════════════════════════════════════════════════
-   Fully interactive prototype — frozen Vue dashboard replica
-   with role-based permissions, multi-screen navigation,
-   Active/Empty/Live toggle, Edit page, Account & Billing.
-   Source: DashboardPage.vue, AppSidebar.vue, AppTopbar.vue,
-   DashboardLayout.vue, EditPostPage.vue, AccountBillingPage.vue
-   ═══════════════════════════════════════════════════════ */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-body {
-  font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  font-size: 14px; color: #2d2d2d; background: #f3f2ef;
-  -webkit-font-smoothing: antialiased;
-}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; background: #fff; color: #2d2d2d; min-height: 100vh; font-size: 14px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
 
-/* ═══ SIDEBAR ═══ */
-.sidebar {
-  position: fixed; left: 0; top: 0; bottom: 0;
-  width: 220px; background: #2d2d2d; z-index: 300;
-  display: flex; flex-direction: column; overflow: hidden;
-}
-.sidebar-top { padding: 18px 16px 12px; }
-.collapse-btn {
-  display: flex; align-items: center; gap: 10px;
-  padding: 8px 10px; border-radius: 6px;
-  background: transparent; border: none;
-  font-size: 15px; font-weight: 600;
-  color: rgba(255,255,255,0.9); cursor: pointer;
-  transition: all 0.15s; width: 100%;
-}
-.collapse-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
-.collapse-btn svg { width: 20px; height: 20px; flex-shrink: 0; color: rgba(255,255,255,0.9); }
-.nav-section { flex: 1; padding: 8px 12px; overflow-y: auto; }
-.nav-item {
-  display: flex; align-items: center; gap: 14px;
-  padding: 16px 18px; border-radius: 10px;
-  font-size: 17px; cursor: pointer;
-  transition: all 0.15s; text-decoration: none;
-  letter-spacing: -0.1px; margin-bottom: 6px;
-}
-.nav-item svg { width: 24px; height: 24px; flex-shrink: 0; color: rgba(255,255,255,0.7); }
-.nav-item.active { background: rgba(255,255,255,0.18); color: #fff; font-weight: 700; }
-.nav-item.active svg { color: #fff; }
-.nav-item:not(.active) { font-weight: 500; color: rgba(255,255,255,0.85); }
-.nav-item:not(.active):hover { background: rgba(255,255,255,0.1); color: #fff; }
+/* ═══ TOP HEADER BAR ═══ */
+.lobby-topbar { width: 100%; height: 56px; background: #fff; border-bottom: 1px solid #d4d2d0; }
+.lobby-topbar-inner { padding: 0 32px; height: 100%; display: flex; align-items: center; justify-content: space-between; }
+.lobby-topbar-logo { font-size: 22px; font-weight: 800; color: #0044B3; letter-spacing: -0.5px; text-decoration: none; cursor: pointer; }
+.lobby-topbar-right { display: flex; align-items: center; gap: 6px; }
+.lobby-user-trigger { display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 6px 12px; border-radius: 8px; transition: background 0.15s; position: relative; }
+.lobby-user-trigger:hover { background: #f3f2ef; }
+.lobby-user-trigger svg.user-icon { width: 20px; height: 20px; color: #595959; }
+.lobby-user-trigger span { font-size: 14px; font-weight: 500; color: #2d2d2d; }
+.lobby-user-trigger svg.chevron { width: 14px; height: 14px; color: #767676; }
+.lobby-user-menu { position: absolute; top: 42px; right: 0; background: #fff; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.12); border: 1px solid #d4d2d0; min-width: 220px; z-index: 500; display: none; padding: 6px 0; }
+.lobby-user-menu.open { display: block; }
+.lobby-user-menu-item { display: flex; align-items: center; width: 100%; padding: 12px 18px; font-size: 14px; font-weight: 500; color: #2d2d2d; background: none; border: none; text-align: left; cursor: pointer; font-family: inherit; transition: background 0.1s; text-decoration: none; box-sizing: border-box; }
+.lobby-user-menu-item:hover { background: #f3f2ef; }
+.lobby-user-menu-item.muted { color: #767676; }
+.lobby-user-menu-divider { height: 1px; background: #ebebeb; margin: 4px 0; }
 
-/* Credits panel */
-.credits-panel { padding: 12px 12px 16px; border-top: 1px solid rgba(255,255,255,0.1); transition: opacity 0.3s; position: relative; }
-.credits-panel.dimmed { opacity: 0.4; }
-.credits-panel-tooltip { position: absolute; top: -32px; left: 50%; transform: translateX(-50%); background: #2d2d2d; color: #fff; font-size: 12px; font-weight: 400; padding: 6px 12px; border-radius: 6px; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 0.15s; z-index: 100; }
-.credits-panel.restricted:hover .credits-panel-tooltip { opacity: 1; }
-.credits-panel.restricted { cursor: default; }
-.credits-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; padding: 0 4px; }
-.credits-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: rgba(255,255,255,0.45); }
-.credits-link { font-size: 12px; font-weight: 600; color: #0044B3; text-decoration: none; cursor: pointer; }
-.credits-link:hover { text-decoration: underline; }
-.credits-grid { display: flex; background: rgba(255,255,255,0.06); border-radius: 8px; overflow: hidden; }
-.credit-cell { flex: 1; text-align: center; padding: 10px 4px 8px; }
-.credit-cell + .credit-cell { border-left: 1px solid rgba(255,255,255,0.08); }
-.credit-num { font-size: 22px; font-weight: 800; color: #fff; line-height: 1; margin-bottom: 2px; }
-.credit-tier { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: rgba(255,255,255,0.4); }
-.credits-managed-msg { display: none; font-size: 11px; color: rgba(255,255,255,0.4); font-style: italic; margin-top: 8px; padding: 0 4px; }
-
-/* ═══ TOPBAR ═══ */
-.topbar {
-  position: fixed; top: 0; left: 220px; right: 0;
-  height: 56px; background: #fff;
-  border-bottom: 1px solid #d4d2d0;
-  display: flex; align-items: center;
-  justify-content: space-between;
-  padding: 0 24px; z-index: 200;
-}
-.topbar-left { display: flex; align-items: center; gap: 16px; }
-.topbar-logo { font-size: 22px; font-weight: 800; color: #0044B3; letter-spacing: -0.5px; text-decoration: none; cursor: pointer; }
-.dev-toggle { display: flex; align-items: center; gap: 8px; padding: 5px 12px; background: #f3f2ef; border-radius: 6px; border: 1px solid #d4d2d0; }
-.dev-toggle-label { font-size: 11px; font-weight: 600; color: #767676; text-transform: uppercase; letter-spacing: 0.5px; }
-.dev-toggle-switch { display: flex; background: #e0e0e0; border-radius: 4px; overflow: hidden; }
-.dev-toggle-btn { padding: 4px 10px; font-size: 11px; font-weight: 700; border: none; cursor: pointer; transition: all 0.15s; background: transparent; color: #767676; font-family: inherit; }
-.dev-toggle-btn.active { background: #0044B3; color: #fff; }
-
-/* Role toggle */
-.role-toggle { display: flex; align-items: center; gap: 8px; padding: 5px 12px; background: #fff3cd; border-radius: 6px; border: 1px solid #ffc107; }
-.role-toggle-label { font-size: 11px; font-weight: 600; color: #854d0e; text-transform: uppercase; letter-spacing: 0.5px; }
-.role-toggle-switch { display: flex; background: #e0e0e0; border-radius: 4px; overflow: hidden; }
-.role-toggle-btn { padding: 4px 10px; font-size: 11px; font-weight: 700; border: none; cursor: pointer; transition: all 0.15s; background: transparent; color: #767676; font-family: inherit; }
-.role-toggle-btn.active { background: #0044B3; color: #fff; }
-
-/* User trigger */
-.topbar-right { display: flex; align-items: center; gap: 4px; }
-.user-trigger { display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 6px 12px; border-radius: 8px; transition: background 0.15s; position: relative; }
-.user-trigger:hover { background: #f3f2ef; }
-.user-trigger span { font-size: 16px; font-weight: 400; color: #2d2d2d; }
-.user-trigger .chevron { width: 14px; height: 14px; color: #767676; }
-.user-menu { display: none; position: absolute; top: 42px; right: 0; background: #fff; border-radius: 10px; box-shadow: 0 4px 16px rgba(0,0,0,0.12); border: 1px solid #d4d2d0; min-width: 220px; z-index: 500; padding: 6px 0; }
-.user-menu.open { display: block; }
-.user-menu-item { display: flex; align-items: center; width: 100%; padding: 12px 18px; font-size: 16px; font-weight: 500; color: #2d2d2d; background: none; border: none; text-align: left; cursor: pointer; transition: background 0.15s; text-decoration: none; font-family: inherit; }
-.user-menu-item:hover { background: #f3f2ef; }
-.user-menu-item.muted { color: #767676; }
-.user-menu-divider { height: 1px; background: #ebebeb; margin: 4px 0; }
-
-/* ═══ MAIN CONTENT ═══ */
-.main-content { margin-left: 220px; margin-top: 56px; min-height: calc(100vh - 56px); padding: 24px 28px 40px; }
-.screen { display: none; }
-.screen.active { display: block; }
-
-/* ═══ DASHBOARD STYLES ═══ */
-.dash-header-card { background: #fff; border-radius: 12px; border: 1px solid #d4d2d0; padding: 28px 32px; margin-bottom: 20px; }
-.dash-header-inner { display: flex; align-items: center; justify-content: space-between; }
-.company-name { font-size: 24px; font-weight: 700; color: #2d2d2d; }
-.btn-register { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 24px; border-radius: 8px; font-size: 18px; font-weight: 700; border: none; cursor: pointer; font-family: inherit; transition: all 0.15s; background: #0044B3; color: #fff; position: relative; }
-.btn-register:hover { background: #003399; }
-.btn-register-tooltip { position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%); background: #2d2d2d; color: #fff; font-size: 12px; font-weight: 400; padding: 6px 12px; border-radius: 6px; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 0.15s; }
-.btn-register.restricted:hover .btn-register-tooltip { opacity: 1; }
-
-.filter-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
-.filter-pills { display: flex; gap: 8px; }
-.filter-pill { padding: 12px 24px; font-size: 16px; font-weight: 700; cursor: pointer; border-radius: 8px; transition: all 0.15s; border: 1px solid transparent; font-family: inherit; }
-.filter-pill.active { background: #2d2d2d; color: #fff; }
-.filter-pill:not(.active) { background: transparent; color: #595959; }
-.filter-pill:not(.active):hover { background: #e8e6e3; }
-.filter-pill .count { font-weight: 400; margin-left: 2px; }
-.filter-pill.active .count { color: rgba(255,255,255,0.6); }
-
-.btn-search-events { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 8px; border: 1px solid #d4d2d0; background: #fff; font-size: 14px; font-weight: 600; color: #0044B3; cursor: pointer; font-family: inherit; transition: all 0.15s; }
-.btn-search-events:hover { border-color: #0044B3; background: #f8faff; }
-
-.events-card { background: #fff; border-radius: 12px; border: 1px solid #d4d2d0; overflow: visible; }
-.events-table { width: 100%; border-collapse: collapse; }
-.events-table th { text-align: left; font-size: 12px; font-weight: 700; color: #595959; text-transform: uppercase; letter-spacing: 0.5px; background: #fafaf8; border-bottom: 1px solid #d4d2d0; padding: 16px 22px; }
-.events-table td { padding: 24px 22px; font-size: 16px; vertical-align: top; border-bottom: 1px solid #ebebeb; }
-.events-table tr:last-child td { border-bottom: none; }
-.events-table tr { transition: background 0.15s; position: relative; }
-.events-table tbody tr:hover { background: #f6f5f3; }
-
-.action-buttons { display: flex; align-items: center; gap: 8px; position: relative; }
-.action-btn { width: 38px; height: 38px; border-radius: 8px; border: 1px solid #d4d2d0; background: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s; color: #0044B3; }
-.action-btn:hover { background: #f0f5ff; border-color: #0044B3; }
-.action-btn svg { width: 18px; height: 18px; }
-.btn-complete-setup { display: inline-flex; align-items: center; margin-top: 8px; padding: 7px 18px; border-radius: 8px; border: none; background: #0044B3; color: #fff; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; transition: background 0.15s; }
-.btn-complete-setup:hover { background: #003399; }
-
-.dots-dropdown { display: none; position: absolute; top: 44px; left: 0; background: #fff; border-radius: 10px; box-shadow: 0 4px 16px rgba(0,0,0,0.12); border: 1px solid #d4d2d0; min-width: 180px; z-index: 500; padding: 6px 0; }
-.dots-dropdown.open { display: block; }
-.dots-dropdown-item { display: block; width: 100%; padding: 12px 18px; font-size: 16px; font-weight: 500; color: #2d2d2d; background: none; border: none; text-align: left; cursor: pointer; transition: background 0.15s; font-family: inherit; }
-.dots-dropdown-item:hover { background: #f3f2ef; }
-
-.event-name { font-size: 16px; font-weight: 400; color: #2d2d2d; }
-.event-date { margin-top: 4px; font-size: 16px; font-weight: 400; color: #2d2d2d; }
-.event-date .time { color: #767676; }
-.event-package { margin-top: 4px; font-size: 16px; font-weight: 400; color: #767676; }
-.setup-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 700; margin-top: 8px; background: #fef2f2; color: #991b1b; }
-.setup-badge svg { width: 14px; height: 14px; }
-
-.location-text { font-size: 16px; font-weight: 400; color: #2d2d2d; }
-.lobby-link { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: #0044B3; font-weight: 400; text-decoration: underline; cursor: pointer; margin-top: 4px; }
-.setup-complete-badge { display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 13px; font-weight: 600; color: #166534; }
-.setup-complete-badge .dot { width: 8px; height: 8px; border-radius: 50%; background: #16a34a; flex-shrink: 0; }
-
-.setup-link { font-size: 16px; color: #0044B3; font-weight: 400; text-decoration: none; cursor: pointer; }
-.setup-incomplete { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: #991b1b; }
-.setup-incomplete svg { width: 18px; height: 18px; flex-shrink: 0; }
-
-.job-link { display: block; font-size: 16px; color: #0044B3; font-weight: 400; text-decoration: none; cursor: pointer; }
-.job-link:hover { text-decoration: underline; }
-.candidate-count { font-size: 16px; font-weight: 400; color: #2d2d2d; }
-.manage-link { display: block; font-size: 16px; color: #0044B3; font-weight: 400; text-decoration: none; cursor: pointer; margin-top: 2px; }
-.manage-link:hover { text-decoration: underline; }
-
-.table-footer { padding: 14px 20px; border-top: 1px solid #ebebeb; display: flex; align-items: center; justify-content: center; }
-.pagination { display: flex; align-items: center; gap: 4px; }
-.page-btn { height: 32px; padding: 0 12px; border-radius: 6px; border: none; font-size: 13px; font-weight: 500; cursor: pointer; font-family: inherit; background: transparent; }
-.page-btn.active { background: #2d2d2d; color: #fff; }
-.page-btn.disabled { background: transparent; color: #767676; opacity: 0.35; cursor: default; }
-
-/* ═══ NO ACCESS OVERLAY ═══ */
-.no-access-overlay {
-  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(255,255,255,0.88); backdrop-filter: blur(2px);
-  display: none; align-items: center; justify-content: center; gap: 8px;
-  opacity: 0; transition: opacity 0.2s; z-index: 5; pointer-events: none;
-}
-.no-access-overlay.enabled { display: flex; }
-tr:hover .no-access-overlay.enabled { opacity: 1; pointer-events: auto; }
-.no-access-overlay svg { width: 16px; height: 16px; color: #767676; flex-shrink: 0; }
-.no-access-text { font-size: 14px; font-weight: 600; color: #595959; }
-.no-access-link { font-size: 14px; font-weight: 700; color: #0044B3; background: none; border: none; cursor: pointer; font-family: inherit; }
-.no-access-link:hover { text-decoration: underline; }
-
-/* ═══ INTERVIEWER ACCESS BADGE (always visible, not just on hover) ═══ */
-.access-badge {
-  display: none; align-items: center; gap: 6px;
-  margin-top: 6px; font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 6px;
-}
-.access-badge.granted { background: #e8f5e9; color: #166534; }
-.access-badge.denied { background: #fef2f2; color: #991b1b; }
-.access-badge svg { width: 14px; height: 14px; flex-shrink: 0; }
-
-/* ═══ EMPTY STATE (for Empty view) ═══ */
-.empty-state { text-align: center; padding: 80px 40px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-
-/* ═══ LIVE BADGE ═══ */
-.live-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 700; background: #e8f5e9; color: #166534; margin-top: 8px; }
-.live-badge .pulse { width: 8px; height: 8px; border-radius: 50%; background: #16a34a; animation: pulse 2s infinite; }
-@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
-
-/* ═══ EDIT PAGE STYLES ═══ */
-.edit-page { max-width: 820px; margin: 0 auto; }
-.back-link { display: inline-flex; align-items: center; gap: 6px; font-size: 16px; color: #0044B3; font-weight: 700; text-decoration: none; cursor: pointer; margin-bottom: 28px; }
-.back-link:hover { text-decoration: underline; }
-.back-link svg { width: 16px; height: 16px; }
-
-.edit-header-card { background: #fff; border: 1px solid #d4d2d0; border-radius: 12px; padding: 40px; margin-bottom: 28px; display: flex; align-items: center; justify-content: space-between; }
-.edit-header-card h1 { font-size: 48px; font-weight: 700; color: #2d2d2d; line-height: 1.1; }
-
-.edit-section { background: #fff; border: 1px solid #d4d2d0; border-radius: 12px; margin-bottom: 24px; overflow: hidden; }
-.edit-section-header { display: flex; align-items: center; justify-content: space-between; padding: 28px 36px; }
-.edit-section-header h2 { font-size: 24px; font-weight: 700; color: #2d2d2d; }
-.edit-section-divider { height: 1px; background: #e0e0e0; }
-.edit-section-body { padding: 32px 36px; }
-.edit-section-body p { font-size: 18px; color: #595959; line-height: 1.6; }
-
-.edit-pencil { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 8px; border: none; background: transparent; cursor: pointer; color: #0044B3; transition: background 0.15s; }
-.edit-pencil:hover { background: #f0f5ff; }
-.edit-pencil svg { width: 24px; height: 24px; fill: #0044B3; }
-
-/* Interview settings — interviewer seats */
-.seat-counter { display: flex; align-items: center; gap: 8px; margin: 12px 0 16px; }
-.seat-counter .label { font-size: 14px; font-weight: 600; color: #2d2d2d; }
-.seat-counter .count { font-size: 14px; font-weight: 700; color: #2d2d2d; }
-.seat-counter .max { font-size: 14px; font-weight: 400; color: #767676; }
-.seat-status { font-size: 13px; font-weight: 600; margin-top: 2px; }
-.seat-status.ok { color: #595959; }
-.seat-status.full { color: #991b1b; }
-
-/* Email chip input */
-.chip-input { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 10px; min-height: 48px; border: 1px solid #d4d2d0; border-radius: 8px; cursor: text; transition: border-color 0.15s; }
-.chip-input:focus-within { border-color: #0044B3; }
-.chip { display: inline-flex; align-items: center; gap: 8px; background: #f3f2ef; border: 1px solid #d4d2d0; border-radius: 20px; padding: 6px 14px; font-size: 14px; color: #2d2d2d; }
-.chip .remove { background: none; border: none; cursor: pointer; font-size: 16px; line-height: 1; color: #767676; padding: 0; font-family: inherit; }
-.chip .remove:hover { color: #2d2d2d; }
-.chip-input input { border: none; outline: none; font-size: 14px; color: #2d2d2d; flex: 1; min-width: 120px; background: transparent; font-family: inherit; }
-
-/* Expand/collapse sections */
-.section-toggle { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 8px; border: 1px solid #d4d2d0; background: #fff; font-size: 16px; font-weight: 600; color: #2d2d2d; cursor: pointer; font-family: inherit; transition: all 0.15s; width: 100%; text-align: left; margin-top: 12px; }
-.section-toggle:hover { background: #f6f5f3; border-color: #0044B3; }
-.section-toggle svg { width: 16px; height: 16px; transition: transform 0.2s; }
-.section-toggle.expanded svg { transform: rotate(180deg); }
-.expandable { display: none; margin-top: 16px; }
-.expandable.open { display: block; }
-
-/* ═══ ACCOUNT & BILLING STYLES ═══ */
-.account-tabs { display: flex; gap: 8px; border-bottom: 1px solid #d4d2d0; margin-bottom: 28px; }
-.account-tab { display: inline-flex; align-items: center; gap: 8px; padding: 12px 18px; font-size: 16px; font-weight: 700; color: #595959; border-bottom: 2px solid transparent; cursor: pointer; background: none; border-top: none; border-left: none; border-right: none; font-family: inherit; transition: all 0.15s; }
-.account-tab.active { color: #0044B3; border-bottom-color: #0044B3; }
-.account-tab svg { width: 18px; height: 18px; }
-
-.info-section { background: #fff; border: 1px solid #d4d2d0; border-radius: 12px; margin-bottom: 22px; }
-.info-section-header { display: flex; align-items: center; justify-content: space-between; padding: 28px 36px; }
-.info-section-header h2 { font-size: 22px; font-weight: 700; color: #2d2d2d; }
-.info-section-divider { height: 1px; background: #e0e0e0; margin: 0 36px; }
-.info-section-body { padding: 26px 36px; }
-.info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px 28px; }
-.info-grid.single-col { grid-template-columns: 1fr; }
-.info-field label { display: block; font-size: 14px; font-weight: 700; color: #595959; margin-bottom: 6px; }
-.info-field .value { font-size: 18px; font-weight: 400; color: #2d2d2d; min-height: 24px; }
-.info-field input { width: 100%; padding: 11px 14px; font-size: 18px; font-weight: 400; color: #2d2d2d; border: 1px solid #d4d2d0; border-radius: 8px; background: #fff; outline: none; transition: all 0.15s; font-family: inherit; }
-.info-field input:focus { border-color: #0044B3; box-shadow: 0 0 0 3px rgba(0,68,179,0.15); }
-.info-field.full-width { grid-column: 1 / -1; }
-
-.card-display { display: flex; align-items: center; gap: 12px; padding: 16px 20px; background: #fafaf8; border-radius: 8px; border: 1px solid #ebebeb; }
-.card-brand { font-size: 12px; font-weight: 700; padding: 3px 8px; border-radius: 4px; background: #f0f5ff; color: #0044B3; }
-.card-details { font-size: 16px; color: #2d2d2d; }
-.card-details span { color: #767676; margin-left: 8px; }
-
-.action-row { display: flex; justify-content: flex-end; gap: 12px; margin-top: 28px; padding-top: 22px; border-top: 1px solid #ebebeb; }
-.btn-cancel { padding: 10px 22px; border-radius: 8px; border: 1px solid #d4d2d0; background: #fff; font-size: 16px; font-weight: 700; color: #2d2d2d; cursor: pointer; font-family: inherit; transition: all 0.15s; }
-.btn-cancel:hover { background: #f6f5f3; border-color: #2d2d2d; }
-.btn-save { padding: 10px 24px; border-radius: 8px; border: none; background: #0044B3; font-size: 16px; font-weight: 700; color: #fff; cursor: pointer; font-family: inherit; transition: background 0.15s; }
-.btn-save:hover { background: #003399; }
-
-/* Restricted fields for interviewer */
-.field-restricted { position: relative; }
-.field-restricted::after { content: ''; position: absolute; inset: 0; background: rgba(243,242,239,0.6); pointer-events: none; border-radius: 8px; }
-.restricted-label { font-size: 12px; color: #767676; font-style: italic; margin-top: 4px; }
-
-/* ═══ NO-ACCESS MODAL ═══ */
-.modal-backdrop {
-  display: none; position: fixed; inset: 0;
-  background: rgba(0,0,0,0.45); z-index: 1000;
-  align-items: center; justify-content: center;
-}
-.modal-backdrop.open { display: flex; }
-.modal-box {
-  background: #fff; border-radius: 16px; padding: 36px 40px;
-  max-width: 460px; width: 90%; box-shadow: 0 12px 40px rgba(0,0,0,0.2);
-  text-align: center; position: relative;
-}
-.modal-close {
-  position: absolute; top: 16px; right: 16px;
-  width: 32px; height: 32px; border-radius: 8px;
-  border: none; background: transparent; cursor: pointer;
-  font-size: 20px; color: #767676; display: flex;
-  align-items: center; justify-content: center;
-  transition: background 0.15s;
-}
-.modal-close:hover { background: #f3f2ef; color: #2d2d2d; }
-.modal-icon {
-  width: 56px; height: 56px; border-radius: 50%;
-  background: #fef2f2; display: flex;
-  align-items: center; justify-content: center;
-  margin: 0 auto 20px;
-}
-.modal-icon svg { width: 28px; height: 28px; color: #991b1b; }
-.modal-title { font-size: 20px; font-weight: 700; color: #2d2d2d; margin-bottom: 8px; }
-.modal-subtitle { font-size: 16px; color: #595959; line-height: 1.5; margin-bottom: 24px; }
-.modal-event-name { font-size: 14px; font-weight: 600; color: #767676; margin-bottom: 20px; }
-.modal-actions { display: flex; gap: 12px; justify-content: center; }
-.modal-btn-primary {
-  padding: 12px 28px; border-radius: 8px; border: none;
-  background: #0044B3; color: #fff; font-size: 16px;
-  font-weight: 700; cursor: pointer; font-family: inherit;
-  transition: background 0.15s;
-}
-.modal-btn-primary:hover { background: #003399; }
-.modal-btn-primary:disabled { background: #cbd5e1; cursor: not-allowed; }
-.modal-btn-secondary {
-  padding: 12px 28px; border-radius: 8px;
-  border: 1px solid #d4d2d0; background: #fff;
-  color: #2d2d2d; font-size: 16px; font-weight: 600;
-  cursor: pointer; font-family: inherit;
-  transition: all 0.15s;
-}
-.modal-btn-secondary:hover { background: #f6f5f3; border-color: #2d2d2d; }
-
-/* ═══ TOAST ═══ */
-.toast { position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(20px); background: #2d2d2d; color: #fff; padding: 14px 24px; border-radius: 10px; font-size: 14px; font-weight: 600; z-index: 9999; opacity: 0; transition: opacity 0.3s, transform 0.3s; pointer-events: none; box-shadow: 0 4px 16px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 10px; }
-.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-.toast svg { width: 18px; height: 18px; color: #4ade80; flex-shrink: 0; }
-
-/* (Dead lobby-* CSS removed — interviews screen now uses lobby.html classes) */
-
-/* ═══ PAGE NAV ═══ */
-.page-nav { position: fixed; bottom: 20px; right: 20px; display: flex; align-items: center; gap: 8px; z-index: 9999; background: #fff; padding: 8px 14px; border-radius: 10px; box-shadow: 0 4px 16px rgba(0,0,0,0.15); border: 1px solid #d4d2d0; }
-.page-nav-label { font-size: 11px; font-weight: 700; color: #767676; text-transform: uppercase; letter-spacing: 0.5px; }
-.page-nav-switch { display: flex; background: #e0e0e0; border-radius: 4px; overflow: hidden; }
-.page-nav-btn { padding: 5px 12px; font-size: 11px; font-weight: 700; border: none; cursor: pointer; transition: all 0.15s; background: transparent; color: #767676; font-family: inherit; }
-.page-nav-btn.active { background: #0044B3; color: #fff; }
-
-/* ═══════════════════════════════════════════
-   INTERVIEWS SCREEN CSS (from lobby.html)
-   ═══════════════════════════════════════════ */
-
-/* Interviews screen container */
-#screen-interviews .container { padding: 32px 32px 0; }
+.container { padding: 32px 32px 0; }
 .full-width { width: 100%; }
 .full-width-inner { max-width: 1200px; margin: 0 auto; padding: 0 32px; }
 
@@ -374,19 +42,6 @@ tr:hover .no-access-overlay.enabled { opacity: 1; pointer-events: auto; }
 .event-meta { display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: 16px; font-weight: 400; color: #595959; white-space: nowrap; flex-wrap: nowrap; }
 .event-meta .dot { width: 8px; height: 8px; border-radius: 50%; background: #2d2d2d; flex-shrink: 0; }
 .event-meta .sep { color: #d4d2d0; }
-
-/* Event selector dropdown */
-.event-selector-wrapper { position: relative; margin-bottom: 20px; }
-.event-selector-btn { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; background: #fff; border: 1px solid #d4d2d0; border-radius: 8px; font-size: 14px; font-weight: 600; color: #0044B3; cursor: pointer; transition: all 0.15s; font-family: inherit; }
-.event-selector-btn:hover { background: #f0f5ff; border-color: #0044B3; }
-.event-selector-btn svg { width: 14px; height: 14px; }
-.event-selector-dropdown { display: none; position: absolute; top: calc(100% + 8px); left: 0; background: #fff; border: 1px solid #d4d2d0; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.12); min-width: 320px; z-index: 500; padding: 6px 0; }
-.event-selector-dropdown.open { display: block; }
-.event-selector-option { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 12px 18px; font-size: 14px; font-weight: 500; color: #2d2d2d; background: none; border: none; text-align: left; cursor: pointer; font-family: inherit; transition: background 0.1s; }
-.event-selector-option:hover { background: #f3f2ef; }
-.event-selector-option.disabled { color: #b0b0b0; cursor: not-allowed; }
-.event-selector-option.disabled:hover { background: transparent; }
-.event-selector-option .access-label { font-size: 11px; font-weight: 600; color: #991b1b; text-transform: uppercase; letter-spacing: 0.5px; }
 
 /* Gray separator between header and tabs */
 .header-separator { display: none; }
@@ -493,6 +148,13 @@ tr:hover .no-access-overlay.enabled { opacity: 1; pointer-events: auto; }
 .review-dropdown.open { display: block; }
 .review-dropdown-item { display: block; width: 100%; padding: 12px 18px; font-size: 14px; font-weight: 500; color: #2d2d2d; background: none; border: none; text-align: left; cursor: pointer; font-family: inherit; transition: background 0.1s; }
 .review-dropdown-item:hover { background: #f3f2ef; }
+
+/* Dev toggle */
+.dev-toggle { display: flex; align-items: center; gap: 8px; padding: 5px 12px; background: #f3f2ef; border-radius: 6px; border: 1px solid #d4d2d0; }
+.dev-toggle-label { font-size: 11px; font-weight: 600; color: #767676; text-transform: uppercase; letter-spacing: 0.5px; }
+.dev-toggle-switch { display: flex; background: #e0e0e0; border-radius: 4px; overflow: hidden; }
+.dev-toggle-btn { padding: 4px 10px; font-size: 11px; font-weight: 700; border: none; background: transparent; cursor: pointer; font-family: inherit; color: #767676; transition: all 0.15s; }
+.dev-toggle-btn.active { background: #0044B3; color: #fff; }
 
 /* Pending section */
 .review-section.pending { margin-bottom: 20px; }
@@ -1175,761 +837,26 @@ tr:hover .no-access-overlay.enabled { opacity: 1; pointer-events: auto; }
 </head>
 <body>
 
-<!-- ═══ SIDEBAR ═══ -->
-<nav class="sidebar">
-  <div class="sidebar-top">
-    <button class="collapse-btn">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
-      Collapse
-    </button>
-  </div>
-  <div class="nav-section">
-    <a class="nav-item active" id="nav-dashboard" onclick="showScreen('dashboard')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-      Dashboard
-    </a>
-    <a class="nav-item" id="nav-interviews" onclick="showScreen('interviews')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
-      Interviews
-    </a>
-    <a class="nav-item" id="nav-messaging">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-      Messaging
-    </a>
-  </div>
-  <div class="credits-panel" id="creditsPanel">
-    <span class="credits-panel-tooltip">You don't have access to this feature</span>
-    <div class="credits-header">
-      <span class="credits-label">Event Credits</span>
-      <a class="credits-link" id="getCreditsLink">Get Credits</a>
-    </div>
-    <div class="credits-grid">
-      <div class="credit-cell"><div class="credit-num">2</div><div class="credit-tier">Starter</div></div>
-      <div class="credit-cell"><div class="credit-num">1</div><div class="credit-tier">Growth</div></div>
-      <div class="credit-cell"><div class="credit-num">0</div><div class="credit-tier">Pro</div></div>
-    </div>
-    <div class="credits-managed-msg" id="creditsManagedMsg">Credits managed by account holder</div>
-  </div>
-</nav>
-
-<!-- ═══ TOPBAR ═══ -->
-<header class="topbar">
-  <div class="topbar-left">
-    <a class="topbar-logo" onclick="showScreen('dashboard')">JobFairX</a>
-    <div class="dev-toggle">
-      <span class="dev-toggle-label">View:</span>
-      <div class="dev-toggle-switch" id="devToggleSwitch">
-        <button class="dev-toggle-btn active" onclick="setDevMode('active')">Active</button>
-        <button class="dev-toggle-btn" onclick="setDevMode('empty')">Empty</button>
-        <button class="dev-toggle-btn" onclick="setDevMode('live')">Live</button>
+<!-- Top header bar -->
+<div class="lobby-topbar">
+  <div class="lobby-topbar-inner">
+    <a class="lobby-topbar-logo" href="visual.html">JobFairX</a>
+    <div class="lobby-topbar-right">
+      <div class="lobby-user-trigger" onclick="document.getElementById('lobby-user-menu').classList.toggle('open')">
+        <svg class="user-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span>scott@jobfairx.com</span>
+        <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
       </div>
-    </div>
-    <div class="role-toggle">
-      <span class="role-toggle-label">Role:</span>
-      <div class="role-toggle-switch">
-        <button class="role-toggle-btn active" id="btnOwner" onclick="setRole('owner')">Owner</button>
-        <button class="role-toggle-btn" id="btnInterviewer" onclick="setRole('interviewer')">Interviewer</button>
-      </div>
-    </div>
-  </div>
-  <div class="topbar-right">
-    <div class="user-trigger" onclick="event.stopPropagation(); document.getElementById('userMenu').classList.toggle('open')">
-      <span id="userEmail">scott@jobfairx.com</span>
-      <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
-      <div class="user-menu" id="userMenu">
-        <a class="user-menu-item" onclick="event.stopPropagation(); showScreen('account'); document.getElementById('userMenu').classList.remove('open');">Account &amp; Billing</a>
-        <button class="user-menu-item" onclick="event.stopPropagation(); showToast('Feedback form coming soon'); document.getElementById('userMenu').classList.remove('open');">Give Feedback</button>
-        <div class="user-menu-divider"></div>
-        <button class="user-menu-item muted" onclick="event.stopPropagation(); showToast('Sign out clicked'); document.getElementById('userMenu').classList.remove('open');">Sign Out</button>
-      </div>
-    </div>
-  </div>
-</header>
-
-<!-- ═══ MAIN CONTENT ═══ -->
-<div class="main-content">
-
-<!-- ════════════════════════════════════════════════════
-     SCREEN: DASHBOARD
-     ════════════════════════════════════════════════════ -->
-<div class="screen active" id="screen-dashboard">
-  <div class="dash-header-card">
-    <div class="dash-header-inner">
-      <h1 class="company-name">Tesla</h1>
-      <div style="position:relative;">
-        <button class="btn-register" id="registerBtn">
-          Register for an event
-          <span class="btn-register-tooltip">You don't have access to this feature</span>
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <div class="filter-row">
-    <div class="filter-pills">
-      <button class="filter-pill active" id="pillUpcoming" onclick="filterTab('upcoming')">Upcoming <span class="count">3</span></button>
-      <button class="filter-pill" id="pillComplete" onclick="filterTab('complete')">Complete <span class="count">1</span></button>
-    </div>
-    <button class="btn-search-events">
-      Search Hiring Events
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
-    </button>
-  </div>
-
-  <!-- ═══ ACTIVE VIEW — Upcoming ═══ -->
-  <div id="view-active-upcoming" class="events-card">
-    <table class="events-table">
-      <thead><tr>
-        <th style="width:90px;">Actions</th><th>Event Details</th><th>Interview Location</th><th>Interview Setup</th><th>Job Titles</th><th>Candidates</th>
-      </tr></thead>
-      <tbody>
-        <!-- ROW 1: Dallas — COMPLETE, user HAS access -->
-        <tr id="row-dallas">
-          <td>
-            <div class="action-buttons">
-              <button class="action-btn edit-btn" title="Edit" onclick="handleEditClick('dallas')">
-                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.293 2.293a2.828 2.828 0 114 4l-11 11a1 1 0 01-.39.242l-4.5 1.5a.75.75 0 01-.942-.942l1.5-4.5a1 1 0 01.242-.39l11.09-11.09z"/></svg>
-              </button>
-              <button class="action-btn" onclick="event.stopPropagation(); toggleDots('dallas')">
-                <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="6" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="18" cy="12" r="2"/></svg>
-              </button>
-              <div class="dots-dropdown" id="dots-dallas">
-                <button class="dots-dropdown-item" onclick="handleEditClick('dallas')">Edit</button>
-                <button class="dots-dropdown-item" onclick="showToast('Share link copied')">Share</button>
-                <button class="dots-dropdown-item" onclick="showToast('Opening lobby...')">Go to lobby</button>
-              </div>
-            </div>
-          </td>
-          <td>
-            <div class="event-name">Dallas Healthcare Hiring Event</div>
-            <div class="event-date">Apr 22, 2026 <span class="time">· 11:00 AM - 3:00 PM CT</span></div>
-            <div class="event-package">Growth · Jobs 1/3 · Seats 2/5</div>
-            <!-- Dallas: interviewer HAS access — no badge needed -->
-          </td>
-          <td>
-            <div class="location-text">Virtual interviews</div>
-            <a class="lobby-link" onclick="showToast('Opening lobby...')">Go to lobby</a>
-            <div class="setup-complete-badge"><span class="dot"></span>Setup complete</div>
-          </td>
-          <td><a class="setup-link">2 interviewers</a></td>
-          <td><a class="job-link">Registered Nurse</a></td>
-          <td>
-            <div class="candidate-count">3 pending</div>
-            <div class="candidate-count">16 upcoming</div>
-            <a class="manage-link" onclick="showToast('Opening applicants...')">Manage applicants</a>
-          </td>
-        </tr>
-
-        <!-- ROW 2: Chicago — INCOMPLETE, NO access (slots available) -->
-        <tr id="row-chicago">
-          <td>
-            <div class="action-buttons">
-              <button class="action-btn edit-btn" title="Edit" onclick="handleEditClick('chicago')">
-                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.293 2.293a2.828 2.828 0 114 4l-11 11a1 1 0 01-.39.242l-4.5 1.5a.75.75 0 01-.942-.942l1.5-4.5a1 1 0 01.242-.39l11.09-11.09z"/></svg>
-              </button>
-              <button class="action-btn" onclick="event.stopPropagation(); toggleDots('chicago')">
-                <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="6" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="18" cy="12" r="2"/></svg>
-              </button>
-              <div class="dots-dropdown" id="dots-chicago">
-                <button class="dots-dropdown-item" onclick="handleEditClick('chicago')">Edit</button>
-                <button class="dots-dropdown-item" onclick="showToast('Share link copied')">Share</button>
-                <button class="dots-dropdown-item" onclick="showToast('Opening lobby...')">Go to lobby</button>
-              </div>
-            </div>
-            <button class="btn-complete-setup" onclick="handleEditClick('chicago')">Complete setup</button>
-          </td>
-          <td>
-            <div class="event-name" style="cursor:pointer;" onclick="interceptNoAccess('chicago', function(){ handleEditClick('chicago'); })">Chicago Technology Hiring Event</div>
-            <div class="event-date">May 6, 2026 <span class="time">· 11:00 AM - 3:00 PM CT</span></div>
-            <div class="event-package">Pro · Jobs 3/6 · Seats 4/Unlimited</div>
-            <div class="setup-badge"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#991b1b"/><path d="M12 8v4M12 16h.01" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg> Setup</div>
-            <div class="access-badge denied" id="badge-chicago">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-              No access
-            </div>
-          </td>
-          <td>
-            <div class="location-text">Virtual interviews</div>
-            <a class="lobby-link" onclick="interceptNoAccess('chicago', 'Opening lobby...')">Go to lobby</a>
-          </td>
-          <td><div class="setup-incomplete"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#991b1b"/><path d="M12 8v4M12 16h.01" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg> Incomplete</div></td>
-          <td>
-            <a class="job-link" onclick="interceptNoAccess('chicago', 'Opening job details...')">Software Engineer</a>
-            <a class="job-link" onclick="interceptNoAccess('chicago', 'Opening job details...')">DevOps Engineer</a>
-            <a class="job-link" onclick="interceptNoAccess('chicago', 'Opening job details...')">UX Designer</a>
-          </td>
-          <td>
-            <div class="candidate-count">2 pending</div>
-            <div class="candidate-count">5 upcoming</div>
-            <a class="manage-link" onclick="interceptNoAccess('chicago', 'Opening applicants...')">Manage applicants</a>
-          </td>
-          <div class="no-access-overlay" id="overlay-chicago">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-            <span class="no-access-text">No access —</span>
-            <button class="no-access-link" onclick="event.stopPropagation(); requestInvite('Chicago Technology Hiring Event')">Request invite</button>
-          </div>
-        </tr>
-
-        <!-- ROW 3: Atlanta — INCOMPLETE, NO access (FULL) -->
-        <tr id="row-atlanta">
-          <td>
-            <div class="action-buttons">
-              <button class="action-btn edit-btn" title="Edit" onclick="handleEditClick('atlanta')">
-                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.293 2.293a2.828 2.828 0 114 4l-11 11a1 1 0 01-.39.242l-4.5 1.5a.75.75 0 01-.942-.942l1.5-4.5a1 1 0 01.242-.39l11.09-11.09z"/></svg>
-              </button>
-              <button class="action-btn" onclick="event.stopPropagation(); toggleDots('atlanta')">
-                <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="6" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="18" cy="12" r="2"/></svg>
-              </button>
-              <div class="dots-dropdown" id="dots-atlanta">
-                <button class="dots-dropdown-item" onclick="handleEditClick('atlanta')">Edit</button>
-                <button class="dots-dropdown-item" onclick="showToast('Share link copied')">Share</button>
-                <button class="dots-dropdown-item" onclick="showToast('Opening lobby...')">Go to lobby</button>
-              </div>
-            </div>
-            <button class="btn-complete-setup" onclick="handleEditClick('atlanta')">Complete setup</button>
-          </td>
-          <td>
-            <div class="event-name" style="cursor:pointer;" onclick="interceptNoAccess('atlanta', function(){ handleEditClick('atlanta'); })">Atlanta Diversity Hiring Event</div>
-            <div class="event-date">Apr 5, 2026 <span class="time">· 11:00 AM - 3:00 PM ET</span></div>
-            <div class="event-package">Starter · Jobs 1/1 · Seats 1/1</div>
-            <div class="setup-badge"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#991b1b"/><path d="M12 8v4M12 16h.01" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg> Setup</div>
-            <div class="access-badge denied" id="badge-atlanta">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-              No access — Full
-            </div>
-          </td>
-          <td>
-            <div class="location-text">Virtual interviews</div>
-            <a class="lobby-link" onclick="interceptNoAccess('atlanta', 'Opening lobby...')">Go to lobby</a>
-          </td>
-          <td><div class="setup-incomplete"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#991b1b"/><path d="M12 8v4M12 16h.01" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg> Incomplete</div></td>
-          <td><div class="setup-incomplete"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#991b1b"/><path d="M12 8v4M12 16h.01" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg> Incomplete</div></td>
-          <td>
-            <div class="candidate-count">0 pending</div>
-            <div class="candidate-count">0 upcoming</div>
-            <a class="manage-link" onclick="interceptNoAccess('atlanta', 'Opening applicants...')">Manage applicants</a>
-          </td>
-          <div class="no-access-overlay" id="overlay-atlanta">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-            <span class="no-access-text">No access — Interviewers full</span>
-          </div>
-        </tr>
-      </tbody>
-    </table>
-    <div class="table-footer"><div class="pagination"><button class="page-btn disabled">← Previous</button><button class="page-btn active">1</button><button class="page-btn disabled">Next →</button></div></div>
-  </div>
-
-  <!-- ═══ EMPTY VIEW ═══ -->
-  <div id="view-empty" class="events-card" style="display:none;">
-    <div class="empty-state">
-      <svg width="220" height="160" viewBox="0 0 220 160" fill="none">
-        <rect x="52" y="120" width="10" height="20" rx="3" fill="#6b8e6b"/>
-        <ellipse cx="48" cy="108" rx="12" ry="18" fill="#7da67d" transform="rotate(-15 48 108)"/>
-        <ellipse cx="62" cy="104" rx="10" ry="16" fill="#8fbc8f" transform="rotate(10 62 104)"/>
-        <ellipse cx="55" cy="96" rx="9" ry="14" fill="#a8d5a8" transform="rotate(-5 55 96)"/>
-        <rect x="47" y="138" width="16" height="14" rx="3" fill="#e8e0d6"/>
-        <rect x="110" y="70" width="50" height="8" rx="3" fill="#d4956b"/>
-        <rect x="112" y="78" width="4" height="60" rx="2" fill="#c17f59"/>
-        <rect x="154" y="78" width="4" height="60" rx="2" fill="#c17f59"/>
-        <rect x="108" y="42" width="54" height="32" rx="4" fill="#d4956b"/>
-        <rect x="112" y="46" width="46" height="24" rx="2" fill="#e8a87c"/>
-        <ellipse cx="110" cy="142" rx="80" ry="14" fill="#f5efe8"/>
-      </svg>
-      <h2 style="font-size:22px; font-weight:700; color:#2d2d2d; margin-top:24px; margin-bottom:10px;">You don't have any hiring events yet</h2>
-      <p style="font-size:15px; color:#767676; margin-bottom:24px; max-width:420px; margin-left:auto; margin-right:auto;">Register for a hiring event to start connecting with qualified candidates and scheduling interviews.</p>
-      <button class="btn-register" onclick="showToast('Opening event registration...')" style="margin-bottom:32px;">Register for an event</button>
-    </div>
-  </div>
-
-  <!-- ═══ LIVE VIEW ═══ -->
-  <div id="view-live" class="events-card" style="display:none;">
-    <table class="events-table">
-      <thead><tr>
-        <th style="width:90px;">Actions</th><th>Event Details</th><th>Interview Location</th><th>Interview Setup</th><th>Job Titles</th><th>Candidates</th>
-      </tr></thead>
-      <tbody>
-        <tr id="row-dallas-live">
-          <td>
-            <div class="action-buttons">
-              <button class="action-btn edit-btn" title="Edit" onclick="handleEditClick('dallas')">
-                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.293 2.293a2.828 2.828 0 114 4l-11 11a1 1 0 01-.39.242l-4.5 1.5a.75.75 0 01-.942-.942l1.5-4.5a1 1 0 01.242-.39l11.09-11.09z"/></svg>
-              </button>
-              <button class="action-btn" onclick="event.stopPropagation(); toggleDots('dallas-live')">
-                <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="6" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="18" cy="12" r="2"/></svg>
-              </button>
-              <div class="dots-dropdown" id="dots-dallas-live">
-                <button class="dots-dropdown-item" onclick="handleEditClick('dallas')">Edit</button>
-                <button class="dots-dropdown-item" onclick="showToast('Share link copied')">Share</button>
-                <button class="dots-dropdown-item" onclick="showToast('Opening lobby...')">Go to lobby</button>
-              </div>
-            </div>
-          </td>
-          <td>
-            <div class="event-name">Dallas Healthcare Hiring Event</div>
-            <div class="event-date">Apr 22, 2026 <span class="time">· 11:00 AM - 3:00 PM CT</span></div>
-            <div class="event-package">Growth · Jobs 1/3 · Seats 2/5</div>
-          </td>
-          <td>
-            <div class="location-text">Virtual interviews</div>
-            <a class="lobby-link" onclick="showToast('Opening lobby...')">Go to lobby</a>
-            <div class="setup-complete-badge"><span class="dot"></span>Setup complete</div>
-            <div class="setup-complete-badge"><span class="dot" style="animation: pulse 2s infinite;"></span>Live now</div>
-          </td>
-          <td><a class="setup-link">2 interviewers</a></td>
-          <td><a class="job-link">Registered Nurse</a></td>
-          <td>
-            <div class="candidate-count">3 pending</div>
-            <div class="candidate-count">16 upcoming</div>
-            <a class="manage-link" onclick="showToast('Opening applicants...')">Manage applicants</a>
-          </td>
-        </tr>
-
-        <!-- ROW 2: Chicago — INCOMPLETE, NO access (slots available) -->
-        <tr id="row-chicago-live">
-          <td>
-            <div class="action-buttons">
-              <button class="action-btn edit-btn" title="Edit" onclick="handleEditClick('chicago')">
-                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.293 2.293a2.828 2.828 0 114 4l-11 11a1 1 0 01-.39.242l-4.5 1.5a.75.75 0 01-.942-.942l1.5-4.5a1 1 0 01.242-.39l11.09-11.09z"/></svg>
-              </button>
-              <button class="action-btn" onclick="event.stopPropagation(); toggleDots('chicago-live')">
-                <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="6" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="18" cy="12" r="2"/></svg>
-              </button>
-              <div class="dots-dropdown" id="dots-chicago-live">
-                <button class="dots-dropdown-item" onclick="handleEditClick('chicago')">Edit</button>
-                <button class="dots-dropdown-item" onclick="showToast('Share link copied')">Share</button>
-                <button class="dots-dropdown-item" onclick="showToast('Opening lobby...')">Go to lobby</button>
-              </div>
-            </div>
-            <button class="btn-complete-setup" onclick="handleEditClick('chicago')">Complete setup</button>
-          </td>
-          <td>
-            <div class="event-name" style="cursor:pointer;" onclick="interceptNoAccess('chicago', function(){ handleEditClick('chicago'); })">Chicago Technology Hiring Event</div>
-            <div class="event-date">May 6, 2026 <span class="time">· 11:00 AM - 3:00 PM CT</span></div>
-            <div class="event-package">Pro · Jobs 3/6 · Seats 4/Unlimited</div>
-            <div class="setup-badge"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#991b1b"/><path d="M12 8v4M12 16h.01" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg> Setup</div>
-            <div class="access-badge denied" id="badge-chicago-live">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-              No access
-            </div>
-          </td>
-          <td>
-            <div class="location-text">Virtual interviews</div>
-            <a class="lobby-link" onclick="interceptNoAccess('chicago', 'Opening lobby...')">Go to lobby</a>
-          </td>
-          <td><div class="setup-incomplete"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#991b1b"/><path d="M12 8v4M12 16h.01" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg> Incomplete</div></td>
-          <td>
-            <a class="job-link" onclick="interceptNoAccess('chicago', 'Opening job details...')">Software Engineer</a>
-            <a class="job-link" onclick="interceptNoAccess('chicago', 'Opening job details...')">DevOps Engineer</a>
-            <a class="job-link" onclick="interceptNoAccess('chicago', 'Opening job details...')">UX Designer</a>
-          </td>
-          <td>
-            <div class="candidate-count">2 pending</div>
-            <div class="candidate-count">5 upcoming</div>
-            <a class="manage-link" onclick="interceptNoAccess('chicago', 'Opening applicants...')">Manage applicants</a>
-          </td>
-          <div class="no-access-overlay" id="overlay-chicago-live">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-            <span class="no-access-text">No access —</span>
-            <button class="no-access-link" onclick="event.stopPropagation(); requestInvite('Chicago Technology Hiring Event')">Request invite</button>
-          </div>
-        </tr>
-
-        <!-- ROW 3: Atlanta — INCOMPLETE, NO access (FULL) -->
-        <tr id="row-atlanta-live">
-          <td>
-            <div class="action-buttons">
-              <button class="action-btn edit-btn" title="Edit" onclick="handleEditClick('atlanta')">
-                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.293 2.293a2.828 2.828 0 114 4l-11 11a1 1 0 01-.39.242l-4.5 1.5a.75.75 0 01-.942-.942l1.5-4.5a1 1 0 01.242-.39l11.09-11.09z"/></svg>
-              </button>
-              <button class="action-btn" onclick="event.stopPropagation(); toggleDots('atlanta-live')">
-                <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="6" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="18" cy="12" r="2"/></svg>
-              </button>
-              <div class="dots-dropdown" id="dots-atlanta-live">
-                <button class="dots-dropdown-item" onclick="handleEditClick('atlanta')">Edit</button>
-                <button class="dots-dropdown-item" onclick="showToast('Share link copied')">Share</button>
-                <button class="dots-dropdown-item" onclick="showToast('Opening lobby...')">Go to lobby</button>
-              </div>
-            </div>
-            <button class="btn-complete-setup" onclick="handleEditClick('atlanta')">Complete setup</button>
-          </td>
-          <td>
-            <div class="event-name" style="cursor:pointer;" onclick="interceptNoAccess('atlanta', function(){ handleEditClick('atlanta'); })">Atlanta Diversity Hiring Event</div>
-            <div class="event-date">Apr 5, 2026 <span class="time">· 11:00 AM - 3:00 PM ET</span></div>
-            <div class="event-package">Starter · Jobs 1/1 · Seats 1/1</div>
-            <div class="setup-badge"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#991b1b"/><path d="M12 8v4M12 16h.01" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg> Setup</div>
-            <div class="access-badge denied" id="badge-atlanta-live">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-              No access — Full
-            </div>
-          </td>
-          <td>
-            <div class="location-text">Virtual interviews</div>
-            <a class="lobby-link" onclick="interceptNoAccess('atlanta', 'Opening lobby...')">Go to lobby</a>
-          </td>
-          <td><div class="setup-incomplete"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#991b1b"/><path d="M12 8v4M12 16h.01" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg> Incomplete</div></td>
-          <td><div class="setup-incomplete"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#991b1b"/><path d="M12 8v4M12 16h.01" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg> Incomplete</div></td>
-          <td>
-            <div class="candidate-count">0 pending</div>
-            <div class="candidate-count">0 upcoming</div>
-            <a class="manage-link" onclick="interceptNoAccess('atlanta', 'Opening applicants...')">Manage applicants</a>
-          </td>
-          <div class="no-access-overlay" id="overlay-atlanta-live">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-            <span class="no-access-text">No access — Interviewers full</span>
-          </div>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <!-- ═══ Completed events table ═══ -->
-  <div class="events-card" id="tableComplete" style="display:none;">
-    <table class="events-table">
-      <thead><tr><th style="width:90px;">Actions</th><th>Event Details</th><th>Job Titles</th><th>Candidates</th></tr></thead>
-      <tbody>
-        <tr>
-          <td>
-            <div class="action-buttons">
-              <button class="action-btn" onclick="event.stopPropagation(); toggleDots('houston')">
-                <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="6" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="18" cy="12" r="2"/></svg>
-              </button>
-              <div class="dots-dropdown" id="dots-houston">
-                <button class="dots-dropdown-item" onclick="showToast('Opening event report...')">View Event Report</button>
-                <button class="dots-dropdown-item" onclick="showToast('Exporting signups...')">Export Signups</button>
-              </div>
-            </div>
-          </td>
-          <td>
-            <div class="event-name">Houston Veteran Hiring Event</div>
-            <div class="event-date">Mar 18, 2026 <span class="time">· 11:00 AM - 3:00 PM CT</span></div>
-          </td>
-          <td><a class="job-link">Operations Coordinator</a></td>
-          <td><a class="manage-link" onclick="showToast('Opening event report...')">View event report</a></td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-</div>
-
-<!-- ════════════════════════════════════════════════════
-     SCREEN: EDIT JOBS & SETTINGS
-     ════════════════════════════════════════════════════ -->
-<div class="screen" id="screen-edit">
-  <div class="edit-page">
-    <a class="back-link" onclick="showScreen('dashboard')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-      Back to dashboard
-    </a>
-
-    <div class="edit-header-card">
-      <div><h1>Edit your Jobs<br/>& Settings</h1></div>
-      <svg width="140" height="100" viewBox="0 0 140 100" fill="none">
-        <rect x="10" y="52" width="110" height="34" rx="4" fill="#f0ebe4"/>
-        <rect x="22" y="36" width="44" height="32" rx="4" fill="#e0d6ca"/>
-        <rect x="27" y="41" width="34" height="22" rx="2" fill="#fff" stroke="#d4c4b0"/>
-        <rect x="31" y="48" width="24" height="2" rx="1" fill="#d4d2d0"/>
-        <rect x="31" y="53" width="18" height="2" rx="1" fill="#d4d2d0"/>
-        <circle cx="92" cy="40" r="11" fill="#8fbc8f" opacity="0.7"/>
-        <circle cx="100" cy="33" r="9" fill="#7da67d" opacity="0.8"/>
-        <circle cx="86" cy="31" r="7" fill="#a8d5a8" opacity="0.6"/>
-        <rect x="90" y="50" width="4" height="18" rx="2" fill="#c17f59"/>
-        <rect x="76" y="58" width="6" height="12" rx="2" fill="#d4956b" opacity="0.5"/>
-        <circle cx="54" cy="28" r="8" fill="#f0c8a0"/>
-        <rect x="48" y="36" width="13" height="9" rx="3" fill="#0044B3" opacity="0.8"/>
-      </svg>
-    </div>
-
-    <!-- Event Details -->
-    <div class="edit-section">
-      <div class="edit-section-header"><h2>Event details</h2></div>
-      <div class="edit-section-divider"></div>
-      <div class="edit-section-body">
-        <p id="editEventDetails">Dallas Healthcare Hiring Event<br>April 22, 2026 · 11:00 AM – 3:00 PM</p>
-      </div>
-    </div>
-
-    <!-- Interviewing For -->
-    <div class="edit-section">
-      <div class="edit-section-header"><h2>Interviewing For</h2></div>
-      <div class="edit-section-divider"></div>
-      <div class="edit-section-body">
-        <div style="font-size:14px; color:#595959; margin-bottom:20px;" id="editPackageLabel">Growth package · 1 of 3 jobs added</div>
-        <div style="border-bottom:1px solid #ebebeb; padding-bottom:24px; margin-bottom:24px;">
-          <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-            <div>
-              <div style="font-size:24px; font-weight:700; color:#2d2d2d;">Registered Nurse</div>
-              <div style="font-size:16px; color:#0044B3; text-decoration:underline; margin-top:6px;">$55,000 – $72,000 / year, Full-time</div>
-            </div>
-            <button class="btn-cancel" style="font-size:14px; padding:8px 20px;" onclick="showToast('Opening job editor...')">Edit ↗</button>
-          </div>
-          <div style="font-size:16px; color:#767676; margin-top:14px; line-height:1.6;">We are seeking a compassionate and skilled Registered Nurse to join our healthcare team. The ideal candidate will provide high-quality patient care in a fast-paced environment...</div>
-        </div>
-        <button style="padding:10px 22px; border-radius:8px; border:1px solid #d4d2d0; background:#fff; font-size:16px; font-weight:700; color:#0044B3; cursor:pointer; font-family:inherit;" onclick="showToast('Navigate to job creation')">Create a new job</button>
-      </div>
-    </div>
-
-    <!-- Interview Details -->
-    <div class="edit-section">
-      <div class="edit-section-header">
-        <h2>Interview details</h2>
-        <button class="edit-pencil" onclick="toggleEditSection('interviewDetails')"><svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button>
-      </div>
-      <div class="edit-section-divider"></div>
-      <div class="edit-section-body">
-        <p>2 spots available for each 30-minute time slot | Start Advertising Date: 04/07/2026 | Attendance instructions added</p>
-        <div class="expandable" id="interviewDetails">
-          <div style="margin-top:24px;">
-            <div style="font-size:24px; font-weight:800; color:#2d2d2d; margin-bottom:10px;">Interview time slot duration <span style="color:#767676; font-size:16px; font-weight:400;">🔒</span></div>
-            <p style="font-size:16px; color:#595959; margin-bottom:14px;">This allows job seekers to select from multiple scheduling options.</p>
-            <p style="font-size:18px; color:#2d2d2d;">30 min</p>
-          </div>
-          <div class="action-row">
-            <button class="btn-cancel" onclick="toggleEditSection('interviewDetails')">Cancel</button>
-            <button class="btn-save" onclick="toggleEditSection('interviewDetails'); showToast('Changes saved')">Update</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Interview Settings — with interviewer seat limits -->
-    <div class="edit-section">
-      <div class="edit-section-header">
-        <h2>Interview settings</h2>
-        <button class="edit-pencil" onclick="toggleEditSection('interviewSettings')"><svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button>
-      </div>
-      <div class="edit-section-divider"></div>
-      <div class="edit-section-body">
-        <p id="interviewSettingsSummary">1 interviewer(s) added | 0 daily update recipient(s) | 1 accommodations contact(s)</p>
-        <div class="expandable" id="interviewSettings">
-          <div style="margin-top:24px;">
-            <!-- Tier dev toggle -->
-            <div style="display:flex; align-items:center; gap:8px; padding:5px 12px; background:#f3f2ef; border-radius:6px; border:1px solid #d4d2d0; margin-bottom:20px; width:fit-content;">
-              <span style="font-size:11px; font-weight:600; color:#767676; text-transform:uppercase; letter-spacing:0.5px;">Plan:</span>
-              <div style="display:flex; background:#e0e0e0; border-radius:4px; overflow:hidden;">
-                <button class="tier-toggle-btn" onclick="setTier('Starter')" style="padding:4px 10px; font-size:11px; font-weight:700; border:none; cursor:pointer; transition:all 0.15s; background:transparent; color:#767676; font-family:inherit;">Starter</button>
-                <button class="tier-toggle-btn active" onclick="setTier('Growth')" style="padding:4px 10px; font-size:11px; font-weight:700; border:none; cursor:pointer; transition:all 0.15s; background:#0044B3; color:#fff; font-family:inherit;">Growth</button>
-                <button class="tier-toggle-btn" onclick="setTier('Pro')" style="padding:4px 10px; font-size:11px; font-weight:700; border:none; cursor:pointer; transition:all 0.15s; background:transparent; color:#767676; font-family:inherit;">Pro</button>
-              </div>
-            </div>
-
-            <!-- Interviewer seat counter -->
-            <div style="font-size:24px; font-weight:800; color:#2d2d2d; margin-bottom:10px;">Who will be interviewing candidates?</div>
-            <p style="font-size:14px; color:#595959; margin-bottom:6px;">Separate emails with commas. Press Tab or Enter to add.</p>
-            <div id="seatInfo" style="margin-bottom:16px;">
-              <div class="seat-counter">
-                <span class="label">Interview seats</span>
-                <span class="count" id="seatCount">1</span>
-                <span class="max">/ <span id="seatMax">5</span></span>
-                <span style="font-size:13px; color:#767676; font-weight:400;">(<span id="seatTier">Growth</span>)</span>
-              </div>
-              <div class="seat-status ok" id="seatMsg">4 seats available</div>
-            </div>
-            <div style="font-size:18px; font-weight:700; color:#2d2d2d; margin-bottom:6px;">Enter the interviewers' email addresses. <span style="color:#991b1b;">*</span></div>
-            <p style="font-size:14px; color:#595959; margin-bottom:10px;">All interviewers will need a JobFairX account to access the event.</p>
-            <div class="chip-input" id="interviewerChipInput" onclick="this.querySelector('input').focus()">
-              <span class="chip" data-email="scott@jobfairx.com">scott@jobfairx.com <button class="remove" onclick="removeChip(this)">&times;</button></span>
-              <input type="email" placeholder="Add email..." id="interviewerEmailInput" onkeydown="handleChipKeydown(event, 'interviewer')">
-            </div>
-            <div id="seatFullError" style="display:none; margin-top:8px; padding:10px 16px; background:#fef2f2; border:1px solid #fca5a5; border-radius:8px; font-size:14px; font-weight:600; color:#991b1b;">
-              <span style="margin-right:6px;">⚠</span> All interview seats are full. Remove an interviewer to add a new one.
-            </div>
-
-            <div style="height:1px; background:#e8e6e3; margin:24px 0;"></div>
-
-            <!-- Update recipients -->
-            <div style="font-size:24px; font-weight:800; color:#2d2d2d; margin-bottom:10px;">Who needs to receive updates? <span style="color:#991b1b;">*</span></div>
-            <p style="font-size:14px; color:#595959; margin-bottom:10px;">Max 6 recipients.</p>
-            <div class="chip-input" id="recipientChipInput" onclick="this.querySelector('input').focus()">
-              <input type="email" placeholder="Add email..." id="recipientEmailInput" onkeydown="handleChipKeydown(event, 'recipient')">
-            </div>
-            <div id="recipientFullError" style="display:none; margin-top:8px; padding:10px 16px; background:#fef2f2; border:1px solid #fca5a5; border-radius:8px; font-size:14px; font-weight:600; color:#991b1b;">
-              <span style="margin-right:6px;">⚠</span> Maximum 6 update recipients reached.
-            </div>
-
-            <div style="height:1px; background:#e8e6e3; margin:24px 0;"></div>
-
-            <!-- Invite requests (for account holder) -->
-            <div id="inviteRequestsSection">
-              <div style="font-size:24px; font-weight:800; color:#2d2d2d; margin-bottom:10px;">Pending invite requests</div>
-              <div style="background:#fffbeb; border:1px solid #fcd34d; border-radius:8px; padding:16px 20px; display:flex; align-items:center; justify-content:space-between;">
-                <div>
-                  <div style="font-size:16px; font-weight:600; color:#2d2d2d;">maria.lopez@company.com</div>
-                  <div style="font-size:13px; color:#767676; margin-top:2px;">Requested access to this event</div>
-                </div>
-                <div style="display:flex; gap:8px;">
-                  <button class="btn-save" style="padding:8px 18px; font-size:14px;" onclick="approveInvite(this)">Approve</button>
-                  <button class="btn-cancel" style="padding:8px 18px; font-size:14px;" onclick="this.closest('div[style]').style.display='none'; showToast('Invite declined')">Decline</button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="action-row">
-            <button class="btn-cancel" onclick="toggleEditSection('interviewSettings')">Cancel</button>
-            <button class="btn-save" onclick="toggleEditSection('interviewSettings'); showToast('Changes saved')">Update</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Screening -->
-    <div class="edit-section">
-      <div class="edit-section-header">
-        <h2>Screening</h2>
-        <button class="edit-pencil" onclick="toggleEditSection('screening')"><svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button>
-      </div>
-      <div class="edit-section-divider"></div>
-      <div class="edit-section-body">
-        <p>Screening has been added to 0 of 1 jobs within this event.</p>
-        <div class="expandable" id="screening">
-          <div style="margin-top:24px;">
-            <div style="font-size:24px; font-weight:800; color:#2d2d2d; margin-bottom:10px;">Screen candidates for your requirements</div>
-            <p style="font-size:16px; color:#595959; margin-bottom:20px;">Candidates will answer your screening questions prior to completing an application.</p>
-            <div style="border:1px solid #d4d2d0; border-radius:8px; padding:18px; display:flex; align-items:center; justify-content:space-between;">
-              <div style="font-size:18px; font-weight:700; color:#0044B3;">Registered Nurse</div>
-              <div style="display:flex; align-items:center; gap:12px;">
-                <span style="font-size:14px; font-weight:600; color:#767676; background:#f3f2ef; padding:4px 12px; border-radius:6px;">No screening added</span>
-                <button class="btn-save" style="padding:8px 20px; font-size:14px; border-radius:20px;" onclick="showToast('Add screening modal would open')">Add screening</button>
-              </div>
-            </div>
-          </div>
-          <div class="action-row">
-            <button class="btn-save" onclick="toggleEditSection('screening')">Close</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Application Link -->
-    <div class="edit-section">
-      <div class="edit-section-header">
-        <h2>Application link</h2>
-        <button class="edit-pencil" onclick="toggleEditSection('appLink')"><svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button>
-      </div>
-      <div class="edit-section-divider"></div>
-      <div class="edit-section-body">
-        <p>Do you want candidates to complete a job application? Add an application URL.</p>
-        <div class="expandable" id="appLink">
-          <div style="margin-top:16px;">
-            <p style="font-size:14px; color:#595959; margin-bottom:10px;">The URL must link to a specific job application</p>
-            <input type="url" placeholder="https://..." style="width:100%; padding:12px 16px; font-size:16px; border:1px solid #d4d2d0; border-radius:8px; outline:none; font-family:inherit;">
-          </div>
-          <div class="action-row">
-            <button class="btn-cancel" onclick="toggleEditSection('appLink')">Cancel</button>
-            <button class="btn-save" onclick="toggleEditSection('appLink'); showToast('Changes saved')">Update</button>
-          </div>
-        </div>
+      <div class="lobby-user-menu" id="lobby-user-menu">
+        <a class="lobby-user-menu-item" href="account-billing.html">Account &amp; Billing</a>
+        <button class="lobby-user-menu-item" onclick="openFeedbackModal()">Give Feedback</button>
+        <div class="lobby-user-menu-divider"></div>
+        <button class="lobby-user-menu-item muted">Sign Out</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ════════════════════════════════════════════════════
-     SCREEN: ACCOUNT & BILLING
-     ════════════════════════════════════════════════════ -->
-<div class="screen" id="screen-account">
-  <a class="back-link" onclick="showScreen('dashboard')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-    Back to dashboard
-  </a>
-  <h1 style="font-size:32px; font-weight:700; color:#2d2d2d; margin-bottom:24px;">Account & Billing</h1>
-
-  <div class="account-tabs">
-    <button class="account-tab active" id="tabAccount" onclick="switchAccountTab('account')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-      Account
-    </button>
-    <button class="account-tab" id="tabBilling" onclick="switchAccountTab('billing')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
-      Billing
-    </button>
-  </div>
-
-  <!-- Account Tab Content -->
-  <div id="accountContent">
-    <div class="info-section">
-      <div class="info-section-header">
-        <h2>Your information</h2>
-        <button class="edit-pencil" id="accountEditBtn" onclick="toggleAccountEdit()"><svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button>
-      </div>
-      <div class="info-section-divider"></div>
-      <div class="info-section-body">
-        <!-- Display mode -->
-        <div id="accountDisplay" class="info-grid">
-          <div class="info-field"><label>First Name</label><div class="value">Sarah</div></div>
-          <div class="info-field"><label>Last Name</label><div class="value">Mitchell</div></div>
-          <div class="info-field"><label>Company Name</label><div class="value">Acme Healthcare</div></div>
-          <div class="info-field"><label>Job Title</label><div class="value">Talent Acquisition Manager</div></div>
-          <div class="info-field"><label>Email</label><div class="value">admin@acmehealthcare.com</div></div>
-          <div class="info-field"><label>Phone</label><div class="value">(555) 123-4567</div></div>
-        </div>
-        <!-- Edit mode -->
-        <div id="accountEditForm" style="display:none;">
-          <div class="info-grid">
-            <div class="info-field"><label>First Name</label><input type="text" value="Sarah"></div>
-            <div class="info-field"><label>Last Name</label><input type="text" value="Mitchell"></div>
-            <div class="info-field"><label>Company Name</label><input type="text" value="Acme Healthcare"></div>
-            <div class="info-field"><label>Job Title</label><input type="text" value="Talent Acquisition Manager"></div>
-            <div class="info-field"><label>Email</label><input type="email" value="admin@acmehealthcare.com"></div>
-            <div class="info-field"><label>Phone</label><input type="tel" value="(555) 123-4567"></div>
-          </div>
-          <div class="action-row">
-            <button class="btn-cancel" onclick="toggleAccountEdit()">Cancel</button>
-            <button class="btn-save" onclick="toggleAccountEdit(); showToast('Account updated')">Save</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Billing Tab Content -->
-  <div id="billingContent" style="display:none;">
-    <!-- Company Information -->
-    <div class="info-section">
-      <div class="info-section-header"><h2>Company information</h2><button class="edit-pencil" onclick="showToast('Edit company info')"><svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button></div>
-      <div class="info-section-divider"></div>
-      <div class="info-section-body">
-        <div class="info-grid single-col">
-          <div class="info-field"><label>Company Name</label><div class="value">Acme Healthcare</div></div>
-          <div class="info-field"><label>Billing Email</label><div class="value">billing@acmehealthcare.com</div></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Billing Address -->
-    <div class="info-section">
-      <div class="info-section-header"><h2>Billing address</h2><button class="edit-pencil" onclick="showToast('Edit billing address')"><svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button></div>
-      <div class="info-section-divider"></div>
-      <div class="info-section-body">
-        <div class="info-grid">
-          <div class="info-field full-width"><label>Street Address</label><div class="value">123 Innovation Blvd, Suite 400</div></div>
-          <div class="info-field"><label>City</label><div class="value">Chicago</div></div>
-          <div class="info-field"><label>State</label><div class="value">Illinois</div></div>
-          <div class="info-field"><label>ZIP Code</label><div class="value">60601</div></div>
-          <div class="info-field"><label>Country</label><div class="value">United States</div></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Payment Method -->
-    <div class="info-section">
-      <div class="info-section-header"><h2>Payment method</h2><button class="edit-pencil" onclick="showToast('Edit payment method')"><svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button></div>
-      <div class="info-section-divider"></div>
-      <div class="info-section-body">
-        <div class="card-display">
-          <span class="card-brand">VISA</span>
-          <div class="card-details">•••• •••• •••• 4242 <span>Exp 09/2027</span></div>
-        </div>
-        <div style="margin-top:10px; font-size:14px; color:#595959;">Nick Barattini</div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ════════════════════════════════════════════════════
-     SCREEN: INTERVIEWS/LOBBY
-     ════════════════════════════════════════════════════ -->
-<div class="screen" id="screen-interviews">
 <div class="container">
 
   <!-- Breadcrumb -->
@@ -1939,24 +866,6 @@ tr:hover .no-access-overlay.enabled { opacity: 1; pointer-events: auto; }
   </a>
 
   <!-- Event header -->
-  <div class="event-selector-wrapper">
-    <button class="event-selector-btn" onclick="document.getElementById('eventSelectorDropdown').classList.toggle('open')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
-      Dallas Healthcare Hiring Event
-    </button>
-    <div class="event-selector-dropdown" id="eventSelectorDropdown">
-      <button class="event-selector-option" onclick="selectEvent('dallas')">Dallas Healthcare Hiring Event</button>
-      <button class="event-selector-option" id="chicagoEventOption" onclick="if(currentRole==='owner')selectEvent('chicago')">
-        <span>Chicago Technology Hiring Event</span>
-        <span class="access-label" style="display: none;">No access</span>
-      </button>
-      <button class="event-selector-option" id="atlantaEventOption" onclick="if(currentRole==='owner')selectEvent('atlanta')">
-        <span>Atlanta Diversity Hiring Event</span>
-        <span class="access-label" style="display: none;">No access</span>
-      </button>
-    </div>
-  </div>
-
   <div class="event-header">
     <div>
       <h1>Dallas Healthcare Hiring Event</h1>
@@ -3295,720 +2204,8 @@ tr:hover .no-access-overlay.enabled { opacity: 1; pointer-events: auto; }
     </div>
   </div>
 </div>
-</div></div><!-- /main-content -->
-
-<!-- Page navigation -->
-<div class="page-nav">
-  <span class="page-nav-label">Page:</span>
-  <div class="page-nav-switch">
-    <button class="page-nav-btn active" id="pageNavDashboard" onclick="showScreen('dashboard')">Dashboard</button>
-    <button class="page-nav-btn" id="pageNavEdit" onclick="showScreen('edit')">Edit</button>
-    <button class="page-nav-btn" id="pageNavInterviews" onclick="showScreen('interviews')">Interviews</button>
-    <button class="page-nav-btn" id="pageNavAccount" onclick="showScreen('account')">Account</button>
-  </div>
-</div>
-
-<!-- Accept Toast -->
-<div class="decline-toast" id="acceptToast">
-  <span id="acceptToastMsg"></span>
-  <button class="toast-undo" onclick="undoAccept()">Undo</button>
-</div>
-
-<!-- Decline Toast -->
-<div class="decline-toast" id="declineToast">
-  <span id="declineToastMsg"></span>
-  <button class="toast-undo" onclick="undoDecline()">Undo</button>
-</div>
-
-<!-- Message Modal -->
-<div class="msg-modal-overlay" id="msgModal">
-  <div class="msg-modal">
-    <div class="msg-modal-header">
-      <div class="msg-modal-header-text">
-        <div class="msg-modal-title">Send Message</div>
-        <div class="msg-modal-to" id="msgTo"></div>
-      </div>
-      <button class="msg-modal-close" onclick="closeMsgModal()">&times;</button>
-    </div>
-    <div class="msg-modal-messages" id="msgMessages"></div>
-    <div class="msg-compose">
-      <div class="msg-char-count"><span id="msgCharCount">0</span> / 2000</div>
-      <textarea class="msg-textarea" id="msgTextarea" placeholder="" maxlength="2000" oninput="updateMsgCharCount()"></textarea>
-      <div class="msg-compose-actions">
-        <button class="msg-btn-cancel" onclick="closeMsgModal()">Cancel</button>
-        <button class="msg-btn-send" onclick="sendMessage()">Send</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Resume Modal -->
-<div class="resume-modal-overlay" id="resumeModal">
-  <div class="resume-modal">
-    <div class="resume-modal-header">
-      <div class="resume-modal-header-top">
-        <div>
-          <div class="resume-modal-name"><span id="resumeName"></span><button class="resume-modal-download"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg><span class="btn-tooltip">Download resume</span></button></div>
-          <div class="resume-modal-subtitle" id="resumeSubtitle"></div>
-        </div>
-        <button class="resume-modal-close" onclick="closeResumeModal()">&times;</button>
-      </div>
-      <div class="resume-modal-contact" id="resumeContact"></div>
-      <div class="resume-modal-btns">
-        <div class="pending-actions">
-          <button class="pending-btn accept" onclick="acceptFromResume()">Accept<span class="btn-tooltip">Accept interview request</span></button>
-          <button class="pending-btn decline" onclick="declineFromResume()">Decline<span class="btn-tooltip">Decline interview request</span></button>
-          <button class="pending-btn propose" onclick="closeResumeModal(); openScheduleModal(this);">Reschedule<span class="btn-tooltip">Propose new interview time</span></button>
-        </div>
-      </div>
-    </div>
-    <div class="resume-modal-body" id="resumeBody">
-      <!-- Populated by JS -->
-    </div>
-  </div>
-</div>
-
-<!-- Decline Confirmation Modal -->
-<div class="decline-modal-overlay" id="declineModal">
-  <div class="decline-modal">
-    <div class="decline-modal-header">Decline interview request</div>
-    <div class="decline-modal-body">Are you sure you want to decline the interview request from <span class="candidate-name" id="declineCandidateName"></span>? This action can't be undone and the candidate will be removed from your list.</div>
-    <label class="decline-modal-checkbox">
-      <input type="checkbox" id="declineDontAsk">
-      Don't show this message when I decline
-    </label>
-    <div class="decline-modal-actions">
-      <button class="decline-cancel" onclick="closeDeclineModal()">Cancel</button>
-      <button class="decline-confirm" onclick="confirmDecline()">Decline</button>
-    </div>
-  </div>
-</div>
-
-<!-- Schedule Modal -->
-<div class="sched-modal-overlay" id="scheduleModal">
-  <div class="sched-modal-box">
-    <div class="sched-modal-header">
-      <div class="sched-modal-header-left">
-        <div class="sched-cal-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-        </div>
-        <h3 id="scheduleTitle">Schedule with Candidate</h3>
-      </div>
-      <button class="sched-modal-close" onclick="closeScheduleModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
-    </div>
-    <div class="sched-modal-divider"></div>
-    <div class="sched-modal-body">
-      <div class="schedule-slots" id="scheduleSlots"></div>
-      <button class="schedule-suggest" onclick="addScheduleSlot()">
-        <span class="schedule-suggest-icon">+</span>
-        Suggest multiple times
-      </button>
-      <label style="display:block;font-size:14px;font-weight:600;color:#2d2d2d;margin-bottom:8px;" id="scheduleMsgLabel">Message to Candidate</label>
-      <textarea class="schedule-textarea" id="scheduleTextarea" placeholder="Type your message here."></textarea>
-    </div>
-    <div class="sched-modal-footer">
-      <button class="sched-modal-btn" onclick="closeScheduleModal()">Cancel</button>
-      <button class="sched-modal-btn sched-modal-btn-blue" id="scheduleProposeBtn" onclick="submitScheduleModal()">Send&nbsp;<svg viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></button>
-    </div>
-  </div>
-</div>
-
-<!-- No-Access Modal -->
-<div class="modal-backdrop" id="noAccessModal" onclick="if(event.target===this)closeNoAccessModal()">
-  <div class="modal-box">
-    <button class="modal-close" onclick="closeNoAccessModal()">&times;</button>
-    <div class="modal-icon">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-    </div>
-    <div class="modal-title" id="modalTitle">You're not assigned to this event yet</div>
-    <div class="modal-event-name" id="modalEventName"></div>
-    <div class="modal-subtitle" id="modalSubtitle"></div>
-    <div class="modal-actions" id="modalActions"></div>
-  </div>
-</div>
-
-<!-- Toast -->
-<div class="toast" id="toast">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-  <span id="toastMsg"></span>
-</div>
 
 <script>
-/* ═══════════════════════════════════════════════════════
-   STATE
-   ═══════════════════════════════════════════════════════ */
-var currentRole = 'owner';
-var currentDevMode = 'active';
-var currentScreen = 'dashboard';
-var accountEditing = false;
-
-// Interviewer access map: which events does the interviewer have access to?
-var interviewerAccess = {
-  dallas: true,    // has access
-  chicago: false,  // no access, slots available → can request
-  atlanta: false   // no access, seats full
-};
-
-// Event metadata for modal display
-var eventInfo = {
-  dallas:  { name: 'Dallas Healthcare Hiring Event',   seatsFull: false },
-  chicago: { name: 'Chicago Technology Hiring Event',   seatsFull: false },
-  atlanta: { name: 'Atlanta Diversity Hiring Event',    seatsFull: true  }
-};
-
-// Tier config
-var tierConfig = {
-  Starter: { maxSeats: 1, maxJobs: 1 },
-  Growth:  { maxSeats: 5, maxJobs: 3 },
-  Pro:     { maxSeats: 999, maxJobs: 6 }
-};
-var currentTier = 'Growth';
-
-/* ═══════════════════════════════════════════════════════
-   ROLE MANAGEMENT
-   ═══════════════════════════════════════════════════════ */
-function setRole(role) {
-  currentRole = role;
-  document.getElementById('btnOwner').classList.toggle('active', role === 'owner');
-  document.getElementById('btnInterviewer').classList.toggle('active', role === 'interviewer');
-  document.getElementById('userEmail').textContent =
-    role === 'owner' ? 'scott@jobfairx.com' : 'maria.lopez@company.com';
-  applyRoleRestrictions();
-}
-
-function applyRoleRestrictions() {
-  var isInterviewer = currentRole === 'interviewer';
-
-  // Register button — looks normal, but shows tooltip on hover for interviewers
-  var regBtn = document.getElementById('registerBtn');
-  regBtn.disabled = false;
-  regBtn.classList.toggle('restricted', isInterviewer);
-  regBtn.onclick = isInterviewer ? function() { showToast("You don't have access to this feature"); } : function() { showToast('Opening event registration...'); };
-
-  // Credits panel — looks normal, but shows toast on click for interviewers
-  document.getElementById('creditsPanel').classList.remove('dimmed');
-  document.getElementById('getCreditsLink').style.display = '';
-  document.getElementById('creditsManagedMsg').style.display = 'none';
-  document.getElementById('creditsPanel').classList.toggle('restricted', isInterviewer);
-  document.getElementById('getCreditsLink').onclick = isInterviewer ? function(e) { e.preventDefault(); showToast("You don't have access to this feature"); } : function() { showToast('Opening credits...'); };
-
-  // No access overlays (hover-triggered)
-  document.querySelectorAll('.no-access-overlay').forEach(function(o) {
-    o.classList.toggle('enabled', isInterviewer);
-  });
-
-  // Access badges — only show red "No access" badges for interviewer
-  document.querySelectorAll('.access-badge.denied').forEach(function(b) {
-    b.style.display = isInterviewer ? 'inline-flex' : 'none';
-  });
-
-  // ALL buttons stay visible — design is identical for both roles.
-  // Clicking edit on a no-access event shows "You don't have access" toast.
-
-  // Account & Billing — hide billing tab for interviewer
-  var billingTab = document.getElementById('tabBilling');
-  if (billingTab) billingTab.style.display = isInterviewer ? 'none' : '';
-  if (isInterviewer && document.getElementById('billingContent').style.display !== 'none') {
-    switchAccountTab('account');
-  }
-
-  // Invite requests section — only visible to owner
-  var invReq = document.getElementById('inviteRequestsSection');
-  if (invReq) invReq.style.display = isInterviewer ? 'none' : '';
-
-  // Event selector access labels — show "No access" labels for interviewer on restricted events
-  var chicagoOption = document.getElementById('chicagoEventOption');
-  var atlantaOption = document.getElementById('atlantaEventOption');
-  if (chicagoOption) {
-    chicagoOption.classList.toggle('disabled', isInterviewer);
-    var chicagoLabel = chicagoOption.querySelector('.access-label');
-    if (chicagoLabel) chicagoLabel.style.display = isInterviewer ? 'inline-block' : 'none';
-  }
-  if (atlantaOption) {
-    atlantaOption.classList.toggle('disabled', isInterviewer);
-    var atlantaLabel = atlantaOption.querySelector('.access-label');
-    if (atlantaLabel) atlantaLabel.style.display = isInterviewer ? 'inline-block' : 'none';
-  }
-}
-
-/* ═══════════════════════════════════════════════════════
-   EVENT SELECTOR DROPDOWN
-   ═══════════════════════════════════════════════════════ */
-function selectEvent(eventId) {
-  // Close dropdown
-  document.getElementById('eventSelectorDropdown').classList.remove('open');
-
-  // Check access if interviewer
-  if (currentRole === 'interviewer' && !interviewerAccess[eventId]) {
-    showToast('No access to this event');
-    return;
-  }
-
-  // Update button text
-  var eventName = eventInfo[eventId] ? eventInfo[eventId].name : 'Select Event';
-  var btn = document.querySelector('.event-selector-btn');
-  if (btn) {
-    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>' + eventName;
-  }
-
-  // Update event header
-  var h1 = document.querySelector('.event-header h1');
-  if (h1) h1.textContent = eventName;
-}
-
-/* ═══════════════════════════════════════════════════════
-   EDIT CLICK HANDLER — checks access before navigating
-   ═══════════════════════════════════════════════════════ */
-function handleEditClick(eventId) {
-  closeAllDropdowns();
-  if (currentRole === 'interviewer' && !interviewerAccess[eventId]) {
-    openNoAccessModal(eventId);
-    return;
-  }
-  openEditPage(eventId);
-}
-
-/* ═══════════════════════════════════════════════════════
-   GENERIC NO-ACCESS INTERCEPTOR — use for any clickable
-   element on a no-access row (lobby, manage, job links)
-   ═══════════════════════════════════════════════════════ */
-function interceptNoAccess(eventId, fallbackAction) {
-  if (currentRole === 'interviewer' && !interviewerAccess[eventId]) {
-    openNoAccessModal(eventId);
-    return;
-  }
-  if (typeof fallbackAction === 'function') fallbackAction();
-  else if (typeof fallbackAction === 'string') showToast(fallbackAction);
-}
-
-/* ═══════════════════════════════════════════════════════
-   NO-ACCESS MODAL
-   ═══════════════════════════════════════════════════════ */
-function openNoAccessModal(eventId) {
-  var info = eventInfo[eventId] || { name: 'this event', seatsFull: false };
-  var modal = document.getElementById('noAccessModal');
-  var title = document.getElementById('modalTitle');
-  var subtitle = document.getElementById('modalSubtitle');
-  var eventName = document.getElementById('modalEventName');
-  var actions = document.getElementById('modalActions');
-
-  eventName.textContent = info.name;
-
-  if (info.seatsFull) {
-    title.textContent = "You're not assigned to this event";
-    subtitle.textContent = 'All interviewer seats for this event are currently filled. Contact your account holder if you believe this is an error.';
-    actions.innerHTML =
-      '<button class="modal-btn-secondary" onclick="closeNoAccessModal()">Close</button>';
-  } else {
-    title.textContent = "You're not assigned to this event yet";
-    subtitle.textContent = 'Your account holder can add you as an interviewer. Would you like to send them a request?';
-    actions.innerHTML =
-      '<button class="modal-btn-primary" onclick="requestAccessFromModal(\'' + eventId + '\')">Request access</button>' +
-      '<button class="modal-btn-secondary" onclick="closeNoAccessModal()">Not now</button>';
-  }
-
-  modal.classList.add('open');
-}
-
-function closeNoAccessModal() {
-  document.getElementById('noAccessModal').classList.remove('open');
-}
-
-function requestAccessFromModal(eventId) {
-  var info = eventInfo[eventId] || { name: 'this event' };
-  closeNoAccessModal();
-  showToast('Access request sent to account holder for ' + info.name);
-}
-
-/* ═══════════════════════════════════════════════════════
-   DEV MODE (Active / Empty / Live)
-   ═══════════════════════════════════════════════════════ */
-function setDevMode(mode) {
-  currentDevMode = mode;
-  var btns = document.querySelectorAll('#devToggleSwitch .dev-toggle-btn');
-  btns.forEach(function(b) { b.classList.remove('active'); });
-  btns.forEach(function(b) {
-    if (b.textContent.trim().toLowerCase() === mode) b.classList.add('active');
-  });
-  if (currentScreen === 'dashboard') applyDevMode();
-}
-
-function applyDevMode() {
-  var activeUpcoming = document.getElementById('view-active-upcoming');
-  var emptyView = document.getElementById('view-empty');
-  var liveView = document.getElementById('view-live');
-  var tableComplete = document.getElementById('tableComplete');
-  var filterRow = document.querySelector('.filter-row');
-  var pillUpcoming = document.getElementById('pillUpcoming');
-
-  activeUpcoming.style.display = 'none';
-  emptyView.style.display = 'none';
-  liveView.style.display = 'none';
-  tableComplete.style.display = 'none';
-
-  if (currentDevMode === 'active') {
-    filterRow.style.display = '';
-    if (pillUpcoming.classList.contains('active')) {
-      activeUpcoming.style.display = '';
-    } else {
-      tableComplete.style.display = '';
-    }
-  } else if (currentDevMode === 'empty') {
-    filterRow.style.display = 'none';
-    emptyView.style.display = '';
-  } else if (currentDevMode === 'live') {
-    filterRow.style.display = 'none';
-    liveView.style.display = '';
-  }
-}
-
-/* ═══════════════════════════════════════════════════════
-   SCREEN NAVIGATION
-   ═══════════════════════════════════════════════════════ */
-function showScreen(id) {
-  currentScreen = id;
-  document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('active'); });
-  document.getElementById('screen-' + id).classList.add('active');
-  document.querySelectorAll('.nav-item').forEach(function(n) { n.classList.remove('active'); });
-  if (id === 'dashboard') document.getElementById('nav-dashboard').classList.add('active');
-  if (id === 'interviews') document.getElementById('nav-interviews').classList.add('active');
-  document.querySelectorAll('.page-nav-btn').forEach(function(b) { b.classList.remove('active'); });
-  var navBtn = document.getElementById('pageNav' + id.charAt(0).toUpperCase() + id.slice(1));
-  if (navBtn) navBtn.classList.add('active');
-  if (id === 'dashboard') applyDevMode();
-  window.scrollTo(0, 0);
-}
-
-function openEditPage(eventId) {
-  closeAllDropdowns();
-  var details = {
-    dallas:  { name: 'Dallas Healthcare Hiring Event',  date: 'April 22, 2026 · 11:00 AM – 3:00 PM', pkg: 'Growth package · 1 of 3 jobs added', tier: 'Growth' },
-    chicago: { name: 'Chicago Technology Hiring Event',  date: 'May 6, 2026 · 11:00 AM – 3:00 PM',   pkg: 'Pro package · 3 of 6 jobs added',    tier: 'Pro' },
-    atlanta: { name: 'Atlanta Diversity Hiring Event',   date: 'April 5, 2026 · 11:00 AM – 3:00 PM', pkg: 'Starter package · 1 of 1 jobs added', tier: 'Starter' },
-  };
-  var d = details[eventId] || details.dallas;
-  document.getElementById('editEventDetails').innerHTML = d.name + '<br>' + d.date;
-  document.getElementById('editPackageLabel').textContent = d.pkg;
-
-  // Set tier and reset chips
-  setTier(d.tier);
-
-  // Reset chip input to just one email
-  var container = document.getElementById('interviewerChipInput');
-  container.querySelectorAll('.chip').forEach(function(c) { c.remove(); });
-  var input = document.getElementById('interviewerEmailInput');
-  var chip = createChipElement('scott@jobfairx.com');
-  container.insertBefore(chip, input);
-  updateSeatCounter();
-
-  showScreen('edit');
-}
-
-/* ═══════════════════════════════════════════════════════
-   TIER TOGGLE
-   ═══════════════════════════════════════════════════════ */
-function setTier(tier) {
-  currentTier = tier;
-  document.querySelectorAll('.tier-toggle-btn').forEach(function(b) {
-    var isCurrent = b.textContent.trim() === tier;
-    b.style.background = isCurrent ? '#0044B3' : 'transparent';
-    b.style.color = isCurrent ? '#fff' : '#767676';
-  });
-  updateSeatCounter();
-}
-
-/* ═══════════════════════════════════════════════════════
-   CHIP INPUT — EMAIL MANAGEMENT
-   ═══════════════════════════════════════════════════════ */
-function createChipElement(email) {
-  var chip = document.createElement('span');
-  chip.className = 'chip';
-  chip.setAttribute('data-email', email);
-  chip.innerHTML = email + ' <button class="remove" onclick="removeChip(this)">&times;</button>';
-  return chip;
-}
-
-function removeChip(btn) {
-  var chip = btn.parentElement;
-  var container = chip.closest('.chip-input');
-  chip.remove();
-  if (container.id === 'interviewerChipInput') updateSeatCounter();
-  if (container.id === 'recipientChipInput') updateRecipientCounter();
-}
-
-function handleChipKeydown(e, type) {
-  if (e.key === 'Tab' || e.key === 'Enter' || e.key === ',') {
-    var val = e.target.value.trim().replace(/,$/,'').trim();
-    if (val) {
-      e.preventDefault();
-      addEmailChip(val, type);
-      e.target.value = '';
-    } else if (e.key === 'Tab') {
-      // Allow normal tab if field is empty
-      return;
-    } else {
-      e.preventDefault();
-    }
-  }
-  // Backspace on empty input removes last chip
-  if (e.key === 'Backspace' && !e.target.value) {
-    var container = e.target.closest('.chip-input');
-    var chips = container.querySelectorAll('.chip');
-    if (chips.length > 0) {
-      chips[chips.length - 1].remove();
-      if (type === 'interviewer') updateSeatCounter();
-      if (type === 'recipient') updateRecipientCounter();
-    }
-  }
-}
-
-function addEmailChip(email, type) {
-  var containerId = type === 'interviewer' ? 'interviewerChipInput' : 'recipientChipInput';
-  var inputId = type === 'interviewer' ? 'interviewerEmailInput' : 'recipientEmailInput';
-  var container = document.getElementById(containerId);
-  var input = document.getElementById(inputId);
-
-  // Check limits
-  var currentChips = container.querySelectorAll('.chip');
-  if (type === 'interviewer') {
-    var max = tierConfig[currentTier].maxSeats;
-    if (max !== 999 && currentChips.length >= max) {
-      showToast('All interview seats are full. Remove an interviewer to add a new one.');
-      return;
-    }
-  }
-  if (type === 'recipient' && currentChips.length >= 6) {
-    showToast('Maximum 6 update recipients reached');
-    return;
-  }
-
-  // Check duplicate
-  var isDupe = false;
-  currentChips.forEach(function(c) {
-    if (c.getAttribute('data-email').toLowerCase() === email.toLowerCase()) isDupe = true;
-  });
-  if (isDupe) {
-    showToast('Email already added');
-    return;
-  }
-
-  var chip = createChipElement(email);
-  container.insertBefore(chip, input);
-
-  if (type === 'interviewer') updateSeatCounter();
-  if (type === 'recipient') updateRecipientCounter();
-}
-
-function updateSeatCounter() {
-  var container = document.getElementById('interviewerChipInput');
-  if (!container) return;
-  var count = container.querySelectorAll('.chip').length;
-  var max = tierConfig[currentTier].maxSeats;
-  var maxLabel = max === 999 ? 'Unlimited' : max;
-
-  document.getElementById('seatCount').textContent = count;
-  document.getElementById('seatMax').textContent = maxLabel;
-  document.getElementById('seatTier').textContent = currentTier;
-
-  var msgEl = document.getElementById('seatMsg');
-  var errorEl = document.getElementById('seatFullError');
-  var emailInput = document.getElementById('interviewerEmailInput');
-
-  if (max !== 999 && count >= max) {
-    msgEl.textContent = 'All seats filled';
-    msgEl.className = 'seat-status full';
-    errorEl.style.display = '';
-    emailInput.disabled = true;
-    emailInput.placeholder = 'Remove an interviewer to add a new one';
-  } else {
-    var remaining = max === 999 ? 'Unlimited seats' : (max - count) + ' seats available';
-    msgEl.textContent = remaining;
-    msgEl.className = 'seat-status ok';
-    errorEl.style.display = 'none';
-    emailInput.disabled = false;
-    emailInput.placeholder = 'Add email...';
-  }
-
-  // Update summary text
-  var summary = document.getElementById('interviewSettingsSummary');
-  if (summary) {
-    var recipCount = document.getElementById('recipientChipInput') ?
-      document.getElementById('recipientChipInput').querySelectorAll('.chip').length : 0;
-    summary.textContent = count + ' interviewer(s) added | ' + recipCount + ' daily update recipient(s) | 1 accommodations contact(s)';
-  }
-}
-
-function updateRecipientCounter() {
-  var container = document.getElementById('recipientChipInput');
-  if (!container) return;
-  var count = container.querySelectorAll('.chip').length;
-  var errorEl = document.getElementById('recipientFullError');
-  var emailInput = document.getElementById('recipientEmailInput');
-
-  if (count >= 6) {
-    errorEl.style.display = '';
-    emailInput.disabled = true;
-    emailInput.placeholder = 'Max 6 reached';
-  } else {
-    errorEl.style.display = 'none';
-    emailInput.disabled = false;
-    emailInput.placeholder = 'Add email...';
-  }
-}
-
-function approveInvite(btn) {
-  // Add the email as a chip
-  addEmailChip('maria.lopez@company.com', 'interviewer');
-  btn.closest('div[style*="background"]').innerHTML =
-    '<div style="font-size:16px; font-weight:600; color:#166534;">✓ maria.lopez@company.com approved and added as interviewer</div>';
-  showToast('Invite approved — maria.lopez@company.com added as interviewer');
-}
-
-/* ═══════════════════════════════════════════════════════
-   FILTER TABS
-   ═══════════════════════════════════════════════════════ */
-function filterTab(tab) {
-  var isUpcoming = tab === 'upcoming';
-  document.getElementById('pillUpcoming').classList.toggle('active', isUpcoming);
-  document.getElementById('pillComplete').classList.toggle('active', !isUpcoming);
-  applyDevMode();
-}
-
-/* ═══════════════════════════════════════════════════════
-   DOTS MENU
-   ═══════════════════════════════════════════════════════ */
-function toggleDots(id) {
-  // Strip suffix like '-live' to get base event ID for access check
-  var baseId = id.replace(/-live$/, '');
-  // If interviewer without access, open modal instead of dropdown
-  if (currentRole === 'interviewer' && !interviewerAccess[baseId]) {
-    openNoAccessModal(baseId);
-    return;
-  }
-  document.querySelectorAll('.dots-dropdown').forEach(function(d) {
-    if (d.id !== 'dots-' + id) d.classList.remove('open');
-  });
-  document.getElementById('dots-' + id).classList.toggle('open');
-}
-
-function closeAllDropdowns() {
-  document.querySelectorAll('.dots-dropdown').forEach(function(d) { d.classList.remove('open'); });
-  document.getElementById('userMenu').classList.remove('open');
-  var eventDropdown = document.getElementById('eventSelectorDropdown');
-  if (eventDropdown) eventDropdown.classList.remove('open');
-}
-
-document.addEventListener('click', function(e) {
-  if (!e.target.closest('.action-buttons')) {
-    document.querySelectorAll('.dots-dropdown').forEach(function(d) { d.classList.remove('open'); });
-  }
-  if (!e.target.closest('.user-trigger')) {
-    document.getElementById('userMenu').classList.remove('open');
-  }
-  if (!e.target.closest('.event-selector-wrapper')) {
-    var eventDropdown = document.getElementById('eventSelectorDropdown');
-    if (eventDropdown) eventDropdown.classList.remove('open');
-  }
-});
-
-/* ═══════════════════════════════════════════════════════
-   EDIT PAGE — EXPAND/COLLAPSE SECTIONS
-   ═══════════════════════════════════════════════════════ */
-function toggleEditSection(id) {
-  var el = document.getElementById(id);
-  el.classList.toggle('open');
-}
-
-/* ═══════════════════════════════════════════════════════
-   ACCOUNT & BILLING
-   ═══════════════════════════════════════════════════════ */
-function switchAccountTab(tab) {
-  document.getElementById('tabAccount').classList.toggle('active', tab === 'account');
-  document.getElementById('tabBilling').classList.toggle('active', tab === 'billing');
-  document.getElementById('accountContent').style.display = tab === 'account' ? '' : 'none';
-  document.getElementById('billingContent').style.display = tab === 'billing' ? '' : 'none';
-}
-
-function toggleAccountEdit() {
-  accountEditing = !accountEditing;
-  document.getElementById('accountDisplay').style.display = accountEditing ? 'none' : '';
-  document.getElementById('accountEditForm').style.display = accountEditing ? '' : 'none';
-  document.getElementById('accountEditBtn').style.display = accountEditing ? 'none' : '';
-}
-
-/* ═══════════════════════════════════════════════════════
-   REQUEST INVITE
-   ═══════════════════════════════════════════════════════ */
-function requestInvite(eventName) {
-  showToast('Invite request sent to account holder for ' + eventName);
-}
-
-/* ═══════════════════════════════════════════════════════
-   TOAST
-   ═══════════════════════════════════════════════════════ */
-function showToast(msg) {
-  var toast = document.getElementById('toast');
-  document.getElementById('toastMsg').textContent = msg;
-  toast.classList.add('show');
-  setTimeout(function() { toast.classList.remove('show'); }, 3000);
-}
-
-/* ═══════════════════════════════════════════════════════
-   INTERVIEWS/LOBBY FUNCTIONS
-   ═══════════════════════════════════════════════════════ */
-function switchLobbyTab(tab) {
-  // Hide all panels
-  document.querySelectorAll('.lobby-tab-panel').forEach(function(p) { p.style.display = 'none'; });
-  // Show selected panel
-  document.getElementById('panel-' + tab).style.display = 'block';
-
-  // Update tab buttons
-  document.querySelectorAll('.lobby-tab').forEach(function(t) { t.classList.remove('active'); });
-  document.querySelector('[data-tab="' + tab + '"]').classList.add('active');
-}
-
-function setLobbyViewMode(mode) {
-  // Get current tab
-  var currentLobbyTab = document.querySelector('.lobby-tab.active').getAttribute('data-tab');
-
-  // Update ALL view pills across the lobby
-  document.querySelectorAll('.lobby-view-pill').forEach(function(p) {
-    p.classList.remove('active');
-    if (p.textContent.trim().toLowerCase() === mode) p.classList.add('active');
-  });
-
-  // Hide all view-mode divs in the current panel, then show the right one
-  var panel = document.getElementById('panel-' + currentLobbyTab);
-  var views = panel.querySelectorAll('[class*="' + currentLobbyTab + '-"]');
-  views.forEach(function(el) { el.style.display = 'none'; });
-
-  if (mode === 'empty') {
-    var emptyEl = panel.querySelector('.' + currentLobbyTab + '-empty');
-    if (emptyEl) emptyEl.style.display = 'block';
-  } else {
-    var activeEl = panel.querySelector('.' + currentLobbyTab + '-active');
-    if (activeEl) activeEl.style.display = 'block';
-  }
-}
-
-function toggleLobbySection(sectionId) {
-  var section = document.getElementById(sectionId + 'Section');
-  var header = section.querySelector('.lobby-section-header');
-  var body = section.querySelector('.lobby-section-body');
-
-  if (body.style.display === 'none') {
-    body.style.display = 'block';
-    header.classList.remove('collapsed');
-  } else {
-    body.style.display = 'none';
-    header.classList.add('collapsed');
-  }
-}
-
-/* ═══════════════════════════════════════════
-   INTERVIEWS SCREEN JS (from lobby.html)
-   ═══════════════════════════════════════════ */
-
 function switchTab(el, id) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   el.classList.add('active');
@@ -4553,12 +2750,118 @@ document.addEventListener('click', function(e) {
   if (!e.target.closest('.dots-btn')) {
     document.querySelectorAll('.dots-menu.open').forEach(m => m.classList.remove('open'));
   }
-  if (!e.target.closest('.event-selector-wrapper')) {
-    var esd = document.getElementById('eventSelectorDropdown');
-    if (esd) esd.classList.remove('open');
+  if (!e.target.closest('.lobby-user-trigger')) {
+    document.querySelectorAll('.lobby-user-menu.open').forEach(m => m.classList.remove('open'));
   }
 });
+</script>
 
+<!-- Accept Toast -->
+<div class="decline-toast" id="acceptToast">
+  <span id="acceptToastMsg"></span>
+  <button class="toast-undo" onclick="undoAccept()">Undo</button>
+</div>
+
+<!-- Decline Toast -->
+<div class="decline-toast" id="declineToast">
+  <span id="declineToastMsg"></span>
+  <button class="toast-undo" onclick="undoDecline()">Undo</button>
+</div>
+
+<!-- Message Modal -->
+<div class="msg-modal-overlay" id="msgModal">
+  <div class="msg-modal">
+    <div class="msg-modal-header">
+      <div class="msg-modal-header-text">
+        <div class="msg-modal-title">Send Message</div>
+        <div class="msg-modal-to" id="msgTo"></div>
+      </div>
+      <button class="msg-modal-close" onclick="closeMsgModal()">&times;</button>
+    </div>
+    <div class="msg-modal-messages" id="msgMessages"></div>
+    <div class="msg-compose">
+      <div class="msg-char-count"><span id="msgCharCount">0</span> / 2000</div>
+      <textarea class="msg-textarea" id="msgTextarea" placeholder="" maxlength="2000" oninput="updateMsgCharCount()"></textarea>
+      <div class="msg-compose-actions">
+        <button class="msg-btn-cancel" onclick="closeMsgModal()">Cancel</button>
+        <button class="msg-btn-send" onclick="sendMessage()">Send</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Resume Modal -->
+<div class="resume-modal-overlay" id="resumeModal">
+  <div class="resume-modal">
+    <div class="resume-modal-header">
+      <div class="resume-modal-header-top">
+        <div>
+          <div class="resume-modal-name"><span id="resumeName"></span><button class="resume-modal-download"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg><span class="btn-tooltip">Download resume</span></button></div>
+          <div class="resume-modal-subtitle" id="resumeSubtitle"></div>
+        </div>
+        <button class="resume-modal-close" onclick="closeResumeModal()">&times;</button>
+      </div>
+      <div class="resume-modal-contact" id="resumeContact"></div>
+      <div class="resume-modal-btns">
+        <div class="pending-actions">
+          <button class="pending-btn accept" onclick="acceptFromResume()">Accept<span class="btn-tooltip">Accept interview request</span></button>
+          <button class="pending-btn decline" onclick="declineFromResume()">Decline<span class="btn-tooltip">Decline interview request</span></button>
+          <button class="pending-btn propose" onclick="closeResumeModal(); openScheduleModal(this);">Reschedule<span class="btn-tooltip">Propose new interview time</span></button>
+        </div>
+      </div>
+    </div>
+    <div class="resume-modal-body" id="resumeBody">
+      <!-- Populated by JS -->
+    </div>
+  </div>
+</div>
+
+<!-- Decline Confirmation Modal -->
+<div class="decline-modal-overlay" id="declineModal">
+  <div class="decline-modal">
+    <div class="decline-modal-header">Decline interview request</div>
+    <div class="decline-modal-body">Are you sure you want to decline the interview request from <span class="candidate-name" id="declineCandidateName"></span>? This action can't be undone and the candidate will be removed from your list.</div>
+    <label class="decline-modal-checkbox">
+      <input type="checkbox" id="declineDontAsk">
+      Don't show this message when I decline
+    </label>
+    <div class="decline-modal-actions">
+      <button class="decline-cancel" onclick="closeDeclineModal()">Cancel</button>
+      <button class="decline-confirm" onclick="confirmDecline()">Decline</button>
+    </div>
+  </div>
+</div>
+
+
+<div class="sched-modal-overlay" id="scheduleModal">
+  <div class="sched-modal-box">
+    <div class="sched-modal-header">
+      <div class="sched-modal-header-left">
+        <div class="sched-cal-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        </div>
+        <h3 id="scheduleTitle">Schedule with Candidate</h3>
+      </div>
+      <button class="sched-modal-close" onclick="closeScheduleModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div class="sched-modal-divider"></div>
+    <div class="sched-modal-body">
+      <div class="schedule-slots" id="scheduleSlots"></div>
+      <button class="schedule-suggest" onclick="addScheduleSlot()">
+        <span class="schedule-suggest-icon">+</span>
+        Suggest multiple times
+      </button>
+      <label style="display:block;font-size:14px;font-weight:600;color:#2d2d2d;margin-bottom:8px;" id="scheduleMsgLabel">Message to Candidate</label>
+      <textarea class="schedule-textarea" id="scheduleTextarea" placeholder="Type your message here."></textarea>
+    </div>
+    <div class="sched-modal-footer">
+      <button class="sched-modal-btn" onclick="closeScheduleModal()">Cancel</button>
+      <button class="sched-modal-btn sched-modal-btn-blue" id="scheduleProposeBtn" onclick="submitScheduleModal()">Send&nbsp;<svg viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></button>
+    </div>
+  </div>
+</div>
+
+<script>
 /* ═══ SCHEDULE / RESCHEDULE MODAL ═══ */
 var SCHEDULE_TIME_OPTIONS = ['8:00 AM','8:30 AM','9:00 AM','9:30 AM','10:00 AM','10:30 AM','11:00 AM','11:30 AM','12:00 PM','12:30 PM','1:00 PM','1:30 PM','2:00 PM','2:30 PM','3:00 PM','3:30 PM','4:00 PM','4:30 PM','5:00 PM'];
 var SCHEDULE_TZ_LABEL = 'CDT';
@@ -4589,8 +2892,14 @@ function clearScheduleFieldError(input) {
 }
 
 function showSchedToast(msg) {
-  var toast = document.getElementById('acceptToast');
-  document.getElementById('acceptToastMsg').textContent = msg;
+  var toast = document.getElementById('schedToast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.className = 'sched-toast';
+    toast.id = 'schedToast';
+    document.body.appendChild(toast);
+  }
+  toast.textContent = msg;
   toast.classList.add('show');
   setTimeout(function() { toast.classList.remove('show'); }, 2800);
 }
@@ -4628,6 +2937,7 @@ function submitScheduleModal() {
     var dateVal = dateField.querySelector('.schedule-input').value;
     var timeVal = timeField.querySelector('.schedule-select').value;
 
+    // Past-date guard
     if (dateVal && dateVal < todayISO) {
       dateField.classList.add('has-error');
       var errDiv = dateField.querySelector('.schedule-field-error');
@@ -4667,7 +2977,6 @@ function submitScheduleModal() {
 
 function closeScheduleModal() {
   document.getElementById('scheduleModal').classList.remove('open');
-  document.body.style.overflow = '';
 }
 
 function openScheduleModal(el) {
@@ -4679,7 +2988,6 @@ function openScheduleModal(el) {
   container.innerHTML = scheduleSlotMarkup(SCHEDULE_TZ_LABEL);
   updateScheduleSlotState();
   document.getElementById('scheduleModal').classList.add('open');
-  document.body.style.overflow = 'hidden';
 }
 
 function getScheduleName(el) {
@@ -4694,11 +3002,145 @@ function getScheduleName(el) {
   return 'Candidate';
 }
 
-// Close schedule modal on overlay click
+// Close on overlay click
 document.getElementById('scheduleModal').addEventListener('click', function(e) {
   if (e.target === this) closeScheduleModal();
 });
+</script>
 
+<!-- ═══ FEEDBACK MODAL ═══ -->
+<div class="fb-overlay" id="feedbackModal" onclick="if(event.target===this)closeFeedbackModal()">
+  <div class="fb-card" id="feedbackCard">
+    <button class="fb-close" onclick="closeFeedbackModal()" aria-label="Close">&times;</button>
+    <div class="fb-title">Give Feedback</div>
+    <div class="fb-sub">Help us make JobFairX better for you</div>
+    <div class="fb-section">
+      <div class="fb-label">How's your experience? <span class="fb-required">*</span></div>
+      <div class="fb-emoji-row">
+        <button type="button" class="fb-emoji" data-value="amazing" onclick="selectExperience(this)"><span class="fb-emoji-icon">&#128525;</span><span class="fb-emoji-label">Amazing</span></button>
+        <button type="button" class="fb-emoji" data-value="good" onclick="selectExperience(this)"><span class="fb-emoji-icon">&#128578;</span><span class="fb-emoji-label">Good</span></button>
+        <button type="button" class="fb-emoji" data-value="okay" onclick="selectExperience(this)"><span class="fb-emoji-icon">&#128528;</span><span class="fb-emoji-label">Okay</span></button>
+        <button type="button" class="fb-emoji" data-value="poor" onclick="selectExperience(this)"><span class="fb-emoji-icon">&#128533;</span><span class="fb-emoji-label">Poor</span></button>
+        <button type="button" class="fb-emoji" data-value="terrible" onclick="selectExperience(this)"><span class="fb-emoji-icon">&#128544;</span><span class="fb-emoji-label">Terrible</span></button>
+      </div>
+    </div>
+    <div class="fb-followups">
+      <div class="fb-label">A few quick follow-ups <span class="fb-optional">(optional)</span></div>
+      <div class="fb-followup-card">
+        <div class="fb-followup-text">
+          <div class="fb-followup-title">How easy was it to get started?</div>
+          <div class="fb-followup-desc">Signing up, adding jobs, going live</div>
+        </div>
+        <div class="fb-chip-row">
+          <button type="button" class="fb-chip" data-group="setup" data-value="great" onclick="selectFollowup(this)">&#128077; Great</button>
+          <button type="button" class="fb-chip" data-group="setup" data-value="okay" onclick="selectFollowup(this)">&#128076; Okay</button>
+          <button type="button" class="fb-chip" data-group="setup" data-value="needs-work" onclick="selectFollowup(this)">&#128078; Needs work</button>
+        </div>
+      </div>
+      <div class="fb-followup-card">
+        <div class="fb-followup-text">
+          <div class="fb-followup-title">Quality of candidates you met?</div>
+          <div class="fb-followup-desc">Fit, relevance, and engagement of the applicants</div>
+        </div>
+        <div class="fb-chip-row">
+          <button type="button" class="fb-chip" data-group="candidates" data-value="great" onclick="selectFollowup(this)">&#128077; Great</button>
+          <button type="button" class="fb-chip" data-group="candidates" data-value="okay" onclick="selectFollowup(this)">&#128076; Okay</button>
+          <button type="button" class="fb-chip" data-group="candidates" data-value="needs-work" onclick="selectFollowup(this)">&#128078; Needs work</button>
+        </div>
+      </div>
+      <div class="fb-followup-card">
+        <div class="fb-followup-text">
+          <div class="fb-followup-title">How was the interview experience?</div>
+          <div class="fb-followup-desc">Video, audio, scheduling, reliability during interviews</div>
+        </div>
+        <div class="fb-chip-row">
+          <button type="button" class="fb-chip" data-group="interview" data-value="great" onclick="selectFollowup(this)">&#128077; Great</button>
+          <button type="button" class="fb-chip" data-group="interview" data-value="okay" onclick="selectFollowup(this)">&#128076; Okay</button>
+          <button type="button" class="fb-chip" data-group="interview" data-value="needs-work" onclick="selectFollowup(this)">&#128078; Needs work</button>
+        </div>
+      </div>
+    </div>
+    <div class="fb-section">
+      <div class="fb-label">Anything else? <span class="fb-optional">(optional)</span></div>
+      <div class="fb-textarea-wrap">
+        <textarea class="fb-textarea" id="fbTextarea" maxlength="500" placeholder="Tell us more about your experience..." oninput="updateFbCount()"></textarea>
+        <div class="fb-char-counter"><span id="fbCharCount">0</span>/500</div>
+      </div>
+    </div>
+    <div class="fb-actions">
+      <button class="fb-btn-cancel" onclick="closeFeedbackModal()">Cancel</button>
+      <button class="fb-btn-submit" id="fbSubmitBtn" disabled onclick="submitFeedback()">Submit feedback</button>
+    </div>
+  </div>
+</div>
+<script>
+var fbState = { experience: null, followups: {}, text: '' };
+function openFeedbackModal() {
+  document.querySelectorAll('.lobby-user-menu').forEach(function(m) { m.classList.remove('open'); });
+  resetFeedback();
+  document.getElementById('feedbackModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeFeedbackModal() {
+  document.getElementById('feedbackModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+function resetFeedback() {
+  fbState = { experience: null, followups: {}, text: '' };
+  document.querySelectorAll('#feedbackModal .fb-emoji').forEach(function(b) { b.classList.remove('selected'); });
+  document.querySelectorAll('#feedbackModal .fb-chip').forEach(function(b) { b.classList.remove('selected'); });
+  document.getElementById('feedbackCard').classList.remove('has-rating');
+  document.getElementById('fbTextarea').value = '';
+  document.getElementById('fbCharCount').textContent = '0';
+  document.getElementById('fbSubmitBtn').disabled = true;
+}
+function selectExperience(btn) {
+  fbState.experience = btn.dataset.value;
+  document.querySelectorAll('#feedbackModal .fb-emoji').forEach(function(b) { b.classList.remove('selected'); });
+  btn.classList.add('selected');
+  document.getElementById('feedbackCard').classList.add('has-rating');
+  document.getElementById('fbSubmitBtn').disabled = false;
+}
+function selectFollowup(btn) {
+  var group = btn.dataset.group, value = btn.dataset.value;
+  if (fbState.followups[group] === value) {
+    delete fbState.followups[group];
+    btn.classList.remove('selected');
+    return;
+  }
+  fbState.followups[group] = value;
+  document.querySelectorAll('#feedbackModal .fb-chip[data-group="' + group + '"]').forEach(function(b) { b.classList.remove('selected'); });
+  btn.classList.add('selected');
+}
+function updateFbCount() {
+  var ta = document.getElementById('fbTextarea');
+  fbState.text = ta.value;
+  document.getElementById('fbCharCount').textContent = ta.value.length;
+}
+function submitFeedback() {
+  if (!fbState.experience) return;
+  console.log('Feedback submitted:', JSON.parse(JSON.stringify(fbState)));
+  closeFeedbackModal();
+  fbToast('Thanks for your feedback!');
+}
+function fbToast(msg) {
+  var t = document.getElementById('fb-toast-el');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'fb-toast-el';
+    t.style.cssText = 'position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#2d2d2d;color:#fff;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:600;z-index:10001;box-shadow:0 4px 12px rgba(0,0,0,0.15);';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.display = 'block';
+  setTimeout(function(){ t.style.display = 'none'; }, 2400);
+}
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    var modal = document.getElementById('feedbackModal');
+    if (modal && modal.classList.contains('open')) closeFeedbackModal();
+  }
+});
 </script>
 
 </body>
