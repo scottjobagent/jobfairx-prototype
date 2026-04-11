@@ -415,6 +415,7 @@ tbody tr:last-child td { border-bottom: none; }
 .msg-filter-btn { display: flex; align-items: center; gap: 8px; padding: 8px 14px; font-size: 13px; font-weight: 500; color: #595959; background: #fff; border: 1px solid #d4d2d0; border-radius: 8px; cursor: pointer; font-family: inherit; flex: 1; }
 .msg-filter-btn svg { width: 16px; height: 16px; color: #767676; }
 .msg-filter-btn:hover { border-color: #0044B3; color: #2d2d2d; }
+.msg-filter-btn.disabled { opacity: 0.5; cursor: default; pointer-events: none; }
 .msg-filter-dropdown { display: none; position: absolute; top: 100%; z-index: 10; background: #fff; border: 1px solid #d4d2d0; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); min-width: 220px; }
 .msg-filter-dropdown.open { display: block; }
 .msg-thread-list { flex: 1; overflow-y: auto; }
@@ -1888,30 +1889,16 @@ tbody tr:last-child td { border-bottom: none; }
             </div>
           </div>
           <div class="msg-filters" style="padding: 0 20px;">
-            <button class="msg-filter-btn" onclick="toggleDropdown('msg-empty-events-dd')">
+            <button class="msg-filter-btn disabled">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
               All Events
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;margin-left:auto;"><path d="M6 9l6 6 6-6"/></svg>
             </button>
-            <button class="msg-filter-btn" onclick="toggleDropdown('msg-empty-jobs-dd')">
+            <button class="msg-filter-btn disabled">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 3h-8v4h8z"/></svg>
               All Jobs
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;margin-left:auto;"><path d="M6 9l6 6 6-6"/></svg>
             </button>
-          </div>
-          <div class="msg-filter-dropdown" id="msg-empty-events-dd" style="left:20px; top:140px;">
-            <button class="search-events-item" onclick="selectMsgFilter(this,'msg-empty-events-dd','All Events')">All Events</button>
-            <button class="search-events-item" onclick="selectMsgFilter(this,'msg-empty-events-dd','Dallas Healthcare')">Dallas Healthcare - Apr 22</button>
-            <button class="search-events-item" onclick="selectMsgFilter(this,'msg-empty-events-dd','Chicago Technology')">Chicago Technology - May 6</button>
-            <button class="search-events-item" onclick="selectMsgFilter(this,'msg-empty-events-dd','Atlanta Diversity')">Atlanta Diversity - Apr 5</button>
-            <button class="search-events-item" onclick="selectMsgFilter(this,'msg-empty-events-dd','NYC Entry Level')">New York City Entry Level - Apr 10</button>
-            <button class="search-events-item" onclick="selectMsgFilter(this,'msg-empty-events-dd','Houston Veteran')">Houston Veteran - Mar 18</button>
-          </div>
-          <div class="msg-filter-dropdown" id="msg-empty-jobs-dd" style="left:200px; top:140px;">
-            <button class="search-events-item" onclick="selectMsgFilter(this,'msg-empty-jobs-dd','All Jobs')">All Jobs</button>
-            <button class="search-events-item" onclick="selectMsgFilter(this,'msg-empty-jobs-dd','RBT Trainee')">Registered Behavior Technician Trainee</button>
-            <button class="search-events-item" onclick="selectMsgFilter(this,'msg-empty-jobs-dd','Customer Service')">Customer Service Rep</button>
-            <button class="search-events-item" onclick="selectMsgFilter(this,'msg-empty-jobs-dd','Sales Associate')">Sales Associate</button>
           </div>
           <div class="msg-empty-list-body">
             <svg class="msg-empty-list-icon" viewBox="0 0 48 48" fill="none">
@@ -2713,6 +2700,15 @@ function setDevMode(mode, btn) {
     creditNums.forEach(function(el) { el.textContent = '0'; });
     // Show welcome modal
     document.getElementById('interviewerWelcomeModal').classList.add('active');
+    // Filter active messaging dropdowns to only NYC event
+    document.querySelectorAll('#msg-active-events-dd .search-events-item').forEach(function(item) {
+      var text = item.textContent;
+      item.style.display = (text === 'All Events' || text.indexOf('New York') !== -1) ? '' : 'none';
+    });
+    document.querySelectorAll('#msg-active-jobs-dd .search-events-item').forEach(function(item) {
+      var text = item.textContent;
+      item.style.display = (text === 'All Jobs' || text === 'Customer Service Rep' || text === 'Sales Associate') ? '' : 'none';
+    });
     applyLiveActionState(false);
   } else if (mode === 'live' || mode === 'active') {
     emptyState.classList.remove('active');
@@ -2747,6 +2743,10 @@ function setDevMode(mode, btn) {
     if (creditNums[0]) creditNums[0].textContent = '2';
     if (creditNums[1]) creditNums[1].textContent = '1';
     if (creditNums[2]) creditNums[2].textContent = '0';
+    // Restore active messaging dropdowns (show all items)
+    document.querySelectorAll('#msg-active-events-dd .search-events-item, #msg-active-jobs-dd .search-events-item').forEach(function(item) {
+      item.style.display = '';
+    });
 
     // Toggle setup complete vs live indicator
     var setupCompleteDot = document.querySelector('#upcomingTable .cell-setup-complete');
