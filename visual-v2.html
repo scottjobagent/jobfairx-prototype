@@ -819,6 +819,7 @@ tbody tr:last-child td { border-bottom: none; }
         <button class="dev-toggle-btn" onclick="setDevMode('empty', this)">Empty</button>
         <button class="dev-toggle-btn" onclick="setDevMode('live', this)">Live</button>
         <button class="dev-toggle-btn" onclick="setDevMode('interviewer', this)">Interviewer</button>
+        <button class="dev-toggle-btn" onclick="setDevMode('interviewer-existing', this)">Interviewer (existing)</button>
       </div>
     </div>
   </div>
@@ -1649,6 +1650,7 @@ tbody tr:last-child td { border-bottom: none; }
               <button class="dev-toggle-btn" onclick="setIvUpcomingDevMode('active', this)">Active</button>
               <button class="dev-toggle-btn" onclick="setIvUpcomingDevMode('live', this)">Live</button>
               <button class="dev-toggle-btn" onclick="setIvUpcomingDevMode('interviewer', this)">Interviewer</button>
+              <button class="dev-toggle-btn" onclick="setIvUpcomingDevMode('interviewer-existing', this)">Interviewer (existing)</button>
             </div>
           </div>
           <h2>You don't have upcoming interviews</h2>
@@ -1678,6 +1680,7 @@ tbody tr:last-child td { border-bottom: none; }
                   <button class="dev-toggle-btn active" onclick="setIvUpcomingDevMode('active', this)">Active</button>
                   <button class="dev-toggle-btn" onclick="setIvUpcomingDevMode('live', this)">Live</button>
                   <button class="dev-toggle-btn" onclick="setIvUpcomingDevMode('interviewer', this)">Interviewer</button>
+                  <button class="dev-toggle-btn" onclick="setIvUpcomingDevMode('interviewer-existing', this)">Interviewer (existing)</button>
                 </div>
               </div>
             </div>
@@ -1713,6 +1716,7 @@ tbody tr:last-child td { border-bottom: none; }
                   <button class="dev-toggle-btn" onclick="setIvUpcomingDevMode('active', this)">Active</button>
                   <button class="dev-toggle-btn active" onclick="setIvUpcomingDevMode('live', this)">Live</button>
                   <button class="dev-toggle-btn" onclick="setIvUpcomingDevMode('interviewer', this)">Interviewer</button>
+                  <button class="dev-toggle-btn" onclick="setIvUpcomingDevMode('interviewer-existing', this)">Interviewer (existing)</button>
                 </div>
               </div>
             </div>
@@ -2329,10 +2333,11 @@ function setIvUpcomingDevMode(mode, btn) {
   // Sync all toggles across Empty/Active/Live panels
   document.querySelectorAll('#iv-panel-0 .dev-toggle-btn').forEach(function(b) { b.classList.remove('active'); });
   document.querySelectorAll('#iv-panel-0 .dev-toggle-btn').forEach(function(b) {
-    if (b.textContent.trim().toLowerCase() === mode) b.classList.add('active');
+    var btnMode = b.getAttribute('onclick').match(/setIvUpcomingDevMode\('([^']+)'/);
+    if (btnMode && btnMode[1] === mode) b.classList.add('active');
   });
 
-  if (mode === 'interviewer') {
+  if (mode === 'interviewer' || mode === 'interviewer-existing') {
     // Show empty state for interviewer (same view, just filtered dropdown)
     document.getElementById('ivUpcomingEmpty').style.display = '';
     document.getElementById('ivUpcomingActive').style.display = 'none';
@@ -2345,7 +2350,7 @@ function setIvUpcomingDevMode(mode, btn) {
     // Set dropdown button to show just NYC
     var filterBtn = document.querySelector('.iv-event-filter-btn');
     if (filterBtn) {
-      filterBtn.childNodes[0].textContent = 'New York City Entry Level Hiring Event ';
+      filterBtn.childNodes[0].textContent = 'New York City Virtual Hiring Event ';
     }
   } else {
     document.getElementById('ivUpcomingEmpty').style.display = mode === 'empty' ? '' : 'none';
@@ -2742,6 +2747,47 @@ function setDevMode(mode, btn) {
     // Show welcome modal
     document.getElementById('interviewerWelcomeModal').classList.add('active');
     // Filter active messaging dropdowns to only NYC event
+    document.querySelectorAll('#msg-active-events-dd .search-events-item').forEach(function(item) {
+      var text = item.textContent;
+      item.style.display = (text === 'All Events' || text.indexOf('New York') !== -1) ? '' : 'none';
+    });
+    document.querySelectorAll('#msg-active-jobs-dd .search-events-item').forEach(function(item) {
+      var text = item.textContent;
+      item.style.display = (text === 'All Jobs' || text === 'Customer Service Rep' || text === 'Sales Associate') ? '' : 'none';
+    });
+    applyLiveActionState(false);
+  } else if (mode === 'interviewer-existing') {
+    emptyState.classList.remove('active');
+    activeHeader.style.display = '';
+    filterRow.style.display = '';
+    document.querySelectorAll('.tab-pill').forEach(function(t) { t.classList.remove('active'); });
+    document.querySelector('.tab-pill').classList.add('active');
+    upcomingTable.style.display = '';
+    completedSection.classList.remove('active');
+    reportView.classList.remove('active');
+    document.querySelectorAll('#upcomingTable .ev-row').forEach(function(r) {
+      if (r.dataset.event === 'nyc') {
+        r.style.display = '';
+      } else {
+        r.style.display = 'none';
+      }
+    });
+    var upcomingPill2 = document.querySelector('.tab-pill');
+    if (upcomingPill2) {
+      var countSpan2 = upcomingPill2.querySelector('.count');
+      if (countSpan2) countSpan2.textContent = '1';
+    }
+    var completedPill2 = document.querySelectorAll('.tab-pill')[1];
+    if (completedPill2) {
+      var cCountSpan2 = completedPill2.querySelector('.count');
+      if (cCountSpan2) cCountSpan2.textContent = '0';
+    }
+    document.querySelectorAll('#search-events-menu .search-events-item').forEach(function(item) {
+      item.style.display = item.textContent.indexOf('New York') !== -1 ? '' : 'none';
+    });
+    var creditNums = document.querySelectorAll('.credit-num');
+    creditNums.forEach(function(el) { el.textContent = '0'; });
+    // No welcome modal — existing account
     document.querySelectorAll('#msg-active-events-dd .search-events-item').forEach(function(item) {
       var text = item.textContent;
       item.style.display = (text === 'All Events' || text.indexOf('New York') !== -1) ? '' : 'none';
