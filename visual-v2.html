@@ -183,7 +183,17 @@ tbody tr:last-child td { border-bottom: none; }
 .modal-event-card { background: #f3f2ef; border-radius: 8px; padding: 16px; margin-bottom: 16px; text-align: left; font-size: 15px; color: #2d2d2d; line-height: 1.6; }
 .modal-event-name { font-size: 15px; font-weight: 600; color: #2d2d2d; margin-bottom: 4px; }
 .modal-event-detail { font-size: 13px; color: #595959; }
-.modal-note { font-size: 13px; color: #767676; margin-bottom: 24px; line-height: 1.5; }
+.modal-note { font-size: 13px; color: #767676; margin-bottom: 20px; line-height: 1.5; }
+.modal-form-group { margin-bottom: 16px; text-align: left; }
+.modal-field-label { display: block; font-size: 14px; font-weight: 600; color: #2d2d2d; margin-bottom: 6px; }
+.modal-field-label .req { color: #991b1b; }
+.modal-field-input { width: 100%; padding: 10px 14px; font-size: 14px; font-family: inherit; color: #2d2d2d; border: 1px solid #d4d2d0; border-radius: 8px; outline: none; transition: border-color 0.15s, box-shadow 0.15s; box-sizing: border-box; }
+.modal-field-input:focus { border-color: #0044B3; box-shadow: 0 0 0 2px rgba(0,68,179,0.15); }
+.modal-field-input.error { border-color: #991b1b; box-shadow: 0 0 0 2px rgba(153,27,27,0.15); }
+.modal-field-error { font-size: 12px; color: #991b1b; margin-top: 4px; display: none; }
+.modal-field-error.show { display: block; }
+.modal-form-row { display: flex; gap: 12px; }
+.modal-form-row .modal-form-group { flex: 1; }
 .modal-btn { display: inline-block; padding: 10px 32px; background: #0044B3; color: #fff; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; font-family: inherit; transition: background 0.15s; }
 .modal-btn:hover { background: #003399; }
 .status-badge svg { width: 14px; height: 14px; }
@@ -3293,6 +3303,40 @@ document.addEventListener('keydown', function(e) {
     if (modal && modal.classList.contains('open')) closeFeedbackModal();
   }
 });
+
+function submitInterviewerWelcome() {
+  var firstName = document.getElementById('iwFirstName');
+  var lastName = document.getElementById('iwLastName');
+  var jobTitle = document.getElementById('iwJobTitle');
+  var firstErr = document.getElementById('iwFirstNameError');
+  var lastErr = document.getElementById('iwLastNameError');
+  var titleErr = document.getElementById('iwJobTitleError');
+  var valid = true;
+
+  // Reset errors
+  [firstName, lastName, jobTitle].forEach(function(el) { el.classList.remove('error'); });
+  [firstErr, lastErr, titleErr].forEach(function(el) { el.classList.remove('show'); });
+
+  if (!firstName.value.trim()) {
+    firstName.classList.add('error');
+    firstErr.classList.add('show');
+    valid = false;
+  }
+  if (!lastName.value.trim()) {
+    lastName.classList.add('error');
+    lastErr.classList.add('show');
+    valid = false;
+  }
+  if (!jobTitle.value.trim()) {
+    jobTitle.classList.add('error');
+    titleErr.classList.add('show');
+    valid = false;
+  }
+
+  if (valid) {
+    document.getElementById('interviewerWelcomeModal').classList.remove('active');
+  }
+}
 </script>
 
 <!-- Interviewer Welcome Modal -->
@@ -3300,8 +3344,25 @@ document.addEventListener('keydown', function(e) {
   <div class="modal-card">
     <div class="modal-title">Welcome to JobFairX</div>
     <div class="modal-event-card">You've been invited to interview by Stacy Smith at Acme Corporation for the New York City Entry Level Hiring Event.</div>
-    <div class="modal-note">We auto-created your account using your email address — you have full access to manage this event, interview candidates, and message applicants.</div>
-    <button class="modal-btn modal-btn-primary" onclick="document.getElementById('interviewerWelcomeModal').classList.remove('active')">Go to dashboard</button>
+    <div class="modal-note">We auto-created your account using your email address. Complete your profile to get started.</div>
+    <div class="modal-form-row">
+      <div class="modal-form-group">
+        <label class="modal-field-label">First name <span class="req">*</span></label>
+        <input type="text" class="modal-field-input" id="iwFirstName" placeholder="First name">
+        <div class="modal-field-error" id="iwFirstNameError">First name is required.</div>
+      </div>
+      <div class="modal-form-group">
+        <label class="modal-field-label">Last name <span class="req">*</span></label>
+        <input type="text" class="modal-field-input" id="iwLastName" placeholder="Last name">
+        <div class="modal-field-error" id="iwLastNameError">Last name is required.</div>
+      </div>
+    </div>
+    <div class="modal-form-group">
+      <label class="modal-field-label">Job title <span class="req">*</span></label>
+      <input type="text" class="modal-field-input" id="iwJobTitle" placeholder="e.g. Senior Recruiter">
+      <div class="modal-field-error" id="iwJobTitleError">Job title is required.</div>
+    </div>
+    <button class="modal-btn modal-btn-primary" onclick="submitInterviewerWelcome()" style="width:100%; margin-top:8px;">Continue to dashboard</button>
   </div>
 </div>
 
