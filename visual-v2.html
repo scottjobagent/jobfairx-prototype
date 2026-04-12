@@ -3304,18 +3304,36 @@ document.addEventListener('keydown', function(e) {
   }
 });
 
+function toggleJobTitleOther(select) {
+  var otherInput = document.getElementById('iwJobTitleOther');
+  if (select.value === 'other') {
+    otherInput.style.display = '';
+    otherInput.focus();
+  } else {
+    otherInput.style.display = 'none';
+    otherInput.value = '';
+  }
+  // Clear errors on change
+  select.classList.remove('error');
+  document.getElementById('iwJobTitleError').classList.remove('show');
+  otherInput.classList.remove('error');
+  document.getElementById('iwJobTitleOtherError').classList.remove('show');
+}
+
 function submitInterviewerWelcome() {
   var firstName = document.getElementById('iwFirstName');
   var lastName = document.getElementById('iwLastName');
   var jobTitle = document.getElementById('iwJobTitle');
+  var jobTitleOther = document.getElementById('iwJobTitleOther');
   var firstErr = document.getElementById('iwFirstNameError');
   var lastErr = document.getElementById('iwLastNameError');
   var titleErr = document.getElementById('iwJobTitleError');
+  var titleOtherErr = document.getElementById('iwJobTitleOtherError');
   var valid = true;
 
   // Reset errors
-  [firstName, lastName, jobTitle].forEach(function(el) { el.classList.remove('error'); });
-  [firstErr, lastErr, titleErr].forEach(function(el) { el.classList.remove('show'); });
+  [firstName, lastName, jobTitle, jobTitleOther].forEach(function(el) { el.classList.remove('error'); });
+  [firstErr, lastErr, titleErr, titleOtherErr].forEach(function(el) { el.classList.remove('show'); });
 
   if (!firstName.value.trim()) {
     firstName.classList.add('error');
@@ -3327,9 +3345,13 @@ function submitInterviewerWelcome() {
     lastErr.classList.add('show');
     valid = false;
   }
-  if (!jobTitle.value.trim()) {
+  if (!jobTitle.value) {
     jobTitle.classList.add('error');
     titleErr.classList.add('show');
+    valid = false;
+  } else if (jobTitle.value === 'other' && !jobTitleOther.value.trim()) {
+    jobTitleOther.classList.add('error');
+    titleOtherErr.classList.add('show');
     valid = false;
   }
 
@@ -3343,7 +3365,7 @@ function submitInterviewerWelcome() {
 <div class="modal-overlay" id="interviewerWelcomeModal">
   <div class="modal-card">
     <div class="modal-title">Welcome to JobFairX</div>
-    <div class="modal-event-card">You've been invited to interview by Stacy Smith at Acme Corporation for the New York City Entry Level Hiring Event.</div>
+    <div class="modal-event-card">You've been invited to interview by Stacy Smith at Acme Corporation for the New York City Virtual Hiring Event.</div>
     <div class="modal-note">We auto-created your account using your email address. Complete your profile to get started.</div>
     <div class="modal-form-row">
       <div class="modal-form-group">
@@ -3359,8 +3381,23 @@ function submitInterviewerWelcome() {
     </div>
     <div class="modal-form-group">
       <label class="modal-field-label">Job title <span class="req">*</span></label>
-      <input type="text" class="modal-field-input" id="iwJobTitle" placeholder="e.g. Senior Recruiter">
+      <select class="modal-field-input" id="iwJobTitle" onchange="toggleJobTitleOther(this)">
+        <option value="" disabled selected>Select your job title</option>
+        <option value="Recruiter">Recruiter</option>
+        <option value="Senior Recruiter">Senior Recruiter</option>
+        <option value="Talent Acquisition Specialist">Talent Acquisition Specialist</option>
+        <option value="Talent Acquisition Manager">Talent Acquisition Manager</option>
+        <option value="HR Manager">HR Manager</option>
+        <option value="HR Director">HR Director</option>
+        <option value="Hiring Manager">Hiring Manager</option>
+        <option value="HR Coordinator">HR Coordinator</option>
+        <option value="HR Business Partner">HR Business Partner</option>
+        <option value="VP of Human Resources">VP of Human Resources</option>
+        <option value="other">Other</option>
+      </select>
       <div class="modal-field-error" id="iwJobTitleError">Job title is required.</div>
+      <input type="text" class="modal-field-input" id="iwJobTitleOther" placeholder="Enter your job title" style="display:none; margin-top:8px;">
+      <div class="modal-field-error" id="iwJobTitleOtherError">Job title is required.</div>
     </div>
     <button class="modal-btn modal-btn-primary" onclick="submitInterviewerWelcome()" style="width:100%; margin-top:8px;">Continue to dashboard</button>
   </div>
