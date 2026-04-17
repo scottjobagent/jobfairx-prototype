@@ -281,6 +281,32 @@ body.setup-jobs-incomplete .add-job-row { display: none; }
 .screening-close-btn { background: #0044B3; color: white; border: none; padding: 14px 28px; border-radius: 8px; font-size: 16px; font-weight: 700; cursor: pointer; font-family: inherit; }
 .screening-close-btn:hover { background: #003399; }
 
+/* ═══ Screening Summary Modal ═══ */
+.ss-modal-card { background: white; border-radius: 12px; padding: 32px; max-width: 620px; width: 90%; max-height: 90vh; overflow-y: auto; position: relative; }
+.ss-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+.ss-title { font-size: 20px; font-weight: 700; color: #2d2d2d; }
+.ss-close-btn { background: none; border: none; font-size: 28px; color: #767676; cursor: pointer; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; line-height: 1; }
+.ss-close-btn:hover { color: #2d2d2d; }
+.ss-section-title { font-size: 16px; font-weight: 700; color: #2d2d2d; margin-bottom: 12px; }
+.ss-question-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
+.ss-question-card { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 16px 20px; border: 1px solid #d4d2d0; border-radius: 10px; background: #ffffff; }
+.ss-question-info { flex: 1; min-width: 0; }
+.ss-question-type { font-size: 13px; font-weight: 700; color: #2d2d2d; margin-bottom: 2px; }
+.ss-question-text { font-size: 14px; color: #595959; margin-bottom: 2px; }
+.ss-question-answer { font-size: 13px; color: #767676; }
+.ss-question-actions { display: flex; align-items: center; gap: 14px; flex-shrink: 0; }
+.ss-remove-btn { font-size: 14px; font-weight: 600; color: #991b1b; cursor: pointer; background: none; border: none; font-family: inherit; }
+.ss-remove-btn:hover { text-decoration: underline; }
+.ss-edit-btn { padding: 6px 18px; font-size: 14px; font-weight: 700; background: white; border: 2px solid #d4d2d0; color: #2d2d2d; border-radius: 8px; cursor: pointer; font-family: inherit; }
+.ss-edit-btn:hover { border-color: #0044B3; color: #0044B3; }
+.ss-empty-text { font-size: 14px; color: #767676; margin-bottom: 24px; }
+.ss-add-card { display: flex; align-items: center; gap: 14px; padding: 18px 20px; border: 1px solid #d4d2d0; border-radius: 10px; cursor: pointer; transition: border-color 0.15s, background 0.15s; }
+.ss-add-card:hover { border-color: #0044B3; background: #f8faff; }
+.ss-add-icon { width: 40px; height: 40px; border-radius: 8px; background: #0044B3; color: white; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.ss-add-icon svg { width: 20px; height: 20px; }
+.ss-add-label { font-size: 15px; font-weight: 700; color: #2d2d2d; }
+.ss-add-desc { font-size: 13px; color: #595959; margin-top: 1px; }
+
 /* Modal Overlay */
 .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); z-index: 1000; align-items: center; justify-content: center; }
 .modal-overlay.open { display: flex; }
@@ -860,6 +886,29 @@ body.collapsed .main { margin-left: 60px; }
 
 </div>
 
+<!-- MODAL: Screening Summary -->
+<div class="modal-overlay" id="screeningSummaryModal">
+  <div class="ss-modal-card">
+    <div class="ss-header">
+      <div class="ss-title" id="ssSummaryTitle">Screening for Registered Nurse</div>
+      <button class="ss-close-btn" onclick="closeModal('screeningSummaryModal')" title="Close">&times;</button>
+    </div>
+    <div class="ss-section-title">Screening summary</div>
+    <div class="ss-question-list" id="ssQuestionList">
+      <!-- Questions rendered dynamically -->
+    </div>
+    <div class="ss-add-card" onclick="addQuestionFromSummary()">
+      <div class="ss-add-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </div>
+      <div>
+        <div class="ss-add-label">Custom screening question</div>
+        <div class="ss-add-desc">Ask a custom screening question.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL: Add Screener Question -->
 <div class="modal-overlay" id="addScreenerModal">
   <div class="modal-card">
@@ -1028,12 +1077,12 @@ function toggleCustomEmail(show) {
 
 /* ═══ Screening Functions ═══ */
 var screeningData = [
-  { jobIndex: 0, jobName: 'Registered Nurse', hasScreening: false, question: null },
-  { jobIndex: 1, jobName: 'Medical Assistant', hasScreening: false, question: null }
+  { jobIndex: 0, jobName: 'Registered Nurse', questions: [] },
+  { jobIndex: 1, jobName: 'Medical Assistant', questions: [] }
 ];
 
 var currentScreeningJobIndex = null;
-var currentScreeningMode = null; // 'edit' or 'add'
+var currentEditingQuestionIndex = null; // null = adding new, number = editing existing
 
 function toggleScreening(show) {
   var expand = document.getElementById('screeningExpand');
@@ -1048,15 +1097,113 @@ function toggleScreening(show) {
 }
 
 function updateScreeningSummary() {
-  var count = screeningData.filter(function(job) { return job.hasScreening; }).length;
+  var count = screeningData.filter(function(job) { return job.questions.length > 0; }).length;
   document.getElementById('screeningSummary').textContent = 'Screening has been added to ' + count + ' of 2 jobs within this event.';
 }
 
+/* Open the Screening Summary modal for a job */
+function openScreeningSummary(jobName, jobIndex) {
+  currentScreeningJobIndex = jobIndex;
+  document.getElementById('ssSummaryTitle').textContent = 'Screening for ' + jobName;
+  renderSummaryQuestions(jobIndex);
+  openModal('screeningSummaryModal');
+}
+
+/* Render the question list inside the summary modal */
+function renderSummaryQuestions(jobIndex) {
+  var list = document.getElementById('ssQuestionList');
+  var questions = screeningData[jobIndex].questions;
+  list.innerHTML = '';
+
+  if (questions.length === 0) {
+    list.innerHTML = '<div class="ss-empty-text">No screening questions added yet.</div>';
+    return;
+  }
+
+  for (var i = 0; i < questions.length; i++) {
+    var q = questions[i];
+    var answerText = '';
+    if (q.responseType === 'yesno') {
+      answerText = 'Correct answer: ' + (q.requiredResponse === 'yes' ? 'Yes' : q.requiredResponse === 'no' ? 'No' : 'Any');
+    } else if (q.responseType === 'numeric') {
+      answerText = 'Minimum: ' + (q.requiredMinimum || 'Any');
+    }
+
+    var card = document.createElement('div');
+    card.className = 'ss-question-card';
+    card.innerHTML =
+      '<div class="ss-question-info">' +
+        '<div class="ss-question-type">Custom screening question</div>' +
+        '<div class="ss-question-text">' + escapeHtml(q.text) + '</div>' +
+        (answerText ? '<div class="ss-question-answer">' + answerText + '</div>' : '') +
+      '</div>' +
+      '<div class="ss-question-actions">' +
+        '<button class="ss-remove-btn" data-qi="' + i + '">Remove</button>' +
+        '<button class="ss-edit-btn" data-qi="' + i + '">Edit</button>' +
+      '</div>';
+
+    // Bind events
+    card.querySelector('.ss-remove-btn').onclick = (function(idx) {
+      return function() { removeQuestionFromSummary(idx); };
+    })(i);
+    card.querySelector('.ss-edit-btn').onclick = (function(idx) {
+      return function() { editQuestionFromSummary(idx); };
+    })(i);
+
+    list.appendChild(card);
+  }
+}
+
+function escapeHtml(str) {
+  var div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+/* Remove a question from the summary (immediate, no confirmation) */
+function removeQuestionFromSummary(questionIndex) {
+  screeningData[currentScreeningJobIndex].questions.splice(questionIndex, 1);
+  renderSummaryQuestions(currentScreeningJobIndex);
+  updateJobRowUI(currentScreeningJobIndex);
+  updateScreeningSummary();
+}
+
+/* Edit an existing question: open add-screener modal pre-filled */
+function editQuestionFromSummary(questionIndex) {
+  currentEditingQuestionIndex = questionIndex;
+  var q = screeningData[currentScreeningJobIndex].questions[questionIndex];
+
+  document.getElementById('questionText').value = q.text;
+  document.getElementById('responseType').value = q.responseType;
+  document.getElementById('mustHave').value = q.mustHave;
+  document.getElementById('requiredResponse').value = q.requiredResponse || '';
+  document.getElementById('requiredMinimum').value = q.requiredMinimum || '';
+  updateConditionalFields();
+
+  closeModal('screeningSummaryModal');
+  openModal('addScreenerModal');
+}
+
+/* Add a new question from the summary card */
+function addQuestionFromSummary() {
+  currentEditingQuestionIndex = null;
+
+  document.getElementById('questionText').value = '';
+  document.getElementById('responseType').value = '';
+  document.getElementById('mustHave').value = '';
+  document.getElementById('requiredResponse').value = '';
+  document.getElementById('requiredMinimum').value = '';
+  updateConditionalFields();
+
+  closeModal('screeningSummaryModal');
+  openModal('addScreenerModal');
+}
+
+/* First-time add from the job row (no questions yet) */
 function openAddScreener(jobName, jobIndex) {
   currentScreeningJobIndex = jobIndex;
-  currentScreeningMode = 'add';
+  currentEditingQuestionIndex = null;
 
-  // Reset form
   document.getElementById('questionText').value = '';
   document.getElementById('responseType').value = '';
   document.getElementById('mustHave').value = '';
@@ -1068,13 +1215,12 @@ function openAddScreener(jobName, jobIndex) {
 }
 
 function openMultipleScreening() {
-  // Update job list - disable jobs that already have screening
   for (var i = 0; i < screeningData.length; i++) {
     var checkbox = document.getElementById('job-' + i + '-multi');
     var label = checkbox.nextElementSibling;
 
     checkbox.checked = false;
-    if (screeningData[i].hasScreening) {
+    if (screeningData[i].questions.length > 0) {
       checkbox.disabled = true;
       label.classList.add('disabled');
       label.textContent = screeningData[i].jobName + ' (has screening associated)';
@@ -1102,16 +1248,11 @@ function proceedMultipleScreening() {
     return;
   }
 
-  // Store selected jobs
-  var selectedJobs = selected;
-
   closeModal('multipleScreeningModal');
 
-  // Open the screener modal for the first selected job
-  currentScreeningJobIndex = selectedJobs[0];
-  currentScreeningMode = 'add';
+  currentScreeningJobIndex = selected[0];
+  currentEditingQuestionIndex = null;
 
-  // Reset form
   document.getElementById('questionText').value = '';
   document.getElementById('responseType').value = '';
   document.getElementById('mustHave').value = '';
@@ -1131,9 +1272,7 @@ function saveScreenerQuestion(event) {
   var requiredResponse = document.getElementById('requiredResponse').value;
   var requiredMinimum = document.getElementById('requiredMinimum').value;
 
-  // Mark job as having screening
-  screeningData[currentScreeningJobIndex].hasScreening = true;
-  screeningData[currentScreeningJobIndex].question = {
+  var questionObj = {
     text: questionText,
     responseType: responseType,
     mustHave: mustHave,
@@ -1141,9 +1280,20 @@ function saveScreenerQuestion(event) {
     requiredMinimum: requiredMinimum
   };
 
+  if (currentEditingQuestionIndex !== null) {
+    // Editing existing question
+    screeningData[currentScreeningJobIndex].questions[currentEditingQuestionIndex] = questionObj;
+  } else {
+    // Adding new question
+    screeningData[currentScreeningJobIndex].questions.push(questionObj);
+  }
+
   updateJobRowUI(currentScreeningJobIndex);
   updateScreeningSummary();
   closeModal('addScreenerModal');
+
+  // Return to screening summary modal
+  openScreeningSummary(screeningData[currentScreeningJobIndex].jobName, currentScreeningJobIndex);
 }
 
 function updateJobRowUI(jobIndex) {
@@ -1153,69 +1303,43 @@ function updateJobRowUI(jobIndex) {
   var badge = document.getElementById(badgeId);
   var btn = document.getElementById(btnId);
 
-  if (job.hasScreening) {
-    badge.textContent = 'Screening added';
+  if (job.questions.length > 0) {
+    var qCount = job.questions.length;
+    badge.textContent = qCount + ' question' + (qCount > 1 ? 's' : '') + ' added';
     badge.classList.remove('none');
     badge.classList.add('added');
 
-    // Replace with remove and edit buttons
     btn.textContent = 'Edit';
     btn.className = 'screening-action-btn edit';
-    btn.onclick = function() { openEditScreener(job.jobName, jobIndex); };
+    btn.onclick = function() { openScreeningSummary(job.jobName, jobIndex); };
 
-    // Add remove link if not already there
     var jobRow = btn.closest('.screening-job-status');
     if (!jobRow.querySelector('.screening-action-remove')) {
       var removeLink = document.createElement('a');
       removeLink.className = 'screening-action-remove';
       removeLink.textContent = 'Remove';
-      removeLink.onclick = function() { removeScreening(jobIndex); };
+      removeLink.onclick = function() { removeAllScreening(jobIndex); };
       jobRow.insertBefore(removeLink, btn);
     }
+  } else {
+    badge.textContent = 'No screening added';
+    badge.classList.add('none');
+    badge.classList.remove('added');
+
+    btn.textContent = 'Add screening';
+    btn.className = 'screening-action-btn add';
+    btn.onclick = function() { openAddScreener(screeningData[jobIndex].jobName, jobIndex); };
+
+    var jobRow = btn.closest('.screening-job-status');
+    var removeLink = jobRow.querySelector('.screening-action-remove');
+    if (removeLink) removeLink.remove();
   }
 }
 
-function openEditScreener(jobName, jobIndex) {
-  currentScreeningJobIndex = jobIndex;
-  currentScreeningMode = 'edit';
-
-  var job = screeningData[jobIndex];
-  if (job.question) {
-    document.getElementById('questionText').value = job.question.text;
-    document.getElementById('responseType').value = job.question.responseType;
-    document.getElementById('mustHave').value = job.question.mustHave;
-    document.getElementById('requiredResponse').value = job.question.requiredResponse || '';
-    document.getElementById('requiredMinimum').value = job.question.requiredMinimum || '';
-    updateConditionalFields();
-  }
-
-  openModal('addScreenerModal');
-}
-
-function removeScreening(jobIndex) {
-  screeningData[jobIndex].hasScreening = false;
-  screeningData[jobIndex].question = null;
-
-  var badgeId = jobIndex === 0 ? 'rn-badge' : 'ma-badge';
-  var btnId = jobIndex === 0 ? 'rn-btn' : 'ma-btn';
-  var badge = document.getElementById(badgeId);
-  var btn = document.getElementById(btnId);
-
-  badge.textContent = 'No screening added';
-  badge.classList.add('none');
-  badge.classList.remove('added');
-
-  btn.textContent = 'Add screening';
-  btn.className = 'screening-action-btn add';
-  btn.onclick = function() { openAddScreener(screeningData[jobIndex].jobName, jobIndex); };
-
-  // Remove the remove link
-  var jobRow = btn.closest('.screening-job-status');
-  var removeLink = jobRow.querySelector('.screening-action-remove');
-  if (removeLink) {
-    removeLink.remove();
-  }
-
+/* Remove all screening from a job (from the job row Remove link) */
+function removeAllScreening(jobIndex) {
+  screeningData[jobIndex].questions = [];
+  updateJobRowUI(jobIndex);
   updateScreeningSummary();
 }
 
