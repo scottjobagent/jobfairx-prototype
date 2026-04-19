@@ -865,11 +865,21 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
 .notes-link:hover { text-decoration: underline; }
 .notes-link svg { width: 14px; height: 14px; }
 
-.status-dropdown { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; background: #fff; border: 1px solid #d4d2d0; border-radius: 8px; font-size: 14px; font-weight: 600; color: #2d2d2d; cursor: pointer; }
-.status-dropdown:hover { border-color: #0044B3; background: #f0f5ff; }
-.status-dropdown svg { width: 14px; height: 14px; color: #767676; }
+.status-dropdown { position: relative; display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; background: #fff; border: 1.5px solid #d4d2d0; border-radius: 20px; font-size: 14px; font-weight: 600; color: #2d2d2d; cursor: pointer; white-space: nowrap; }
+.status-dropdown:hover { border-color: #b0b0b0; }
+.status-dropdown .chevron-icon { width: 12px; height: 12px; color: #767676; transition: transform 0.2s; }
+.status-dropdown.open .chevron-icon { transform: rotate(180deg); }
 
-.online-dot { width: 8px; height: 8px; border-radius: 50%; background: #16a34a; }
+.status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+.status-dot.online { background: #16a34a; }
+.status-dot.away { background: #9ca3af; }
+
+.status-menu { position: absolute; top: calc(100% + 6px); right: 0; min-width: 180px; background: #fff; border: 1px solid #e5e5e5; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.10); padding: 6px; z-index: 100; display: none; }
+.status-menu.open { display: block; }
+.status-menu-item { display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 14px; border: none; background: none; font-size: 14px; font-weight: 500; color: #2d2d2d; cursor: pointer; border-radius: 8px; text-align: left; }
+.status-menu-item:hover { background: #f3f2ef; }
+.status-menu-item .check-icon { width: 16px; height: 16px; color: #2d2d2d; flex-shrink: 0; }
+.status-menu-item .check-placeholder { width: 16px; flex-shrink: 0; }
 
 .section-illustration { width: 100px; height: 80px; opacity: 0.6; }
 
@@ -949,15 +959,25 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
     </div>
     <div style="display: flex; gap: 12px; align-items: center; flex-shrink: 0;">
       <!-- Status dropdown -->
-      <button class="status-dropdown" onclick="document.getElementById('status-menu').classList.toggle('open')" style="display: none;" id="statusDropdown">
-        <span class="online-dot"></span>
-        <span>Your status: Online</span>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-      </button>
-      <div id="status-menu" class="dots-menu" style="min-width: 180px;">
-        <button class="dots-menu-item" onclick="setStatus(this, 'online')"><span class="online-dot"></span> Online</button>
-        <button class="dots-menu-item" onclick="setStatus(this, 'away')"><span style="width: 8px; height: 8px; border-radius: 50%; background: #fbbf24; display: inline-block;"></span> Away</button>
-        <button class="dots-menu-item" onclick="setStatus(this, 'offline')"><span style="width: 8px; height: 8px; border-radius: 50%; background: #9ca3af; display: inline-block;"></span> Offline</button>
+      <div style="position: relative; display: none;" id="statusDropdownWrap">
+        <button class="status-dropdown" onclick="toggleStatusMenu()" id="statusDropdown">
+          <span>Your status:</span>
+          <span class="status-dot online" id="statusDot"></span>
+          <span id="statusLabel">Online</span>
+          <svg class="chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div id="status-menu" class="status-menu">
+          <button class="status-menu-item" onclick="setStatus('online')" id="statusOptOnline">
+            <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            <span class="status-dot online"></span>
+            <span>Online</span>
+          </button>
+          <button class="status-menu-item" onclick="setStatus('away')" id="statusOptAway">
+            <span class="check-placeholder"></span>
+            <span class="status-dot away"></span>
+            <span>Away</span>
+          </button>
+        </div>
       </div>
       <button class="dots-btn" onclick="document.getElementById('dots-menu').classList.toggle('open')">
         <svg viewBox="0 0 24 24" fill="#0044B3"><circle cx="6" cy="12" r="2.3"/><circle cx="12" cy="12" r="2.3"/><circle cx="18" cy="12" r="2.3"/></svg>
@@ -2769,9 +2789,9 @@ function setLobbyMode(mode, btn) {
   document.getElementById('summaryLive').style.display = (mode === 'live') ? '' : 'none';
 
   // Show status dropdown only in live mode
-  var statusDropdown = document.getElementById('statusDropdown');
-  if (statusDropdown) {
-    statusDropdown.style.display = (mode === 'live') ? '' : 'none';
+  var statusDropdownWrap = document.getElementById('statusDropdownWrap');
+  if (statusDropdownWrap) {
+    statusDropdownWrap.style.display = (mode === 'live') ? '' : 'none';
   }
 
   // 4. Switch event header between default and live
@@ -3636,18 +3656,35 @@ document.addEventListener('keydown', function(e) {
 });
 
 // Status dropdown
-function setStatus(btn, status) {
-  var statusBtn = document.getElementById('statusDropdown');
-  var statusText = 'Your status: Online';
-  if (status === 'away') statusText = 'Your status: Away';
-  if (status === 'offline') statusText = 'Your status: Offline';
+function toggleStatusMenu() {
+  var menu = document.getElementById('status-menu');
+  var btn = document.getElementById('statusDropdown');
+  menu.classList.toggle('open');
+  btn.classList.toggle('open');
+}
 
-  // Update button text
-  var span = statusBtn.querySelector('span:nth-of-type(2)');
-  if (span) span.textContent = statusText;
+function setStatus(status) {
+  var dot = document.getElementById('statusDot');
+  var label = document.getElementById('statusLabel');
+  var onlineOpt = document.getElementById('statusOptOnline');
+  var awayOpt = document.getElementById('statusOptAway');
+
+  // Update button
+  dot.className = 'status-dot ' + status;
+  label.textContent = status === 'online' ? 'Online' : 'Away';
+
+  // Update checkmarks
+  if (status === 'online') {
+    onlineOpt.innerHTML = '<svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span class="status-dot online"></span><span>Online</span>';
+    awayOpt.innerHTML = '<span class="check-placeholder"></span><span class="status-dot away"></span><span>Away</span>';
+  } else {
+    onlineOpt.innerHTML = '<span class="check-placeholder"></span><span class="status-dot online"></span><span>Online</span>';
+    awayOpt.innerHTML = '<svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span class="status-dot away"></span><span>Away</span>';
+  }
 
   // Close menu
   document.getElementById('status-menu').classList.remove('open');
+  document.getElementById('statusDropdown').classList.remove('open');
 }
 
 // Live interview start
@@ -3657,9 +3694,11 @@ function startInterview() {
 
 // Close status dropdown when clicking outside
 document.addEventListener('click', function(e) {
-  if (!e.target.closest('.status-dropdown') && !e.target.closest('#status-menu')) {
+  if (!e.target.closest('#statusDropdownWrap')) {
     var menu = document.getElementById('status-menu');
+    var btn = document.getElementById('statusDropdown');
     if (menu) menu.classList.remove('open');
+    if (btn) btn.classList.remove('open');
   }
   if (!e.target.closest('.dots-btn') && !e.target.closest('#dots-menu')) {
     var dotsMenu = document.getElementById('dots-menu');
