@@ -905,10 +905,6 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
 .late-section-header { position: relative; }
 .late-section-illustration { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); width: 60px; height: 50px; opacity: 0.5; }
 
-.summary-empty-card { background: #fff; border-radius: 12px; border: 1px solid #d4d2d0; padding: 32px 36px; text-align: center; }
-.summary-empty-card h3 { font-size: 20px; font-weight: 700; color: #2d2d2d; margin-bottom: 8px; }
-.summary-empty-card p { font-size: 16px; color: #595959; line-height: 1.5; max-width: 500px; margin: 0 auto 24px; }
-.summary-empty-illustration { width: 140px; height: 100px; margin: 0 auto; }
 </style>
 </head>
 <body>
@@ -1005,7 +1001,6 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
     <button class="tab" onclick="switchTab(this, 'interviewing')">Interviewing (0)</button>
     <button class="tab" onclick="switchTab(this, 'interviewed')">Interviewed (0)</button>
     <button class="tab" onclick="switchTab(this, 'notyet')">Not yet interviewed (26)</button>
-    <button class="tab" onclick="switchTab(this, 'summary')">Summary</button>
   </div>
 </div>
 
@@ -2445,28 +2440,6 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
   </div>
 </div>
 
-<!-- Summary -->
-<div class="tab-panel" id="panel-summary" style="display:none;">
-  <div class="tab-panel-wrapper">
-    <!-- LIVE STATE - shows empty state -->
-    <div id="summaryLive" style="display: none;">
-      <div class="summary-empty-card">
-        <h3>Come back later for your interview summary</h3>
-        <p>Your interview is currently in progress. Once it's ended, come back to your interview lobby to view interview summary and notes.</p>
-        <svg class="summary-empty-illustration" viewBox="0 0 140 100" fill="none">
-          <rect x="20" y="30" width="50" height="50" rx="4" fill="#d6e4f7" opacity="0.6"/>
-          <circle cx="45" cy="30" r="10" fill="#c17f59" opacity="0.7"/>
-          <rect x="30" y="44" width="30" height="28" rx="4" fill="#d4956b" opacity="0.5"/>
-          <rect x="75" y="35" width="45" height="42" rx="3" fill="#e8ddd0" opacity="0.5"/>
-          <rect x="80" y="40" width="35" height="3" rx="1.5" fill="#d4d2d0"/>
-          <rect x="80" y="48" width="28" height="2" rx="1" fill="#d4d2d0" opacity="0.6"/>
-          <rect x="80" y="54" width="30" height="2" rx="1" fill="#d4d2d0" opacity="0.6"/>
-          <rect x="80" y="60" width="25" height="2" rx="1" fill="#d4d2d0" opacity="0.6"/>
-        </svg>
-      </div>
-    </div>
-  </div>
-</div>
 
 <!-- ═══ UPDATE WELCOME MESSAGE MODAL ═══ -->
 <div class="welcome-modal-overlay" id="welcome-modal-overlay">
@@ -2698,7 +2671,7 @@ function switchTab(el, id) {
 
 // Read ?tab= query param and activate the matching tab on load
 (function() {
-  var TAB_IDS = ['waiting', 'interviewing', 'interviewed', 'notyet', 'summary'];
+  var TAB_IDS = ['waiting', 'interviewing', 'interviewed', 'notyet'];
   document.addEventListener('DOMContentLoaded', function() {
     var params = new URLSearchParams(window.location.search);
     var requested = params.get('tab');
@@ -2764,14 +2737,14 @@ function setLobbyMode(mode, btn) {
     if (tabs[1]) tabs[1].textContent = 'Interviewing (0)';
     if (tabs[2]) tabs[2].textContent = 'Interviewed (6)';
     if (tabs[3]) tabs[3].textContent = 'Not yet interviewed (91)';
-    if (tabs[4]) tabs[4].textContent = 'Summary';
+
   } else {
     var tabs = document.querySelectorAll('.tabs .tab');
     if (tabs[0]) tabs[0].textContent = 'Waiting to interview (0)';
     if (tabs[1]) tabs[1].textContent = 'Interviewing (0)';
     if (tabs[2]) tabs[2].textContent = 'Interviewed (0)';
     if (tabs[3]) tabs[3].textContent = 'Not yet interviewed (26)';
-    if (tabs[4]) tabs[4].textContent = 'Summary';
+
   }
 
   // 3. Switch content for each tab section
@@ -2796,9 +2769,6 @@ function setLobbyMode(mode, btn) {
   document.getElementById('notyetActive').style.display = (mode === 'active') ? '' : 'none';
   document.getElementById('notyetEmpty').style.display = (mode === 'empty') ? '' : 'none';
   document.getElementById('notyetLive').style.display = (mode === 'live') ? '' : 'none';
-
-  // Summary
-  document.getElementById('summaryLive').style.display = (mode === 'live') ? '' : 'none';
 
   // Show status dropdown only in live mode
   var statusDropdownWrap = document.getElementById('statusDropdownWrap');
