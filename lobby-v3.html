@@ -870,6 +870,7 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
         <button class="dev-toggle-btn" onclick="setLobbyMode('active', this)">Active</button>
         <button class="dev-toggle-btn active" onclick="setLobbyMode('empty', this)">Empty</button>
         <button class="dev-toggle-btn" onclick="setLobbyMode('live', this)">Live</button>
+        <button class="dev-toggle-btn" onclick="setLobbyMode('live-empty', this)">Live empty</button>
       </div>
     </div>
     <div class="lobby-topbar-right">
@@ -1048,6 +1049,7 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
         <div class="live-section-header" onclick="toggleLiveSection(this)">
           <div style="display: flex; align-items: center; gap: 8px; width: 100%;">
             <svg class="collapsible-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 15 12 9 18 15"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="#595959" stroke-width="2" style="width:18px;height:18px;flex-shrink:0;"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
             <div class="live-section-title">Interview rooms (3)</div>
           </div>
         </div>
@@ -1111,6 +1113,7 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
         <div class="live-section-header" onclick="toggleLiveSection(this)">
           <div style="display: flex; align-items: center; gap: 8px; width: 100%;">
             <svg class="collapsible-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 15 12 9 18 15"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="#595959" stroke-width="2" style="width:18px;height:18px;flex-shrink:0;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
             <div class="live-section-title">Waiting rooms (3)</div>
           </div>
         </div>
@@ -1165,6 +1168,69 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
         </div>
       </div>
     </div><!-- /waitingLive -->
+
+    <!-- LIVE EMPTY STATE -->
+    <div id="waitingLiveEmpty" style="display: none;">
+      <!-- Interview rooms (0) -->
+      <div class="live-panel-section">
+        <div class="live-section-header" onclick="toggleLiveSection(this)">
+          <div style="display: flex; align-items: center; gap: 8px; width: 100%;">
+            <svg class="collapsible-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 15 12 9 18 15"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="#595959" stroke-width="2" style="width:18px;height:18px;flex-shrink:0;"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+            <div class="live-section-title">Interview rooms (0)</div>
+          </div>
+        </div>
+        <div class="collapsible-body">
+          <table class="live-table">
+            <thead>
+              <tr>
+                <th style="width: 18%;">Name</th>
+                <th style="width: 15%;">Desired job</th>
+                <th style="width: 13%;">Desired location</th>
+                <th style="width: 20%;">Interview time</th>
+                <th style="width: 10%;">Wait time</th>
+                <th style="width: 24%;">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td colspan="6" style="text-align: center; padding: 20px 14px; color: #595959; background: #f9f8f7;">Candidates will show up here when they are ready to interview.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Waiting rooms (0) -->
+      <div class="live-panel-section">
+        <div class="live-section-header" onclick="toggleLiveSection(this)">
+          <div style="display: flex; align-items: center; gap: 8px; width: 100%;">
+            <svg class="collapsible-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 15 12 9 18 15"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="#595959" stroke-width="2" style="width:18px;height:18px;flex-shrink:0;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <div class="live-section-title">Waiting rooms (0)</div>
+          </div>
+        </div>
+        <div class="collapsible-body">
+          <table class="live-table">
+            <thead>
+              <tr>
+                <th style="width: 18%;">Name</th>
+                <th style="width: 15%;">Desired job</th>
+                <th style="width: 13%;">Desired location</th>
+                <th style="width: 20%;">Interview time</th>
+                <th style="width: 10%;">Wait time</th>
+                <th style="width: 24%;">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td colspan="6" style="text-align: center; padding: 20px 14px; color: #595959; background: #f9f8f7;">No one is in the waiting room right now.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div><!-- /waitingLiveEmpty -->
 
     <!-- EMPTY STATE -->
     <div id="waitingEmpty">
@@ -2337,13 +2403,16 @@ function togglePendingSection() {
 var lobbyCountdownTimer = null;
 
 function setLobbyMode(mode, btn) {
+  var isLive = (mode === 'live' || mode === 'live-empty');
+
   // 1. Sync ALL toggle buttons across every tab to highlight the selected mode
   var allToggles = document.querySelectorAll('.dev-toggle-switch');
   allToggles.forEach(function(toggle) {
     var btns = toggle.querySelectorAll('.dev-toggle-btn');
     btns.forEach(function(b) {
       var label = b.textContent.trim().toLowerCase();
-      if (label === mode) {
+      var btnMode = label.replace('live empty', 'live-empty');
+      if (btnMode === mode) {
         b.classList.add('active');
       } else {
         b.classList.remove('active');
@@ -2351,13 +2420,14 @@ function setLobbyMode(mode, btn) {
     });
   });
 
-  // 2. Determine content mode
-  var contentMode = (mode === 'live') ? 'active' : mode;
+  // 2. Determine content mode for tabs without dedicated live content
+  var contentMode = isLive ? 'active' : mode;
 
   // 3. Switch content for each tab section
   // Waiting to Interview
   document.getElementById('waitingActive').style.display = (mode === 'active') ? '' : 'none';
   document.getElementById('waitingLive').style.display = (mode === 'live') ? '' : 'none';
+  document.getElementById('waitingLiveEmpty').style.display = (mode === 'live-empty') ? '' : 'none';
   document.getElementById('waitingEmpty').style.display = (mode === 'empty') ? '' : 'none';
   document.getElementById('waitingPrepare').style.display = (mode === 'empty') ? '' : 'none';
 
@@ -2374,10 +2444,15 @@ function setLobbyMode(mode, btn) {
   document.getElementById('notyetActive').style.display = contentMode === 'active' ? '' : 'none';
   document.getElementById('notyetEmpty').style.display = contentMode === 'empty' ? '' : 'none';
 
-  // 4. Update tab counts for live mode
+  // 4. Update tab counts
   var tabs = document.querySelectorAll('.tabs .tab');
   if (mode === 'live') {
     if (tabs[0]) tabs[0].textContent = 'Waiting to interview (6)';
+    if (tabs[1]) tabs[1].textContent = 'Interviewing (0)';
+    if (tabs[2]) tabs[2].textContent = 'Interviewed (0)';
+    if (tabs[3]) tabs[3].textContent = 'Not yet interviewed (26)';
+  } else if (mode === 'live-empty') {
+    if (tabs[0]) tabs[0].textContent = 'Waiting to interview (0)';
     if (tabs[1]) tabs[1].textContent = 'Interviewing (0)';
     if (tabs[2]) tabs[2].textContent = 'Interviewed (0)';
     if (tabs[3]) tabs[3].textContent = 'Not yet interviewed (26)';
@@ -2389,11 +2464,11 @@ function setLobbyMode(mode, btn) {
   }
 
   // 5. Switch event header between default and live
-  document.getElementById('eventMetaDefault').style.display = (mode === 'live') ? 'none' : '';
-  document.getElementById('eventMetaLive').style.display = (mode === 'live') ? '' : 'none';
+  document.getElementById('eventMetaDefault').style.display = isLive ? 'none' : '';
+  document.getElementById('eventMetaLive').style.display = isLive ? '' : 'none';
 
-  // 5. Start or stop countdown timer
-  if (mode === 'live') {
+  // 6. Start or stop countdown timer
+  if (isLive) {
     startLobbyCountdown();
   } else {
     stopLobbyCountdown();
