@@ -3432,6 +3432,9 @@ function setUserStatus(status) {
   }
   document.getElementById('statusBtn').classList.remove('open');
   document.getElementById('statusMenu').classList.remove('open');
+  var dotColor = status === 'online' ? '#166534' : '#999';
+  var label = status === 'online' ? 'Online' : 'Away';
+  fbToast('<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:' + dotColor + ';margin-right:8px;vertical-align:middle;"></span>Status changed to ' + label, true);
 }
 
 // Close menus on click outside
@@ -3816,7 +3819,7 @@ function submitFeedback() {
   closeFeedbackModal();
   fbToast('Thanks for your feedback!');
 }
-function fbToast(msg) {
+function fbToast(msg, useHTML) {
   var t = document.getElementById('fb-toast-el');
   if (!t) {
     t = document.createElement('div');
@@ -3824,7 +3827,7 @@ function fbToast(msg) {
     t.style.cssText = 'position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#2d2d2d;color:#fff;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:600;z-index:10001;box-shadow:0 4px 12px rgba(0,0,0,0.15);';
     document.body.appendChild(t);
   }
-  t.textContent = msg;
+  if (useHTML) { t.innerHTML = msg; } else { t.textContent = msg; }
   t.style.display = 'block';
   setTimeout(function(){ t.style.display = 'none'; }, 2400);
 }
