@@ -2460,22 +2460,34 @@ function startLobbyCountdown() {
   if (lobbyCountdownTimer) return; // already running
   var totalSeconds = 2 * 3600 + 42 * 60 + 18; // 2h 42m 18s
   var el = document.getElementById('liveCountdown');
+  var inFinalMinute = false;
 
   function update() {
     if (totalSeconds <= 0) {
-      el.textContent = '0h 0m 0s';
+      el.textContent = '0s';
       stopLobbyCountdown();
       return;
     }
-    var h = Math.floor(totalSeconds / 3600);
-    var m = Math.floor((totalSeconds % 3600) / 60);
-    var s = totalSeconds % 60;
-    el.textContent = h + 'h ' + m + 'm ' + s + 's';
-    totalSeconds--;
+    if (totalSeconds < 60) {
+      // Under a minute — switch to per-second updates
+      el.textContent = totalSeconds + 's';
+      if (!inFinalMinute) {
+        inFinalMinute = true;
+        clearInterval(lobbyCountdownTimer);
+        lobbyCountdownTimer = setInterval(update, 1000);
+      }
+      totalSeconds--;
+    } else {
+      // Minutes and hours only
+      var h = Math.floor(totalSeconds / 3600);
+      var m = Math.floor((totalSeconds % 3600) / 60);
+      el.textContent = h + 'h ' + m + 'm';
+      totalSeconds -= 60;
+    }
   }
 
   update(); // run immediately
-  lobbyCountdownTimer = setInterval(update, 1000);
+  lobbyCountdownTimer = setInterval(update, 60000);
 }
 
 function stopLobbyCountdown() {
