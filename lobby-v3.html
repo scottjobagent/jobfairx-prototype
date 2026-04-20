@@ -3828,17 +3828,25 @@ function submitFeedback() {
   closeFeedbackModal();
   fbToast('Thanks for your feedback!');
 }
+var fbToastTimer = null;
 function fbToast(msg, useHTML) {
   var t = document.getElementById('fb-toast-el');
   if (!t) {
     t = document.createElement('div');
     t.id = 'fb-toast-el';
-    t.style.cssText = 'position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#2d2d2d;color:#fff;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:600;z-index:10001;box-shadow:0 4px 12px rgba(0,0,0,0.15);';
+    t.style.cssText = 'position:fixed;bottom:32px;left:50%;transform:translateX(-50%) translateY(20px);background:#2d2d2d;color:#fff;padding:14px 24px;border-radius:10px;font-size:14px;font-weight:400;z-index:10001;box-shadow:0 4px 16px rgba(0,0,0,0.12);opacity:0;transition:opacity 0.3s, transform 0.3s;pointer-events:none;';
     document.body.appendChild(t);
   }
+  if (fbToastTimer) { clearTimeout(fbToastTimer); }
   if (useHTML) { t.innerHTML = msg; } else { t.textContent = msg; }
-  t.style.display = 'block';
-  setTimeout(function(){ t.style.display = 'none'; }, 2400);
+  t.style.opacity = '1';
+  t.style.transform = 'translateX(-50%) translateY(0)';
+  t.style.pointerEvents = 'auto';
+  fbToastTimer = setTimeout(function(){
+    t.style.opacity = '0';
+    t.style.transform = 'translateX(-50%) translateY(20px)';
+    t.style.pointerEvents = 'none';
+  }, 3000);
 }
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') {
