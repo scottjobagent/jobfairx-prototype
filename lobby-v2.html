@@ -3803,16 +3803,20 @@ function submitFeedback() {
   closeFeedbackModal();
   fbToast('Thanks for your feedback!');
 }
-function fbToast(msg) {
+function fbToast(msg, dotColor) {
   var t = document.getElementById('fb-toast-el');
   if (!t) {
     t = document.createElement('div');
     t.id = 'fb-toast-el';
-    t.style.cssText = 'position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#2d2d2d;color:#fff;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:600;z-index:10001;box-shadow:0 4px 12px rgba(0,0,0,0.15);';
+    t.style.cssText = 'position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#2d2d2d;color:#fff;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:600;z-index:10001;box-shadow:0 4px 12px rgba(0,0,0,0.15);display:flex;align-items:center;gap:8px;';
     document.body.appendChild(t);
   }
-  t.textContent = msg;
-  t.style.display = 'block';
+  if (dotColor) {
+    t.innerHTML = '<span style="width:10px;height:10px;border-radius:50%;background:' + dotColor + ';flex-shrink:0;"></span>' + msg;
+  } else {
+    t.textContent = msg;
+  }
+  t.style.display = 'flex';
   setTimeout(function(){ t.style.display = 'none'; }, 2400);
 }
 document.addEventListener('keydown', function(e) {
@@ -3836,9 +3840,13 @@ function setStatus(status, silent) {
   var onlineOpt = document.getElementById('statusOptOnline');
   var awayOpt = document.getElementById('statusOptAway');
 
-  // Show toast when manually switching to online (not silent/programmatic)
-  if (status === 'online' && !silent) {
-    fbToast("You've changed your interview status to Online");
+  // Show toast when manually switching status (not silent/programmatic)
+  if (!silent) {
+    if (status === 'online') {
+      fbToast("You've changed your interview status to Online", '#16a34a');
+    } else {
+      fbToast("You've changed your interview status to Away", '#9ca3af');
+    }
   }
 
   // Update button
@@ -3871,7 +3879,7 @@ function startInterview() {
 // Start interviewing button (live-away → live-online)
 function startInterviewing() {
   setLobbyMode('live', null);
-  fbToast("You've changed your interview status to Online");
+  fbToast("You've changed your interview status to Online", '#16a34a');
 }
 
 // Close status dropdown when clicking outside
