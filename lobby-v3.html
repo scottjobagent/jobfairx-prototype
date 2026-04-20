@@ -56,6 +56,29 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
 .dots-menu-item:hover { background: #f3f2ef; }
 .dots-menu-item .external-icon { width: 16px; height: 16px; color: #595959; flex-shrink: 0; }
 
+/* Your status dropdown */
+.status-dropdown-wrap { position: relative; flex-shrink: 0; }
+.status-dropdown-btn { display: flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 20px; border: 1px solid #d4d2d0; background: #fff; cursor: pointer; font-family: inherit; font-size: 14px; transition: all 0.15s; }
+.status-dropdown-btn:hover { border-color: #0044B3; }
+.status-dropdown-btn.open { border-color: #0044B3; border-width: 2px; padding: 7px 13px; }
+.status-dropdown-btn .status-label { color: #595959; font-weight: 400; }
+.status-dropdown-btn .status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.status-dropdown-btn .status-dot.online { background: #166534; }
+.status-dropdown-btn .status-dot.away { background: #999; }
+.status-dropdown-btn .status-value { font-weight: 700; color: #0044B3; }
+.status-dropdown-btn .status-value.away { color: #595959; }
+.status-dropdown-btn .status-chevron { width: 14px; height: 14px; color: #595959; transition: transform 0.15s; }
+.status-dropdown-btn.open .status-chevron { transform: rotate(180deg); }
+.status-dropdown-menu { position: absolute; top: calc(100% + 6px); right: 0; background: #fff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.12); border: 1px solid #d4d2d0; min-width: 180px; z-index: 500; display: none; padding: 4px 0; }
+.status-dropdown-menu.open { display: block; }
+.status-dropdown-option { display: flex; align-items: center; gap: 8px; width: 100%; padding: 12px 16px; font-size: 15px; font-weight: 700; color: #2d2d2d; background: none; border: none; text-align: left; cursor: pointer; font-family: inherit; transition: background 0.1s; }
+.status-dropdown-option:hover { background: #f3f2ef; }
+.status-dropdown-option.selected { background: #f3f2ef; }
+.status-dropdown-option .status-check { width: 16px; color: #2d2d2d; font-size: 16px; text-align: center; flex-shrink: 0; }
+.status-dropdown-option .status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.status-dropdown-option .status-dot.online { background: #166534; }
+.status-dropdown-option .status-dot.away { background: #999; }
+
 
 /* Tabs — full width like Indeed */
 .tabs-wrapper { width: 100%; border-bottom: 3px solid #d4d2d0; }
@@ -990,6 +1013,27 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
         <span>Apr 22, 2026, 11:00 AM - 3:00 PM CT</span>
       </div>
     </div>
+    <div class="status-dropdown-wrap">
+      <button class="status-dropdown-btn" id="statusBtn" onclick="toggleStatusDropdown()">
+        <span class="status-label">Your status:</span>
+        <span class="status-dot online" id="statusDot"></span>
+        <span class="status-value" id="statusValue">Online</span>
+        <svg class="status-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="status-dropdown-menu" id="statusMenu">
+        <button class="status-dropdown-option selected" id="optOnline" onclick="setUserStatus('online')">
+          <span class="status-check">✓</span>
+          <span class="status-dot online"></span>
+          Online
+        </button>
+        <button class="status-dropdown-option" id="optAway" onclick="setUserStatus('away')">
+          <span class="status-check">&nbsp;</span>
+          <span class="status-dot away"></span>
+          Away
+        </button>
+      </div>
+    </div>
+
     <div style="position:relative; flex-shrink:0;">
       <button class="dots-btn" onclick="document.getElementById('dots-menu').classList.toggle('open')">
         <svg viewBox="0 0 24 24" fill="#0044B3"><circle cx="6" cy="12" r="2.3"/><circle cx="12" cy="12" r="2.3"/><circle cx="18" cy="12" r="2.3"/></svg>
@@ -3355,6 +3399,39 @@ document.getElementById('instructions-overlay').addEventListener('click', functi
   if (e.target === this) closeInstructions();
 });
 
+// Your status dropdown
+function toggleStatusDropdown() {
+  var btn = document.getElementById('statusBtn');
+  var menu = document.getElementById('statusMenu');
+  btn.classList.toggle('open');
+  menu.classList.toggle('open');
+}
+function setUserStatus(status) {
+  var dot = document.getElementById('statusDot');
+  var val = document.getElementById('statusValue');
+  var onOpt = document.getElementById('optOnline');
+  var awayOpt = document.getElementById('optAway');
+  if (status === 'online') {
+    dot.className = 'status-dot online';
+    val.className = 'status-value';
+    val.textContent = 'Online';
+    onOpt.classList.add('selected');
+    onOpt.querySelector('.status-check').textContent = '✓';
+    awayOpt.classList.remove('selected');
+    awayOpt.querySelector('.status-check').innerHTML = '&nbsp;';
+  } else {
+    dot.className = 'status-dot away';
+    val.className = 'status-value away';
+    val.textContent = 'Away';
+    awayOpt.classList.add('selected');
+    awayOpt.querySelector('.status-check').textContent = '✓';
+    onOpt.classList.remove('selected');
+    onOpt.querySelector('.status-check').innerHTML = '&nbsp;';
+  }
+  document.getElementById('statusBtn').classList.remove('open');
+  document.getElementById('statusMenu').classList.remove('open');
+}
+
 // Close menus on click outside
 document.addEventListener('click', function(e) {
   if (!e.target.closest('.dots-btn')) {
@@ -3362,6 +3439,10 @@ document.addEventListener('click', function(e) {
   }
   if (!e.target.closest('.lobby-user-trigger')) {
     document.querySelectorAll('.lobby-user-menu.open').forEach(m => m.classList.remove('open'));
+  }
+  if (!e.target.closest('.status-dropdown-wrap')) {
+    document.getElementById('statusBtn').classList.remove('open');
+    document.getElementById('statusMenu').classList.remove('open');
   }
 });
 </script>
