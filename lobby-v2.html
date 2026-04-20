@@ -850,6 +850,7 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
 .status-badge { display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 6px; font-size: 13px; font-weight: 600; }
 .status-badge.ready { background: #dcfce7; color: #166534; }
 .status-badge.waiting { background: #f3f2ef; border: 1px solid #b0aeab; color: #2d2d2d; }
+.status-badge.entering { background: #FEF3CD; color: #856404; border: 1px solid #F0E0A0; }
 
 .start-interview-btn { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; background: #0044B3; color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; transition: background 0.15s; }
 .start-interview-btn:hover { background: #003399; }
@@ -1214,7 +1215,7 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
                 <td>Remote</td>
                 <td>Apr 17, 11:30 AM - 12:00 PM PDT</td>
                 <td>1 minute</td>
-                <td><span class="status-badge waiting">Awaiting available interviewer</span></td>
+                <td><span class="status-badge entering">Entering interview room</span></td>
               </tr>
               <tr>
                 <td>
@@ -3104,9 +3105,9 @@ function setLobbyMode(mode, btn) {
 
   // Set status to Away for live-away mode, Online for other live modes
   if (mode === 'live-away') {
-    setStatus('away');
+    setStatus('away', true);
   } else if (mode === 'live' || mode === 'live-empty') {
-    setStatus('online');
+    setStatus('online', true);
   }
 
   // 4. Switch event header between default and live
@@ -3988,11 +3989,16 @@ function toggleStatusMenu() {
   btn.classList.toggle('open');
 }
 
-function setStatus(status) {
+function setStatus(status, silent) {
   var dot = document.getElementById('statusDot');
   var label = document.getElementById('statusLabel');
   var onlineOpt = document.getElementById('statusOptOnline');
   var awayOpt = document.getElementById('statusOptAway');
+
+  // Show toast when manually switching to online (not silent/programmatic)
+  if (status === 'online' && !silent) {
+    fbToast("You've changed your interview status to Online");
+  }
 
   // Update button
   dot.className = 'status-dot ' + status;
@@ -4024,6 +4030,7 @@ function startInterview() {
 // Start interviewing button (live-away → live-online)
 function startInterviewing() {
   setLobbyMode('live', null);
+  fbToast("You've changed your interview status to Online");
 }
 
 // Close status dropdown when clicking outside
