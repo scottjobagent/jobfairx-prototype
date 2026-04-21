@@ -3059,11 +3059,24 @@ function switchToEndedTab(tabId) {
   }
 }
 
-// Read ?tab= query param and activate the matching tab on load
+// Read ?tab= and ?mode= query params on load
 (function() {
   var TAB_IDS = ['waiting', 'interviewing', 'interviewed', 'notyet'];
   document.addEventListener('DOMContentLoaded', function() {
     var params = new URLSearchParams(window.location.search);
+
+    // If a mode param is provided, switch lobby to that mode
+    var mode = params.get('mode');
+    if (mode) {
+      setLobbyMode(mode);
+      // Also highlight the matching dev toggle button if present
+      var btns = document.querySelectorAll('.dev-toggle-btn');
+      btns.forEach(function(b) {
+        b.classList.remove('active');
+        if (b.textContent.trim().toLowerCase().replace(/\s+/g, '-') === mode) b.classList.add('active');
+      });
+    }
+
     var requested = params.get('tab');
     if (!requested || TAB_IDS.indexOf(requested) === -1) return;
     var tabs = document.querySelectorAll('.tabs .tab');
