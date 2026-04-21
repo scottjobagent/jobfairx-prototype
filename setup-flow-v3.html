@@ -1612,11 +1612,51 @@ function toggleSidebar() {
 // Review modals (step 7 pencil buttons)
 var rvmSeatLimit = 5;
 
+function renderRvmScreeningRows() {
+  var container = document.getElementById('rvmScreeningRows');
+  if (!container) return;
+  container.innerHTML = '';
+  for (var i = 0; i < setupScreeningData.length; i++) {
+    var job = setupScreeningData[i];
+    var row = document.createElement('div');
+    row.className = 'rvm-screening-row';
+    row.style.cssText = 'padding:18px 20px;' + (i < setupScreeningData.length - 1 ? 'border-bottom:1px solid #ebebeb;' : '');
+
+    var hasQ = job.hasScreening && job.question;
+    var statusClass = hasQ ? 'added' : 'none';
+    var statusText = hasQ ? '1 question added' : 'No screening added';
+    var btnText = hasQ ? 'Edit' : 'Add screening';
+    var btnOnclick = hasQ ? 'openEditSetupScreener(' + i + ')' : 'openAddSetupScreener(' + i + ')';
+
+    row.innerHTML = '<div class="rvm-screening-job">' + job.name + '</div>' +
+      '<div style="display:flex;align-items:center;gap:12px;">' +
+        '<span class="rvm-screening-status ' + statusClass + '">' + statusText + '</span>' +
+        '<button class="rvm-screening-add-btn" onclick="' + btnOnclick + '">' + btnText + '</button>' +
+      '</div>';
+    container.appendChild(row);
+  }
+}
+
+function updateRvScreeningReviewCard() {
+  var list = document.getElementById('rvScreeningList');
+  if (!list) return;
+  list.innerHTML = '';
+  for (var i = 0; i < setupScreeningData.length; i++) {
+    var job = setupScreeningData[i];
+    var hasQ = job.hasScreening && job.question;
+    var li = document.createElement('li');
+    li.textContent = job.name + ' - ' + (hasQ ? '1 question added' : 'No screening added');
+    list.appendChild(li);
+  }
+}
+
 function openRvModal(type) {
   if (type === 'interviewSettings') {
     document.getElementById('rvInterviewSettingsModal').classList.add('open');
     updateRvmSeatCount();
   } else if (type === 'screening') {
+    if (setupScreeningData.length === 0) populateStep6Review();
+    renderRvmScreeningRows();
     document.getElementById('rvScreeningModal').classList.add('open');
   } else if (type === 'customMessaging') {
     document.getElementById('rvCustomMsgModal').classList.add('open');
@@ -2719,6 +2759,8 @@ function saveSetupScreenerQuestion(event) {
 
   renderScreeningJobRows();
   renderMultipleJobsCheckboxes();
+  renderRvmScreeningRows();
+  updateRvScreeningReviewCard();
   closeSetupModal('setupScreenerModal');
 }
 
@@ -2727,6 +2769,8 @@ function removeSetupScreening(jobIndex) {
   setupScreeningData[jobIndex].question = null;
   renderScreeningJobRows();
   renderMultipleJobsCheckboxes();
+  renderRvmScreeningRows();
+  updateRvScreeningReviewCard();
 }
 
 function openMultipleScreeningSetup() {
@@ -3265,24 +3309,11 @@ function populateStep7Review() {
       <div class="rvm-group-label">Screen candidates for your requirements</div>
       <p class="rvm-field-hint" style="margin-bottom:20px;">Candidates will answer your screening questions prior to completing an application and will be filtered out based on your requirements.</p>
 
-      <div style="border:1px solid #d4d2d0; border-radius:10px; overflow:hidden; margin-bottom:20px;">
-        <div class="rvm-screening-row" style="padding:18px 20px; border-bottom:1px solid #ebebeb;">
-          <div class="rvm-screening-job">Frontend Developer</div>
-          <div style="display:flex; align-items:center; gap:12px;">
-            <span class="rvm-screening-status none">No screening added</span>
-            <button class="rvm-screening-add-btn" onclick="fbToast('Add screening question')">Add screening</button>
-          </div>
-        </div>
-        <div class="rvm-screening-row" style="padding:18px 20px;">
-          <div class="rvm-screening-job">Sales Associate</div>
-          <div style="display:flex; align-items:center; gap:12px;">
-            <span class="rvm-screening-status none">No screening added</span>
-            <button class="rvm-screening-add-btn" onclick="fbToast('Add screening question')">Add screening</button>
-          </div>
-        </div>
+      <div id="rvmScreeningRows" style="border:1px solid #d4d2d0; border-radius:10px; overflow:hidden; margin-bottom:20px;">
+        <!-- Dynamically rendered -->
       </div>
 
-      <a style="display:inline-flex; align-items:center; gap:6px; font-size:15px; font-weight:600; color:#0044B3; cursor:pointer; text-decoration:none;" onclick="fbToast('Add screening to multiple jobs')">+ Add screening to multiple jobs</a>
+      <a style="display:inline-flex; align-items:center; gap:6px; font-size:15px; font-weight:600; color:#0044B3; cursor:pointer; text-decoration:none;" onclick="openMultipleScreeningSetup()">+ Add screening to multiple jobs</a>
     </div>
     <div class="rv-modal-footer" style="justify-content:flex-end;">
       <button class="rv-modal-btn-save" onclick="closeRvModal('rvScreeningModal')">Close</button>
