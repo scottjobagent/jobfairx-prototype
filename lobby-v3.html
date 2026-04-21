@@ -879,12 +879,28 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
 .start-interview-btn svg { width: 16px; height: 16px; }
 
 /* ═══ INTERVIEWED TAB — Feedback & Notes ═══ */
-.feedback-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: #2d2d2d; }
-.feedback-icon { width: 18px; height: 18px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.feedback-icon.yes { background: #dcfce7; color: #16a34a; }
-.feedback-icon.maybe { background: #f3f2ef; color: #767676; border: 1px solid #d4d2d0; }
-.feedback-icon.no { background: #fee2e2; color: #991b1b; }
-.feedback-icon svg { width: 12px; height: 12px; }
+.fb-actions { display: inline-flex; align-items: center; border: 1px solid #d4d2d0; border-radius: 8px; }
+.fb-actions .fb-btn:first-child { border-radius: 7px 0 0 7px; }
+.fb-actions .fb-btn:last-child { border-radius: 0 7px 7px 0; }
+.fb-btn { height: 34px; border: none; background: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s; font-family: inherit; position: relative; padding: 0 12px; font-size: 13px; font-weight: 600; }
+.fb-btn.status { border-right: 1px solid #d4d2d0; }
+.fb-btn.status.yes { color: #16a34a; background: #dcfce7; }
+.fb-btn.status.yes:hover { background: #bbf7d0; }
+.fb-btn.status.no { color: #991b1b; background: #fee2e2; }
+.fb-btn.status.no:hover { background: #fecaca; }
+.fb-btn.status.maybe { color: #c2410c; background: #fff7ed; }
+.fb-btn.status.maybe:hover { background: #ffedd5; }
+.fb-btn.change { color: #767676; font-size: 12px; font-weight: 500; }
+.fb-btn.change:hover { background: #e8f0fe; color: #0044B3; }
+.fb-wrapper { position: relative; display: inline-flex; align-items: center; }
+.fb-dropdown { display: none; position: absolute; top: calc(100% + 4px); right: 0; background: #fff; border: 1px solid #d4d2d0; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 20; min-width: 120px; overflow: hidden; }
+.fb-dropdown.open { display: block; }
+.fb-dropdown-option { padding: 12px 18px; font-size: 13px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+.fb-dropdown-option:hover { background: #f5f5f4; }
+.fb-dropdown-option .fb-dot { width: 8px; height: 8px; border-radius: 50%; }
+.fb-dropdown-option .fb-dot.green { background: #16a34a; }
+.fb-dropdown-option .fb-dot.red { background: #991b1b; }
+.fb-dropdown-option .fb-dot.orange { background: #c2410c; }
 .feedback-interviewer { color: #595959; margin-left: 4px; }
 .notes-link { display: inline-flex; align-items: center; gap: 6px; color: #0044B3; font-size: 14px; font-weight: 600; cursor: pointer; background: none; border: none; font-family: inherit; padding: 0; }
 .notes-link:hover { text-decoration: underline; }
@@ -1752,10 +1768,7 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
               </div>
             </td>
             <td>
-              <div class="feedback-badge">
-                <span class="feedback-icon no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></span>
-                No
-              </div>
+              <div class="fb-wrapper"><div class="fb-actions"><button class="fb-btn status no" onclick="fbToggleDropdown(this)">No</button><button class="fb-btn change" onclick="fbToggleDropdown(this)">Update</button></div><div class="fb-dropdown" onclick="event.stopPropagation()"><div class="fb-dropdown-option" onclick="fbChange(this, 'yes')"><span class="fb-dot green"></span>Yes</div><div class="fb-dropdown-option" onclick="fbChange(this, 'no')"><span class="fb-dot red"></span>No</div><div class="fb-dropdown-option" onclick="fbChange(this, 'maybe')"><span class="fb-dot orange"></span>Maybe</div></div></div>
             </td>
             <td>Emily Chen</td>
             <td>
@@ -1775,10 +1788,7 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
               </div>
             </td>
             <td>
-              <div class="feedback-badge">
-                <span class="feedback-icon yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
-                Yes
-              </div>
+              <div class="fb-wrapper"><div class="fb-actions"><button class="fb-btn status yes" onclick="fbToggleDropdown(this)">Yes</button><button class="fb-btn change" onclick="fbToggleDropdown(this)">Update</button></div><div class="fb-dropdown" onclick="event.stopPropagation()"><div class="fb-dropdown-option" onclick="fbChange(this, 'yes')"><span class="fb-dot green"></span>Yes</div><div class="fb-dropdown-option" onclick="fbChange(this, 'no')"><span class="fb-dot red"></span>No</div><div class="fb-dropdown-option" onclick="fbChange(this, 'maybe')"><span class="fb-dot orange"></span>Maybe</div></div></div>
             </td>
             <td>Maria Lopez</td>
             <td>
@@ -1798,10 +1808,7 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
               </div>
             </td>
             <td>
-              <div class="feedback-badge">
-                <span class="feedback-icon maybe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><text x="8" y="17" font-size="16" font-weight="700" fill="#767676" stroke="none" font-family="Noto Sans, sans-serif">?</text></svg></span>
-                Maybe
-              </div>
+              <div class="fb-wrapper"><div class="fb-actions"><button class="fb-btn status maybe" onclick="fbToggleDropdown(this)">Maybe</button><button class="fb-btn change" onclick="fbToggleDropdown(this)">Update</button></div><div class="fb-dropdown" onclick="event.stopPropagation()"><div class="fb-dropdown-option" onclick="fbChange(this, 'yes')"><span class="fb-dot green"></span>Yes</div><div class="fb-dropdown-option" onclick="fbChange(this, 'no')"><span class="fb-dot red"></span>No</div><div class="fb-dropdown-option" onclick="fbChange(this, 'maybe')"><span class="fb-dot orange"></span>Maybe</div></div></div>
             </td>
             <td>David Park</td>
             <td>
@@ -1821,10 +1828,7 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
               </div>
             </td>
             <td>
-              <div class="feedback-badge">
-                <span class="feedback-icon yes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
-                Yes
-              </div>
+              <div class="fb-wrapper"><div class="fb-actions"><button class="fb-btn status yes" onclick="fbToggleDropdown(this)">Yes</button><button class="fb-btn change" onclick="fbToggleDropdown(this)">Update</button></div><div class="fb-dropdown" onclick="event.stopPropagation()"><div class="fb-dropdown-option" onclick="fbChange(this, 'yes')"><span class="fb-dot green"></span>Yes</div><div class="fb-dropdown-option" onclick="fbChange(this, 'no')"><span class="fb-dot red"></span>No</div><div class="fb-dropdown-option" onclick="fbChange(this, 'maybe')"><span class="fb-dot orange"></span>Maybe</div></div></div>
             </td>
             <td>Emily Chen</td>
             <td>
@@ -1844,10 +1848,7 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
               </div>
             </td>
             <td>
-              <div class="feedback-badge">
-                <span class="feedback-icon maybe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><text x="8" y="17" font-size="16" font-weight="700" fill="#767676" stroke="none" font-family="Noto Sans, sans-serif">?</text></svg></span>
-                Maybe
-              </div>
+              <div class="fb-wrapper"><div class="fb-actions"><button class="fb-btn status maybe" onclick="fbToggleDropdown(this)">Maybe</button><button class="fb-btn change" onclick="fbToggleDropdown(this)">Update</button></div><div class="fb-dropdown" onclick="event.stopPropagation()"><div class="fb-dropdown-option" onclick="fbChange(this, 'yes')"><span class="fb-dot green"></span>Yes</div><div class="fb-dropdown-option" onclick="fbChange(this, 'no')"><span class="fb-dot red"></span>No</div><div class="fb-dropdown-option" onclick="fbChange(this, 'maybe')"><span class="fb-dot orange"></span>Maybe</div></div></div>
             </td>
             <td>Maria Lopez</td>
             <td>
@@ -3934,6 +3935,33 @@ function submitFeedback() {
   closeFeedbackModal();
   fbToast('Thanks for your feedback!');
 }
+// --- Feedback button group (lobby interviewed tab) ---
+function fbToggleDropdown(btn) {
+  var dropdown = btn.closest('.fb-wrapper').querySelector('.fb-dropdown');
+  var isOpen = dropdown.classList.contains('open');
+  // Close all first
+  document.querySelectorAll('.fb-dropdown').forEach(function(d) { d.classList.remove('open'); });
+  if (!isOpen) dropdown.classList.add('open');
+}
+function fbChange(option, value) {
+  var wrapper = option.closest('.fb-wrapper');
+  var statusBtn = wrapper.querySelector('.fb-btn.status');
+  var dropdown = wrapper.querySelector('.fb-dropdown');
+  // Remove old class
+  statusBtn.classList.remove('yes', 'no', 'maybe');
+  // Set new class and text
+  statusBtn.classList.add(value);
+  statusBtn.textContent = value.charAt(0).toUpperCase() + value.slice(1);
+  dropdown.classList.remove('open');
+  fbToast('Feedback updated to ' + value.charAt(0).toUpperCase() + value.slice(1));
+}
+// Close feedback dropdowns when clicking outside
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.fb-wrapper')) {
+    document.querySelectorAll('.fb-dropdown').forEach(function(d) { d.classList.remove('open'); });
+  }
+});
+
 var fbToastTimer = null;
 function fbToast(msg, useHTML) {
   var t = document.getElementById('fb-toast-el');
