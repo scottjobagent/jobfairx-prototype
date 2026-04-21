@@ -966,6 +966,7 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
         <button class="dev-toggle-btn active" onclick="setLobbyMode('empty', this)">Empty</button>
         <button class="dev-toggle-btn" onclick="setLobbyMode('live', this)">Live</button>
         <button class="dev-toggle-btn" onclick="setLobbyMode('live-empty', this)">Live empty</button>
+        <button class="dev-toggle-btn" onclick="setLobbyMode('event-ended', this)">Event ended</button>
       </div>
     </div>
     <div class="lobby-topbar-right">
@@ -1007,6 +1008,12 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
         <span style="color: #2d2d2d; font-weight: 400;">Event is live</span>
         <span class="sep">|</span>
         <span>Ends in <strong id="liveCountdown">2h 42m 18s</strong></span>
+        <span class="sep">|</span>
+        <span>Apr 22, 2026, 11:00 AM - 3:00 PM CT</span>
+      </div>
+      <div class="event-meta" id="eventMetaEnded" style="display: none;">
+        <span class="dot" style="background: #991b1b;"></span>
+        <span>Ended</span>
         <span class="sep">|</span>
         <span>Apr 22, 2026, 11:00 AM - 3:00 PM CT</span>
       </div>
@@ -1060,6 +1067,49 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
 </div>
 
 <!-- Tab panels -->
+
+<!-- Summary (event-ended only) -->
+<div class="tab-panel" id="panel-summary" style="display: none;">
+  <div class="tab-panel-wrapper">
+    <div class="status-card" style="margin-bottom: 16px;">
+      <div class="status-card-text">
+        <h3>Interviewing has ended</h3>
+        <p>The event took place on Apr 22, 2026.</p>
+      </div>
+      <svg class="status-card-illustration" viewBox="0 0 140 100" fill="none">
+        <!-- Checkmark in circle -->
+        <circle cx="70" cy="45" r="30" fill="#f0ebe4" stroke="#d4d2d0" stroke-width="1"/>
+        <circle cx="70" cy="45" r="22" fill="#fff" stroke="#d4d2d0" stroke-width="1"/>
+        <path d="M58 45 L66 53 L82 37" stroke="#16a34a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      </svg>
+    </div>
+
+    <div class="status-card">
+      <div class="status-card-text">
+        <h3>Follow up with 12 candidates you interviewed</h3>
+        <p>View interview feedback and notes.</p>
+        <a onclick="switchToEndedTab('interviewed-ended')" style="display: inline-flex; align-items: center; gap: 6px; margin-top: 12px; font-size: 15px; font-weight: 600; color: #0044B3; cursor: pointer; text-decoration: none;">View Interview Summary <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg></a>
+      </div>
+      <svg class="status-card-illustration" viewBox="0 0 140 100" fill="none">
+        <!-- People with clipboard -->
+        <rect x="75" y="20" width="40" height="55" rx="4" fill="#f0ebe4" stroke="#d4d2d0" stroke-width="1"/>
+        <rect x="85" y="14" width="20" height="10" rx="3" fill="#d4d2d0"/>
+        <rect x="82" y="34" width="26" height="3" rx="1.5" fill="#d4d2d0"/>
+        <rect x="82" y="42" width="20" height="3" rx="1.5" fill="#d4d2d0"/>
+        <rect x="82" y="50" width="24" height="3" rx="1.5" fill="#d4d2d0"/>
+        <rect x="82" y="58" width="16" height="3" rx="1.5" fill="#d4d2d0"/>
+        <!-- Person 1 -->
+        <circle cx="35" cy="35" r="12" fill="#e8ddd0"/>
+        <rect x="25" y="50" width="20" height="24" rx="6" fill="#d4c4b0"/>
+        <!-- Person 2 -->
+        <circle cx="55" cy="40" r="10" fill="#c17f59" opacity="0.5"/>
+        <rect x="47" y="53" width="16" height="20" rx="5" fill="#c17f59" opacity="0.4"/>
+      </svg>
+    </div>
+
+    <div style="height: 24px;"></div>
+  </div>
+</div>
 
 <!-- Waiting to interview -->
 <div class="tab-panel" id="panel-waiting">
@@ -2787,7 +2837,27 @@ function switchTab(el, id) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   el.classList.add('active');
   document.querySelectorAll('.tab-panel').forEach(p => p.style.display = 'none');
-  document.getElementById('panel-' + id).style.display = 'block';
+
+  // Map ended-mode tab IDs to existing panels
+  if (id === 'interviewed-ended') {
+    document.getElementById('panel-interviewed').style.display = 'block';
+  } else if (id === 'notinterviewed-ended') {
+    document.getElementById('panel-notyet').style.display = 'block';
+  } else {
+    document.getElementById('panel-' + id).style.display = 'block';
+  }
+}
+
+// Switch to an ended-mode tab from a link (e.g. "View Interview Summary")
+function switchToEndedTab(tabId) {
+  var tabs = document.querySelectorAll('.tabs .tab');
+  for (var i = 0; i < tabs.length; i++) {
+    var onclick = tabs[i].getAttribute('onclick') || '';
+    if (onclick.indexOf(tabId) !== -1) {
+      switchTab(tabs[i], tabId);
+      break;
+    }
+  }
 }
 
 // Read ?tab= query param and activate the matching tab on load
@@ -2823,6 +2893,7 @@ var lobbyCountdownTimer = null;
 
 function setLobbyMode(mode, btn) {
   var isLive = (mode === 'live' || mode === 'live-empty');
+  var isEnded = (mode === 'event-ended');
 
   // Show/hide Your Status dropdown (only visible in live states)
   var statusWrap = document.querySelector('.status-dropdown-wrap');
@@ -2834,7 +2905,7 @@ function setLobbyMode(mode, btn) {
     var btns = toggle.querySelectorAll('.dev-toggle-btn');
     btns.forEach(function(b) {
       var label = b.textContent.trim().toLowerCase();
-      var btnMode = label.replace('live empty', 'live-empty');
+      var btnMode = label.replace('live empty', 'live-empty').replace('event ended', 'event-ended');
       if (btnMode === mode) {
         b.classList.add('active');
       } else {
@@ -2843,58 +2914,94 @@ function setLobbyMode(mode, btn) {
     });
   });
 
-  // 2. Determine content mode for tabs without dedicated live content
-  var contentMode = isLive ? 'active' : mode;
+  // 2. Handle event-ended mode — swap to 3-tab layout
+  var tabsContainer = document.querySelector('.tabs');
+  if (isEnded) {
+    // Replace tabs with Summary | Interviewed | Not interviewed
+    tabsContainer.innerHTML = '<button class="tab active" onclick="switchTab(this, \'summary\')">Summary</button>' +
+      '<button class="tab" onclick="switchTab(this, \'interviewed-ended\')">Interviewed (12)</button>' +
+      '<button class="tab" onclick="switchTab(this, \'notinterviewed-ended\')">Not interviewed (85)</button>';
 
-  // 3. Switch content for each tab section
-  // Waiting to Interview
-  document.getElementById('waitingActive').style.display = (mode === 'active') ? '' : 'none';
-  document.getElementById('waitingLive').style.display = (mode === 'live') ? '' : 'none';
-  document.getElementById('waitingLiveEmpty').style.display = (mode === 'live-empty') ? '' : 'none';
-  document.getElementById('waitingEmpty').style.display = (mode === 'empty') ? '' : 'none';
-  document.getElementById('waitingPrepare').style.display = (mode === 'empty') ? '' : 'none';
+    // Hide all 4-tab panels, show summary
+    document.querySelectorAll('.tab-panel').forEach(function(p) { p.style.display = 'none'; });
+    document.getElementById('panel-summary').style.display = 'block';
 
-  // Interviewing
-  document.getElementById('interviewingActive').style.display = (mode === 'active') ? '' : 'none';
-  document.getElementById('interviewingLive').style.display = (mode === 'live') ? '' : 'none';
-  document.getElementById('interviewingLiveEmpty').style.display = (mode === 'live-empty') ? '' : 'none';
-  document.getElementById('interviewingEmpty').style.display = (mode === 'empty') ? '' : 'none';
-  document.getElementById('interviewingPrepare').style.display = (mode === 'empty') ? '' : 'none';
-
-  // Interviewed
-  document.getElementById('interviewedActive').style.display = (mode === 'active') ? '' : 'none';
-  document.getElementById('interviewedLive').style.display = (mode === 'live') ? '' : 'none';
-  document.getElementById('interviewedLiveEmpty').style.display = (mode === 'live-empty') ? '' : 'none';
-  document.getElementById('interviewedEmpty').style.display = (mode === 'empty') ? '' : 'none';
-
-  // Not Yet Interviewed
-  document.getElementById('notyetActive').style.display = (mode === 'active') ? '' : 'none';
-  document.getElementById('notyetLive').style.display = (mode === 'live') ? '' : 'none';
-  document.getElementById('notyetLiveEmpty').style.display = (mode === 'live-empty') ? '' : 'none';
-  document.getElementById('notyetEmpty').style.display = (mode === 'empty') ? '' : 'none';
-
-  // 4. Update tab counts
-  var tabs = document.querySelectorAll('.tabs .tab');
-  if (mode === 'live') {
-    if (tabs[0]) tabs[0].textContent = 'Waiting to interview (6)';
-    if (tabs[1]) tabs[1].textContent = 'Interviewing (3)';
-    if (tabs[2]) tabs[2].textContent = 'Interviewed (5)';
-    if (tabs[3]) tabs[3].textContent = 'Not yet interviewed (26)';
-  } else if (mode === 'live-empty') {
-    if (tabs[0]) tabs[0].textContent = 'Waiting to interview (0)';
-    if (tabs[1]) tabs[1].textContent = 'Interviewing (0)';
-    if (tabs[2]) tabs[2].textContent = 'Interviewed (0)';
-    if (tabs[3]) tabs[3].textContent = 'Not yet interviewed (26)';
+    // Hide all state divs inside regular panels
+    var stateIds = ['waitingActive','waitingLive','waitingLiveEmpty','waitingEmpty','waitingPrepare',
+      'interviewingActive','interviewingLive','interviewingLiveEmpty','interviewingEmpty','interviewingPrepare',
+      'interviewedActive','interviewedLive','interviewedLiveEmpty','interviewedEmpty',
+      'notyetActive','notyetLive','notyetLiveEmpty','notyetEmpty'];
+    stateIds.forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) el.style.display = 'none';
+    });
   } else {
-    if (tabs[0]) tabs[0].textContent = 'Waiting to interview (0)';
-    if (tabs[1]) tabs[1].textContent = 'Interviewing (0)';
-    if (tabs[2]) tabs[2].textContent = 'Interviewed (0)';
-    if (tabs[3]) tabs[3].textContent = 'Not yet interviewed (26)';
+    // Restore 4-tab layout
+    tabsContainer.innerHTML = '<button class="tab active" onclick="switchTab(this, \'waiting\')">Waiting to interview (0)</button>' +
+      '<button class="tab" onclick="switchTab(this, \'interviewing\')">Interviewing (0)</button>' +
+      '<button class="tab" onclick="switchTab(this, \'interviewed\')">Interviewed (0)</button>' +
+      '<button class="tab" onclick="switchTab(this, \'notyet\')">Not yet interviewed (26)</button>';
+
+    // Hide summary panel, show first regular panel
+    document.getElementById('panel-summary').style.display = 'none';
+    document.querySelectorAll('.tab-panel').forEach(function(p) { p.style.display = 'none'; });
+    document.getElementById('panel-waiting').style.display = 'block';
+    var firstTab = tabsContainer.querySelector('.tab');
+    if (firstTab) firstTab.classList.add('active');
+
+    // 3. Switch content for each tab section
+    // Waiting to Interview
+    document.getElementById('waitingActive').style.display = (mode === 'active') ? '' : 'none';
+    document.getElementById('waitingLive').style.display = (mode === 'live') ? '' : 'none';
+    document.getElementById('waitingLiveEmpty').style.display = (mode === 'live-empty') ? '' : 'none';
+    document.getElementById('waitingEmpty').style.display = (mode === 'empty') ? '' : 'none';
+    document.getElementById('waitingPrepare').style.display = (mode === 'empty') ? '' : 'none';
+
+    // Interviewing
+    document.getElementById('interviewingActive').style.display = (mode === 'active') ? '' : 'none';
+    document.getElementById('interviewingLive').style.display = (mode === 'live') ? '' : 'none';
+    document.getElementById('interviewingLiveEmpty').style.display = (mode === 'live-empty') ? '' : 'none';
+    document.getElementById('interviewingEmpty').style.display = (mode === 'empty') ? '' : 'none';
+    document.getElementById('interviewingPrepare').style.display = (mode === 'empty') ? '' : 'none';
+
+    // Interviewed
+    document.getElementById('interviewedActive').style.display = (mode === 'active') ? '' : 'none';
+    document.getElementById('interviewedLive').style.display = (mode === 'live') ? '' : 'none';
+    document.getElementById('interviewedLiveEmpty').style.display = (mode === 'live-empty') ? '' : 'none';
+    document.getElementById('interviewedEmpty').style.display = (mode === 'empty') ? '' : 'none';
+
+    // Not Yet Interviewed
+    document.getElementById('notyetActive').style.display = (mode === 'active') ? '' : 'none';
+    document.getElementById('notyetLive').style.display = (mode === 'live') ? '' : 'none';
+    document.getElementById('notyetLiveEmpty').style.display = (mode === 'live-empty') ? '' : 'none';
+    document.getElementById('notyetEmpty').style.display = (mode === 'empty') ? '' : 'none';
   }
 
-  // 5. Switch event header between default and live
-  document.getElementById('eventMetaDefault').style.display = isLive ? 'none' : '';
+  // 4. Update tab counts (only for non-ended modes)
+  if (!isEnded) {
+    var tabs = document.querySelectorAll('.tabs .tab');
+    if (mode === 'live') {
+      if (tabs[0]) tabs[0].textContent = 'Waiting to interview (6)';
+      if (tabs[1]) tabs[1].textContent = 'Interviewing (3)';
+      if (tabs[2]) tabs[2].textContent = 'Interviewed (5)';
+      if (tabs[3]) tabs[3].textContent = 'Not yet interviewed (26)';
+    } else if (mode === 'live-empty') {
+      if (tabs[0]) tabs[0].textContent = 'Waiting to interview (0)';
+      if (tabs[1]) tabs[1].textContent = 'Interviewing (0)';
+      if (tabs[2]) tabs[2].textContent = 'Interviewed (0)';
+      if (tabs[3]) tabs[3].textContent = 'Not yet interviewed (26)';
+    } else {
+      if (tabs[0]) tabs[0].textContent = 'Waiting to interview (0)';
+      if (tabs[1]) tabs[1].textContent = 'Interviewing (0)';
+      if (tabs[2]) tabs[2].textContent = 'Interviewed (0)';
+      if (tabs[3]) tabs[3].textContent = 'Not yet interviewed (26)';
+    }
+  }
+
+  // 5. Switch event header between default, live, and ended
+  document.getElementById('eventMetaDefault').style.display = (!isLive && !isEnded) ? '' : 'none';
   document.getElementById('eventMetaLive').style.display = isLive ? '' : 'none';
+  document.getElementById('eventMetaEnded').style.display = isEnded ? '' : 'none';
 
   // 6. Start or stop countdown timer
   if (isLive) {
