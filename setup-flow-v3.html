@@ -1,0 +1,3308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Set Up Your Jobs & Settings - JobFairX</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; background: #fff; color: #2d2d2d; min-height: 100vh; font-size: 14px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+
+/* ═══ SIDEBAR ═══ */
+.sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: 220px; background: #2d2d2d; display: flex; flex-direction: column; z-index: 300; transition: width 0.2s ease; overflow: hidden; }
+.sidebar.collapsed { width: 60px; }
+.sidebar.collapsed .nav-text,
+.sidebar.collapsed .badge,
+.sidebar.collapsed .collapse-text { display: none; }
+.sidebar.collapsed .nav-item { justify-content: center; padding: 10px 0; }
+.sidebar.collapsed .nav-item svg { margin: 0; }
+.sidebar.collapsed .collapse-btn { justify-content: center; }
+
+.sidebar-collapse { padding: 18px 16px 12px; }
+.collapse-btn { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 6px; border: none; background: transparent; cursor: pointer; font-size: 15px; font-weight: 600; color: rgba(255,255,255,0.9); font-family: inherit; transition: all 0.15s; width: 100%; }
+.collapse-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
+.collapse-btn svg { width: 20px; height: 20px; flex-shrink: 0; color: rgba(255,255,255,0.9); }
+
+.sidebar-nav { flex: 1; padding: 8px 12px; overflow-y: auto; }
+.nav-group { margin-bottom: 6px; }
+.nav-item { display: flex; align-items: center; gap: 14px; padding: 16px 18px; border-radius: 10px; font-size: 17px; font-weight: 500; color: rgba(255,255,255,0.85); cursor: pointer; transition: all 0.12s; text-decoration: none; letter-spacing: -0.1px; }
+.nav-item:hover { background: rgba(255,255,255,0.1); color: #fff; }
+.nav-item.active { background: rgba(255,255,255,0.18); color: #fff; font-weight: 700; }
+.nav-item svg { width: 24px; height: 24px; flex-shrink: 0; color: rgba(255,255,255,0.7); }
+.nav-item.active svg { color: #fff; }
+.nav-item .badge { margin-left: auto; background: #0044B3; color: #fff; font-size: 12px; font-weight: 700; padding: 2px 9px; border-radius: 10px; min-width: 24px; text-align: center; }
+
+/* Sidebar credits */
+.sidebar-credits { padding: 12px 12px 16px; border-top: 1px solid rgba(255,255,255,0.1); }
+.sidebar.collapsed .sidebar-credits { display: none; }
+.credits-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; padding: 0 4px; }
+.credits-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: rgba(255,255,255,0.45); }
+.credits-link { font-size: 12px; font-weight: 600; color: #0044B3; text-decoration: none; cursor: pointer; }
+.credits-link:hover { text-decoration: underline; color: #003399; }
+.credits-grid { display: flex; background: rgba(255,255,255,0.06); border-radius: 8px; overflow: hidden; }
+.credit-col { flex: 1; text-align: center; padding: 10px 4px 8px; }
+.credit-col + .credit-col { border-left: 1px solid rgba(255,255,255,0.08); }
+.credit-num { font-size: 22px; font-weight: 800; color: #fff; line-height: 1; margin-bottom: 2px; }
+.credit-tier { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: rgba(255,255,255,0.4); }
+
+/* ═══ TOP HEADER ═══ */
+.topbar { position: fixed; top: 0; left: 220px; right: 0; height: 56px; background: #fff; border-bottom: 1px solid #d4d2d0; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; z-index: 200; transition: left 0.2s ease; }
+body.collapsed .topbar { left: 60px; }
+.topbar-logo { font-size: 22px; font-weight: 800; color: #0044B3; letter-spacing: -0.5px; text-decoration: none; cursor: pointer; }
+.topbar-left { display: flex; align-items: center; gap: 16px; }
+.topbar-right { display: flex; align-items: center; gap: 4px; }
+.topbar-divider { width: 1px; height: 24px; background: #d4d2d0; margin: 0 10px; }
+
+
+/* User dropdown */
+.user-trigger { display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 6px 12px; border-radius: 8px; transition: background 0.15s; position: relative; }
+.user-trigger:hover { background: #f3f2ef; }
+.user-trigger span { font-size: 14px; font-weight: 400; color: #2d2d2d; }
+.user-trigger svg { width: 14px; height: 14px; color: #767676; }
+.user-menu { position: absolute; top: 42px; right: 0; background: #fff; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.12); border: 1px solid #d4d2d0; min-width: 220px; z-index: 500; display: none; padding: 6px 0; }
+.user-menu.open { display: block; }
+.user-menu-item { display: flex; align-items: center; width: 100%; padding: 12px 18px; font-size: 14px; font-weight: 500; color: #2d2d2d; background: none; border: none; text-align: left; cursor: pointer; font-family: inherit; transition: background 0.1s; text-decoration: none; }
+.user-menu-item:hover { background: #f3f2ef; }
+.user-menu-item.muted { color: #767676; }
+.user-menu-divider { height: 1px; background: #ebebeb; margin: 4px 0; }
+
+/* ═══ MAIN CONTENT ═══ */
+.main { margin-left: 220px; margin-top: 52px; min-height: calc(100vh - 52px); padding: 24px 28px 40px; transition: margin-left 0.2s ease; }
+body.collapsed .main { margin-left: 60px; }
+
+/* ═══ PROGRESS BAR ═══ */
+.progress-bar-track { position: fixed; top: 52px; left: 220px; right: 0; height: 4px; background: #e5e4e1; z-index: 90; transition: left 0.2s ease; }
+body.collapsed .progress-bar-track { left: 60px; }
+.progress-bar-fill { height: 100%; background: #0044B3; border-radius: 0 2px 2px 0; transition: width 0.4s ease; }
+
+/* ═══ SETUP FLOW CONTENT ═══ */
+.step-gray-bg { background: #f5f5f5; margin: -24px -28px -40px; padding: 24px 28px 40px; min-height: calc(100vh - 52px); }
+.setup-container { max-width: 720px; margin: 0 auto; padding: 24px 0 80px; }
+.form-card { background: #fff; border-radius: 12px; padding: 32px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+.title-card { background: #fff; border-radius: 12px; padding: 28px 32px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); margin-bottom: 24px; }
+.title-card .page-title { margin-bottom: 0; }
+
+/* Page title */
+.page-title { font-size: 36px; font-weight: 700; color: #2d2d2d; margin-bottom: 40px; line-height: 1.25; }
+.addjob-sub { font-size: 16px; color: #595959; margin-top: -28px; margin-bottom: 32px; font-weight: 400; line-height: 1.5; }
+.addjob-sub strong { color: #2d2d2d; font-weight: 700; }
+
+/* Section divider */
+.section-divider { height: 1px; background: #d4d2d0; margin: 32px 0; }
+
+/* Radio group */
+.radio-group-label { font-size: 16px; font-weight: 700; color: #2d2d2d; margin-bottom: 20px; }
+.radio-option { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 14px; cursor: pointer; }
+.radio-option:last-child { margin-bottom: 0; }
+.radio-input { width: 20px; height: 20px; border: 2px solid #a8a8a8; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; margin-top: 2px; cursor: pointer; transition: border-color 0.15s; }
+.radio-option.selected .radio-input { border-color: #2d2d2d; }
+.radio-input-dot { width: 10px; height: 10px; border-radius: 50%; background: #2d2d2d; display: none; }
+.radio-option.selected .radio-input-dot { display: block; }
+.radio-label { font-size: 16px; color: #2d2d2d; font-weight: 400; }
+.radio-badge { display: inline-block; padding: 2px 10px; border-radius: 4px; font-size: 12px; font-weight: 700; background: #e8f5e9; color: #2d7a2d; margin-top: 4px; }
+
+/* Previous jobs list */
+/* Previous jobs panel */
+.previous-jobs { display: none; margin-top: 20px; border: 1px solid #d4d2d0; border-radius: 12px; overflow: hidden; background: #fff; }
+.previous-jobs.visible { display: block; }
+.pj-search-wrap { padding: 16px 20px; border-bottom: 1px solid #ebebeb; }
+.pj-search { width: 100%; padding: 12px 16px 12px 40px; font-size: 15px; font-family: inherit; color: #2d2d2d; border: 1px solid #d4d2d0; border-radius: 999px; outline: none; transition: border-color 0.15s; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%23767676' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='M21 21l-4.35-4.35'/%3E%3C/svg%3E") 14px center no-repeat; }
+.pj-search:focus { border-color: #0044B3; box-shadow: 0 0 0 2px rgba(0,68,179,0.15); }
+.pj-search::placeholder { color: #767676; }
+.pj-results-label { padding: 10px 20px; font-size: 13px; color: #767676; border-bottom: 1px solid #ebebeb; display: flex; align-items: center; gap: 8px; }
+.pj-results-icon { width: 16px; height: 16px; color: #767676; }
+.pj-list { max-height: 320px; overflow-y: auto; }
+.pj-item { display: flex; align-items: center; gap: 14px; padding: 18px 20px; border-bottom: 1px solid #ebebeb; cursor: pointer; transition: background 0.1s; }
+.pj-item:last-child { border-bottom: none; }
+.pj-item:hover { background: #f9f9f7; }
+.pj-item.selected { background: #f3f2ef; }
+.pj-check { width: 22px; height: 22px; flex-shrink: 0; color: #2d2d2d; opacity: 0; transition: opacity 0.15s; }
+.pj-item.selected .pj-check { opacity: 1; }
+.pj-item-info { flex: 1; }
+.pj-item-title { font-size: 16px; font-weight: 600; color: #2d2d2d; }
+.pj-item-meta { font-size: 14px; color: #767676; margin-top: 3px; }
+.pj-no-results { padding: 24px 20px; font-size: 14px; color: #767676; text-align: center; display: none; }
+.form-input.readonly { background: #f3f2ef; color: #767676; cursor: not-allowed; border-color: #e5e4e1; }
+
+/* Package indicator pill */
+/* Unified package meta line (Step 1, Step 5, Step 6, edit-post) */
+.pkg-meta { font-size: 13px; color: #595959; margin-bottom: 24px; line-height: 1.5; }
+.pkg-meta .pkg-sep { color: #9ca3af; margin: 0 4px; }
+.pkg-meta.is-full { color: #2d2d2d; font-weight: 600; }
+.pkg-meta .pkg-check { display: none; color: #0044B3; font-weight: 700; margin-right: 6px; }
+.pkg-meta.is-full .pkg-check { display: inline; }
+.pkg-capacity-panel { display: none; padding: 18px 20px; background: #fafafa; border: 1px solid #ebebeb; border-radius: 8px; margin-bottom: 20px; border-left: 3px solid #0044B3; }
+.pkg-cap-title { font-size: 14px; font-weight: 600; color: #2d2d2d; margin-bottom: 4px; }
+.pkg-cap-sub { font-size: 13px; color: #595959; }
+
+/* Recruiter seat note */
+.seat-limit-msg { display: none; align-items: center; gap: 8px; margin-top: 10px; font-size: 14px; font-weight: 600; color: #991b1b; }
+.email-error { font-size: 13px; color: #991b1b; margin-top: 6px; display: none; }
+.email-error.show { display: block; }
+.seat-limit-icon { width: 16px; height: 16px; flex-shrink: 0; }
+
+/* Job limit message */
+
+/* Form fields */
+.form-group { margin-bottom: 32px; }
+.form-label { display: block; font-size: 16px; font-weight: 700; color: #2d2d2d; margin-bottom: 8px; }
+.form-input { width: 100%; padding: 14px 20px; font-size: 16px; font-family: inherit; color: #2d2d2d; border: 2px solid #a8a8a8; border-radius: 10px; outline: none; transition: border-color 0.15s, box-shadow 0.15s; }
+.form-input:focus { border-color: #0044B3; box-shadow: 0 0 0 2px #0044B3; }
+.form-input.error { border-color: #991b1b; box-shadow: 0 0 0 2px #991b1b; }
+.form-input.valid { border-color: #0044B3; box-shadow: none; }
+/* Job title suggestions */
+.jt-suggestions { display: none; position: absolute; top: 100%; left: 0; right: 0; background: #fff; border: 2px solid #a8a8a8; border-radius: 10px; margin-top: 4px; max-height: 280px; overflow-y: auto; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+.jt-suggestions.open { display: block; }
+.jt-suggestion { padding: 12px 16px; font-size: 16px; color: #2d2d2d; cursor: pointer; transition: background 0.1s; }
+.jt-suggestion:hover { background: #f3f2ef; }
+.jt-suggestion.hidden { display: none; }
+
+/* Custom dropdown */
+.custom-select { position: relative; }
+.custom-select-trigger { width: 100%; padding: 14px 40px 14px 20px; font-size: 16px; font-family: inherit; color: #2d2d2d; border: 2px solid #a8a8a8; border-radius: 10px; outline: none; background: #fff; cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s; display: flex; align-items: center; justify-content: space-between; user-select: none; }
+.custom-select-trigger:hover { border-color: #595959; }
+.custom-select.open .custom-select-trigger { border-color: #0044B3; box-shadow: 0 0 0 2px #0044B3; }
+.custom-select-arrow { width: 18px; height: 18px; position: absolute; right: 18px; top: 50%; transform: translateY(-50%); transition: transform 0.2s ease; color: #767676; pointer-events: none; }
+.custom-select.open .custom-select-arrow { transform: translateY(-50%) rotate(180deg); }
+.custom-select-panel { position: absolute; top: calc(100% + 6px); left: 0; right: 0; background: #fff; border: 1px solid #d4d2d0; border-radius: 10px; box-shadow: 0 4px 16px rgba(0,0,0,0.12); z-index: 100; display: none; overflow: hidden; }
+.custom-select.open .custom-select-panel { display: block; }
+.custom-select-option { display: flex; align-items: center; gap: 12px; padding: 16px 20px; font-size: 16px; color: #2d2d2d; cursor: pointer; transition: background 0.1s; }
+.custom-select-option:hover { background: #f3f2ef; }
+.custom-select-option.selected { background: #f3f2ef; }
+.custom-select-check { width: 20px; height: 20px; flex-shrink: 0; color: #2d2d2d; }
+.custom-select-check.hidden { visibility: hidden; }
+.form-hint { font-size: 14px; color: #595959; margin-bottom: 8px; }
+.field-error { display: none; align-items: center; gap: 6px; margin-top: 8px; font-size: 14px; color: #991b1b; font-weight: 400; }
+.field-error.visible { display: flex; }
+.field-error svg { width: 18px; height: 18px; flex-shrink: 0; }
+
+/* Reside radio options */
+.reside-radio-option { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; cursor: pointer; }
+.reside-radio-option:last-child { margin-bottom: 0; }
+.reside-radio-option .radio-input { width: 20px; height: 20px; border: 2px solid #a8a8a8; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: border-color 0.15s; }
+.reside-radio-option.selected .radio-input { border-color: #2d2d2d; }
+.reside-radio-option .radio-input-dot { width: 10px; height: 10px; border-radius: 50%; background: #2d2d2d; display: none; }
+.reside-radio-option.selected .radio-input-dot { display: block; }
+
+/* Bottom actions */
+.bottom-actions { display: flex; align-items: center; justify-content: flex-end; padding-top: 40px; }
+.bottom-actions-split { display: flex; align-items: center; justify-content: space-between; margin-top: 24px; background: #fff; border-radius: 12px; padding: 24px 32px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+.continue-btn { display: inline-flex; align-items: center; gap: 8px; padding: 14px 32px; border-radius: 8px; border: none; background: #0044B3; color: #fff; font-size: 16px; font-weight: 700; cursor: pointer; font-family: inherit; transition: background 0.15s; }
+.continue-btn:hover { background: #003399; }
+.continue-btn svg { width: 18px; height: 18px; }
+.back-btn { display: inline-flex; align-items: center; gap: 8px; padding: 14px 28px; border-radius: 8px; border: 1px solid #d4d2d0; background: #fff; color: #0044B3; font-size: 16px; font-weight: 700; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+.back-btn:hover { background: #f3f2ef; border-color: #a8a8a8; }
+.back-btn svg { width: 18px; height: 18px; }
+
+/* Step containers */
+.step-content { display: none; }
+.step-content.active { display: block; }
+
+/* ═══ STEP 3: REVIEW ═══ */
+.review-section-title { font-size: 20px; font-weight: 700; color: #2d2d2d; margin-bottom: 24px; }
+.review-table { width: 100%; border-collapse: collapse; }
+.review-row { border-bottom: 1px solid #e5e4e1; }
+.review-row td { padding: 16px 0; vertical-align: top; font-size: 16px; font-weight: 400; color: #2d2d2d; line-height: 1.5; }
+.review-row td:first-child { font-weight: 700; width: 180px; padding-right: 24px; white-space: nowrap; }
+.review-row td:last-child { width: 40px; text-align: right; padding-left: 16px; }
+.review-edit-btn { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border: none; background: transparent; border-radius: 6px; cursor: pointer; color: #0044B3; transition: background 0.15s; }
+.review-edit-btn:hover { background: #f3f2ef; }
+.review-edit-btn svg { width: 18px; height: 18px; }
+.review-lock { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 6px; color: #a8a8a8; cursor: help; position: relative; }
+.review-lock svg { width: 16px; height: 16px; }
+.review-lock:hover::after {
+  content: "Use Back to change";
+  position: absolute; right: 38px; top: 50%; transform: translateY(-50%);
+  background: #2d2d2d; color: #fff; font-size: 12px; font-weight: 500;
+  padding: 6px 10px; border-radius: 6px; white-space: nowrap; z-index: 10;
+}
+.review-row.locked td:first-child { color: #767676; }
+.review-row.locked td:nth-child(2) { color: #767676; }
+.review-desc-preview { max-height: 100px; overflow: hidden; position: relative; }
+.review-show-full { color: #0044B3; font-weight: 700; font-size: 14px; cursor: pointer; margin-top: 8px; display: inline-block; background: none; border: none; font-family: inherit; padding: 0; }
+.review-show-full:hover { text-decoration: underline; }
+.review-disclaimer { font-size: 14px; color: #595959; line-height: 1.6; margin-top: 24px; }
+.review-disclaimer strong { color: #2d2d2d; }
+.confirm-btn { display: inline-flex; align-items: center; gap: 8px; padding: 14px 32px; border-radius: 8px; border: none; background: #0044B3; color: #fff; font-size: 16px; font-weight: 700; cursor: pointer; font-family: inherit; transition: background 0.15s; }
+.confirm-btn:hover { background: #003399; }
+.confirm-btn svg { width: 18px; height: 18px; }
+
+/* ═══ STEP 4: JOB DETAILS CONFIRMATION ═══ */
+.step5-bg { background: #f5f5f5; min-height: calc(100vh - 64px); padding: 40px 0; }
+.step5-container { max-width: 760px; margin: 0 auto; padding: 0 24px; }
+.jd-header-card { background: #fff; border-radius: 12px; padding: 32px 40px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+.jd-header-title { font-size: 36px; font-weight: 700; color: #2d2d2d; }
+.jd-header-img { width: 140px; height: auto; }
+.jd-jobs-card { background: #fff; border-radius: 12px; padding: 32px 40px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+.jd-subtitle { font-size: 18px; font-weight: 700; color: #2d2d2d; margin-bottom: 4px; }
+/* Step 5 uses shared .pkg-meta and .pkg-capacity-panel above */
+.pkg-dev { position: fixed; bottom: 20px; right: 20px; background: #1f2937; color: #fff; border-radius: 999px; padding: 6px; display: flex; align-items: center; gap: 4px; box-shadow: 0 8px 32px rgba(0,0,0,0.2); z-index: 9999; font-size: 12px; }
+.pkg-dev-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #9ca3af; padding: 0 10px 0 12px; }
+.pkg-dev-btn { background: transparent; border: none; color: #d1d5db; font-family: inherit; font-size: 12px; font-weight: 600; padding: 7px 14px; border-radius: 999px; cursor: pointer; transition: all 0.15s; }
+.pkg-dev-btn:hover { color: #fff; }
+.pkg-dev-btn.active { background: #0044B3; color: #fff; }
+.jd-job-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; }
+.jd-job-info { flex: 1; }
+.jd-job-title { font-size: 24px; font-weight: 700; color: #2d2d2d; margin-bottom: 8px; }
+.jd-job-meta { font-size: 16px; font-weight: 400; color: #595959; line-height: 1.6; }
+.jd-remove-btn { flex-shrink: 0; padding: 10px 20px; border: 2px solid #0044B3; border-radius: 8px; background: #fff; color: #0044B3; font-size: 16px; font-weight: 700; cursor: pointer; font-family: inherit; transition: background 0.15s; white-space: nowrap; }
+.jd-remove-btn:hover { background: #f3f2ef; }
+.jd-desc-title { font-size: 16px; font-weight: 700; color: #2d2d2d; margin-top: 16px; margin-bottom: 4px; }
+.jd-desc-text { font-size: 16px; font-weight: 400; color: #595959; line-height: 1.6; max-height: 100px; overflow: hidden; }
+.jd-desc-text.expanded { max-height: none; }
+.jd-read-more { font-size: 16px; font-weight: 400; color: #0044B3; background: none; border: none; cursor: pointer; font-family: inherit; padding: 0; margin-top: 8px; display: inline-block; text-decoration: underline; }
+.jd-actions-divider { border: none; border-top: 1px solid #e5e4e1; margin: 24px 0; }
+.jd-action-btns { display: flex; gap: 16px; }
+.jd-action-btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; border: 2px solid #e5e4e1; border-radius: 8px; background: #fff; color: #0044B3; font-size: 16px; font-weight: 700; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+.jd-action-btn:hover { border-color: #0044B3; background: #f7f9ff; }
+.jd-action-btn svg { width: 20px; height: 20px; }
+.jd-nav-card { background: #fff; border-radius: 12px; padding: 24px 40px; margin-top: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+
+/* ═══ STEP 5: INTERVIEW SETTINGS ═══ */
+.is-section { margin-bottom: 16px; }
+.is-section-title { font-size: 20px; font-weight: 700; color: #2d2d2d; margin-bottom: 24px; }
+.is-field-group { margin-bottom: 24px; }
+.is-label { font-size: 16px; font-weight: 700; color: #2d2d2d; margin-bottom: 6px; }
+.is-sub-label { font-size: 16px; font-weight: 700; color: #2d2d2d; margin-bottom: 6px; }
+.is-hint { font-size: 14px; color: #595959; line-height: 1.5; margin-bottom: 12px; }
+.is-number-wrap { display: inline-flex; align-items: center; border: 2px solid #a8a8a8; border-radius: 10px; overflow: hidden; }
+.is-number-btn { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; border: none; background: #f3f2ef; cursor: pointer; color: #2d2d2d; transition: background 0.15s; }
+.is-number-btn:hover { background: #e5e4e1; }
+.is-number-input { width: 60px; height: 44px; border: none; border-left: 2px solid #a8a8a8; border-right: 2px solid #a8a8a8; text-align: center; font-size: 16px; font-weight: 700; font-family: inherit; color: #2d2d2d; outline: none; background: #fff; -moz-appearance: textfield; }
+.is-number-input::-webkit-outer-spin-button, .is-number-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.is-recommendation { font-size: 14px; color: #595959; line-height: 1.6; margin-top: 14px; }
+.is-email-box { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; min-height: 48px; padding: 10px 16px; border: 2px solid #a8a8a8; border-radius: 10px; cursor: text; transition: border-color 0.15s; }
+.is-email-box:focus-within { border-color: #0044B3; box-shadow: 0 0 0 2px #0044B3; }
+.is-email-chip { display: inline-flex; align-items: center; gap: 8px; background: #f3f2ef; border: 1px solid #d4d2d0; border-radius: 999px; padding: 6px 14px; font-size: 14px; color: #2d2d2d; }
+.is-chip-x { background: none; border: none; font-size: 18px; color: #767676; cursor: pointer; padding: 0; line-height: 1; font-family: inherit; }
+.is-chip-x:hover { color: #2d2d2d; }
+.is-email-field { border: none; outline: none; font-size: 14px; font-family: inherit; flex: 1; min-width: 120px; padding: 0; }
+.is-divider { height: 1px; background: #e5e4e1; margin: 24px 0; }
+
+/* ═══ STEP 6: JOB LEVEL SCREENING ═══ */
+.sc-title-card { display: flex; align-items: center; justify-content: space-between; background: #fff; border-radius: 12px; padding: 32px 40px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); margin-bottom: 24px; min-height: 120px; }
+.sc-title-text { font-size: 36px; font-weight: 700; color: #2d2d2d; line-height: 1.25; }
+.sc-title-illustration { flex-shrink: 0; margin-left: 24px; }
+.sc-section { background: #fff; border-radius: 12px; padding: 32px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+.sc-heading { font-size: 20px; font-weight: 800; color: #2d2d2d; margin: 0 0 12px 0; }
+.sc-subtext { font-size: 15px; color: #595959; line-height: 1.7; margin-bottom: 28px; }
+.sc-jobs-container { border: 1px solid #d4d2d0; border-radius: 10px; overflow: hidden; margin-bottom: 24px; background: #fff; }
+.sc-jobs-header { padding: 14px 20px; font-size: 14px; font-weight: 400; color: #767676; border-bottom: 1px solid #ebebeb; }
+.sc-job-row { display: flex; align-items: center; justify-content: space-between; padding: 20px 20px; border-bottom: 1px solid #ebebeb; }
+.sc-job-row:last-child { border-bottom: none; }
+.sc-job-name { font-size: 16px; font-weight: 700; color: #0044B3; min-width: 180px; }
+.sc-job-status { display: flex; align-items: center; gap: 16px; }
+.sc-badge { display: inline-flex; align-items: center; padding: 6px 14px; font-size: 14px; font-weight: 400; border-radius: 6px; white-space: nowrap; }
+.sc-badge.none { background: #f3f2ef; color: #767676; }
+.sc-badge.added { background: #e8f5e9; color: #2d7a2d; font-weight: 600; }
+.sc-action-btn { border-radius: 999px; border: none; cursor: pointer; font-family: inherit; transition: all 0.15s; white-space: nowrap; }
+.sc-action-btn.add { padding: 10px 22px; font-size: 14px; font-weight: 700; background: #0044B3; color: white; }
+.sc-action-btn.add:hover { background: #003399; }
+.sc-action-btn.edit { padding: 8px 20px; font-size: 14px; font-weight: 700; background: white; border: 2px solid #0044B3; color: #0044B3; }
+.sc-action-btn.edit:hover { background: #f0f5ff; border-color: #003399; }
+.sc-action-remove { font-size: 14px; font-weight: 600; color: #991b1b; cursor: pointer; text-decoration: none; }
+.sc-action-remove:hover { text-decoration: underline; }
+.sc-multiple-link { display: inline-flex; align-items: center; gap: 6px; color: #0044B3; text-decoration: none; font-size: 15px; font-weight: 600; cursor: pointer; }
+.sc-multiple-link:hover { text-decoration: underline; }
+
+/* ═══ STEP 7: REVIEW INTERVIEW DETAILS ═══ */
+.rv-card { background: #fff; border-radius: 12px; padding: 28px 32px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); margin-bottom: 24px; }
+.rv-job-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #ebebeb; }
+.rv-job-row:last-child { border-bottom: none; }
+.rv-job-name { font-size: 16px; font-weight: 400; color: #2d2d2d; }
+.rv-preview-btn { padding: 6px 18px; border-radius: 8px; border: 2px solid #0044B3; background: #fff; color: #0044B3; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; transition: background 0.15s; }
+.rv-preview-btn:hover { background: #f0f5ff; }
+.rv-section { padding: 4px 0; }
+.rv-section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.rv-section-title { font-size: 18px; font-weight: 700; color: #2d2d2d; }
+.rv-pencil { background: none; border: none; cursor: pointer; color: #0044B3; width: 24px; height: 24px; padding: 0; }
+.rv-pencil svg { width: 20px; height: 20px; }
+.rv-section-body { font-size: 15px; color: #2d2d2d; line-height: 1.6; }
+.rv-item { font-size: 15px; color: #2d2d2d; line-height: 1.6; }
+.rv-list { margin: 0; padding-left: 20px; font-size: 15px; color: #2d2d2d; line-height: 1.8; }
+.rv-sub { font-size: 14px; color: #595959; }
+.rv-sub-title { font-size: 14px; font-weight: 700; color: #2d2d2d; }
+.rv-note { font-size: 14px; color: #595959; margin-top: 12px; line-height: 1.5; }
+.rv-link { color: #0044B3; font-size: 14px; cursor: pointer; text-decoration: none; }
+.rv-link:hover { text-decoration: underline; }
+.rv-link-inline { color: #0044B3; text-decoration: underline; }
+.rv-add-link { display: inline-flex; align-items: center; gap: 6px; color: #0044B3; font-size: 15px; font-weight: 600; cursor: pointer; text-decoration: none; }
+.rv-add-link:hover { text-decoration: underline; }
+.rv-divider { height: 1px; background: #ebebeb; margin: 20px 0; }
+.rv-disclaimer { font-size: 14px; color: #595959; line-height: 1.6; }
+
+/* Screening Modals */
+.sc-modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
+.sc-modal-overlay.open { display: flex; }
+.confirm-modal-box { background: #fff; border-radius: 12px; width: 440px; max-width: 90vw; box-shadow: 0 20px 60px rgba(0,0,0,0.25); }
+.confirm-modal-header { display: flex; align-items: center; justify-content: space-between; padding: 24px 28px 16px; }
+.confirm-modal-header h3 { font-size: 18px; font-weight: 700; color: #2d2d2d; }
+.confirm-modal-close { background: none; border: none; cursor: pointer; padding: 4px; color: #767676; font-size: 22px; }
+.confirm-modal-close:hover { color: #2d2d2d; }
+.confirm-modal-divider { height: 1px; background: #e0e0e0; }
+.confirm-modal-body { padding: 24px 28px; }
+.confirm-modal-text { font-size: 15px; color: #2d2d2d; line-height: 1.5; }
+.confirm-modal-warning { font-size: 14px; color: #767676; margin-top: 8px; }
+.confirm-modal-footer { padding: 16px 28px 24px; display: flex; align-items: center; justify-content: flex-end; gap: 12px; }
+.confirm-modal-btn { padding: 12px 28px; font-size: 14px; font-weight: 700; border-radius: 8px; cursor: pointer; font-family: inherit; border: 1px solid #d4d2d0; background: #fff; color: #2d2d2d; transition: all 0.15s; }
+.confirm-modal-btn:hover { background: #f6f5f3; }
+.confirm-modal-btn-danger { background: #991b1b; color: #fff; border: none; }
+.confirm-modal-btn-danger:hover { background: #7f1d1d; }
+.sc-modal-card { background: white; border-radius: 12px; padding: 32px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; position: relative; }
+.sc-modal-close { position: absolute; top: 20px; right: 20px; background: none; border: none; font-size: 28px; color: #767676; cursor: pointer; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; line-height: 1; }
+.sc-modal-close:hover { color: #2d2d2d; }
+.sc-modal-title { font-size: 20px; font-weight: 700; color: #2d2d2d; margin-bottom: 4px; }
+.sc-modal-sub { font-size: 14px; color: #595959; margin-bottom: 24px; }
+.sc-modal-field { margin-bottom: 24px; }
+.sc-modal-label { display: block; font-size: 14px; font-weight: 600; color: #2d2d2d; margin-bottom: 8px; }
+.sc-modal-label.required::after { content: ' *'; color: #991b1b; }
+.sc-modal-textarea { width: 100%; padding: 12px 16px; font-size: 15px; font-family: inherit; color: #2d2d2d; border: 1px solid #d4d2d0; border-radius: 8px; outline: none; min-height: 100px; resize: vertical; box-sizing: border-box; }
+.sc-modal-textarea:focus { border-color: #0044B3; box-shadow: 0 0 0 2px rgba(0,68,179,0.15); }
+.sc-modal-select { width: 100%; padding: 12px 16px; font-size: 15px; font-family: inherit; color: #2d2d2d; border: 1px solid #d4d2d0; border-radius: 8px; outline: none; background: white; cursor: pointer; }
+.sc-modal-select:focus { border-color: #0044B3; box-shadow: 0 0 0 2px rgba(0,68,179,0.15); }
+.sc-modal-row { display: flex; gap: 12px; margin-bottom: 24px; }
+.sc-modal-row .sc-modal-field { flex: 1; margin-bottom: 0; }
+.sc-modal-conditional { display: none; }
+.sc-modal-conditional.show { display: block; }
+.sc-modal-actions { display: flex; gap: 12px; margin-top: 28px; justify-content: flex-end; }
+.sc-modal-btn-cancel { background: white; border: 1px solid #d4d2d0; color: #2d2d2d; padding: 10px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; }
+.sc-modal-btn-cancel:hover { background: #f6f5f3; }
+.sc-modal-btn-save { background: #0044B3; color: white; border: none; padding: 10px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; }
+.sc-modal-btn-save:hover { background: #003399; }
+.sc-modal-jobs-list { max-height: 300px; overflow-y: auto; border: 1px solid #d4d2d0; border-radius: 8px; margin-bottom: 20px; }
+.sc-modal-job-checkbox { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-bottom: 1px solid #ebebeb; }
+.sc-modal-job-checkbox:last-child { border-bottom: none; }
+.sc-modal-job-checkbox input { cursor: pointer; width: 18px; height: 18px; }
+.sc-modal-job-checkbox-label { font-size: 15px; color: #2d2d2d; cursor: pointer; flex: 1; }
+.sc-modal-job-checkbox-label.disabled { color: #767676; cursor: not-allowed; }
+
+/* ═══ (merged into Step 2) ═══ */
+.rte-wrapper { border: 2px solid #a8a8a8; border-radius: 10px; overflow: hidden; margin-top: 12px; transition: border-color 0.15s; }
+.rte-wrapper:focus-within { border-color: #0044B3; box-shadow: 0 0 0 2px rgba(0,68,179,0.15); }
+.rte-toolbar { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border-bottom: 1px solid #e5e4e1; background: #fff; }
+.rte-toolbar-left, .rte-toolbar-right { display: flex; align-items: center; gap: 4px; }
+.rte-btn { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border: none; background: transparent; border-radius: 6px; cursor: pointer; color: #2d2d2d; font-size: 16px; font-family: inherit; transition: background 0.15s; }
+.rte-btn:hover { background: #f3f2ef; }
+.rte-btn strong { font-weight: 700; font-size: 17px; }
+.rte-btn em { font-style: italic; font-size: 17px; font-family: serif; }
+.rte-editor { min-height: 320px; max-height: 500px; overflow-y: auto; padding: 20px 24px; font-size: 15px; line-height: 1.65; color: #2d2d2d; outline: none; background: #fff; }
+.rte-editor p { margin: 0 0 12px 0; }
+.rte-editor p:last-child { margin-bottom: 0; }
+.rte-feedback { display: flex; align-items: center; gap: 10px; margin-top: 14px; padding: 14px 18px; background: #f7f7f5; border-radius: 10px; }
+.rte-feedback-text { font-size: 14px; color: #595959; }
+.rte-feedback-btn { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border: none; background: transparent; border-radius: 6px; cursor: pointer; color: #595959; transition: all 0.15s; }
+.rte-feedback-btn:hover { background: #e5e4e1; }
+.rte-feedback-btn.active { color: #0044B3; }
+.rte-disclaimer { font-size: 13px; color: #595959; margin-top: 14px; line-height: 1.5; }
+
+/* ═══ STEP 2: ADD JOB DETAILS ═══ */
+/* Chip/pill toggles */
+.chip-group { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 999px; border: 2px solid transparent; background: #f0efed; font-size: 13px; font-weight: 500; color: #2d2d2d; cursor: pointer; font-family: inherit; transition: all 0.15s; user-select: none; }
+.chip:hover { background: #e5e4e1; }
+.chip.selected { background: #fff; border-color: #2d2d2d; }
+.chip svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+/* Pay section */
+.pay-section { margin-top: 32px; }
+.pay-title { font-size: 16px; font-weight: 700; color: #2d2d2d; margin-bottom: 4px; }
+.required { color: #991b1b; }
+.pay-title .required { color: #991b1b; }
+.pay-subtitle { font-size: 14px; color: #595959; margin-bottom: 20px; line-height: 1.5; }
+.pay-subtitle .info-icon { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 50%; background: #2d2d2d; color: #fff; font-size: 11px; font-weight: 700; margin-left: 4px; vertical-align: middle; cursor: help; }
+.pay-row { display: flex; align-items: flex-end; gap: 16px; }
+.pay-row.hidden { display: none; }
+.pay-field { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 0; }
+.pay-field.auto { flex: 0 0 auto; }
+.pay-field-label { font-size: 14px; font-weight: 700; color: #2d2d2d; }
+.pay-input-wrap { display: flex; align-items: center; border: 2px solid #a8a8a8; border-radius: 10px; overflow: hidden; background: #fff; transition: border-color 0.15s; }
+.pay-input-wrap:focus-within { border-color: #0044B3; }
+.pay-input-prefix { padding: 12px 0 12px 16px; font-size: 16px; color: #595959; font-weight: 500; }
+.pay-input { border: none; outline: none; padding: 12px 14px 12px 6px; font-size: 16px; font-family: inherit; color: #2d2d2d; width: 100px; }
+.pay-to { font-size: 14px; color: #595959; padding: 0 4px; align-self: center; margin-bottom: 8px; }
+/* Pay custom dropdowns */
+.pay-custom-select { position: relative; display: inline-block; }
+.pay-custom-trigger { display: flex; align-items: center; gap: 8px; padding: 12px 40px 12px 16px; border: 2px solid #a8a8a8; border-radius: 10px; background: #fff; cursor: pointer; font-size: 16px; font-family: inherit; color: #2d2d2d; white-space: nowrap; transition: border-color 0.15s; position: relative; min-width: 160px; }
+.pay-custom-trigger:hover { border-color: #595959; }
+.pay-custom-select.open .pay-custom-trigger { border-color: #0044B3; box-shadow: 0 0 0 2px #0044B3; }
+.pay-custom-arrow { width: 16px; height: 16px; position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #767676; transition: transform 0.2s ease; pointer-events: none; }
+.pay-custom-select.open .pay-custom-arrow { transform: translateY(-50%) rotate(180deg); }
+.pay-custom-panel { position: absolute; top: calc(100% + 4px); left: 0; min-width: 100%; background: #fff; border: 1px solid #d4d2d0; border-radius: 10px; box-shadow: 0 4px 16px rgba(0,0,0,0.12); z-index: 100; display: none; overflow: hidden; }
+.pay-custom-select.open .pay-custom-panel { display: block; }
+.pay-custom-option { display: flex; align-items: center; gap: 10px; padding: 14px 18px; font-size: 16px; color: #2d2d2d; cursor: pointer; transition: background 0.1s; white-space: nowrap; }
+.pay-custom-option:hover { background: #f3f2ef; }
+.pay-custom-option.selected { background: #f3f2ef; }
+.pay-custom-option .pco-check { width: 18px; height: 18px; flex-shrink: 0; color: #2d2d2d; }
+.pay-custom-option .pco-check.hidden { visibility: hidden; }
+
+/* Benefits / Shift / Schedule sections */
+.tag-section { margin-top: 32px; }
+.tag-section-title { font-size: 16px; font-weight: 700; color: #2d2d2d; margin-bottom: 10px; }
+.tag-section-title .required { color: #991b1b; }
+
+/* Important notice */
+.important-card { border: 1px solid #f5c6cb; border-radius: 10px; padding: 20px 24px; margin-top: 40px; background: #fef2f2; }
+.important-header { font-size: 16px; font-weight: 700; color: #2d2d2d; margin-bottom: 8px; }
+.important-header .required { color: #991b1b; font-size: 18px; margin-right: 4px; }
+.important-text { font-size: 14px; color: #595959; line-height: 1.6; margin-bottom: 14px; }
+.important-checkbox { display: flex; align-items: flex-start; gap: 10px; cursor: pointer; }
+.important-checkbox .checkbox-input { width: 20px; height: 20px; border: 2px solid #a8a8a8; border-radius: 4px; flex-shrink: 0; cursor: pointer; margin-top: 2px; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+.important-checkbox .checkbox-input.checked { background: #0044B3; border-color: #0044B3; }
+.important-checkbox .checkbox-check { display: none; }
+.important-checkbox .checkbox-input.checked .checkbox-check { display: block; }
+.important-checkbox-label { font-size: 14px; color: #2d2d2d; }
+</style>
+</head>
+<body>
+
+<!-- ═══ SIDEBAR ═══ -->
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-collapse">
+    <button class="collapse-btn" onclick="toggleSidebar()" title="Collapse sidebar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      <span class="collapse-text">Collapse</span>
+    </button>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-group">
+      <a class="nav-item" href="visual.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        <span class="nav-text">Dashboard</span>
+      </a>
+      <a class="nav-item" href="visual.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4-4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+        <span class="nav-text">Interviews</span>
+      </a>
+      <a class="nav-item" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+        <span class="nav-text">Messaging</span>
+      </a>
+    </div>
+  </div>
+
+  <div class="sidebar-credits">
+    <div class="credits-header">
+      <span class="credits-label">Event Credits</span>
+      <a class="credits-link">Get Credits</a>
+    </div>
+    <div class="credits-grid">
+      <div class="credit-col">
+        <div class="credit-num">2</div>
+        <div class="credit-tier">Starter</div>
+      </div>
+      <div class="credit-col">
+        <div class="credit-num">1</div>
+        <div class="credit-tier">Growth</div>
+      </div>
+      <div class="credit-col">
+        <div class="credit-num">0</div>
+        <div class="credit-tier">Pro</div>
+      </div>
+    </div>
+  </div>
+
+</nav>
+
+<!-- ═══ TOP BAR ═══ -->
+<header class="topbar">
+  <div class="topbar-left">
+    <a class="topbar-logo">JobFairX</a>
+  </div>
+  <div class="topbar-right">
+    <div class="user-trigger" onclick="toggleDropdown('user-menu')">
+      <span>scott@jobfairx.com</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+      <div class="user-menu" id="user-menu">
+        <a class="user-menu-item" href="account-billing.html">Account &amp; Billing</a>
+        <button class="user-menu-item" onclick="openFeedbackModal()">Give Feedback</button>
+        <div class="user-menu-divider"></div>
+        <button class="user-menu-item muted">Sign Out</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ═══ PROGRESS BAR ═══ -->
+<div class="progress-bar-track">
+  <div class="progress-bar-fill" id="progressBarFill" style="width: 14.28%;"></div>
+</div>
+
+<!-- ═══ MAIN CONTENT ═══ -->
+<div class="main">
+
+  <!-- STEP 1: Create a job post -->
+  <div class="step-content active" id="step1">
+  <div class="setup-container">
+    <h1 class="page-title" id="step1Title">Create a job post</h1>
+    <div class="addjob-sub" id="step1AddJobSub" style="display:none;">Adding to <strong id="step1AddJobEventName">—</strong></div>
+
+    <div class="pkg-meta" id="step1PackageMeta">Growth package<span class="pkg-sep">&middot;</span>2 of 3 jobs added</div>
+
+    <!-- At-capacity panel (shown when package limit reached) -->
+    <div class="pkg-capacity-panel" id="step1CapacityPanel">
+      <div class="pkg-cap-title" id="step1CapTitle"></div>
+      <div class="pkg-cap-sub" id="step1CapSub"></div>
+    </div>
+
+    <div id="step1FormContent">
+
+    <!-- How would you like to post your job? -->
+    <div class="radio-group-label">How would you like to post your job? <span class="required">*</span></div>
+    <div class="radio-option" onclick="selectPostType('template', this)">
+      <div class="radio-input"><div class="radio-input-dot"></div></div>
+      <div>
+        <div class="radio-label">Use a previous job as a template</div>
+        <div class="radio-badge">Save time</div>
+      </div>
+    </div>
+    <div class="radio-option selected" onclick="selectPostType('new', this)">
+      <div class="radio-input"><div class="radio-input-dot"></div></div>
+      <div class="radio-label">Create a brand new post</div>
+    </div>
+
+    <!-- Previous jobs list (shown when template is selected) -->
+    <div class="previous-jobs" id="previousJobs">
+      <div class="pj-search-wrap">
+        <input type="text" class="pj-search" id="pjSearch" placeholder="Search by job title" oninput="filterPreviousJobs()">
+      </div>
+      <div class="pj-results-label">
+        <svg class="pj-results-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
+        <span id="pjResultsCount">4 results</span>
+      </div>
+      <div class="pj-list" id="pjList">
+        <div class="pj-item" onclick="selectPreviousJob(this)">
+          <svg class="pj-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          <div class="pj-item-info">
+            <div class="pj-item-title">Registered Nurse</div>
+            <div class="pj-item-meta">Dallas, TX 75201 &middot; March 15th, 2026</div>
+          </div>
+        </div>
+        <div class="pj-item" onclick="selectPreviousJob(this)">
+          <svg class="pj-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          <div class="pj-item-info">
+            <div class="pj-item-title">Medical Assistant</div>
+            <div class="pj-item-meta">Houston, TX 77001 &middot; February 28th, 2026</div>
+          </div>
+        </div>
+        <div class="pj-item" onclick="selectPreviousJob(this)">
+          <svg class="pj-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          <div class="pj-item-info">
+            <div class="pj-item-title">CNA - Certified Nursing Assistant</div>
+            <div class="pj-item-meta">Austin, TX 78701 &middot; January 10th, 2026</div>
+          </div>
+        </div>
+        <div class="pj-item" onclick="selectPreviousJob(this)">
+          <svg class="pj-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          <div class="pj-item-info">
+            <div class="pj-item-title">Home Health Aide</div>
+            <div class="pj-item-meta">San Antonio, TX 78201 &middot; December 5th, 2025</div>
+          </div>
+        </div>
+      </div>
+      <div class="pj-no-results" id="pjNoResults">No jobs match your search.</div>
+    </div>
+    <div id="templateError" style="display:none; color:#991b1b; font-size:14px; font-weight:600; margin-top:12px;">Please select a job to use as a template.</div>
+
+    <!-- Form fields for "Create a brand new post" (hidden when template selected) -->
+    <div id="newPostFields">
+    <div class="section-divider"></div>
+
+    <!-- Job title -->
+    <div class="form-group" id="step1TitleBlock" style="position: relative;">
+      <label class="form-label">Job title <span class="required">*</span></label>
+      <input type="text" class="form-input" id="jobTitle" placeholder="" autocomplete="off" onfocus="showJobTitleSuggestions()" oninput="filterJobTitleSuggestions()">
+      <div class="jt-suggestions" id="jobTitleSuggestions">
+        <div class="jt-suggestion" onclick="selectJobTitle(this)">Registered Nurse</div>
+        <div class="jt-suggestion" onclick="selectJobTitle(this)">Sales Associate</div>
+        <div class="jt-suggestion" onclick="selectJobTitle(this)">Full Stack Developer</div>
+        <div class="jt-suggestion" onclick="selectJobTitle(this)">Customer Service Representative</div>
+        <div class="jt-suggestion" onclick="selectJobTitle(this)">Marketing Manager</div>
+        <div class="jt-suggestion" onclick="selectJobTitle(this)">Data Analyst</div>
+        <div class="jt-suggestion" onclick="selectJobTitle(this)">Project Manager</div>
+        <div class="jt-suggestion" onclick="selectJobTitle(this)">Accountant</div>
+        <div class="jt-suggestion" onclick="selectJobTitle(this)">Graphic Designer</div>
+        <div class="jt-suggestion" onclick="selectJobTitle(this)">Human Resources Coordinator</div>
+      </div>
+      <div class="field-error" id="jobTitleError"><svg viewBox="0 0 24 24" fill="#991b1b"><circle cx="12" cy="12" r="10"/><path d="M12 8v4" stroke="#fff" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="16" r="1" fill="#fff"/></svg>Add a job title.</div>
+    </div>
+
+    <div class="section-divider"></div>
+
+    <!-- Location block wrapper (moved into modal when editing from review step) -->
+    <div id="step1LocationBlock">
+    <!-- Job location type -->
+    <div class="form-group" style="margin-bottom: 24px;">
+      <label class="form-label">Job location type <span class="required">*</span></label>
+      <div class="custom-select" id="jobLocationTypeSelect">
+        <div class="custom-select-trigger" onclick="toggleCustomSelect('jobLocationTypeSelect')">
+          <span id="jobLocationTypeLabel">In person</span>
+        </div>
+        <svg class="custom-select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        <div class="custom-select-panel">
+          <div class="custom-select-option selected" data-value="in-person" onclick="selectCustomOption(this)">
+            <svg class="custom-select-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            In person
+          </div>
+          <div class="custom-select-option" data-value="remote" onclick="selectCustomOption(this)">
+            <svg class="custom-select-check hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            Fully remote: no on-site work required
+          </div>
+          <div class="custom-select-option" data-value="hybrid" onclick="selectCustomOption(this)">
+            <svg class="custom-select-check hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            Hybrid: some on-site work required
+          </div>
+          <div class="custom-select-option" data-value="on-the-road" onclick="selectCustomOption(this)">
+            <svg class="custom-select-check hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            On the road
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- In person: job location (default visible) -->
+    <div class="form-group" id="jobLocationGroup">
+      <label class="form-label">What is the job location? <span class="required">*</span></label>
+      <div class="form-hint">Enter a street address or ZIP code</div>
+      <input type="text" class="form-input" id="jobLocation" placeholder="">
+      <div class="field-error" id="jobLocationError"><svg viewBox="0 0 24 24" fill="#991b1b"><circle cx="12" cy="12" r="10"/><path d="M12 8v4" stroke="#fff" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="16" r="1" fill="#fff"/></svg>Add a job location.</div>
+    </div>
+
+    <!-- Hybrid: street address -->
+    <div class="form-group" id="hybridLocationGroup" style="display: none;">
+      <label class="form-label">Street address <span class="required">*</span></label>
+      <input type="text" class="form-input" id="hybridLocation" placeholder="">
+      <div class="field-error" id="hybridLocationError"><svg viewBox="0 0 24 24" fill="#991b1b"><circle cx="12" cy="12" r="10"/><path d="M12 8v4" stroke="#fff" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="16" r="1" fill="#fff"/></svg>Add a street address.</div>
+    </div>
+
+    <!-- Remote: reside question -->
+    <div class="form-group" id="resideQuestionGroup" style="display: none;">
+      <div class="form-label">Are employees required to reside in a specific location?</div>
+      <div class="reside-radio-option" onclick="selectResideOption('yes', this)">
+        <div class="radio-input"><div class="radio-input-dot"></div></div>
+        <div class="radio-label">Yes</div>
+      </div>
+      <div class="reside-radio-option selected" onclick="selectResideOption('no', this)">
+        <div class="radio-input"><div class="radio-input-dot"></div></div>
+        <div class="radio-label">No</div>
+      </div>
+    </div>
+
+    <!-- Remote: reside location field -->
+    <div class="form-group" id="resideLocationGroup" style="display: none;">
+      <label class="form-label">In what location must employees reside? <span class="required">*</span></label>
+      <input type="text" class="form-input" id="resideLocation" placeholder="">
+      <div class="field-error" id="resideLocationError"><svg viewBox="0 0 24 24" fill="#991b1b"><circle cx="12" cy="12" r="10"/><path d="M12 8v4" stroke="#fff" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="16" r="1" fill="#fff"/></svg>Add a location.</div>
+    </div>
+
+    <!-- On the road: consistent starting location question -->
+    <div class="form-group" id="onRoadQuestionGroup" style="display: none;">
+      <div class="form-label">Does this job have a consistent starting location?</div>
+      <div class="reside-radio-option selected" onclick="selectOnRoadOption('yes', this)">
+        <div class="radio-input"><div class="radio-input-dot"></div></div>
+        <div class="radio-label">Yes</div>
+      </div>
+      <div class="reside-radio-option" onclick="selectOnRoadOption('no', this)">
+        <div class="radio-input"><div class="radio-input-dot"></div></div>
+        <div class="radio-label">No</div>
+      </div>
+    </div>
+
+    <!-- On the road: starting location address (Yes) -->
+    <div class="form-group" id="onRoadAddressGroup" style="display: none;">
+      <label class="form-label" id="onRoadAddressLabel">Enter the street address of the starting location <span class="required">*</span></label>
+      <input type="text" class="form-input" id="onRoadAddress" placeholder="">
+      <div class="field-error" id="onRoadAddressError"><svg viewBox="0 0 24 24" fill="#991b1b"><circle cx="12" cy="12" r="10"/><path d="M12 8v4" stroke="#fff" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="16" r="1" fill="#fff"/></svg>Add an address.</div>
+    </div>
+
+    </div><!-- /#step1LocationBlock -->
+
+    </div><!-- /#newPostFields -->
+
+    </div><!-- /#step1FormContent -->
+
+    <!-- Continue button -->
+    <div class="bottom-actions">
+      <button class="continue-btn" onclick="continueFromStep1()">Continue <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><polyline points="12 5 19 12 12 19"/></svg></button>
+    </div>
+  </div>
+  </div>
+
+  <!-- STEP 2: Add job details -->
+  <div class="step-content" id="step2">
+  <div class="step-gray-bg">
+  <div class="setup-container">
+    <div class="title-card"><h1 class="page-title" id="step2Title">Add job details</h1></div>
+
+    <div class="form-card">
+
+    <!-- Template job title (read-only, shown only on template path) -->
+    <div class="form-group" id="templateJobTitleGroup" style="display: none;">
+      <div class="form-label">Job title</div>
+      <input type="text" class="form-input readonly" id="templateJobTitle" readonly>
+      <div class="section-divider" style="margin-top: 24px;"></div>
+    </div>
+
+    <!-- Job type -->
+    <div class="form-group" id="step2JobTypeBlock">
+      <div class="form-label">Job type <span class="required">*</span></div>
+      <div class="field-error" id="jobTypeError" style="display:none;">Please select at least one job type.</div>
+      <div class="chip-group" id="jobTypeChips">
+        <div class="chip selected" onclick="toggleChip(this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          Full-time
+        </div>
+        <div class="chip" onclick="toggleChip(this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Part-time
+        </div>
+        <div class="chip" onclick="toggleChip(this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Contract
+        </div>
+        <div class="chip" onclick="toggleChip(this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Temporary
+        </div>
+        <div class="chip" onclick="toggleChip(this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Internship
+        </div>
+      </div>
+    </div>
+
+    <div class="section-divider"></div>
+
+    <!-- Pay -->
+    <div class="pay-section" id="step2PayBlock">
+      <div class="pay-title">Pay <span class="required">*</span></div>
+      <div class="field-error" id="payError" style="display:none;">Please enter pay information.</div>
+      <div class="pay-subtitle">Review the pay we estimated for your job and adjust as needed. Check your local minimum wage. <span class="info-icon">i</span></div>
+      <!-- Range row: Show pay by | Minimum | to | Maximum | Rate -->
+      <div class="pay-row" id="payRowRange">
+        <div class="pay-field auto">
+          <div class="pay-field-label">Show pay by</div>
+          <div class="pay-custom-select" id="payBySelect">
+            <div class="pay-custom-trigger" onclick="togglePaySelect('payBySelect')">
+              <span id="payByLabel">Range</span>
+              <svg class="pay-custom-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+            <div class="pay-custom-panel">
+              <div class="pay-custom-option selected" data-value="range" onclick="selectPayByOption(this)">
+                <svg class="pco-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                Range
+              </div>
+              <div class="pay-custom-option" data-value="starting" onclick="selectPayByOption(this)">
+                <svg class="pco-check hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                Starting amount
+              </div>
+              <div class="pay-custom-option" data-value="maximum" onclick="selectPayByOption(this)">
+                <svg class="pco-check hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                Maximum amount
+              </div>
+              <div class="pay-custom-option" data-value="exact" onclick="selectPayByOption(this)">
+                <svg class="pco-check hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                Exact amount
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="pay-field">
+          <div class="pay-field-label">Minimum</div>
+          <div class="pay-input-wrap">
+            <span class="pay-input-prefix">$</span>
+            <input type="text" class="pay-input" value="22.63">
+          </div>
+        </div>
+        <div class="pay-to">to</div>
+        <div class="pay-field">
+          <div class="pay-field-label">Maximum</div>
+          <div class="pay-input-wrap">
+            <span class="pay-input-prefix">$</span>
+            <input type="text" class="pay-input" value="27.25">
+          </div>
+        </div>
+        <div class="pay-field auto">
+          <div class="pay-field-label">Rate</div>
+          <div class="pay-custom-select" id="rateSelect">
+            <div class="pay-custom-trigger" onclick="togglePaySelect('rateSelect')">
+              <span id="rateLabel">per hour</span>
+              <svg class="pay-custom-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+            <div class="pay-custom-panel">
+              <div class="pay-custom-option selected" data-value="per-hour" onclick="selectPayOption(this, 'rateSelect', 'rateLabel')">
+                <svg class="pco-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                per hour
+              </div>
+              <div class="pay-custom-option" data-value="per-day" onclick="selectPayOption(this, 'rateSelect', 'rateLabel')">
+                <svg class="pco-check hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                per day
+              </div>
+              <div class="pay-custom-option" data-value="per-week" onclick="selectPayOption(this, 'rateSelect', 'rateLabel')">
+                <svg class="pco-check hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                per week
+              </div>
+              <div class="pay-custom-option" data-value="per-month" onclick="selectPayOption(this, 'rateSelect', 'rateLabel')">
+                <svg class="pco-check hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                per month
+              </div>
+              <div class="pay-custom-option" data-value="per-year" onclick="selectPayOption(this, 'rateSelect', 'rateLabel')">
+                <svg class="pco-check hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                per year
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Single amount row: Show pay by | Amount | Rate (for Starting/Maximum/Exact) -->
+      <div class="pay-row hidden" id="payRowSingle">
+        <div class="pay-field auto">
+          <div class="pay-field-label">Show pay by</div>
+          <div class="pay-custom-select" id="payBySelect2">
+            <div class="pay-custom-trigger" onclick="togglePaySelect('payBySelect2')">
+              <span id="payByLabel2">Starting amount</span>
+              <svg class="pay-custom-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+            <div class="pay-custom-panel">
+              <div class="pay-custom-option" data-value="range" onclick="selectPayByOption(this)">
+                <svg class="pco-check hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                Range
+              </div>
+              <div class="pay-custom-option selected" data-value="starting" onclick="selectPayByOption(this)">
+                <svg class="pco-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                Starting amount
+              </div>
+              <div class="pay-custom-option" data-value="maximum" onclick="selectPayByOption(this)">
+                <svg class="pco-check hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                Maximum amount
+              </div>
+              <div class="pay-custom-option" data-value="exact" onclick="selectPayByOption(this)">
+                <svg class="pco-check hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                Exact amount
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="pay-field">
+          <div class="pay-field-label" id="paySingleLabel">Amount</div>
+          <div class="pay-input-wrap">
+            <span class="pay-input-prefix">$</span>
+            <input type="text" class="pay-input" value="22.63">
+          </div>
+        </div>
+        <div class="pay-field auto">
+          <div class="pay-field-label">Rate</div>
+          <div class="pay-custom-select" id="rateSelect2">
+            <div class="pay-custom-trigger" onclick="togglePaySelect('rateSelect2')">
+              <span id="rateLabel2">per hour</span>
+              <svg class="pay-custom-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+            <div class="pay-custom-panel">
+              <div class="pay-custom-option selected" data-value="per-hour" onclick="selectPayOption(this, 'rateSelect2', 'rateLabel2')">
+                <svg class="pco-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                per hour
+              </div>
+              <div class="pay-custom-option" data-value="per-day" onclick="selectPayOption(this, 'rateSelect2', 'rateLabel2')">
+                <svg class="pco-check hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                per day
+              </div>
+              <div class="pay-custom-option" data-value="per-week" onclick="selectPayOption(this, 'rateSelect2', 'rateLabel2')">
+                <svg class="pco-check hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                per week
+              </div>
+              <div class="pay-custom-option" data-value="per-month" onclick="selectPayOption(this, 'rateSelect2', 'rateLabel2')">
+                <svg class="pco-check hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                per month
+              </div>
+              <div class="pay-custom-option" data-value="per-year" onclick="selectPayOption(this, 'rateSelect2', 'rateLabel2')">
+                <svg class="pco-check hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                per year
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-divider"></div>
+
+    <!-- Benefits -->
+    <div class="tag-section" id="step2BenefitsBlock">
+      <div class="tag-section-title">Benefits <span class="required">*</span></div>
+      <div class="field-error" id="benefitsError" style="display:none;">Please select at least one benefit.</div>
+      <div class="chip-group" id="benefitsChips">
+        <div class="chip" onclick="toggleChip(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Health insurance</div>
+        <div class="chip" onclick="toggleChip(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Paid time off</div>
+        <div class="chip" onclick="toggleChip(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Dental insurance</div>
+        <div class="chip" onclick="toggleChip(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>401(k)</div>
+        <div class="chip" onclick="toggleChip(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Vision insurance</div>
+        <div class="chip" onclick="toggleChip(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Flexible schedule</div>
+        <div class="chip" onclick="toggleChip(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Tuition reimbursement</div>
+        <div class="chip" onclick="toggleChip(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Life insurance</div>
+        <div class="chip" onclick="toggleChip(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>401(k) matching</div>
+        <div class="chip" onclick="toggleChip(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Retirement plan</div>
+        <div class="chip" onclick="toggleChip(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Referral program</div>
+        <div class="chip" onclick="toggleChip(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Employee discount</div>
+        <div class="chip" onclick="toggleChip(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Flexible spending account</div>
+        <div class="chip" onclick="toggleChip(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Health savings account</div>
+        <div class="chip" onclick="toggleChip(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Relocation assistance</div>
+        <div class="chip" onclick="toggleChip(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Parental leave</div>
+        <div class="chip" onclick="toggleChip(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Professional development assistance</div>
+        <div class="chip" onclick="toggleChip(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Employee assistance program</div>
+        <div class="chip" onclick="toggleChip(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Other</div>
+      </div>
+    </div>
+
+    <!-- Standard Shift -->
+    <div class="tag-section" id="step2ShiftBlock">
+      <div class="tag-section-title">Standard Shift <span class="required">*</span></div>
+      <div class="field-error" id="shiftError" style="display:none;">Please select at least one shift.</div>
+      <div class="chip-group" id="shiftChips">
+        <div class="chip" onclick="toggleChip(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Day shift</div>
+        <div class="chip" onclick="toggleChip(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Night shift</div>
+        <div class="chip" onclick="toggleChip(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Evening shift</div>
+        <div class="chip" onclick="toggleChip(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Overnight shift</div>
+        <div class="chip" onclick="toggleChip(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Other</div>
+        <div class="chip" onclick="toggleChip(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>None</div>
+      </div>
+    </div>
+
+    <!-- Weekly Schedule -->
+    <div class="tag-section" id="step2ScheduleBlock">
+      <div class="tag-section-title">Weekly Schedule <span class="required">*</span></div>
+      <div class="field-error" id="scheduleError" style="display:none;">Please select at least one schedule.</div>
+      <div class="chip-group" id="scheduleChips">
+        <div class="chip" onclick="toggleChip(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Weekly as needed</div>
+        <div class="chip" onclick="toggleChip(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Monday to Friday</div>
+        <div class="chip" onclick="toggleChip(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Rotating weekends</div>
+        <div class="chip" onclick="toggleChip(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Every weekend</div>
+        <div class="chip" onclick="toggleChip(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>No weekends</div>
+        <div class="chip" onclick="toggleChip(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Choose your own hours</div>
+        <div class="chip" onclick="toggleChip(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>3×12</div>
+        <div class="chip" onclick="toggleChip(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>5×8</div>
+        <div class="chip" onclick="toggleChip(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>4×10</div>
+        <div class="chip" onclick="toggleChip(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>4×12</div>
+        <div class="chip" onclick="toggleChip(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Other</div>
+        <div class="chip" onclick="toggleChip(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>None</div>
+      </div>
+    </div>
+
+    <!-- Job description -->
+    <div class="form-group" id="step2DescBlock" style="margin-top: 32px;">
+      <div class="form-label">Job description <span class="required">*</span></div>
+      <div class="form-hint">This is an AI-powered job description. You can edit or replace it. <span class="info-icon">i</span></div>
+
+      <!-- Rich text editor -->
+      <div class="rte-wrapper">
+        <div class="rte-toolbar">
+          <div class="rte-toolbar-left">
+            <button class="rte-btn" onclick="document.execCommand('bold')" title="Bold"><strong>B</strong></button>
+            <button class="rte-btn" onclick="document.execCommand('italic')" title="Italic"><em>I</em></button>
+            <button class="rte-btn" onclick="document.execCommand('insertUnorderedList')" title="Bulleted list">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+            </button>
+          </div>
+          <div class="rte-toolbar-right">
+            <button class="rte-btn" onclick="document.getElementById('jobDescEditor').innerHTML = ''" title="Clear">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="rte-editor" id="jobDescEditor" contenteditable="true">
+          <p><strong>Job Summary</strong></p>
+          <p>Join our dynamic retail team as a Sales Associate, where your enthusiasm and customer-focused mindset will drive sales and create memorable shopping experiences. In this energetic role, you will serve as a brand ambassador, helping customers find the perfect products while providing exceptional service. Your proactive approach and product knowledge will contribute to a lively store environment that encourages growth, teamwork, and success. This paid position offers an exciting opportunity to develop your retail skills and advance within a vibrant company committed to supporting its employees.</p>
+          <p><strong>Duties</strong></p>
+          <p>Greet customers warmly and assist them in locating products through engaging conversations and product demonstrations</p>
+          <p>Operate the Point of Sale (POS) system accurately for transactions, including cash handling and credit card processing</p>
+          <p>Upsell complementary products to enhance customer satisfaction and increase sales volume</p>
+          <p>Maintain well-organized merchandising displays and ensure shelves are stocked with fresh inventory</p>
+          <p>Conduct product demos to educate customers about features and benefits, encouraging informed purchasing decisions</p>
+        </div>
+      </div>
+
+      <!-- Feedback row -->
+      <div class="rte-feedback">
+        <span class="rte-feedback-text">Did you find the AI generated job description useful?</span>
+        <button class="rte-feedback-btn" onclick="this.classList.toggle('active')" title="Yes">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+        </button>
+        <button class="rte-feedback-btn" onclick="this.classList.toggle('active')" title="No">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/><path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/></svg>
+        </button>
+      </div>
+
+      <!-- Disclaimer -->
+      <div class="rte-disclaimer">*This is an AI-powered job description. It uses the job title and your location. By using the content, you adopt it as your own and are responsible for its accuracy.</div>
+    </div>
+
+    <!-- Important notice -->
+    <div class="important-card">
+      <div class="important-header"><span class="required">*</span> Important</div>
+      <div class="important-text">Please note that each time you make changes to your job posting, our marketing efforts restart, as we use AI to attract candidates. Continuous edits may impact the number of interviews you receive, so please ensure everything is accurate now.</div>
+      <div class="important-checkbox" onclick="toggleImportantCheckbox(this)">
+        <div class="checkbox-input">
+          <svg class="checkbox-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div class="important-checkbox-label">I have read and understand the impact of editing job postings.</div>
+      </div>
+    </div>
+    <div class="field-error" id="checkboxError" style="display:none;">Please acknowledge the important notice above.</div>
+    </div><!-- /.form-card -->
+
+    <!-- Back / Continue -->
+    <div class="bottom-actions-split">
+      <button class="back-btn" onclick="goToStep(1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><polyline points="12 19 5 12 12 5"/></svg> Back</button>
+      <button class="continue-btn" onclick="validateStep2()">Continue <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><polyline points="12 5 19 12 12 19"/></svg></button>
+    </div>
+  </div>
+  </div>
+  </div>
+
+  <!-- ==================== STEP 3: Review ==================== -->
+  <div class="step-content" id="step3">
+  <div class="step-gray-bg">
+  <div class="setup-container">
+    <div class="title-card"><div class="page-title">Review</div></div>
+
+    <div class="form-card">
+      <div class="review-section-title">Job details</div>
+
+      <table class="review-table">
+        <tr class="review-row locked">
+          <td>Job title</td>
+          <td id="reviewJobTitle">Sales Associate</td>
+          <td><span class="review-lock" title="Use Back to change"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></span></td>
+        </tr>
+        <tr class="review-row locked">
+          <td>Location</td>
+          <td id="reviewLocation">In person</td>
+          <td><span class="review-lock" title="Use Back to change"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></span></td>
+        </tr>
+        <tr class="review-row">
+          <td>Job type</td>
+          <td id="reviewJobType">Full-time</td>
+          <td><button class="review-edit-btn" onclick="openReviewEditModal('jobType')" title="Edit"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button></td>
+        </tr>
+        <tr class="review-row">
+          <td>Pay</td>
+          <td id="reviewPay">$22.63 - $27.25 per hour</td>
+          <td><button class="review-edit-btn" onclick="openReviewEditModal('pay')" title="Edit"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button></td>
+        </tr>
+        <tr class="review-row">
+          <td>Benefits</td>
+          <td id="reviewBenefits">—</td>
+          <td><button class="review-edit-btn" onclick="openReviewEditModal('benefits')" title="Edit"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button></td>
+        </tr>
+        <tr class="review-row">
+          <td>Standard Shift</td>
+          <td id="reviewShift">—</td>
+          <td><button class="review-edit-btn" onclick="openReviewEditModal('shift')" title="Edit"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button></td>
+        </tr>
+        <tr class="review-row">
+          <td>Weekly Schedule</td>
+          <td id="reviewSchedule">—</td>
+          <td><button class="review-edit-btn" onclick="openReviewEditModal('schedule')" title="Edit"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button></td>
+        </tr>
+        <tr class="review-row">
+          <td>Job description</td>
+          <td>
+            <div class="review-desc-preview" id="reviewDescPreview"></div>
+            <button class="review-show-full" id="reviewShowFull" onclick="toggleReviewDesc()">Show full description</button>
+          </td>
+          <td><button class="review-edit-btn" onclick="openReviewEditModal('description')" title="Edit"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button></td>
+        </tr>
+      </table>
+    </div><!-- /.form-card -->
+
+    <!-- Back / Confirm -->
+    <div class="bottom-actions-split">
+      <button class="back-btn" onclick="goToStep(2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><polyline points="12 19 5 12 12 5"/></svg> Back</button>
+      <button class="confirm-btn" onclick="goToStep(4)">Confirm <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><polyline points="12 5 19 12 12 19"/></svg></button>
+    </div>
+  </div>
+  </div>
+  </div>
+
+  <!-- ==================== STEP 4: Job Details Confirmation ==================== -->
+  <div class="step-content" id="step4">
+  <div class="step5-bg">
+  <div class="step5-container">
+
+    <!-- Header card -->
+    <div class="jd-header-card">
+      <div class="jd-header-title">Job details</div>
+      <svg class="jd-header-img" viewBox="0 0 200 150" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="200" height="150" rx="8" fill="#e8eaf6"/>
+        <circle cx="120" cy="50" r="25" fill="#c5cae9"/>
+        <rect x="85" y="75" width="70" height="60" rx="6" fill="#7986cb"/>
+        <path d="M100 75c0-8 7-15 20-15s20 7 20 15" fill="#c5cae9"/>
+        <rect x="30" y="90" width="50" height="35" rx="4" fill="#9fa8da"/>
+        <rect x="35" y="100" width="40" height="3" rx="1" fill="#e8eaf6"/>
+        <rect x="35" y="107" width="30" height="3" rx="1" fill="#e8eaf6"/>
+        <rect x="35" y="114" width="35" height="3" rx="1" fill="#e8eaf6"/>
+        <circle cx="135" cy="45" r="3" fill="#fff"/>
+        <path d="M120 70c2-3 5-5 10-5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/>
+      </svg>
+    </div>
+
+    <!-- Jobs card -->
+    <div class="jd-jobs-card">
+      <div class="jd-subtitle">Here's a look at your selected job(s):</div>
+      <div class="pkg-meta" id="jdPackageMeta">Growth package<span class="pkg-sep">&middot;</span>2 of 3 jobs added</div>
+
+      <!-- Job 1: Frontend Developer (hardcoded) -->
+      <div class="jd-job-entry" id="step5Job1">
+        <div class="jd-job-row">
+          <div class="jd-job-info">
+            <div class="jd-job-title"><a href="#" style="color: #0044B3; text-decoration: none;">Frontend Developer <svg style="width:18px;height:18px;vertical-align:middle;margin-left:4px;" viewBox="0 0 24 24" fill="none" stroke="#0044B3" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a></div>
+            <div class="jd-job-meta">
+              Full time<br>
+              $104,039.24 - $125,294.57 a year
+            </div>
+          </div>
+          <button class="jd-remove-btn" onclick="confirmRemoveJob('step5Job1', 'Frontend Developer')">Remove job</button>
+        </div>
+        <div class="jd-desc-title">Job Summary</div>
+        <div class="jd-desc-text" id="step5Desc1">We are seeking a dynamic and innovative Frontend Developer to join our vibrant tech team! In this role, you will be at the forefront of creating engaging, responsive, and user-friendly web interfaces that elevate our digital...</div>
+        <button class="jd-read-more" onclick="var d=document.getElementById('step5Desc1');d.classList.toggle('expanded');this.textContent=d.classList.contains('expanded')?'Read less':'Read more'">Read more</button>
+      </div>
+
+      <hr class="jd-actions-divider">
+
+      <!-- Job 2: Dynamic job from form -->
+      <div class="jd-job-entry" id="step5Job2">
+      <div class="jd-job-row">
+        <div class="jd-job-info">
+          <div class="jd-job-title" id="step5JobTitle"><a href="#" style="color: #0044B3; text-decoration: none;">Sales Associate <svg style="width:18px;height:18px;vertical-align:middle;margin-left:4px;" viewBox="0 0 24 24" fill="none" stroke="#0044B3" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a></div>
+          <div class="jd-job-meta" id="step5JobMeta">
+            Full time<br>
+            $22.63 - $27.25 an hour<br>
+            Henderson, NV 89052
+          </div>
+        </div>
+        <button class="jd-remove-btn" onclick="confirmRemoveJob('step5Job2', 'Sales Associate')">Remove job</button>
+      </div>
+
+      <div class="jd-desc-title">Job Summary</div>
+      <div class="jd-desc-text" id="step5DescText"></div>
+      <button class="jd-read-more" id="step5ReadMore" onclick="toggleStep5Desc()">Read more</button>
+      </div>
+
+      <hr class="jd-actions-divider">
+
+      <div class="jd-action-btns" id="jdActionBtns">
+        <button class="jd-action-btn" onclick="goToStep(1)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#0044B3" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+          Create new job
+        </button>
+        <button class="jd-action-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#0044B3" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+          Add an existing job
+        </button>
+      </div>
+      <div class="pkg-capacity-panel" id="jdCapacityMsg">
+        <div class="pkg-cap-title" id="jdCapTitle"></div>
+        <div class="pkg-cap-sub" id="jdCapSub"></div>
+      </div>
+
+      <!-- Dev toggle: preview Starter / Growth / Pro states -->
+    </div>
+
+    <!-- Back / Continue -->
+    <div class="jd-nav-card">
+      <div class="bottom-actions-split" style="padding-top: 0;">
+        <button class="back-btn" onclick="goToStep(3)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><polyline points="12 19 5 12 12 5"/></svg> Back</button>
+        <button class="continue-btn" id="step4ContinueBtn" onclick="goToStep(5)">Continue <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><polyline points="12 5 19 12 12 19"/></svg></button>
+      </div>
+    </div>
+
+  </div>
+  </div>
+  </div>
+
+  <!-- ==================== STEP 5: Interview Settings ==================== -->
+  <div class="step-content" id="step5">
+  <div class="step-gray-bg">
+  <div class="setup-container">
+    <div class="title-card"><div class="page-title">Interview settings</div></div>
+
+    <div class="form-card">
+    <!-- Interview Details -->
+    <div class="is-section">
+      <div class="is-section-title">Interview details</div>
+
+      <!-- Interview time slot duration -->
+      <div class="is-field-group">
+        <div class="is-label">Interview time slot duration</div>
+        <p class="is-hint">This allows job seekers to select from multiple scheduling options.</p>
+        <div class="pay-custom-select" id="slotDurationSelect" style="display: inline-block;">
+          <div class="pay-custom-trigger" onclick="togglePaySelect('slotDurationSelect')" style="min-width: 160px;">
+            <span id="slotDurationLabel">30 minutes</span>
+            <svg class="pay-custom-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div class="pay-custom-panel">
+            <div class="pay-custom-option" data-value="15" onclick="selectPayOption(this, 'slotDurationSelect', 'slotDurationLabel')">
+              <svg class="pco-check hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              15 minutes
+            </div>
+            <div class="pay-custom-option selected" data-value="30" onclick="selectPayOption(this, 'slotDurationSelect', 'slotDurationLabel')">
+              <svg class="pco-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              30 minutes
+            </div>
+            <div class="pay-custom-option" data-value="60" onclick="selectPayOption(this, 'slotDurationSelect', 'slotDurationLabel')">
+              <svg class="pco-check hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              60 minutes
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="is-divider"></div>
+
+      <!-- How many interviews per time slot -->
+      <div class="is-field-group">
+        <div class="is-label">How many interviews is your team able to conduct during each time slot? <span class="required">*</span></div>
+        <p class="is-hint">This cap can help optimize the distribution of interviews across time slots. Interview volume may vary based on the roles you post.</p>
+        <div class="is-number-wrap">
+          <button class="is-number-btn" onclick="adjustInterviewCount(-1)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+          <input type="number" class="is-number-input" id="interviewCount" value="3" min="1" max="20" readonly>
+          <button class="is-number-btn" onclick="adjustInterviewCount(1)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+        </div>
+        <p class="is-recommendation">Based on your selection, you can expect to plan for <strong id="expectedCandidates">3</strong> candidates to show up per time slot. We recommend staffing 1 interviewer for each expected candidate.</p>
+      </div>
+    </div>
+
+    <div class="section-divider" style="margin: 32px 0;"></div>
+
+    <!-- Interview Settings -->
+    <div class="is-section">
+      <div class="is-section-title">Interview settings</div>
+
+      <!-- Who will be interviewing -->
+      <div class="is-field-group">
+        <div class="pkg-meta" id="seatPackageMeta">Growth package<span class="pkg-sep">&middot;</span>2 of 5 recruiter seats added</div>
+        <div class="pkg-capacity-panel" id="seatCapacityPanel">
+          <div class="pkg-cap-title" id="seatCapTitle"></div>
+          <div class="pkg-cap-sub" id="seatCapSub"></div>
+        </div>
+        <div class="is-label">Who will be interviewing candidates?</div>
+        <p class="is-hint">Separate emails with commas.</p>
+        <div class="is-sub-label">Enter the interviewers' email addresses. <span class="required">*</span></div>
+        <p class="is-hint">All interviewers will need a JobFairX account to access the event.</p>
+        <div class="is-email-box" id="interviewerEmailBox" onclick="this.querySelector('input').focus()">
+          <span class="is-email-chip">scott@jobfairx.com <button class="is-chip-x" onclick="removeEmailChip(this)" title="Remove">&times;</button></span>
+          <input type="email" class="is-email-field" id="interviewerEmailInput" placeholder="Add email..." onkeydown="handleEmailKeydown(event, 'interviewerEmailBox')" onblur="handleEmailBlur(this, 'interviewerEmailBox')">
+        </div>
+        <div class="email-error" id="interviewerEmailError">Enter a valid email address.</div>
+        <div class="seat-limit-msg" id="recruiterLimitMsg">
+          <svg class="seat-limit-icon" viewBox="0 0 24 24" fill="#991b1b"><circle cx="12" cy="12" r="10"/><path d="M12 8v4" stroke="#fff" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="16" r="1" fill="#fff"/></svg>
+          You've reached your recruiter seat limit.
+        </div>
+      </div>
+
+      <div class="is-divider"></div>
+
+      <!-- Who needs updates -->
+      <div class="is-field-group">
+        <div class="is-label">Who needs to receive updates? <span class="required">*</span></div>
+        <div class="is-sub-label">Enter the email addresses for those who need to receive updates. <span class="required">*</span></div>
+        <div class="is-email-box" id="updatesEmailBox" onclick="this.querySelector('input').focus()">
+          <input type="email" class="is-email-field" id="updatesEmailInput" placeholder="Add email..." onkeydown="handleEmailKeydown(event, 'updatesEmailBox')" onblur="handleEmailBlur(this, 'updatesEmailBox')">
+        </div>
+        <div class="email-error" id="updatesEmailError">Enter a valid email address.</div>
+      </div>
+    </div>
+    </div><!-- /.form-card -->
+
+    <!-- Back / Continue -->
+    <div class="bottom-actions-split">
+      <button class="back-btn" onclick="goToStep(4)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><polyline points="12 19 5 12 12 5"/></svg> Back</button>
+      <button class="continue-btn" onclick="goToStep(6)">Continue <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><polyline points="12 5 19 12 12 19"/></svg></button>
+    </div>
+  </div>
+  </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- STEP 6 — Job level screening                -->
+  <!-- ═══════════════════════════════════════════ -->
+  <div class="step-content" id="step6">
+  <div class="step-gray-bg">
+  <div class="setup-container">
+    <!-- Title card with illustration -->
+    <div class="sc-title-card">
+      <div class="sc-title-text">Job level screening</div>
+      <div class="sc-title-illustration">
+        <svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- Clipboard body -->
+          <rect x="30" y="20" width="60" height="80" rx="6" fill="#D4A76A" stroke="#B8894A" stroke-width="2"/>
+          <!-- Clipboard clip -->
+          <rect x="45" y="14" width="30" height="14" rx="4" fill="#A8A8A8" stroke="#888" stroke-width="1.5"/>
+          <circle cx="60" cy="18" r="3" fill="#888"/>
+          <!-- Paper -->
+          <rect x="36" y="30" width="48" height="62" rx="3" fill="white"/>
+          <!-- Checklist lines -->
+          <rect x="52" y="40" width="24" height="3" rx="1.5" fill="#d4d2d0"/>
+          <rect x="52" y="54" width="24" height="3" rx="1.5" fill="#d4d2d0"/>
+          <rect x="52" y="68" width="24" height="3" rx="1.5" fill="#d4d2d0"/>
+          <!-- Checkboxes -->
+          <rect x="41" y="37" width="8" height="8" rx="2" fill="#0044B3"/>
+          <path d="M43 41.5L44.5 43L47 39.5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <rect x="41" y="51" width="8" height="8" rx="2" fill="#0044B3"/>
+          <path d="M43 55.5L44.5 57L47 53.5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <rect x="41" y="65" width="8" height="8" rx="2" stroke="#d4d2d0" stroke-width="1.5" fill="white"/>
+          <!-- Pencil -->
+          <g transform="rotate(-30 85 55)">
+            <rect x="78" y="30" width="8" height="40" rx="1" fill="#0044B3"/>
+            <polygon points="78,70 82,78 86,70" fill="#2d2d2d"/>
+            <rect x="78" y="30" width="8" height="6" rx="1" fill="#d4a76a"/>
+          </g>
+          <!-- Pink circle bg -->
+          <circle cx="75" cy="60" r="35" fill="#fce4ec" opacity="0.4"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Screen candidates section -->
+    <div class="sc-section">
+      <h3 class="sc-heading">Screen candidates for your requirements</h3>
+      <p class="sc-subtext">Jobseekers will answer your screening questions prior to completing an application and will be filtered out based on your requirements.</p>
+
+      <div class="sc-jobs-container" id="screeningJobsList">
+        <div class="sc-jobs-header">Jobs in this event</div>
+        <!-- Job rows populated dynamically by populateStep6Review() -->
+      </div>
+
+    </div>
+
+    <!-- Back / Continue -->
+    <div class="bottom-actions-split">
+      <button class="back-btn" onclick="goToStep(5)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><polyline points="12 19 5 12 12 5"/></svg> Back</button>
+      <button class="continue-btn" onclick="goToStep(7)">Continue <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><polyline points="12 5 19 12 12 19"/></svg></button>
+    </div>
+  </div>
+  </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- STEP 7 — Review interview details            -->
+  <!-- ═══════════════════════════════════════════ -->
+  <div class="step-content" id="step7">
+  <div class="step-gray-bg">
+  <div class="setup-container" style="max-width: 720px;">
+
+    <!-- Title card with illustration -->
+    <div class="sc-title-card">
+      <div class="sc-title-text">Review interview details</div>
+      <div class="sc-title-illustration">
+        <svg width="120" height="100" viewBox="0 0 120 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="60" cy="35" r="30" fill="#c5cae9"/>
+          <rect x="45" y="25" width="30" height="35" rx="4" fill="#7986cb"/>
+          <circle cx="60" cy="20" r="12" fill="#e8eaf6"/>
+          <circle cx="40" cy="50" r="10" fill="#9fa8da"/>
+          <circle cx="80" cy="50" r="10" fill="#9fa8da"/>
+          <rect x="20" y="70" width="80" height="20" rx="4" fill="#e8eaf6"/>
+          <rect x="30" y="75" width="25" height="3" rx="1" fill="#7986cb"/>
+          <rect x="30" y="82" width="15" height="3" rx="1" fill="#7986cb"/>
+          <rect x="65" y="75" width="25" height="3" rx="1" fill="#7986cb"/>
+          <rect x="65" y="82" width="15" height="3" rx="1" fill="#7986cb"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Job titles preview card -->
+    <div class="rv-card">
+      <div class="rv-job-row" id="rv-job-row-1">
+        <span class="rv-job-name" id="rvJobName1">Frontend Developer</span>
+        <button class="rv-preview-btn" onclick="goToStep(4)">Preview</button>
+      </div>
+      <div class="rv-job-row" id="rv-job-row-2">
+        <span class="rv-job-name" id="rvJobName2">Sales Associate</span>
+        <button class="rv-preview-btn" onclick="goToStep(4)">Preview</button>
+      </div>
+    </div>
+
+    <!-- Review sections card -->
+    <div class="rv-card">
+
+      <!-- Event details -->
+      <div class="rv-section">
+        <div class="rv-section-header">
+          <div class="rv-section-title">Event details</div>
+          <button class="rv-pencil" title="Edit" onclick="goToStep(1)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button>
+        </div>
+        <div class="rv-section-body">
+          <div class="rv-item">Atlanta Diversity Hiring Event</div>
+          <div class="rv-item">Virtual event</div>
+        </div>
+      </div>
+
+      <div class="rv-divider"></div>
+
+      <!-- Job titles -->
+      <div class="rv-section">
+        <div class="rv-section-header">
+          <div class="rv-section-title">Job titles</div>
+        </div>
+        <div class="rv-section-body">
+          <ul class="rv-list" id="rvJobTitlesList">
+            <li>Frontend Developer</li>
+            <li id="rvJobTitleItem2">Sales Associate</li>
+          </ul>
+          <a class="rv-link" onclick="goToStep(4)">Click here to return to the Job Details step to add or remove jobs</a>
+        </div>
+      </div>
+
+      <div class="rv-divider"></div>
+
+      <!-- Dates and times -->
+      <div class="rv-section">
+        <div class="rv-section-header">
+          <div class="rv-section-title">Dates and times</div>
+          <button class="rv-pencil" title="Edit"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button>
+        </div>
+        <div class="rv-section-body">
+          <ul class="rv-list">
+            <li>April 22, 2026<br><span class="rv-sub">11:00 AM – 3:00 PM US/Eastern</span></li>
+          </ul>
+          <div class="rv-note">Based on your interview date(s), your sessions will begin advertising on <strong>04/08/2026</strong></div>
+        </div>
+      </div>
+
+      <div class="rv-divider"></div>
+
+      <!-- Interview team -->
+      <div class="rv-section">
+        <div class="rv-section-header">
+          <div class="rv-section-title">Interview team</div>
+          <button class="rv-pencil" title="Edit" onclick="goToStep(5)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button>
+        </div>
+        <div class="rv-section-body">
+          <div class="rv-sub-title">Interviewers:</div>
+          <ul class="rv-list" id="rvInterviewersList">
+            <li>scott@jobfairx.com</li>
+          </ul>
+          <div class="rv-sub-title" style="margin-top: 16px;">Daily updates:</div>
+          <ul class="rv-list" id="rvUpdatesList">
+            <li id="rvUpdatesPlaceholder"><em>No recipients added</em></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="rv-divider"></div>
+
+      <!-- Application link -->
+      <div class="rv-section">
+        <div class="rv-section-header">
+          <div class="rv-section-title">Application link</div>
+          <button class="rv-pencil" title="Edit"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button>
+        </div>
+        <div class="rv-section-body">
+          <a class="rv-add-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0044B3" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg> Add optional information</a>
+        </div>
+      </div>
+
+      <div class="rv-divider"></div>
+
+      <!-- Applicant qualifications (screening) -->
+      <div class="rv-section">
+        <div class="rv-section-header">
+          <div class="rv-section-title">Applicant qualifications</div>
+          <button class="rv-pencil" title="Edit" onclick="goToStep(6)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button>
+        </div>
+        <div class="rv-section-body">
+          <ul class="rv-list" id="rvScreeningList">
+            <li>Frontend Developer - No screening added</li>
+            <li>Sales Associate - No screening added</li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Back / Submit -->
+    <div class="bottom-actions-split">
+      <button class="back-btn" onclick="goToStep(6)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><polyline points="12 19 5 12 12 5"/></svg> Back</button>
+      <button class="continue-btn" onclick="submitSetupAndClose()">Submit</button>
+    </div>
+
+  </div>
+  </div>
+  </div>
+
+</div>
+
+<!-- MODAL: Add Screener Question (Setup Flow) -->
+<div class="sc-modal-overlay" id="setupScreenerModal">
+  <div class="sc-modal-card">
+    <button class="sc-modal-close" onclick="closeSetupModal('setupScreenerModal')" title="Close">&times;</button>
+    <h3 class="sc-modal-title">Add Screener Question</h3>
+
+    <form onsubmit="saveSetupScreenerQuestion(event)">
+      <div class="sc-modal-field">
+        <label class="sc-modal-label required">Question Text</label>
+        <textarea class="sc-modal-textarea" id="setupQuestionText" placeholder="Enter your screening question..." required></textarea>
+      </div>
+
+      <div class="sc-modal-row">
+        <div class="sc-modal-field">
+          <label class="sc-modal-label required">Response Type</label>
+          <select class="sc-modal-select" id="setupResponseType" onchange="updateSetupConditionalFields()" required>
+            <option value="">Select response type</option>
+            <option value="yesno">Yes/No</option>
+            <option value="numeric">Numeric</option>
+          </select>
+        </div>
+        <div class="sc-modal-field">
+          <label class="sc-modal-label required">Must-have qualification</label>
+          <select class="sc-modal-select" id="setupMustHave" required>
+            <option value="">Select option</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="sc-modal-conditional" id="setupRequiredResponseField">
+        <div class="sc-modal-field">
+          <label class="sc-modal-label required">Required response</label>
+          <select class="sc-modal-select" id="setupRequiredResponse" required>
+            <option value="">Select response</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="sc-modal-conditional" id="setupRequiredMinimumField">
+        <div class="sc-modal-field">
+          <label class="sc-modal-label required">Required minimum</label>
+          <select class="sc-modal-select" id="setupRequiredMinimum" required>
+            <option value="">Select minimum</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+            <option value="9">9</option>
+            <option value="10">10</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="sc-modal-actions">
+        <button type="button" class="sc-modal-btn-cancel" onclick="closeSetupModal('setupScreenerModal')">Cancel</button>
+        <button type="submit" class="sc-modal-btn-save">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL: Add Screening to Multiple Jobs (Setup Flow) -->
+<div class="sc-modal-overlay" id="setupMultipleScreeningModal">
+  <div class="sc-modal-card">
+    <button class="sc-modal-close" onclick="closeSetupModal('setupMultipleScreeningModal')" title="Close">&times;</button>
+    <h3 class="sc-modal-title">Add screening to multiple jobs</h3>
+    <p class="sc-modal-sub">Set up screening for these jobs <span style="color:#991b1b;">*</span></p>
+
+    <div class="sc-modal-field">
+      <div class="sc-modal-jobs-list" id="setupMultipleJobsList">
+        <!-- Populated dynamically -->
+      </div>
+    </div>
+
+    <div class="sc-modal-actions">
+      <button type="button" class="sc-modal-btn-cancel" onclick="closeSetupModal('setupMultipleScreeningModal')">Cancel</button>
+      <button type="button" class="sc-modal-btn-save" onclick="proceedMultipleScreeningSetup()">Next</button>
+    </div>
+  </div>
+</div>
+
+<!-- Remove Job Confirmation Modal -->
+<div class="sc-modal-overlay" id="removeJobModal">
+  <div class="confirm-modal-box">
+    <div class="confirm-modal-header">
+      <h3 id="removeJobTitle">Remove this job?</h3>
+      <button class="confirm-modal-close" onclick="closeSetupModal('removeJobModal')">&times;</button>
+    </div>
+    <div class="confirm-modal-divider"></div>
+    <div class="confirm-modal-body">
+      <p class="confirm-modal-text" id="removeJobText">Are you sure you want to remove this job from the event?</p>
+      <p class="confirm-modal-warning">You can add it back later from the job details step.</p>
+    </div>
+    <div class="confirm-modal-footer">
+      <button class="confirm-modal-btn" onclick="closeSetupModal('removeJobModal')">Keep Job</button>
+      <button class="confirm-modal-btn confirm-modal-btn-danger" id="removeJobConfirmBtn">Remove Job</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('collapsed');
+  document.body.classList.toggle('collapsed');
+}
+
+// Step navigation
+var totalSteps = 7;
+function goToStep(step) {
+  document.querySelectorAll('.step-content').forEach(function(s) { s.classList.remove('active'); });
+  var target = document.getElementById('step' + step);
+  if (target) {
+    target.classList.add('active');
+    window.scrollTo(0, 0);
+  }
+  // Update progress bar
+  var pct = Math.round((step / totalSteps) * 100);
+  document.getElementById('progressBarFill').style.width = pct + '%';
+
+  if (step === 3) populateReview();
+  if (step === 4) populateStep4Review();
+  if (step === 6) populateStep6Review();
+  if (step === 7) populateStep7Review();
+}
+
+// Populate review page from form data
+function populateReview() {
+  // Job title
+  var title = document.getElementById('jobTitle');
+  var reviewTitle = document.getElementById('reviewJobTitle');
+  if (title && title.value.trim()) {
+    reviewTitle.textContent = title.value;
+    reviewTitle.style.color = '#2d2d2d';
+  } else {
+    reviewTitle.textContent = 'Add job title';
+    reviewTitle.style.color = '#991b1b';
+  }
+
+  // Location — combine location type + address if applicable
+  var locType = document.getElementById('jobLocationTypeLabel');
+  var reviewLoc = document.getElementById('reviewLocation');
+  var locText = '';
+  var locTypeVal = locType ? locType.textContent.trim() : '';
+
+  if (locTypeVal === 'In person') {
+    var addr = document.getElementById('jobLocation');
+    locText = addr && addr.value.trim() ? addr.value.trim() + ' (In person)' : 'In person';
+  } else if (locTypeVal === 'Fully remote') {
+    locText = 'Fully remote';
+  } else if (locTypeVal === 'Hybrid') {
+    var addr = document.getElementById('hybridLocation');
+    locText = addr && addr.value.trim() ? addr.value.trim() + ' (Hybrid)' : 'Hybrid';
+  } else if (locTypeVal === 'On the road') {
+    var addr = document.getElementById('onRoadAddress');
+    locText = addr && addr.value.trim() ? addr.value.trim() + ' (On the road)' : 'On the road';
+  }
+
+  if (locText) {
+    reviewLoc.textContent = locText;
+    reviewLoc.style.color = '#2d2d2d';
+  } else {
+    reviewLoc.textContent = 'Add location';
+    reviewLoc.style.color = '#991b1b';
+  }
+
+  // Job type — selected chips
+  var jobTypeChips = document.querySelectorAll('#jobTypeChips .chip.selected');
+  var jobTypes = [];
+  jobTypeChips.forEach(function(c) { jobTypes.push(c.textContent.trim()); });
+  document.getElementById('reviewJobType').textContent = jobTypes.length ? jobTypes.join(', ') : '—';
+
+  // Pay
+  var rangeRow = document.getElementById('payRowRange');
+  var singleRow = document.getElementById('payRowSingle');
+  var payText = '—';
+  if (rangeRow && !rangeRow.classList.contains('hidden')) {
+    var inputs = rangeRow.querySelectorAll('.pay-input');
+    var rateLabel = document.getElementById('rateLabel');
+    if (inputs.length >= 2 && inputs[0].value && inputs[1].value) {
+      payText = '$' + inputs[0].value + ' - $' + inputs[1].value + ' ' + (rateLabel ? rateLabel.textContent : '');
+    }
+  } else if (singleRow && !singleRow.classList.contains('hidden')) {
+    var input = singleRow.querySelector('.pay-input');
+    var rateLabel2 = document.getElementById('rateLabel2');
+    var payByLabel2 = document.getElementById('payByLabel2');
+    if (input && input.value) {
+      var prefix = payByLabel2 ? payByLabel2.textContent : '';
+      payText = '$' + input.value + ' ' + (rateLabel2 ? rateLabel2.textContent : '') + (prefix !== 'Exact amount' ? ' (' + prefix.toLowerCase() + ')' : '');
+    }
+  }
+  document.getElementById('reviewPay').textContent = payText;
+
+  // Benefits
+  var benefitChips = document.querySelectorAll('#benefitsChips .chip.selected');
+  var benefits = [];
+  benefitChips.forEach(function(c) { benefits.push(c.textContent.trim()); });
+  document.getElementById('reviewBenefits').textContent = benefits.length ? benefits.join(', ') : '—';
+
+  // Standard Shift
+  var shiftChips = document.querySelectorAll('#shiftChips .chip.selected');
+  var shifts = [];
+  shiftChips.forEach(function(c) { shifts.push(c.textContent.trim()); });
+  document.getElementById('reviewShift').textContent = shifts.length ? shifts.join(', ') : '—';
+
+  // Weekly Schedule
+  var schedChips = document.querySelectorAll('#scheduleChips .chip.selected');
+  var scheds = [];
+  schedChips.forEach(function(c) { scheds.push(c.textContent.trim()); });
+  document.getElementById('reviewSchedule').textContent = scheds.length ? scheds.join(', ') : '—';
+
+  // Job description
+  var editor = document.getElementById('jobDescEditor');
+  var preview = document.getElementById('reviewDescPreview');
+  if (editor && preview) {
+    preview.innerHTML = editor.innerHTML;
+    preview.style.maxHeight = '100px';
+    document.getElementById('reviewShowFull').textContent = 'Show full description';
+  }
+}
+
+// Toggle full job description on review
+function toggleReviewDesc() {
+  var preview = document.getElementById('reviewDescPreview');
+  var btn = document.getElementById('reviewShowFull');
+  if (preview.style.maxHeight === 'none') {
+    preview.style.maxHeight = '100px';
+    btn.textContent = 'Show full description';
+  } else {
+    preview.style.maxHeight = 'none';
+    btn.textContent = 'Hide full description';
+  }
+}
+
+// Populate Step 5 job details confirmation
+function populateStep4Review() {
+  // Job title
+  var title = document.getElementById('jobTitle');
+  var titleText = title && title.value.trim() ? title.value : 'Sales Associate';
+  document.getElementById('step5JobTitle').innerHTML = '<a href="#" style="color: #0044B3; text-decoration: none;">' + titleText + ' <svg style="width:18px;height:18px;vertical-align:middle;margin-left:4px;" viewBox="0 0 24 24" fill="none" stroke="#0044B3" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a>';
+
+  // Build meta: job type, pay, location
+  var jobTypeChips = document.querySelectorAll('#jobTypeChips .chip.selected');
+  var jobTypes = [];
+  jobTypeChips.forEach(function(c) { jobTypes.push(c.textContent.trim()); });
+  var jobTypeText = jobTypes.length ? jobTypes.join(', ') : 'Full time';
+
+  // Pay
+  var payText = '';
+  var rangeRow = document.getElementById('payRowRange');
+  var singleRow = document.getElementById('payRowSingle');
+  if (rangeRow && !rangeRow.classList.contains('hidden')) {
+    var inputs = rangeRow.querySelectorAll('.pay-input');
+    var rateLabel = document.getElementById('rateLabel');
+    if (inputs.length >= 2 && inputs[0].value && inputs[1].value) {
+      payText = '$' + inputs[0].value + ' - $' + inputs[1].value + ' ' + (rateLabel ? rateLabel.textContent.replace('per ', 'an ') : '');
+    }
+  } else if (singleRow && !singleRow.classList.contains('hidden')) {
+    var input = singleRow.querySelector('.pay-input');
+    var rateLabel2 = document.getElementById('rateLabel2');
+    if (input && input.value) {
+      payText = '$' + input.value + ' ' + (rateLabel2 ? rateLabel2.textContent.replace('per ', 'an ') : '');
+    }
+  }
+
+  // Location
+  var locType = document.getElementById('jobLocationTypeLabel');
+  var locTypeVal = locType ? locType.textContent.trim() : '';
+  var locText = '';
+  if (locTypeVal === 'In person') {
+    var addr = document.getElementById('jobLocation');
+    locText = addr && addr.value.trim() ? addr.value.trim() : '';
+  } else if (locTypeVal === 'Fully remote') {
+    locText = 'Fully remote';
+  } else if (locTypeVal === 'Hybrid') {
+    var addr = document.getElementById('hybridLocation');
+    locText = addr && addr.value.trim() ? addr.value.trim() : '';
+  } else if (locTypeVal === 'On the road') {
+    var addr = document.getElementById('onRoadAddress');
+    locText = addr && addr.value.trim() ? addr.value.trim() : '';
+  }
+
+  var metaHtml = jobTypeText;
+  if (payText) metaHtml += '<br>' + payText;
+  if (locText) metaHtml += '<br>' + locText;
+  document.getElementById('step5JobMeta').innerHTML = metaHtml;
+
+  // Job description — strip "Job Overview" / "Job Summary" headings from preview
+  var editor = document.getElementById('jobDescEditor');
+  var descEl = document.getElementById('step5DescText');
+  if (editor && descEl) {
+    var tempDiv = document.createElement('div');
+    tempDiv.innerHTML = editor.innerHTML;
+    // Remove paragraphs that are just headings like "Job Overview", "Job Summary"
+    tempDiv.querySelectorAll('p').forEach(function(p) {
+      var text = p.textContent.trim();
+      if (text === 'Job Overview' || text === 'Job Summary') {
+        p.remove();
+      }
+    });
+    descEl.innerHTML = tempDiv.innerHTML;
+    descEl.classList.remove('expanded');
+    document.getElementById('step5ReadMore').textContent = 'Read more';
+  }
+}
+
+function toggleStep5Desc() {
+  var desc = document.getElementById('step5DescText');
+  var btn = document.getElementById('step5ReadMore');
+  if (desc.classList.contains('expanded')) {
+    desc.classList.remove('expanded');
+    btn.textContent = 'Read more';
+  } else {
+    desc.classList.add('expanded');
+    btn.textContent = 'Read less';
+  }
+}
+
+// Step 4: Interview count spinner
+function adjustInterviewCount(delta) {
+  var input = document.getElementById('interviewCount');
+  var val = parseInt(input.value) + delta;
+  if (val < 1) val = 1;
+  if (val > 20) val = 20;
+  input.value = val;
+  document.getElementById('expectedCandidates').textContent = val;
+}
+
+// Step 4: Email chip handler
+function addEmailChip(input, boxId) {
+  var email = input.value.trim().replace(/,/g, '').replace(/\s/g, '');
+  if (!email || email.indexOf('@') === -1) return false;
+
+  var box = document.getElementById(boxId);
+
+  // Check recruiter seat limit for interviewer box
+  if (boxId === 'interviewerEmailBox') {
+    var existingChips = box.querySelectorAll('.is-email-chip').length;
+    if (existingChips >= 1) {
+      var limitMsg = document.getElementById('recruiterLimitMsg');
+      if (limitMsg) limitMsg.style.display = 'flex';
+      input.value = '';
+      return false;
+    }
+  }
+
+  var chip = document.createElement('span');
+  chip.className = 'is-email-chip';
+  chip.innerHTML = email + ' <button class="is-chip-x" onclick="removeEmailChip(this)" title="Remove">&times;</button>';
+  box.insertBefore(chip, input);
+  input.value = '';
+  return true;
+}
+
+function handleEmailKeydown(e, boxId) {
+  if (e.key === 'Enter' || e.key === ',' || e.key === ' ' || e.key === 'Tab') {
+    var input = e.target;
+    var hasValue = input.value.trim().replace(/,/g, '').replace(/\s/g, '');
+    if (hasValue) {
+      e.preventDefault();
+      addEmailChip(input, boxId);
+    } else if (e.key === ' ' || e.key === ',') {
+      e.preventDefault();
+    }
+  }
+}
+
+function handleEmailBlur(input, boxId) {
+  // Convert any typed email into a chip when clicking away
+  var email = input.value.trim().replace(/,/g, '').replace(/\s/g, '');
+  if (email && email.indexOf('@') !== -1) {
+    addEmailChip(input, boxId);
+  }
+}
+
+function removeEmailChip(btn) {
+  btn.parentElement.remove();
+  // Hide limit message when a seat opens up
+  var limitMsg = document.getElementById('recruiterLimitMsg');
+  if (limitMsg) limitMsg.style.display = 'none';
+}
+
+// Chip toggle (multi-select)
+var checkSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+var plusSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
+
+function toggleChip(el) {
+  var group = el.closest('.chip-group');
+  var isMultiSelect = (group.id === 'benefitsChips');
+
+  if (isMultiSelect) {
+    // Multi-select: just toggle this chip
+    el.classList.toggle('selected');
+    var svg = el.querySelector('svg');
+    if (el.classList.contains('selected')) {
+      svg.outerHTML = checkSvg;
+    } else {
+      svg.outerHTML = plusSvg;
+    }
+  } else {
+    // Single-select: deselect all others first
+    var wasSelected = el.classList.contains('selected');
+    group.querySelectorAll('.chip').forEach(function(chip) {
+      chip.classList.remove('selected');
+      chip.querySelector('svg').outerHTML = plusSvg;
+    });
+    if (!wasSelected) {
+      el.classList.add('selected');
+      el.querySelector('svg').outerHTML = checkSvg;
+    }
+  }
+}
+
+// Important checkbox
+function toggleImportantCheckbox(row) {
+  var box = row.querySelector('.checkbox-input');
+  box.classList.toggle('checked');
+}
+
+// Pay custom selects
+function togglePaySelect(id) {
+  var select = document.getElementById(id);
+  var isOpen = select.classList.contains('open');
+  document.querySelectorAll('.pay-custom-select').forEach(function(s) { s.classList.remove('open'); });
+  if (!isOpen) select.classList.add('open');
+}
+
+function selectPayOption(el, selectId, labelId) {
+  var select = document.getElementById(selectId);
+  select.querySelectorAll('.pay-custom-option').forEach(function(opt) {
+    opt.classList.remove('selected');
+    opt.querySelector('.pco-check').classList.add('hidden');
+  });
+  el.classList.add('selected');
+  el.querySelector('.pco-check').classList.remove('hidden');
+  document.getElementById(labelId).textContent = el.textContent.trim();
+  select.classList.remove('open');
+}
+
+function selectPayByOption(el) {
+  var value = el.getAttribute('data-value');
+  var rangeRow = document.getElementById('payRowRange');
+  var singleRow = document.getElementById('payRowSingle');
+  var singleLabel = document.getElementById('paySingleLabel');
+  var parentSelect = el.closest('.pay-custom-select');
+
+  // Close the dropdown and update its label
+  var labelMap = { range: 'Range', starting: 'Starting amount', maximum: 'Maximum amount', exact: 'Exact amount' };
+
+  // Update checkmarks in BOTH dropdowns
+  ['payBySelect', 'payBySelect2'].forEach(function(selId) {
+    var sel = document.getElementById(selId);
+    if (sel) {
+      sel.querySelectorAll('.pay-custom-option').forEach(function(opt) {
+        var check = opt.querySelector('.pco-check');
+        if (opt.getAttribute('data-value') === value) {
+          opt.classList.add('selected');
+          if (check) check.classList.remove('hidden');
+        } else {
+          opt.classList.remove('selected');
+          if (check) check.classList.add('hidden');
+        }
+      });
+      sel.classList.remove('open');
+    }
+  });
+
+  // Update both labels
+  document.getElementById('payByLabel').textContent = labelMap[value];
+  document.getElementById('payByLabel2').textContent = labelMap[value];
+
+  if (value === 'range') {
+    rangeRow.classList.remove('hidden');
+    singleRow.classList.add('hidden');
+  } else {
+    rangeRow.classList.add('hidden');
+    singleRow.classList.remove('hidden');
+    singleLabel.textContent = 'Amount';
+  }
+}
+
+// Close pay selects on outside click
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.pay-custom-select')) {
+    document.querySelectorAll('.pay-custom-select').forEach(function(s) { s.classList.remove('open'); });
+  }
+});
+
+function toggleDropdown(id) {
+  var menu = document.getElementById(id);
+  var isOpen = menu.classList.contains('open');
+  document.querySelectorAll('.user-menu').forEach(function(m) { m.classList.remove('open'); });
+  if (!isOpen) menu.classList.add('open');
+}
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.user-trigger')) {
+    document.querySelectorAll('.user-menu').forEach(function(m) { m.classList.remove('open'); });
+  }
+});
+
+// Field validation — red on blur if empty, blue border when filled
+function setupFieldValidation(inputId, errorId) {
+  var input = document.getElementById(inputId);
+  var error = document.getElementById(errorId);
+  var touched = false;
+
+  input.addEventListener('focus', function() {
+    touched = true;
+    input.classList.remove('error');
+    input.classList.remove('valid');
+    if (error) error.classList.remove('visible');
+  });
+
+  input.addEventListener('blur', function() {
+    if (!touched) return;
+    if (input.value.trim() === '') {
+      input.classList.add('error');
+      input.classList.remove('valid');
+      if (error) error.classList.add('visible');
+    } else {
+      input.classList.remove('error');
+      input.classList.add('valid');
+      if (error) error.classList.remove('visible');
+    }
+  });
+}
+
+setupFieldValidation('jobTitle', 'jobTitleError');
+setupFieldValidation('jobLocation', 'jobLocationError');
+setupFieldValidation('hybridLocation', 'hybridLocationError');
+setupFieldValidation('resideLocation', 'resideLocationError');
+setupFieldValidation('onRoadAddress', 'onRoadAddressError');
+
+// Custom select dropdown
+function toggleCustomSelect(id) {
+  var select = document.getElementById(id);
+  var isOpen = select.classList.contains('open');
+  // Close all custom selects first
+  document.querySelectorAll('.custom-select').forEach(function(s) { s.classList.remove('open'); });
+  if (!isOpen) select.classList.add('open');
+}
+
+function selectCustomOption(el) {
+  var select = el.closest('.custom-select');
+  var label = select.querySelector('span');
+  // Remove selected from all options, hide all checks
+  select.querySelectorAll('.custom-select-option').forEach(function(opt) {
+    opt.classList.remove('selected');
+    opt.querySelector('.custom-select-check').classList.add('hidden');
+  });
+  // Select this option
+  el.classList.add('selected');
+  el.querySelector('.custom-select-check').classList.remove('hidden');
+  // Get just the text (not the SVG text)
+  var text = el.textContent.trim();
+  label.textContent = text;
+  // Close dropdown
+  select.classList.remove('open');
+
+  // Handle conditional fields based on location type
+  var value = el.getAttribute('data-value');
+  var jobLocationGroup = document.getElementById('jobLocationGroup');
+  var hybridLocationGroup = document.getElementById('hybridLocationGroup');
+  var resideQuestionGroup = document.getElementById('resideQuestionGroup');
+  var resideLocationGroup = document.getElementById('resideLocationGroup');
+  var onRoadQuestionGroup = document.getElementById('onRoadQuestionGroup');
+  var onRoadAddressGroup = document.getElementById('onRoadAddressGroup');
+
+  // Hide all conditional groups first
+  jobLocationGroup.style.display = 'none';
+  hybridLocationGroup.style.display = 'none';
+  resideQuestionGroup.style.display = 'none';
+  resideLocationGroup.style.display = 'none';
+  onRoadQuestionGroup.style.display = 'none';
+  onRoadAddressGroup.style.display = 'none';
+
+  if (value === 'in-person') {
+    jobLocationGroup.style.display = 'block';
+  } else if (value === 'hybrid') {
+    hybridLocationGroup.style.display = 'block';
+  } else if (value === 'remote') {
+    resideQuestionGroup.style.display = 'block';
+    // Check if Yes (first option) is selected
+    var yesOption = resideQuestionGroup.querySelectorAll('.reside-radio-option')[0];
+    resideLocationGroup.style.display = yesOption.classList.contains('selected') ? 'block' : 'none';
+  } else if (value === 'on-the-road') {
+    onRoadQuestionGroup.style.display = 'block';
+    // Yes is default, so always show the address field
+    var yesOption = onRoadQuestionGroup.querySelectorAll('.reside-radio-option')[0];
+    if (yesOption.classList.contains('selected')) {
+      onRoadAddressGroup.style.display = 'block';
+      document.getElementById('onRoadAddressLabel').innerHTML = 'Enter the street address of the starting location <span class="required">*</span>';
+    } else {
+      onRoadAddressGroup.style.display = 'block';
+      document.getElementById('onRoadAddressLabel').innerHTML = 'What is the operating area for this job? <span class="required">*</span>';
+    }
+  }
+}
+
+function selectResideOption(value, el) {
+  var group = el.closest('#resideQuestionGroup');
+  group.querySelectorAll('.reside-radio-option').forEach(function(o) { o.classList.remove('selected'); });
+  el.classList.add('selected');
+
+  var resideLocationGroup = document.getElementById('resideLocationGroup');
+  if (value === 'yes') {
+    resideLocationGroup.style.display = 'block';
+  } else {
+    resideLocationGroup.style.display = 'none';
+  }
+}
+
+function selectOnRoadOption(value, el) {
+  var group = el.closest('#onRoadQuestionGroup');
+  group.querySelectorAll('.reside-radio-option').forEach(function(o) { o.classList.remove('selected'); });
+  el.classList.add('selected');
+
+  var onRoadAddressGroup = document.getElementById('onRoadAddressGroup');
+  var onRoadAddressLabel = document.getElementById('onRoadAddressLabel');
+
+  if (value === 'yes') {
+    onRoadAddressGroup.style.display = 'block';
+    onRoadAddressLabel.textContent = 'Enter the street address of the starting location *';
+  } else {
+    onRoadAddressGroup.style.display = 'block';
+    onRoadAddressLabel.textContent = 'What is the operating area for this job? *';
+  }
+}
+
+// Close custom select when clicking outside
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.custom-select')) {
+    document.querySelectorAll('.custom-select').forEach(function(s) { s.classList.remove('open'); });
+  }
+});
+
+function selectPostType(type, el) {
+  currentPostType = type;
+  document.querySelectorAll('.radio-option').forEach(function(o) { o.classList.remove('selected'); });
+  el.classList.add('selected');
+  var prevJobs = document.getElementById('previousJobs');
+  var newPostFields = document.getElementById('newPostFields');
+  if (type === 'template') {
+    prevJobs.classList.add('visible');
+    newPostFields.style.display = 'none';
+  } else {
+    prevJobs.classList.remove('visible');
+    newPostFields.style.display = '';
+  }
+}
+
+// Template data for each previous job
+var templateData = {
+  'Registered Nurse': {
+    location: 'Dallas, TX 75201',
+    locationType: 'In person',
+    jobType: ['Full-time'],
+    benefits: ['Health insurance', 'Paid time off', 'Dental insurance', '401(k)', 'Vision insurance'],
+    shift: ['Day shift', 'Night shift'],
+    schedule: ['3×12', 'Rotating weekends'],
+    payMin: '32.50', payMax: '45.00', rate: 'per hour',
+    description: '<p><strong>Job Summary</strong></p><p>We are seeking a compassionate and skilled Registered Nurse to join our healthcare team. You will provide direct patient care, coordinate treatment plans, and collaborate with physicians and other healthcare professionals to deliver exceptional patient outcomes.</p><p><strong>Duties</strong></p><p>Assess patient health conditions through physical exams and medical history review</p><p>Administer medications, injections, and IV fluids as prescribed by physicians</p><p>Monitor vital signs and document patient progress in electronic health records</p><p>Educate patients and families about treatment plans, medications, and post-discharge care</p><p>Collaborate with interdisciplinary team members to develop individualized care plans</p>'
+  },
+  'Medical Assistant': {
+    location: 'Houston, TX 77001',
+    locationType: 'In person',
+    jobType: ['Full-time'],
+    benefits: ['Health insurance', 'Paid time off', '401(k)'],
+    shift: ['Day shift'],
+    schedule: ['Monday to Friday'],
+    payMin: '18.00', payMax: '24.50', rate: 'per hour',
+    description: '<p><strong>Job Summary</strong></p><p>We are looking for a detail-oriented Medical Assistant to support our clinical team. You will handle both administrative and clinical tasks, ensuring smooth daily operations and excellent patient experiences.</p><p><strong>Duties</strong></p><p>Greet patients and prepare them for examinations by taking vital signs and medical histories</p><p>Assist physicians during exams and minor procedures</p><p>Schedule appointments, manage referrals, and handle insurance verifications</p><p>Maintain clean and organized examination rooms and restock supplies</p>'
+  },
+  'CNA - Certified Nursing Assistant': {
+    location: 'Austin, TX 78701',
+    locationType: 'In person',
+    jobType: ['Part-time'],
+    benefits: ['Health insurance', 'Paid time off', 'Flexible schedule'],
+    shift: ['Day shift'],
+    schedule: ['3×12'],
+    payMin: '16.00', payMax: '21.00', rate: 'per hour',
+    description: '<p><strong>Job Summary</strong></p><p>We are hiring a Certified Nursing Assistant to provide hands-on care and support to patients in our facility. You will work closely with nurses and other healthcare professionals to ensure patient comfort and well-being.</p><p><strong>Duties</strong></p><p>Assist patients with daily living activities including bathing, dressing, and feeding</p><p>Monitor and record vital signs and report changes to nursing staff</p><p>Help patients with mobility, transfers, and range-of-motion exercises</p><p>Maintain clean and safe patient environments</p>'
+  },
+  'Home Health Aide': {
+    location: 'San Antonio, TX 78201',
+    locationType: 'On the road',
+    jobType: ['Full-time'],
+    benefits: ['Health insurance', 'Paid time off', 'Flexible schedule'],
+    shift: ['Day shift'],
+    schedule: ['Monday to Friday'],
+    payMin: '14.50', payMax: '19.00', rate: 'per hour',
+    description: '<p><strong>Job Summary</strong></p><p>We are seeking a caring Home Health Aide to provide in-home support to patients who need assistance with daily activities. You will travel to patient homes and deliver personalized care with compassion and professionalism.</p><p><strong>Duties</strong></p><p>Assist clients with personal care including bathing, grooming, and dressing</p><p>Help with light housekeeping, meal preparation, and medication reminders</p><p>Provide companionship and emotional support to clients</p><p>Document care activities and report concerns to supervising nurse</p>'
+  }
+};
+
+var isTemplatePath = false;
+var currentPostType = 'new';
+
+function continueFromStep1() {
+  var isTemplate = (currentPostType === 'template');
+
+  if (isTemplate) {
+    var selectedJob = document.querySelector('.pj-item.selected');
+    if (!selectedJob) {
+      document.getElementById('templateError').style.display = 'block';
+      return;
+    }
+    document.getElementById('templateError').style.display = 'none';
+    var jobName = selectedJob.querySelector('.pj-item-title').textContent;
+    var data = templateData[jobName];
+    if (data) {
+      prefillStep2(jobName, data);
+    }
+    isTemplatePath = true;
+    document.getElementById('step2Title').textContent = 'Review Job Details';
+    document.getElementById('templateJobTitleGroup').style.display = '';
+    document.getElementById('templateJobTitle').value = jobName;
+  } else {
+    isTemplatePath = false;
+    document.getElementById('step2Title').textContent = 'Add job details';
+    document.getElementById('templateJobTitleGroup').style.display = 'none';
+  }
+  goToStep(2);
+}
+
+function selectSingleChip(groupSelector, value) {
+  var chips = document.querySelectorAll(groupSelector + ' .chip');
+  chips.forEach(function(chip) {
+    var text = chip.textContent.trim();
+    if (text === value) {
+      chip.classList.add('selected');
+      chip.querySelector('svg').outerHTML = checkSvg;
+    } else {
+      chip.classList.remove('selected');
+      chip.querySelector('svg').outerHTML = plusSvg;
+    }
+  });
+}
+
+function selectMultipleChips(groupSelector, values) {
+  var chips = document.querySelectorAll(groupSelector + ' .chip');
+  chips.forEach(function(chip) {
+    var text = chip.textContent.trim();
+    if (values.indexOf(text) !== -1) {
+      chip.classList.add('selected');
+      chip.querySelector('svg').outerHTML = checkSvg;
+    } else {
+      chip.classList.remove('selected');
+      chip.querySelector('svg').outerHTML = plusSvg;
+    }
+  });
+}
+
+function prefillStep2(jobName, data) {
+  // Job title
+  document.getElementById('jobTitle').value = jobName;
+
+  // Job type chips (single-select — use first value)
+  selectSingleChip('#jobTypeChips', data.jobType[0]);
+
+  // Pay
+  document.querySelectorAll('#payRowRange .pay-input')[0].value = data.payMin;
+  document.querySelectorAll('#payRowRange .pay-input')[1].value = data.payMax;
+
+  // Benefits chips (multi-select)
+  selectMultipleChips('#benefitsChips', data.benefits);
+
+  // Shift chips (single-select)
+  selectSingleChip('#shiftChips', data.shift[0]);
+
+  // Schedule chips (single-select)
+  selectSingleChip('#scheduleChips', data.schedule[0]);
+
+  // Job description
+  document.getElementById('jobDescEditor').innerHTML = data.description;
+}
+
+// Job title suggestions
+function showJobTitleSuggestions() {
+  var suggestions = document.getElementById('jobTitleSuggestions');
+  suggestions.classList.add('open');
+  filterJobTitleSuggestions();
+}
+
+function filterJobTitleSuggestions() {
+  var input = document.getElementById('jobTitle').value.toLowerCase();
+  var suggestions = document.querySelectorAll('.jt-suggestion');
+  var anyVisible = false;
+  suggestions.forEach(function(s) {
+    if (input === '' || s.textContent.toLowerCase().indexOf(input) !== -1) {
+      s.classList.remove('hidden');
+      anyVisible = true;
+    } else {
+      s.classList.add('hidden');
+    }
+  });
+  var panel = document.getElementById('jobTitleSuggestions');
+  if (anyVisible) panel.classList.add('open');
+  else panel.classList.remove('open');
+}
+
+function selectJobTitle(el) {
+  document.getElementById('jobTitle').value = el.textContent;
+  document.getElementById('jobTitleSuggestions').classList.remove('open');
+}
+
+// Close job title suggestions on outside click
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('#jobTitle') && !e.target.closest('#jobTitleSuggestions')) {
+    document.getElementById('jobTitleSuggestions').classList.remove('open');
+  }
+});
+
+function selectPreviousJob(el) {
+  // Toggle: if already selected, deselect
+  if (el.classList.contains('selected')) {
+    el.classList.remove('selected');
+    document.getElementById('jobTitle').value = '';
+    return;
+  }
+  document.querySelectorAll('.pj-item').forEach(function(j) { j.classList.remove('selected'); });
+  el.classList.add('selected');
+  var jobName = el.querySelector('.pj-item-title').textContent;
+  document.getElementById('jobTitle').value = jobName;
+  document.getElementById('templateError').style.display = 'none';
+}
+
+function filterPreviousJobs() {
+  var query = document.getElementById('pjSearch').value.toLowerCase();
+  var items = document.querySelectorAll('.pj-item');
+  var visibleCount = 0;
+  items.forEach(function(item) {
+    var title = item.querySelector('.pj-item-title').textContent.toLowerCase();
+    if (query === '' || title.indexOf(query) !== -1) {
+      item.style.display = '';
+      visibleCount++;
+    } else {
+      item.style.display = 'none';
+    }
+  });
+  document.getElementById('pjResultsCount').textContent = visibleCount + ' result' + (visibleCount !== 1 ? 's' : '');
+  document.getElementById('pjNoResults').style.display = visibleCount === 0 ? 'block' : 'none';
+}
+
+// Step 2 validation — all sections required
+function validateStep2() {
+  var valid = true;
+  var firstError = null;
+
+  // Check each chip group has at least one selected
+  var groups = [
+    { id: 'jobTypeChips', errorId: 'jobTypeError' },
+    { id: 'benefitsChips', errorId: 'benefitsError' },
+    { id: 'shiftChips', errorId: 'shiftError' },
+    { id: 'scheduleChips', errorId: 'scheduleError' }
+  ];
+
+  groups.forEach(function(g) {
+    var group = document.getElementById(g.id);
+    var error = document.getElementById(g.errorId);
+    var hasSelection = group.querySelector('.chip.selected');
+    if (!hasSelection) {
+      valid = false;
+      if (error) error.style.display = 'flex';
+      if (!firstError) firstError = group;
+    } else {
+      if (error) error.style.display = 'none';
+    }
+  });
+
+  // Check pay inputs are filled
+  var payError = document.getElementById('payError');
+  var rangeRow = document.getElementById('payRowRange');
+  var singleRow = document.getElementById('payRowSingle');
+  var payValid = true;
+
+  if (!rangeRow.classList.contains('hidden')) {
+    rangeRow.querySelectorAll('.pay-input').forEach(function(inp) {
+      if (!inp.value.trim()) payValid = false;
+    });
+  } else {
+    singleRow.querySelectorAll('.pay-input').forEach(function(inp) {
+      if (!inp.value.trim()) payValid = false;
+    });
+  }
+
+  if (!payValid) {
+    valid = false;
+    if (payError) payError.style.display = 'flex';
+    if (!firstError) firstError = document.querySelector('.pay-section');
+  } else {
+    if (payError) payError.style.display = 'none';
+  }
+
+  // Check important notice checkbox
+  var checkboxError = document.getElementById('checkboxError');
+  var checkbox = document.querySelector('.checkbox-input.checked');
+  if (!checkbox) {
+    valid = false;
+    if (checkboxError) checkboxError.style.display = 'flex';
+    if (!firstError) firstError = document.querySelector('.important-card');
+  } else {
+    if (checkboxError) checkboxError.style.display = 'none';
+  }
+
+  if (valid) {
+    goToStep(3);
+  } else if (firstError) {
+    firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+}
+
+/* ═══ Step 6: Screening ═══ */
+var setupScreeningData = [];
+var currentSetupScreeningJobIndex = null;
+
+function populateStep6Review() {
+  // Build job list from step 5 data
+  var jobs = [];
+  // Hardcoded first job
+  jobs.push({ name: 'Frontend Developer', hasScreening: false, question: null });
+  // Dynamic job from form
+  var jobTitle = document.getElementById('jobTitle').value.trim() || 'Sales Associate';
+  jobs.push({ name: jobTitle, hasScreening: false, question: null });
+
+  // Preserve existing screening data if jobs haven't changed
+  if (setupScreeningData.length === jobs.length) {
+    var same = true;
+    for (var i = 0; i < jobs.length; i++) {
+      if (setupScreeningData[i].name !== jobs[i].name) { same = false; break; }
+    }
+    if (same) {
+      renderScreeningJobRows();
+      renderMultipleJobsCheckboxes();
+      return;
+    }
+  }
+
+  setupScreeningData = jobs;
+  renderScreeningJobRows();
+  renderMultipleJobsCheckboxes();
+}
+
+function renderScreeningJobRows() {
+  var container = document.getElementById('screeningJobsList');
+  container.innerHTML = '<div class="sc-jobs-header">Jobs in this event</div>';
+  for (var i = 0; i < setupScreeningData.length; i++) {
+    var job = setupScreeningData[i];
+    var row = document.createElement('div');
+    row.className = 'sc-job-row';
+    row.setAttribute('data-job-index', i);
+
+    var nameDiv = document.createElement('div');
+    nameDiv.className = 'sc-job-name';
+    nameDiv.textContent = job.name;
+
+    var statusDiv = document.createElement('div');
+    statusDiv.className = 'sc-job-status';
+
+    var badge = document.createElement('span');
+    badge.className = 'sc-badge ' + (job.hasScreening ? 'added' : 'none');
+    badge.textContent = job.hasScreening ? 'Screening added' : 'No screening added';
+
+    statusDiv.appendChild(badge);
+
+    if (job.hasScreening) {
+      var removeLink = document.createElement('a');
+      removeLink.className = 'sc-action-remove';
+      removeLink.textContent = 'Remove';
+      removeLink.onclick = (function(idx) { return function() { removeSetupScreening(idx); }; })(i);
+      statusDiv.appendChild(removeLink);
+
+      var editBtn = document.createElement('button');
+      editBtn.className = 'sc-action-btn edit';
+      editBtn.textContent = 'Edit';
+      editBtn.onclick = (function(idx) { return function() { openEditSetupScreener(idx); }; })(i);
+      statusDiv.appendChild(editBtn);
+    } else {
+      var addBtn = document.createElement('button');
+      addBtn.className = 'sc-action-btn add';
+      addBtn.textContent = 'Add screening';
+      addBtn.onclick = (function(idx) { return function() { openAddSetupScreener(idx); }; })(i);
+      statusDiv.appendChild(addBtn);
+    }
+
+    row.appendChild(nameDiv);
+    row.appendChild(statusDiv);
+    container.appendChild(row);
+  }
+}
+
+function renderMultipleJobsCheckboxes() {
+  var list = document.getElementById('setupMultipleJobsList');
+  list.innerHTML = '';
+  for (var i = 0; i < setupScreeningData.length; i++) {
+    var job = setupScreeningData[i];
+    var wrapper = document.createElement('div');
+    wrapper.className = 'sc-modal-job-checkbox';
+
+    var checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.id = 'setup-job-' + i + '-multi';
+    checkbox.value = i;
+
+    var label = document.createElement('label');
+    label.htmlFor = 'setup-job-' + i + '-multi';
+    label.className = 'sc-modal-job-checkbox-label';
+
+    if (job.hasScreening) {
+      checkbox.disabled = true;
+      label.classList.add('disabled');
+      label.textContent = job.name + ' (has screening associated)';
+    } else {
+      label.textContent = job.name;
+    }
+
+    wrapper.appendChild(checkbox);
+    wrapper.appendChild(label);
+    list.appendChild(wrapper);
+  }
+}
+
+function openAddSetupScreener(jobIndex) {
+  currentSetupScreeningJobIndex = jobIndex;
+  document.getElementById('setupQuestionText').value = '';
+  document.getElementById('setupResponseType').value = '';
+  document.getElementById('setupMustHave').value = '';
+  document.getElementById('setupRequiredResponse').value = '';
+  document.getElementById('setupRequiredMinimum').value = '';
+  updateSetupConditionalFields();
+  openSetupModal('setupScreenerModal');
+}
+
+function openEditSetupScreener(jobIndex) {
+  currentSetupScreeningJobIndex = jobIndex;
+  var job = setupScreeningData[jobIndex];
+  if (job.question) {
+    document.getElementById('setupQuestionText').value = job.question.text;
+    document.getElementById('setupResponseType').value = job.question.responseType;
+    document.getElementById('setupMustHave').value = job.question.mustHave;
+    document.getElementById('setupRequiredResponse').value = job.question.requiredResponse || '';
+    document.getElementById('setupRequiredMinimum').value = job.question.requiredMinimum || '';
+    updateSetupConditionalFields();
+  }
+  openSetupModal('setupScreenerModal');
+}
+
+function saveSetupScreenerQuestion(event) {
+  event.preventDefault();
+  if (currentSetupScreeningJobIndex === null) return;
+
+  var questionText = document.getElementById('setupQuestionText').value;
+  var responseType = document.getElementById('setupResponseType').value;
+  var mustHave = document.getElementById('setupMustHave').value;
+  var requiredResponse = document.getElementById('setupRequiredResponse').value;
+  var requiredMinimum = document.getElementById('setupRequiredMinimum').value;
+
+  setupScreeningData[currentSetupScreeningJobIndex].hasScreening = true;
+  setupScreeningData[currentSetupScreeningJobIndex].question = {
+    text: questionText,
+    responseType: responseType,
+    mustHave: mustHave,
+    requiredResponse: requiredResponse,
+    requiredMinimum: requiredMinimum
+  };
+
+  renderScreeningJobRows();
+  renderMultipleJobsCheckboxes();
+  closeSetupModal('setupScreenerModal');
+}
+
+function removeSetupScreening(jobIndex) {
+  setupScreeningData[jobIndex].hasScreening = false;
+  setupScreeningData[jobIndex].question = null;
+  renderScreeningJobRows();
+  renderMultipleJobsCheckboxes();
+}
+
+function openMultipleScreeningSetup() {
+  renderMultipleJobsCheckboxes();
+  openSetupModal('setupMultipleScreeningModal');
+}
+
+function proceedMultipleScreeningSetup() {
+  var selected = [];
+  for (var i = 0; i < setupScreeningData.length; i++) {
+    var checkbox = document.getElementById('setup-job-' + i + '-multi');
+    if (checkbox && checkbox.checked) {
+      selected.push(i);
+    }
+  }
+  if (selected.length === 0) {
+    alert('Please select at least one job');
+    return;
+  }
+  closeSetupModal('setupMultipleScreeningModal');
+  currentSetupScreeningJobIndex = selected[0];
+  document.getElementById('setupQuestionText').value = '';
+  document.getElementById('setupResponseType').value = '';
+  document.getElementById('setupMustHave').value = '';
+  updateSetupConditionalFields();
+  openSetupModal('setupScreenerModal');
+}
+
+function updateSetupConditionalFields() {
+  var responseType = document.getElementById('setupResponseType').value;
+  var requiredResponseField = document.getElementById('setupRequiredResponseField');
+  var requiredMinimumField = document.getElementById('setupRequiredMinimumField');
+
+  if (responseType === 'yesno') {
+    requiredResponseField.classList.add('show');
+    requiredMinimumField.classList.remove('show');
+    document.getElementById('setupRequiredResponse').required = true;
+    document.getElementById('setupRequiredMinimum').required = false;
+  } else if (responseType === 'numeric') {
+    requiredResponseField.classList.remove('show');
+    requiredMinimumField.classList.add('show');
+    document.getElementById('setupRequiredResponse').required = false;
+    document.getElementById('setupRequiredMinimum').required = true;
+  } else {
+    requiredResponseField.classList.remove('show');
+    requiredMinimumField.classList.remove('show');
+    document.getElementById('setupRequiredResponse').required = false;
+    document.getElementById('setupRequiredMinimum').required = false;
+  }
+}
+
+function openSetupModal(modalId) {
+  document.getElementById(modalId).classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeSetupModal(modalId) {
+  document.getElementById(modalId).classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+var pendingRemoveJobId = null;
+function confirmRemoveJob(jobId, jobName) {
+  pendingRemoveJobId = jobId;
+  document.getElementById('removeJobTitle').textContent = 'Remove ' + jobName + '?';
+  document.getElementById('removeJobText').textContent = 'Are you sure you want to remove ' + jobName + ' from this event?';
+  document.getElementById('removeJobConfirmBtn').onclick = function() {
+    document.getElementById(pendingRemoveJobId).style.display = 'none';
+    closeSetupModal('removeJobModal');
+    pendingRemoveJobId = null;
+    recomputePackageUsage();
+  };
+  openSetupModal('removeJobModal');
+}
+
+/* ═══ Unified package usage display (Steps 1, 5, 6) ═══ */
+var PACKAGE_LIMITS = { starter: 1, growth: 3, pro: 6 };
+var PACKAGE_SEATS  = { starter: 1, growth: 5, pro: 'unlimited' };
+var PACKAGE_NAMES  = { starter: 'Starter', growth: 'Growth', pro: 'Pro' };
+var currentPackage = 'growth';
+
+function setPackagePreview(pkg) {
+  if (!PACKAGE_LIMITS[pkg]) return;
+  currentPackage = pkg;
+  // Toggle dev button active state
+  ['Starter','Growth','Pro'].forEach(function(name) {
+    var btn = document.getElementById('pkgDev' + name);
+    if (btn) btn.classList.toggle('active', name.toLowerCase() === pkg);
+  });
+  // For Starter demo on Step 5, hide the first job so the state is at 1/1
+  var job1 = document.getElementById('step5Job1');
+  if (job1) {
+    job1.style.display = (pkg === 'starter') ? 'none' : '';
+  }
+  // Also ensure job2 is visible (in case it was removed)
+  var job2 = document.getElementById('step5Job2');
+  if (job2) job2.style.display = '';
+  recomputePackageUsage();
+}
+
+function recomputePackageUsage() {
+  var limit = PACKAGE_LIMITS[currentPackage];
+  var name = PACKAGE_NAMES[currentPackage];
+  var seats = PACKAGE_SEATS[currentPackage];
+
+  // ── Step 1: meta line reflects state BEFORE adding a job ──
+  // Starter 0/1, Growth 2/3, Pro 5/6 (always in normal/non-capacity state on Step 1)
+  var step1Used = Math.max(0, limit - 1);
+  var step1Meta = document.getElementById('step1PackageMeta');
+  if (step1Meta) {
+    step1Meta.innerHTML = '<span class="pkg-check">&#10003;</span>' + name + ' package<span class="pkg-sep">&middot;</span>' + step1Used + ' of ' + limit + ' jobs added';
+    step1Meta.classList.remove('is-full');
+  }
+  // Step 1 is never at capacity in the preview (user wouldn't reach it if full)
+  var step1Form = document.getElementById('step1FormContent');
+  var step1Cap  = document.getElementById('step1CapacityPanel');
+  if (step1Form) step1Form.style.display = '';
+  if (step1Cap) step1Cap.style.display = 'none';
+
+  // ── Step 5: meta line reflects visible job entries ──
+  var entries = document.querySelectorAll('.jd-job-entry');
+  var visible = 0;
+  entries.forEach(function(el) { if (el.style.display !== 'none') visible++; });
+  var jdMeta = document.getElementById('jdPackageMeta');
+  if (jdMeta) {
+    jdMeta.innerHTML = '<span class="pkg-check">&#10003;</span>' + name + ' package<span class="pkg-sep">&middot;</span>' + visible + ' of ' + limit + ' jobs added';
+    jdMeta.classList.toggle('is-full', visible >= limit);
+  }
+  var btns = document.getElementById('jdActionBtns');
+  var jdCap = document.getElementById('jdCapacityMsg');
+  if (btns && jdCap) {
+    if (visible >= limit) {
+      btns.style.display = 'none';
+      jdCap.style.display = 'block';
+      var title = document.getElementById('jdCapTitle');
+      var sub = document.getElementById('jdCapSub');
+      if (currentPackage === 'starter') {
+        title.textContent = "You've added your job";
+        sub.textContent = "Ready to continue, or remove the job above to add a different one.";
+      } else {
+        title.textContent = "You've added all " + limit + " jobs included with your " + name + " package";
+        sub.textContent = "To add a different job, remove one above.";
+      }
+    } else {
+      btns.style.display = 'flex';
+      jdCap.style.display = 'none';
+    }
+  }
+
+  // ── Step 6: recruiter seat meta line ──
+  var seatMeta = document.getElementById('seatPackageMeta');
+  var seatCap  = document.getElementById('seatCapacityPanel');
+  if (seatMeta) {
+    if (seats === 'unlimited') {
+      seatMeta.innerHTML = '<span class="pkg-check">&#10003;</span>' + name + ' package<span class="pkg-sep">&middot;</span>Unlimited recruiter seats';
+      seatMeta.classList.remove('is-full');
+    } else if (currentPackage === 'starter') {
+      seatMeta.innerHTML = '<span class="pkg-check">&#10003;</span>' + name + ' package<span class="pkg-sep">&middot;</span>1 of 1 recruiter seats added';
+      seatMeta.classList.add('is-full');
+    } else {
+      seatMeta.innerHTML = '<span class="pkg-check">&#10003;</span>' + name + ' package<span class="pkg-sep">&middot;</span>2 of ' + seats + ' recruiter seats added';
+      seatMeta.classList.remove('is-full');
+    }
+  }
+  if (seatCap) {
+    if (currentPackage === 'starter') {
+      // Starter is at capacity the moment they add themselves
+      seatCap.style.display = 'block';
+      var sTitle = document.getElementById('seatCapTitle');
+      var sSub = document.getElementById('seatCapSub');
+      if (sTitle) sTitle.textContent = "You've added your recruiter seat";
+      if (sSub) sSub.textContent = "Ready to continue. Remove the interviewer above to swap them out.";
+    } else {
+      seatCap.style.display = 'none';
+    }
+  }
+
+  // In add-job mode the package meter is driven by the target event, not the dev toggle.
+  if (typeof IS_ADD_JOB_MODE !== 'undefined' && IS_ADD_JOB_MODE && ADD_JOB_EVENT) {
+    var s1 = document.getElementById('step1PackageMeta');
+    if (s1) {
+      s1.innerHTML = '<span class="pkg-check">&#10003;</span>' + ADD_JOB_EVENT.pkg +
+        ' package<span class="pkg-sep">&middot;</span>' +
+        ADD_JOB_EVENT.used + ' of ' + ADD_JOB_EVENT.limit + ' jobs added';
+      s1.classList.remove('is-full');
+    }
+    var jd = document.getElementById('jdPackageMeta');
+    if (jd) {
+      jd.innerHTML = '<span class="pkg-check">&#10003;</span>' + ADD_JOB_EVENT.pkg +
+        ' package<span class="pkg-sep">&middot;</span>' +
+        (ADD_JOB_EVENT.used + 1) + ' of ' + ADD_JOB_EVENT.limit + ' jobs added';
+    }
+  }
+}
+
+// Initialize on load
+document.addEventListener('DOMContentLoaded', function() {
+  recomputePackageUsage();
+  applyAddJobModeIfNeeded();
+});
+
+/* ═══ Add-job mode ═══
+ * Entered via `?mode=add-job&event=<key>`. Opens setup-flow in a new tab from
+ * edit-post.html when the user needs to add jobs to an existing event.
+ * Visually identical to onboarding — only copy, package meter, progress bar
+ * length, and the step 4 terminal CTA change.
+ */
+var ADD_JOB_EVENTS = {
+  dallas:  { name: 'Dallas Healthcare Hiring Event',  pkg: 'Growth',  limit: 3, used: 1 },
+  chicago: { name: 'Chicago Technology Hiring Event', pkg: 'Growth',  limit: 3, used: 0 },
+  atlanta: { name: 'Atlanta Diversity Hiring Event',  pkg: 'Growth',  limit: 3, used: 0 }
+};
+var IS_ADD_JOB_MODE = false;
+var ADD_JOB_EVENT = null;
+
+function applyAddJobModeIfNeeded() {
+  var params = new URLSearchParams(window.location.search);
+  if ((params.get('mode') || '').toLowerCase() !== 'add-job') return;
+  var key = (params.get('event') || 'dallas').toLowerCase();
+  if (!ADD_JOB_EVENTS[key]) key = 'dallas';
+  IS_ADD_JOB_MODE = true;
+  ADD_JOB_EVENT = ADD_JOB_EVENTS[key];
+
+  // Step 1 copy
+  var title = document.getElementById('step1Title');
+  var sub   = document.getElementById('step1AddJobSub');
+  var subName = document.getElementById('step1AddJobEventName');
+  if (title) title.textContent = 'Add a job';
+  if (subName) subName.textContent = ADD_JOB_EVENT.name;
+  if (sub) sub.style.display = 'block';
+
+  // Document title (browser tab)
+  document.title = 'Add a job - ' + ADD_JOB_EVENT.name;
+
+  // Package meter on step 1 reflects the target event's real usage
+  var step1Meta = document.getElementById('step1PackageMeta');
+  if (step1Meta) {
+    step1Meta.innerHTML = '<span class="pkg-check">&#10003;</span>' + ADD_JOB_EVENT.pkg +
+      ' package<span class="pkg-sep">&middot;</span>' +
+      ADD_JOB_EVENT.used + ' of ' + ADD_JOB_EVENT.limit + ' jobs added';
+    step1Meta.classList.remove('is-full');
+  }
+
+  // Package meter on step 4 (jobs list)
+  var jdMeta = document.getElementById('jdPackageMeta');
+  if (jdMeta) {
+    jdMeta.innerHTML = '<span class="pkg-check">&#10003;</span>' + ADD_JOB_EVENT.pkg +
+      ' package<span class="pkg-sep">&middot;</span>' +
+      (ADD_JOB_EVENT.used + 1) + ' of ' + ADD_JOB_EVENT.limit + ' jobs added';
+  }
+
+  // Progress bar represents steps 1–4 only in add-job mode
+  totalSteps = 4;
+  var pct = Math.round((1 / totalSteps) * 100);
+  var fill = document.getElementById('progressBarFill');
+  if (fill) fill.style.width = pct + '%';
+
+  // Step 4 terminal CTA → Save & close (closes the tab)
+  var cta = document.getElementById('step4ContinueBtn');
+  if (cta) {
+    cta.innerHTML = 'Save &amp; close <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+    cta.onclick = saveAndCloseAddJob;
+  }
+}
+
+function saveAndCloseAddJob() {
+  // In prototype land there's nothing to persist — the dev will wire real save.
+  // Close the tab; the parent edit-post page will re-render on focus.
+  try { window.close(); } catch (e) {}
+  // Fallback if window.close is blocked (e.g., tab wasn't opened via window.open)
+  setTimeout(function() {
+    if (!window.closed) {
+      window.location.href = 'edit-post.html?event=' + (new URLSearchParams(window.location.search).get('event') || 'dallas');
+    }
+  }, 150);
+}
+
+function submitSetupAndClose() {
+  // Normal onboarding submit: when launched as a new tab from the dashboard
+  // (e.g., Atlanta "Complete setup"), close the tab so the user returns to
+  // the dashboard underneath. Fall back to a dashboard redirect if the tab
+  // wasn't opened via window.open and close is blocked.
+  try { window.close(); } catch (e) {}
+  setTimeout(function() {
+    if (!window.closed) {
+      window.location.href = 'visual.html?setup=complete';
+    }
+  }, 150);
+}
+
+/* ═══ Step 4: Review Interview Details ═══ */
+function populateStep7Review() {
+  // Job titles
+  var jobTitle = document.getElementById('jobTitle').value.trim() || 'Sales Associate';
+  document.getElementById('rvJobName1').textContent = 'Frontend Developer';
+  document.getElementById('rvJobName2').textContent = jobTitle;
+  document.getElementById('rvJobTitleItem2').textContent = jobTitle;
+
+  // Interviewers from Step 6
+  var interviewerBox = document.getElementById('interviewerEmailBox');
+  var interviewerChips = interviewerBox.querySelectorAll('.is-email-chip');
+  var interviewerList = document.getElementById('rvInterviewersList');
+  interviewerList.innerHTML = '';
+  if (interviewerChips.length > 0) {
+    interviewerChips.forEach(function(chip) {
+      var email = chip.textContent.replace('×', '').trim();
+      var li = document.createElement('li');
+      li.textContent = email;
+      interviewerList.appendChild(li);
+    });
+  } else {
+    interviewerList.innerHTML = '<li><em>No interviewers added</em></li>';
+  }
+
+  // Update recipients from Step 6
+  var updatesBox = document.getElementById('updatesEmailBox');
+  var updatesChips = updatesBox.querySelectorAll('.is-email-chip');
+  var updatesList = document.getElementById('rvUpdatesList');
+  updatesList.innerHTML = '';
+  if (updatesChips.length > 0) {
+    updatesChips.forEach(function(chip) {
+      var email = chip.textContent.replace('×', '').trim();
+      var li = document.createElement('li');
+      li.textContent = email;
+      updatesList.appendChild(li);
+    });
+  } else {
+    updatesList.innerHTML = '<li><em>No recipients added</em></li>';
+  }
+
+  // Screening status from Step 6
+  var screeningList = document.getElementById('rvScreeningList');
+  screeningList.innerHTML = '';
+  if (setupScreeningData.length > 0) {
+    setupScreeningData.forEach(function(job) {
+      var li = document.createElement('li');
+      li.textContent = job.name + ' - ' + (job.hasScreening ? 'Screening added' : 'No screening added');
+      screeningList.appendChild(li);
+    });
+  } else {
+    var li1 = document.createElement('li');
+    li1.textContent = 'Frontend Developer - No screening added';
+    screeningList.appendChild(li1);
+    var li2 = document.createElement('li');
+    li2.textContent = jobTitle + ' - No screening added';
+    screeningList.appendChild(li2);
+  }
+}
+
+</script>
+<!-- ═══ FEEDBACK MODAL ═══ -->
+<style>
+.fb-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 2000; align-items: flex-start; justify-content: center; padding: 5vh 20px; overflow-y: auto; }
+.fb-overlay.open { display: flex; }
+.fb-card { background: #fff; border-radius: 12px; padding: 36px 40px; max-width: 680px; width: 100%; position: relative; box-shadow: 0 20px 60px rgba(0,0,0,0.25); font-family: inherit; }
+.fb-close { position: absolute; top: 20px; right: 20px; background: none; border: none; font-size: 28px; color: #767676; cursor: pointer; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; line-height: 1; padding: 0; border-radius: 6px; transition: background 0.15s; }
+.fb-close:hover { background: #f6f5f3; color: #2d2d2d; }
+.fb-title { font-size: 24px; font-weight: 700; color: #2d2d2d; margin-bottom: 6px; letter-spacing: -0.01em; }
+.fb-sub { font-size: 15px; color: #767676; margin-bottom: 28px; }
+.fb-section { margin-bottom: 28px; }
+.fb-label { font-size: 16px; font-weight: 700; color: #2d2d2d; margin-bottom: 14px; }
+.fb-required { color: #dc2626; }
+.fb-optional { color: #9ca3af; font-weight: 400; }
+.fb-emoji-row { display: flex; gap: 10px; justify-content: space-between; }
+.fb-emoji { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 16px 8px; background: #fff; border: 2px solid #e5e7eb; border-radius: 12px; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+.fb-emoji:hover { border-color: #0044B3; background: #f5f9ff; }
+.fb-emoji.selected { border-color: #0044B3; background: #f0f5ff; }
+.fb-emoji-icon { font-size: 32px; line-height: 1; }
+.fb-emoji-label { font-size: 13px; font-weight: 600; color: #595959; }
+.fb-emoji.selected .fb-emoji-label { color: #0044B3; }
+.fb-followups { display: none; margin-bottom: 28px; }
+.fb-card.has-rating .fb-followups { display: block; }
+.fb-followup-card { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 18px 22px; background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 12px; margin-bottom: 12px; }
+.fb-followup-card:last-child { margin-bottom: 0; }
+.fb-followup-text { flex: 1; min-width: 0; }
+.fb-followup-title { font-size: 15px; font-weight: 700; color: #2d2d2d; margin-bottom: 4px; }
+.fb-followup-desc { font-size: 13px; color: #767676; line-height: 1.4; }
+.fb-chip-row { display: flex; gap: 8px; flex-shrink: 0; }
+.fb-chip { padding: 8px 14px; background: #fff; border: 1px solid #d4d2d0; border-radius: 999px; font-size: 13px; font-weight: 600; color: #2d2d2d; cursor: pointer; font-family: inherit; transition: all 0.15s; white-space: nowrap; }
+.fb-chip:hover { border-color: #0044B3; }
+.fb-chip.selected { border-color: #0044B3; background: #f0f5ff; color: #0044B3; }
+.fb-textarea-wrap { position: relative; }
+.fb-textarea { width: 100%; min-height: 96px; padding: 14px 16px; font-size: 15px; font-family: inherit; color: #2d2d2d; border: 1px solid #d4d2d0; border-radius: 10px; outline: none; resize: vertical; transition: border-color 0.15s, box-shadow 0.15s; box-sizing: border-box; }
+.fb-textarea:focus { border-color: #0044B3; box-shadow: 0 0 0 2px rgba(0,68,179,0.15); }
+.fb-textarea::placeholder { color: #9ca3af; }
+.fb-char-counter { position: absolute; bottom: 12px; right: 16px; font-size: 12px; color: #9ca3af; pointer-events: none; background: #fff; padding: 0 4px; }
+.fb-actions { display: flex; justify-content: flex-end; gap: 12px; padding-top: 8px; }
+.fb-btn-cancel { background: #fff; border: 1px solid #d4d2d0; color: #2d2d2d; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+.fb-btn-cancel:hover { background: #f6f5f3; border-color: #2d2d2d; }
+.fb-btn-submit { background: #0044B3; color: #fff; border: none; padding: 12px 28px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; transition: background 0.15s; }
+.fb-btn-submit:hover:not(:disabled) { background: #003399; }
+.fb-btn-submit:disabled { background: #cbd5e1; cursor: not-allowed; }
+@media (max-width: 680px) {
+  .fb-card { padding: 28px 22px; }
+  .fb-emoji-row { gap: 6px; }
+  .fb-emoji { padding: 12px 4px; }
+  .fb-emoji-icon { font-size: 26px; }
+  .fb-emoji-label { font-size: 11px; }
+  .fb-followup-card { flex-direction: column; align-items: stretch; gap: 12px; }
+  .fb-chip-row { justify-content: space-between; }
+}
+
+/* ═══════════════════════════════════════════════════
+   Review-step field edit modal (Step 3 pencils)
+   ═══════════════════════════════════════════════════ */
+.rv-modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; align-items: flex-start; justify-content: center; z-index: 1200; overflow-y: auto; padding: 56px 20px; }
+.rv-modal-backdrop.open { display: flex; }
+.rv-modal-card { background: #fff; border-radius: 12px; width: 100%; max-width: 720px; box-shadow: 0 20px 60px rgba(0,0,0,0.25); display: flex; flex-direction: column; max-height: calc(100vh - 112px); overflow: hidden; }
+.rv-modal-card.wide { max-width: 820px; }
+.rv-modal-card.tall { max-width: 820px; }
+.rv-modal-header { display: flex; align-items: center; justify-content: space-between; padding: 24px 28px 16px; border-bottom: 1px solid #ebebeb; flex-shrink: 0; }
+.rv-modal-title { font-size: 20px; font-weight: 700; color: #2d2d2d; }
+.rv-modal-close { width: 32px; height: 32px; border: none; background: transparent; border-radius: 6px; cursor: pointer; color: #595959; display: flex; align-items: center; justify-content: center; transition: background 0.15s; }
+.rv-modal-close:hover { background: #f3f2ef; }
+.rv-modal-close svg { width: 20px; height: 20px; }
+.rv-modal-body { padding: 24px 28px; overflow-y: auto; flex: 1 1 auto; }
+/* Within the modal body we want sub-sections to look clean, not nested inside form-card/pay-section visuals */
+.rv-modal-body .form-group,
+.rv-modal-body .tag-section,
+.rv-modal-body .pay-section { margin: 0; padding: 0; background: transparent; box-shadow: none; border: none; }
+.rv-modal-body .section-divider { display: none; }
+.rv-modal-body .form-label,
+.rv-modal-body .tag-section-title,
+.rv-modal-body .pay-title { font-size: 15px; font-weight: 700; color: #2d2d2d; margin-bottom: 12px; }
+.rv-modal-body .pay-subtitle { margin-bottom: 16px; }
+.rv-modal-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 28px 22px; border-top: 1px solid #ebebeb; flex-shrink: 0; background: #fff; }
+.rv-modal-btn-cancel { padding: 11px 22px; border-radius: 8px; border: 1px solid #d4d2d0; background: #fff; color: #2d2d2d; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+.rv-modal-btn-cancel:hover { background: #f3f2ef; }
+.rv-modal-btn-save { padding: 11px 26px; border-radius: 8px; border: none; background: #0044B3; color: #fff; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; transition: background 0.15s; }
+.rv-modal-btn-save:hover { background: #003399; }
+</style>
+<div class="fb-overlay" id="feedbackModal" onclick="if(event.target===this)closeFeedbackModal()">
+  <div class="fb-card" id="feedbackCard">
+    <button class="fb-close" onclick="closeFeedbackModal()" aria-label="Close">&times;</button>
+    <div class="fb-title">Give Feedback</div>
+    <div class="fb-sub">Help us make JobFairX better for you</div>
+    <div class="fb-section">
+      <div class="fb-label">How's your experience? <span class="fb-required">*</span></div>
+      <div class="fb-emoji-row">
+        <button type="button" class="fb-emoji" data-value="amazing" onclick="selectExperience(this)"><span class="fb-emoji-icon">&#128525;</span><span class="fb-emoji-label">Amazing</span></button>
+        <button type="button" class="fb-emoji" data-value="good" onclick="selectExperience(this)"><span class="fb-emoji-icon">&#128578;</span><span class="fb-emoji-label">Good</span></button>
+        <button type="button" class="fb-emoji" data-value="okay" onclick="selectExperience(this)"><span class="fb-emoji-icon">&#128528;</span><span class="fb-emoji-label">Okay</span></button>
+        <button type="button" class="fb-emoji" data-value="poor" onclick="selectExperience(this)"><span class="fb-emoji-icon">&#128533;</span><span class="fb-emoji-label">Poor</span></button>
+        <button type="button" class="fb-emoji" data-value="terrible" onclick="selectExperience(this)"><span class="fb-emoji-icon">&#128544;</span><span class="fb-emoji-label">Terrible</span></button>
+      </div>
+    </div>
+    <div class="fb-followups">
+      <div class="fb-label">A few quick follow-ups <span class="fb-optional">(optional)</span></div>
+      <div class="fb-followup-card">
+        <div class="fb-followup-text">
+          <div class="fb-followup-title">How easy was it to get started?</div>
+          <div class="fb-followup-desc">Signing up, adding jobs, going live</div>
+        </div>
+        <div class="fb-chip-row">
+          <button type="button" class="fb-chip" data-group="setup" data-value="great" onclick="selectFollowup(this)">&#128077; Great</button>
+          <button type="button" class="fb-chip" data-group="setup" data-value="okay" onclick="selectFollowup(this)">&#128076; Okay</button>
+          <button type="button" class="fb-chip" data-group="setup" data-value="needs-work" onclick="selectFollowup(this)">&#128078; Needs work</button>
+        </div>
+      </div>
+      <div class="fb-followup-card">
+        <div class="fb-followup-text">
+          <div class="fb-followup-title">Quality of candidates you met?</div>
+          <div class="fb-followup-desc">Fit, relevance, and engagement of the applicants</div>
+        </div>
+        <div class="fb-chip-row">
+          <button type="button" class="fb-chip" data-group="candidates" data-value="great" onclick="selectFollowup(this)">&#128077; Great</button>
+          <button type="button" class="fb-chip" data-group="candidates" data-value="okay" onclick="selectFollowup(this)">&#128076; Okay</button>
+          <button type="button" class="fb-chip" data-group="candidates" data-value="needs-work" onclick="selectFollowup(this)">&#128078; Needs work</button>
+        </div>
+      </div>
+      <div class="fb-followup-card">
+        <div class="fb-followup-text">
+          <div class="fb-followup-title">How was the interview experience?</div>
+          <div class="fb-followup-desc">Video, audio, scheduling, reliability during interviews</div>
+        </div>
+        <div class="fb-chip-row">
+          <button type="button" class="fb-chip" data-group="interview" data-value="great" onclick="selectFollowup(this)">&#128077; Great</button>
+          <button type="button" class="fb-chip" data-group="interview" data-value="okay" onclick="selectFollowup(this)">&#128076; Okay</button>
+          <button type="button" class="fb-chip" data-group="interview" data-value="needs-work" onclick="selectFollowup(this)">&#128078; Needs work</button>
+        </div>
+      </div>
+    </div>
+    <div class="fb-section">
+      <div class="fb-label">Anything else? <span class="fb-optional">(optional)</span></div>
+      <div class="fb-textarea-wrap">
+        <textarea class="fb-textarea" id="fbTextarea" maxlength="500" placeholder="Tell us more about your experience..." oninput="updateFbCount()"></textarea>
+        <div class="fb-char-counter"><span id="fbCharCount">0</span>/500</div>
+      </div>
+    </div>
+    <div class="fb-actions">
+      <button class="fb-btn-cancel" onclick="closeFeedbackModal()">Cancel</button>
+      <button class="fb-btn-submit" id="fbSubmitBtn" disabled onclick="submitFeedback()">Submit feedback</button>
+    </div>
+  </div>
+</div>
+<script>
+var fbState = { experience: null, followups: {}, text: '' };
+function openFeedbackModal() {
+  document.querySelectorAll('.user-menu').forEach(function(m) { m.classList.remove('open'); });
+  resetFeedback();
+  document.getElementById('feedbackModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeFeedbackModal() {
+  document.getElementById('feedbackModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+function resetFeedback() {
+  fbState = { experience: null, followups: {}, text: '' };
+  document.querySelectorAll('#feedbackModal .fb-emoji').forEach(function(b) { b.classList.remove('selected'); });
+  document.querySelectorAll('#feedbackModal .fb-chip').forEach(function(b) { b.classList.remove('selected'); });
+  document.getElementById('feedbackCard').classList.remove('has-rating');
+  document.getElementById('fbTextarea').value = '';
+  document.getElementById('fbCharCount').textContent = '0';
+  document.getElementById('fbSubmitBtn').disabled = true;
+}
+function selectExperience(btn) {
+  fbState.experience = btn.dataset.value;
+  document.querySelectorAll('#feedbackModal .fb-emoji').forEach(function(b) { b.classList.remove('selected'); });
+  btn.classList.add('selected');
+  document.getElementById('feedbackCard').classList.add('has-rating');
+  document.getElementById('fbSubmitBtn').disabled = false;
+}
+function selectFollowup(btn) {
+  var group = btn.dataset.group, value = btn.dataset.value;
+  if (fbState.followups[group] === value) {
+    delete fbState.followups[group];
+    btn.classList.remove('selected');
+    return;
+  }
+  fbState.followups[group] = value;
+  document.querySelectorAll('#feedbackModal .fb-chip[data-group="' + group + '"]').forEach(function(b) { b.classList.remove('selected'); });
+  btn.classList.add('selected');
+}
+function updateFbCount() {
+  var ta = document.getElementById('fbTextarea');
+  fbState.text = ta.value;
+  document.getElementById('fbCharCount').textContent = ta.value.length;
+}
+function submitFeedback() {
+  if (!fbState.experience) return;
+  console.log('Feedback submitted:', JSON.parse(JSON.stringify(fbState)));
+  closeFeedbackModal();
+  fbToast('Thanks for your feedback!');
+}
+function fbToast(msg) {
+  if (typeof showToast === 'function') { showToast(msg); return; }
+  var t = document.getElementById('fb-toast-el');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'fb-toast-el';
+    t.style.cssText = 'position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#2d2d2d;color:#fff;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:600;z-index:10001;box-shadow:0 4px 12px rgba(0,0,0,0.15);';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.display = 'block';
+  setTimeout(function(){ t.style.display = 'none'; }, 2400);
+}
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    var modal = document.getElementById('feedbackModal');
+    if (modal && modal.classList.contains('open')) closeFeedbackModal();
+  }
+});
+</script>
+
+<!-- Global package dev toggle — visible on every step -->
+<div class="pkg-dev">
+  <span class="pkg-dev-label">Package</span>
+  <button class="pkg-dev-btn" id="pkgDevStarter" onclick="setPackagePreview('starter')">Starter</button>
+  <button class="pkg-dev-btn active" id="pkgDevGrowth" onclick="setPackagePreview('growth')">Growth</button>
+  <button class="pkg-dev-btn" id="pkgDevPro" onclick="setPackagePreview('pro')">Pro</button>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     Review-step field edit modal
+     Uses DOM-move: relocates the live step1/step2 block into the
+     modal body, then moves it back on close. On Cancel, snapshot
+     is restored so edits are discarded.
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="rv-modal-backdrop" id="reviewFieldModal" onclick="if(event.target===this)closeReviewEditModal(false)">
+  <div class="rv-modal-card" id="reviewFieldModalCard">
+    <div class="rv-modal-header">
+      <div class="rv-modal-title" id="reviewFieldModalTitle">Edit</div>
+      <button class="rv-modal-close" onclick="closeReviewEditModal(false)" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="rv-modal-body" id="reviewFieldModalBody"></div>
+    <div class="rv-modal-footer">
+      <button class="rv-modal-btn-cancel" onclick="closeReviewEditModal(false)">Cancel</button>
+      <button class="rv-modal-btn-save" onclick="closeReviewEditModal(true)">Save</button>
+    </div>
+  </div>
+</div>
+<script>
+/* Review-step field edit: DOM-move modal. Mirrors step 1 / step 2 design exactly because it IS the live step 1 / step 2 block, temporarily relocated into a modal. */
+(function() {
+  var FIELD_MAP = {
+    title:       { blockId: 'step1TitleBlock',     title: 'Job title',    size: '' },
+    location:    { blockId: 'step1LocationBlock',  title: 'Location',     size: 'wide' },
+    jobType:     { blockId: 'step2JobTypeBlock',   title: 'Job type',     size: '' },
+    pay:         { blockId: 'step2PayBlock',       title: 'Pay',          size: 'tall' },
+    benefits:    { blockId: 'step2BenefitsBlock',  title: 'Benefits',     size: 'wide' },
+    shift:       { blockId: 'step2ShiftBlock',     title: 'Standard shift', size: '' },
+    schedule:    { blockId: 'step2ScheduleBlock',  title: 'Weekly schedule', size: 'wide' },
+    description: { blockId: 'step2DescBlock',      title: 'Job description', size: 'tall' }
+  };
+  var activeField = null;
+  var snapshot = null;
+  var placeholder = null;
+
+  function takeSnapshot(block) {
+    var inputs = [];
+    block.querySelectorAll('input, textarea').forEach(function(el) { inputs.push(el.value); });
+    var ceditHtml = [];
+    block.querySelectorAll('[contenteditable]').forEach(function(el) { ceditHtml.push(el.innerHTML); });
+    return { html: block.innerHTML, inputs: inputs, ceditHtml: ceditHtml };
+  }
+
+  function restoreSnapshot(block, snap) {
+    block.innerHTML = snap.html;
+    var inputs = block.querySelectorAll('input, textarea');
+    snap.inputs.forEach(function(v, i) { if (inputs[i]) inputs[i].value = v; });
+    var cedit = block.querySelectorAll('[contenteditable]');
+    snap.ceditHtml.forEach(function(h, i) { if (cedit[i]) cedit[i].innerHTML = h; });
+  }
+
+  window.openReviewEditModal = function(field) {
+    var cfg = FIELD_MAP[field];
+    if (!cfg) return;
+    var block = document.getElementById(cfg.blockId);
+    if (!block) return;
+    snapshot = takeSnapshot(block);
+    activeField = field;
+    // Insert placeholder so we can put the block back exactly where it was
+    placeholder = document.createElement('div');
+    placeholder.id = '__rvModalPlaceholder__';
+    placeholder.style.display = 'none';
+    block.parentNode.insertBefore(placeholder, block);
+    // Move the live block into the modal body
+    var body = document.getElementById('reviewFieldModalBody');
+    body.innerHTML = '';
+    body.appendChild(block);
+    // Update modal header + size
+    document.getElementById('reviewFieldModalTitle').textContent = 'Edit ' + cfg.title.toLowerCase();
+    var card = document.getElementById('reviewFieldModalCard');
+    card.classList.remove('wide', 'tall');
+    if (cfg.size) card.classList.add(cfg.size);
+    // Show modal
+    document.getElementById('reviewFieldModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  };
+
+  window.closeReviewEditModal = function(save) {
+    if (!activeField) return;
+    var cfg = FIELD_MAP[activeField];
+    var block = document.getElementById(cfg.blockId);
+    if (!save && block && snapshot) {
+      restoreSnapshot(block, snapshot);
+    }
+    // Move block back to its original position
+    if (block && placeholder && placeholder.parentNode) {
+      placeholder.parentNode.insertBefore(block, placeholder);
+      placeholder.parentNode.removeChild(placeholder);
+    }
+    placeholder = null;
+    snapshot = null;
+    activeField = null;
+    document.getElementById('reviewFieldModal').classList.remove('open');
+    document.getElementById('reviewFieldModalBody').innerHTML = '';
+    document.body.style.overflow = '';
+    if (save && typeof populateReview === 'function') populateReview();
+  };
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      var m = document.getElementById('reviewFieldModal');
+      if (m && m.classList.contains('open')) closeReviewEditModal(false);
+    }
+  });
+})();
+</script>
+
+</body>
+</html>
