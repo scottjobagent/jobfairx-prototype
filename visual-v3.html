@@ -112,6 +112,12 @@ body.collapsed .main { margin-left: 60px; }
 .tab-pill.active { background: #2d2d2d; color: #fff; }
 .tab-pill .count { font-weight: 400; margin-left: 2px; }
 .tab-pill.active .count { color: rgba(255,255,255,0.6); }
+.tab-pill.disabled { color: #b0afad; cursor: default; pointer-events: none; }
+.tab-pill.disabled .count { color: #b0afad; }
+.tab-pill-wrap { position: relative; display: inline-block; }
+.tab-pill-wrap .tab-pill-tooltip { display: none; position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%); background: #2d2d2d; color: #fff; font-size: 12px; font-weight: 500; padding: 6px 12px; border-radius: 6px; white-space: nowrap; z-index: 10; pointer-events: none; }
+.tab-pill-wrap .tab-pill-tooltip::after { content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); border: 5px solid transparent; border-top-color: #2d2d2d; }
+.tab-pill-wrap:hover .tab-pill-tooltip { display: block; }
 
 /* ═══ TABLE ═══ */
 .table-card { background: #fff; border-radius: 12px; border: 1px solid #d4d2d0; overflow: visible; }
@@ -790,6 +796,8 @@ tbody tr:last-child td { border-bottom: none; }
         <button class="dev-toggle-btn active" onclick="setDevMode('active', this)">Active</button>
         <button class="dev-toggle-btn" onclick="setDevMode('empty', this)">Empty</button>
         <button class="dev-toggle-btn" onclick="setDevMode('live', this)">Live</button>
+        <button class="dev-toggle-btn" onclick="setDevMode('no-upcoming', this)">No upcoming</button>
+        <button class="dev-toggle-btn" onclick="setDevMode('no-past', this)">No past</button>
       </div>
     </div>
   </div>
@@ -988,6 +996,27 @@ tbody tr:last-child td { border-bottom: none; }
           <button class="page-btn active">1</button>
           <button class="page-btn disabled">Next &rarr;</button>
         </div>
+      </div>
+    </div>
+
+    <!-- No Upcoming Events state (shown when have past but no upcoming) -->
+    <div class="table-card" id="noUpcomingState" style="display: none;">
+      <div style="padding: 60px 40px; display: flex; flex-direction: column; align-items: center; text-align: center;">
+        <svg width="160" height="120" viewBox="0 0 160 120" fill="none">
+          <rect x="40" y="20" width="80" height="70" rx="8" fill="#f3f2ef" stroke="#d4d2d0" stroke-width="1.5"/>
+          <rect x="52" y="10" width="8" height="16" rx="3" fill="#d4d2d0"/>
+          <rect x="100" y="10" width="8" height="16" rx="3" fill="#d4d2d0"/>
+          <line x1="40" y1="40" x2="120" y2="40" stroke="#d4d2d0" stroke-width="1.5"/>
+          <rect x="50" y="48" width="14" height="10" rx="2" fill="#e8e6e3"/>
+          <rect x="73" y="48" width="14" height="10" rx="2" fill="#e8e6e3"/>
+          <rect x="96" y="48" width="14" height="10" rx="2" fill="#e8e6e3"/>
+          <rect x="50" y="64" width="14" height="10" rx="2" fill="#e8e6e3"/>
+          <rect x="73" y="64" width="14" height="10" rx="2" fill="#e8e6e3"/>
+          <ellipse cx="80" cy="105" rx="50" ry="8" fill="#f5efe8"/>
+        </svg>
+        <h2 style="font-size: 20px; font-weight: 700; color: #2d2d2d; margin: 16px 0 8px;">You have no upcoming events</h2>
+        <p style="font-size: 14px; color: #767676; margin-bottom: 20px; max-width: 380px;">Register for a hiring event to start connecting with qualified candidates and scheduling interviews.</p>
+        <button class="btn btn-primary" onclick="showRegView()" style="justify-content: center;">Register for an event</button>
       </div>
     </div>
 
@@ -2169,13 +2198,22 @@ function filterEvents(type, el) {
   el.classList.add('active');
   var upcomingTable = document.getElementById('upcomingTable');
   var completedSection = document.getElementById('completedEvents');
+  var noUpcomingState = document.getElementById('noUpcomingState');
+  var isNoUpcomingMode = noUpcomingState.style.display !== 'none';
   if (type === 'complete') {
     upcomingTable.style.display = 'none';
+    noUpcomingState.style.display = 'none';
     completedSection.classList.add('active');
   } else {
-    upcomingTable.style.display = '';
     completedSection.classList.remove('active');
-    document.querySelectorAll('#upcomingTable .ev-row').forEach(r => r.style.display = r.classList.contains(type) ? '' : 'none');
+    if (isNoUpcomingMode || upcomingTable.querySelectorAll('.ev-row').length === 0) {
+      upcomingTable.style.display = 'none';
+      noUpcomingState.style.display = '';
+    } else {
+      upcomingTable.style.display = '';
+      noUpcomingState.style.display = 'none';
+      document.querySelectorAll('#upcomingTable .ev-row').forEach(r => r.style.display = r.classList.contains(type) ? '' : 'none');
+    }
   }
 }
 
@@ -2600,20 +2638,63 @@ function setDevMode(mode, btn) {
   // Remove any existing live indicators
   document.querySelectorAll('.cell-live-indicator').forEach(function(el) { el.remove(); });
 
+  var noUpcomingState = document.getElementById('noUpcomingState');
+  var tabPills = document.querySelectorAll('.tab-pills .tab-pill');
+  var pastPill = tabPills[1]; // Past events pill
+
+  // Reset tab pills to normal state
+  resetTabPills();
+
   if (mode === 'empty') {
     activeHeader.style.display = 'none';
     filterRow.style.display = 'none';
     upcomingTable.style.display = 'none';
+    noUpcomingState.style.display = 'none';
     completedSection.classList.remove('active');
     reportView.classList.remove('active');
     emptyState.classList.add('active');
+  } else if (mode === 'no-upcoming') {
+    // Has past events but no upcoming
+    emptyState.classList.remove('active');
+    activeHeader.style.display = '';
+    filterRow.style.display = '';
+    reportView.classList.remove('active');
+    // Show Upcoming tab as active with empty state
+    document.querySelectorAll('.tab-pill').forEach(function(t) { t.classList.remove('active'); });
+    tabPills[0].classList.add('active');
+    tabPills[0].querySelector('.count').textContent = '0';
+    upcomingTable.style.display = 'none';
+    noUpcomingState.style.display = '';
+    completedSection.classList.remove('active');
+    applyLiveActionState(false);
+  } else if (mode === 'no-past') {
+    // Has upcoming events but no past
+    emptyState.classList.remove('active');
+    activeHeader.style.display = '';
+    filterRow.style.display = '';
+    reportView.classList.remove('active');
+    noUpcomingState.style.display = 'none';
+    // Reset to Upcoming tab
+    document.querySelectorAll('.tab-pill').forEach(function(t) { t.classList.remove('active'); });
+    tabPills[0].classList.add('active');
+    tabPills[0].querySelector('.count').textContent = '3';
+    upcomingTable.style.display = '';
+    completedSection.classList.remove('active');
+    document.querySelectorAll('#upcomingTable .ev-row').forEach(function(r) {
+      r.style.display = r.classList.contains('upcoming') ? '' : 'none';
+    });
+    // Disable Past events tab
+    disablePastPill();
+    applyLiveActionState(false);
   } else if (mode === 'live' || mode === 'active') {
     emptyState.classList.remove('active');
     activeHeader.style.display = '';
     filterRow.style.display = '';
+    noUpcomingState.style.display = 'none';
     // Reset to Upcoming tab
     document.querySelectorAll('.tab-pill').forEach(function(t) { t.classList.remove('active'); });
-    document.querySelector('.tab-pill').classList.add('active');
+    tabPills[0].classList.add('active');
+    tabPills[0].querySelector('.count').textContent = '3';
     upcomingTable.style.display = '';
     completedSection.classList.remove('active');
     document.querySelectorAll('#upcomingTable .ev-row').forEach(function(r) {
@@ -2639,6 +2720,37 @@ function setDevMode(mode, btn) {
     // Toggle disabled state on Dallas row actions (edit + share) when live
     applyLiveActionState(mode === 'live');
   }
+}
+
+function resetTabPills() {
+  var pastPill = document.querySelectorAll('.tab-pills .tab-pill')[1];
+  if (!pastPill) return;
+  // Unwrap from tooltip wrapper if needed
+  var wrapper = pastPill.closest('.tab-pill-wrap');
+  if (wrapper) {
+    wrapper.parentNode.insertBefore(pastPill, wrapper);
+    wrapper.remove();
+  }
+  pastPill.classList.remove('disabled');
+  pastPill.onclick = function() { filterEvents('complete', this); };
+  pastPill.querySelector('.count').textContent = '1';
+}
+
+function disablePastPill() {
+  var pastPill = document.querySelectorAll('.tab-pills .tab-pill')[1];
+  if (!pastPill) return;
+  pastPill.classList.add('disabled');
+  pastPill.onclick = null;
+  pastPill.querySelector('.count').textContent = '0';
+  // Wrap in tooltip container
+  var wrapper = document.createElement('div');
+  wrapper.className = 'tab-pill-wrap';
+  var tooltip = document.createElement('div');
+  tooltip.className = 'tab-pill-tooltip';
+  tooltip.textContent = 'You have no past events';
+  pastPill.parentNode.insertBefore(wrapper, pastPill);
+  wrapper.appendChild(pastPill);
+  wrapper.appendChild(tooltip);
 }
 
 function applyLiveActionState(isLive) {
