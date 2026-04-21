@@ -591,6 +591,26 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
 }
 .btn-welcome-save:hover { background: #003399; }
 
+/* ═══ DISPLAY NAME MODAL ═══ */
+.dn-modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.55); z-index: 1000; align-items: center; justify-content: center; }
+.dn-modal-overlay.open { display: flex; }
+.dn-modal { background: #fff; border-radius: 16px; width: 90%; max-width: 560px; position: relative; box-shadow: 0 8px 32px rgba(0,0,0,0.2); padding: 32px 36px; }
+.dn-modal h2 { font-size: 22px; font-weight: 800; color: #2d2d2d; margin-bottom: 24px; }
+.dn-modal-label { font-size: 15px; font-weight: 700; color: #2d2d2d; margin-bottom: 4px; }
+.dn-modal-hint { font-size: 14px; color: #767676; margin-bottom: 14px; line-height: 1.5; }
+.dn-modal-input { width: 100%; padding: 14px 16px; font-size: 16px; font-family: inherit; color: #2d2d2d; border: 1px solid #d4d2d0; border-radius: 10px; outline: none; box-sizing: border-box; transition: border-color 0.15s, box-shadow 0.15s; }
+.dn-modal-input:focus { border-color: #0044B3; box-shadow: 0 0 0 2px rgba(0,68,179,0.15); }
+.dn-modal-input.error { border-color: #991b1b; border-width: 2px; box-shadow: none; }
+.dn-modal-error { display: none; align-items: center; gap: 6px; margin-top: 10px; font-size: 14px; font-weight: 500; color: #991b1b; }
+.dn-modal-error.visible { display: flex; }
+.dn-modal-error svg { width: 18px; height: 18px; flex-shrink: 0; }
+.dn-modal-footer { display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid #e8e6e3; padding-top: 20px; margin-top: 24px; }
+.btn-dn-cancel { font-size: 16px; font-weight: 700; color: #2d2d2d; padding: 10px 24px; border: 1px solid #d4d2d0; border-radius: 8px; background: #fff; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+.btn-dn-cancel:hover { background: #f3f2ef; border-color: #2d2d2d; }
+.btn-dn-save { font-size: 16px; font-weight: 700; color: #fff; padding: 10px 28px; border: none; border-radius: 8px; background: #0044B3; cursor: pointer; font-family: inherit; transition: background 0.15s; }
+.btn-dn-save:hover:not(:disabled) { background: #003399; }
+.btn-dn-save:disabled { background: #a8b8d8; cursor: not-allowed; }
+
 /* ═══ AV TEST MODAL ═══ */
 .av-modal-overlay {
   display: none;
@@ -2815,6 +2835,24 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
   </div>
 </div>
 
+<!-- ═══ UPDATE DISPLAY NAME MODAL ═══ -->
+<div class="dn-modal-overlay" id="dn-modal-overlay">
+  <div class="dn-modal">
+    <h2>Update display name</h2>
+    <div class="dn-modal-label">Name *</div>
+    <div class="dn-modal-hint">Enter your name as you'd like to be displayed to the candidates. This name will be used across all events for which you are an interviewer.</div>
+    <input type="text" class="dn-modal-input" id="dnNameInput" value="Scott" />
+    <div class="dn-modal-error" id="dnError">
+      <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#991b1b"/><path d="M12 8v4M12 16h.01" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
+      You must change your name before you can save.
+    </div>
+    <div class="dn-modal-footer">
+      <button class="btn-dn-cancel" onclick="closeDisplayNameModal()">Cancel</button>
+      <button class="btn-dn-save" id="dnSaveBtn" disabled onclick="saveDisplayName()">Save</button>
+    </div>
+  </div>
+</div>
+
 <!-- ═══ ADD TEAM MEMBERS MODAL ═══ -->
 <div class="team-modal-overlay" id="team-modal-overlay">
   <div class="team-modal">
@@ -3647,6 +3685,49 @@ document.addEventListener('click', function(e) {
 });
 
 // Welcome Message Modal
+// Display Name Modal
+var dnOriginalName = 'Scott';
+function openDisplayNameModal() {
+  var overlay = document.getElementById('dn-modal-overlay');
+  var input = document.getElementById('dnNameInput');
+  var saveBtn = document.getElementById('dnSaveBtn');
+  var error = document.getElementById('dnError');
+  input.value = dnOriginalName;
+  input.classList.remove('error');
+  error.classList.remove('visible');
+  saveBtn.disabled = true;
+  overlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+  input.focus();
+}
+function closeDisplayNameModal() {
+  document.getElementById('dn-modal-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+function saveDisplayName() {
+  var input = document.getElementById('dnNameInput');
+  var val = input.value.trim();
+  if (val === dnOriginalName || val === '') {
+    input.classList.add('error');
+    document.getElementById('dnError').classList.add('visible');
+    return;
+  }
+  dnOriginalName = val;
+  closeDisplayNameModal();
+  fbToast('Display name updated to ' + val);
+}
+document.getElementById('dnNameInput').addEventListener('input', function() {
+  var val = this.value.trim();
+  var saveBtn = document.getElementById('dnSaveBtn');
+  var error = document.getElementById('dnError');
+  this.classList.remove('error');
+  error.classList.remove('visible');
+  saveBtn.disabled = (val === dnOriginalName || val === '');
+});
+document.getElementById('dn-modal-overlay').addEventListener('click', function(e) {
+  if (e.target === this) closeDisplayNameModal();
+});
+
 function openWelcomeModal() {
   document.getElementById('welcome-modal-overlay').classList.add('open');
   document.body.style.overflow = 'hidden';
