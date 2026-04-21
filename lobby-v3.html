@@ -1048,14 +1048,14 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
       <button class="status-dropdown-btn" id="statusBtn" onclick="toggleStatusDropdown()">
         <span class="status-label">Your status:</span>
         <span class="status-dot online" id="statusDot"></span>
-        <span class="status-value" id="statusValue">Online</span>
+        <span class="status-value" id="statusValue">Available</span>
         <svg class="status-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
       </button>
       <div class="status-dropdown-menu" id="statusMenu">
         <button class="status-dropdown-option selected" id="optOnline" onclick="setUserStatus('online')">
           <span class="status-check">✓</span>
           <span class="status-dot online"></span>
-          Online
+          Available
         </button>
         <button class="status-dropdown-option" id="optAway" onclick="setUserStatus('away')">
           <span class="status-check">&nbsp;</span>
@@ -1166,6 +1166,25 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
 
     <!-- LIVE STATE -->
     <div id="waitingLive" style="display: none;">
+      <!-- Away CTA card -->
+      <div class="away-cta-card" style="display: none;">
+        <div class="status-card" style="margin-bottom: 16px;">
+          <div class="status-card-text">
+            <h3>Ready to start interviewing?</h3>
+            <p>Update your status and we will notify candidates when it's their time to interview.</p>
+            <button class="btn btn-primary" onclick="setUserStatus('online')" style="margin-top: 12px;">Start interviewing</button>
+          </div>
+          <svg class="status-card-illustration" viewBox="0 0 140 100" fill="none">
+            <rect x="30" y="15" width="80" height="55" rx="6" fill="#e8f0fe" stroke="#0044B3" stroke-width="1.5"/>
+            <circle cx="70" cy="38" r="14" fill="#d4c4b0"/>
+            <rect x="58" y="54" width="24" height="12" rx="4" fill="#c4b4a0"/>
+            <circle cx="50" cy="80" r="3" fill="#d4d2d0"/>
+            <circle cx="62" cy="80" r="3" fill="#d4d2d0"/>
+            <circle cx="74" cy="80" r="3" fill="#d4d2d0"/>
+            <circle cx="86" cy="80" r="3" fill="#0044B3"/>
+          </svg>
+        </div>
+      </div>
       <!-- Interview rooms -->
       <div class="live-panel-section">
         <div class="live-section-header" onclick="toggleLiveSection(this)">
@@ -1293,6 +1312,25 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
 
     <!-- LIVE EMPTY STATE -->
     <div id="waitingLiveEmpty" style="display: none;">
+      <!-- Away CTA card -->
+      <div class="away-cta-card" style="display: none;">
+        <div class="status-card" style="margin-bottom: 16px;">
+          <div class="status-card-text">
+            <h3>Ready to start interviewing?</h3>
+            <p>Update your status and we will notify candidates when it's their time to interview.</p>
+            <button class="btn btn-primary" onclick="setUserStatus('online')" style="margin-top: 12px;">Start interviewing</button>
+          </div>
+          <svg class="status-card-illustration" viewBox="0 0 140 100" fill="none">
+            <rect x="30" y="15" width="80" height="55" rx="6" fill="#e8f0fe" stroke="#0044B3" stroke-width="1.5"/>
+            <circle cx="70" cy="38" r="14" fill="#d4c4b0"/>
+            <rect x="58" y="54" width="24" height="12" rx="4" fill="#c4b4a0"/>
+            <circle cx="50" cy="80" r="3" fill="#d4d2d0"/>
+            <circle cx="62" cy="80" r="3" fill="#d4d2d0"/>
+            <circle cx="74" cy="80" r="3" fill="#d4d2d0"/>
+            <circle cx="86" cy="80" r="3" fill="#0044B3"/>
+          </svg>
+        </div>
+      </div>
       <!-- Interview rooms (0) -->
       <div class="live-panel-section">
         <div class="live-section-header" onclick="toggleLiveSection(this)">
@@ -3037,6 +3075,12 @@ function setLobbyMode(mode, btn) {
   var statusWrap = document.querySelector('.status-dropdown-wrap');
   if (statusWrap) statusWrap.style.display = isLive ? '' : 'none';
 
+  // Sync Away CTA card visibility with current status
+  var isAway = document.getElementById('statusDot').classList.contains('away');
+  document.querySelectorAll('.away-cta-card').forEach(function(card) {
+    card.style.display = (isLive && isAway) ? '' : 'none';
+  });
+
   // 1. Sync ALL toggle buttons across every tab to highlight the selected mode
   var allToggles = document.querySelectorAll('.dev-toggle-switch');
   allToggles.forEach(function(toggle) {
@@ -3675,7 +3719,7 @@ function setUserStatus(status) {
   if (status === 'online') {
     dot.className = 'status-dot online';
     val.className = 'status-value';
-    val.textContent = 'Online';
+    val.textContent = 'Available';
     onOpt.classList.add('selected');
     onOpt.querySelector('.status-check').textContent = '✓';
     awayOpt.classList.remove('selected');
@@ -3691,8 +3735,12 @@ function setUserStatus(status) {
   }
   document.getElementById('statusBtn').classList.remove('open');
   document.getElementById('statusMenu').classList.remove('open');
+  // Show/hide the Ready to start interviewing CTA cards
+  document.querySelectorAll('.away-cta-card').forEach(function(card) {
+    card.style.display = (status === 'away') ? '' : 'none';
+  });
   var dotColor = status === 'online' ? '#16a34a' : '#999';
-  var label = status === 'online' ? 'Online' : 'Away';
+  var label = status === 'online' ? 'Available' : 'Away';
   fbToast('<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:' + dotColor + ';margin-right:8px;vertical-align:middle;"></span>Status changed to ' + label, true);
 }
 
