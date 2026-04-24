@@ -3346,23 +3346,52 @@ document.addEventListener('click', function(e) {
 // setWaitingDevMode and setNotyetDevMode replaced by global setLobbyMode above
 
 var acceptedRow = null;
+var acceptedRowParent = null;
+var acceptedRowNext = null;
 var acceptToastTimer = null;
 
 function acceptInterview(btn) {
   var row = btn.closest('tr');
-  var name = row.querySelector('.review-name').textContent;
+  var name = getRowName(row);
 
   // Clear any existing accept toast
   if (acceptToastTimer) { clearTimeout(acceptToastTimer); }
-  if (acceptedRow) { acceptedRow.remove(); acceptedRow = null; }
+  if (acceptedRow) { finalizeAccept(); }
 
-  // Save for undo
+  // Track source section for undo
+  acceptedRowParent = row.parentElement;
+  acceptedRowNext = row.nextElementSibling;
   acceptedRow = row;
 
-  // Hide the row
+  // Find the "Candidates with upcoming interviews" tbody in the same view
+  var viewContainer = row.closest('[id^="notyet"]') || row.closest('[id^="waiting"]');
+  var upcomingTbody = null;
+  if (viewContainer) {
+    var sections = viewContainer.querySelectorAll('.live-panel-section');
+    if (sections.length >= 2) {
+      upcomingTbody = sections[1].querySelector('tbody');
+    }
+  }
+
+  // Hide the row from awaiting section
   row.style.transition = 'opacity 0.3s';
   row.style.opacity = '0';
-  setTimeout(function() { row.style.display = 'none'; }, 300);
+  setTimeout(function() {
+    row.style.display = 'none';
+    // Move to upcoming interviews section if found
+    if (upcomingTbody) {
+      // Change the action buttons to Reschedule + Cancel
+      var actionsDiv = row.querySelector('.pending-actions');
+      if (actionsDiv) {
+        actionsDiv.innerHTML = '<button class="pending-btn propose" style="border-right: 1px solid #d4d2d0;" onclick="openScheduleModal(this)">Reschedule<span class="btn-tooltip">Propose new interview time</span></button>'
+          + '<button class="pending-btn decline" style="border-right: none;" onclick="declineInterview(this)">Cancel<span class="btn-tooltip">Cancel interview</span></button>';
+      }
+      upcomingTbody.appendChild(row);
+      row.style.display = '';
+      requestAnimationFrame(function() { row.style.opacity = '1'; });
+      updateNotyetSectionCounts(viewContainer);
+    }
+  }, 300);
 
   // Show toast
   var toast = document.getElementById('acceptToast');
@@ -3372,18 +3401,23 @@ function acceptInterview(btn) {
   // Auto-remove after 3 seconds
   acceptToastTimer = setTimeout(function() {
     toast.classList.remove('show');
-    if (acceptedRow) {
-      acceptedRow.remove();
-      acceptedRow = null;
-    }
+    acceptedRow = null;
+    acceptedRowParent = null;
+    acceptedRowNext = null;
   }, 3000);
+}
+
+function finalizeAccept() {
+  acceptedRow = null;
+  acceptedRowParent = null;
+  acceptedRowNext = null;
 }
 
 function closeAcceptToast() {
   if (acceptToastTimer) { clearTimeout(acceptToastTimer); acceptToastTimer = null; }
   var toast = document.getElementById('acceptToast');
   toast.classList.remove('show');
-  if (acceptedRow) { acceptedRow.remove(); acceptedRow = null; }
+  finalizeAccept();
 }
 
 function undoAccept() {
@@ -3391,13 +3425,46 @@ function undoAccept() {
   var toast = document.getElementById('acceptToast');
   toast.classList.remove('show');
 
-  if (acceptedRow) {
-    acceptedRow.style.display = '';
-    setTimeout(function() {
-      acceptedRow.style.opacity = '1';
-      acceptedRow = null;
-    }, 10);
+  if (acceptedRow && acceptedRowParent) {
+    // Move back to original position
+    var row = acceptedRow;
+    row.style.opacity = '0';
+    row.style.display = 'none';
+    // Restore Accept/Decline/Reschedule buttons
+    var actionsDiv = row.querySelector('.pending-actions');
+    if (actionsDiv) {
+      var nm = getRowName(row);
+      actionsDiv.innerHTML = '<button class="pending-btn accept" onclick="acceptInterview(this)">Accept<span class="btn-tooltip">Accept interview</span></button>'
+        + '<button class="pending-btn decline" onclick="declineInterview(this)">Decline<span class="btn-tooltip">Decline interview</span></button>'
+        + '<button class="pending-btn propose" onclick="openScheduleModal(this)">Reschedule<span class="btn-tooltip">Propose new interview time</span></button>';
+    }
+    if (acceptedRowNext) {
+      acceptedRowParent.insertBefore(row, acceptedRowNext);
+    } else {
+      acceptedRowParent.appendChild(row);
+    }
+    row.style.display = '';
+    requestAnimationFrame(function() { row.style.opacity = '1'; });
+    var viewContainer = row.closest('[id^="notyet"]') || row.closest('[id^="waiting"]');
+    if (viewContainer) updateNotyetSectionCounts(viewContainer);
+    finalizeAccept();
   }
+}
+
+function updateNotyetSectionCounts(viewContainer) {
+  if (!viewContainer) return;
+  var sections = viewContainer.querySelectorAll('.live-panel-section');
+  sections.forEach(function(section) {
+    var tbody = section.querySelector('tbody');
+    var title = section.querySelector('.live-section-title');
+    if (tbody && title) {
+      var visibleRows = tbody.querySelectorAll('tr');
+      var count = 0;
+      visibleRows.forEach(function(r) { if (r.style.display !== 'none') count++; });
+      var text = title.textContent;
+      title.textContent = text.replace(/\(\d+\)/, '(' + count + ')');
+    }
+  });
 }
 
 var skipDeclineWarning = false;
@@ -3414,7 +3481,7 @@ function declineInterview(btn) {
     return;
   }
   pendingDeclineRow = row;
-  var name = row.querySelector('.review-name').textContent;
+  var name = getRowName(row);
   document.getElementById('declineCandidateName').textContent = name;
   document.getElementById('declineModal').classList.add('open');
   document.body.style.overflow = 'hidden';
@@ -3440,20 +3507,24 @@ function confirmDecline() {
 
 function executeDecline(row) {
   // Clear any existing toast/undo state
-  if (toastTimer) { clearTimeout(toastTimer); }
+  if (declineToastTimer) { clearTimeout(declineToastTimer); }
   if (declinedRow) { declinedRow.remove(); declinedRow = null; }
 
-  var name = row.querySelector('.review-name').textContent;
+  var name = getRowName(row);
 
   // Save position for undo
   declinedRowParent = row.parentElement;
   declinedRowNext = row.nextElementSibling;
   declinedRow = row;
 
-  // Hide the row
+  // Hide the row and update counts
   row.style.transition = 'opacity 0.3s';
   row.style.opacity = '0';
-  setTimeout(function() { row.style.display = 'none'; }, 300);
+  setTimeout(function() {
+    row.style.display = 'none';
+    var viewContainer = row.closest('[id^="notyet"]') || row.closest('[id^="waiting"]');
+    if (viewContainer) updateNotyetSectionCounts(viewContainer);
+  }, 300);
 
   // Show toast
   var toast = document.getElementById('declineToast');
@@ -3483,11 +3554,19 @@ function undoDecline() {
   toast.classList.remove('show');
 
   if (declinedRow) {
+    if (declinedRowParent && declinedRowNext) {
+      declinedRowParent.insertBefore(declinedRow, declinedRowNext);
+    } else if (declinedRowParent) {
+      declinedRowParent.appendChild(declinedRow);
+    }
     declinedRow.style.display = '';
+    var row = declinedRow;
     setTimeout(function() {
-      declinedRow.style.opacity = '1';
-      declinedRow = null;
+      row.style.opacity = '1';
     }, 10);
+    var viewContainer = declinedRow.closest('[id^="notyet"]') || declinedRow.closest('[id^="waiting"]');
+    if (viewContainer) updateNotyetSectionCounts(viewContainer);
+    declinedRow = null;
   }
 }
 
@@ -3720,8 +3799,8 @@ var msgData = {
 
 function openMsgModal(link) {
   var row = link.closest('tr');
-  var name = row.querySelector('.review-name').textContent;
-  var jobTitle = row.querySelector('.review-job-title').textContent;
+  var name = getRowName(row);
+  var jobTitle = getRowJob(row);
   var firstName = name.split(' ')[0];
 
   document.getElementById('msgTo').textContent = 'To: ' + name + ' · ' + jobTitle;
