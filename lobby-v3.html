@@ -978,11 +978,10 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
 .purchase-qty-btn:first-child { border-radius: 6px 0 0 6px; }
 .purchase-qty-btn:last-child { border-radius: 0 6px 6px 0; }
 .purchase-qty-btn:hover { background: #f3f2ef; color: #2d2d2d; }
-.purchase-qty-value { width: 44px; height: 34px; border-top: 1px solid #d4d2d0; border-bottom: 1px solid #d4d2d0; border-left: none; border-right: none; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; color: #2d2d2d; background: #fff; }
+.purchase-qty-value { width: 44px; height: 34px; border-top: 1px solid #d4d2d0; border-bottom: 1px solid #d4d2d0; border-left: none; border-right: none; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 500; color: #2d2d2d; background: #fff; }
 .purchase-total-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
 .purchase-total-label { font-size: 15px; color: #2d2d2d; font-weight: 500; }
-.purchase-total-value { font-size: 20px; font-weight: 700; color: #2d2d2d; }
-.purchase-per-event { font-size: 13px; color: #595959; margin-top: 2px; text-align: right; }
+.purchase-total-value { font-size: 16px; font-weight: 500; color: #2d2d2d; }
 .purchase-savings-row { display: flex; align-items: center; gap: 6px; margin-bottom: 16px; padding: 8px 12px; background: #e6f4ea; border-radius: 8px; }
 .purchase-savings-row svg { width: 16px; height: 16px; color: #1e7e34; flex-shrink: 0; }
 .purchase-savings-text { font-size: 13px; font-weight: 600; color: #1e7e34; }
@@ -5002,7 +5001,7 @@ document.addEventListener('keydown', function(e) {
         <div class="purchase-card" id="purchaseStarter" onclick="selectPurchaseTier('starter')">
           <div class="purchase-card-check"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg></div>
           <div class="purchase-tier-name">Starter</div>
-          <div class="purchase-price">$495</div>
+          <div class="purchase-price" id="starterHeroPrice">$495</div>
           <div class="purchase-price-sub">per event</div>
           <ul class="purchase-features">
             <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Promote 1 job</li>
@@ -5022,7 +5021,6 @@ document.addEventListener('keydown', function(e) {
               <span class="purchase-total-label">Total</span>
               <span class="purchase-total-value" id="purchaseTotal">$495</span>
             </div>
-            <div class="purchase-per-event" id="purchasePerEvent" style="display:none"></div>
             <div class="purchase-savings-row" id="purchaseSavings" style="display:none">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
               <span class="purchase-savings-text" id="purchaseSavingsText"></span>
@@ -5343,21 +5341,24 @@ function updatePurchaseCards() {
   document.querySelectorAll('.purchase-qty-value').forEach(function(el) { el.textContent = purchaseQty; });
   document.querySelectorAll('.purchase-total-value').forEach(function(el) { el.textContent = '$' + total.toLocaleString(); });
 
-  /* Starter savings display */
+  /* Starter: dynamic hero price + savings display */
+  var heroPrice = document.getElementById('starterHeroPrice');
   var savingsRow = document.getElementById('purchaseSavings');
   var savingsText = document.getElementById('purchaseSavingsText');
-  var perEventEl = document.getElementById('purchasePerEvent');
+
+  if (purchaseSelectedTier === 'starter') {
+    heroPrice.textContent = '$' + perEvent;
+  } else {
+    heroPrice.textContent = '$495';
+  }
 
   if (purchaseSelectedTier === 'starter' && purchaseQty >= 5) {
     var fullPrice = 495 * purchaseQty;
     var savings = fullPrice - total;
     savingsText.textContent = 'You save $' + savings.toLocaleString();
     savingsRow.style.display = 'flex';
-    perEventEl.textContent = '$' + perEvent + '/event';
-    perEventEl.style.display = 'block';
   } else {
     savingsRow.style.display = 'none';
-    perEventEl.style.display = 'none';
   }
 }
 
