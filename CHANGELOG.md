@@ -72,3 +72,4 @@
 68. Added Credits dev toggle to lobby-v3 header — switches Event Credits modal between "Has credits" and "Empty" states
 69. Fixed dropdown staying open behind Event Credits modal — added event.stopPropagation() on all v3 pages
 70. Fixed dead +/- qty buttons in Purchase Credits modal on edit-post-v3 and setup-flow-v3 — added missing event.stopPropagation()
+71. Fixed modal jump when savings banner appears — switched from display:none to visibility:hidden so space is always reserved (all v3 pages)
