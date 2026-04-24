@@ -388,6 +388,29 @@ body.setup-jobs-incomplete .add-job-row { display: none; }
 .nav-item.active svg { color: #fff; }
 .nav-item .badge { margin-left: auto; background: #0044B3; color: #fff; font-size: 12px; font-weight: 700; padding: 2px 9px; border-radius: 10px; min-width: 24px; text-align: center; }
 
+/* ═══ EVENT CREDITS MODAL ═══ */
+.credits-modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center; }
+.credits-modal-overlay.open { display: flex; }
+.credits-modal { background: #fff; border-radius: 14px; width: 480px; max-width: 90vw; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
+.credits-modal-header { display: flex; align-items: center; justify-content: space-between; padding: 24px 24px 0; }
+.credits-modal-header h3 { font-size: 20px; font-weight: 700; color: #2d2d2d; margin: 0; }
+.credits-modal-close { width: 32px; height: 32px; border: none; background: none; cursor: pointer; color: #595959; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+.credits-modal-close:hover { background: #f3f2ef; color: #2d2d2d; }
+.credits-modal-body { padding: 20px 24px 24px; }
+.credits-modal-desc { font-size: 14px; color: #595959; margin: 0 0 20px; line-height: 1.5; }
+.credit-tier-row { display: flex; align-items: center; justify-content: space-between; padding: 16px 18px; border: 1px solid #d4d2d0; border-radius: 10px; margin-bottom: 12px; }
+.credit-tier-row:last-child { margin-bottom: 0; }
+.credit-tier-row.empty { background: #f9f9f8; }
+.credit-tier-info { display: flex; align-items: center; gap: 14px; }
+.credit-tier-count { font-size: 28px; font-weight: 800; color: #2d2d2d; line-height: 1; min-width: 32px; text-align: center; }
+.credit-tier-row.empty .credit-tier-count { color: #d4d2d0; }
+.credit-tier-label { font-size: 15px; font-weight: 700; color: #2d2d2d; }
+.credit-tier-sub { font-size: 13px; font-weight: 400; color: #767676; margin-top: 2px; }
+.credit-tier-row.empty .credit-tier-label { color: #767676; }
+.credit-use-btn { padding: 9px 20px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: 'Noto Sans', sans-serif; background: #0044B3; border: none; color: #fff; transition: background 0.15s; }
+.credit-use-btn:hover { background: #003399; }
+.credit-empty-label { font-size: 13px; font-weight: 500; color: #d4d2d0; }
+
 /* ═══ TOP HEADER ═══ */
 .topbar { position: fixed; top: 0; left: 220px; right: 0; height: 56px; background: #fff; border-bottom: 1px solid #d4d2d0; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; z-index: 200; transition: left 0.2s ease; }
 body.collapsed .topbar { left: 60px; }
@@ -451,7 +474,7 @@ body.collapsed .main { margin-left: 60px; }
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
       <div class="user-menu" id="user-menu">
         <a class="user-menu-item" href="account-billing.html">Account &amp; Billing</a>
-        <a class="user-menu-item" href="#">Event Credits</a>
+        <button class="user-menu-item" onclick="openCreditsModal()">Event Credits</button>
         <button class="user-menu-item" onclick="openFeedbackModal()">Give Feedback</button>
         <div class="user-menu-divider"></div>
         <button class="user-menu-item muted">Sign Out</button>
@@ -1883,6 +1906,68 @@ function openJobEditor(jobId) {
   <button class="state-dev-btn" id="stateDevInterview" onclick="setSetupPreview('interview')">Interview only</button>
   <button class="state-dev-btn" id="stateDevBoth" onclick="setSetupPreview('both')">Jobs + Interviews</button>
 </div>
+
+<!-- ═══ EVENT CREDITS MODAL ═══ -->
+<div class="credits-modal-overlay" id="creditsModal">
+  <div class="credits-modal">
+    <div class="credits-modal-header">
+      <h3>Event Credits</h3>
+      <button class="credits-modal-close" onclick="closeCreditsModal()">&times;</button>
+    </div>
+    <div class="credits-modal-body">
+      <p class="credits-modal-desc">Use a credit to register for an upcoming hiring event. Select a tier below to get started.</p>
+      <div class="credit-tier-row">
+        <div class="credit-tier-info">
+          <div class="credit-tier-count">2</div>
+          <div>
+            <div class="credit-tier-label">Starter</div>
+            <div class="credit-tier-sub">Basic event access</div>
+          </div>
+        </div>
+        <button class="credit-use-btn" onclick="useCredit('starter')">Use Credit</button>
+      </div>
+      <div class="credit-tier-row">
+        <div class="credit-tier-info">
+          <div class="credit-tier-count">1</div>
+          <div>
+            <div class="credit-tier-label">Growth</div>
+            <div class="credit-tier-sub">Priority placement</div>
+          </div>
+        </div>
+        <button class="credit-use-btn" onclick="useCredit('growth')">Use Credit</button>
+      </div>
+      <div class="credit-tier-row empty">
+        <div class="credit-tier-info">
+          <div class="credit-tier-count">0</div>
+          <div>
+            <div class="credit-tier-label">Pro</div>
+            <div class="credit-tier-sub">Featured + analytics</div>
+          </div>
+        </div>
+        <span class="credit-empty-label">No credits</span>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+function openCreditsModal() {
+  document.getElementById('user-menu').classList.remove('open');
+  document.getElementById('creditsModal').classList.add('open');
+}
+function closeCreditsModal() {
+  document.getElementById('creditsModal').classList.remove('open');
+}
+function useCredit(tier) {
+  closeCreditsModal();
+  window.location.href = 'visual-v3.html?view=register';
+}
+document.getElementById('creditsModal').addEventListener('click', function(e) {
+  if (e.target === this) closeCreditsModal();
+});
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape' && document.getElementById('creditsModal').classList.contains('open')) closeCreditsModal();
+});
+</script>
 
 </body>
 </html>
