@@ -65,3 +65,4 @@
 61. Added Starter tier volume/bundle pricing — qty steps (1–4 individual, then 5/10/15/25/40/50/75/100 bundles) with per-event discounts, green savings banner at 5+ events, per-event price display (lobby-v3 only)
 62. Redesigned pricing hierarchy — dynamic hero price updates live with qty, de-bolded total (16px/500) and qty value (500), removed redundant per-event line
 63. Added Growth tier volume/bundle pricing — same step pattern as Starter, dynamic hero price, green savings banner at 5+ events (lobby-v3 only)
+64. Added Pro tier volume/bundle pricing — all three tiers now use bundle steps, refactored JS to shared lookup pattern (lobby-v3 only)
