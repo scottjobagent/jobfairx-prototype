@@ -982,6 +982,10 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
 .purchase-total-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
 .purchase-total-label { font-size: 15px; color: #2d2d2d; font-weight: 500; }
 .purchase-total-value { font-size: 20px; font-weight: 700; color: #2d2d2d; }
+.purchase-per-event { font-size: 13px; color: #595959; margin-top: 2px; text-align: right; }
+.purchase-savings-row { display: flex; align-items: center; gap: 6px; margin-bottom: 16px; padding: 8px 12px; background: #e6f4ea; border-radius: 8px; }
+.purchase-savings-row svg { width: 16px; height: 16px; color: #1e7e34; flex-shrink: 0; }
+.purchase-savings-text { font-size: 13px; font-weight: 600; color: #1e7e34; }
 .purchase-buy-btn { display: block; width: 100%; padding: 12px 24px; border-radius: 8px; font-size: 15px; font-weight: 700; cursor: pointer; font-family: 'Noto Sans', sans-serif; background: #0044B3; border: none; color: #fff; transition: background 0.15s; text-align: center; }
 .purchase-buy-btn:hover { background: #003399; }
 .purchase-footer { text-align: center; padding: 0 28px 24px; }
@@ -5018,6 +5022,11 @@ document.addEventListener('keydown', function(e) {
               <span class="purchase-total-label">Total</span>
               <span class="purchase-total-value" id="purchaseTotal">$495</span>
             </div>
+            <div class="purchase-per-event" id="purchasePerEvent" style="display:none"></div>
+            <div class="purchase-savings-row" id="purchaseSavings" style="display:none">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              <span class="purchase-savings-text" id="purchaseSavingsText"></span>
+            </div>
             <button class="purchase-buy-btn" onclick="event.stopPropagation(); completePurchase()">Purchase</button>
           </div>
         </div>
@@ -5273,6 +5282,14 @@ var purchasePrices = { starter: 495, growth: 895, pro: 1495 };
 var purchaseSelectedTier = 'growth';
 var purchaseQty = 1;
 
+/* Starter volume pricing: qty → per-event price */
+var starterSteps = [1, 2, 3, 4, 5, 10, 15, 25, 40, 50, 75, 100];
+var starterPriceAt = {
+  1: 495, 2: 495, 3: 495, 4: 495,
+  5: 470, 10: 445, 15: 420, 25: 395,
+  40: 365, 50: 345, 75: 320, 100: 297
+};
+
 function openPurchaseModal() {
   purchaseSelectedTier = 'growth';
   purchaseQty = 1;
@@ -5291,7 +5308,16 @@ function selectPurchaseTier(tier) {
 }
 
 function adjustQty(delta) {
-  purchaseQty = Math.max(1, purchaseQty + delta);
+  if (purchaseSelectedTier === 'starter') {
+    var idx = starterSteps.indexOf(purchaseQty);
+    if (idx === -1) idx = 0;
+    idx += delta;
+    if (idx < 0) idx = 0;
+    if (idx >= starterSteps.length) idx = starterSteps.length - 1;
+    purchaseQty = starterSteps[idx];
+  } else {
+    purchaseQty = Math.max(1, purchaseQty + delta);
+  }
   updatePurchaseCards();
 }
 
@@ -5304,10 +5330,35 @@ function updatePurchaseCards() {
       card.classList.remove('selected');
     }
   });
-  // Update qty and total on the selected card
-  var total = purchasePrices[purchaseSelectedTier] * purchaseQty;
+
+  var perEvent, total;
+  if (purchaseSelectedTier === 'starter') {
+    perEvent = starterPriceAt[purchaseQty] || 495;
+    total = perEvent * purchaseQty;
+  } else {
+    perEvent = purchasePrices[purchaseSelectedTier];
+    total = perEvent * purchaseQty;
+  }
+
   document.querySelectorAll('.purchase-qty-value').forEach(function(el) { el.textContent = purchaseQty; });
   document.querySelectorAll('.purchase-total-value').forEach(function(el) { el.textContent = '$' + total.toLocaleString(); });
+
+  /* Starter savings display */
+  var savingsRow = document.getElementById('purchaseSavings');
+  var savingsText = document.getElementById('purchaseSavingsText');
+  var perEventEl = document.getElementById('purchasePerEvent');
+
+  if (purchaseSelectedTier === 'starter' && purchaseQty >= 5) {
+    var fullPrice = 495 * purchaseQty;
+    var savings = fullPrice - total;
+    savingsText.textContent = 'You save $' + savings.toLocaleString();
+    savingsRow.style.display = 'flex';
+    perEventEl.textContent = '$' + perEvent + '/event';
+    perEventEl.style.display = 'block';
+  } else {
+    savingsRow.style.display = 'none';
+    perEventEl.style.display = 'none';
+  }
 }
 
 function completePurchase() {

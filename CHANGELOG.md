@@ -56,3 +56,10 @@
 52. Added Escape key support for Register Confirmation modal
 53. Built "You're registered!" success modal — green checkmark, event name/date, Go to dashboard + Post a job buttons
 54. Post a job button navigates to setup-flow-v3.html (same as Complete Setup flow)
+55. Updated end call flow — selecting "No" (not finished interviewing) skips candidate rating/notes, goes straight to call quality feedback, then back to lobby
+56. Fixed Interviewed live empty tab — removed extra min-height causing inconsistent gray background vs other tabs
+57. Hide disabled Prepare buttons (View candidates, Add interviewers) instead of showing grayed out — buttons appear when actionable
+58. Fixed Not yet interviewed tab count to show (0) in live empty state instead of (26)
+59. Fixed Not yet interviewed active state counts — section headers from (18) to (8) matching actual rows, tab label shows (16) in active mode
+60. Built Purchase Credits modal — three-card tier selector (Starter $495, Growth $895, Pro $1,495) with quantity controls, dynamic totals, and Purchase button across all v3 pages
+61. Added Starter tier volume/bundle pricing — qty steps (1–4 individual, then 5/10/15/25/40/50/75/100 bundles) with per-event discounts, green savings banner at 5+ events, per-event price display (lobby-v3 only)
