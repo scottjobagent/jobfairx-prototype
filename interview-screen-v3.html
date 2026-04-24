@@ -187,6 +187,28 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
 .call-ended-btn:hover { background: rgba(0,0,0,0.05); }
 .call-ended-btn svg { width: 36px; height: 36px; color: #2d2d2d; }
 .call-ended-btn span { font-size: 14px; font-weight: 600; color: #595959; }
+
+/* ═══ CALL QUALITY FEEDBACK FORM ═══ */
+.call-feedback { display: none; background: #fff; border-radius: 14px; width: 520px; max-width: 90vw; box-shadow: 0 8px 32px rgba(0,0,0,0.15); color: #2d2d2d; overflow: hidden; }
+.call-feedback.open { display: block; }
+.call-feedback-header { display: flex; align-items: center; justify-content: space-between; padding: 24px 24px 0; }
+.call-feedback-header h3 { font-size: 18px; font-weight: 700; color: #2d2d2d; margin: 0; }
+.call-feedback-close { width: 32px; height: 32px; border: none; background: none; cursor: pointer; color: #595959; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+.call-feedback-close:hover { background: #f3f2ef; color: #2d2d2d; }
+.call-feedback-options { padding: 20px 24px 0; display: flex; flex-direction: column; gap: 16px; }
+.call-feedback-option { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+.call-feedback-option input[type="checkbox"] { width: 20px; height: 20px; accent-color: #2d2d2d; border-radius: 4px; cursor: pointer; flex-shrink: 0; }
+.call-feedback-option label { font-size: 15px; color: #2d2d2d; cursor: pointer; }
+.call-feedback-comments { padding: 20px 24px 0; }
+.call-feedback-comments h4 { font-size: 15px; font-weight: 700; color: #2d2d2d; margin-bottom: 10px; }
+.call-feedback-comments textarea { width: 100%; min-height: 100px; border: 1px solid #d4d2d0; border-radius: 8px; padding: 12px 14px; font-size: 14px; font-family: inherit; outline: none; resize: vertical; color: #2d2d2d; }
+.call-feedback-comments textarea:focus { border-color: #0044B3; }
+.call-feedback-actions { display: flex; justify-content: flex-end; gap: 12px; padding: 24px; border-top: 1px solid #e8e6e3; margin-top: 20px; }
+.call-feedback-actions button { padding: 10px 24px; border-radius: 24px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+.call-feedback-skip { background: #fff; border: 1px solid #2d2d2d; color: #2d2d2d; }
+.call-feedback-skip:hover { background: #f3f2ef; }
+.call-feedback-submit { background: #0044B3; border: none; color: #fff; }
+.call-feedback-submit:hover { background: #003399; }
 </style>
 </head>
 <body>
@@ -399,17 +421,56 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
 
 <!-- ═══ CALL ENDED SCREEN ═══ -->
 <div class="call-ended-screen" id="callEndedScreen">
-  <div class="call-ended-title">Call ended</div>
-  <div class="call-ended-subtitle">How was the call quality?</div>
-  <div class="call-ended-btns">
-    <button class="call-ended-btn" onclick="rateCallQuality('good')">
-      <svg viewBox="0 0 24 24" fill="#2d2d2d" stroke="none"><path d="M2 20h2c.55 0 1-.45 1-1v-9c0-.55-.45-1-1-1H2v11zm19.83-7.12c.11-.25.17-.52.17-.8V11c0-1.1-.9-2-2-2h-5.5l.92-4.65c.05-.22.02-.46-.08-.66L14.17 2 7.58 8.59C7.22 8.95 7 9.45 7 10v9c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-1.12z"/></svg>
-      <span>Good</span>
-    </button>
-    <button class="call-ended-btn" onclick="rateCallQuality('bad')">
-      <svg viewBox="0 0 24 24" fill="#2d2d2d" stroke="none"><path d="M22 4h-2c-.55 0-1 .45-1 1v9c0 .55.45 1 1 1h2V4zM2.17 11.12c-.11.25-.17.52-.17.8V13c0 1.1.9 2 2 2h5.5l-.92 4.65c-.05.22-.02.46.08.66L9.83 22l6.59-6.59c.36-.36.58-.86.58-1.41V5c0-1.1-.9-2-2-2H6c-.83 0-1.54.5-1.84 1.22l-3.02 7.05c-.09.23-.14.47-.14.73v1.12z"/></svg>
-      <span>Bad</span>
-    </button>
+  <!-- Thumbs up / down view -->
+  <div id="callRatingView">
+    <div class="call-ended-title">Call ended</div>
+    <div class="call-ended-subtitle">How was the call quality?</div>
+    <div class="call-ended-btns">
+      <button class="call-ended-btn" onclick="rateCallQuality('good')">
+        <svg viewBox="0 0 24 24" fill="#2d2d2d" stroke="none"><path d="M2 20h2c.55 0 1-.45 1-1v-9c0-.55-.45-1-1-1H2v11zm19.83-7.12c.11-.25.17-.52.17-.8V11c0-1.1-.9-2-2-2h-5.5l.92-4.65c.05-.22.02-.46-.08-.66L14.17 2 7.58 8.59C7.22 8.95 7 9.45 7 10v9c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-1.12z"/></svg>
+        <span>Good</span>
+      </button>
+      <button class="call-ended-btn" onclick="rateCallQuality('bad')">
+        <svg viewBox="0 0 24 24" fill="#2d2d2d" stroke="none"><path d="M22 4h-2c-.55 0-1 .45-1 1v9c0 .55.45 1 1 1h2V4zM2.17 11.12c-.11.25-.17.52-.17.8V13c0 1.1.9 2 2 2h5.5l-.92 4.65c-.05.22-.02.46.08.66L9.83 22l6.59-6.59c.36-.36.58-.86.58-1.41V5c0-1.1-.9-2-2-2H6c-.83 0-1.54.5-1.84 1.22l-3.02 7.05c-.09.23-.14.47-.14.73v1.12z"/></svg>
+        <span>Bad</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Feedback form (shown after thumbs down) -->
+  <div class="call-feedback" id="callFeedbackForm">
+    <div class="call-feedback-header">
+      <h3>What went wrong?</h3>
+      <button class="call-feedback-close" onclick="skipFeedback()">&times;</button>
+    </div>
+    <div class="call-feedback-options">
+      <div class="call-feedback-option" onclick="this.querySelector('input').click()">
+        <input type="checkbox" id="fb1"><label for="fb1">I could not hear others</label>
+      </div>
+      <div class="call-feedback-option" onclick="this.querySelector('input').click()">
+        <input type="checkbox" id="fb2"><label for="fb2">Others could not hear me</label>
+      </div>
+      <div class="call-feedback-option" onclick="this.querySelector('input').click()">
+        <input type="checkbox" id="fb3"><label for="fb3">Poor audio quality</label>
+      </div>
+      <div class="call-feedback-option" onclick="this.querySelector('input').click()">
+        <input type="checkbox" id="fb4"><label for="fb4">I could not see others</label>
+      </div>
+      <div class="call-feedback-option" onclick="this.querySelector('input').click()">
+        <input type="checkbox" id="fb5"><label for="fb5">Others could not see me</label>
+      </div>
+      <div class="call-feedback-option" onclick="this.querySelector('input').click()">
+        <input type="checkbox" id="fb6"><label for="fb6">Poor video quality</label>
+      </div>
+    </div>
+    <div class="call-feedback-comments">
+      <h4>Additional comments</h4>
+      <textarea placeholder=""></textarea>
+    </div>
+    <div class="call-feedback-actions">
+      <button class="call-feedback-skip" onclick="skipFeedback()">Skip</button>
+      <button class="call-feedback-submit" onclick="submitFeedback()">Submit</button>
+    </div>
   </div>
 </div>
 
@@ -530,9 +591,19 @@ function handleEndCall() {
   closeEndModal();
   document.getElementById('callEndedScreen').classList.add('open');
 }
+var lobbyUrl = 'lobby-v3.html?mode=live&tab=waiting';
+
 function rateCallQuality(rating) {
-  window.location.href = 'lobby-v3.html?tab=waiting';
+  if (rating === 'good') {
+    window.location.href = lobbyUrl;
+  } else {
+    /* Show feedback form, hide thumbs */
+    document.getElementById('callRatingView').style.display = 'none';
+    document.getElementById('callFeedbackForm').classList.add('open');
+  }
 }
+function skipFeedback() { window.location.href = lobbyUrl; }
+function submitFeedback() { window.location.href = lobbyUrl; }
 
 document.getElementById('endModal').addEventListener('click', function(e) {
   if (e.target === this) closeEndModal();
