@@ -3474,15 +3474,43 @@ var declinedRowParent = null;
 var declinedRowNext = null;
 var declineToastTimer = null;
 
+var isDeclineCancel = false;
+var skipCancelWarning = false;
+
 function declineInterview(btn) {
   var row = btn.closest('tr');
-  if (skipDeclineWarning) {
+  var name = getRowName(row);
+
+  // Detect if this is a cancel (from upcoming interviews) vs decline (from awaiting response)
+  var section = row.closest('.live-panel-section');
+  var sectionTitle = section ? (section.querySelector('.live-section-title') || {}).textContent || '' : '';
+  isDeclineCancel = sectionTitle.toLowerCase().indexOf('upcoming') >= 0;
+
+  if (isDeclineCancel && skipCancelWarning) {
     executeDecline(row);
     return;
   }
+  if (!isDeclineCancel && skipDeclineWarning) {
+    executeDecline(row);
+    return;
+  }
+
   pendingDeclineRow = row;
-  var name = getRowName(row);
-  document.getElementById('declineCandidateName').textContent = name;
+
+  if (isDeclineCancel) {
+    document.getElementById('declineModalTitle').textContent = 'Cancel interview';
+    document.getElementById('declineModalBody').innerHTML = 'Are you sure you want to cancel the interview with <span class="candidate-name">' + name + '</span>? The candidate will be notified and removed from your schedule.';
+    document.getElementById('declineDontAskLabel').textContent = "Don't show this message when I cancel";
+    document.getElementById('declineCancelBtn').textContent = 'Go back';
+    document.getElementById('declineConfirmBtn').textContent = 'Cancel interview';
+  } else {
+    document.getElementById('declineModalTitle').textContent = 'Decline interview';
+    document.getElementById('declineModalBody').innerHTML = 'Are you sure you want to decline the interview request from <span class="candidate-name">' + name + '</span>? This action can\'t be undone and the candidate will be removed from your list.';
+    document.getElementById('declineDontAskLabel').textContent = "Don't show this message when I decline";
+    document.getElementById('declineCancelBtn').textContent = 'Cancel';
+    document.getElementById('declineConfirmBtn').textContent = 'Decline';
+  }
+
   document.getElementById('declineModal').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
@@ -3495,8 +3523,10 @@ function closeDeclineModal() {
 
 function confirmDecline() {
   if (document.getElementById('declineDontAsk').checked) {
-    skipDeclineWarning = true;
+    if (isDeclineCancel) { skipCancelWarning = true; }
+    else { skipDeclineWarning = true; }
   }
+  document.getElementById('declineDontAsk').checked = false;
   document.getElementById('declineModal').classList.remove('open');
   document.body.style.overflow = '';
   if (pendingDeclineRow) {
@@ -3526,9 +3556,13 @@ function executeDecline(row) {
     if (viewContainer) updateNotyetSectionCounts(viewContainer);
   }, 300);
 
-  // Show toast
+  // Show toast — different message for cancel vs decline
   var toast = document.getElementById('declineToast');
-  document.getElementById('declineToastMsg').textContent = name + "'s interview request declined";
+  document.getElementById('declineToastTitle').textContent = isDeclineCancel ? 'Cancelled' : 'Declined';
+  var toastMsg = isDeclineCancel
+    ? 'Interview with ' + name + ' has been cancelled.'
+    : name + "'s interview request declined";
+  document.getElementById('declineToastMsg').textContent = toastMsg;
   toast.classList.add('show');
 
   // Auto-remove after 3 seconds
@@ -4320,7 +4354,7 @@ document.addEventListener('click', function(e) {
 <div class="jfx-toast toast-error" id="declineToast">
   <div class="jfx-toast-icon error"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>
   <div class="jfx-toast-body">
-    <div class="jfx-toast-title">Declined</div>
+    <div class="jfx-toast-title" id="declineToastTitle">Declined</div>
     <div class="jfx-toast-msg" id="declineToastMsg"></div>
     <button class="jfx-toast-undo" onclick="undoDecline()">Undo</button>
   </div>
@@ -4371,18 +4405,18 @@ document.addEventListener('click', function(e) {
   </div>
 </div>
 
-<!-- Decline Confirmation Modal -->
+<!-- Decline / Cancel Confirmation Modal -->
 <div class="decline-modal-overlay" id="declineModal">
   <div class="decline-modal">
-    <div class="decline-modal-header">Decline interview</div>
-    <div class="decline-modal-body">Are you sure you want to decline the interview request from <span class="candidate-name" id="declineCandidateName"></span>? This action can't be undone and the candidate will be removed from your list.</div>
+    <div class="decline-modal-header" id="declineModalTitle">Decline interview</div>
+    <div class="decline-modal-body" id="declineModalBody">Are you sure you want to decline the interview request from <span class="candidate-name" id="declineCandidateName"></span>? This action can't be undone and the candidate will be removed from your list.</div>
     <label class="decline-modal-checkbox">
       <input type="checkbox" id="declineDontAsk">
-      Don't show this message when I decline
+      <span id="declineDontAskLabel">Don't show this message when I decline</span>
     </label>
     <div class="decline-modal-actions">
-      <button class="decline-cancel" onclick="closeDeclineModal()">Cancel</button>
-      <button class="decline-confirm" onclick="confirmDecline()">Decline</button>
+      <button class="decline-cancel" onclick="closeDeclineModal()" id="declineCancelBtn">Cancel</button>
+      <button class="decline-confirm" onclick="confirmDecline()" id="declineConfirmBtn">Decline</button>
     </div>
   </div>
 </div>
