@@ -1,0 +1,58 @@
+# JobFairX Employer Dashboard — Change Log
+
+**Started: Tuesday, April 22, 2026 at 6:42 PM**
+
+1. Fixed post-event report "View resume" — moved resume modal to page root so it works from dashboard/report view
+2. Updated lobby prepare section: disabled states for Review candidates (0 candidates) and Add interviewers (seats full), replaced welcome message with custom messaging modal
+3. Renamed button to "Edit custom message", updated subtext to explain auto-send behavior, added "Prepare section: Has items / Empty" dev toggle
+4. Renamed three-dot menu "Interview settings" → "Add interviewers"
+5. Added "Schedule follow-up interview" + "Send a message" buttons to event-ended Interviewed tab resume modal
+6. Moved Prepare section dev toggle to top header bar with other toggles
+7. Fixed Start Interview buttons in live Waiting to Interview tab (restored missing onclick + function)
+8. Added hover tooltips to resume modal buttons (Download, Accept, Decline, Reschedule)
+9. Removed unnecessary tooltip from Start Interview button
+10. Standardized all button tooltips for consistency across lobby-v3 (Accept, Decline, Reschedule, Cancel, Rejoin, End, Download)
+11. Standardized primary button hover color (#003399) and font-weight (700) across all primary buttons
+12. Fixed all 8 Cancel buttons in the active state — they now call `declineInterview(this)` like their live-state counterparts
+13. Sign Out now navigates to `login.html`
+14. New `login.html` page with email field, Continue button, and SSO link
+15. Removed orphaned Welcome modal (CSS, HTML, and JS) — replaced by Custom Messaging modal
+16. Standardized all modal overlay opacity to 0.5 (was a mix of 0.45/0.55)
+17. Standardized modal border-radius to 14px (except resume modal, intentionally different)
+18. Standardized close button shape to 32x32px, border-radius 6px (was 50% circles)
+19. Standardized modal title font-weight to 700 (was 800)
+20. Reduced feedback modal from 5 options to 3 (Amazing, Good, Poor) — removed Okay and Terrible
+21. Updated feedback modal to 3 options across all v3 files (lobby, visual, edit-post, setup-flow)
+22. Built interview-screen-v3.html — full interview video call experience (dark UI, toolbar, Notes/Chat/Resume panels, End call flow)
+23. Redesigned interview-screen-v3.html to match Indeed's light design (no logo, no dark theme, floating UI, white toolbar)
+24. Removed add-participant icon from interview screen
+25. Fixed side panel exclusivity — moved panels to iv-video-area
+26. Removed orange progress bar from interview screen
+27. Removed More, Record, Share screen from toolbar
+28. Restyled toolbar buttons to match Indeed (rounded rect with icon | divider | up-caret)
+29. Fixed panel logic — switched from transform to display none/flex
+30. Added "Scott (You)" floating name tag bottom-left with muted mic icon
+31. Added thumbs-down feedback form (6 checkboxes, comments textarea, Skip/Submit)
+32. Fixed redirect to live view after interview ends (mode=live&tab=waiting)
+33. Added "recommend moving forward" modal to end-call flow (Yes/Maybe/No toggle + notes)
+34. Wired Rejoin buttons in Interviewing tab to open interview-screen-v3.html
+35. Added "End event for all interviewers" to three-dot menu (live states only)
+36. Fixed menu width and text wrapping for end-event menu item
+37. Set end-event menu item font-weight to 500
+38. Built end-event confirmation modal (CSS + HTML — warning banner, message textarea, red buttons)
+39. Wired end-event modal JS — open, close, confirm, overlay dismiss, Escape key
+40. Redesigned toast notifications to Indeed-style top-right pattern (green success, red error)
+41. Fixed toast background colors to match Indeed design
+42. Wired Accept/Decline buttons in Not Yet Interviewed tab
+43. Built context-aware decline/cancel modal for upcoming vs pending interviews
+44. Changed decline/cancel toast to green Success style
+45. Moved Event Credits from sidebar to top-right user dropdown across all v3 pages
+46. Simplified Event Credits dropdown item — removed inline count
+47. Removed Event Credits from sidebar nav on all v3 pages
+48. Fixed v3 navigation — Event Credits href="#", account-billing links to visual-v3
+49. Built Event Credits modal with Use Credit → Register flow on all v3 pages
+50. Redesigned Event Credits modal — only show tiers with credits, added Buy Credits + empty state
+51. Added Register Confirmation modal — shows event details + credit usage before registering
+52. Added Escape key support for Register Confirmation modal
+53. Built "You're registered!" success modal — green checkmark, event name/date, Go to dashboard + Post a job buttons
+54. Post a job button navigates to setup-flow-v3.html (same as Complete Setup flow)
