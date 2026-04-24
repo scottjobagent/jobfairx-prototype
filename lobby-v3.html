@@ -213,11 +213,20 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
 .decline-modal-actions .decline-confirm { background: #991b1b; border: none; color: #fff; }
 .decline-modal-actions .decline-confirm:hover { background: #7f1d1d; }
 
-/* Decline toast notification */
-.decline-toast { position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(20px); background: #2d2d2d; color: #fff; padding: 14px 24px; border-radius: 10px; font-size: 14px; font-weight: 400; display: flex; align-items: center; gap: 16px; z-index: 9999; opacity: 0; transition: opacity 0.3s, transform 0.3s; pointer-events: none; box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
-.decline-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
-.decline-toast .toast-undo { color: #6cb4ff; font-weight: 600; cursor: pointer; text-decoration: underline; background: none; border: none; font-size: 14px; font-family: inherit; padding: 0; }
-.decline-toast .toast-undo:hover { color: #fff; }
+/* ═══ TOAST NOTIFICATION (Indeed-style, top-right) ═══ */
+.jfx-toast { position: fixed; top: 24px; right: 24px; min-width: 320px; max-width: 420px; background: #fff; border-radius: 10px; box-shadow: 0 4px 24px rgba(0,0,0,0.14); border: 1px solid #d4d2d0; z-index: 10001; display: flex; align-items: flex-start; gap: 12px; padding: 16px 18px; opacity: 0; transform: translateX(40px); transition: opacity 0.3s, transform 0.3s; pointer-events: none; }
+.jfx-toast.show { opacity: 1; transform: translateX(0); pointer-events: auto; }
+.jfx-toast-icon { flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-top: 1px; }
+.jfx-toast-icon.success { background: #dcfce7; color: #16a34a; }
+.jfx-toast-icon.error { background: #fee2e2; color: #991b1b; }
+.jfx-toast-icon svg { width: 16px; height: 16px; }
+.jfx-toast-body { flex: 1; min-width: 0; }
+.jfx-toast-title { font-size: 14px; font-weight: 700; color: #2d2d2d; line-height: 1.4; }
+.jfx-toast-msg { font-size: 14px; font-weight: 400; color: #595959; line-height: 1.4; margin-top: 2px; }
+.jfx-toast-close { flex-shrink: 0; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; background: none; border: none; cursor: pointer; color: #767676; font-size: 18px; border-radius: 6px; transition: background 0.15s; margin: -4px -4px 0 0; }
+.jfx-toast-close:hover { background: #f3f2ef; color: #2d2d2d; }
+.jfx-toast-undo { display: inline-block; margin-top: 6px; font-size: 13px; font-weight: 600; color: #0044B3; cursor: pointer; text-decoration: underline; background: none; border: none; padding: 0; font-family: inherit; }
+.jfx-toast-undo:hover { color: #003399; }
 
 /* Resume modal */
 .resume-modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center; }
@@ -701,8 +710,7 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
 .schedule-field-error { display: none; margin-top: 6px; font-size: 13px; color: #991b1b; font-weight: 400; }
 .schedule-field.has-error .schedule-field-error { display: block; }
 .sched-modal-btn-blue svg { width: 14px; height: 14px; margin-left: 6px; vertical-align: middle; }
-.sched-toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); background: #2d2d2d; color: #fff; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; z-index: 10001; display: none; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
-.sched-toast.show { display: block; }
+/* sched-toast now uses jfx-toast system */
 
 /* ═══ FEEDBACK MODAL ═══ */
 .fb-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 2000; align-items: flex-start; justify-content: center; padding: 5vh 20px; overflow-y: auto; }
@@ -3359,14 +3367,21 @@ function acceptInterview(btn) {
   document.getElementById('acceptToastMsg').textContent = name + "'s interview request accepted";
   toast.classList.add('show');
 
-  // Auto-remove after 5 seconds
+  // Auto-remove after 3 seconds
   acceptToastTimer = setTimeout(function() {
     toast.classList.remove('show');
     if (acceptedRow) {
       acceptedRow.remove();
       acceptedRow = null;
     }
-  }, 5000);
+  }, 3000);
+}
+
+function closeAcceptToast() {
+  if (acceptToastTimer) { clearTimeout(acceptToastTimer); acceptToastTimer = null; }
+  var toast = document.getElementById('acceptToast');
+  toast.classList.remove('show');
+  if (acceptedRow) { acceptedRow.remove(); acceptedRow = null; }
 }
 
 function undoAccept() {
@@ -3388,7 +3403,7 @@ var pendingDeclineRow = null;
 var declinedRow = null;
 var declinedRowParent = null;
 var declinedRowNext = null;
-var toastTimer = null;
+var declineToastTimer = null;
 
 function declineInterview(btn) {
   var row = btn.closest('tr');
@@ -3443,18 +3458,25 @@ function executeDecline(row) {
   document.getElementById('declineToastMsg').textContent = name + "'s interview request declined";
   toast.classList.add('show');
 
-  // Auto-remove after 5 seconds
-  toastTimer = setTimeout(function() {
+  // Auto-remove after 3 seconds
+  declineToastTimer = setTimeout(function() {
     toast.classList.remove('show');
     if (declinedRow) {
       declinedRow.remove();
       declinedRow = null;
     }
-  }, 5000);
+  }, 3000);
+}
+
+function closeDeclineToast() {
+  if (declineToastTimer) { clearTimeout(declineToastTimer); declineToastTimer = null; }
+  var toast = document.getElementById('declineToast');
+  toast.classList.remove('show');
+  if (declinedRow) { declinedRow.remove(); declinedRow = null; }
 }
 
 function undoDecline() {
-  if (toastTimer) { clearTimeout(toastTimer); toastTimer = null; }
+  if (declineToastTimer) { clearTimeout(declineToastTimer); declineToastTimer = null; }
   var toast = document.getElementById('declineToast');
   toast.classList.remove('show');
 
@@ -3758,11 +3780,8 @@ function sendMessage() {
   document.getElementById('msgCharCount').textContent = '0';
 
   // Show toast
-  var toast = document.getElementById('acceptToast');
   var toName = document.getElementById('msgTo').textContent.replace('To: ', '').split(' · ')[0];
-  document.getElementById('acceptToastMsg').textContent = 'Message sent to ' + toName;
-  toast.classList.add('show');
-  setTimeout(function() { toast.classList.remove('show'); }, 3000);
+  showToast('success', 'Message sent to ' + toName);
 }
 
 // Review dots dropdown
@@ -4186,9 +4205,8 @@ function setUserStatus(status) {
   document.querySelectorAll('.away-cta-card').forEach(function(card) {
     card.style.display = (status === 'away') ? '' : 'none';
   });
-  var dotColor = status === 'online' ? '#16a34a' : '#999';
   var label = status === 'online' ? 'Available' : 'Away';
-  fbToast('<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:' + dotColor + ';margin-right:8px;vertical-align:middle;"></span>Status changed to ' + label, true);
+  showToast('success', "You've changed your interview status to " + label + ".");
 }
 
 // Close menus on click outside
@@ -4207,15 +4225,25 @@ document.addEventListener('click', function(e) {
 </script>
 
 <!-- Accept Toast -->
-<div class="decline-toast" id="acceptToast">
-  <span id="acceptToastMsg"></span>
-  <button class="toast-undo" onclick="undoAccept()">Undo</button>
+<div class="jfx-toast" id="acceptToast">
+  <div class="jfx-toast-icon success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+  <div class="jfx-toast-body">
+    <div class="jfx-toast-title">Success</div>
+    <div class="jfx-toast-msg" id="acceptToastMsg"></div>
+    <button class="jfx-toast-undo" onclick="undoAccept()">Undo</button>
+  </div>
+  <button class="jfx-toast-close" onclick="closeAcceptToast()">&times;</button>
 </div>
 
 <!-- Decline Toast -->
-<div class="decline-toast" id="declineToast">
-  <span id="declineToastMsg"></span>
-  <button class="toast-undo" onclick="undoDecline()">Undo</button>
+<div class="jfx-toast" id="declineToast">
+  <div class="jfx-toast-icon error"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>
+  <div class="jfx-toast-body">
+    <div class="jfx-toast-title">Declined</div>
+    <div class="jfx-toast-msg" id="declineToastMsg"></div>
+    <button class="jfx-toast-undo" onclick="undoDecline()">Undo</button>
+  </div>
+  <button class="jfx-toast-close" onclick="closeDeclineToast()">&times;</button>
 </div>
 
 <!-- Message Modal -->
@@ -4338,16 +4366,7 @@ function clearScheduleFieldError(input) {
 }
 
 function showSchedToast(msg) {
-  var toast = document.getElementById('schedToast');
-  if (!toast) {
-    toast = document.createElement('div');
-    toast.className = 'sched-toast';
-    toast.id = 'schedToast';
-    document.body.appendChild(toast);
-  }
-  toast.textContent = msg;
-  toast.classList.add('show');
-  setTimeout(function() { toast.classList.remove('show'); }, 2800);
+  showToast('success', msg);
 }
 
 function updateScheduleSlotState() {
@@ -4612,26 +4631,50 @@ document.addEventListener('click', function(e) {
   }
 });
 
-var fbToastTimer = null;
-function fbToast(msg, useHTML) {
-  var t = document.getElementById('fb-toast-el');
-  if (!t) {
-    t = document.createElement('div');
-    t.id = 'fb-toast-el';
-    t.style.cssText = 'position:fixed;bottom:32px;left:50%;transform:translateX(-50%) translateY(20px);background:#2d2d2d;color:#fff;padding:14px 24px;border-radius:10px;font-size:14px;font-weight:400;z-index:10001;box-shadow:0 4px 16px rgba(0,0,0,0.12);opacity:0;transition:opacity 0.3s, transform 0.3s;pointer-events:none;';
-    document.body.appendChild(t);
-  }
-  if (fbToastTimer) { clearTimeout(fbToastTimer); }
-  if (useHTML) { t.innerHTML = msg; } else { t.textContent = msg; }
-  t.style.opacity = '1';
-  t.style.transform = 'translateX(-50%) translateY(0)';
-  t.style.pointerEvents = 'auto';
-  fbToastTimer = setTimeout(function(){
-    t.style.opacity = '0';
-    t.style.transform = 'translateX(-50%) translateY(20px)';
-    t.style.pointerEvents = 'none';
-  }, 3000);
+/* ═══ TOAST SYSTEM (Indeed-style, top-right) ═══ */
+var toastTimer = null;
+var toastEl = null;
+
+function showToast(type, message) {
+  // type: 'success' or 'error'
+  if (toastEl) { toastEl.remove(); }
+  if (toastTimer) { clearTimeout(toastTimer); }
+
+  var isSuccess = (type === 'success');
+  var iconSvg = isSuccess
+    ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
+    : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
+  var title = isSuccess ? 'Success' : 'Action completed';
+
+  var t = document.createElement('div');
+  t.className = 'jfx-toast';
+  t.innerHTML = '<div class="jfx-toast-icon ' + type + '">' + iconSvg + '</div>'
+    + '<div class="jfx-toast-body"><div class="jfx-toast-title">' + title + '</div>'
+    + '<div class="jfx-toast-msg">' + message + '</div></div>'
+    + '<button class="jfx-toast-close" onclick="dismissToast()">&times;</button>';
+  document.body.appendChild(t);
+  toastEl = t;
+
+  // Trigger animation
+  requestAnimationFrame(function() {
+    requestAnimationFrame(function() { t.classList.add('show'); });
+  });
+
+  toastTimer = setTimeout(function() { dismissToast(); }, 3000);
 }
+
+function dismissToast() {
+  if (toastTimer) { clearTimeout(toastTimer); toastTimer = null; }
+  if (toastEl) {
+    toastEl.classList.remove('show');
+    var el = toastEl;
+    setTimeout(function() { if (el.parentElement) el.remove(); }, 300);
+    toastEl = null;
+  }
+}
+
+// Backward compatibility
+function fbToast(msg) { showToast('success', msg); }
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') {
     var modal = document.getElementById('feedbackModal');
@@ -4841,7 +4884,7 @@ function closeEndEventModal() {
 function confirmEndEvent() {
   closeEndEventModal();
   setLobbyMode('event-ended');
-  fbToast('Event ended for all interviewers.');
+  showToast('error', 'Event ended for all interviewers.');
 }
 
 document.getElementById('endEventModal').addEventListener('click', function(e) {
