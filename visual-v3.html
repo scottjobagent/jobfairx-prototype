@@ -59,6 +59,25 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
 .credits-empty-title { font-size: 16px; font-weight: 700; color: #2d2d2d; margin-bottom: 8px; }
 .credits-empty-desc { font-size: 14px; color: #595959; line-height: 1.5; margin-bottom: 24px; }
 
+/* ═══ REGISTER CONFIRMATION MODAL ═══ */
+.reg-confirm-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; align-items: center; justify-content: center; }
+.reg-confirm-overlay.open { display: flex; }
+.reg-confirm-modal { background: #fff; border-radius: 14px; width: 480px; max-width: 90vw; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
+.reg-confirm-header { padding: 24px 24px 0; display: flex; justify-content: space-between; align-items: flex-start; }
+.reg-confirm-header-text { flex: 1; }
+.reg-confirm-title { font-size: 18px; font-weight: 700; color: #2d2d2d; margin: 0 0 6px; line-height: 1.4; }
+.reg-confirm-date { font-size: 14px; font-weight: 400; color: #595959; }
+.reg-confirm-close { width: 32px; height: 32px; border: none; background: none; cursor: pointer; color: #595959; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; margin-left: 12px; }
+.reg-confirm-close:hover { background: #f3f2ef; color: #2d2d2d; }
+.reg-confirm-divider { height: 1px; background: #ebebeb; margin: 20px 24px 0; }
+.reg-confirm-body { padding: 20px 24px; }
+.reg-confirm-credit-msg { font-size: 15px; color: #2d2d2d; line-height: 1.5; }
+.reg-confirm-actions { display: flex; justify-content: flex-end; gap: 12px; padding: 0 24px 24px; }
+.reg-confirm-cancel { padding: 10px 24px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: 'Noto Sans', sans-serif; background: #fff; border: 1px solid #d4d2d0; color: #2d2d2d; transition: all 0.15s; }
+.reg-confirm-cancel:hover { background: #f3f2ef; border-color: #2d2d2d; }
+.reg-confirm-register { padding: 10px 24px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: 'Noto Sans', sans-serif; background: #0044B3; border: none; color: #fff; transition: background 0.15s; }
+.reg-confirm-register:hover { background: #003399; }
+
 /* ═══ TOP HEADER (to the right of sidebar) ═══ */
 .topbar { position: fixed; top: 0; left: 220px; right: 0; height: 56px; background: #fff; border-bottom: 1px solid #d4d2d0; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; z-index: 200; transition: left 0.2s ease; }
 body.collapsed .topbar { left: 60px; }
@@ -3192,6 +3211,86 @@ document.getElementById('creditsModal').addEventListener('click', function(e) {
 });
 </script>
 
+<!-- ═══ REGISTER CONFIRMATION MODAL ═══ -->
+<div class="reg-confirm-overlay" id="regConfirmModal">
+  <div class="reg-confirm-modal">
+    <div class="reg-confirm-header">
+      <div class="reg-confirm-header-text">
+        <div class="reg-confirm-title" id="regConfirmTitle"></div>
+        <div class="reg-confirm-date" id="regConfirmDate"></div>
+      </div>
+      <button class="reg-confirm-close" onclick="closeRegConfirm()">&times;</button>
+    </div>
+    <div class="reg-confirm-divider"></div>
+    <div class="reg-confirm-body">
+      <div class="reg-confirm-credit-msg" id="regConfirmCreditMsg"></div>
+    </div>
+    <div class="reg-confirm-actions">
+      <button class="reg-confirm-cancel" onclick="closeRegConfirm()">Cancel</button>
+      <button class="reg-confirm-register" onclick="confirmRegister()">Register</button>
+    </div>
+  </div>
+</div>
+<script>
+var pendingRegCreditTier = null;
+
+// Track which credit tier was selected from the credits modal
+var selectedCreditTier = null;
+var creditTiers = { starter: 2, growth: 1 };
+
+// Override useCredit to store the selected tier before navigating to reg view
+(function() {
+  var origUseCredit = window.useCredit;
+  window.useCredit = function(tier) {
+    selectedCreditTier = tier;
+    closeCreditsModal();
+    showRegView();
+  };
+})();
+
+function openRegConfirm(link) {
+  var row = link.closest('tr');
+  var city = row.getAttribute('data-city');
+  var type = row.getAttribute('data-type');
+  var dateMain = row.querySelector('.reg-date-main').textContent;
+  var dateTime = row.querySelector('.reg-date-time').textContent;
+
+  var eventName = city + ', ' + type + ' Virtual Job Fair';
+  document.getElementById('regConfirmTitle').textContent = eventName;
+  document.getElementById('regConfirmDate').textContent = dateMain + ' · ' + dateTime;
+
+  // Determine which credit tier to use
+  var tier = selectedCreditTier || 'growth';
+  var tierName = tier.charAt(0).toUpperCase() + tier.slice(1);
+  var count = creditTiers[tier] || 0;
+  document.getElementById('regConfirmCreditMsg').textContent = 'This will use 1 of your ' + count + ' ' + tierName + ' credits.';
+
+  document.getElementById('regConfirmModal').classList.add('open');
+}
+
+function closeRegConfirm() {
+  document.getElementById('regConfirmModal').classList.remove('open');
+}
+
+function confirmRegister() {
+  closeRegConfirm();
+  hideRegView();
+  /* Registration logic TBD */
+}
+
+document.getElementById('regConfirmModal').addEventListener('click', function(e) {
+  if (e.target === this) closeRegConfirm();
+});
+
+// Wire all Register links in the reg table
+document.querySelectorAll('#regEventList .reg-link').forEach(function(link) {
+  link.addEventListener('click', function(e) {
+    e.preventDefault();
+    openRegConfirm(this);
+  });
+});
+</script>
+
 <!-- ═══ FEEDBACK MODAL ═══ -->
 <style>
 .fb-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 2000; align-items: flex-start; justify-content: center; padding: 5vh 20px; overflow-y: auto; }
@@ -3371,7 +3470,8 @@ function fbToast(msg) {
 }
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') {
-    if (document.getElementById('creditsModal').classList.contains('open')) closeCreditsModal();
+    if (document.getElementById('regConfirmModal').classList.contains('open')) closeRegConfirm();
+    else if (document.getElementById('creditsModal').classList.contains('open')) closeCreditsModal();
     else { var modal = document.getElementById('feedbackModal'); if (modal && modal.classList.contains('open')) closeFeedbackModal(); }
   }
 });
