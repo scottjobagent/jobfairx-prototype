@@ -414,6 +414,48 @@ body.setup-jobs-incomplete .add-job-row { display: none; }
 .credits-empty-title { font-size: 16px; font-weight: 700; color: #2d2d2d; margin-bottom: 8px; }
 .credits-empty-desc { font-size: 14px; color: #595959; line-height: 1.5; margin-bottom: 24px; }
 
+/* ═══ PURCHASE CREDITS MODAL ═══ */
+.purchase-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center; }
+.purchase-overlay.open { display: flex; }
+.purchase-modal { background: #fff; border-radius: 14px; width: 1060px; max-width: 90vw; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
+.purchase-header { display: flex; align-items: center; justify-content: space-between; padding: 24px 28px 0; }
+.purchase-header h3 { font-size: 20px; font-weight: 700; color: #2d2d2d; margin: 0; }
+.purchase-close { width: 32px; height: 32px; border: none; background: none; cursor: pointer; color: #595959; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+.purchase-close:hover { background: #f3f2ef; color: #2d2d2d; }
+.purchase-body { padding: 24px 28px 28px; }
+.purchase-cards { display: flex; gap: 20px; }
+.purchase-card { flex: 1; border: 2px solid #d4d2d0; border-radius: 14px; padding: 28px 24px; position: relative; cursor: pointer; transition: border-color 0.15s; display: flex; flex-direction: column; }
+.purchase-card:hover { border-color: #a8a8a8; }
+.purchase-card.selected { border-color: #0044B3; }
+.purchase-badge { position: absolute; top: -13px; left: 50%; transform: translateX(-50%); background: #0044B3; color: #fff; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; padding: 4px 14px; border-radius: 20px; white-space: nowrap; text-transform: uppercase; }
+.purchase-card-check { position: absolute; top: 12px; right: 12px; width: 24px; height: 24px; border-radius: 50%; background: #0044B3; display: none; align-items: center; justify-content: center; }
+.purchase-card.selected .purchase-card-check { display: flex; }
+.purchase-tier-name { font-size: 20px; font-weight: 700; color: #2d2d2d; text-align: center; margin-bottom: 8px; }
+.purchase-price { font-size: 36px; font-weight: 700; color: #2d2d2d; text-align: center; line-height: 1.2; }
+.purchase-price-sub { font-size: 14px; font-weight: 400; color: #595959; text-align: center; margin-bottom: 20px; }
+.purchase-features { list-style: none; padding: 0; margin: 0 0 24px; }
+.purchase-features li { display: flex; align-items: flex-start; gap: 10px; font-size: 14px; color: #2d2d2d; line-height: 1.5; margin-bottom: 10px; }
+.purchase-features li svg { width: 20px; height: 20px; flex-shrink: 0; color: #0044B3; margin-top: 1px; }
+.purchase-qty-section { margin-top: auto; border-top: 1px solid #ebebeb; padding-top: 20px; display: none; }
+.purchase-card.selected .purchase-qty-section { display: block; }
+.purchase-qty-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.purchase-qty-label { font-size: 15px; color: #2d2d2d; font-weight: 500; }
+.purchase-qty-controls { display: flex; align-items: center; gap: 0; }
+.purchase-qty-btn { width: 34px; height: 34px; border: 1px solid #d4d2d0; background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; color: #595959; transition: all 0.15s; }
+.purchase-qty-btn:first-child { border-radius: 6px 0 0 6px; }
+.purchase-qty-btn:last-child { border-radius: 0 6px 6px 0; }
+.purchase-qty-btn:hover { background: #f3f2ef; color: #2d2d2d; }
+.purchase-qty-value { width: 44px; height: 34px; border-top: 1px solid #d4d2d0; border-bottom: 1px solid #d4d2d0; border-left: none; border-right: none; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; color: #2d2d2d; background: #fff; }
+.purchase-total-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.purchase-total-label { font-size: 15px; color: #2d2d2d; font-weight: 500; }
+.purchase-total-value { font-size: 20px; font-weight: 700; color: #2d2d2d; }
+.purchase-buy-btn { display: block; width: 100%; padding: 12px 24px; border-radius: 8px; font-size: 15px; font-weight: 700; cursor: pointer; font-family: 'Noto Sans', sans-serif; background: #0044B3; border: none; color: #fff; transition: background 0.15s; text-align: center; }
+.purchase-buy-btn:hover { background: #003399; }
+.purchase-footer { text-align: center; padding: 0 28px 24px; }
+.purchase-footer-link { font-size: 14px; color: #595959; }
+.purchase-footer-link a { color: #0044B3; font-weight: 600; text-decoration: none; }
+.purchase-footer-link a:hover { text-decoration: underline; }
+
 /* ═══ TOP HEADER ═══ */
 .topbar { position: fixed; top: 0; left: 220px; right: 0; height: 56px; background: #fff; border-bottom: 1px solid #d4d2d0; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; z-index: 200; transition: left 0.2s ease; }
 body.collapsed .topbar { left: 60px; }
@@ -1971,12 +2013,198 @@ function useCredit(tier) {
 }
 function buyCredits() {
   closeCreditsModal();
+  openPurchaseModal();
 }
 document.getElementById('creditsModal').addEventListener('click', function(e) {
   if (e.target === this) closeCreditsModal();
 });
 document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape' && document.getElementById('creditsModal').classList.contains('open')) closeCreditsModal();
+  if (e.key === 'Escape') {
+    if (document.getElementById('purchaseModal').classList.contains('open')) closePurchaseModal();
+    else if (document.getElementById('creditsModal').classList.contains('open')) closeCreditsModal();
+  }
+});
+</script>
+
+<!-- ═══ PURCHASE CREDITS MODAL ═══ -->
+<div class="purchase-overlay" id="purchaseModal">
+  <div class="purchase-modal">
+    <div class="purchase-header">
+      <h3>Purchase Event Credits</h3>
+      <button class="purchase-close" onclick="closePurchaseModal()">×</button>
+    </div>
+    <div class="purchase-body">
+      <div class="purchase-cards">
+        <div class="purchase-card" data-tier="starter" data-price="495" onclick="selectPurchaseTier('starter')">
+          <div class="purchase-card-check">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>
+          </div>
+          <div class="purchase-tier-name">Starter</div>
+          <div class="purchase-price">$495</div>
+          <div class="purchase-price-sub">per event</div>
+          <ul class="purchase-features">
+            <li>
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+              Access to candidate pool
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+              Basic analytics
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+              Email support
+            </li>
+          </ul>
+          <div class="purchase-qty-section">
+            <div class="purchase-qty-row">
+              <span class="purchase-qty-label">Events</span>
+              <div class="purchase-qty-controls">
+                <button class="purchase-qty-btn" onclick="adjustQty('starter', -1)">−</button>
+                <div class="purchase-qty-value" id="qty-starter">1</div>
+                <button class="purchase-qty-btn" onclick="adjustQty('starter', 1)">+</button>
+              </div>
+            </div>
+            <div class="purchase-total-row">
+              <span class="purchase-total-label">Total</span>
+              <span class="purchase-total-value" id="total-starter">$495</span>
+            </div>
+            <button class="purchase-buy-btn" onclick="completePurchase('starter')">Purchase</button>
+          </div>
+        </div>
+
+        <div class="purchase-card selected" data-tier="growth" data-price="895" onclick="selectPurchaseTier('growth')">
+          <div class="purchase-badge">Most Popular</div>
+          <div class="purchase-card-check">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>
+          </div>
+          <div class="purchase-tier-name">Growth</div>
+          <div class="purchase-price">$895</div>
+          <div class="purchase-price-sub">per event</div>
+          <ul class="purchase-features">
+            <li>
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+              Premium candidate pool
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+              Advanced analytics
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+              Priority support
+            </li>
+          </ul>
+          <div class="purchase-qty-section">
+            <div class="purchase-qty-row">
+              <span class="purchase-qty-label">Events</span>
+              <div class="purchase-qty-controls">
+                <button class="purchase-qty-btn" onclick="adjustQty('growth', -1)">−</button>
+                <div class="purchase-qty-value" id="qty-growth">1</div>
+                <button class="purchase-qty-btn" onclick="adjustQty('growth', 1)">+</button>
+              </div>
+            </div>
+            <div class="purchase-total-row">
+              <span class="purchase-total-label">Total</span>
+              <span class="purchase-total-value" id="total-growth">$895</span>
+            </div>
+            <button class="purchase-buy-btn" onclick="completePurchase('growth')">Purchase</button>
+          </div>
+        </div>
+
+        <div class="purchase-card" data-tier="pro" data-price="1495" onclick="selectPurchaseTier('pro')">
+          <div class="purchase-card-check">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>
+          </div>
+          <div class="purchase-tier-name">Pro</div>
+          <div class="purchase-price">$1,495</div>
+          <div class="purchase-price-sub">per event</div>
+          <ul class="purchase-features">
+            <li>
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+              Full candidate database
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+              Custom analytics
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+              Dedicated account manager
+            </li>
+          </ul>
+          <div class="purchase-qty-section">
+            <div class="purchase-qty-row">
+              <span class="purchase-qty-label">Events</span>
+              <div class="purchase-qty-controls">
+                <button class="purchase-qty-btn" onclick="adjustQty('pro', -1)">−</button>
+                <div class="purchase-qty-value" id="qty-pro">1</div>
+                <button class="purchase-qty-btn" onclick="adjustQty('pro', 1)">+</button>
+              </div>
+            </div>
+            <div class="purchase-total-row">
+              <span class="purchase-total-label">Total</span>
+              <span class="purchase-total-value" id="total-pro">$1,495</span>
+            </div>
+            <button class="purchase-buy-btn" onclick="completePurchase('pro')">Purchase</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="purchase-footer">
+      <div class="purchase-footer-link">Need more than 4 events? <a href="#">See bundles</a></div>
+    </div>
+  </div>
+</div>
+
+<script>
+function openPurchaseModal() {
+  document.getElementById('purchaseOverlay').classList.add('open');
+}
+
+function closePurchaseModal() {
+  document.getElementById('purchaseOverlay').classList.remove('open');
+  resetPurchaseModal();
+}
+
+function selectPurchaseTier(tier) {
+  document.querySelectorAll('.purchase-card').forEach(card => {
+    card.classList.remove('selected');
+  });
+  document.querySelector(`[data-tier="${tier}"]`).classList.add('selected');
+}
+
+function adjustQty(tier, change) {
+  const qtyElement = document.getElementById(`qty-${tier}`);
+  const priceElement = document.querySelector(`[data-tier="${tier}"]`);
+  const basePrice = parseInt(priceElement.dataset.price);
+  let qty = parseInt(qtyElement.textContent);
+  qty = Math.max(1, qty + change);
+  qtyElement.textContent = qty;
+  const total = basePrice * qty;
+  document.getElementById(`total-${tier}`).textContent = '$' + total.toLocaleString();
+}
+
+function completePurchase(tier) {
+  const qty = parseInt(document.getElementById(`qty-${tier}`).textContent);
+  const priceElement = document.querySelector(`[data-tier="${tier}"]`);
+  const basePrice = parseInt(priceElement.dataset.price);
+  const total = basePrice * qty;
+  alert(`Processing purchase of ${qty} ${tier.charAt(0).toUpperCase() + tier.slice(1)} event(s) for $${total.toLocaleString()}`);
+  closePurchaseModal();
+}
+
+function resetPurchaseModal() {
+  document.getElementById('qty-starter').textContent = '1';
+  document.getElementById('qty-growth').textContent = '1';
+  document.getElementById('qty-pro').textContent = '1';
+  document.getElementById('total-starter').textContent = '$495';
+  document.getElementById('total-growth').textContent = '$895';
+  document.getElementById('total-pro').textContent = '$1,495';
+}
+
+document.getElementById('purchaseOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closePurchaseModal();
 });
 </script>
 

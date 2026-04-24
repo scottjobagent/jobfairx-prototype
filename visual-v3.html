@@ -59,6 +59,48 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
 .credits-empty-title { font-size: 16px; font-weight: 700; color: #2d2d2d; margin-bottom: 8px; }
 .credits-empty-desc { font-size: 14px; color: #595959; line-height: 1.5; margin-bottom: 24px; }
 
+/* ═══ PURCHASE CREDITS MODAL ═══ */
+.purchase-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center; }
+.purchase-overlay.open { display: flex; }
+.purchase-modal { background: #fff; border-radius: 14px; width: 1060px; max-width: 90vw; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
+.purchase-header { display: flex; align-items: center; justify-content: space-between; padding: 24px 28px 0; }
+.purchase-header h3 { font-size: 20px; font-weight: 700; color: #2d2d2d; margin: 0; }
+.purchase-close { width: 32px; height: 32px; border: none; background: none; cursor: pointer; color: #595959; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+.purchase-close:hover { background: #f3f2ef; color: #2d2d2d; }
+.purchase-body { padding: 24px 28px 28px; }
+.purchase-cards { display: flex; gap: 20px; }
+.purchase-card { flex: 1; border: 2px solid #d4d2d0; border-radius: 14px; padding: 28px 24px; position: relative; cursor: pointer; transition: border-color 0.15s; display: flex; flex-direction: column; }
+.purchase-card:hover { border-color: #a8a8a8; }
+.purchase-card.selected { border-color: #0044B3; }
+.purchase-badge { position: absolute; top: -13px; left: 50%; transform: translateX(-50%); background: #0044B3; color: #fff; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; padding: 4px 14px; border-radius: 20px; white-space: nowrap; text-transform: uppercase; }
+.purchase-card-check { position: absolute; top: 12px; right: 12px; width: 24px; height: 24px; border-radius: 50%; background: #0044B3; display: none; align-items: center; justify-content: center; }
+.purchase-card.selected .purchase-card-check { display: flex; }
+.purchase-tier-name { font-size: 20px; font-weight: 700; color: #2d2d2d; text-align: center; margin-bottom: 8px; }
+.purchase-price { font-size: 36px; font-weight: 700; color: #2d2d2d; text-align: center; line-height: 1.2; }
+.purchase-price-sub { font-size: 14px; font-weight: 400; color: #595959; text-align: center; margin-bottom: 20px; }
+.purchase-features { list-style: none; padding: 0; margin: 0 0 24px; }
+.purchase-features li { display: flex; align-items: flex-start; gap: 10px; font-size: 14px; color: #2d2d2d; line-height: 1.5; margin-bottom: 10px; }
+.purchase-features li svg { width: 20px; height: 20px; flex-shrink: 0; color: #0044B3; margin-top: 1px; }
+.purchase-qty-section { margin-top: auto; border-top: 1px solid #ebebeb; padding-top: 20px; display: none; }
+.purchase-card.selected .purchase-qty-section { display: block; }
+.purchase-qty-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.purchase-qty-label { font-size: 15px; color: #2d2d2d; font-weight: 500; }
+.purchase-qty-controls { display: flex; align-items: center; gap: 0; }
+.purchase-qty-btn { width: 34px; height: 34px; border: 1px solid #d4d2d0; background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; color: #595959; transition: all 0.15s; }
+.purchase-qty-btn:first-child { border-radius: 6px 0 0 6px; }
+.purchase-qty-btn:last-child { border-radius: 0 6px 6px 0; }
+.purchase-qty-btn:hover { background: #f3f2ef; color: #2d2d2d; }
+.purchase-qty-value { width: 44px; height: 34px; border-top: 1px solid #d4d2d0; border-bottom: 1px solid #d4d2d0; border-left: none; border-right: none; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; color: #2d2d2d; background: #fff; }
+.purchase-total-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.purchase-total-label { font-size: 15px; color: #2d2d2d; font-weight: 500; }
+.purchase-total-value { font-size: 20px; font-weight: 700; color: #2d2d2d; }
+.purchase-buy-btn { display: block; width: 100%; padding: 12px 24px; border-radius: 8px; font-size: 15px; font-weight: 700; cursor: pointer; font-family: 'Noto Sans', sans-serif; background: #0044B3; border: none; color: #fff; transition: background 0.15s; text-align: center; }
+.purchase-buy-btn:hover { background: #003399; }
+.purchase-footer { text-align: center; padding: 0 28px 24px; }
+.purchase-footer-link { font-size: 14px; color: #595959; }
+.purchase-footer-link a { color: #0044B3; font-weight: 600; text-decoration: none; }
+.purchase-footer-link a:hover { text-decoration: underline; }
+
 /* ═══ REGISTER CONFIRMATION MODAL ═══ */
 .reg-confirm-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; align-items: center; justify-content: center; }
 .reg-confirm-overlay.open { display: flex; }
@@ -3220,12 +3262,117 @@ function useCredit(tier) {
 }
 function buyCredits() {
   closeCreditsModal();
-  /* Placeholder — destination TBD */
+  openPurchaseModal();
 }
 document.getElementById('creditsModal').addEventListener('click', function(e) {
   if (e.target === this) closeCreditsModal();
 });
+
+/* ═══ PURCHASE CREDITS MODAL ═══ */
+var purchasePrices = { starter: 495, growth: 895, pro: 1495 };
+var purchaseSelectedTier = 'growth';
+var purchaseQty = 1;
+
+function openPurchaseModal() {
+  purchaseSelectedTier = 'growth';
+  purchaseQty = 1;
+  updatePurchaseCards();
+  document.getElementById('purchaseModal').classList.add('open');
+}
+function closePurchaseModal() {
+  document.getElementById('purchaseModal').classList.remove('open');
+}
+function selectPurchaseTier(tier) {
+  purchaseSelectedTier = tier;
+  purchaseQty = 1;
+  updatePurchaseCards();
+}
+function adjustQty(delta) {
+  purchaseQty = Math.max(1, purchaseQty + delta);
+  updatePurchaseCards();
+}
+function updatePurchaseCards() {
+  ['starter', 'growth', 'pro'].forEach(function(tier) {
+    var card = document.getElementById('purchase' + tier.charAt(0).toUpperCase() + tier.slice(1));
+    if (tier === purchaseSelectedTier) { card.classList.add('selected'); } else { card.classList.remove('selected'); }
+  });
+  var total = purchasePrices[purchaseSelectedTier] * purchaseQty;
+  document.querySelectorAll('.purchase-qty-value').forEach(function(el) { el.textContent = purchaseQty; });
+  document.querySelectorAll('.purchase-total-value').forEach(function(el) { el.textContent = '$' + total.toLocaleString(); });
+}
+function completePurchase() {
+  closePurchaseModal();
+}
+document.getElementById('purchaseModal').addEventListener('click', function(e) {
+  if (e.target === this) closePurchaseModal();
+});
 </script>
+
+<!-- ═══ PURCHASE CREDITS MODAL ═══ -->
+<div class="purchase-overlay" id="purchaseModal">
+  <div class="purchase-modal">
+    <div class="purchase-header">
+      <h3>Purchase Event Credits</h3>
+      <button class="purchase-close" onclick="closePurchaseModal()">&times;</button>
+    </div>
+    <div class="purchase-body">
+      <div class="purchase-cards">
+        <div class="purchase-card" id="purchaseStarter" onclick="selectPurchaseTier('starter')">
+          <div class="purchase-card-check"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="purchase-tier-name">Starter</div>
+          <div class="purchase-price">$495</div>
+          <div class="purchase-price-sub">per event</div>
+          <ul class="purchase-features">
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Promote 1 job</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> 20+ scheduled candidate interviews</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> 1 recruiter seat</li>
+          </ul>
+          <div class="purchase-qty-section">
+            <div class="purchase-qty-row"><span class="purchase-qty-label">Events</span><div class="purchase-qty-controls"><button class="purchase-qty-btn" onclick="event.stopPropagation(); adjustQty(-1)">−</button><div class="purchase-qty-value">1</div><button class="purchase-qty-btn" onclick="event.stopPropagation(); adjustQty(1)">+</button></div></div>
+            <div class="purchase-total-row"><span class="purchase-total-label">Total</span><span class="purchase-total-value">$495</span></div>
+            <button class="purchase-buy-btn" onclick="event.stopPropagation(); completePurchase()">Purchase</button>
+          </div>
+        </div>
+        <div class="purchase-card selected" id="purchaseGrowth" onclick="selectPurchaseTier('growth')">
+          <div class="purchase-badge">Most Popular</div>
+          <div class="purchase-card-check"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="purchase-tier-name">Growth</div>
+          <div class="purchase-price">$895</div>
+          <div class="purchase-price-sub">per event</div>
+          <ul class="purchase-features">
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Promote up to 3 jobs</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> 60+ scheduled candidate interviews</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Up to 5 recruiter seats</li>
+          </ul>
+          <div class="purchase-qty-section">
+            <div class="purchase-qty-row"><span class="purchase-qty-label">Events</span><div class="purchase-qty-controls"><button class="purchase-qty-btn" onclick="event.stopPropagation(); adjustQty(-1)">−</button><div class="purchase-qty-value">1</div><button class="purchase-qty-btn" onclick="event.stopPropagation(); adjustQty(1)">+</button></div></div>
+            <div class="purchase-total-row"><span class="purchase-total-label">Total</span><span class="purchase-total-value">$895</span></div>
+            <button class="purchase-buy-btn" onclick="event.stopPropagation(); completePurchase()">Purchase</button>
+          </div>
+        </div>
+        <div class="purchase-card" id="purchasePro" onclick="selectPurchaseTier('pro')">
+          <div class="purchase-card-check"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="purchase-tier-name">Pro</div>
+          <div class="purchase-price">$1,495</div>
+          <div class="purchase-price-sub">per event</div>
+          <ul class="purchase-features">
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Promote up to 6 jobs</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> 100+ scheduled candidate interviews</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Unlimited recruiters</li>
+          </ul>
+          <div class="purchase-qty-section">
+            <div class="purchase-qty-row"><span class="purchase-qty-label">Events</span><div class="purchase-qty-controls"><button class="purchase-qty-btn" onclick="event.stopPropagation(); adjustQty(-1)">−</button><div class="purchase-qty-value">1</div><button class="purchase-qty-btn" onclick="event.stopPropagation(); adjustQty(1)">+</button></div></div>
+            <div class="purchase-total-row"><span class="purchase-total-label">Total</span><span class="purchase-total-value">$1,495</span></div>
+            <button class="purchase-buy-btn" onclick="event.stopPropagation(); completePurchase()">Purchase</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="purchase-footer">
+      <div class="purchase-footer-link">Need more than 4? <a href="#">See bundles</a></div>
+    </div>
+  </div>
+</div>
 
 <!-- ═══ REGISTER CONFIRMATION MODAL ═══ -->
 <div class="reg-confirm-overlay" id="regConfirmModal">
@@ -3526,6 +3673,7 @@ document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') {
     if (document.getElementById('regSuccessModal').classList.contains('open')) closeRegSuccess();
     else if (document.getElementById('regConfirmModal').classList.contains('open')) closeRegConfirm();
+    else if (document.getElementById('purchaseModal').classList.contains('open')) closePurchaseModal();
     else if (document.getElementById('creditsModal').classList.contains('open')) closeCreditsModal();
     else { var modal = document.getElementById('feedbackModal'); if (modal && modal.classList.contains('open')) closeFeedbackModal(); }
   }
