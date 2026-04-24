@@ -76,6 +76,7 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
 .purchase-card-check { position: absolute; top: 12px; right: 12px; width: 24px; height: 24px; border-radius: 50%; background: #0044B3; display: none; align-items: center; justify-content: center; }
 .purchase-card.selected .purchase-card-check { display: flex; }
 .purchase-tier-name { font-size: 20px; font-weight: 700; color: #2d2d2d; text-align: center; margin-bottom: 8px; }
+.purchase-price-original { font-size: 16px; font-weight: 500; color: #999; text-align: center; text-decoration: line-through; line-height: 1; min-height: 18px; margin-bottom: 2px; }
 .purchase-price { font-size: 36px; font-weight: 700; color: #2d2d2d; text-align: center; line-height: 1.2; }
 .purchase-price-sub { font-size: 14px; font-weight: 400; color: #595959; text-align: center; margin-bottom: 20px; }
 .purchase-features { list-style: none; padding: 0; margin: 0 0 24px; }
@@ -3805,15 +3806,23 @@ function updatePurchaseCards() {
   document.querySelectorAll('.purchase-qty-value').forEach(function(el) { el.textContent = purchaseQty; });
   document.querySelectorAll('.purchase-total-value').forEach(function(el) { el.textContent = '$' + total.toLocaleString(); });
 
-  /* Dynamic hero prices */
+  /* Dynamic hero prices + strikethrough */
   var heroes = { starter: 'starterHeroPrice', growth: 'growthHeroPrice', pro: 'proHeroPrice' };
+  var origEls = { starter: 'starterOrigPrice', growth: 'growthOrigPrice', pro: 'proOrigPrice' };
   Object.keys(heroes).forEach(function(tier) {
     var el = document.getElementById(heroes[tier]);
+    var origEl = document.getElementById(origEls[tier]);
     if (tier === purchaseSelectedTier) {
       var p = priceLookup[tier][purchaseQty] || basePrices[tier];
       el.textContent = '$' + p.toLocaleString();
+      if (purchaseQty >= 5) {
+        origEl.textContent = '$' + basePrices[tier].toLocaleString();
+      } else {
+        origEl.textContent = '';
+      }
     } else {
       el.textContent = '$' + basePrices[tier].toLocaleString();
+      origEl.textContent = '';
     }
   });
 
@@ -3851,6 +3860,7 @@ function completePurchase() {
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
           </div>
           <div class="purchase-tier-name">Starter</div>
+          <div class="purchase-price-original" id="starterOrigPrice"></div>
           <div class="purchase-price" id="starterHeroPrice">$495</div>
           <div class="purchase-price-sub">per event</div>
           <ul class="purchase-features">
@@ -3881,6 +3891,7 @@ function completePurchase() {
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
           </div>
           <div class="purchase-tier-name">Growth</div>
+          <div class="purchase-price-original" id="growthOrigPrice"></div>
           <div class="purchase-price" id="growthHeroPrice">$895</div>
           <div class="purchase-price-sub">per event</div>
           <ul class="purchase-features">
@@ -3910,6 +3921,7 @@ function completePurchase() {
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
           </div>
           <div class="purchase-tier-name">Pro</div>
+          <div class="purchase-price-original" id="proOrigPrice"></div>
           <div class="purchase-price" id="proHeroPrice">$1,495</div>
           <div class="purchase-price-sub">per event</div>
           <ul class="purchase-features">
