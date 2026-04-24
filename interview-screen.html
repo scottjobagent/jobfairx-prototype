@@ -1,0 +1,1365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Interview – JobFairX</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════════
+   INTERVIEW SCREEN – JobFairX Employer Dashboard
+   Design system: Noto Sans, #0044B3 brand blue, 8px radius,
+   14px base, #2d2d2d dark text, #d4d2d0 borders, #f3f2ef bg
+   ═══════════════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 14px;
+  color: #2d2d2d;
+  background: #1a1a2e;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ═══ SCREEN MANAGEMENT ═══ */
+.screen { display: none; width: 100%; height: 100%; }
+.screen.active { display: flex; }
+
+/* ═══════════════════════════════════════════════════════
+   SCREEN 1 — PRE-JOIN
+   ═══════════════════════════════════════════════════════ */
+.prejoin-screen {
+  align-items: center;
+  justify-content: center;
+  background: #1a1a2e;
+  flex-direction: column;
+  gap: 0;
+}
+
+.prejoin-card {
+  background: #fff;
+  border-radius: 16px;
+  width: 520px;
+  max-width: 92vw;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  overflow: hidden;
+}
+
+.prejoin-header {
+  padding: 28px 32px 0;
+  text-align: center;
+}
+.prejoin-header h1 {
+  font-size: 22px;
+  font-weight: 800;
+  color: #2d2d2d;
+  margin-bottom: 4px;
+}
+.prejoin-header p {
+  font-size: 14px;
+  color: #595959;
+}
+
+/* Camera preview area */
+.prejoin-video-wrap {
+  margin: 20px 32px;
+  aspect-ratio: 16/9;
+  background: linear-gradient(180deg, #2a2a3e 0%, #1a1a2e 100%);
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.prejoin-video-wrap video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1);
+}
+.prejoin-video-placeholder {
+  text-align: center;
+  color: rgba(255,255,255,0.6);
+}
+.prejoin-video-placeholder svg { width: 56px; height: 56px; margin-bottom: 8px; opacity: 0.5; }
+.prejoin-video-placeholder p { font-size: 13px; }
+
+/* Camera off overlay */
+.camera-off-overlay {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  background: #2a2a3e;
+  display: none;
+  align-items: center; justify-content: center;
+  flex-direction: column;
+  color: rgba(255,255,255,0.6);
+  z-index: 2;
+}
+.camera-off-overlay.visible { display: flex; }
+.camera-off-overlay .avatar-circle {
+  width: 72px; height: 72px;
+  border-radius: 50%;
+  background: #0044B3;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px; font-weight: 700; color: #fff;
+  margin-bottom: 12px;
+}
+.camera-off-overlay p { font-size: 13px; }
+
+/* Media controls row */
+.prejoin-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 0 32px;
+  margin-bottom: 8px;
+}
+
+.media-toggle {
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  border: 2px solid #d4d2d0;
+  background: #fff;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+  position: relative;
+}
+.media-toggle svg { width: 22px; height: 22px; color: #2d2d2d; }
+.media-toggle:hover { border-color: #0044B3; background: #f0f5ff; }
+.media-toggle.off { background: #fef2f2; border-color: #dc2626; }
+.media-toggle.off svg { color: #dc2626; }
+.media-toggle.off:hover { background: #fee2e2; }
+
+/* Mic level indicator */
+.mic-level-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 32px;
+  margin-bottom: 4px;
+  justify-content: center;
+}
+.mic-level-label { font-size: 12px; color: #595959; }
+.mic-bars { display: flex; gap: 3px; }
+.mic-bar { width: 6px; height: 14px; border-radius: 2px; background: #d4d2d0; transition: background 0.15s; }
+.mic-bar.active { background: #2e7d32; }
+
+/* Join actions */
+.prejoin-actions {
+  padding: 20px 32px 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.btn-join-now {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 40px;
+  background: #0044B3;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s;
+  width: 100%;
+  justify-content: center;
+}
+.btn-join-now:hover { background: #003399; }
+.btn-join-now svg { width: 18px; height: 18px; }
+
+.btn-back-lobby {
+  font-size: 14px;
+  font-weight: 600;
+  color: #595959;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  transition: color 0.15s;
+  padding: 4px 0;
+}
+.btn-back-lobby:hover { color: #0044B3; text-decoration: underline; }
+
+/* Device select row */
+.prejoin-device-row {
+  display: flex;
+  gap: 12px;
+  padding: 0 32px;
+  margin-bottom: 16px;
+}
+.prejoin-device-row select {
+  flex: 1;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-family: inherit;
+  border: 1px solid #d4d2d0;
+  border-radius: 8px;
+  background: #fff;
+  color: #2d2d2d;
+  cursor: pointer;
+  outline: none;
+}
+.prejoin-device-row select:focus { border-color: #0044B3; }
+
+/* ═══════════════════════════════════════════════════════
+   SCREEN 2 — VIDEO INTERVIEW
+   ═══════════════════════════════════════════════════════ */
+.interview-screen {
+  background: #1a1a2e;
+  flex-direction: column;
+  position: relative;
+}
+
+/* Top bar */
+.interview-topbar {
+  height: 56px;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  flex-shrink: 0;
+  z-index: 10;
+}
+.interview-topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.interview-topbar-logo {
+  font-size: 18px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.5px;
+}
+.interview-topbar-divider {
+  width: 1px;
+  height: 24px;
+  background: rgba(255,255,255,0.2);
+}
+.interview-topbar-candidate {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.9);
+}
+.interview-topbar-job {
+  font-size: 13px;
+  color: rgba(255,255,255,0.5);
+  margin-left: 8px;
+}
+.interview-topbar-center {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.interview-timer {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.9);
+  font-variant-numeric: tabular-nums;
+  background: rgba(255,255,255,0.1);
+  padding: 4px 12px;
+  border-radius: 6px;
+}
+.recording-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: #ef4444;
+  animation: pulse-dot 1.5s ease-in-out infinite;
+}
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+.interview-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.btn-end-interview {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 20px;
+  background: #dc2626;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s;
+}
+.btn-end-interview:hover { background: #b91c1c; }
+.btn-end-interview svg { width: 16px; height: 16px; }
+
+/* Video area */
+.interview-video-area {
+  flex: 1;
+  display: flex;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Main (candidate) video */
+.video-main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  background: #1a1a2e;
+  transition: margin-right 0.3s ease;
+}
+.video-main.panel-open { margin-right: 400px; }
+
+.video-main-feed {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.video-main-placeholder {
+  text-align: center;
+  color: rgba(255,255,255,0.5);
+}
+.video-main-placeholder .avatar-large {
+  width: 120px; height: 120px;
+  border-radius: 50%;
+  background: #334155;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 48px; font-weight: 700; color: #fff;
+  margin: 0 auto 16px;
+}
+.video-main-placeholder .name { font-size: 18px; font-weight: 600; color: #fff; margin-bottom: 4px; }
+.video-main-placeholder .title { font-size: 14px; color: rgba(255,255,255,0.5); }
+
+/* Candidate name label on video */
+.video-name-label {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(4px);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 8px;
+  z-index: 5;
+}
+
+/* Self-view (employer) PiP */
+.video-self {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  width: 200px;
+  height: 150px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  background: #2a2a3e;
+  z-index: 5;
+  transition: right 0.3s ease;
+  cursor: move;
+}
+.video-self.panel-open { right: 420px; }
+.video-self video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1);
+}
+.video-self-placeholder {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column;
+  color: rgba(255,255,255,0.5);
+}
+.video-self-placeholder .avatar-sm {
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  background: #0044B3;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; font-weight: 700; color: #fff;
+  margin-bottom: 4px;
+}
+.video-self-placeholder p { font-size: 11px; }
+.video-self-label {
+  position: absolute;
+  bottom: 8px; left: 8px;
+  font-size: 11px; font-weight: 600; color: #fff;
+  background: rgba(0,0,0,0.5);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+/* Bottom controls (in-interview) */
+.interview-bottom-controls {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 16px;
+  background: linear-gradient(transparent, rgba(0,0,0,0.5));
+  z-index: 6;
+  transition: right 0.3s ease;
+}
+.interview-bottom-controls.panel-open { right: 400px; }
+
+.ctrl-btn {
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(4px);
+  color: #fff;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+  position: relative;
+}
+.ctrl-btn svg { width: 22px; height: 22px; }
+.ctrl-btn:hover { background: rgba(255,255,255,0.25); }
+.ctrl-btn.off { background: #dc2626; }
+.ctrl-btn.off:hover { background: #b91c1c; }
+.ctrl-btn.ctrl-end { background: #dc2626; }
+.ctrl-btn.ctrl-end:hover { background: #b91c1c; }
+
+.ctrl-btn .ctrl-tooltip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #2d2d2d;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 4px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s;
+}
+.ctrl-btn:hover .ctrl-tooltip { opacity: 1; }
+
+/* Side panel toggle */
+.btn-panel-toggle {
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(4px);
+  color: #fff;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+  position: relative;
+}
+.btn-panel-toggle svg { width: 22px; height: 22px; }
+.btn-panel-toggle:hover { background: rgba(255,255,255,0.25); }
+.btn-panel-toggle.active { background: #0044B3; }
+.btn-panel-toggle .ctrl-tooltip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #2d2d2d;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 4px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s;
+}
+.btn-panel-toggle:hover .ctrl-tooltip { opacity: 1; }
+
+/* ═══ RIGHT SIDE PANEL (Resume + Notes) ═══ */
+.side-panel {
+  position: absolute;
+  top: 0; right: -400px;
+  width: 400px; height: 100%;
+  background: #fff;
+  box-shadow: -4px 0 24px rgba(0,0,0,0.2);
+  z-index: 8;
+  display: flex;
+  flex-direction: column;
+  transition: right 0.3s ease;
+}
+.side-panel.open { right: 0; }
+
+.side-panel-header {
+  display: flex;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e8e6e3;
+  gap: 0;
+  flex-shrink: 0;
+}
+
+.panel-tab {
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #595959;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s;
+}
+.panel-tab.active { color: #2d2d2d; border-bottom-color: #0044B3; }
+.panel-tab:hover { color: #2d2d2d; }
+
+.panel-close {
+  margin-left: auto;
+  width: 32px; height: 32px;
+  border: none; background: none;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  color: #595959;
+  transition: all 0.15s;
+}
+.panel-close:hover { background: #f3f2ef; color: #2d2d2d; }
+.panel-close svg { width: 18px; height: 18px; }
+
+.panel-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0;
+}
+
+/* Resume tab content */
+.panel-content { display: none; height: 100%; flex-direction: column; }
+.panel-content.active { display: flex; }
+
+.resume-panel-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px 20px;
+}
+
+.resume-section { margin-bottom: 24px; }
+.resume-section-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #595959;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+.resume-section p, .resume-section li {
+  font-size: 14px;
+  color: #2d2d2d;
+  line-height: 1.7;
+}
+.resume-section ul { padding-left: 18px; }
+.resume-section li { margin-bottom: 4px; }
+
+.resume-contact-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #595959;
+  margin-bottom: 6px;
+}
+.resume-contact-row svg { width: 14px; height: 14px; flex-shrink: 0; color: #767676; }
+
+/* Notes tab content */
+.notes-panel-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+}
+
+.notes-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #595959;
+  margin-bottom: 8px;
+}
+.notes-hint {
+  font-size: 12px;
+  color: #767676;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.notes-hint svg { width: 14px; height: 14px; color: #2e7d32; flex-shrink: 0; }
+
+.notes-textarea {
+  flex: 1;
+  width: 100%;
+  min-height: 200px;
+  padding: 14px 16px;
+  font-size: 14px;
+  font-family: inherit;
+  color: #2d2d2d;
+  border: 1px solid #d4d2d0;
+  border-radius: 8px;
+  outline: none;
+  resize: vertical;
+  line-height: 1.6;
+  transition: border-color 0.15s;
+}
+.notes-textarea:focus { border-color: #0044B3; box-shadow: 0 0 0 2px rgba(0,68,179,0.15); }
+.notes-textarea::placeholder { color: #b0b0b0; }
+
+.notes-saved-msg {
+  font-size: 12px;
+  color: #2e7d32;
+  margin-top: 8px;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.notes-saved-msg.visible { opacity: 1; }
+
+/* ═══════════════════════════════════════════════════════
+   SCREEN 3 — POST-INTERVIEW DISPOSITION
+   ═══════════════════════════════════════════════════════ */
+.disposition-screen {
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.55);
+}
+
+.disposition-modal {
+  background: #fff;
+  border-radius: 16px;
+  width: 480px;
+  max-width: 92vw;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  padding: 36px 40px;
+  text-align: center;
+}
+
+.disposition-modal h2 {
+  font-size: 22px;
+  font-weight: 800;
+  color: #2d2d2d;
+  margin-bottom: 4px;
+}
+.disposition-candidate-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #2d2d2d;
+  margin-bottom: 4px;
+}
+.disposition-candidate-job {
+  font-size: 14px;
+  color: #595959;
+  margin-bottom: 24px;
+}
+
+.disposition-question {
+  font-size: 16px;
+  font-weight: 700;
+  color: #2d2d2d;
+  margin-bottom: 16px;
+}
+
+.disposition-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.dispo-btn {
+  flex: 1;
+  max-width: 130px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 2px solid #e5e7eb;
+  background: #fff;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.dispo-btn:hover { border-color: currentColor; }
+.dispo-btn.selected { border-width: 2px; }
+
+.dispo-btn .dispo-icon {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700;
+}
+.dispo-btn .dispo-label {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* Yes */
+.dispo-btn.yes { color: #166534; }
+.dispo-btn.yes:hover { border-color: #166534; background: #f0fdf4; }
+.dispo-btn.yes.selected { border-color: #166534; background: #dcfce7; }
+.dispo-btn.yes .dispo-icon { background: #dcfce7; color: #166534; }
+
+/* No */
+.dispo-btn.no { color: #991b1b; }
+.dispo-btn.no:hover { border-color: #991b1b; background: #fef2f2; }
+.dispo-btn.no.selected { border-color: #991b1b; background: #fee2e2; }
+.dispo-btn.no .dispo-icon { background: #fee2e2; color: #991b1b; }
+
+/* Maybe */
+.dispo-btn.maybe { color: #854d0e; }
+.dispo-btn.maybe:hover { border-color: #854d0e; background: #fefce8; }
+.dispo-btn.maybe.selected { border-color: #854d0e; background: #fef9c3; }
+.dispo-btn.maybe .dispo-icon { background: #fef9c3; color: #854d0e; }
+
+.disposition-private {
+  font-size: 12px;
+  color: #767676;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.disposition-private svg { width: 14px; height: 14px; color: #767676; }
+
+/* Notes in disposition */
+.disposition-notes-wrap {
+  display: block;
+  text-align: left;
+  margin-bottom: 20px;
+}
+
+.disposition-notes-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #2d2d2d;
+  margin-bottom: 6px;
+}
+.disposition-notes-textarea {
+  width: 100%;
+  min-height: 120px;
+  padding: 12px 14px;
+  font-size: 14px;
+  font-family: inherit;
+  color: #2d2d2d;
+  border: 1px solid #d4d2d0;
+  border-radius: 8px;
+  outline: none;
+  resize: vertical;
+  line-height: 1.5;
+  transition: border-color 0.15s;
+  box-sizing: border-box;
+}
+.disposition-notes-textarea:focus { border-color: #0044B3; box-shadow: 0 0 0 2px rgba(0,68,179,0.15); }
+.disposition-notes-textarea::placeholder { color: #b0b0b0; }
+
+.disposition-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.btn-dispo-submit {
+  display: inline-flex;
+  padding: 12px 32px;
+  background: #cbd5e1;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: not-allowed;
+  font-family: inherit;
+  transition: background 0.15s;
+}
+.btn-dispo-submit.enabled { background: #0044B3; cursor: pointer; }
+.btn-dispo-submit.enabled:hover { background: #003399; }
+
+/* ═══ DEV TOGGLE ═══ */
+.dev-toggle {
+  position: fixed;
+  top: 12px;
+  right: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 9999;
+  background: rgba(255,255,255,0.95);
+  padding: 6px 12px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+.dev-toggle-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #767676;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.dev-toggle-switch {
+  display: flex;
+  border: 1px solid #d4d2d0;
+  border-radius: 6px;
+  overflow: hidden;
+}
+.dev-toggle-btn {
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  border: none;
+  background: #fff;
+  color: #595959;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s;
+}
+.dev-toggle-btn + .dev-toggle-btn { border-left: 1px solid #d4d2d0; }
+.dev-toggle-btn.active { background: #0044B3; color: #fff; }
+
+/* ═══ TOAST ═══ */
+.toast {
+  position: fixed;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: #2d2d2d;
+  color: #fff;
+  padding: 14px 24px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  z-index: 9999;
+  opacity: 0;
+  transition: opacity 0.3s, transform 0.3s;
+  pointer-events: none;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
+.toast svg { width: 18px; height: 18px; color: #4ade80; flex-shrink: 0; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════
+     DEV TOGGLE — switch between screens for review
+     ═══════════════════════════════════════════════════════ -->
+<div class="dev-toggle">
+  <span class="dev-toggle-label">Screen:</span>
+  <div class="dev-toggle-switch">
+    <button class="dev-toggle-btn active" onclick="showScreen('prejoin', this)">Pre-join</button>
+    <button class="dev-toggle-btn" onclick="showScreen('interview', this)">Interview</button>
+    <button class="dev-toggle-btn" onclick="showScreen('disposition', this)">Disposition</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     SCREEN 1 — PRE-JOIN
+     ═══════════════════════════════════════════════════════ -->
+<div class="screen prejoin-screen active" id="screen-prejoin">
+  <div class="prejoin-card">
+    <div class="prejoin-header">
+      <h1>Ready to join?</h1>
+      <p>Check your camera and microphone before joining</p>
+    </div>
+
+    <!-- Camera preview -->
+    <div class="prejoin-video-wrap" id="prejoinVideoWrap">
+      <div class="camera-off-overlay" id="cameraOffOverlay">
+        <div class="avatar-circle">SH</div>
+        <p>Camera is off</p>
+      </div>
+      <div class="prejoin-video-placeholder" id="prejoinPlaceholder">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+        <p>Camera preview</p>
+      </div>
+    </div>
+
+    <!-- Media controls -->
+    <div class="prejoin-controls">
+      <button class="media-toggle" id="toggleCamera" onclick="toggleCamera()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+      </button>
+      <button class="media-toggle" id="toggleMic" onclick="toggleMic()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+      </button>
+    </div>
+
+    <!-- Mic level indicator -->
+    <div class="mic-level-bar" id="micLevelBar">
+      <span class="mic-level-label">Mic level</span>
+      <div class="mic-bars">
+        <div class="mic-bar active"></div>
+        <div class="mic-bar active"></div>
+        <div class="mic-bar active"></div>
+        <div class="mic-bar"></div>
+        <div class="mic-bar"></div>
+        <div class="mic-bar"></div>
+        <div class="mic-bar"></div>
+        <div class="mic-bar"></div>
+      </div>
+    </div>
+
+    <!-- Device selection -->
+    <div class="prejoin-device-row">
+      <select>
+        <option>FaceTime HD Camera</option>
+        <option>External Webcam</option>
+      </select>
+      <select>
+        <option>Built-in Microphone</option>
+        <option>AirPods Pro</option>
+      </select>
+    </div>
+
+    <!-- Actions -->
+    <div class="prejoin-actions">
+      <button class="btn-join-now" onclick="joinInterview()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+        Join now
+      </button>
+      <button class="btn-back-lobby" onclick="backToLobby()">Back to lobby</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     SCREEN 2 — VIDEO INTERVIEW
+     ═══════════════════════════════════════════════════════ -->
+<div class="screen interview-screen" id="screen-interview">
+
+  <!-- Top bar -->
+  <div class="interview-topbar">
+    <div class="interview-topbar-left">
+      <span class="interview-topbar-candidate">Aisha Rahman</span>
+      <span class="interview-topbar-job">Registered Nurse</span>
+    </div>
+    <div class="interview-topbar-center">
+      <div class="recording-dot"></div>
+      <span class="interview-timer" id="interviewTimer">00:00</span>
+    </div>
+    <div class="interview-topbar-right">
+      <button class="btn-end-interview" onclick="endInterview()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 2H8a2 2 0 00-2 2v16l6-3 6 3V4a2 2 0 00-2-2z"/><line x1="9" y1="8" x2="15" y2="14"/><line x1="15" y1="8" x2="9" y2="14"/></svg>
+        End Interview
+      </button>
+    </div>
+  </div>
+
+  <!-- Video area -->
+  <div class="interview-video-area">
+
+    <!-- Main candidate video -->
+    <div class="video-main" id="videoMain">
+      <div class="video-main-placeholder">
+        <div class="avatar-large">AR</div>
+        <div class="name">Aisha Rahman</div>
+        <div class="title">Registered Nurse</div>
+      </div>
+      <div class="video-name-label">Aisha Rahman</div>
+    </div>
+
+    <!-- Self-view PiP -->
+    <div class="video-self" id="videoSelf">
+      <div class="video-self-placeholder">
+        <div class="avatar-sm">SH</div>
+        <p>You</p>
+      </div>
+      <div class="video-self-label">You</div>
+    </div>
+
+    <!-- Bottom media controls -->
+    <div class="interview-bottom-controls" id="bottomControls">
+      <button class="ctrl-btn" id="ctrlMic" onclick="toggleCtrl(this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+        <span class="ctrl-tooltip">Mute</span>
+      </button>
+      <button class="ctrl-btn" id="ctrlCamera" onclick="toggleCtrl(this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+        <span class="ctrl-tooltip">Camera off</span>
+      </button>
+      <div style="width: 1px; height: 32px; background: rgba(255,255,255,0.2);"></div>
+      <button class="btn-panel-toggle" id="panelToggle" onclick="togglePanel()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
+        <span class="ctrl-tooltip">Resume &amp; Notes</span>
+      </button>
+      <div style="width: 1px; height: 32px; background: rgba(255,255,255,0.2);"></div>
+      <button class="ctrl-btn ctrl-end" onclick="endInterview()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.68 13.31a16 16 0 003.41 2.6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6A19.79 19.79 0 012.12 4.11 2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 002.59 3.4z"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+        <span class="ctrl-tooltip">End Interview</span>
+      </button>
+    </div>
+
+    <!-- ═══ SIDE PANEL ═══ -->
+    <div class="side-panel" id="sidePanel">
+      <div class="side-panel-header">
+        <button class="panel-tab active" onclick="switchPanelTab('resume', this)">Resume</button>
+        <button class="panel-tab" onclick="switchPanelTab('notes', this)">Notes</button>
+        <button class="panel-close" onclick="togglePanel()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+
+      <!-- Resume tab -->
+      <div class="panel-content active" id="panelResume">
+        <div class="resume-panel-body">
+          <div class="resume-section">
+            <div class="resume-section-title">Contact</div>
+            <div class="resume-contact-row">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              <span>aisha.rahman@email.com</span>
+            </div>
+            <div class="resume-contact-row">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+              <span>(214) 555-0187</span>
+            </div>
+            <div class="resume-contact-row">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              <span>Dallas, TX</span>
+            </div>
+          </div>
+
+          <div class="resume-section">
+            <div class="resume-section-title">Summary</div>
+            <p>Compassionate and detail-oriented Registered Nurse with 4+ years of experience in acute care and emergency settings. Skilled in patient assessment, care planning, and team collaboration.</p>
+          </div>
+
+          <div class="resume-section">
+            <div class="resume-section-title">Experience</div>
+            <p><strong>Registered Nurse</strong> — Baylor Scott &amp; White Health</p>
+            <p style="font-size: 13px; color: #595959; margin-bottom: 8px;">Jun 2022 – Present</p>
+            <ul>
+              <li>Manage care for 6–8 patients per shift in medical-surgical unit</li>
+              <li>Coordinate with multidisciplinary teams for patient care plans</li>
+              <li>Precept new graduate nurses during orientation</li>
+            </ul>
+
+            <p style="margin-top: 16px;"><strong>Staff Nurse</strong> — Parkland Memorial Hospital</p>
+            <p style="font-size: 13px; color: #595959; margin-bottom: 8px;">Aug 2020 – May 2022</p>
+            <ul>
+              <li>Provided emergency care in high-volume Level I trauma center</li>
+              <li>Maintained 98% medication administration accuracy</li>
+            </ul>
+          </div>
+
+          <div class="resume-section">
+            <div class="resume-section-title">Education</div>
+            <p><strong>BSN, Nursing</strong> — University of Texas at Arlington, 2020</p>
+          </div>
+
+          <div class="resume-section">
+            <div class="resume-section-title">Certifications</div>
+            <ul>
+              <li>RN License — Texas Board of Nursing</li>
+              <li>BLS / ACLS Certified</li>
+              <li>PALS Certified</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notes tab -->
+      <div class="panel-content" id="panelNotes">
+        <div class="notes-panel-body">
+          <div class="notes-label">Interview Notes</div>
+          <div class="notes-hint">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M9 12l2 2 4-4"/></svg>
+            Notes auto-save as you type
+          </div>
+          <textarea class="notes-textarea" id="interviewNotes" placeholder="Type your interview notes here...&#10;&#10;• What stood out?&#10;• Key skills discussed&#10;• Culture fit observations&#10;• Follow-up questions" oninput="autoSaveNotes()"></textarea>
+          <div class="notes-saved-msg" id="notesSavedMsg">
+            <svg style="width:12px;height:12px;display:inline;vertical-align:middle;margin-right:4px;" viewBox="0 0 24 24" fill="none" stroke="#2e7d32" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+            Saved
+          </div>
+        </div>
+      </div>
+    </div><!-- /side-panel -->
+
+  </div><!-- /interview-video-area -->
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     SCREEN 3 — POST-INTERVIEW DISPOSITION
+     ═══════════════════════════════════════════════════════ -->
+<div class="screen disposition-screen" id="screen-disposition">
+  <div class="disposition-modal">
+    <div class="disposition-candidate-name">Aisha Rahman</div>
+    <div class="disposition-candidate-job">Registered Nurse</div>
+    <h2>How would you rate this candidate?</h2>
+
+    <div class="disposition-private">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+      This is only visible to your team
+    </div>
+
+    <div class="disposition-buttons">
+      <button class="dispo-btn yes" onclick="selectDisposition('yes', this)">
+        <div class="dispo-icon">&#10003;</div>
+        <span class="dispo-label">Yes</span>
+      </button>
+      <button class="dispo-btn no" onclick="selectDisposition('no', this)">
+        <div class="dispo-icon">&#10007;</div>
+        <span class="dispo-label">No</span>
+      </button>
+      <button class="dispo-btn maybe" onclick="selectDisposition('maybe', this)">
+        <div class="dispo-icon">?</div>
+        <span class="dispo-label">Maybe</span>
+      </button>
+    </div>
+
+    <div class="disposition-notes-wrap" id="dispoNotesWrap">
+      <div class="disposition-notes-label">Add a note <span style="color:#767676;font-weight:400;">(optional)</span></div>
+      <textarea class="disposition-notes-textarea" id="dispoNotes" placeholder="Any thoughts or feedback about this candidate..."></textarea>
+    </div>
+
+    <div class="disposition-actions">
+      <button class="btn-dispo-submit" id="dispoSubmitBtn" onclick="submitDisposition()">Submit &amp; return to lobby</button>
+
+    </div>
+  </div>
+</div>
+
+<!-- Toast notification -->
+<div class="toast" id="toast">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+  <span id="toastMsg">Disposition saved</span>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════
+   SCREEN MANAGEMENT
+   ═══════════════════════════════════════════════════════ */
+function showScreen(id, btn) {
+  document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('active'); });
+  document.getElementById('screen-' + id).classList.add('active');
+  if (btn) {
+    document.querySelectorAll('.dev-toggle-btn').forEach(function(b) { b.classList.remove('active'); });
+    btn.classList.add('active');
+  }
+  // Reset panel state when switching to interview
+  if (id === 'interview') {
+    startTimer();
+  }
+  // Update body bg
+  document.body.style.background = (id === 'disposition') ? 'rgba(0,0,0,0.55)' : '#1a1a2e';
+}
+
+/* ═══════════════════════════════════════════════════════
+   PRE-JOIN CONTROLS
+   ═══════════════════════════════════════════════════════ */
+var cameraOn = true;
+var micOn = true;
+
+function toggleCamera() {
+  cameraOn = !cameraOn;
+  var btn = document.getElementById('toggleCamera');
+  var overlay = document.getElementById('cameraOffOverlay');
+  if (cameraOn) {
+    btn.classList.remove('off');
+    overlay.classList.remove('visible');
+  } else {
+    btn.classList.add('off');
+    overlay.classList.add('visible');
+  }
+}
+
+function toggleMic() {
+  micOn = !micOn;
+  var btn = document.getElementById('toggleMic');
+  var levelBar = document.getElementById('micLevelBar');
+  if (micOn) {
+    btn.classList.remove('off');
+    levelBar.style.opacity = '1';
+  } else {
+    btn.classList.add('off');
+    levelBar.style.opacity = '0.3';
+  }
+}
+
+function joinInterview() {
+  showScreen('interview');
+  document.querySelectorAll('.dev-toggle-btn').forEach(function(b) { b.classList.remove('active'); });
+  document.querySelectorAll('.dev-toggle-btn')[1].classList.add('active');
+}
+
+function backToLobby() {
+  showToast('Returned to lobby');
+}
+
+/* ═══════════════════════════════════════════════════════
+   INTERVIEW TIMER
+   ═══════════════════════════════════════════════════════ */
+var timerSeconds = 0;
+var timerInterval = null;
+
+function startTimer() {
+  timerSeconds = 0;
+  if (timerInterval) clearInterval(timerInterval);
+  updateTimerDisplay();
+  timerInterval = setInterval(function() {
+    timerSeconds++;
+    updateTimerDisplay();
+  }, 1000);
+}
+
+function updateTimerDisplay() {
+  var m = Math.floor(timerSeconds / 60);
+  var s = timerSeconds % 60;
+  document.getElementById('interviewTimer').textContent =
+    (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+}
+
+/* ═══════════════════════════════════════════════════════
+   INTERVIEW CONTROLS
+   ═══════════════════════════════════════════════════════ */
+function toggleCtrl(btn) {
+  btn.classList.toggle('off');
+  var tooltip = btn.querySelector('.ctrl-tooltip');
+  if (btn.id === 'ctrlMic') {
+    tooltip.textContent = btn.classList.contains('off') ? 'Unmute' : 'Mute';
+  } else if (btn.id === 'ctrlCamera') {
+    tooltip.textContent = btn.classList.contains('off') ? 'Camera on' : 'Camera off';
+  }
+}
+
+/* ═══════════════════════════════════════════════════════
+   SIDE PANEL
+   ═══════════════════════════════════════════════════════ */
+var panelOpen = false;
+
+function togglePanel() {
+  panelOpen = !panelOpen;
+  var panel = document.getElementById('sidePanel');
+  var main = document.getElementById('videoMain');
+  var self = document.getElementById('videoSelf');
+  var controls = document.getElementById('bottomControls');
+  var toggle = document.getElementById('panelToggle');
+
+  if (panelOpen) {
+    panel.classList.add('open');
+    main.classList.add('panel-open');
+    self.classList.add('panel-open');
+    controls.classList.add('panel-open');
+    toggle.classList.add('active');
+  } else {
+    panel.classList.remove('open');
+    main.classList.remove('panel-open');
+    self.classList.remove('panel-open');
+    controls.classList.remove('panel-open');
+    toggle.classList.remove('active');
+  }
+}
+
+function switchPanelTab(tab, btn) {
+  document.querySelectorAll('.panel-tab').forEach(function(t) { t.classList.remove('active'); });
+  btn.classList.add('active');
+  document.querySelectorAll('.panel-content').forEach(function(c) { c.classList.remove('active'); });
+  if (tab === 'resume') {
+    document.getElementById('panelResume').classList.add('active');
+  } else {
+    document.getElementById('panelNotes').classList.add('active');
+  }
+}
+
+/* ═══════════════════════════════════════════════════════
+   NOTES AUTO-SAVE
+   ═══════════════════════════════════════════════════════ */
+var saveTimeout = null;
+
+function autoSaveNotes() {
+  var msg = document.getElementById('notesSavedMsg');
+  msg.classList.remove('visible');
+  if (saveTimeout) clearTimeout(saveTimeout);
+  saveTimeout = setTimeout(function() {
+    msg.classList.add('visible');
+    setTimeout(function() { msg.classList.remove('visible'); }, 2000);
+  }, 800);
+}
+
+/* ═══════════════════════════════════════════════════════
+   END INTERVIEW → DISPOSITION
+   ═══════════════════════════════════════════════════════ */
+function endInterview() {
+  if (timerInterval) clearInterval(timerInterval);
+  showScreen('disposition');
+  document.querySelectorAll('.dev-toggle-btn').forEach(function(b) { b.classList.remove('active'); });
+  document.querySelectorAll('.dev-toggle-btn')[2].classList.add('active');
+  document.body.style.background = 'rgba(0,0,0,0.55)';
+}
+
+/* ═══════════════════════════════════════════════════════
+   DISPOSITION
+   ═══════════════════════════════════════════════════════ */
+var selectedDisposition = null;
+
+function selectDisposition(value, btn) {
+  selectedDisposition = value;
+  document.querySelectorAll('.dispo-btn').forEach(function(b) { b.classList.remove('selected'); });
+  btn.classList.add('selected');
+  document.getElementById('dispoSubmitBtn').classList.add('enabled');
+}
+
+function submitDisposition() {
+  var notes = document.getElementById('dispoNotes').value;
+  // In production: send disposition + notes to server, then redirect to lobby
+  showToast('Disposition saved — returning to lobby');
+  // Reset
+  setTimeout(function() {
+    selectedDisposition = null;
+    document.querySelectorAll('.dispo-btn').forEach(function(b) { b.classList.remove('selected'); });
+    document.getElementById('dispoSubmitBtn').classList.remove('enabled');
+    document.getElementById('dispoNotes').value = '';
+  }, 2000);
+}
+
+/* ═══════════════════════════════════════════════════════
+   TOAST
+   ═══════════════════════════════════════════════════════ */
+function showToast(msg) {
+  var toast = document.getElementById('toast');
+  document.getElementById('toastMsg').textContent = msg;
+  toast.classList.add('show');
+  setTimeout(function() { toast.classList.remove('show'); }, 3000);
+}
+
+/* ═══════════════════════════════════════════════════════
+   INIT — simulate mic level animation
+   ═══════════════════════════════════════════════════════ */
+setInterval(function() {
+  if (!micOn) return;
+  var bars = document.querySelectorAll('#micLevelBar .mic-bar');
+  var level = Math.floor(Math.random() * 5) + 2; // 2-6 bars active
+  bars.forEach(function(bar, i) {
+    bar.classList.toggle('active', i < level);
+  });
+}, 300);
+</script>
+
+</body>
+</html>
