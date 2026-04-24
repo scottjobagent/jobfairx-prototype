@@ -44,17 +44,20 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
 .credits-modal-body { padding: 20px 24px 24px; }
 .credits-modal-desc { font-size: 14px; color: #595959; margin: 0 0 20px; line-height: 1.5; }
 .credit-tier-row { display: flex; align-items: center; justify-content: space-between; padding: 16px 18px; border: 1px solid #d4d2d0; border-radius: 10px; margin-bottom: 12px; }
-.credit-tier-row:last-child { margin-bottom: 0; }
-.credit-tier-row.empty { background: #f9f9f8; }
 .credit-tier-info { display: flex; align-items: center; gap: 14px; }
-.credit-tier-count { font-size: 28px; font-weight: 800; color: #2d2d2d; line-height: 1; min-width: 32px; text-align: center; }
-.credit-tier-row.empty .credit-tier-count { color: #d4d2d0; }
 .credit-tier-label { font-size: 15px; font-weight: 700; color: #2d2d2d; }
-.credit-tier-sub { font-size: 13px; font-weight: 400; color: #767676; margin-top: 2px; }
-.credit-tier-row.empty .credit-tier-label { color: #767676; }
+.credit-tier-count-label { font-size: 13px; font-weight: 500; color: #595959; margin-top: 2px; }
 .credit-use-btn { padding: 9px 20px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: 'Noto Sans', sans-serif; background: #0044B3; border: none; color: #fff; transition: background 0.15s; }
 .credit-use-btn:hover { background: #003399; }
-.credit-empty-label { font-size: 13px; font-weight: 500; color: #d4d2d0; }
+.credits-modal-footer { padding: 0 24px 24px; }
+.credit-buy-btn { display: block; width: 100%; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: 'Noto Sans', sans-serif; background: #fff; border: 1px solid #0044B3; color: #0044B3; transition: all 0.15s; text-align: center; }
+.credit-buy-btn:hover { background: #f0f5ff; }
+.credit-buy-btn.primary { background: #0044B3; color: #fff; border-color: #0044B3; }
+.credit-buy-btn.primary:hover { background: #003399; }
+.credits-empty { text-align: center; padding: 20px 0 8px; }
+.credits-empty-icon { width: 48px; height: 48px; margin: 0 auto 16px; color: #d4d2d0; }
+.credits-empty-title { font-size: 16px; font-weight: 700; color: #2d2d2d; margin-bottom: 8px; }
+.credits-empty-desc { font-size: 14px; color: #595959; line-height: 1.5; margin-bottom: 24px; }
 
 /* ═══ TOP HEADER ═══ */
 .topbar { position: fixed; top: 0; left: 220px; right: 0; height: 56px; background: #fff; border-bottom: 1px solid #d4d2d0; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; z-index: 200; transition: left 0.2s ease; }
@@ -3627,37 +3630,42 @@ document.addEventListener('keydown', function(e) {
       <h3>Event Credits</h3>
       <button class="credits-modal-close" onclick="closeCreditsModal()">&times;</button>
     </div>
-    <div class="credits-modal-body">
-      <p class="credits-modal-desc">Use a credit to register for an upcoming hiring event. Select a tier below to get started.</p>
-      <div class="credit-tier-row">
-        <div class="credit-tier-info">
-          <div class="credit-tier-count">2</div>
-          <div>
-            <div class="credit-tier-label">Starter</div>
-            <div class="credit-tier-sub">Basic event access</div>
+    <div id="creditsHasCredits">
+      <div class="credits-modal-body">
+        <p class="credits-modal-desc">Use a credit to register for an upcoming hiring event.</p>
+        <div class="credit-tier-row">
+          <div class="credit-tier-info">
+            <div>
+              <div class="credit-tier-label">Starter</div>
+              <div class="credit-tier-count-label">2 credits available</div>
+            </div>
           </div>
+          <button class="credit-use-btn" onclick="useCredit('starter')">Use Credit</button>
         </div>
-        <button class="credit-use-btn" onclick="useCredit('starter')">Use Credit</button>
+        <div class="credit-tier-row">
+          <div class="credit-tier-info">
+            <div>
+              <div class="credit-tier-label">Growth</div>
+              <div class="credit-tier-count-label">1 credit available</div>
+            </div>
+          </div>
+          <button class="credit-use-btn" onclick="useCredit('growth')">Use Credit</button>
+        </div>
       </div>
-      <div class="credit-tier-row">
-        <div class="credit-tier-info">
-          <div class="credit-tier-count">1</div>
-          <div>
-            <div class="credit-tier-label">Growth</div>
-            <div class="credit-tier-sub">Priority placement</div>
-          </div>
-        </div>
-        <button class="credit-use-btn" onclick="useCredit('growth')">Use Credit</button>
+      <div class="credits-modal-footer">
+        <button class="credit-buy-btn" onclick="buyCredits()">Buy Credits</button>
       </div>
-      <div class="credit-tier-row empty">
-        <div class="credit-tier-info">
-          <div class="credit-tier-count">0</div>
-          <div>
-            <div class="credit-tier-label">Pro</div>
-            <div class="credit-tier-sub">Featured + analytics</div>
-          </div>
+    </div>
+    <div id="creditsNoCredits" style="display: none;">
+      <div class="credits-modal-body">
+        <div class="credits-empty">
+          <svg class="credits-empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <div class="credits-empty-title">You don't have any event credits</div>
+          <div class="credits-empty-desc">Purchase credits to register for upcoming hiring events and start connecting with candidates.</div>
         </div>
-        <span class="credit-empty-label">No credits</span>
+      </div>
+      <div class="credits-modal-footer">
+        <button class="credit-buy-btn primary" onclick="buyCredits()">Buy Credits</button>
       </div>
     </div>
   </div>
@@ -3673,6 +3681,9 @@ function closeCreditsModal() {
 function useCredit(tier) {
   closeCreditsModal();
   window.location.href = 'visual-v3.html?view=register';
+}
+function buyCredits() {
+  closeCreditsModal();
 }
 document.getElementById('creditsModal').addEventListener('click', function(e) {
   if (e.target === this) closeCreditsModal();
