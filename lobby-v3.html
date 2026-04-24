@@ -3219,6 +3219,7 @@ function togglePendingSection() {
 var lobbyCountdownTimer = null;
 
 function setLobbyMode(mode, btn) {
+  currentLobbyMode = mode;
   var isLive = (mode === 'live' || mode === 'live-empty');
   var isEnded = (mode === 'event-ended');
 
@@ -3603,6 +3604,7 @@ function removeRow(row) {
 }
 
 // Resume modal
+var currentLobbyMode = 'active';
 var resumeSourceRow = null;
 var resumeData = {
   'Tamara Williams': { email: 'tamara.williams@email.com', phone: '(214) 555-0183', location: 'Dallas, TX', jobs: [{ title: 'Registered Nurse', company: 'Baylor Scott & White', dates: 'March 2023 - Present', bullets: ['Provide direct patient care in a 32-bed medical-surgical unit', 'Administer medications and monitor patient vital signs', 'Collaborate with physicians on patient treatment plans', 'Mentor newly hired nurses during onboarding', 'Maintain accurate electronic health records'] }, { title: 'Staff Nurse', company: 'Texas Health Resources', dates: 'June 2020 - February 2023', bullets: ['Delivered patient care in emergency and ICU departments', 'Assisted with patient assessments and care coordination', 'Participated in quality improvement initiatives'] }], education: [{ degree: 'Bachelor of Science in Nursing', school: 'University of Texas at Arlington', dates: '2016 - 2020' }], skills: ['Patient Care', 'EMR/EHR', 'IV Therapy', 'Wound Care', 'BLS/ACLS Certified', 'Team Leadership'], screener: [{ q: 'Do you have a CMA certification through one of the following associations: American Medical Technologist (AMT), American Association of Medical Assistants (AAMA), National Health Career Association (NHA), MedCA as a Certified Clinical & Administrative Medical Assistant (MA1), National Association for Health Professionals (NAHP) or National Center for Competency Testing (NCCT)?', a: 'Yes' }, { q: 'Are you currently authorized to work in the United States?', a: 'Yes' }] },
@@ -3612,7 +3614,9 @@ var resumeData = {
 
 function getResumeContext(row) {
   if (row.closest('#notyetEnded')) return 'ended';
-  if (row.closest('#interviewedLive') || row.closest('#interviewedActive')) return 'interviewed';
+  if (row.closest('#interviewedLive') || row.closest('#interviewedActive')) {
+    return (currentLobbyMode === 'event-ended') ? 'ended-interviewed' : 'interviewed';
+  }
   if (row.closest('#interviewingLive') || row.closest('#interviewingActive')) return 'interviewing';
   if (row.closest('#waitingLive') || row.closest('#waitingActive') || row.closest('#waitingLiveEmpty')) return 'live-waiting';
   var notyetParent = row.closest('#notyetActive') || row.closest('#notyetLive') || row.closest('#notyetLiveEmpty');
@@ -3664,6 +3668,10 @@ function buildResumeActions(context) {
            '<button class="resume-action-btn outline" onclick="declineFromResume()">Decline</button>' + downloadBtn;
   }
   if (context === 'ended') {
+    return '<button class="resume-action-btn primary" onclick="scheduleFollowupFromResume()">Schedule follow-up interview</button>' +
+           '<button class="resume-action-btn outline" onclick="messageFromResume()">Send a message</button>' + downloadBtn;
+  }
+  if (context === 'ended-interviewed') {
     return '<button class="resume-action-btn primary" onclick="scheduleFollowupFromResume()">Schedule follow-up interview</button>' +
            '<button class="resume-action-btn outline" onclick="messageFromResume()">Send a message</button>' + downloadBtn;
   }
