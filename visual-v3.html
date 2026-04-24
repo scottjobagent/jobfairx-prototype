@@ -78,6 +78,22 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
 .reg-confirm-register { padding: 10px 24px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: 'Noto Sans', sans-serif; background: #0044B3; border: none; color: #fff; transition: background 0.15s; }
 .reg-confirm-register:hover { background: #003399; }
 
+/* ═══ REGISTRATION SUCCESS MODAL ═══ */
+.reg-success-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10001; align-items: center; justify-content: center; }
+.reg-success-overlay.open { display: flex; }
+.reg-success-modal { background: #fff; border-radius: 14px; width: 480px; max-width: 90vw; box-shadow: 0 8px 32px rgba(0,0,0,0.2); text-align: center; padding: 40px 32px 32px; }
+.reg-success-icon { width: 56px; height: 56px; margin: 0 auto 20px; background: #e6f4ea; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.reg-success-icon svg { width: 28px; height: 28px; color: #1e7e34; }
+.reg-success-title { font-size: 22px; font-weight: 700; color: #2d2d2d; margin: 0 0 12px; }
+.reg-success-event { font-size: 15px; color: #595959; line-height: 1.5; margin: 0 0 4px; }
+.reg-success-date { font-size: 14px; color: #595959; margin: 0 0 24px; }
+.reg-success-msg { font-size: 15px; color: #2d2d2d; line-height: 1.5; margin: 0 0 28px; }
+.reg-success-actions { display: flex; justify-content: center; gap: 12px; }
+.reg-success-secondary { padding: 11px 28px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: 'Noto Sans', sans-serif; background: #fff; border: 1px solid #d4d2d0; color: #2d2d2d; transition: all 0.15s; }
+.reg-success-secondary:hover { background: #f3f2ef; border-color: #2d2d2d; }
+.reg-success-primary { padding: 11px 28px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: 'Noto Sans', sans-serif; background: #0044B3; border: none; color: #fff; transition: background 0.15s; }
+.reg-success-primary:hover { background: #003399; }
+
 /* ═══ TOP HEADER (to the right of sidebar) ═══ */
 .topbar { position: fixed; top: 0; left: 220px; right: 0; height: 56px; background: #fff; border-bottom: 1px solid #d4d2d0; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; z-index: 200; transition: left 0.2s ease; }
 body.collapsed .topbar { left: 60px; }
@@ -3231,6 +3247,24 @@ document.getElementById('creditsModal').addEventListener('click', function(e) {
     </div>
   </div>
 </div>
+
+<!-- ═══ REGISTRATION SUCCESS MODAL ═══ -->
+<div class="reg-success-overlay" id="regSuccessModal">
+  <div class="reg-success-modal">
+    <div class="reg-success-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+    </div>
+    <div class="reg-success-title">You're registered!</div>
+    <div class="reg-success-event" id="regSuccessEvent"></div>
+    <div class="reg-success-date" id="regSuccessDate"></div>
+    <p class="reg-success-msg">Post your first job so candidates can start matching with you.</p>
+    <div class="reg-success-actions">
+      <button class="reg-success-secondary" onclick="regSuccessGoDashboard()">Go to dashboard</button>
+      <button class="reg-success-primary" onclick="regSuccessPostJob()">Post a job</button>
+    </div>
+  </div>
+</div>
+
 <script>
 var pendingRegCreditTier = null;
 
@@ -3273,10 +3307,30 @@ function closeRegConfirm() {
 }
 
 function confirmRegister() {
+  // Carry event details to success modal
+  document.getElementById('regSuccessEvent').textContent = document.getElementById('regConfirmTitle').textContent;
+  document.getElementById('regSuccessDate').textContent = document.getElementById('regConfirmDate').textContent;
   closeRegConfirm();
-  hideRegView();
-  /* Registration logic TBD */
+  document.getElementById('regSuccessModal').classList.add('open');
 }
+
+function closeRegSuccess() {
+  document.getElementById('regSuccessModal').classList.remove('open');
+}
+
+function regSuccessGoDashboard() {
+  closeRegSuccess();
+  hideRegView();
+}
+
+function regSuccessPostJob() {
+  closeRegSuccess();
+  window.location.href = 'setup-flow-v3.html';
+}
+
+document.getElementById('regSuccessModal').addEventListener('click', function(e) {
+  if (e.target === this) closeRegSuccess();
+});
 
 document.getElementById('regConfirmModal').addEventListener('click', function(e) {
   if (e.target === this) closeRegConfirm();
@@ -3470,7 +3524,8 @@ function fbToast(msg) {
 }
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') {
-    if (document.getElementById('regConfirmModal').classList.contains('open')) closeRegConfirm();
+    if (document.getElementById('regSuccessModal').classList.contains('open')) closeRegSuccess();
+    else if (document.getElementById('regConfirmModal').classList.contains('open')) closeRegConfirm();
     else if (document.getElementById('creditsModal').classList.contains('open')) closeCreditsModal();
     else { var modal = document.getElementById('feedbackModal'); if (modal && modal.classList.contains('open')) closeFeedbackModal(); }
   }
