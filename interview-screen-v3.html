@@ -177,6 +177,29 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
 .end-modal-end { background: #991b1b; border: none; color: #fff; }
 .end-modal-end:hover { background: #7f1d1d; }
 
+/* ═══ RECOMMEND MODAL ═══ */
+.rec-modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center; }
+.rec-modal-overlay.open { display: flex; }
+.rec-modal { background: #fff; border-radius: 14px; width: 520px; max-width: 90vw; box-shadow: 0 8px 32px rgba(0,0,0,0.2); color: #2d2d2d; padding: 28px; }
+.rec-modal-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px; }
+.rec-modal-header h3 { font-size: 20px; font-weight: 700; color: #2d2d2d; margin: 0; line-height: 1.4; }
+.rec-modal-header h3 span { font-weight: 400; color: #767676; }
+.rec-modal-close { width: 32px; height: 32px; border: none; background: none; cursor: pointer; color: #595959; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; margin-left: 12px; }
+.rec-modal-close:hover { background: #f3f2ef; color: #2d2d2d; }
+.rec-toggle { display: inline-flex; border: 1px solid #d4d2d0; border-radius: 8px; overflow: hidden; margin-bottom: 24px; }
+.rec-toggle-btn { display: flex; align-items: center; gap: 6px; padding: 10px 24px; border: none; background: #fff; color: #2d2d2d; font-family: inherit; font-size: 15px; font-weight: 500; cursor: pointer; transition: all 0.15s; border-right: 1px solid #d4d2d0; }
+.rec-toggle-btn:last-child { border-right: none; }
+.rec-toggle-btn:hover { background: #f3f2ef; }
+.rec-toggle-btn.selected { background: #f3f2ef; font-weight: 700; }
+.rec-toggle-btn svg { width: 16px; height: 16px; }
+.rec-notes-label { font-size: 14px; font-weight: 700; color: #2d2d2d; margin-bottom: 10px; }
+.rec-notes-textarea { width: 100%; min-height: 120px; border: 1px solid #d4d2d0; border-radius: 8px; padding: 12px 14px; font-size: 14px; font-family: inherit; outline: none; resize: vertical; color: #2d2d2d; }
+.rec-notes-textarea:focus { border-color: #0044B3; }
+.rec-notes-textarea::placeholder { color: #999; }
+.rec-modal-actions { display: flex; justify-content: flex-end; margin-top: 20px; }
+.rec-done-btn { padding: 10px 28px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; background: #0044B3; border: none; color: #fff; transition: all 0.15s; }
+.rec-done-btn:hover { background: #003399; }
+
 /* ═══ CALL ENDED SCREEN ═══ */
 .call-ended-screen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(180deg, #f8f8f8 0%, #e8e6e3 100%); z-index: 9998; align-items: center; justify-content: center; flex-direction: column; }
 .call-ended-screen.open { display: flex; }
@@ -419,6 +442,26 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
   </div>
 </div>
 
+<!-- ═══ RECOMMEND MODAL ═══ -->
+<div class="rec-modal-overlay" id="recModal">
+  <div class="rec-modal">
+    <div class="rec-modal-header">
+      <h3>Would you recommend moving forward with <span id="recModalName">Candidate</span>? <span>(Optional)</span></h3>
+      <button class="rec-modal-close" onclick="closeRecModal()">&times;</button>
+    </div>
+    <div class="rec-toggle">
+      <button class="rec-toggle-btn" onclick="selectRec(this, 'yes')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Yes</button>
+      <button class="rec-toggle-btn" onclick="selectRec(this, 'maybe')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Maybe</button>
+      <button class="rec-toggle-btn" onclick="selectRec(this, 'no')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> No</button>
+    </div>
+    <div class="rec-notes-label">Notes (optional)</div>
+    <textarea class="rec-notes-textarea" placeholder="Add any notes about this candidate..."></textarea>
+    <div class="rec-modal-actions">
+      <button class="rec-done-btn" onclick="closeRecModal()">Done</button>
+    </div>
+  </div>
+</div>
+
 <!-- ═══ CALL ENDED SCREEN ═══ -->
 <div class="call-ended-screen" id="callEndedScreen">
   <!-- Thumbs up / down view -->
@@ -485,6 +528,7 @@ document.getElementById('floatingCandidateName').textContent = candidateName;
 document.getElementById('candidateDisplayName').textContent = candidateName;
 document.getElementById('candidateAvatar').textContent = initials;
 document.getElementById('endModalName').textContent = candidateName;
+document.getElementById('recModalName').textContent = candidateName;
 document.getElementById('resumePanelName').textContent = candidateName;
 document.querySelectorAll('.end-name-inline').forEach(function(el) { el.textContent = candidateName; });
 
@@ -589,6 +633,16 @@ function openEndModal() { document.getElementById('endModal').classList.add('ope
 function closeEndModal() { document.getElementById('endModal').classList.remove('open'); }
 function handleEndCall() {
   closeEndModal();
+  document.getElementById('recModal').classList.add('open');
+}
+
+/* ═══ RECOMMEND MODAL ═══ */
+function selectRec(btn, value) {
+  document.querySelectorAll('.rec-toggle-btn').forEach(function(b) { b.classList.remove('selected'); });
+  btn.classList.add('selected');
+}
+function closeRecModal() {
+  document.getElementById('recModal').classList.remove('open');
   document.getElementById('callEndedScreen').classList.add('open');
 }
 var lobbyUrl = 'lobby-v3.html?mode=live&tab=waiting';
@@ -607,6 +661,9 @@ function submitFeedback() { window.location.href = lobbyUrl; }
 
 document.getElementById('endModal').addEventListener('click', function(e) {
   if (e.target === this) closeEndModal();
+});
+document.getElementById('recModal').addEventListener('click', function(e) {
+  if (e.target === this) closeRecModal();
 });
 </script>
 
