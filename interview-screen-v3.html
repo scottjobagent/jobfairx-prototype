@@ -13,7 +13,7 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
 .iv-screen { display: flex; flex-direction: column; height: 100vh; }
 
 /* ═══ VIDEO AREA ═══ */
-.iv-video-area { flex: 1; display: flex; position: relative; overflow: hidden; }
+.iv-video-area { flex: 1; display: flex; position: relative; overflow: visible; }
 .iv-video-main { flex: 1; display: flex; align-items: center; justify-content: center; position: relative; transition: margin-right 0.3s ease; background: #f0eeeb; }
 .iv-video-main.panel-open { margin-right: 380px; }
 
@@ -74,8 +74,8 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
 
 
 /* ═══ SIDE PANELS ═══ */
-.iv-side-panel { position: absolute; top: 0; right: 0; width: 380px; height: 100%; background: #fff; color: #2d2d2d; z-index: 20; transform: translateX(100%); transition: transform 0.3s ease; display: flex; flex-direction: column; box-shadow: -2px 0 12px rgba(0,0,0,0.08); }
-.iv-side-panel.open { transform: translateX(0); }
+.iv-side-panel { position: absolute; top: 0; right: 0; width: 380px; height: 100%; background: #fff; color: #2d2d2d; z-index: 20; display: none; flex-direction: column; box-shadow: -2px 0 12px rgba(0,0,0,0.08); }
+.iv-side-panel.open { display: flex; }
 .iv-panel-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid #e8e6e3; }
 .iv-panel-header h3 { display: flex; align-items: center; gap: 8px; font-size: 18px; font-weight: 700; color: #2d2d2d; }
 .iv-panel-header h3 svg { width: 20px; height: 20px; color: #595959; }
@@ -398,35 +398,42 @@ setInterval(function() {
 
 /* ═══ PANEL LOGIC ═══ */
 var activePanel = null;
+var panelIds = ['notesPanel', 'chatPanel', 'resumePanel'];
+var btnIds = ['notesPanelBtn', 'chatPanelBtn', 'resumePanelBtn'];
+var panelMap = { notes: 0, chat: 1, resume: 2 };
+
+function closeAllPanels() {
+  for (var i = 0; i < panelIds.length; i++) {
+    document.getElementById(panelIds[i]).classList.remove('open');
+    document.getElementById(btnIds[i]).classList.remove('active');
+  }
+  document.getElementById('videoMain').classList.remove('panel-open');
+  activePanel = null;
+}
 
 function togglePanel(panel) {
-  var panels = { notes: 'notesPanel', chat: 'chatPanel', resume: 'resumePanel' };
-  var btns = { notes: 'notesPanelBtn', chat: 'chatPanelBtn', resume: 'resumePanelBtn' };
-
+  /* If this panel is already open, just close everything */
   if (activePanel === panel) {
-    closePanel();
+    closeAllPanels();
     return;
   }
 
-  Object.keys(panels).forEach(function(key) {
-    document.getElementById(panels[key]).classList.remove('open');
-    document.getElementById(btns[key]).classList.remove('active');
-  });
+  /* Close everything first */
+  closeAllPanels();
 
-  document.getElementById(panels[panel]).classList.add('open');
-  document.getElementById(btns[panel]).classList.add('active');
+  /* Now open the requested panel */
+  var idx = panelMap[panel];
+  document.getElementById(panelIds[idx]).classList.add('open');
+  document.getElementById(btnIds[idx]).classList.add('active');
   document.getElementById('videoMain').classList.add('panel-open');
   activePanel = panel;
 
-  if (panel === 'chat') document.getElementById('chatInput').focus();
-  if (panel === 'notes') document.getElementById('notesTextarea').focus();
+  if (panel === 'chat') setTimeout(function() { document.getElementById('chatInput').focus(); }, 50);
+  if (panel === 'notes') setTimeout(function() { document.getElementById('notesTextarea').focus(); }, 50);
 }
 
 function closePanel() {
-  ['notesPanel', 'chatPanel', 'resumePanel'].forEach(function(id) { document.getElementById(id).classList.remove('open'); });
-  ['notesPanelBtn', 'chatPanelBtn', 'resumePanelBtn'].forEach(function(id) { document.getElementById(id).classList.remove('active'); });
-  document.getElementById('videoMain').classList.remove('panel-open');
-  activePanel = null;
+  closeAllPanels();
 }
 
 /* ═══ NOTES AUTO-SAVE ═══ */
