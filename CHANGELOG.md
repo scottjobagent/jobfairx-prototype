@@ -70,3 +70,4 @@
 66. Synced volume/bundle pricing to all v3 pages — visual-v3, edit-post-v3, setup-flow-v3 now match lobby-v3 (dynamic hero prices, bundle steps, savings banners, de-bolded total/qty, no footer)
 67. Added strikethrough original price on all v3 pages — gray crossed-out base price appears above hero price at 5+ events, hidden at 1–4
 68. Added Credits dev toggle to lobby-v3 header — switches Event Credits modal between "Has credits" and "Empty" states
+69. Fixed dropdown staying open behind Event Credits modal — added event.stopPropagation() on all v3 pages
