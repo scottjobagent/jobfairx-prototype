@@ -5034,7 +5034,7 @@ document.addEventListener('keydown', function(e) {
           <div class="purchase-badge">Most Popular</div>
           <div class="purchase-card-check"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg></div>
           <div class="purchase-tier-name">Growth</div>
-          <div class="purchase-price">$895</div>
+          <div class="purchase-price" id="growthHeroPrice">$895</div>
           <div class="purchase-price-sub">per event</div>
           <ul class="purchase-features">
             <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Promote up to 3 jobs</li>
@@ -5053,6 +5053,10 @@ document.addEventListener('keydown', function(e) {
             <div class="purchase-total-row">
               <span class="purchase-total-label">Total</span>
               <span class="purchase-total-value" id="purchaseTotal">$895</span>
+            </div>
+            <div class="purchase-savings-row" id="growthSavings" style="display:none">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              <span class="purchase-savings-text" id="growthSavingsText"></span>
             </div>
             <button class="purchase-buy-btn" onclick="event.stopPropagation(); completePurchase()">Purchase</button>
           </div>
@@ -5280,12 +5284,17 @@ var purchasePrices = { starter: 495, growth: 895, pro: 1495 };
 var purchaseSelectedTier = 'growth';
 var purchaseQty = 1;
 
-/* Starter volume pricing: qty → per-event price */
-var starterSteps = [1, 2, 3, 4, 5, 10, 15, 25, 40, 50, 75, 100];
+/* Volume pricing: qty → per-event price */
+var bundleSteps = [1, 2, 3, 4, 5, 10, 15, 25, 40, 50, 75, 100];
 var starterPriceAt = {
   1: 495, 2: 495, 3: 495, 4: 495,
   5: 470, 10: 445, 15: 420, 25: 395,
   40: 365, 50: 345, 75: 320, 100: 297
+};
+var growthPriceAt = {
+  1: 895, 2: 895, 3: 895, 4: 895,
+  5: 850, 10: 805, 15: 760, 25: 715,
+  40: 655, 50: 620, 75: 575, 100: 537
 };
 
 function openPurchaseModal() {
@@ -5306,13 +5315,13 @@ function selectPurchaseTier(tier) {
 }
 
 function adjustQty(delta) {
-  if (purchaseSelectedTier === 'starter') {
-    var idx = starterSteps.indexOf(purchaseQty);
+  if (purchaseSelectedTier === 'starter' || purchaseSelectedTier === 'growth') {
+    var idx = bundleSteps.indexOf(purchaseQty);
     if (idx === -1) idx = 0;
     idx += delta;
     if (idx < 0) idx = 0;
-    if (idx >= starterSteps.length) idx = starterSteps.length - 1;
-    purchaseQty = starterSteps[idx];
+    if (idx >= bundleSteps.length) idx = bundleSteps.length - 1;
+    purchaseQty = bundleSteps[idx];
   } else {
     purchaseQty = Math.max(1, purchaseQty + delta);
   }
@@ -5329,36 +5338,51 @@ function updatePurchaseCards() {
     }
   });
 
-  var perEvent, total;
+  var perEvent, total, basePrice;
   if (purchaseSelectedTier === 'starter') {
     perEvent = starterPriceAt[purchaseQty] || 495;
+    basePrice = 495;
+    total = perEvent * purchaseQty;
+  } else if (purchaseSelectedTier === 'growth') {
+    perEvent = growthPriceAt[purchaseQty] || 895;
+    basePrice = 895;
     total = perEvent * purchaseQty;
   } else {
     perEvent = purchasePrices[purchaseSelectedTier];
+    basePrice = perEvent;
     total = perEvent * purchaseQty;
   }
 
   document.querySelectorAll('.purchase-qty-value').forEach(function(el) { el.textContent = purchaseQty; });
   document.querySelectorAll('.purchase-total-value').forEach(function(el) { el.textContent = '$' + total.toLocaleString(); });
 
-  /* Starter: dynamic hero price + savings display */
-  var heroPrice = document.getElementById('starterHeroPrice');
-  var savingsRow = document.getElementById('purchaseSavings');
-  var savingsText = document.getElementById('purchaseSavingsText');
+  /* Dynamic hero prices */
+  var starterHero = document.getElementById('starterHeroPrice');
+  var growthHero = document.getElementById('growthHeroPrice');
 
-  if (purchaseSelectedTier === 'starter') {
-    heroPrice.textContent = '$' + perEvent;
+  starterHero.textContent = (purchaseSelectedTier === 'starter') ? '$' + (starterPriceAt[purchaseQty] || 495) : '$495';
+  growthHero.textContent = (purchaseSelectedTier === 'growth') ? '$' + (growthPriceAt[purchaseQty] || 895) : '$895';
+
+  /* Starter savings */
+  var starterSavingsRow = document.getElementById('purchaseSavings');
+  var starterSavingsText = document.getElementById('purchaseSavingsText');
+  if (purchaseSelectedTier === 'starter' && purchaseQty >= 5) {
+    var starterSavings = (495 * purchaseQty) - total;
+    starterSavingsText.textContent = 'You save $' + starterSavings.toLocaleString();
+    starterSavingsRow.style.display = 'flex';
   } else {
-    heroPrice.textContent = '$495';
+    starterSavingsRow.style.display = 'none';
   }
 
-  if (purchaseSelectedTier === 'starter' && purchaseQty >= 5) {
-    var fullPrice = 495 * purchaseQty;
-    var savings = fullPrice - total;
-    savingsText.textContent = 'You save $' + savings.toLocaleString();
-    savingsRow.style.display = 'flex';
+  /* Growth savings */
+  var growthSavingsRow = document.getElementById('growthSavings');
+  var growthSavingsText = document.getElementById('growthSavingsText');
+  if (purchaseSelectedTier === 'growth' && purchaseQty >= 5) {
+    var growthSavings = (895 * purchaseQty) - total;
+    growthSavingsText.textContent = 'You save $' + growthSavings.toLocaleString();
+    growthSavingsRow.style.display = 'flex';
   } else {
-    savingsRow.style.display = 'none';
+    growthSavingsRow.style.display = 'none';
   }
 }
 

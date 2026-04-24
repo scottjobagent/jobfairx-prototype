@@ -63,3 +63,5 @@
 59. Fixed Not yet interviewed active state counts — section headers from (18) to (8) matching actual rows, tab label shows (16) in active mode
 60. Built Purchase Credits modal — three-card tier selector (Starter $495, Growth $895, Pro $1,495) with quantity controls, dynamic totals, and Purchase button across all v3 pages
 61. Added Starter tier volume/bundle pricing — qty steps (1–4 individual, then 5/10/15/25/40/50/75/100 bundles) with per-event discounts, green savings banner at 5+ events, per-event price display (lobby-v3 only)
+62. Redesigned pricing hierarchy — dynamic hero price updates live with qty, de-bolded total (16px/500) and qty value (500), removed redundant per-event line
+63. Added Growth tier volume/bundle pricing — same step pattern as Starter, dynamic hero price, green savings banner at 5+ events (lobby-v3 only)
