@@ -445,16 +445,17 @@ body.setup-jobs-incomplete .add-job-row { display: none; }
 .purchase-qty-btn:first-child { border-radius: 6px 0 0 6px; }
 .purchase-qty-btn:last-child { border-radius: 0 6px 6px 0; }
 .purchase-qty-btn:hover { background: #f3f2ef; color: #2d2d2d; }
-.purchase-qty-value { width: 44px; height: 34px; border-top: 1px solid #d4d2d0; border-bottom: 1px solid #d4d2d0; border-left: none; border-right: none; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; color: #2d2d2d; background: #fff; }
+.purchase-qty-value { width: 44px; height: 34px; border-top: 1px solid #d4d2d0; border-bottom: 1px solid #d4d2d0; border-left: none; border-right: none; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 500; color: #2d2d2d; background: #fff; }
 .purchase-total-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
 .purchase-total-label { font-size: 15px; color: #2d2d2d; font-weight: 500; }
-.purchase-total-value { font-size: 20px; font-weight: 700; color: #2d2d2d; }
+.purchase-total-value { font-size: 16px; font-weight: 500; color: #2d2d2d; }
 .purchase-buy-btn { display: block; width: 100%; padding: 12px 24px; border-radius: 8px; font-size: 15px; font-weight: 700; cursor: pointer; font-family: 'Noto Sans', sans-serif; background: #0044B3; border: none; color: #fff; transition: background 0.15s; text-align: center; }
 .purchase-buy-btn:hover { background: #003399; }
-.purchase-footer { text-align: center; padding: 0 28px 24px; }
-.purchase-footer-link { font-size: 14px; color: #595959; }
-.purchase-footer-link a { color: #0044B3; font-weight: 600; text-decoration: none; }
-.purchase-footer-link a:hover { text-decoration: underline; }
+.purchase-footer { text-align: center; padding: 0; }
+
+.purchase-savings-row { display: flex; align-items: center; gap: 6px; margin-bottom: 16px; padding: 8px 12px; background: #e6f4ea; border-radius: 8px; }
+.purchase-savings-row svg { width: 16px; height: 16px; color: #1e7e34; flex-shrink: 0; }
+.purchase-savings-text { font-size: 13px; font-weight: 600; color: #1e7e34; }
 
 /* ═══ TOP HEADER ═══ */
 .topbar { position: fixed; top: 0; left: 220px; right: 0; height: 56px; background: #fff; border-bottom: 1px solid #d4d2d0; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; z-index: 200; transition: left 0.2s ease; }
@@ -2035,12 +2036,12 @@ document.addEventListener('keydown', function(e) {
     </div>
     <div class="purchase-body">
       <div class="purchase-cards">
-        <div class="purchase-card" data-tier="starter" data-price="495" onclick="selectPurchaseTier('starter')">
+        <div class="purchase-card" id="purchaseStarter" data-tier="starter" data-price="495" onclick="selectPurchaseTier('starter')">
           <div class="purchase-card-check">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>
           </div>
           <div class="purchase-tier-name">Starter</div>
-          <div class="purchase-price">$495</div>
+          <div class="purchase-price" id="starterHeroPrice">$495</div>
           <div class="purchase-price-sub">per event</div>
           <ul class="purchase-features">
             <li>
@@ -2060,26 +2061,27 @@ document.addEventListener('keydown', function(e) {
             <div class="purchase-qty-row">
               <span class="purchase-qty-label">Events</span>
               <div class="purchase-qty-controls">
-                <button class="purchase-qty-btn" onclick="adjustQty('starter', -1)">−</button>
+                <button class="purchase-qty-btn" onclick="adjustQty(-1)">−</button>
                 <div class="purchase-qty-value" id="qty-starter">1</div>
-                <button class="purchase-qty-btn" onclick="adjustQty('starter', 1)">+</button>
+                <button class="purchase-qty-btn" onclick="adjustQty(1)">+</button>
               </div>
             </div>
             <div class="purchase-total-row">
               <span class="purchase-total-label">Total</span>
               <span class="purchase-total-value" id="total-starter">$495</span>
             </div>
-            <button class="purchase-buy-btn" onclick="completePurchase('starter')">Purchase</button>
+            <div class="purchase-savings-row" id="purchaseSavings" style="display:none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg><span class="purchase-savings-text" id="purchaseSavingsText"></span></div>
+            <button class="purchase-buy-btn" onclick="completePurchase()">Purchase</button>
           </div>
         </div>
 
-        <div class="purchase-card selected" data-tier="growth" data-price="895" onclick="selectPurchaseTier('growth')">
+        <div class="purchase-card selected" id="purchaseGrowth" data-tier="growth" data-price="895" onclick="selectPurchaseTier('growth')">
           <div class="purchase-badge">Most Popular</div>
           <div class="purchase-card-check">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>
           </div>
           <div class="purchase-tier-name">Growth</div>
-          <div class="purchase-price">$895</div>
+          <div class="purchase-price" id="growthHeroPrice">$895</div>
           <div class="purchase-price-sub">per event</div>
           <ul class="purchase-features">
             <li>
@@ -2099,25 +2101,26 @@ document.addEventListener('keydown', function(e) {
             <div class="purchase-qty-row">
               <span class="purchase-qty-label">Events</span>
               <div class="purchase-qty-controls">
-                <button class="purchase-qty-btn" onclick="adjustQty('growth', -1)">−</button>
+                <button class="purchase-qty-btn" onclick="adjustQty(-1)">−</button>
                 <div class="purchase-qty-value" id="qty-growth">1</div>
-                <button class="purchase-qty-btn" onclick="adjustQty('growth', 1)">+</button>
+                <button class="purchase-qty-btn" onclick="adjustQty(1)">+</button>
               </div>
             </div>
             <div class="purchase-total-row">
               <span class="purchase-total-label">Total</span>
               <span class="purchase-total-value" id="total-growth">$895</span>
             </div>
-            <button class="purchase-buy-btn" onclick="completePurchase('growth')">Purchase</button>
+            <div class="purchase-savings-row" id="growthSavings" style="display:none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg><span class="purchase-savings-text" id="growthSavingsText"></span></div>
+            <button class="purchase-buy-btn" onclick="completePurchase()">Purchase</button>
           </div>
         </div>
 
-        <div class="purchase-card" data-tier="pro" data-price="1495" onclick="selectPurchaseTier('pro')">
+        <div class="purchase-card" id="purchasePro" data-tier="pro" data-price="1495" onclick="selectPurchaseTier('pro')">
           <div class="purchase-card-check">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>
           </div>
           <div class="purchase-tier-name">Pro</div>
-          <div class="purchase-price">$1,495</div>
+          <div class="purchase-price" id="proHeroPrice">$1,495</div>
           <div class="purchase-price-sub">per event</div>
           <ul class="purchase-features">
             <li>
@@ -2137,73 +2140,127 @@ document.addEventListener('keydown', function(e) {
             <div class="purchase-qty-row">
               <span class="purchase-qty-label">Events</span>
               <div class="purchase-qty-controls">
-                <button class="purchase-qty-btn" onclick="adjustQty('pro', -1)">−</button>
+                <button class="purchase-qty-btn" onclick="adjustQty(-1)">−</button>
                 <div class="purchase-qty-value" id="qty-pro">1</div>
-                <button class="purchase-qty-btn" onclick="adjustQty('pro', 1)">+</button>
+                <button class="purchase-qty-btn" onclick="adjustQty(1)">+</button>
               </div>
             </div>
             <div class="purchase-total-row">
               <span class="purchase-total-label">Total</span>
               <span class="purchase-total-value" id="total-pro">$1,495</span>
             </div>
-            <button class="purchase-buy-btn" onclick="completePurchase('pro')">Purchase</button>
+            <div class="purchase-savings-row" id="proSavings" style="display:none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg><span class="purchase-savings-text" id="proSavingsText"></span></div>
+            <button class="purchase-buy-btn" onclick="completePurchase()">Purchase</button>
           </div>
         </div>
       </div>
     </div>
     <div class="purchase-footer">
-      <div class="purchase-footer-link">Need more than 4 events? <a href="#">See bundles</a></div>
     </div>
   </div>
 </div>
 
 <script>
+var purchasePrices = { starter: 495, growth: 895, pro: 1495 };
+var purchaseSelectedTier = 'growth';
+var purchaseQty = 1;
+
+/* Volume pricing: qty → per-event price */
+var bundleSteps = [1, 2, 3, 4, 5, 10, 15, 25, 40, 50, 75, 100];
+var starterPriceAt = {
+  1: 495, 2: 495, 3: 495, 4: 495,
+  5: 470, 10: 445, 15: 420, 25: 395,
+  40: 365, 50: 345, 75: 320, 100: 297
+};
+var growthPriceAt = {
+  1: 895, 2: 895, 3: 895, 4: 895,
+  5: 850, 10: 805, 15: 760, 25: 715,
+  40: 655, 50: 620, 75: 575, 100: 537
+};
+var proPriceAt = {
+  1: 1495, 2: 1495, 3: 1495, 4: 1495,
+  5: 1420, 10: 1345, 15: 1270, 25: 1195,
+  40: 1095, 50: 1045, 75: 970, 100: 897
+};
+
 function openPurchaseModal() {
-  document.getElementById('purchaseOverlay').classList.add('open');
+  purchaseSelectedTier = 'growth';
+  purchaseQty = 1;
+  updatePurchaseCards();
+  document.getElementById('purchaseModal').classList.add('open');
 }
 
 function closePurchaseModal() {
-  document.getElementById('purchaseOverlay').classList.remove('open');
-  resetPurchaseModal();
+  document.getElementById('purchaseModal').classList.remove('open');
 }
 
 function selectPurchaseTier(tier) {
-  document.querySelectorAll('.purchase-card').forEach(card => {
-    card.classList.remove('selected');
+  purchaseSelectedTier = tier;
+  purchaseQty = 1;
+  updatePurchaseCards();
+}
+
+function adjustQty(delta) {
+  var idx = bundleSteps.indexOf(purchaseQty);
+  if (idx === -1) idx = 0;
+  idx += delta;
+  if (idx < 0) idx = 0;
+  if (idx >= bundleSteps.length) idx = bundleSteps.length - 1;
+  purchaseQty = bundleSteps[idx];
+  updatePurchaseCards();
+}
+
+function updatePurchaseCards() {
+  ['starter', 'growth', 'pro'].forEach(function(tier) {
+    var card = document.getElementById('purchase' + tier.charAt(0).toUpperCase() + tier.slice(1));
+    if (tier === purchaseSelectedTier) {
+      card.classList.add('selected');
+    } else {
+      card.classList.remove('selected');
+    }
   });
-  document.querySelector(`[data-tier="${tier}"]`).classList.add('selected');
+
+  var priceLookup = { starter: starterPriceAt, growth: growthPriceAt, pro: proPriceAt };
+  var basePrices = { starter: 495, growth: 895, pro: 1495 };
+  var lookup = priceLookup[purchaseSelectedTier];
+  var perEvent = lookup ? (lookup[purchaseQty] || basePrices[purchaseSelectedTier]) : basePrices[purchaseSelectedTier];
+  var total = perEvent * purchaseQty;
+
+  document.querySelectorAll('.purchase-qty-value').forEach(function(el) { el.textContent = purchaseQty; });
+  document.querySelectorAll('.purchase-total-value').forEach(function(el) { el.textContent = '$' + total.toLocaleString(); });
+
+  /* Dynamic hero prices */
+  var heroes = { starter: 'starterHeroPrice', growth: 'growthHeroPrice', pro: 'proHeroPrice' };
+  Object.keys(heroes).forEach(function(tier) {
+    var el = document.getElementById(heroes[tier]);
+    if (tier === purchaseSelectedTier) {
+      var p = priceLookup[tier][purchaseQty] || basePrices[tier];
+      el.textContent = '$' + p.toLocaleString();
+    } else {
+      el.textContent = '$' + basePrices[tier].toLocaleString();
+    }
+  });
+
+  /* Savings display for all tiers */
+  var savingsIds = { starter: ['purchaseSavings', 'purchaseSavingsText'], growth: ['growthSavings', 'growthSavingsText'], pro: ['proSavings', 'proSavingsText'] };
+  Object.keys(savingsIds).forEach(function(tier) {
+    var row = document.getElementById(savingsIds[tier][0]);
+    var text = document.getElementById(savingsIds[tier][1]);
+    if (tier === purchaseSelectedTier && purchaseQty >= 5) {
+      var savings = (basePrices[tier] * purchaseQty) - total;
+      text.textContent = 'You save $' + savings.toLocaleString();
+      row.style.display = 'flex';
+    } else {
+      row.style.display = 'none';
+    }
+  });
 }
 
-function adjustQty(tier, change) {
-  const qtyElement = document.getElementById(`qty-${tier}`);
-  const priceElement = document.querySelector(`[data-tier="${tier}"]`);
-  const basePrice = parseInt(priceElement.dataset.price);
-  let qty = parseInt(qtyElement.textContent);
-  qty = Math.max(1, qty + change);
-  qtyElement.textContent = qty;
-  const total = basePrice * qty;
-  document.getElementById(`total-${tier}`).textContent = '$' + total.toLocaleString();
-}
-
-function completePurchase(tier) {
-  const qty = parseInt(document.getElementById(`qty-${tier}`).textContent);
-  const priceElement = document.querySelector(`[data-tier="${tier}"]`);
-  const basePrice = parseInt(priceElement.dataset.price);
-  const total = basePrice * qty;
-  alert(`Processing purchase of ${qty} ${tier.charAt(0).toUpperCase() + tier.slice(1)} event(s) for $${total.toLocaleString()}`);
+function completePurchase() {
   closePurchaseModal();
 }
 
-function resetPurchaseModal() {
-  document.getElementById('qty-starter').textContent = '1';
-  document.getElementById('qty-growth').textContent = '1';
-  document.getElementById('qty-pro').textContent = '1';
-  document.getElementById('total-starter').textContent = '$495';
-  document.getElementById('total-growth').textContent = '$895';
-  document.getElementById('total-pro').textContent = '$1,495';
-}
-
-document.getElementById('purchaseOverlay').addEventListener('click', function(e) {
+document.getElementById('purchaseModal').addEventListener('click', function(e) {
   if (e.target === this) closePurchaseModal();
 });
 </script>

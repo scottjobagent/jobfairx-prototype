@@ -67,3 +67,4 @@
 63. Added Growth tier volume/bundle pricing — same step pattern as Starter, dynamic hero price, green savings banner at 5+ events (lobby-v3 only)
 64. Added Pro tier volume/bundle pricing — all three tiers now use bundle steps, refactored JS to shared lookup pattern (lobby-v3 only)
 65. Removed "Need more than 4? See bundles" footer from Purchase Credits modal (lobby-v3)
+66. Synced volume/bundle pricing to all v3 pages — visual-v3, edit-post-v3, setup-flow-v3 now match lobby-v3 (dynamic hero prices, bundle steps, savings banners, de-bolded total/qty, no footer)
