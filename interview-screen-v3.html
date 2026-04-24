@@ -53,18 +53,25 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
 .iv-toolbar-center { display: flex; align-items: center; gap: 6px; }
 .iv-toolbar-right { position: absolute; right: 20px; display: flex; align-items: center; gap: 2px; }
 
-/* Center buttons (Unmute, Start Video) — pill style with dropdown caret */
-.iv-center-btn { display: flex; align-items: center; gap: 6px; padding: 10px 16px; border: none; background: #f3f2ef; color: #2d2d2d; border-radius: 24px; cursor: pointer; font-family: inherit; font-size: 13px; font-weight: 500; transition: all 0.15s; }
-.iv-center-btn:hover { background: #e8e6e3; }
-.iv-center-btn svg { width: 20px; height: 20px; }
-.iv-center-btn .caret { width: 12px; height: 12px; color: #767676; margin-left: 2px; }
-.iv-center-btn.muted { color: #991b1b; }
-.iv-center-btn.muted svg:not(.caret) { color: #991b1b; }
+/* Center buttons (Unmute, Start Video) — icon on top, label below */
+.iv-center-wrap { display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; border: none; background: none; font-family: inherit; padding: 0; }
+.iv-center-wrap .iv-center-icon-row { display: flex; align-items: center; gap: 4px; }
+.iv-center-icon { width: 44px; height: 44px; border-radius: 50%; background: #f3f2ef; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.15s; }
+.iv-center-icon:hover { background: #e8e6e3; }
+.iv-center-icon svg { width: 20px; height: 20px; color: #2d2d2d; }
+.iv-center-caret { width: 20px; height: 20px; border-radius: 50%; background: #f3f2ef; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.15s; }
+.iv-center-caret:hover { background: #e8e6e3; }
+.iv-center-caret svg { width: 10px; height: 10px; color: #767676; }
+.iv-center-label { font-size: 11px; font-weight: 500; color: #595959; }
+.iv-center-wrap.muted .iv-center-icon svg { color: #991b1b; }
+.iv-center-wrap.muted .iv-center-label { color: #991b1b; }
 
-/* End button — solid red pill */
-.iv-end-btn { display: flex; align-items: center; gap: 6px; padding: 10px 20px; border: none; background: #991b1b; color: #fff; border-radius: 24px; cursor: pointer; font-family: inherit; font-size: 13px; font-weight: 600; transition: all 0.15s; }
-.iv-end-btn:hover { background: #7f1d1d; }
-.iv-end-btn svg { width: 20px; height: 20px; color: #fff; }
+/* End button — solid red circle, icon on top, label below */
+.iv-end-wrap { display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; border: none; background: none; font-family: inherit; padding: 0; }
+.iv-end-icon { width: 44px; height: 44px; border-radius: 50%; background: #991b1b; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.15s; }
+.iv-end-icon:hover { background: #7f1d1d; }
+.iv-end-icon svg { width: 20px; height: 20px; color: #fff; }
+.iv-end-label { font-size: 11px; font-weight: 500; color: #991b1b; }
 
 /* Right buttons (Notes, Resume, Chat) — icon + text, no background */
 .iv-tool-btn { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 14px; border: none; background: transparent; color: #595959; border-radius: 8px; cursor: pointer; font-family: inherit; font-size: 11px; font-weight: 500; transition: all 0.15s; min-width: 60px; }
@@ -321,9 +328,24 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
   <!-- ═══ BOTTOM TOOLBAR ═══ -->
   <div class="iv-toolbar">
     <div class="iv-toolbar-center">
-      <button class="iv-center-btn muted" id="muteBtn" onclick="toggleMute()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="muteIcon"><path d="M1 1l22 22"/><path d="M9 9v3a3 3 0 005.12 2.12M15 9.34V4a3 3 0 00-5.94-.6"/><path d="M17 16.95A7 7 0 015 12v-2m14 0v2c0 .76-.12 1.5-.34 2.18"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="unmuteIcon" style="display:none"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg> <span id="muteLabel">Unmute</span> <svg class="caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
-      <button class="iv-center-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg> Start Video <svg class="caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
-      <button class="iv-end-btn" onclick="openEndModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2v-4M9 21H5a2 2 0 01-2-2v-4"/></svg> End</button>
+      <div class="iv-center-wrap muted" id="muteBtn" onclick="toggleMute()">
+        <div class="iv-center-icon-row">
+          <div class="iv-center-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="muteIcon"><path d="M1 1l22 22"/><path d="M9 9v3a3 3 0 005.12 2.12M15 9.34V4a3 3 0 00-5.94-.6"/><path d="M17 16.95A7 7 0 015 12v-2m14 0v2c0 .76-.12 1.5-.34 2.18"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="unmuteIcon" style="display:none"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg></div>
+          <div class="iv-center-caret"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+        </div>
+        <span class="iv-center-label" id="muteLabel">Unmute</span>
+      </div>
+      <div class="iv-center-wrap">
+        <div class="iv-center-icon-row">
+          <div class="iv-center-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></div>
+          <div class="iv-center-caret"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+        </div>
+        <span class="iv-center-label">Start Video</span>
+      </div>
+      <div class="iv-end-wrap" onclick="openEndModal()">
+        <div class="iv-end-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2v-4M9 21H5a2 2 0 01-2-2v-4"/></svg></div>
+        <span class="iv-end-label">End</span>
+      </div>
     </div>
     <div class="iv-toolbar-right">
       <button class="iv-tool-btn" onclick="togglePanel('notes')" id="notesPanelBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="8" y1="8" x2="16" y2="8"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="12" y2="16"/></svg> Notes</button>
@@ -466,18 +488,18 @@ function sendChat() {
 
 /* ═══ MUTE TOGGLE ═══ */
 function toggleMute() {
-  var btn = document.getElementById('muteBtn');
+  var wrap = document.getElementById('muteBtn');
   var muteIcon = document.getElementById('muteIcon');
   var unmuteIcon = document.getElementById('unmuteIcon');
   var label = document.getElementById('muteLabel');
-  if (btn.classList.contains('muted')) {
-    btn.classList.remove('muted');
+  if (wrap.classList.contains('muted')) {
+    wrap.classList.remove('muted');
     muteIcon.style.display = 'none';
-    unmuteIcon.style.display = 'inline';
+    unmuteIcon.style.display = 'block';
     label.textContent = 'Mute';
   } else {
-    btn.classList.add('muted');
-    muteIcon.style.display = 'inline';
+    wrap.classList.add('muted');
+    muteIcon.style.display = 'block';
     unmuteIcon.style.display = 'none';
     label.textContent = 'Unmute';
   }
