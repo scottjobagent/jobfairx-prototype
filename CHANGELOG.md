@@ -80,3 +80,5 @@
 76. Added Message button (primary) to resume modal in Waiting to Interview live tab — was download-only
 77. Removed italic from "No, stay in the event" button to match standard button styling; updated follow-up text to reference "past events report" instead of "dashboard"
 78. Fixed Waiting to Interview resume modal — removed spacer so Message and Download buttons sit together instead of spread apart
+79. Added "Schedule follow-up interview" + "Send a message" buttons to Interviewed live tab resume modal — was download-only
+80. Added "Actions" column header to Interviewed live tab table (above three-dot menu)
