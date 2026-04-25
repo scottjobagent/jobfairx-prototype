@@ -78,3 +78,4 @@
 74. Standardized toast notifications across all v3 pages — replaced old dark gray bottom-center pill toasts with Indeed-style top-right green/red toast system (visual-v3, edit-post-v3, setup-flow-v3 now match lobby-v3)
 75. Redesigned end-event modal — updated title to "leave the event early", softened warning copy, removed message-to-candidates textarea, added follow-up interviews nudge, updated button labels
 76. Added Message button (primary) to resume modal in Waiting to Interview live tab — was download-only
+77. Removed italic from "No, stay in the event" button to match standard button styling; updated follow-up text to reference "past events report" instead of "dashboard"
