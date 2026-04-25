@@ -79,3 +79,4 @@
 75. Redesigned end-event modal — updated title to "leave the event early", softened warning copy, removed message-to-candidates textarea, added follow-up interviews nudge, updated button labels
 76. Added Message button (primary) to resume modal in Waiting to Interview live tab — was download-only
 77. Removed italic from "No, stay in the event" button to match standard button styling; updated follow-up text to reference "past events report" instead of "dashboard"
+78. Fixed Waiting to Interview resume modal — removed spacer so Message and Download buttons sit together instead of spread apart
