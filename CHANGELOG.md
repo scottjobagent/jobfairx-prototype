@@ -92,3 +92,4 @@
 88. Moved Interviews tab state toggle to top header bar (visual-v3) — replaced per-section inline toggles with single "State:" toggle in header that adapts to active sub-tab (shows Live button for Upcoming, hides it for Pending/Past), auto-shows when Interviews nav is active, syncs state when switching sub-tabs
 89. Fixed live banner visibility on Interviews tab (visual-v3) — banner now shows in live mode regardless of event filter selection, displays generic "Your event is happening now" when All hiring events is selected
 90. Replaced Reschedule/Cancel with "Go to Lobby" buttons in Interviews Upcoming live state (visual-v3) — all 6 candidate rows now show primary blue "Go to Lobby" button linking to lobby-v3.html
+91. Keep Live button visible in Interviews header toggle for all sub-tabs (visual-v3) — Live option no longer hides when switching to Pending or Past
