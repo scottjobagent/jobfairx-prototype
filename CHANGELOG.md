@@ -74,3 +74,5 @@
 70. Fixed dead +/- qty buttons in Purchase Credits modal on edit-post-v3 and setup-flow-v3 — added missing event.stopPropagation()
 71. Fixed modal jump when savings banner appears — switched from display:none to visibility:hidden so space is always reserved (all v3 pages)
 72. Added "Your credits never expire" with shield icon to Purchase Credits modal footer (all v3 pages)
+73. Fixed end-event toast color from red (error) to green (success) in lobby-v3
+74. Standardized toast notifications across all v3 pages — replaced old dark gray bottom-center pill toasts with Indeed-style top-right green/red toast system (visual-v3, edit-post-v3, setup-flow-v3 now match lobby-v3)
