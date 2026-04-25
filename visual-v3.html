@@ -940,22 +940,11 @@ tbody tr:last-child td { border-bottom: none; }
       </div>
     </div>
     <div class="dev-toggle" id="ivDevToggles" style="display:none;">
-      <span class="dev-toggle-label">Interviews tab states:</span>
-      <span style="font-size:10px;color:#767676;font-weight:600;">Upcoming</span>
-      <div class="dev-toggle-switch" id="ivUpcomingToggle">
-        <button class="dev-toggle-btn active" onclick="setIvUpcomingDevMode('empty', this)">Empty</button>
-        <button class="dev-toggle-btn" onclick="setIvUpcomingDevMode('active', this)">Active</button>
-        <button class="dev-toggle-btn" onclick="setIvUpcomingDevMode('live', this)">Live</button>
-      </div>
-      <span style="font-size:10px;color:#767676;font-weight:600;">Pending</span>
-      <div class="dev-toggle-switch" id="ivPendingToggle">
-        <button class="dev-toggle-btn active" onclick="setIvPendingDevMode('empty', this)">Empty</button>
-        <button class="dev-toggle-btn" onclick="setIvPendingDevMode('active', this)">Active</button>
-      </div>
-      <span style="font-size:10px;color:#767676;font-weight:600;">Past</span>
-      <div class="dev-toggle-switch" id="ivPastToggle">
-        <button class="dev-toggle-btn active" onclick="setIvPastDevMode('empty', this)">Empty</button>
-        <button class="dev-toggle-btn" onclick="setIvPastDevMode('active', this)">Active</button>
+      <span class="dev-toggle-label">State:</span>
+      <div class="dev-toggle-switch" id="ivHeaderToggle">
+        <button class="dev-toggle-btn active" onclick="setIvCurrentTabMode('empty', this)">Empty</button>
+        <button class="dev-toggle-btn" onclick="setIvCurrentTabMode('active', this)">Active</button>
+        <button class="dev-toggle-btn" id="ivHeaderLiveBtn" onclick="setIvCurrentTabMode('live', this)">Live</button>
       </div>
     </div>
   </div>
@@ -2632,11 +2621,38 @@ function filterEvents(type, el) {
 }
 
 /* ═══ INTERVIEWS PAGE FUNCTIONS ═══ */
+var ivActiveTabIndex = 0;
+var ivTabModes = { 0: 'empty', 1: 'empty', 2: 'empty' }; // track each sub-tab's current mode
+
 function switchIvTab(index) {
+  ivActiveTabIndex = index;
   var tabs = document.querySelectorAll('.iv-tab');
   var panels = document.querySelectorAll('.iv-tab-panel');
   tabs.forEach(function(t, i) { t.classList.toggle('active', i === index); });
   panels.forEach(function(p, i) { p.classList.toggle('active', i === index); });
+  syncIvHeaderToggle();
+}
+
+function syncIvHeaderToggle() {
+  var mode = ivTabModes[ivActiveTabIndex] || 'empty';
+  // Show/hide Live button (only Upcoming has Live)
+  var liveBtn = document.getElementById('ivHeaderLiveBtn');
+  if (liveBtn) liveBtn.style.display = (ivActiveTabIndex === 0) ? '' : 'none';
+  // Sync active state on header toggle
+  document.querySelectorAll('#ivHeaderToggle .dev-toggle-btn').forEach(function(b) {
+    b.classList.toggle('active', b.textContent.trim().toLowerCase() === mode);
+  });
+}
+
+function setIvCurrentTabMode(mode, btn) {
+  ivTabModes[ivActiveTabIndex] = mode;
+  // Sync header toggle buttons
+  document.querySelectorAll('#ivHeaderToggle .dev-toggle-btn').forEach(function(b) { b.classList.remove('active'); });
+  btn.classList.add('active');
+  // Dispatch to the correct sub-tab function
+  if (ivActiveTabIndex === 0) setIvUpcomingDevMode(mode, btn);
+  else if (ivActiveTabIndex === 1) setIvPendingDevMode(mode, btn);
+  else if (ivActiveTabIndex === 2) setIvPastDevMode(mode, btn);
 }
 
 function toggleIvEventDropdown(e) {
@@ -2720,34 +2736,21 @@ function ivToggleLiveSection(header) {
 
 function setIvUpcomingDevMode(mode, btn) {
   ivCurrentMode = mode;
-
-  // Sync header toggle
-  document.querySelectorAll('#ivUpcomingToggle .dev-toggle-btn').forEach(function(b) { b.classList.remove('active'); });
-  document.querySelectorAll('#ivUpcomingToggle .dev-toggle-btn').forEach(function(b) {
-    if (b.textContent.trim().toLowerCase() === mode) b.classList.add('active');
-  });
+  ivTabModes[0] = mode;
   document.getElementById('ivUpcomingEmpty').style.display = mode === 'empty' ? '' : 'none';
   document.getElementById('ivUpcomingActive').style.display = mode === 'active' ? '' : 'none';
   document.getElementById('ivUpcomingLive').style.display = mode === 'live' ? '' : 'none';
-
-  // Show/hide live banner based on mode + selected event
   updateIvLiveBanner();
 }
 
 function setIvPendingDevMode(mode, btn) {
-  document.querySelectorAll('#ivPendingToggle .dev-toggle-btn').forEach(function(b) { b.classList.remove('active'); });
-  document.querySelectorAll('#ivPendingToggle .dev-toggle-btn').forEach(function(b) {
-    if (b.textContent.trim().toLowerCase() === mode) b.classList.add('active');
-  });
+  ivTabModes[1] = mode;
   document.getElementById('ivPendingActive').style.display = mode === 'active' ? '' : 'none';
   document.getElementById('ivPendingEmpty').style.display = mode === 'empty' ? '' : 'none';
 }
 
 function setIvPastDevMode(mode, btn) {
-  document.querySelectorAll('#ivPastToggle .dev-toggle-btn').forEach(function(b) { b.classList.remove('active'); });
-  document.querySelectorAll('#ivPastToggle .dev-toggle-btn').forEach(function(b) {
-    if (b.textContent.trim().toLowerCase() === mode) b.classList.add('active');
-  });
+  ivTabModes[2] = mode;
   document.getElementById('ivPastActive').style.display = mode === 'active' ? '' : 'none';
   document.getElementById('ivPastEmpty').style.display = mode === 'empty' ? '' : 'none';
 }
