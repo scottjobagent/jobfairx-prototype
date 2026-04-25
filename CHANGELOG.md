@@ -94,3 +94,4 @@
 90. Replaced Reschedule/Cancel with "Go to Lobby" buttons in Interviews Upcoming live state (visual-v3) — all 6 candidate rows now show primary blue "Go to Lobby" button linking to lobby-v3.html
 91. Keep Live button visible in Interviews header toggle for all sub-tabs (visual-v3) — Live option no longer hides when switching to Pending or Past
 92. Moved Go to Lobby button from green banner into Interviews header card (visual-v3) — removed standalone green live banner, placed Go to Lobby button on the right side of the white header card next to the event dropdown, button appears only in Live state
+93. Fixed Go to Lobby links to open lobby in live state (visual-v3) — added ?mode=live to header button and all 6 candidate row buttons so lobby-v3 initializes in live mode instead of empty
