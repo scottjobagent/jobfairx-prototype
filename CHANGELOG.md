@@ -86,3 +86,4 @@
 82. Standardized all table column headers to "Action" (singular) across all tabs — was a mix of "Action" and "Actions"
 83. Fixed registration confirmation modal pluralization — "credit" when count is 1, "credits" when more than 1 (visual-v3)
 84. Redesigned Interviews Upcoming tab (visual-v3) — replaced flat table with lobby-style collapsible section "Candidates with upcoming interviews", updated columns to Name/Desired job/Desired location/Interview time/Action, added time ranges with timezone, matched lobby candidate data and Reschedule/Cancel buttons for both Active and Live states
+85. Redesigned Interviews Pending tab (visual-v3) — replaced "18 pending interview requests / Needs review" with lobby-style collapsible section "Candidates awaiting your response (8)" with red alert icon, updated columns to match lobby (Name/Desired job/Desired location/Requested time/Action), blue filled Accept button, time ranges with timezone, matched lobby candidate data
