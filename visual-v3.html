@@ -432,6 +432,36 @@ tbody tr:last-child td { border-bottom: none; }
 .iv-review-actions a { font-size: 12px; font-weight: 400; color: #0044B3; text-decoration: underline; cursor: pointer; }
 .iv-review-actions a:hover { color: #003399; }
 
+/* ═══ INTERVIEWS PAST — INTERVIEW TIME, NOTES, ROW MENU ═══ */
+.iv-time-group { font-size: 13px; color: #2d2d2d; line-height: 1.6; }
+.iv-time-label { color: #0044B3; font-weight: 600; font-size: 13px; }
+.iv-time-date { font-size: 13px; color: #595959; }
+.iv-notes-link { display: inline-flex; align-items: center; gap: 6px; color: #0044B3; font-size: 14px; font-weight: 600; cursor: pointer; background: none; border: none; font-family: inherit; padding: 0; }
+.iv-notes-link:hover { text-decoration: underline; }
+.iv-notes-link svg { width: 16px; height: 16px; }
+.iv-row-actions { position: relative; }
+.iv-row-dots { width: 32px; height: 32px; border-radius: 8px; border: 1px solid #d4d2d0; background: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s; color: #0044B3; }
+.iv-row-dots:hover { background: #f0f5ff; border-color: #0044B3; }
+.iv-row-dots svg { width: 16px; height: 16px; }
+.iv-row-menu { display: none; position: absolute; right: 0; top: calc(100% + 4px); background: #fff; border: 1px solid #d4d2d0; border-radius: 10px; box-shadow: 0 4px 16px rgba(0,0,0,0.12); min-width: 260px; z-index: 50; overflow: hidden; }
+.iv-row-menu.open { display: block; }
+.iv-row-menu-item { display: flex; align-items: center; gap: 10px; padding: 14px 18px; font-size: 14px; font-weight: 500; color: #2d2d2d; cursor: pointer; border: none; background: none; width: 100%; text-align: left; font-family: inherit; transition: background 0.1s; }
+.iv-row-menu-item:hover { background: #f6f5f3; }
+/* Notes modal */
+.iv-notes-modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center; }
+.iv-notes-modal-overlay.open { display: flex; }
+.iv-notes-modal { background: #fff; border-radius: 14px; width: 520px; max-width: 90vw; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
+.iv-notes-modal-header { display: flex; align-items: flex-start; justify-content: space-between; padding: 24px 24px 0; }
+.iv-notes-modal-header h3 { font-size: 18px; font-weight: 700; color: #2d2d2d; margin: 0; line-height: 1.4; }
+.iv-notes-modal-close { width: 28px; height: 28px; border: none; background: none; cursor: pointer; color: #595959; border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-left: 12px; }
+.iv-notes-modal-close:hover { background: #f3f2ef; color: #2d2d2d; }
+.iv-notes-modal-body { padding: 16px 24px 0; }
+.iv-notes-modal-textarea { width: 100%; min-height: 140px; border: 1px solid #d4d2d0; border-radius: 8px; padding: 12px; font-size: 14px; font-family: inherit; color: #2d2d2d; resize: vertical; line-height: 1.5; box-sizing: border-box; }
+.iv-notes-modal-textarea:focus { outline: none; border-color: #0044B3; box-shadow: 0 0 0 3px rgba(0,68,179,0.12); }
+.iv-notes-modal-actions { display: flex; justify-content: flex-end; padding: 20px 24px 24px; }
+.iv-notes-modal-save { padding: 10px 24px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; background: #0044B3; border: none; color: #fff; transition: background 0.15s; }
+.iv-notes-modal-save:hover { background: #003399; }
+
 /* ═══ INTERVIEWS RESUME MODAL (lobby-matched) ═══ */
 .iv-resume-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center; }
 .iv-resume-overlay.open { display: flex; }
@@ -2078,33 +2108,150 @@ tbody tr:last-child td { border-bottom: none; }
           <svg width="220" height="160" viewBox="0 0 220 160" fill="none"><rect x="52" y="120" width="10" height="20" rx="3" fill="#6b8e6b"/><ellipse cx="48" cy="108" rx="12" ry="18" fill="#7da67d" transform="rotate(-15 48 108)"/><ellipse cx="62" cy="104" rx="10" ry="16" fill="#8fbc8f" transform="rotate(10 62 104)"/><ellipse cx="55" cy="96" rx="9" ry="14" fill="#a8d5a8" transform="rotate(-5 55 96)"/><rect x="47" y="138" width="16" height="14" rx="3" fill="#e8e0d6"/><rect x="110" y="70" width="50" height="8" rx="3" fill="#d4956b"/><rect x="112" y="78" width="4" height="60" rx="2" fill="#c17f59"/><rect x="154" y="78" width="4" height="60" rx="2" fill="#c17f59"/><rect x="108" y="42" width="54" height="32" rx="4" fill="#d4956b"/><rect x="112" y="46" width="46" height="24" rx="2" fill="#e8a87c"/><ellipse cx="110" cy="142" rx="80" ry="14" fill="#f5efe8"/></svg>
         </div>
         <div id="ivPastActive" style="display: none;">
-          <div class="iv-review-section">
-            <div class="iv-review-header">
-              <h3>5 past interviews</h3>
-              <div class="dev-toggle" style="margin-left: auto;">
-                <span class="dev-toggle-label">State:</span>
-                <div class="dev-toggle-switch">
-                  <button class="dev-toggle-btn" onclick="setIvPastDevMode('empty', this)">Empty</button>
-                  <button class="dev-toggle-btn active" onclick="setIvPastDevMode('active', this)">Active</button>
-                </div>
+          <div style="display: flex; align-items: center; justify-content: flex-end; margin-bottom: 12px;">
+            <div class="dev-toggle">
+              <span class="dev-toggle-label">State:</span>
+              <div class="dev-toggle-switch">
+                <button class="dev-toggle-btn" onclick="setIvPastDevMode('empty', this)">Empty</button>
+                <button class="dev-toggle-btn active" onclick="setIvPastDevMode('active', this)">Active</button>
               </div>
             </div>
-            <table class="iv-review-table">
-              <thead><tr>
-                <th style="width: 22%;">Name</th>
-                <th style="width: 20%;">Job Title</th>
-                <th style="width: 20%;">Event</th>
-                <th style="width: 18%;">Interviewer</th>
-                <th style="width: 20%;">Feedback</th>
-              </tr></thead>
-              <tbody>
-                <tr data-event="Dallas Healthcare Hiring Event"><td><div class="iv-review-name">Aisha Rahman</div></td><td><div class="iv-review-job-title">Registered Nurse</div></td><td><div class="iv-review-event">Dallas Healthcare</div></td><td><div class="iv-review-time">Scott Harrison</div></td><td><div class="iv-disposition-wrapper"><div class="iv-disposition-actions"><button class="iv-disposition-btn status yes" onclick="ivToggleDispositionDropdown(this)">Yes<span class="iv-btn-tooltip">You marked the candidate as Yes</span></button><button class="iv-disposition-btn change" onclick="ivToggleDispositionDropdown(this)">Update<span class="iv-btn-tooltip">Update feedback</span></button></div><div class="iv-disposition-dropdown" onclick="event.stopPropagation()"><div class="iv-disposition-option" onclick="ivChangeDisposition(this, 'yes')"><span class="iv-dot green"></span>Yes</div><div class="iv-disposition-option" onclick="ivChangeDisposition(this, 'no')"><span class="iv-dot red"></span>No</div><div class="iv-disposition-option" onclick="ivChangeDisposition(this, 'maybe')"><span class="iv-dot yellow"></span>Maybe</div><div class="iv-disposition-option" onclick="ivChangeDisposition(this, 'noshow')"><span class="iv-dot gray"></span>No-show</div></div></div></td></tr>
-                <tr data-event="Atlanta Diversity Hiring Event"><td><div class="iv-review-name">James Cooper</div></td><td><div class="iv-review-job-title">Physical Therapist</div></td><td><div class="iv-review-event">Atlanta Diversity</div></td><td><div class="iv-review-time">Maria Lopez</div></td><td><div class="iv-disposition-wrapper"><div class="iv-disposition-actions"><button class="iv-disposition-btn status maybe" onclick="ivToggleDispositionDropdown(this)">Maybe<span class="iv-btn-tooltip">You marked the candidate as Maybe</span></button><button class="iv-disposition-btn change" onclick="ivToggleDispositionDropdown(this)">Update<span class="iv-btn-tooltip">Update feedback</span></button></div><div class="iv-disposition-dropdown" onclick="event.stopPropagation()"><div class="iv-disposition-option" onclick="ivChangeDisposition(this, 'yes')"><span class="iv-dot green"></span>Yes</div><div class="iv-disposition-option" onclick="ivChangeDisposition(this, 'no')"><span class="iv-dot red"></span>No</div><div class="iv-disposition-option" onclick="ivChangeDisposition(this, 'maybe')"><span class="iv-dot yellow"></span>Maybe</div><div class="iv-disposition-option" onclick="ivChangeDisposition(this, 'noshow')"><span class="iv-dot gray"></span>No-show</div></div></div></td></tr>
-                <tr data-event="Dallas Healthcare Hiring Event"><td><div class="iv-review-name">Sofia Martinez</div></td><td><div class="iv-review-job-title">Medical Assistant</div></td><td><div class="iv-review-event">Dallas Healthcare</div></td><td><div class="iv-review-time">Scott Harrison</div></td><td><div class="iv-disposition-wrapper"><div class="iv-disposition-actions"><button class="iv-disposition-btn status yes" onclick="ivToggleDispositionDropdown(this)">Yes<span class="iv-btn-tooltip">You marked the candidate as Yes</span></button><button class="iv-disposition-btn change" onclick="ivToggleDispositionDropdown(this)">Update<span class="iv-btn-tooltip">Update feedback</span></button></div><div class="iv-disposition-dropdown" onclick="event.stopPropagation()"><div class="iv-disposition-option" onclick="ivChangeDisposition(this, 'yes')"><span class="iv-dot green"></span>Yes</div><div class="iv-disposition-option" onclick="ivChangeDisposition(this, 'no')"><span class="iv-dot red"></span>No</div><div class="iv-disposition-option" onclick="ivChangeDisposition(this, 'maybe')"><span class="iv-dot yellow"></span>Maybe</div><div class="iv-disposition-option" onclick="ivChangeDisposition(this, 'noshow')"><span class="iv-dot gray"></span>No-show</div></div></div></td></tr>
-                <tr data-event="Chicago Technology Hiring Event"><td><div class="iv-review-name">Derek Washington</div></td><td><div class="iv-review-job-title">Dental Hygienist</div></td><td><div class="iv-review-event">Chicago Technology</div></td><td><div class="iv-review-time">Scott Harrison</div></td><td><div class="iv-disposition-wrapper"><div class="iv-disposition-actions"><button class="iv-disposition-btn status no" onclick="ivToggleDispositionDropdown(this)">No<span class="iv-btn-tooltip">You marked the candidate as No</span></button><button class="iv-disposition-btn change" onclick="ivToggleDispositionDropdown(this)">Update<span class="iv-btn-tooltip">Update feedback</span></button></div><div class="iv-disposition-dropdown" onclick="event.stopPropagation()"><div class="iv-disposition-option" onclick="ivChangeDisposition(this, 'yes')"><span class="iv-dot green"></span>Yes</div><div class="iv-disposition-option" onclick="ivChangeDisposition(this, 'no')"><span class="iv-dot red"></span>No</div><div class="iv-disposition-option" onclick="ivChangeDisposition(this, 'maybe')"><span class="iv-dot yellow"></span>Maybe</div><div class="iv-disposition-option" onclick="ivChangeDisposition(this, 'noshow')"><span class="iv-dot gray"></span>No-show</div></div></div></td></tr>
-                <tr data-event="Atlanta Diversity Hiring Event"><td><div class="iv-review-name">Tamara Williams</div></td><td><div class="iv-review-job-title">CNA</div></td><td><div class="iv-review-event">Atlanta Diversity</div></td><td><div class="iv-review-time">Maria Lopez</div></td><td><div class="iv-disposition-wrapper"><div class="iv-disposition-actions"><button class="iv-disposition-btn status yes" onclick="ivToggleDispositionDropdown(this)">Yes<span class="iv-btn-tooltip">You marked the candidate as Yes</span></button><button class="iv-disposition-btn change" onclick="ivToggleDispositionDropdown(this)">Update<span class="iv-btn-tooltip">Update feedback</span></button></div><div class="iv-disposition-dropdown" onclick="event.stopPropagation()"><div class="iv-disposition-option" onclick="ivChangeDisposition(this, 'yes')"><span class="iv-dot green"></span>Yes</div><div class="iv-disposition-option" onclick="ivChangeDisposition(this, 'no')"><span class="iv-dot red"></span>No</div><div class="iv-disposition-option" onclick="ivChangeDisposition(this, 'maybe')"><span class="iv-dot yellow"></span>Maybe</div><div class="iv-disposition-option" onclick="ivChangeDisposition(this, 'noshow')"><span class="iv-dot gray"></span>No-show</div></div></div></td></tr>
-              </tbody>
-            </table>
+          </div>
+          <div class="iv-live-panel-section">
+            <div class="iv-live-section-header" onclick="ivToggleLiveSection(this)">
+              <div style="display: flex; align-items: center; gap: 8px; width: 100%;">
+                <svg class="iv-collapsible-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 15 12 9 18 15"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="#595959" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;flex-shrink:0;"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M9 14l2 2 4-4"/></svg>
+                <div class="iv-live-section-title">Interviewed candidates (5)</div>
+              </div>
+            </div>
+            <div class="iv-collapsible-body">
+              <table class="iv-live-table">
+                <thead>
+                  <tr>
+                    <th style="width: 14%;">Name</th>
+                    <th style="width: 12%;">Desired job</th>
+                    <th style="width: 11%;">Desired location</th>
+                    <th style="width: 18%;">Interviews</th>
+                    <th style="width: 12%;">Feedback</th>
+                    <th style="width: 12%;">Interviewer</th>
+                    <th style="width: 14%;">Notes</th>
+                    <th style="width: 7%;">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      <div>Marcus Thompson</div>
+                      <div style="font-size: 12px; color: #767676; margin-top: 1px;">Returned to lobby</div>
+                      <div class="iv-review-actions"><a onclick="ivOpenResumeModal(this)" style="cursor:pointer">View resume</a></div>
+                    </td>
+                    <td>Registered Nurse</td>
+                    <td>Remote</td>
+                    <td>
+                      <div class="iv-time-group">
+                        <div><span class="iv-time-label">Interview 1</span></div>
+                        <div class="iv-time-date">Apr 22, 11:38 AM PDT</div>
+                        <div style="margin-top: 6px;"><span class="iv-time-label">Interview 2</span></div>
+                        <div class="iv-time-date">Apr 22, 11:53 AM PDT</div>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="iv-disposition-wrapper"><div class="iv-disposition-actions"><button class="iv-disposition-btn status no" onclick="ivToggleDispositionDropdown(this)">No</button><button class="iv-disposition-btn change" onclick="ivToggleDispositionDropdown(this)">Update</button></div><div class="iv-disposition-dropdown" onclick="event.stopPropagation()"><div class="iv-disposition-option" onclick="ivChangeDisposition(this, 'yes')"><span class="iv-dot green"></span>Yes</div><div class="iv-disposition-option" onclick="ivChangeDisposition(this, 'no')"><span class="iv-dot red"></span>No</div><div class="iv-disposition-option" onclick="ivChangeDisposition(this, 'maybe')"><span class="iv-dot yellow"></span>Maybe</div></div></div>
+                    </td>
+                    <td>Emily Chen</td>
+                    <td>
+                      <button class="iv-notes-link" onclick="ivOpenNotesModal('Marcus Thompson', this)" data-notes="Candidate seemed nervous in first interview. Second attempt showed improvement but still lacks required ICU experience."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> Notes</button>
+                    </td>
+                    <td class="iv-row-actions"><button class="iv-row-dots" onclick="ivToggleRowMenu(event, this)"><svg viewBox="0 0 24 24" fill="#0044B3"><circle cx="6" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="18" cy="12" r="2"/></svg></button><div class="iv-row-menu"><div class="iv-row-menu-item" onclick="openScheduleModal(this)">Schedule follow-up interview</div><div class="iv-row-menu-item" onclick="ivOpenMsgModal(this)">Send a Message</div></div></td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <div>Priya Sharma</div>
+                      <div class="iv-review-actions"><a onclick="ivOpenResumeModal(this)" style="cursor:pointer">View resume</a></div>
+                    </td>
+                    <td>Physical Therapist</td>
+                    <td>Dallas, TX</td>
+                    <td>
+                      <div class="iv-time-group">
+                        <div class="iv-time-date">Apr 22, 11:40 AM PDT</div>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="iv-disposition-wrapper"><div class="iv-disposition-actions"><button class="iv-disposition-btn status yes" onclick="ivToggleDispositionDropdown(this)">Yes</button><button class="iv-disposition-btn change" onclick="ivToggleDispositionDropdown(this)">Update</button></div><div class="iv-disposition-dropdown" onclick="event.stopPropagation()"><div class="iv-disposition-option" onclick="ivChangeDisposition(this, 'yes')"><span class="iv-dot green"></span>Yes</div><div class="iv-disposition-option" onclick="ivChangeDisposition(this, 'no')"><span class="iv-dot red"></span>No</div><div class="iv-disposition-option" onclick="ivChangeDisposition(this, 'maybe')"><span class="iv-dot yellow"></span>Maybe</div></div></div>
+                    </td>
+                    <td>Maria Lopez</td>
+                    <td>
+                      <button class="iv-notes-link" onclick="ivOpenNotesModal('Priya Sharma', this)" data-notes="Excellent communication skills. 5 years experience in outpatient rehab. Strong candidate for follow-up."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> Notes</button>
+                    </td>
+                    <td class="iv-row-actions"><button class="iv-row-dots" onclick="ivToggleRowMenu(event, this)"><svg viewBox="0 0 24 24" fill="#0044B3"><circle cx="6" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="18" cy="12" r="2"/></svg></button><div class="iv-row-menu"><div class="iv-row-menu-item" onclick="openScheduleModal(this)">Schedule follow-up interview</div><div class="iv-row-menu-item" onclick="ivOpenMsgModal(this)">Send a Message</div></div></td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <div>David Kim</div>
+                      <div class="iv-review-actions"><a onclick="ivOpenResumeModal(this)" style="cursor:pointer">View resume</a></div>
+                    </td>
+                    <td>Medical Assistant</td>
+                    <td>Remote</td>
+                    <td>
+                      <div class="iv-time-group">
+                        <div class="iv-time-date">Apr 22, 12:03 PM PDT</div>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="iv-disposition-wrapper"><div class="iv-disposition-actions"><button class="iv-disposition-btn status maybe" onclick="ivToggleDispositionDropdown(this)">Maybe</button><button class="iv-disposition-btn change" onclick="ivToggleDispositionDropdown(this)">Update</button></div><div class="iv-disposition-dropdown" onclick="event.stopPropagation()"><div class="iv-disposition-option" onclick="ivChangeDisposition(this, 'yes')"><span class="iv-dot green"></span>Yes</div><div class="iv-disposition-option" onclick="ivChangeDisposition(this, 'no')"><span class="iv-dot red"></span>No</div><div class="iv-disposition-option" onclick="ivChangeDisposition(this, 'maybe')"><span class="iv-dot yellow"></span>Maybe</div></div></div>
+                    </td>
+                    <td>David Park</td>
+                    <td>
+                      <button class="iv-notes-link" onclick="ivOpenNotesModal('David Kim', this)" data-notes=""><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> Notes</button>
+                    </td>
+                    <td class="iv-row-actions"><button class="iv-row-dots" onclick="ivToggleRowMenu(event, this)"><svg viewBox="0 0 24 24" fill="#0044B3"><circle cx="6" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="18" cy="12" r="2"/></svg></button><div class="iv-row-menu"><div class="iv-row-menu-item" onclick="openScheduleModal(this)">Schedule follow-up interview</div><div class="iv-row-menu-item" onclick="ivOpenMsgModal(this)">Send a Message</div></div></td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <div>Rachel Foster</div>
+                      <div class="iv-review-actions"><a onclick="ivOpenResumeModal(this)" style="cursor:pointer">View resume</a></div>
+                    </td>
+                    <td>Registered Nurse</td>
+                    <td>Houston, TX</td>
+                    <td>
+                      <div class="iv-time-group">
+                        <div class="iv-time-date">Apr 22, 11:56 AM PDT</div>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="iv-disposition-wrapper"><div class="iv-disposition-actions"><button class="iv-disposition-btn status yes" onclick="ivToggleDispositionDropdown(this)">Yes</button><button class="iv-disposition-btn change" onclick="ivToggleDispositionDropdown(this)">Update</button></div><div class="iv-disposition-dropdown" onclick="event.stopPropagation()"><div class="iv-disposition-option" onclick="ivChangeDisposition(this, 'yes')"><span class="iv-dot green"></span>Yes</div><div class="iv-disposition-option" onclick="ivChangeDisposition(this, 'no')"><span class="iv-dot red"></span>No</div><div class="iv-disposition-option" onclick="ivChangeDisposition(this, 'maybe')"><span class="iv-dot yellow"></span>Maybe</div></div></div>
+                    </td>
+                    <td>Emily Chen</td>
+                    <td>
+                      <button class="iv-notes-link" onclick="ivOpenNotesModal('Rachel Foster', this)" data-notes="Top candidate. 8 years ER experience, BLS and ACLS certified. Schedule second interview ASAP."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> Notes</button>
+                    </td>
+                    <td class="iv-row-actions"><button class="iv-row-dots" onclick="ivToggleRowMenu(event, this)"><svg viewBox="0 0 24 24" fill="#0044B3"><circle cx="6" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="18" cy="12" r="2"/></svg></button><div class="iv-row-menu"><div class="iv-row-menu-item" onclick="openScheduleModal(this)">Schedule follow-up interview</div><div class="iv-row-menu-item" onclick="ivOpenMsgModal(this)">Send a Message</div></div></td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <div>Tyler Washington</div>
+                      <div class="iv-review-actions"><a onclick="ivOpenResumeModal(this)" style="cursor:pointer">View resume</a></div>
+                    </td>
+                    <td>Physical Therapist</td>
+                    <td>Remote</td>
+                    <td>
+                      <div class="iv-time-group">
+                        <div class="iv-time-date">Apr 22, 12:05 PM PDT</div>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="iv-disposition-wrapper"><div class="iv-disposition-actions"><button class="iv-disposition-btn status maybe" onclick="ivToggleDispositionDropdown(this)">Maybe</button><button class="iv-disposition-btn change" onclick="ivToggleDispositionDropdown(this)">Update</button></div><div class="iv-disposition-dropdown" onclick="event.stopPropagation()"><div class="iv-disposition-option" onclick="ivChangeDisposition(this, 'yes')"><span class="iv-dot green"></span>Yes</div><div class="iv-disposition-option" onclick="ivChangeDisposition(this, 'no')"><span class="iv-dot red"></span>No</div><div class="iv-disposition-option" onclick="ivChangeDisposition(this, 'maybe')"><span class="iv-dot yellow"></span>Maybe</div></div></div>
+                    </td>
+                    <td>Maria Lopez</td>
+                    <td>
+                      <button class="iv-notes-link" onclick="ivOpenNotesModal('Tyler Washington', this)" data-notes="Good energy, but limited hands-on experience. Consider for junior role if one opens."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> Notes</button>
+                    </td>
+                    <td class="iv-row-actions"><button class="iv-row-dots" onclick="ivToggleRowMenu(event, this)"><svg viewBox="0 0 24 24" fill="#0044B3"><circle cx="6" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="18" cy="12" r="2"/></svg></button><div class="iv-row-menu"><div class="iv-row-menu-item" onclick="openScheduleModal(this)">Schedule follow-up interview</div><div class="iv-row-menu-item" onclick="ivOpenMsgModal(this)">Send a Message</div></div></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
@@ -2134,6 +2281,22 @@ tbody tr:last-child td { border-bottom: none; }
       </div>
     </div>
 
+  </div>
+
+  <!-- Notes Modal -->
+  <div class="iv-notes-modal-overlay" id="ivNotesModal" onclick="if(event.target===this)ivCloseNotesModal()">
+    <div class="iv-notes-modal">
+      <div class="iv-notes-modal-header">
+        <h3>Notes for <span id="ivNotesModalName"></span></h3>
+        <button class="iv-notes-modal-close" onclick="ivCloseNotesModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+      </div>
+      <div class="iv-notes-modal-body">
+        <textarea class="iv-notes-modal-textarea" id="ivNotesModalText" placeholder="Add notes about this candidate..."></textarea>
+      </div>
+      <div class="iv-notes-modal-actions">
+        <button class="iv-notes-modal-save" onclick="ivSaveNotes()">Save</button>
+      </div>
+    </div>
   </div>
 
   <!-- ── MESSAGING ── -->
@@ -2458,6 +2621,9 @@ document.addEventListener('click', function(e) {
   if (!e.target.closest('.iv-disposition-wrapper')) {
     document.querySelectorAll('.iv-disposition-dropdown').forEach(function(d) { d.classList.remove('open'); });
   }
+  if (!e.target.closest('.iv-row-actions')) {
+    document.querySelectorAll('.iv-row-menu.open').forEach(function(m) { m.classList.remove('open'); });
+  }
   if (!e.target.closest('.iv-action-wrapper')) {
     document.querySelectorAll('.iv-action-menu.open').forEach(function(m) { m.classList.remove('open'); });
   }
@@ -2666,6 +2832,38 @@ function ivChangeDisposition(option, value) {
       filterDisposition(t, activePill);
     }
   }
+}
+
+// ── Notes modal (Past interviews tab) ──
+var ivNotesCurrentBtn = null;
+function ivOpenNotesModal(candidateName, btn) {
+  ivNotesCurrentBtn = btn;
+  document.getElementById('ivNotesModalName').textContent = candidateName;
+  var existing = btn.getAttribute('data-notes') || '';
+  document.getElementById('ivNotesModalText').value = existing;
+  document.getElementById('ivNotesModal').classList.add('open');
+  setTimeout(function() { document.getElementById('ivNotesModalText').focus(); }, 100);
+}
+function ivCloseNotesModal() {
+  document.getElementById('ivNotesModal').classList.remove('open');
+  ivNotesCurrentBtn = null;
+}
+function ivSaveNotes() {
+  if (ivNotesCurrentBtn) {
+    var text = document.getElementById('ivNotesModalText').value;
+    ivNotesCurrentBtn.setAttribute('data-notes', text);
+  }
+  ivCloseNotesModal();
+  showToast('success', 'Notes saved.');
+}
+
+// ── Row menu (Past interviews tab) ──
+function ivToggleRowMenu(e, btn) {
+  e.stopPropagation();
+  var menu = btn.parentElement.querySelector('.iv-row-menu');
+  var wasOpen = menu.classList.contains('open');
+  document.querySelectorAll('.iv-row-menu.open').forEach(function(m) { m.classList.remove('open'); });
+  if (!wasOpen) menu.classList.add('open');
 }
 
 function refreshPillCounts() {
