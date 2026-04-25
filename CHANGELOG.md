@@ -96,3 +96,4 @@
 92. Moved Go to Lobby button from green banner into Interviews header card (visual-v3) — removed standalone green live banner, placed Go to Lobby button on the right side of the white header card next to the event dropdown, button appears only in Live state
 93. Fixed Go to Lobby links to open lobby in live state (visual-v3) — added ?mode=live to header button and all 6 candidate row buttons so lobby-v3 initializes in live mode instead of empty
 94. Renamed header dev toggles (visual-v3) — "View:" → "Dashboard view:", "State:" → "Interview state:"
+95. Wired Interviews tab event filter (visual-v3) — added data-event attributes to all candidate rows across Upcoming Active (8), Upcoming Live (6), Pending Active (8), Past Active (5), rewrote filterIvByEvent to update section title counts and tab counts when filtering by event
