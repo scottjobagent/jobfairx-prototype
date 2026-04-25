@@ -84,3 +84,4 @@
 80. Added "Actions" column header to Interviewed live tab table (above three-dot menu)
 81. Added "Action" column header to Waiting to Interview live tab Interview rooms table (above Start interview buttons)
 82. Standardized all table column headers to "Action" (singular) across all tabs — was a mix of "Action" and "Actions"
+83. Fixed registration confirmation modal pluralization — "credit" when count is 1, "credits" when more than 1 (visual-v3)
