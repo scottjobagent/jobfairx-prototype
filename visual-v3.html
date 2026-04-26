@@ -1945,14 +1945,14 @@ tbody tr:last-child td { border-bottom: none; }
                     <td>Frontend Developer</td>
                     <td>Remote</td>
                     <td>11:30 AM - 12:00 PM PDT</td>
-                    <td><button class="iv-live-lobby-btn" onclick="window.open('lobby-v3.html?mode=live','_blank')">Go to Lobby</button></td>
+                    <td><div class="iv-upcoming-actions"><button class="iv-upcoming-btn reschedule" onclick="openScheduleModal(this)">Reschedule<span class="iv-btn-tooltip">Reschedule interview</span></button><button class="iv-upcoming-btn cancel" onclick="openCancelInterviewModal(this)">Cancel<span class="iv-btn-tooltip">Cancel interview</span></button></div></td>
                   </tr>
                   <tr data-event="Atlanta Diversity Hiring Event">
                     <td><div>Dayo Awobeku</div><div class="iv-review-actions"><a onclick="ivOpenResumeModal(this)" style="cursor:pointer">View resume</a> <a onclick="ivOpenMsgModal(this)" style="cursor:pointer">Message</a></div></td>
                     <td>Frontend Developer</td>
                     <td>Remote</td>
                     <td>12:00 PM - 12:30 PM PDT</td>
-                    <td><button class="iv-live-lobby-btn" onclick="window.open('lobby-v3.html?mode=live','_blank')">Go to Lobby</button></td>
+                    <td><div class="iv-upcoming-actions"><button class="iv-upcoming-btn reschedule" onclick="openScheduleModal(this)">Reschedule<span class="iv-btn-tooltip">Reschedule interview</span></button><button class="iv-upcoming-btn cancel" onclick="openCancelInterviewModal(this)">Cancel<span class="iv-btn-tooltip">Cancel interview</span></button></div></td>
                   </tr>
                 </tbody>
               </table>
@@ -2703,14 +2703,18 @@ function filterIvByEvent() {
   if (tabs[2]) tabs[2].textContent = counts.past;
 }
 
+var ivLiveEvents = ['Dallas Healthcare Hiring Event', 'Chicago Technology Hiring Event'];
+
 function updateIvLiveBanner() {
   var lobbyBtn = document.getElementById('ivHeaderLobbyBtn');
   var liveBadge = document.getElementById('ivLiveBadge');
   var isLiveMode = ivCurrentMode === 'live';
   var selectedEvent = document.querySelector('.iv-event-dropdown-item.selected');
-  var isSpecificEvent = selectedEvent && selectedEvent.textContent.trim() !== 'All hiring events';
-  if (lobbyBtn) lobbyBtn.style.display = (isLiveMode && isSpecificEvent) ? 'inline-flex' : 'none';
-  if (liveBadge) liveBadge.style.display = (isLiveMode && isSpecificEvent) ? 'inline-flex' : 'none';
+  var eventName = selectedEvent ? selectedEvent.textContent.trim() : 'All hiring events';
+  var isSpecificEvent = eventName !== 'All hiring events';
+  var isLiveEvent = isSpecificEvent && ivLiveEvents.indexOf(eventName) !== -1;
+  if (lobbyBtn) lobbyBtn.style.display = (isLiveMode && isLiveEvent) ? 'inline-flex' : 'none';
+  if (liveBadge) liveBadge.style.display = (isLiveMode && isLiveEvent) ? 'inline-flex' : 'none';
 }
 
 /* ═══ INTERVIEWS DEV TOGGLE FUNCTIONS ═══ */
