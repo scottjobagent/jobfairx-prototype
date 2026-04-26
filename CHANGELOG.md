@@ -106,3 +106,4 @@
 102. Added Live indicators to event filter dropdown (visual-v3) — Dallas and Chicago show green pulsing dot + "Live" label in dropdown when interview state is live, Atlanta shows no indicator, filter button badge uses visibility:hidden to prevent layout jump when switching between live and non-live events
 103. Pending tab now shows active view in live mode (visual-v3) — pending candidates awaiting response display the same regardless of active or live interview state
 104. Past tab now shows active view in live mode (visual-v3) — past interviews display the same regardless of active or live interview state
+105. Fixed Past tab resume modal on Interviews tab (visual-v3) — now shows Schedule follow-up interview + Send a message + Download, matching the Event Report resume modal
