@@ -99,3 +99,4 @@
 95. Wired Interviews tab event filter (visual-v3) — added data-event attributes to all candidate rows across Upcoming Active (8), Upcoming Live (6), Pending Active (8), Past Active (5), rewrote filterIvByEvent to update section title counts and tab counts when filtering by event
 96. Made Interview state toggle always visible in header (visual-v3) — no longer hides when switching to Dashboard or Messaging tabs, matches Dashboard view toggle behavior
 97. Header Go to Lobby button now requires a specific event selected (visual-v3) — hidden when filter is "All hiring events" since there's no single lobby to target, appears only when live mode AND a specific event is chosen
+98. Added pulsing green "Live" badge to event filter button (visual-v3) — green dot + "Live" label appears next to event name when interview state is live and a specific event is selected, uses pulse animation
