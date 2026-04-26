@@ -2864,6 +2864,12 @@ var ivResumeSourceRow = null;
 function ivGetResumeContext(row) {
   if (row.closest('#ivPendingActive')) return 'pending';
   if (row.closest('.report-table') || row.closest('#reportBody')) return 'report';
+  if (row.closest('#ivUpcomingLive')) {
+    var eventName = row.getAttribute('data-event') || '';
+    if (ivLiveEvents.indexOf(eventName) !== -1) return 'upcoming-live';
+    return 'upcoming-active';
+  }
+  if (row.closest('#ivUpcomingActive')) return 'upcoming-active';
   return 'view-only';
 }
 
@@ -2877,6 +2883,13 @@ function ivBuildResumeActions(context) {
   if (context === 'report') {
     return '<button class="iv-resume-action-btn primary" onclick="ivCloseResumeModal(); openScheduleModal(ivResumeSourceRow);">Schedule follow-up interview</button>' +
            '<button class="iv-resume-action-btn outline" onclick="ivCloseResumeModal(); openMsgModal(ivResumeSourceRow);">Send a message</button>' + downloadBtn;
+  }
+  if (context === 'upcoming-live') {
+    return '<button class="iv-resume-action-btn primary" onclick="ivCloseResumeModal(); ivOpenMsgModal(ivResumeSourceRow);">Send a message</button>' + downloadBtn;
+  }
+  if (context === 'upcoming-active') {
+    return '<button class="iv-resume-action-btn primary" onclick="ivRescheduleFromResume()">Reschedule</button>' +
+           '<button class="iv-resume-action-btn outline" onclick="ivDeclineFromResume()">Decline</button>' + downloadBtn;
   }
   return downloadBtn.replace('<span class="iv-resume-actions-spacer"></span>', '');
 }
