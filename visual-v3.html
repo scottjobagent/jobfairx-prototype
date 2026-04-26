@@ -320,9 +320,11 @@ tbody tr:last-child td { border-bottom: none; }
 @keyframes ivPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
 .iv-event-dropdown { display: none; position: absolute; top: calc(100% + 6px); left: 0; background: #fff; border: 1px solid #d4d2d0; border-radius: 10px; box-shadow: 0 4px 16px rgba(0,0,0,0.12); min-width: 320px; z-index: 20; overflow: hidden; }
 .iv-event-dropdown.open { display: block; }
-.iv-event-dropdown-item { padding: 12px 18px; font-size: 14px; color: #2d2d2d; cursor: pointer; transition: background 0.1s; }
+.iv-event-dropdown-item { padding: 12px 18px; font-size: 14px; color: #2d2d2d; cursor: pointer; transition: background 0.1s; display: flex; align-items: center; gap: 8px; }
 .iv-event-dropdown-item:hover { background: #f6f5f3; }
 .iv-event-dropdown-item.selected { background: #f0f5ff; color: #0044B3; font-weight: 600; }
+.iv-dropdown-live-badge { display: none; align-items: center; gap: 4px; font-size: 12px; font-weight: 700; color: #0a8a0a; margin-left: auto; }
+.iv-dropdown-live-badge .iv-live-dot { width: 7px; height: 7px; background: #0a8a0a; border-radius: 50%; animation: ivPulse 2s ease-in-out infinite; }
 .iv-tabs-wrapper { width: 100%; border-bottom: 3px solid #d4d2d0; margin-top: 24px; margin-left: -32px; margin-right: -32px; width: calc(100% + 64px); }
 .iv-tabs { display: flex; padding: 0 32px; }
 .iv-tab { flex: 1; padding: 20px 16px; text-align: center; font-size: 16px; font-weight: 600; color: #595959; cursor: pointer; border-bottom: 4px solid transparent; margin-bottom: -3px; transition: all 0.15s; background: none; border-top: none; border-left: none; border-right: none; font-family: inherit; }
@@ -1771,10 +1773,10 @@ tbody tr:last-child td { border-bottom: none; }
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
           <div class="iv-event-dropdown" id="ivEventDropdown">
-            <div class="iv-event-dropdown-item selected" onclick="selectIvEvent(this)">All hiring events</div>
-            <div class="iv-event-dropdown-item" onclick="selectIvEvent(this)">Dallas Healthcare Hiring Event</div>
-            <div class="iv-event-dropdown-item" onclick="selectIvEvent(this)">Atlanta Diversity Hiring Event</div>
-            <div class="iv-event-dropdown-item" onclick="selectIvEvent(this)">Chicago Technology Hiring Event</div>
+            <div class="iv-event-dropdown-item selected" onclick="selectIvEvent(this)" data-event="All hiring events">All hiring events</div>
+            <div class="iv-event-dropdown-item" onclick="selectIvEvent(this)" data-event="Dallas Healthcare Hiring Event"><span>Dallas Healthcare Hiring Event</span><span class="iv-dropdown-live-badge"><span class="iv-live-dot"></span>Live</span></div>
+            <div class="iv-event-dropdown-item" onclick="selectIvEvent(this)" data-event="Atlanta Diversity Hiring Event"><span>Atlanta Diversity Hiring Event</span></div>
+            <div class="iv-event-dropdown-item" onclick="selectIvEvent(this)" data-event="Chicago Technology Hiring Event"><span>Chicago Technology Hiring Event</span><span class="iv-dropdown-live-badge"><span class="iv-live-dot"></span>Live</span></div>
           </div>
         </div>
         <button class="iv-live-lobby-btn" id="ivHeaderLobbyBtn" style="display:none; margin-left:auto;" onclick="window.open('lobby-v3.html?mode=live','_blank')">
@@ -2670,7 +2672,8 @@ var ivCurrentMode = 'empty'; // track current dev toggle mode
 function selectIvEvent(el) {
   document.querySelectorAll('.iv-event-dropdown-item').forEach(function(i) { i.classList.remove('selected'); });
   el.classList.add('selected');
-  document.querySelector('.iv-event-filter-btn').childNodes[0].textContent = el.textContent + ' ';
+  var eventName = el.getAttribute('data-event') || el.textContent.trim();
+  document.querySelector('.iv-event-filter-btn').childNodes[0].textContent = eventName + ' ';
   document.getElementById('ivEventDropdown').classList.remove('open');
   filterIvByEvent();
   updateIvLiveBanner();
@@ -2678,7 +2681,7 @@ function selectIvEvent(el) {
 
 function filterIvByEvent() {
   var selectedEvent = document.querySelector('.iv-event-dropdown-item.selected');
-  var eventName = selectedEvent ? selectedEvent.textContent.trim() : 'All hiring events';
+  var eventName = selectedEvent ? (selectedEvent.getAttribute('data-event') || selectedEvent.textContent.trim()) : 'All hiring events';
   var isAll = (eventName === 'All hiring events');
 
   // Filter all table rows with data-event
@@ -2724,11 +2727,18 @@ function updateIvLiveBanner() {
   var liveBadge = document.getElementById('ivLiveBadge');
   var isLiveMode = ivCurrentMode === 'live';
   var selectedEvent = document.querySelector('.iv-event-dropdown-item.selected');
-  var eventName = selectedEvent ? selectedEvent.textContent.trim() : 'All hiring events';
+  var eventName = selectedEvent ? (selectedEvent.getAttribute('data-event') || selectedEvent.textContent.trim()) : 'All hiring events';
   var isSpecificEvent = eventName !== 'All hiring events';
   var isLiveEvent = isSpecificEvent && ivLiveEvents.indexOf(eventName) !== -1;
   if (lobbyBtn) lobbyBtn.style.display = (isLiveMode && isLiveEvent) ? 'inline-flex' : 'none';
-  if (liveBadge) liveBadge.style.display = (isLiveMode && isLiveEvent) ? 'inline-flex' : 'none';
+  if (liveBadge) {
+    liveBadge.style.display = isLiveMode ? 'inline-flex' : 'none';
+    liveBadge.style.visibility = (isLiveMode && isLiveEvent) ? 'visible' : 'hidden';
+  }
+  // Toggle dropdown live badges
+  document.querySelectorAll('.iv-dropdown-live-badge').forEach(function(badge) {
+    badge.style.display = isLiveMode ? 'inline-flex' : 'none';
+  });
 }
 
 /* ═══ INTERVIEWS DEV TOGGLE FUNCTIONS ═══ */
