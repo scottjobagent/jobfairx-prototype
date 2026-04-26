@@ -101,3 +101,4 @@
 97. Header Go to Lobby button now requires a specific event selected (visual-v3) — hidden when filter is "All hiring events" since there's no single lobby to target, appears only when live mode AND a specific event is chosen
 98. Added pulsing green "Live" badge to event filter button (visual-v3) — green dot + "Live" label appears next to event name when interview state is live and a specific event is selected, uses pulse animation
 99. Made Atlanta a non-live event in Interviews tab (visual-v3) — Dallas and Chicago are live (Go to Lobby buttons), Atlanta is upcoming (Reschedule/Cancel buttons), Live badge and header Go to Lobby only appear for live events, demonstrates both states for developer reference
+100. Added missing Chicago candidate rows to Upcoming Live section (visual-v3) — David Chen and Rachel Torres with Go to Lobby buttons, fixed default section count from (18) to (8)
