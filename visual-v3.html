@@ -488,6 +488,9 @@ tbody tr:last-child td { border-bottom: none; }
 .iv-resume-action-btn.download { background: none; color: #0044B3; border: 1px solid #d4d2d0; padding: 9px 16px; }
 .iv-resume-action-btn.download:hover { background: #f0f5ff; border-color: #0044B3; }
 .iv-resume-action-btn.download svg { width: 16px; height: 16px; }
+.iv-resume-action-btn { position: relative; }
+.iv-resume-action-btn .iv-btn-tooltip { position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%); background: #2d2d2d; color: #fff; font-size: 12px; font-weight: 400; padding: 4px 10px; border-radius: 4px; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 0.15s; z-index: 10; }
+.iv-resume-action-btn:hover .iv-btn-tooltip { opacity: 1; }
 .iv-resume-actions-spacer { flex: 1; }
 .iv-resume-body { padding: 24px 28px; overflow-y: auto; flex: 1; }
 .iv-resume-section-title { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 700; color: #2d2d2d; margin-bottom: 16px; }
@@ -2885,22 +2888,22 @@ function ivGetResumeContext(row) {
 }
 
 function ivBuildResumeActions(context) {
-  var downloadBtn = '<span class="iv-resume-actions-spacer"></span><button class="iv-resume-action-btn download" onclick="fbToast(\'Resume downloaded\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Download</button>';
+  var downloadBtn = '<span class="iv-resume-actions-spacer"></span><button class="iv-resume-action-btn download" onclick="fbToast(\'Resume downloaded\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Download<span class="iv-btn-tooltip">Download resume</span></button>';
   if (context === 'pending') {
-    return '<button class="iv-resume-action-btn primary" onclick="ivAcceptFromResume()">Accept</button>' +
-           '<button class="iv-resume-action-btn outline" onclick="ivDeclineFromResume()">Decline</button>' +
-           '<button class="iv-resume-action-btn outline" onclick="ivRescheduleFromResume()">Reschedule</button>' + downloadBtn;
+    return '<button class="iv-resume-action-btn primary" onclick="ivAcceptFromResume()">Accept<span class="iv-btn-tooltip">Accept interview</span></button>' +
+           '<button class="iv-resume-action-btn outline" onclick="ivDeclineFromResume()">Decline<span class="iv-btn-tooltip">Decline interview</span></button>' +
+           '<button class="iv-resume-action-btn outline" onclick="ivRescheduleFromResume()">Reschedule<span class="iv-btn-tooltip">Propose new interview time</span></button>' + downloadBtn;
   }
   if (context === 'report') {
-    return '<button class="iv-resume-action-btn primary" onclick="ivCloseResumeModal(); openScheduleModal(ivResumeSourceRow);">Schedule follow-up interview</button>' +
-           '<button class="iv-resume-action-btn outline" onclick="ivCloseResumeModal(); openMsgModal(ivResumeSourceRow);">Send a message</button>' + downloadBtn;
+    return '<button class="iv-resume-action-btn primary" onclick="ivCloseResumeModal(); openScheduleModal(ivResumeSourceRow);">Schedule follow-up interview<span class="iv-btn-tooltip">Schedule follow-up interview</span></button>' +
+           '<button class="iv-resume-action-btn outline" onclick="ivCloseResumeModal(); openMsgModal(ivResumeSourceRow);">Send a message<span class="iv-btn-tooltip">Send a message</span></button>' + downloadBtn;
   }
   if (context === 'upcoming-live') {
-    return '<button class="iv-resume-action-btn primary" onclick="ivCloseResumeModal(); ivOpenMsgModal(ivResumeSourceRow);">Send a message</button>' + downloadBtn.replace('<span class="iv-resume-actions-spacer"></span>', '');
+    return '<button class="iv-resume-action-btn primary" onclick="ivCloseResumeModal(); ivOpenMsgModal(ivResumeSourceRow);">Send a message<span class="iv-btn-tooltip">Send a message</span></button>' + downloadBtn.replace('<span class="iv-resume-actions-spacer"></span>', '');
   }
   if (context === 'upcoming-active') {
-    return '<button class="iv-resume-action-btn primary" onclick="ivRescheduleFromResume()">Reschedule</button>' +
-           '<button class="iv-resume-action-btn outline" onclick="ivDeclineFromResume()">Decline</button>' + downloadBtn;
+    return '<button class="iv-resume-action-btn primary" onclick="ivRescheduleFromResume()">Reschedule<span class="iv-btn-tooltip">Propose new interview time</span></button>' +
+           '<button class="iv-resume-action-btn outline" onclick="ivDeclineFromResume()">Decline<span class="iv-btn-tooltip">Decline interview</span></button>' + downloadBtn;
   }
   return downloadBtn.replace('<span class="iv-resume-actions-spacer"></span>', '');
 }

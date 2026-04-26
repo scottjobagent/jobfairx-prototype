@@ -110,3 +110,4 @@
 106. Unified Upcoming Live resume modal with active state (visual-v3) — all upcoming interview resume modals now show Reschedule + Decline + Download regardless of live/active mode, consistent with Interviews tab active view
 107. Restored event-aware resume modal for Upcoming Live (visual-v3) — live event candidates (Dallas/Chicago) show Message + Download matching lobby Waiting to Interview live, non-live event candidates (Atlanta) show Reschedule + Decline + Download matching lobby confirmed interviews active, works per-row regardless of filter selection
 108. Fixed upcoming-live resume modal Download button position (visual-v3) — removed spacer so Download sits next to Send a message instead of being pushed to far right
+109. Added hover tooltips to all Interviews tab resume modal buttons (visual-v3) — Accept, Decline, Reschedule, Download, Send a message, Schedule follow-up all show tooltip on hover matching lobby resume modal behavior
