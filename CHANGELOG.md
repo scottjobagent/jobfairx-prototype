@@ -108,3 +108,4 @@
 104. Past tab now shows active view in live mode (visual-v3) — past interviews display the same regardless of active or live interview state
 105. Fixed Past tab resume modal on Interviews tab (visual-v3) — now shows Schedule follow-up interview + Send a message + Download, matching the Event Report resume modal
 106. Unified Upcoming Live resume modal with active state (visual-v3) — all upcoming interview resume modals now show Reschedule + Decline + Download regardless of live/active mode, consistent with Interviews tab active view
+107. Restored event-aware resume modal for Upcoming Live (visual-v3) — live event candidates (Dallas/Chicago) show Message + Download matching lobby Waiting to Interview live, non-live event candidates (Atlanta) show Reschedule + Decline + Download matching lobby confirmed interviews active, works per-row regardless of filter selection
