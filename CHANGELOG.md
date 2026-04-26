@@ -113,3 +113,4 @@
 109. Added hover tooltips to all Interviews tab resume modal buttons (visual-v3) — Accept, Decline, Reschedule, Download, Send a message, Schedule follow-up all show tooltip on hover matching lobby resume modal behavior
 110. Redesigned Download to icon-only button in Interviews tab resume modal (visual-v3) — compact 36x36px square with download arrow icon, always pushed to far right via spacer, consistent position across all states, tooltip "Download resume" on hover
 111. Fixed Download tooltip clipping in resume modal (visual-v3) — tooltip now right-aligned so it extends left instead of overflowing past modal edge
+112. Removed redundant tooltips from resume modal buttons (visual-v3) — removed tooltips from "Schedule follow-up interview" and "Send a message" buttons since they repeat the button text verbatim, kept tooltips on Accept, Decline, Reschedule, and Download which add context
