@@ -119,3 +119,5 @@
 115. Fixed Download tooltip clipping in Interviewing tab resume modal (lobby-v3) — tooltip left-aligned when Download is the only button (sits on left side), prevents "Download" text from being cut off
 116. Redesigned Interviews header and filter (visual-v3) — fixed filter width to 340px so it never jumps, removed all Live badges from filter and dropdown, added white pulsing dot inside Go to Lobby button as live indicator, no separate Live label, button stays aligned with filter
 117. Added external link icon to buttons that open new windows — Go to Lobby header + 6 table row buttons (visual-v3), Start Interview 3 buttons + Rejoin 3 buttons (lobby-v3), icon placed after text to signal new window
+118. Removed external link icon from Rejoin buttons (lobby-v3) — kept icon only on Start Interview and Go to Lobby buttons
+119. Removed "10 candidates couldn't make the interview" section from Not Yet Interviewed event-ended state (lobby-v3) — emptied notyetEnded container, removed all 10 candidate rows and associated three-dot menus
