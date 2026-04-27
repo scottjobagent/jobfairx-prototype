@@ -122,3 +122,4 @@
 118. Removed external link icon from Rejoin buttons (lobby-v3) — kept icon only on Start Interview and Go to Lobby buttons
 119. Removed "10 candidates couldn't make the interview" section from Not Yet Interviewed event-ended state (lobby-v3) — emptied notyetEnded container, removed all 10 candidate rows and associated three-dot menus
 120. Restored "10 candidates couldn't make the interview" section to Not Yet Interviewed event-ended state (lobby-v3) — reverted removal, all 10 candidate rows with three-dot menus restored from git history
+121. Fixed feedback capsule widths and added No-show option (lobby-v3) — set min-width 72px on status buttons so Yes/No/Maybe/No-show don't jump, added "No-show" as fourth feedback option with gray styling in all dropdown menus, updated fbChange JS to handle noshow value
