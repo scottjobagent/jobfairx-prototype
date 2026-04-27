@@ -312,7 +312,7 @@ tbody tr:last-child td { border-bottom: none; }
 .iv-header { display: flex; align-items: center; gap: 20px; padding: 0; }
 .iv-header h1 { font-size: 20px; font-weight: 700; color: #2d2d2d; }
 .iv-event-filter { position: relative; }
-.iv-event-filter-btn { display: flex; align-items: center; gap: 8px; padding: 8px 16px; font-size: 16px; font-weight: 700; color: #0044B3; background: #fff; border: 2px solid #0044B3; border-radius: 8px; cursor: pointer; font-family: inherit; transition: background 0.15s; min-width: 280px; }
+.iv-event-filter-btn { display: flex; align-items: center; gap: 8px; padding: 8px 16px; font-size: 16px; font-weight: 700; color: #0044B3; background: #fff; border: 2px solid #0044B3; border-radius: 8px; cursor: pointer; font-family: inherit; transition: background 0.15s; }
 .iv-event-filter-btn:hover { background: #f0f5ff; }
 .iv-event-filter-btn svg { width: 14px; height: 14px; }
 .iv-live-badge { display: none; align-items: center; gap: 6px; font-size: 14px; font-weight: 700; color: #0a8a0a; margin-left: -10px; }
@@ -1782,7 +1782,6 @@ tbody tr:last-child td { border-bottom: none; }
             <div class="iv-event-dropdown-item" onclick="selectIvEvent(this)" data-event="Chicago Technology Hiring Event"><span>Chicago Technology Hiring Event</span><span class="iv-dropdown-live-badge"><span class="iv-live-dot"></span>Live</span></div>
           </div>
         </div>
-        <span class="iv-live-badge" id="ivLiveBadge"><span class="iv-live-dot"></span>Live</span>
         <button class="iv-live-lobby-btn" id="ivHeaderLobbyBtn" style="display:none;" onclick="window.open('lobby-v3.html?mode=live','_blank')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14L21 3"/><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/></svg>
           Go to Lobby
@@ -2728,17 +2727,12 @@ var ivLiveEvents = ['Dallas Healthcare Hiring Event', 'Chicago Technology Hiring
 
 function updateIvLiveBanner() {
   var lobbyBtn = document.getElementById('ivHeaderLobbyBtn');
-  var liveBadge = document.getElementById('ivLiveBadge');
   var isLiveMode = ivCurrentMode === 'live';
   var selectedEvent = document.querySelector('.iv-event-dropdown-item.selected');
   var eventName = selectedEvent ? (selectedEvent.getAttribute('data-event') || selectedEvent.textContent.trim()) : 'All hiring events';
   var isSpecificEvent = eventName !== 'All hiring events';
   var isLiveEvent = isSpecificEvent && ivLiveEvents.indexOf(eventName) !== -1;
   if (lobbyBtn) lobbyBtn.style.display = (isLiveMode && isLiveEvent) ? 'inline-flex' : 'none';
-  if (liveBadge) {
-    liveBadge.style.display = isLiveMode ? 'inline-flex' : 'none';
-    liveBadge.style.visibility = (isLiveMode && isLiveEvent) ? 'visible' : 'hidden';
-  }
   // Toggle dropdown live badges
   document.querySelectorAll('.iv-dropdown-live-badge').forEach(function(badge) {
     badge.style.display = isLiveMode ? 'inline-flex' : 'none';
