@@ -321,7 +321,7 @@ tbody tr:last-child td { border-bottom: none; }
 .iv-event-dropdown-item { padding: 12px 18px; font-size: 14px; color: #2d2d2d; cursor: pointer; transition: background 0.1s; display: flex; align-items: center; gap: 8px; }
 .iv-event-dropdown-item:hover { background: #f6f5f3; }
 .iv-event-dropdown-item.selected { background: #f0f5ff; color: #0044B3; font-weight: 600; }
-.iv-lobby-live-dot { width: 8px; height: 8px; background: #0a8a0a; border-radius: 50%; animation: ivPulse 2s ease-in-out infinite; }
+.iv-lobby-live-dot { width: 8px; height: 8px; background: #fff; border-radius: 50%; animation: ivPulse 2s ease-in-out infinite; }
 .iv-tabs-wrapper { width: 100%; border-bottom: 3px solid #d4d2d0; margin-top: 24px; margin-left: -32px; margin-right: -32px; width: calc(100% + 64px); }
 .iv-tabs { display: flex; padding: 0 32px; }
 .iv-tab { flex: 1; padding: 20px 16px; text-align: center; font-size: 16px; font-weight: 600; color: #595959; cursor: pointer; border-bottom: 4px solid transparent; margin-bottom: -3px; transition: all 0.15s; background: none; border-top: none; border-left: none; border-right: none; font-family: inherit; }
@@ -1779,15 +1779,10 @@ tbody tr:last-child td { border-bottom: none; }
             <div class="iv-event-dropdown-item" onclick="selectIvEvent(this)" data-event="Chicago Technology Hiring Event">Chicago Technology Hiring Event</div>
           </div>
         </div>
-        <div id="ivHeaderLobbyWrap" style="display:none; text-align:center;">
-          <button class="iv-live-lobby-btn" onclick="window.open('lobby-v3.html?mode=live','_blank')">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14L21 3"/><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/></svg>
-            Go to Lobby
-          </button>
-          <div style="display:flex; align-items:center; justify-content:center; gap:5px; margin-top:6px; font-size:12px; font-weight:700; color:#0a8a0a;">
-            <span class="iv-lobby-live-dot"></span> Live
-          </div>
-        </div>
+        <button class="iv-live-lobby-btn" id="ivHeaderLobbyBtn" style="display:none;" onclick="window.open('lobby-v3.html?mode=live','_blank')">
+          <span class="iv-lobby-live-dot"></span>
+          Go to Lobby
+        </button>
       </div>
     </div>
 
@@ -2728,13 +2723,13 @@ function filterIvByEvent() {
 var ivLiveEvents = ['Dallas Healthcare Hiring Event', 'Chicago Technology Hiring Event'];
 
 function updateIvLiveBanner() {
-  var lobbyWrap = document.getElementById('ivHeaderLobbyWrap');
+  var lobbyBtn = document.getElementById('ivHeaderLobbyBtn');
   var isLiveMode = ivCurrentMode === 'live';
   var selectedEvent = document.querySelector('.iv-event-dropdown-item.selected');
   var eventName = selectedEvent ? (selectedEvent.getAttribute('data-event') || selectedEvent.textContent.trim()) : 'All hiring events';
   var isSpecificEvent = eventName !== 'All hiring events';
   var isLiveEvent = isSpecificEvent && ivLiveEvents.indexOf(eventName) !== -1;
-  if (lobbyWrap) lobbyWrap.style.display = (isLiveMode && isLiveEvent) ? '' : 'none';
+  if (lobbyBtn) lobbyBtn.style.display = (isLiveMode && isLiveEvent) ? 'inline-flex' : 'none';
 }
 
 /* ═══ INTERVIEWS DEV TOGGLE FUNCTIONS ═══ */
