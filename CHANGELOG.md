@@ -118,3 +118,4 @@
 114. Removed spacer from Download button in resume modals (lobby-v3 + visual-v3) — Download icon now sits right next to the other action buttons instead of being pushed to far right, cleaner grouping across all states
 115. Fixed Download tooltip clipping in Interviewing tab resume modal (lobby-v3) — tooltip left-aligned when Download is the only button (sits on left side), prevents "Download" text from being cut off
 116. Redesigned Interviews header and filter (visual-v3) — fixed filter width to 340px so it never jumps, removed all Live badges from filter and dropdown, added white pulsing dot inside Go to Lobby button as live indicator, no separate Live label, button stays aligned with filter
+117. Added external link icon to buttons that open new windows — Go to Lobby header + 6 table row buttons (visual-v3), Start Interview 3 buttons + Rejoin 3 buttons (lobby-v3), icon placed after text to signal new window
