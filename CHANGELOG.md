@@ -121,3 +121,4 @@
 117. Added external link icon to buttons that open new windows — Go to Lobby header + 6 table row buttons (visual-v3), Start Interview 3 buttons + Rejoin 3 buttons (lobby-v3), icon placed after text to signal new window
 118. Removed external link icon from Rejoin buttons (lobby-v3) — kept icon only on Start Interview and Go to Lobby buttons
 119. Removed "10 candidates couldn't make the interview" section from Not Yet Interviewed event-ended state (lobby-v3) — emptied notyetEnded container, removed all 10 candidate rows and associated three-dot menus
+120. Restored "10 candidates couldn't make the interview" section to Not Yet Interviewed event-ended state (lobby-v3) — reverted removal, all 10 candidate rows with three-dot menus restored from git history
