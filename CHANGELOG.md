@@ -117,4 +117,4 @@
 113. Synced lobby-v3 resume modal to match Interviews tab — Download button now icon-only 36x36px across all states, tooltip right-aligned to prevent clipping, spacer kept in all contexts for consistent positioning, "Message" button renamed to "Send a message" with redundant tooltip removed
 114. Removed spacer from Download button in resume modals (lobby-v3 + visual-v3) — Download icon now sits right next to the other action buttons instead of being pushed to far right, cleaner grouping across all states
 115. Fixed Download tooltip clipping in Interviewing tab resume modal (lobby-v3) — tooltip left-aligned when Download is the only button (sits on left side), prevents "Download" text from being cut off
-116. Moved Go to Lobby button next to event filter dropdown (visual-v3) — replaced margin-left:auto with 14px gap so button groups with the filter instead of floating on the far right
+116. Moved Go to Lobby button next to event filter dropdown (visual-v3) — fixed CSS class margin-left from auto to 14px (inline style was being overwritten by JS display toggle), button now groups with filter instead of floating on far right
