@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JobFairX — Employer Email Templates</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: #f5f5f4; height: 100vh; display: flex; flex-direction: column; }
+
+  /* Top bar */
+  .top-bar { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; background: #fff; border-bottom: 1px solid #e7e5e4; flex-shrink: 0; }
+  .top-bar-left { display: flex; align-items: center; gap: 16px; }
+  .top-bar-logo { font-size: 20px; font-weight: 800; color: #0044B3; letter-spacing: -0.3px; }
+  .top-bar-title { font-size: 14px; color: #767676; font-weight: 500; }
+  .top-bar-right { display: flex; align-items: center; gap: 8px; }
+  .view-toggle { display: inline-flex; border: 1px solid #d4d2d0; border-radius: 8px; overflow: hidden; }
+  .view-toggle-btn { padding: 8px 16px; font-size: 13px; font-weight: 600; border: none; background: #fff; color: #767676; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+  .view-toggle-btn.active { background: #0044B3; color: #fff; }
+  .view-toggle-btn:hover:not(.active) { background: #f0f6ff; color: #0044B3; }
+
+  /* Layout */
+  .layout { display: flex; flex: 1; overflow: hidden; }
+
+  /* Sidebar */
+  .sidebar { width: 280px; background: #fff; border-right: 1px solid #e7e5e4; overflow-y: auto; flex-shrink: 0; padding: 16px 0; }
+  .sidebar-header { padding: 8px 20px 12px 20px; font-size: 11px; font-weight: 600; color: #767676; text-transform: uppercase; letter-spacing: 0.8px; }
+  .sidebar-item { display: flex; align-items: center; gap: 10px; padding: 10px 20px; font-size: 14px; color: #2d2d2d; cursor: pointer; transition: background 0.1s; border-left: 3px solid transparent; }
+  .sidebar-item:hover { background: #f9fafb; }
+  .sidebar-item.active { background: #f0f6ff; color: #0044B3; font-weight: 600; border-left-color: #0044B3; }
+  .sidebar-item .item-icon { width: 18px; height: 18px; color: #a8a29e; flex-shrink: 0; }
+  .sidebar-item.active .item-icon { color: #0044B3; }
+  .sidebar-item .status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-left: auto; }
+  .sidebar-item .status-dot.done { background: #16a34a; }
+  .sidebar-item .status-dot.pending { background: #d4d2d0; }
+
+  /* Content area */
+  .content { flex: 1; overflow-y: auto; display: flex; justify-content: center; padding: 32px 24px; }
+  .email-frame { width: 100%; max-width: 620px; }
+
+  /* Email info bar */
+  .email-info { background: #fff; border: 1px solid #e7e5e4; border-radius: 10px; padding: 20px 24px; margin-bottom: 20px; }
+  .email-info-title { font-size: 18px; font-weight: 700; color: #2d2d2d; margin-bottom: 12px; }
+  .email-info-row { display: flex; gap: 8px; font-size: 13px; line-height: 20px; margin-bottom: 6px; }
+  .email-info-label { color: #767676; font-weight: 500; min-width: 130px; flex-shrink: 0; }
+  .email-info-value { color: #2d2d2d; }
+  .email-info-value.placeholder { color: #a8a29e; font-style: italic; }
+
+  /* Email render area */
+  .email-render { border: 1px solid #e7e5e4; border-radius: 10px; overflow: hidden; background: #f5f5f4; }
+  .email-render iframe { width: 100%; border: none; min-height: 600px; }
+
+  /* Empty state */
+  .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 80px 40px; text-align: center; }
+  .empty-state-icon { width: 48px; height: 48px; color: #d4d2d0; margin-bottom: 16px; }
+  .empty-state-title { font-size: 16px; font-weight: 600; color: #2d2d2d; margin-bottom: 6px; }
+  .empty-state-desc { font-size: 14px; color: #767676; }
+</style>
+</head>
+<body>
+
+<!-- Top bar -->
+<div class="top-bar">
+  <div class="top-bar-left">
+    <div class="top-bar-logo">JobFairX</div>
+    <div class="top-bar-title">Employer Email Templates</div>
+  </div>
+  <div class="top-bar-right">
+    <div class="view-toggle">
+      <button class="view-toggle-btn active" onclick="setView('developer')">Developer</button>
+      <button class="view-toggle-btn" onclick="setView('recruiter')">Recruiter Preview</button>
+    </div>
+  </div>
+</div>
+
+<!-- Layout -->
+<div class="layout">
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-header">Employer Emails (16)</div>
+
+    <div class="sidebar-item active" onclick="selectEmail(0, this)" data-email="0">
+      <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/></svg>
+      Pending Interviews
+      <span class="status-dot done" title="Designed"></span>
+    </div>
+
+    <div class="sidebar-item" onclick="selectEmail(1, this)" data-email="1">
+      <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/></svg>
+      Pending Interview Request
+      <span class="status-dot done" title="Designed"></span>
+    </div>
+
+    <div class="sidebar-item" onclick="selectEmail(2, this)" data-email="2">
+      <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/></svg>
+      Indeed Interviewer
+      <span class="status-dot pending" title="Pending"></span>
+    </div>
+
+    <div class="sidebar-item" onclick="selectEmail(3, this)" data-email="3">
+      <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/></svg>
+      Recruiter Invite
+      <span class="status-dot pending" title="Pending"></span>
+    </div>
+
+    <div class="sidebar-item" onclick="selectEmail(4, this)" data-email="4">
+      <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/></svg>
+      Candidate Cancelled Interview
+      <span class="status-dot pending" title="Pending"></span>
+    </div>
+
+    <div class="sidebar-item" onclick="selectEmail(5, this)" data-email="5">
+      <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/></svg>
+      Candidate Accepted Request
+      <span class="status-dot pending" title="Pending"></span>
+    </div>
+
+    <div class="sidebar-item" onclick="selectEmail(6, this)" data-email="6">
+      <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/></svg>
+      Message from Candidate
+      <span class="status-dot pending" title="Pending"></span>
+    </div>
+
+    <div class="sidebar-item" onclick="selectEmail(7, this)" data-email="7">
+      <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/></svg>
+      Event Starts in 30 Minutes
+      <span class="status-dot pending" title="Pending"></span>
+    </div>
+
+    <div class="sidebar-item" onclick="selectEmail(8, this)" data-email="8">
+      <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/></svg>
+      10 Day - Post Jobs Reminder
+      <span class="status-dot pending" title="Pending"></span>
+    </div>
+
+    <div class="sidebar-item" onclick="selectEmail(9, this)" data-email="9">
+      <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/></svg>
+      X Days Away - Post Jobs Reminder
+      <span class="status-dot pending" title="Pending"></span>
+    </div>
+
+    <div class="sidebar-item" onclick="selectEmail(10, this)" data-email="10">
+      <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/></svg>
+      Event Starts Tomorrow
+      <span class="status-dot pending" title="Pending"></span>
+    </div>
+
+    <div class="sidebar-item" onclick="selectEmail(11, this)" data-email="11">
+      <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/></svg>
+      Interview Slots Are Full
+      <span class="status-dot pending" title="Pending"></span>
+    </div>
+
+    <div class="sidebar-item" onclick="selectEmail(12, this)" data-email="12">
+      <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/></svg>
+      Post Event Report Is Ready
+      <span class="status-dot pending" title="Pending"></span>
+    </div>
+
+    <div class="sidebar-item" onclick="selectEmail(13, this)" data-email="13">
+      <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/></svg>
+      Account Creation
+      <span class="status-dot pending" title="Pending"></span>
+    </div>
+
+    <div class="sidebar-item" onclick="selectEmail(14, this)" data-email="14">
+      <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/></svg>
+      Order Confirmation
+      <span class="status-dot pending" title="Pending"></span>
+    </div>
+
+    <div class="sidebar-item" onclick="selectEmail(15, this)" data-email="15">
+      <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/></svg>
+      One Time Password
+      <span class="status-dot pending" title="Pending"></span>
+    </div>
+
+  </div>
+
+  <!-- Content -->
+  <div class="content">
+    <div class="email-frame">
+
+      <!-- Email info card -->
+      <div class="email-info" id="emailInfo">
+        <div class="email-info-title" id="infoTitle">Pending Interviews (Morning Digest)</div>
+        <div class="email-info-row">
+          <div class="email-info-label">SendGrid Name:</div>
+          <div class="email-info-value" id="infoSendgridOld">Employer Event Application Report 24 Hour</div>
+        </div>
+        <div class="email-info-row">
+          <div class="email-info-label">New SendGrid Name:</div>
+          <div class="email-info-value" id="infoSendgridNew">Employer Morning Digest Pending Interviews</div>
+        </div>
+        <div class="email-info-row">
+          <div class="email-info-label">Trigger:</div>
+          <div class="email-info-value" id="infoTrigger">Daily at 9:00 AM (if pending > 0)</div>
+        </div>
+        <div class="email-info-row">
+          <div class="email-info-label">Status:</div>
+          <div class="email-info-value" id="infoStatus"><span style="color:#16a34a; font-weight:600;">Designed</span></div>
+        </div>
+      </div>
+
+      <!-- Email render -->
+      <div class="email-render" id="emailRender">
+        <iframe id="emailIframe" src="email-morning-digest.html" title="Email preview"></iframe>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script>
+var currentView = 'developer';
+var currentEmail = 0;
+
+var emails = [
+  {
+    name: 'Pending Interviews (Morning Digest)',
+    sendgridOld: 'Employer Event Application Report 24 Hour',
+    sendgridNew: 'Employer Morning Digest Pending Interviews',
+    trigger: 'Daily at 9:00 AM (if pending > 0)',
+    status: 'done',
+    devFile: 'email-morning-digest.html',
+    previewFile: 'email-morning-digest-preview.html'
+  },
+  {
+    name: 'Pending Interview Request (Individual)',
+    sendgridOld: 'To be confirmed',
+    sendgridNew: 'Employer Individual Interview Request',
+    trigger: 'Real-time (per candidate request)',
+    status: 'done',
+    devFile: 'email-interview-request.html',
+    previewFile: 'email-interview-request-preview.html'
+  },
+  {
+    name: 'Indeed Interviewer',
+    sendgridOld: 'To be confirmed',
+    sendgridNew: 'To be determined',
+    trigger: 'To be determined',
+    status: 'pending',
+    devFile: null,
+    previewFile: null
+  },
+  {
+    name: 'Recruiter Invite',
+    sendgridOld: 'To be confirmed',
+    sendgridNew: 'To be determined',
+    trigger: 'To be determined',
+    status: 'pending',
+    devFile: null,
+    previewFile: null
+  },
+  {
+    name: 'Candidate Cancelled Scheduled Interview',
+    sendgridOld: 'To be confirmed',
+    sendgridNew: 'To be determined',
+    trigger: 'To be determined',
+    status: 'pending',
+    devFile: null,
+    previewFile: null
+  },
+  {
+    name: 'Candidate Accepted Request',
+    sendgridOld: 'To be confirmed',
+    sendgridNew: 'To be determined',
+    trigger: 'To be determined',
+    status: 'pending',
+    devFile: null,
+    previewFile: null
+  },
+  {
+    name: 'Message from Candidate',
+    sendgridOld: 'To be confirmed',
+    sendgridNew: 'To be determined',
+    trigger: 'To be determined',
+    status: 'pending',
+    devFile: null,
+    previewFile: null
+  },
+  {
+    name: 'Event Starts in 30 Minutes',
+    sendgridOld: 'To be confirmed',
+    sendgridNew: 'To be determined',
+    trigger: 'To be determined',
+    status: 'pending',
+    devFile: null,
+    previewFile: null
+  },
+  {
+    name: '10 Day - Post Jobs Reminder',
+    sendgridOld: 'To be confirmed',
+    sendgridNew: 'To be determined',
+    trigger: 'To be determined',
+    status: 'pending',
+    devFile: null,
+    previewFile: null
+  },
+  {
+    name: 'X Days Away - Post Jobs Reminder',
+    sendgridOld: 'To be confirmed',
+    sendgridNew: 'To be determined',
+    trigger: 'To be determined',
+    status: 'pending',
+    devFile: null,
+    previewFile: null
+  },
+  {
+    name: 'Event Starts Tomorrow',
+    sendgridOld: 'To be confirmed',
+    sendgridNew: 'To be determined',
+    trigger: 'To be determined',
+    status: 'pending',
+    devFile: null,
+    previewFile: null
+  },
+  {
+    name: 'Interview Slots Are Full',
+    sendgridOld: 'To be confirmed',
+    sendgridNew: 'To be determined',
+    trigger: 'To be determined',
+    status: 'pending',
+    devFile: null,
+    previewFile: null
+  },
+  {
+    name: 'Post Event Report Is Ready',
+    sendgridOld: 'To be confirmed',
+    sendgridNew: 'To be determined',
+    trigger: 'To be determined',
+    status: 'pending',
+    devFile: null,
+    previewFile: null
+  },
+  {
+    name: 'Account Creation',
+    sendgridOld: 'To be confirmed',
+    sendgridNew: 'To be determined',
+    trigger: 'To be determined',
+    status: 'pending',
+    devFile: null,
+    previewFile: null
+  },
+  {
+    name: 'Order Confirmation',
+    sendgridOld: 'To be confirmed',
+    sendgridNew: 'To be determined',
+    trigger: 'To be determined',
+    status: 'pending',
+    devFile: null,
+    previewFile: null
+  },
+  {
+    name: 'One Time Password',
+    sendgridOld: 'To be confirmed',
+    sendgridNew: 'To be determined',
+    trigger: 'To be determined',
+    status: 'pending',
+    devFile: null,
+    previewFile: null
+  }
+];
+
+function setView(view) {
+  currentView = view;
+  document.querySelectorAll('.view-toggle-btn').forEach(function(btn) {
+    btn.classList.remove('active');
+  });
+  event.target.classList.add('active');
+  loadEmail(currentEmail);
+}
+
+function selectEmail(index, el) {
+  currentEmail = index;
+  document.querySelectorAll('.sidebar-item').forEach(function(item) {
+    item.classList.remove('active');
+  });
+  el.classList.add('active');
+  loadEmail(index);
+}
+
+function loadEmail(index) {
+  var email = emails[index];
+  var iframe = document.getElementById('emailIframe');
+  var infoTitle = document.getElementById('infoTitle');
+  var infoSendgridOld = document.getElementById('infoSendgridOld');
+  var infoSendgridNew = document.getElementById('infoSendgridNew');
+  var infoTrigger = document.getElementById('infoTrigger');
+  var infoStatus = document.getElementById('infoStatus');
+
+  // Update info card
+  infoTitle.textContent = email.name;
+  infoSendgridOld.textContent = email.sendgridOld;
+  infoSendgridOld.className = 'email-info-value' + (email.sendgridOld === 'To be confirmed' ? ' placeholder' : '');
+  infoSendgridNew.textContent = email.sendgridNew;
+  infoSendgridNew.className = 'email-info-value' + (email.sendgridNew === 'To be determined' ? ' placeholder' : '');
+  infoTrigger.textContent = email.trigger;
+  infoTrigger.className = 'email-info-value' + (email.trigger === 'To be determined' ? ' placeholder' : '');
+
+  if (email.status === 'done') {
+    infoStatus.innerHTML = '<span style="color:#16a34a; font-weight:600;">Designed</span>';
+  } else {
+    infoStatus.innerHTML = '<span style="color:#a8a29e; font-weight:600;">Pending</span>';
+  }
+
+  // Load email in iframe
+  var file = currentView === 'developer' ? email.devFile : email.previewFile;
+  if (file) {
+    iframe.style.display = 'block';
+    iframe.src = file;
+    // Remove empty state if present
+    var emptyEl = document.getElementById('emailEmpty');
+    if (emptyEl) emptyEl.style.display = 'none';
+  } else {
+    iframe.style.display = 'none';
+    // Show empty state
+    var renderEl = document.getElementById('emailRender');
+    var emptyEl = document.getElementById('emailEmpty');
+    if (!emptyEl) {
+      emptyEl = document.createElement('div');
+      emptyEl.id = 'emailEmpty';
+      emptyEl.className = 'empty-state';
+      emptyEl.innerHTML = '<svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>' +
+        '<div class="empty-state-title">Email not yet designed</div>' +
+        '<div class="empty-state-desc">This template will be added as we work through each email.</div>';
+      renderEl.appendChild(emptyEl);
+    }
+    emptyEl.style.display = 'flex';
+  }
+}
+
+// Auto-resize iframe to content height
+window.addEventListener('message', function(e) {
+  if (e.data && e.data.type === 'resize') {
+    document.getElementById('emailIframe').style.height = e.data.height + 'px';
+  }
+});
+
+// Initial load
+loadEmail(0);
+</script>
+
+</body>
+</html>
