@@ -1,1365 +1,499 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>JobFairX — Employer Platform Demo</title>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<style>
-/* ═══════════════════════════════════════════════════════
-   DEMO WALKTHROUGH — JobFairX Employer Platform
-   Standalone animated walkthrough for marketing site
-   ═══════════════════════════════════════════════════════ */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { height: 100%; overflow: hidden; }
-body {
-  font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 14px;
-  color: #2d2d2d;
-  background: #0d1117;
-  -webkit-font-smoothing: antialiased;
-}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JobFairX Employer Dashboard — Walkthrough</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-/* ═══ PRESENTATION CONTAINER ═══ */
-.demo-wrap { width: 100%; height: 100%; display: flex; flex-direction: column; }
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #1a1a1a;
+            font-family: 'Noto Sans', sans-serif;
+        }
 
-/* ═══ SCENE VIEWPORT ═══ */
-.scene-viewport {
-  flex: 1;
-  position: relative;
-  overflow: hidden;
-}
+        .walkthrough-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
-.scene {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transform: scale(0.97);
-  transition: opacity 0.5s ease, transform 0.5s ease;
-  pointer-events: none;
-  padding: 24px;
-}
-.scene.active {
-  opacity: 1;
-  transform: scale(1);
-  pointer-events: auto;
-}
+        /* Scene Container */
+        .scene {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
 
-/* App frame — simulates browser/app chrome */
-.app-frame {
-  width: 100%;
-  max-width: 1100px;
-  height: 100%;
-  max-height: 680px;
-  background: #fff;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.4);
-  display: flex;
-  flex-direction: column;
-  position: relative;
-}
+        .scene.active {
+            opacity: 1;
+        }
 
-/* Top bar (shared across lobby scenes) */
-.demo-topbar {
-  height: 52px;
-  border-bottom: 1px solid #d4d2d0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 24px;
-  flex-shrink: 0;
-  background: #fff;
-}
-.demo-topbar-logo {
-  font-size: 20px;
-  font-weight: 800;
-  color: #0044B3;
-  letter-spacing: -0.5px;
-}
-.demo-topbar-user {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  font-weight: 500;
-  color: #595959;
-}
-.demo-topbar-user svg { width: 18px; height: 18px; }
+        .scene img {
+            max-width: 90%;
+            max-height: 90%;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
 
-/* App body */
-.app-body {
-  flex: 1;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
+        /* Caption Bar */
+        .caption-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 70px;
+            background: rgba(0, 0, 0, 0.75);
+            display: flex;
+            align-items: center;
+            padding: 0 40px;
+            z-index: 100;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
 
-/* ═══ TABS ═══ */
-.demo-tabs {
-  display: flex;
-  border-bottom: 3px solid #d4d2d0;
-  flex-shrink: 0;
-}
-.demo-tab {
-  flex: 1;
-  text-align: center;
-  padding: 16px 12px;
-  font-size: 14px;
-  font-weight: 400;
-  color: #595959;
-  border-bottom: 4px solid transparent;
-  margin-bottom: -3px;
-  cursor: default;
-}
-.demo-tab.active {
-  color: #2d2d2d;
-  font-weight: 700;
-  border-bottom-color: #2d2d2d;
-}
+        .caption-step {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 13px;
+            font-weight: 500;
+            margin-right: 20px;
+            white-space: nowrap;
+            min-width: 50px;
+        }
 
-/* Tab content area */
-.demo-tab-content {
-  flex: 1;
-  background: #f3f2ef;
-  padding: 20px 24px;
-  overflow: hidden;
-}
+        .caption-text {
+            color: #ffffff;
+            font-size: 18px;
+            font-weight: 400;
+            line-height: 1.4;
+            max-width: 800px;
+        }
 
-/* ═══ TABLE STYLES ═══ */
-.demo-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: #fff;
-  border-radius: 12px;
-  overflow: hidden;
-  font-size: 13px;
-  border: 1px solid #b0aeab;
-}
-.demo-table thead th {
-  text-align: left;
-  padding: 12px 16px;
-  font-weight: 600;
-  color: #595959;
-  font-size: 12px;
-  border-bottom: 1px solid #d4d2d0;
-  background: #fafaf9;
-}
-.demo-table tbody td {
-  padding: 12px 16px;
-  border-bottom: 1px solid #ebebeb;
-  vertical-align: middle;
-}
-.demo-table tbody tr:last-child td { border-bottom: none; }
+        /* Animated Cursor SVG */
+        .cursor-svg {
+            position: fixed;
+            width: 24px;
+            height: 32px;
+            pointer-events: none;
+            z-index: 200;
+            opacity: 0;
+            will-change: transform;
+        }
 
-/* ═══ BUTTONS ═══ */
-.btn-accept { background: #0044B3; color: #fff; border: none; border-radius: 6px; padding: 6px 14px; font-size: 12px; font-weight: 700; cursor: default; font-family: inherit; }
-.btn-decline { background: #fff; color: #595959; border: 1px solid #d4d2d0; border-radius: 6px; padding: 6px 14px; font-size: 12px; font-weight: 600; cursor: default; font-family: inherit; }
-.btn-reschedule { background: #fff; color: #0044B3; border: 1px solid #0044B3; border-radius: 6px; padding: 6px 14px; font-size: 12px; font-weight: 600; cursor: default; font-family: inherit; }
-.btn-primary { background: #0044B3; color: #fff; border: none; border-radius: 100px; padding: 12px 32px; font-size: 15px; font-weight: 700; cursor: default; font-family: inherit; }
-.btn-start { background: #0044B3; color: #fff; border: none; border-radius: 6px; padding: 6px 16px; font-size: 12px; font-weight: 700; cursor: default; font-family: inherit; }
-.btn-outline { background: #fff; color: #2d2d2d; border: 1px solid #d4d2d0; border-radius: 8px; padding: 8px 18px; font-size: 14px; font-weight: 600; cursor: default; font-family: inherit; }
+        .cursor-svg.visible {
+            opacity: 1;
+        }
 
-/* ═══ CARDS ═══ */
-.demo-card {
-  background: #fff;
-  border-radius: 12px;
-  border: 1px solid #b0aeab;
-  overflow: hidden;
-}
-.demo-card-header {
-  padding: 16px 20px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.demo-card-title { font-size: 15px; font-weight: 700; color: #2d2d2d; }
+        /* Progress Bar */
+        .progress-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            height: 4px;
+            background: #0044B3;
+            width: 0%;
+            transition: width 0.3s ease-out;
+            z-index: 50;
+        }
 
-/* ═══ EVENT HEADER ═══ */
-.demo-event-header {
-  padding: 24px 24px 0;
-  flex-shrink: 0;
-}
-.demo-event-header h1 { font-size: 24px; font-weight: 700; }
-.demo-event-meta { font-size: 14px; color: #595959; margin-top: 6px; display: flex; align-items: center; gap: 8px; }
-.demo-event-meta .sep { color: #d4d2d0; }
-.demo-event-actions { display: flex; gap: 8px; margin-top: 16px; }
+        /* Outro Slide */
+        .outro-slide {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #003d8a 0%, #002560 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
 
-/* ═══ LIVE VIEW STYLES ═══ */
-.live-section {
-  background: #fff;
-  border-radius: 12px;
-  border: 1px solid #b0aeab;
-  margin-bottom: 16px;
-}
-.live-section-hdr {
-  padding: 16px 20px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: 700;
-  font-size: 14px;
-}
-.red-dot { width: 10px; height: 10px; border-radius: 50%; background: #991b1b; flex-shrink: 0; }
-.green-dot { width: 10px; height: 10px; border-radius: 50%; background: #16a34a; flex-shrink: 0; }
-.amber-dot { width: 10px; height: 10px; border-radius: 50%; background: #d97706; flex-shrink: 0; }
+        .outro-slide.active {
+            opacity: 1;
+        }
 
-/* ═══ STATUS BADGES ═══ */
-.badge { display: inline-block; padding: 3px 10px; border-radius: 100px; font-size: 11px; font-weight: 700; }
-.badge-green { background: #dcfce7; color: #166534; }
-.badge-amber { background: #fef3c7; color: #92400e; }
-.badge-red { background: #fecaca; color: #991b1b; }
-.badge-blue { background: #dbeafe; color: #1e40af; }
+        .outro-content {
+            text-align: center;
+        }
 
-/* ═══ INTERVIEW SCREEN ═══ */
-.interview-layout {
-  display: flex;
-  height: 100%;
-  background: #1a1a2e;
-}
-.interview-video-area {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  padding: 16px;
-  gap: 12px;
-}
-.interview-main-video {
-  flex: 1;
-  background: linear-gradient(135deg, #2d3748, #4a5568);
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  overflow: hidden;
-}
-.interview-main-video .person-silhouette {
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.interview-main-video .person-silhouette svg { width: 60px; height: 60px; color: rgba(255,255,255,0.8); }
-.interview-self-video {
-  position: absolute;
-  bottom: 16px;
-  right: 16px;
-  width: 180px;
-  height: 120px;
-  background: linear-gradient(135deg, #1e3a5f, #2d5a87);
-  border-radius: 10px;
-  border: 2px solid rgba(255,255,255,0.3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.interview-self-video svg { width: 36px; height: 36px; color: rgba(255,255,255,0.6); }
-.candidate-name-overlay {
-  position: absolute;
-  bottom: 16px;
-  left: 16px;
-  background: rgba(0,0,0,0.6);
-  color: #fff;
-  padding: 6px 14px;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-}
-.self-name-overlay {
-  position: absolute;
-  bottom: 6px;
-  left: 8px;
-  color: rgba(255,255,255,0.8);
-  font-size: 11px;
-  font-weight: 600;
-}
-.interview-controls {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  padding: 8px 0;
-  flex-shrink: 0;
-}
-.ctrl-btn {
-  width: 44px; height: 44px;
-  border-radius: 50%;
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: default;
-}
-.ctrl-btn svg { width: 20px; height: 20px; }
-.ctrl-btn-dark { background: rgba(255,255,255,0.15); color: #fff; }
-.ctrl-btn-red { background: #dc2626; color: #fff; }
+        .outro-logo {
+            font-size: 48px;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 20px;
+            letter-spacing: -1px;
+        }
 
-.interview-side-panel {
-  width: 340px;
-  background: #fff;
-  display: flex;
-  flex-direction: column;
-  flex-shrink: 0;
-}
-.panel-tabs {
-  display: flex;
-  border-bottom: 2px solid #ebebeb;
-  flex-shrink: 0;
-}
-.panel-tab {
-  flex: 1;
-  text-align: center;
-  padding: 14px 8px;
-  font-size: 13px;
-  font-weight: 500;
-  color: #595959;
-  border-bottom: 3px solid transparent;
-  margin-bottom: -2px;
-}
-.panel-tab.active { color: #2d2d2d; font-weight: 700; border-bottom-color: #0044B3; }
-.panel-body { flex: 1; overflow: hidden; padding: 16px 20px; }
-.panel-body h4 { font-size: 13px; font-weight: 700; color: #595959; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
-.panel-body p { font-size: 13px; color: #2d2d2d; line-height: 1.6; margin-bottom: 12px; }
-.panel-body ul { font-size: 13px; color: #2d2d2d; line-height: 1.6; padding-left: 16px; margin-bottom: 12px; }
+        .outro-text {
+            font-size: 24px;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 30px;
+        }
 
-/* ═══ MODAL OVERLAY ═══ */
-.demo-modal-overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(0,0,0,0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 50;
-  border-radius: 12px;
-}
-.demo-modal {
-  background: #fff;
-  border-radius: 16px;
-  width: 440px;
-  max-width: 90%;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-  padding: 28px;
-}
-.demo-modal h2 { font-size: 20px; font-weight: 700; margin-bottom: 6px; }
-.demo-modal p { font-size: 14px; color: #595959; margin-bottom: 20px; line-height: 1.5; }
-.demo-modal label { font-size: 13px; font-weight: 600; color: #2d2d2d; display: block; margin-bottom: 6px; }
-.demo-modal select, .demo-modal input {
-  width: 100%;
-  padding: 10px 14px;
-  border: 1px solid #d4d2d0;
-  border-radius: 8px;
-  font-size: 14px;
-  font-family: inherit;
-  margin-bottom: 16px;
-  background: #fff;
-  color: #2d2d2d;
-}
-.demo-modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 8px; }
+        .outro-cta {
+            font-size: 18px;
+            color: rgba(255, 255, 255, 0.7);
+            font-weight: 400;
+        }
 
-/* ═══ EVALUATION MODAL ═══ */
-.eval-stars { display: flex; gap: 4px; margin-bottom: 16px; }
-.eval-star { width: 28px; height: 28px; color: #d4d2d0; }
-.eval-star.filled { color: #f59e0b; }
-.eval-option { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border: 1px solid #d4d2d0; border-radius: 10px; margin-bottom: 8px; font-size: 14px; font-weight: 500; }
-.eval-option.selected { border-color: #0044B3; background: #f0f6ff; }
-.eval-radio { width: 18px; height: 18px; border-radius: 50%; border: 2px solid #d4d2d0; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
-.eval-option.selected .eval-radio { border-color: #0044B3; }
-.eval-option.selected .eval-radio::after { content: ''; width: 10px; height: 10px; border-radius: 50%; background: #0044B3; }
+        /* Spacebar Hint */
+        .spacebar-hint {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.6);
+            color: rgba(255, 255, 255, 0.6);
+            padding: 8px 14px;
+            border-radius: 4px;
+            font-size: 12px;
+            z-index: 40;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
 
-/* ═══ DASHBOARD TABLE ═══ */
-.dash-event-row { display: flex; align-items: center; gap: 16px; }
-.dash-event-name { font-weight: 700; color: #0044B3; }
-.dash-event-meta { font-size: 12px; color: #595959; }
+        .spacebar-hint.show {
+            opacity: 1;
+        }
 
-/* ═══ HIGHLIGHT PULSE ═══ */
-@keyframes pulse-highlight {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(0,68,179,0.3); }
-  50% { box-shadow: 0 0 0 8px rgba(0,68,179,0); }
-}
-.highlight { animation: pulse-highlight 1.5s ease-in-out 2; }
+        /* Cursor transitions */
+        .cursor-svg {
+            transition: none;
+        }
 
-/* ═══ CAPTION BAR ═══ */
-.caption-bar {
-  background: rgba(13,17,23,0.95);
-  padding: 20px 32px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-shrink: 0;
-  min-height: 80px;
-}
-.caption-text {
-  flex: 1;
-  color: #fff;
-  font-size: 18px;
-  font-weight: 500;
-  line-height: 1.4;
-  padding-right: 24px;
-}
-.caption-scene-label {
-  font-size: 11px;
-  font-weight: 700;
-  color: #0044B3;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-bottom: 4px;
-}
+        .cursor-svg.animating {
+            transition: left 0.8s cubic-bezier(0.25, 0.1, 0.25, 1), top 0.8s cubic-bezier(0.25, 0.1, 0.25, 1);
+        }
 
-/* ═══ CONTROLS ═══ */
-.demo-controls {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-shrink: 0;
-}
-.nav-btn {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  border: 2px solid rgba(255,255,255,0.3);
-  background: transparent;
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.15s;
-  font-family: inherit;
-}
-.nav-btn:hover { background: rgba(255,255,255,0.1); border-color: #fff; }
-.nav-btn:disabled { opacity: 0.3; cursor: default; }
-.nav-btn:disabled:hover { background: transparent; border-color: rgba(255,255,255,0.3); }
-.nav-btn svg { width: 20px; height: 20px; }
+        @keyframes cursorClick {
+            0% { transform: scale(1); }
+            50% { transform: scale(0.8); }
+            100% { transform: scale(1); }
+        }
 
-.scene-counter {
-  color: rgba(255,255,255,0.6);
-  font-size: 13px;
-  font-weight: 600;
-  min-width: 50px;
-  text-align: center;
-}
-
-/* Progress dots */
-.progress-dots {
-  display: flex;
-  gap: 6px;
-  margin-right: 16px;
-}
-.progress-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.2);
-  transition: all 0.3s;
-  cursor: pointer;
-}
-.progress-dot.active { background: #0044B3; width: 24px; border-radius: 4px; }
-.progress-dot.visited { background: rgba(255,255,255,0.5); }
-
-/* ═══ INTRO SCENE ═══ */
-.intro-content {
-  text-align: center;
-  color: #fff;
-}
-.intro-content .logo { font-size: 42px; font-weight: 800; color: #0044B3; margin-bottom: 16px; }
-.intro-content h2 { font-size: 28px; font-weight: 700; margin-bottom: 12px; }
-.intro-content p { font-size: 16px; color: rgba(255,255,255,0.7); max-width: 500px; margin: 0 auto 32px; line-height: 1.6; }
-
-/* ═══ INVITE SECTION ═══ */
-.invite-section { padding: 20px 24px; }
-.invite-section h3 { font-size: 16px; font-weight: 700; margin-bottom: 12px; }
-.invite-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #ebebeb; }
-.invite-row:last-child { border-bottom: none; }
-.invite-name { font-weight: 600; font-size: 14px; }
-.invite-email { font-size: 13px; color: #595959; }
-.invite-status { font-size: 12px; font-weight: 600; }
-.invite-status.sent { color: #16a34a; }
-.invite-status.pending { color: #d97706; }
-
-/* ═══ FOLLOW UP SECTION ═══ */
-.followup-note {
-  font-size: 14px;
-  color: #595959;
-  margin-bottom: 12px;
-  line-height: 1.5;
-}
-
-/* Three-dot menu */
-.dot-menu-btn {
-  width: 32px;
-  height: 32px;
-  border: 1px solid #d4d2d0;
-  border-radius: 6px;
-  background: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: default;
-}
-.dot-menu-btn svg { width: 16px; height: 16px; color: #0044B3; }
-.row-popup {
-  position: absolute;
-  right: 16px;
-  background: #fff;
-  border-radius: 10px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
-  border: 1px solid #d4d2d0;
-  padding: 4px 0;
-  z-index: 10;
-  min-width: 220px;
-}
-.row-popup-item {
-  padding: 10px 16px;
-  font-size: 14px;
-  color: #2d2d2d;
-  font-weight: 500;
-}
-.row-popup-item:first-child { color: #0044B3; font-weight: 600; }
-</style>
+        .cursor-svg.clicking {
+            animation: cursorClick 0.3s ease-out;
+        }
+    </style>
 </head>
 <body>
+    <div class="walkthrough-container">
+        <!-- Scenes -->
+        <div class="scene active" data-scene="0">
+            <img src="demo-screens/01-dashboard.png" alt="Dashboard Overview">
+        </div>
+        <div class="scene" data-scene="1">
+            <img src="demo-screens/02-not-yet-interviewed.png" alt="Not Yet Interviewed">
+        </div>
+        <div class="scene" data-scene="2">
+            <img src="demo-screens/03-schedule-modal.png" alt="Schedule Modal">
+        </div>
+        <div class="scene" data-scene="3">
+            <img src="demo-screens/04-live-lobby.png" alt="Live Lobby">
+        </div>
+        <div class="scene" data-scene="4">
+            <img src="demo-screens/05-interview-screen.png" alt="Interview Screen">
+        </div>
+        <div class="scene" data-scene="5">
+            <img src="demo-screens/06-interview-resume.png" alt="Interview + Resume">
+        </div>
+        <div class="scene" data-scene="6">
+            <img src="demo-screens/07-evaluation-modal.png" alt="Evaluation Modal">
+        </div>
+        <div class="scene" data-scene="7">
+            <img src="demo-screens/08-interviewed-tab.png" alt="Interviewed Tab">
+        </div>
+        <div class="scene" data-scene="8">
+            <img src="demo-screens/09-event-ended.png" alt="Event Ended Summary">
+        </div>
+        <div class="scene" data-scene="9">
+            <img src="demo-screens/10-not-interviewed-post.png" alt="Not Interviewed Follow-up">
+        </div>
 
-<div class="demo-wrap">
-  <div class="scene-viewport">
+        <!-- Outro Slide -->
+        <div class="outro-slide" data-scene="10">
+            <div class="outro-content">
+                <div class="outro-logo">JobFairX</div>
+                <div class="outro-text">Smarter Hiring Events</div>
+                <div class="outro-cta">Learn more at jobfairx.com</div>
+            </div>
+        </div>
 
-    <!-- ═══════════════════════════════════════════════════════
-         SCENE 0 — INTRO
-         ═══════════════════════════════════════════════════════ -->
-    <div class="scene active" id="scene-0">
-      <div class="intro-content">
-        <div class="logo">JobFairX</div>
-        <h2>Your Virtual Hiring Event Platform</h2>
-        <p>See how employers manage candidates, conduct video interviews, and hire faster — all in one place.</p>
-        <button class="btn-primary" onclick="goToScene(1)" style="cursor:pointer;">Start the tour →</button>
-      </div>
+        <!-- Cursor SVG (macOS-style pointer) -->
+        <svg class="cursor-svg" viewBox="0 0 28 36" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <filter id="cursor-shadow" x="-30%" y="-30%" width="160%" height="160%">
+                    <feDropShadow dx="1" dy="2" stdDeviation="1.5" flood-opacity="0.35"/>
+                </filter>
+            </defs>
+            <path d="M 4 0 L 4 26 L 9.5 20.5 L 14.5 30 L 18 28.5 L 13 19 L 20 19 Z"
+                  fill="#ffffff" stroke="#000000" stroke-width="1.5" stroke-linejoin="round"
+                  filter="url(#cursor-shadow)"/>
+        </svg>
+
+        <!-- Caption Bar -->
+        <div class="caption-bar">
+            <div class="caption-step"></div>
+            <div class="caption-text"></div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="progress-bar"></div>
+
+        <!-- Spacebar Hint -->
+        <div class="spacebar-hint">Press spacebar to pause/resume</div>
     </div>
 
-    <!-- ═══════════════════════════════════════════════════════
-         SCENE 1 — DASHBOARD OVERVIEW
-         ═══════════════════════════════════════════════════════ -->
-    <div class="scene" id="scene-1">
-      <div class="app-frame">
-        <div class="demo-topbar">
-          <div class="demo-topbar-logo">JobFairX</div>
-          <div class="demo-topbar-user">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            Sarah Thompson
-          </div>
-        </div>
-        <div class="app-body" style="padding: 24px; overflow: auto;">
-          <h1 style="font-size: 24px; font-weight: 700; margin-bottom: 4px;">Employer Dashboard</h1>
-          <p style="color: #595959; margin-bottom: 20px;">Parkland Health System</p>
+    <script>
+        // Scene data: captions and cursor positions
+        const scenes = [
+            {
+                caption: "Your hiring events at a glance — manage upcoming and completed events",
+                cursorTarget: { x: 47, y: 42 }
+            },
+            {
+                caption: "See candidates awaiting your response and schedule interviews",
+                cursorTarget: { x: 85, y: 40 }
+            },
+            {
+                caption: "Propose interview times and send a personalized message",
+                cursorTarget: { x: 62, y: 72 }
+            },
+            {
+                caption: "During the event — interview rooms fill automatically as candidates arrive",
+                cursorTarget: { x: 82, y: 42 }
+            },
+            {
+                caption: "Face-to-face video interviews with built-in tools",
+                cursorTarget: { x: 88, y: 94 }
+            },
+            {
+                caption: "Review the candidate's resume while you interview — no tab switching",
+                cursorTarget: { x: 54, y: 94 }
+            },
+            {
+                caption: "Quick feedback after each interview — Would you recommend moving forward?",
+                cursorTarget: { x: 35, y: 40 }
+            },
+            {
+                caption: "Track everyone you've interviewed with feedback and notes",
+                cursorTarget: null
+            },
+            {
+                caption: "After the event — review your hiring summary and next steps",
+                cursorTarget: { x: 78, y: 28 }
+            },
+            {
+                caption: "Follow up with candidates who couldn't make it — schedule or message them",
+                cursorTarget: { x: 90, y: 52 }
+            }
+        ];
 
-          <div style="font-size: 15px; font-weight: 700; margin-bottom: 12px;">Upcoming Events</div>
-          <table class="demo-table">
-            <thead>
-              <tr>
-                <th>Event</th>
-                <th>Date</th>
-                <th>Jobs</th>
-                <th>Candidates</th>
-                <th>Status</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr class="highlight">
-                <td>
-                  <div style="font-weight:700; color:#0044B3;">Dallas Healthcare Hiring Event</div>
-                </td>
-                <td>May 15, 2026</td>
-                <td>3 posted</td>
-                <td>22 candidates</td>
-                <td><span class="badge badge-green">Active</span></td>
-                <td><button class="btn-start" style="white-space:nowrap;">Go to lobby →</button></td>
-              </tr>
-              <tr>
-                <td>
-                  <div style="font-weight:700; color:#0044B3;">Houston Tech Career Fair</div>
-                </td>
-                <td>Jun 8, 2026</td>
-                <td>5 posted</td>
-                <td>0 candidates</td>
-                <td><span class="badge badge-amber">Setup</span></td>
-                <td><button class="btn-outline" style="font-size:12px; padding:6px 14px;">Edit event</button></td>
-              </tr>
-            </tbody>
-          </table>
+        // State
+        let currentScene = 0;
+        let isPlaying = true;
+        let sceneTimeout = null;
+        let cursorTimeout = null;
 
-          <div style="font-size: 15px; font-weight: 700; margin: 24px 0 12px;">Past Events</div>
-          <table class="demo-table">
-            <thead>
-              <tr>
-                <th>Event</th>
-                <th>Date</th>
-                <th>Interviews</th>
-                <th>Hired</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td><div style="font-weight:600;">Austin Nursing Hiring Event</div></td>
-                <td>Apr 10, 2026</td>
-                <td>18 completed</td>
-                <td>4 offers</td>
-                <td><span style="font-size:12px; color:#0044B3; font-weight:600; cursor:default;">View report</span></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
+        const captionEl = document.querySelector('.caption-text');
+        const captionStep = document.querySelector('.caption-step');
+        const progressBar = document.querySelector('.progress-bar');
+        const cursorSvg = document.querySelector('.cursor-svg');
+        const spacebar = document.querySelector('.spacebar-hint');
+        const walkthrough = document.querySelector('.walkthrough-container');
 
-    <!-- ═══════════════════════════════════════════════════════
-         SCENE 2 — INVITE INTERVIEWERS
-         ═══════════════════════════════════════════════════════ -->
-    <div class="scene" id="scene-2">
-      <div class="app-frame">
-        <div class="demo-topbar">
-          <div class="demo-topbar-logo">JobFairX</div>
-          <div class="demo-topbar-user">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            Sarah Thompson
-          </div>
-        </div>
-        <div class="app-body" style="padding: 24px; overflow: auto;">
-          <div style="font-size: 13px; color: #0044B3; font-weight: 700; margin-bottom: 16px; cursor:default;">← Back to dashboard</div>
-          <h1 style="font-size: 22px; font-weight: 700; margin-bottom: 4px;">Dallas Healthcare Hiring Event</h1>
-          <p style="color: #595959; font-size: 14px; margin-bottom: 24px;">May 15, 2026 · 9:00 AM – 4:00 PM CT</p>
+        // Initialize
+        function init() {
+            updateCaption();
+            startScene();
+            showSpacebarHint();
+        }
 
-          <div style="font-size: 16px; font-weight: 700; margin-bottom: 16px;">Interview Team</div>
-          <div class="demo-card">
-            <div style="padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #ebebeb;">
-              <div style="font-size: 14px; font-weight: 700;">Interviewers (3 of 5 seats)</div>
-              <button class="btn-accept highlight" style="font-size: 13px; padding: 8px 18px;">+ Invite interviewer</button>
-            </div>
-            <div class="invite-section">
-              <div class="invite-row">
-                <div>
-                  <div class="invite-name">Sarah Thompson</div>
-                  <div class="invite-email">sarah.thompson@parklandhealth.org</div>
-                </div>
-                <div class="invite-status sent">✓ Organizer</div>
-              </div>
-              <div class="invite-row">
-                <div>
-                  <div class="invite-name">Brandon Lowenberg</div>
-                  <div class="invite-email">brandon@parklandhospital.org</div>
-                </div>
-                <div class="invite-status sent">✓ Accepted</div>
-              </div>
-              <div class="invite-row">
-                <div>
-                  <div class="invite-name">Dr. Michael Chen</div>
-                  <div class="invite-email">m.chen@parklandhealth.org</div>
-                </div>
-                <div class="invite-status pending">Pending</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+        // Update caption
+        function updateCaption() {
+            if (currentScene < scenes.length) {
+                captionStep.textContent = (currentScene + 1) + ' / ' + scenes.length;
+                captionEl.textContent = scenes[currentScene].caption;
+            } else {
+                captionStep.textContent = '';
+                captionEl.textContent = '';
+            }
+        }
 
-    <!-- ═══════════════════════════════════════════════════════
-         SCENE 3 — PRE-EVENT: REVIEW CANDIDATES
-         ═══════════════════════════════════════════════════════ -->
-    <div class="scene" id="scene-3">
-      <div class="app-frame">
-        <div class="demo-topbar">
-          <div class="demo-topbar-logo">JobFairX</div>
-          <div class="demo-topbar-user">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            Sarah Thompson
-          </div>
-        </div>
-        <div class="demo-event-header">
-          <h1>Dallas Healthcare Hiring Event</h1>
-          <div class="demo-event-meta">May 15, 2026 <span class="sep">|</span> 9:00 AM – 4:00 PM CT</div>
-        </div>
-        <div class="demo-tabs">
-          <div class="demo-tab">Waiting to interview (0)</div>
-          <div class="demo-tab">Interviewing (0)</div>
-          <div class="demo-tab">Interviewed (0)</div>
-          <div class="demo-tab active">Not yet interviewed (16)</div>
-        </div>
-        <div class="demo-tab-content" style="overflow: auto;">
-          <div class="live-section">
-            <div class="live-section-hdr">
-              <svg viewBox="0 0 24 24" fill="none" style="width:16px;height:16px;"><circle cx="12" cy="12" r="10" fill="#991b1b"/><path d="M12 8v4M12 16h.01" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
-              Candidates awaiting your response (8)
-            </div>
-            <table class="demo-table" style="border:none; border-radius: 0;">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Desired job</th>
-                  <th>Requested time</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>
-                    <div style="font-weight:600;">Tamara Williams</div>
-                    <div style="font-size:12px; color:#0044B3;">View resume · Message</div>
-                  </td>
-                  <td>Registered Nurse</td>
-                  <td>9:00 AM – 9:30 AM CT</td>
-                  <td>
-                    <div style="display:flex; gap:6px;">
-                      <button class="btn-accept highlight">Accept</button>
-                      <button class="btn-decline">Decline</button>
-                      <button class="btn-reschedule">Reschedule</button>
-                    </div>
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    <div style="font-weight:600;">Marcus Johnson</div>
-                    <div style="font-size:12px; color:#0044B3;">View resume · Message</div>
-                  </td>
-                  <td>Web Developer</td>
-                  <td>9:30 AM – 10:00 AM CT</td>
-                  <td>
-                    <div style="display:flex; gap:6px;">
-                      <button class="btn-accept">Accept</button>
-                      <button class="btn-decline">Decline</button>
-                      <button class="btn-reschedule">Reschedule</button>
-                    </div>
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    <div style="font-weight:600;">Priya Patel</div>
-                    <div style="font-size:12px; color:#0044B3;">View resume · Message</div>
-                  </td>
-                  <td>Medical Assistant</td>
-                  <td>10:00 AM – 10:30 AM CT</td>
-                  <td>
-                    <div style="display:flex; gap:6px;">
-                      <button class="btn-accept">Accept</button>
-                      <button class="btn-decline">Decline</button>
-                      <button class="btn-reschedule">Reschedule</button>
-                    </div>
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    <div style="font-weight:600;">Daniel Ortiz</div>
-                    <div style="font-size:12px; color:#0044B3;">View resume · Message</div>
-                  </td>
-                  <td>Registered Nurse</td>
-                  <td>10:30 AM – 11:00 AM CT</td>
-                  <td>
-                    <div style="display:flex; gap:6px;">
-                      <button class="btn-accept">Accept</button>
-                      <button class="btn-decline">Decline</button>
-                      <button class="btn-reschedule">Reschedule</button>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
+        // Show/hide scenes
+        function showScene(sceneNum) {
+            document.querySelectorAll('.scene').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.outro-slide').forEach(s => s.classList.remove('active'));
 
-    <!-- ═══════════════════════════════════════════════════════
-         SCENE 4 — PROPOSE NEW INTERVIEW TIME (MODAL)
-         ═══════════════════════════════════════════════════════ -->
-    <div class="scene" id="scene-4">
-      <div class="app-frame">
-        <div class="demo-topbar">
-          <div class="demo-topbar-logo">JobFairX</div>
-          <div class="demo-topbar-user">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            Sarah Thompson
-          </div>
-        </div>
-        <div class="demo-event-header">
-          <h1>Dallas Healthcare Hiring Event</h1>
-          <div class="demo-event-meta">May 15, 2026 <span class="sep">|</span> 9:00 AM – 4:00 PM CT</div>
-        </div>
-        <div class="demo-tabs">
-          <div class="demo-tab">Waiting to interview (0)</div>
-          <div class="demo-tab">Interviewing (0)</div>
-          <div class="demo-tab">Interviewed (0)</div>
-          <div class="demo-tab active">Not yet interviewed (16)</div>
-        </div>
-        <div class="demo-tab-content" style="filter: blur(1px); opacity: 0.5;"></div>
+            if (sceneNum < scenes.length) {
+                document.querySelector(`[data-scene="${sceneNum}"]`).classList.add('active');
+            } else {
+                document.querySelector(`[data-scene="10"]`).classList.add('active');
+            }
 
-        <!-- Modal overlay -->
-        <div class="demo-modal-overlay">
-          <div class="demo-modal highlight">
-            <h2>Propose new time</h2>
-            <p>Suggest a different interview time for <strong>Tamara Williams</strong>.</p>
-            <label>Date</label>
-            <input type="text" value="May 15, 2026" readonly style="cursor:default;">
-            <label>Time</label>
-            <select style="cursor:default;">
-              <option>2:00 PM – 2:30 PM CT</option>
-            </select>
-            <label>Message (optional)</label>
-            <input type="text" value="I'd love to meet — this time works better for my schedule." readonly style="cursor:default;">
-            <div class="demo-modal-actions">
-              <button class="btn-decline" style="padding:10px 20px;">Cancel</button>
-              <button class="btn-accept" style="padding:10px 20px; font-size:14px;">Send proposal</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+            updateCaption();
+            updateProgressBar();
+        }
 
-    <!-- ═══════════════════════════════════════════════════════
-         SCENE 5 — DAY OF: WAITING TO INTERVIEW (LIVE)
-         ═══════════════════════════════════════════════════════ -->
-    <div class="scene" id="scene-5">
-      <div class="app-frame">
-        <div class="demo-topbar">
-          <div class="demo-topbar-logo">JobFairX</div>
-          <div style="display:flex; align-items:center; gap:12px;">
-            <div style="display:flex; align-items:center; gap:6px; padding:6px 12px; border:2px solid #0044B3; border-radius:8px;">
-              <span style="font-size:13px; color:#595959;">Your status</span>
-              <span style="width:8px; height:8px; border-radius:50%; background:#16a34a;"></span>
-              <span style="font-size:13px; font-weight:700; color:#0044B3;">Online</span>
-            </div>
-            <div class="demo-topbar-user">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-              Sarah Thompson
-            </div>
-          </div>
-        </div>
-        <div class="demo-event-header">
-          <h1>Dallas Healthcare Hiring Event</h1>
-          <div class="demo-event-meta">
-            <span style="width:8px; height:8px; border-radius:50%; background:#16a34a;"></span>
-            Event is live <span class="sep">|</span> May 15, 2026 <span class="sep">|</span> 9:00 AM – 4:00 PM CT
-          </div>
-        </div>
-        <div class="demo-tabs">
-          <div class="demo-tab active">Waiting to interview (5)</div>
-          <div class="demo-tab">Interviewing (1)</div>
-          <div class="demo-tab">Interviewed (3)</div>
-          <div class="demo-tab">Not yet interviewed (8)</div>
-        </div>
-        <div class="demo-tab-content" style="overflow: auto;">
-          <!-- Interview rooms -->
-          <div class="live-section" style="margin-bottom: 12px;">
-            <div class="live-section-hdr">
-              <span class="green-dot"></span> Interview rooms (2)
-            </div>
-            <table class="demo-table" style="border:none; border-radius:0;">
-              <thead><tr><th>Interviewer</th><th>Status</th><th>Current candidate</th><th>Time</th></tr></thead>
-              <tbody>
-                <tr>
-                  <td style="font-weight:600;">Sarah Thompson</td>
-                  <td><span class="badge badge-green">Available</span></td>
-                  <td style="color:#595959;">—</td>
-                  <td>—</td>
-                </tr>
-                <tr>
-                  <td style="font-weight:600;">Brandon Lowenberg</td>
-                  <td><span class="badge badge-blue">Interviewing</span></td>
-                  <td style="font-weight:600;">Maria Lopez</td>
-                  <td>12 min</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+        // Update progress bar
+        function updateProgressBar() {
+            const totalScenes = 11; // 10 scenes + outro
+            const progress = ((currentScene + 1) / totalScenes) * 100;
+            progressBar.style.width = progress + '%';
+        }
 
-          <!-- Waiting rooms -->
-          <div class="live-section">
-            <div class="live-section-hdr">
-              <span class="amber-dot"></span> Waiting rooms (3)
-            </div>
-            <table class="demo-table" style="border:none; border-radius:0;">
-              <thead><tr><th>Candidate</th><th>Job</th><th>Scheduled</th><th>Wait time</th><th></th></tr></thead>
-              <tbody>
-                <tr class="highlight">
-                  <td>
-                    <div style="font-weight:600;">James Mitchell</div>
-                    <div style="font-size:12px; color:#0044B3;">View resume</div>
-                  </td>
-                  <td>Physical Therapist</td>
-                  <td>11:00 AM CT</td>
-                  <td>4 min</td>
-                  <td><button class="btn-start">Start interview</button></td>
-                </tr>
-                <tr>
-                  <td>
-                    <div style="font-weight:600;">Keisha Brown</div>
-                    <div style="font-size:12px; color:#0044B3;">View resume</div>
-                  </td>
-                  <td>Full Stack Developer</td>
-                  <td>11:30 AM CT</td>
-                  <td>2 min</td>
-                  <td><button class="btn-start">Start interview</button></td>
-                </tr>
-                <tr>
-                  <td>
-                    <div style="font-weight:600;">Arun Kurapati</div>
-                    <div style="font-size:12px; color:#0044B3;">View resume</div>
-                  </td>
-                  <td>Lab Technician</td>
-                  <td>12:00 PM CT</td>
-                  <td>Just joined</td>
-                  <td><button class="btn-start">Start interview</button></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
+        // Start scene with cursor animation
+        function startScene() {
+            clearTimeout(sceneTimeout);
+            clearTimeout(cursorTimeout);
 
-    <!-- ═══════════════════════════════════════════════════════
-         SCENE 6 — START INTERVIEW (TRANSITION)
-         ═══════════════════════════════════════════════════════ -->
-    <div class="scene" id="scene-6">
-      <div class="app-frame" style="background: #1a1a2e;">
-        <div style="display:flex; align-items:center; justify-content:center; height:100%; flex-direction:column; gap:16px;">
-          <div style="width:80px; height:80px; border-radius:50%; background:linear-gradient(135deg, #667eea, #764ba2); display:flex; align-items:center; justify-content:center;">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
-          </div>
-          <div style="color:#fff; font-size:22px; font-weight:700;">Connecting to James Mitchell...</div>
-          <div style="color:rgba(255,255,255,0.5); font-size:14px;">Physical Therapist · 11:00 AM CT</div>
-          <div style="margin-top:8px;">
-            <div style="width:200px; height:4px; background:rgba(255,255,255,0.1); border-radius:2px; overflow:hidden;">
-              <div style="width:70%; height:100%; background:#0044B3; border-radius:2px; animation: loading 1.5s ease-in-out infinite;"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+            showScene(currentScene);
+            hideCursor();
 
-    <!-- ═══════════════════════════════════════════════════════
-         SCENE 7 — INTERVIEW SCREEN
-         ═══════════════════════════════════════════════════════ -->
-    <div class="scene" id="scene-7">
-      <div class="app-frame" style="background: #1a1a2e;">
-        <div class="interview-layout">
-          <!-- Video area -->
-          <div class="interview-video-area">
-            <div class="interview-main-video">
-              <div class="person-silhouette">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-              </div>
-              <div class="candidate-name-overlay">James Mitchell</div>
-              <div class="interview-self-video">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                <div class="self-name-overlay">You</div>
-              </div>
-            </div>
-            <div class="interview-controls">
-              <button class="ctrl-btn ctrl-btn-dark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg></button>
-              <button class="ctrl-btn ctrl-btn-dark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg></button>
-              <button class="ctrl-btn ctrl-btn-dark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></button>
-              <button class="ctrl-btn ctrl-btn-red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22.54 6.42a2.78 2.78 0 00-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 00-1.94 2 29 29 0 000 11.18 2.78 2.78 0 001.94 2c1.72.44 8.6.44 8.6.44s6.88 0 8.6-.44a2.78 2.78 0 001.94-2 29 29 0 000-11.18z"/><line x1="1" y1="1" x2="23" y2="23" stroke-width="2.5"/></svg></button>
-            </div>
-          </div>
-          <!-- Side panel -->
-          <div class="interview-side-panel">
-            <div class="panel-tabs">
-              <div class="panel-tab active">Resume</div>
-              <div class="panel-tab">Chat</div>
-              <div class="panel-tab">Notes</div>
-            </div>
-            <div class="panel-body" style="overflow:auto;">
-              <div style="text-align:center; margin-bottom:16px;">
-                <div style="font-size:18px; font-weight:700;">James Mitchell</div>
-                <div style="font-size:13px; color:#595959;">Physical Therapist</div>
-                <div style="font-size:12px; color:#595959;">Dallas, TX · james.mitchell@email.com</div>
-              </div>
-              <h4>Experience</h4>
-              <p><strong>Senior Physical Therapist</strong><br>Baylor Scott & White · 2019 – Present</p>
-              <p><strong>Physical Therapist</strong><br>UT Southwestern · 2016 – 2019</p>
-              <h4>Education</h4>
-              <p><strong>Doctor of Physical Therapy</strong><br>Texas Woman's University · 2016</p>
-              <h4>Certifications</h4>
-              <ul>
-                <li>Board Certified Orthopedic Specialist</li>
-                <li>BLS/CPR Certified</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+            if (currentScene < scenes.length) {
+                const sceneData = scenes[currentScene];
+                if (sceneData.cursorTarget) {
+                    // Show cursor after 1s
+                    cursorTimeout = setTimeout(() => {
+                        animateCursor(sceneData.cursorTarget);
+                    }, 1000);
+                }
+            }
 
-    <!-- ═══════════════════════════════════════════════════════
-         SCENE 8 — END INTERVIEW & EVALUATE
-         ═══════════════════════════════════════════════════════ -->
-    <div class="scene" id="scene-8">
-      <div class="app-frame" style="background: #1a1a2e;">
-        <div class="interview-layout" style="filter:blur(2px); opacity:0.3;">
-          <div class="interview-video-area">
-            <div class="interview-main-video"></div>
-          </div>
-          <div class="interview-side-panel"></div>
-        </div>
-        <div class="demo-modal-overlay" style="border-radius:12px;">
-          <div class="demo-modal" style="width:480px;">
-            <h2>How was this interview?</h2>
-            <p>Rate your interview with <strong>James Mitchell</strong></p>
+            // Auto-advance after 5.5 seconds
+            if (isPlaying) {
+                sceneTimeout = setTimeout(nextScene, 5500);
+            }
+        }
 
-            <div class="eval-option selected">
-              <div class="eval-radio"></div>
-              <span>👍 Recommend moving forward</span>
-            </div>
-            <div class="eval-option">
-              <div class="eval-radio"></div>
-              <span>🤔 Maybe — needs discussion</span>
-            </div>
-            <div class="eval-option">
-              <div class="eval-radio"></div>
-              <span>👎 Do not recommend</span>
-            </div>
+        // Animate cursor movement
+        function animateCursor(target) {
+            const vw = window.innerWidth;
+            const vh = window.innerHeight;
 
-            <label style="margin-top:16px;">Notes (optional)</label>
-            <input type="text" value="Strong clinical background, great communicator. 8 years experience." readonly style="cursor:default;">
+            // Calculate end position in pixels
+            const endX = (target.x / 100) * vw;
+            const endY = (target.y / 100) * vh;
 
-            <div class="demo-modal-actions">
-              <button class="btn-decline" style="padding:10px 20px;">Skip</button>
-              <button class="btn-accept" style="padding:10px 20px; font-size:14px;">Submit evaluation</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+            // Start from a natural position (lower-right area, like a real hand)
+            const startX = endX + 180 + Math.random() * 100;
+            const startY = endY + 120 + Math.random() * 80;
 
-    <!-- ═══════════════════════════════════════════════════════
-         SCENE 9 — INTERVIEWED TAB (LIVE)
-         ═══════════════════════════════════════════════════════ -->
-    <div class="scene" id="scene-9">
-      <div class="app-frame">
-        <div class="demo-topbar">
-          <div class="demo-topbar-logo">JobFairX</div>
-          <div style="display:flex; align-items:center; gap:12px;">
-            <div style="display:flex; align-items:center; gap:6px; padding:6px 12px; border:2px solid #0044B3; border-radius:8px;">
-              <span style="font-size:13px; color:#595959;">Your status</span>
-              <span style="width:8px; height:8px; border-radius:50%; background:#16a34a;"></span>
-              <span style="font-size:13px; font-weight:700; color:#0044B3;">Online</span>
-            </div>
-            <div class="demo-topbar-user">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-              Sarah Thompson
-            </div>
-          </div>
-        </div>
-        <div class="demo-event-header">
-          <h1>Dallas Healthcare Hiring Event</h1>
-          <div class="demo-event-meta">
-            <span style="width:8px; height:8px; border-radius:50%; background:#16a34a;"></span>
-            Event is live <span class="sep">|</span> May 15, 2026 <span class="sep">|</span> 9:00 AM – 4:00 PM CT
-          </div>
-        </div>
-        <div class="demo-tabs">
-          <div class="demo-tab">Waiting to interview (2)</div>
-          <div class="demo-tab">Interviewing (1)</div>
-          <div class="demo-tab active">Interviewed (5)</div>
-          <div class="demo-tab">Not yet interviewed (8)</div>
-        </div>
-        <div class="demo-tab-content" style="overflow: auto;">
-          <div class="live-section">
-            <div class="live-section-hdr">Interviewed candidates (5)</div>
-            <table class="demo-table" style="border:none; border-radius:0;">
-              <thead><tr><th>Candidate</th><th>Job</th><th>Interviewer</th><th>Duration</th><th>Evaluation</th></tr></thead>
-              <tbody>
-                <tr>
-                  <td>
-                    <div style="font-weight:600;">James Mitchell</div>
-                    <div style="font-size:12px; color:#0044B3;">View resume</div>
-                  </td>
-                  <td>Physical Therapist</td>
-                  <td>Sarah Thompson</td>
-                  <td>22 min</td>
-                  <td><span class="badge badge-green">👍 Recommend</span></td>
-                </tr>
-                <tr>
-                  <td>
-                    <div style="font-weight:600;">Maria Lopez</div>
-                    <div style="font-size:12px; color:#0044B3;">View resume</div>
-                  </td>
-                  <td>Registered Nurse</td>
-                  <td>Brandon Lowenberg</td>
-                  <td>18 min</td>
-                  <td><span class="badge badge-green">👍 Recommend</span></td>
-                </tr>
-                <tr>
-                  <td>
-                    <div style="font-weight:600;">Priya Patel</div>
-                    <div style="font-size:12px; color:#0044B3;">View resume</div>
-                  </td>
-                  <td>Medical Assistant</td>
-                  <td>Sarah Thompson</td>
-                  <td>15 min</td>
-                  <td><span class="badge badge-amber">🤔 Maybe</span></td>
-                </tr>
-                <tr>
-                  <td>
-                    <div style="font-weight:600;">Daniel Ortiz</div>
-                    <div style="font-size:12px; color:#0044B3;">View resume</div>
-                  </td>
-                  <td>Registered Nurse</td>
-                  <td>Brandon Lowenberg</td>
-                  <td>20 min</td>
-                  <td><span class="badge badge-green">👍 Recommend</span></td>
-                </tr>
-                <tr>
-                  <td>
-                    <div style="font-weight:600;">Keisha Brown</div>
-                    <div style="font-size:12px; color:#0044B3;">View resume</div>
-                  </td>
-                  <td>Full Stack Developer</td>
-                  <td>Sarah Thompson</td>
-                  <td>25 min</td>
-                  <td><span class="badge badge-red">👎 Pass</span></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
+            // Place cursor at start position (no transition)
+            cursorSvg.classList.remove('animating');
+            cursorSvg.style.left = startX + 'px';
+            cursorSvg.style.top = startY + 'px';
 
-    <!-- ═══════════════════════════════════════════════════════
-         SCENE 10 — POST-EVENT: COULDN'T MAKE IT
-         ═══════════════════════════════════════════════════════ -->
-    <div class="scene" id="scene-10">
-      <div class="app-frame">
-        <div class="demo-topbar">
-          <div class="demo-topbar-logo">JobFairX</div>
-          <div class="demo-topbar-user">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            Sarah Thompson
-          </div>
-        </div>
-        <div class="demo-event-header">
-          <h1>Dallas Healthcare Hiring Event</h1>
-          <div class="demo-event-meta">
-            <span class="badge badge-red" style="font-size:12px;">Event ended</span>
-            <span class="sep">|</span> May 15, 2026
-          </div>
-        </div>
-        <div class="demo-tabs">
-          <div class="demo-tab">Waiting to interview (0)</div>
-          <div class="demo-tab">Interviewing (0)</div>
-          <div class="demo-tab">Interviewed (12)</div>
-          <div class="demo-tab active">Not yet interviewed (10)</div>
-        </div>
-        <div class="demo-tab-content" style="overflow: auto;">
-          <div class="live-section">
-            <div style="padding: 16px 20px;">
-              <div style="font-size: 15px; font-weight: 700;">10 candidates couldn't make the interview</div>
-              <div class="followup-note">They are interested in your company and the job opportunities.</div>
-            </div>
-            <table class="demo-table" style="border:none; border-radius:0;">
-              <thead><tr><th>Name</th><th>Desired job</th><th>Interview time</th><th>Action</th></tr></thead>
-              <tbody>
-                <tr>
-                  <td>
-                    <div style="font-weight:600;">Tamara Williams</div>
-                    <div style="font-size:12px; color:#0044B3;">View resume</div>
-                  </td>
-                  <td>Registered Nurse</td>
-                  <td>9:00 AM – 9:30 AM CT</td>
-                  <td style="position:relative;">
-                    <div class="dot-menu-btn">
-                      <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="6" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="18" cy="12" r="2"/></svg>
-                    </div>
-                    <div class="row-popup highlight" style="top:-8px; display:block;">
-                      <div class="row-popup-item">Schedule follow-up interview</div>
-                      <div class="row-popup-item">Send a Message</div>
-                    </div>
-                  </td>
-                </tr>
-                <tr>
-                  <td><div style="font-weight:600;">Marcus Johnson</div><div style="font-size:12px; color:#0044B3;">View resume</div></td>
-                  <td>Web Developer</td>
-                  <td>9:30 AM – 10:00 AM CT</td>
-                  <td>
-                    <div class="dot-menu-btn">
-                      <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="6" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="18" cy="12" r="2"/></svg>
-                    </div>
-                  </td>
-                </tr>
-                <tr>
-                  <td><div style="font-weight:600;">Adrienne Fuller</div><div style="font-size:12px; color:#0044B3;">View resume</div></td>
-                  <td>Registered Nurse</td>
-                  <td>10:00 AM – 10:30 AM CT</td>
-                  <td>
-                    <div class="dot-menu-btn">
-                      <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="6" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="18" cy="12" r="2"/></svg>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
+            // Show cursor
+            requestAnimationFrame(() => {
+                cursorSvg.classList.add('visible');
 
-    <!-- ═══════════════════════════════════════════════════════
-         SCENE 11 — SCHEDULE FOLLOW-UP (MODAL)
-         ═══════════════════════════════════════════════════════ -->
-    <div class="scene" id="scene-11">
-      <div class="app-frame">
-        <div class="demo-topbar">
-          <div class="demo-topbar-logo">JobFairX</div>
-          <div class="demo-topbar-user">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            Sarah Thompson
-          </div>
-        </div>
-        <div class="demo-event-header">
-          <h1>Dallas Healthcare Hiring Event</h1>
-          <div class="demo-event-meta">
-            <span class="badge badge-red" style="font-size:12px;">Event ended</span>
-            <span class="sep">|</span> May 15, 2026
-          </div>
-        </div>
-        <div class="demo-tabs">
-          <div class="demo-tab">Waiting to interview (0)</div>
-          <div class="demo-tab">Interviewing (0)</div>
-          <div class="demo-tab">Interviewed (12)</div>
-          <div class="demo-tab active">Not yet interviewed (10)</div>
-        </div>
-        <div class="demo-tab-content" style="filter: blur(1px); opacity: 0.5;"></div>
+                // Start smooth movement after a brief pause
+                requestAnimationFrame(() => {
+                    cursorSvg.classList.add('animating');
+                    cursorSvg.style.left = endX + 'px';
+                    cursorSvg.style.top = endY + 'px';
+                });
+            });
 
-        <div class="demo-modal-overlay">
-          <div class="demo-modal highlight">
-            <h2>Schedule follow-up interview</h2>
-            <p>Propose a new interview time for <strong>Tamara Williams</strong>.</p>
-            <label>Date</label>
-            <input type="text" value="May 20, 2026" readonly style="cursor:default;">
-            <label>Time</label>
-            <select style="cursor:default;">
-              <option>10:00 AM – 10:30 AM CT</option>
-            </select>
-            <label>Message (optional)</label>
-            <input type="text" value="We'd still love to meet — does this time work for you?" readonly style="cursor:default;">
-            <div class="demo-modal-actions">
-              <button class="btn-decline" style="padding:10px 20px;">Cancel</button>
-              <button class="btn-accept" style="padding:10px 20px; font-size:14px;">Send proposal</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+            // Click animation after movement completes
+            setTimeout(() => {
+                cursorSvg.classList.add('clicking');
+                setTimeout(() => {
+                    cursorSvg.classList.remove('clicking');
+                }, 300);
+            }, 1100);
+        }
 
-  </div><!-- /scene-viewport -->
+        // Hide cursor
+        function hideCursor() {
+            cursorSvg.classList.remove('visible', 'moving', 'clicking');
+        }
 
-  <!-- ═══════════════════════════════════════════════════════
-       CAPTION BAR + CONTROLS
-       ═══════════════════════════════════════════════════════ -->
-  <div class="caption-bar">
-    <div>
-      <div class="caption-scene-label" id="sceneLabel">Welcome</div>
-      <div class="caption-text" id="captionText">See how employers manage candidates, conduct video interviews, and hire faster.</div>
-    </div>
-    <div class="demo-controls">
-      <div class="progress-dots" id="progressDots"></div>
-      <button class="nav-btn" id="prevBtn" onclick="prevScene()" disabled>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
-      </button>
-      <div class="scene-counter" id="sceneCounter">0 / 11</div>
-      <button class="nav-btn" id="nextBtn" onclick="nextScene()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-      </button>
-    </div>
-  </div>
-</div>
+        // Navigation
+        function nextScene() {
+            currentScene++;
+            if (currentScene > 10) {
+                currentScene = 0;
+                // Pause for 3s before restarting
+                clearTimeout(sceneTimeout);
+                isPlaying = false;
+                setTimeout(() => {
+                    isPlaying = true;
+                    startScene();
+                }, 3000);
+            } else {
+                startScene();
+            }
+        }
 
-<style>
-@keyframes loading {
-  0% { width: 0; }
-  50% { width: 100%; }
-  100% { width: 0; }
-}
-</style>
+        function prevScene() {
+            currentScene = Math.max(0, currentScene - 1);
+            startScene();
+        }
 
-<script>
-var currentScene = 0;
-var totalScenes = 12; // 0 through 11
+        // Pause/Play
+        function togglePlayPause() {
+            isPlaying = !isPlaying;
+            clearTimeout(sceneTimeout);
 
-var captions = [
-  { label: 'Welcome', text: 'See how employers manage candidates, conduct video interviews, and hire faster.' },
-  { label: 'Scene 1 · Dashboard', text: 'Manage all your hiring events from one dashboard. See upcoming events, candidate counts, and jump into any lobby.' },
-  { label: 'Scene 2 · Invite Interviewers', text: 'Add your hiring team as interviewers with one click. Track who has accepted and who is still pending.' },
-  { label: 'Scene 3 · Review Candidates', text: 'Before the event, review incoming interview requests. Accept, decline, or propose a different time.' },
-  { label: 'Scene 4 · Propose New Time', text: 'Can\'t make the requested time? Propose a new interview slot and send a message — candidates get notified instantly.' },
-  { label: 'Scene 5 · Event Day: Lobby', text: 'On event day, see who\'s checked in and waiting. Interview rooms show real-time status for your entire team.' },
-  { label: 'Scene 6 · Starting Interview', text: 'Click "Start interview" to connect directly with a candidate. No downloads, no separate apps — it\'s built in.' },
-  { label: 'Scene 7 · Interview Screen', text: 'Interview face-to-face with built-in video. View the candidate\'s resume, chat, and take notes — all on one screen.' },
-  { label: 'Scene 8 · Evaluate', text: 'After each interview, rate the candidate and leave notes. Your evaluations are saved and shared with your team.' },
-  { label: 'Scene 9 · Interviewed', text: 'Track every completed interview with evaluations, duration, and interviewer — all in one place.' },
-  { label: 'Scene 10 · Follow Up', text: 'After the event, see candidates who couldn\'t make their interview. They\'re still interested — schedule a follow-up anytime.' },
-  { label: 'Scene 11 · Schedule Follow-Up', text: 'Propose a new interview time beyond the event. Keep candidates engaged and never miss a great hire.' }
-];
+            if (isPlaying) {
+                sceneTimeout = setTimeout(nextScene, 5500);
+            }
+        }
 
-// Build progress dots
-var dotsContainer = document.getElementById('progressDots');
-for (var i = 0; i < totalScenes; i++) {
-  var dot = document.createElement('div');
-  dot.className = 'progress-dot' + (i === 0 ? ' active' : '');
-  dot.setAttribute('data-scene', i);
-  dot.onclick = (function(idx) { return function() { goToScene(idx); }; })(i);
-  dotsContainer.appendChild(dot);
-}
+        // Spacebar control
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                togglePlayPause();
+                showSpacebarHint();
+            }
+        });
 
-function goToScene(idx) {
-  if (idx < 0 || idx >= totalScenes) return;
+        // Show spacebar hint on interaction
+        function showSpacebarHint() {
+            spacebar.classList.add('show');
+            clearTimeout(window.spacebarTimeout);
+            window.spacebarTimeout = setTimeout(() => {
+                spacebar.classList.remove('show');
+            }, 3000);
+        }
 
-  // Remove active from current
-  var current = document.getElementById('scene-' + currentScene);
-  if (current) current.classList.remove('active');
+        // Keyboard navigation (hidden from user, for testing)
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' && e.ctrlKey) nextScene();
+            if (e.key === 'ArrowLeft' && e.ctrlKey) prevScene();
+        });
 
-  // Add active to new
-  currentScene = idx;
-  var next = document.getElementById('scene-' + currentScene);
-  if (next) next.classList.add('active');
+        // Click to advance (disabled to avoid accidental clicks during recording)
+        // walkthrough.addEventListener('click', () => {
+        //     if (isPlaying) nextScene();
+        // });
 
-  // Update caption
-  document.getElementById('sceneLabel').textContent = captions[currentScene].label;
-  document.getElementById('captionText').textContent = captions[currentScene].text;
-
-  // Update counter
-  document.getElementById('sceneCounter').textContent = currentScene + ' / ' + (totalScenes - 1);
-
-  // Update buttons
-  document.getElementById('prevBtn').disabled = currentScene === 0;
-  document.getElementById('nextBtn').disabled = currentScene === totalScenes - 1;
-
-  // Update dots
-  var dots = dotsContainer.children;
-  for (var i = 0; i < dots.length; i++) {
-    dots[i].className = 'progress-dot';
-    if (i === currentScene) dots[i].className += ' active';
-    else if (i < currentScene) dots[i].className += ' visited';
-  }
-}
-
-function nextScene() { goToScene(currentScene + 1); }
-function prevScene() { goToScene(currentScene - 1); }
-
-// Keyboard navigation
-document.addEventListener('keydown', function(e) {
-  if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); nextScene(); }
-  if (e.key === 'ArrowLeft') { e.preventDefault(); prevScene(); }
-});
-</script>
-
+        // Start
+        init();
+    </script>
 </body>
 </html>
