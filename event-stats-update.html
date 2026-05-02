@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Stats Update — Design Reference</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Noto Sans', sans-serif;
+            background: #f5f6f8;
+            color: #1a1a1a;
+            padding: 40px 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .page-header {
+            margin-bottom: 40px;
+        }
+        .page-header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: #003d8a;
+            margin-bottom: 8px;
+        }
+        .page-header p {
+            font-size: 14px;
+            color: #666;
+        }
+        .section-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #003d8a;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #003d8a;
+        }
+        .label-change {
+            background: #fff;
+            border-radius: 10px;
+            padding: 24px;
+            margin-bottom: 32px;
+            border: 1px solid #e0e4ea;
+        }
+        .label-change .row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 0;
+        }
+        .label-change .row + .row {
+            border-top: 1px solid #f0f0f0;
+        }
+        .label-old {
+            background: #fef2f2;
+            color: #991b1b;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            text-decoration: line-through;
+        }
+        .label-arrow {
+            color: #999;
+            font-size: 18px;
+        }
+        .label-new {
+            background: #ecfdf5;
+            color: #065f46;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .events-grid {
+            display: grid;
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        .event-card {
+            background: #fff;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid #e0e4ea;
+        }
+        .event-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 20px;
+            background: #f8f9fb;
+            border-bottom: 1px solid #e0e4ea;
+        }
+        .event-type-name {
+            font-size: 15px;
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+        .starter-badge {
+            font-size: 11px;
+            font-weight: 600;
+            color: #065f46;
+            background: #ecfdf5;
+            padding: 3px 10px;
+            border-radius: 20px;
+        }
+        .stats-bar {
+            background: #003d8a;
+            padding: 20px 24px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+        }
+        .stat {
+            text-align: center;
+            padding: 0 16px;
+        }
+        .stat:first-child {
+            border-right: 1px solid rgba(255,255,255,0.15);
+        }
+        .stat-number {
+            font-size: 32px;
+            font-weight: 700;
+            color: #ffffff;
+        }
+        .stat-label {
+            font-size: 10px;
+            color: rgba(255,255,255,0.55);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 4px;
+        }
+        .old-values {
+            padding: 10px 20px;
+            background: #fafafa;
+            border-top: 1px solid #e0e4ea;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+        .old-values span {
+            font-size: 11px;
+            color: #999;
+        }
+        .old-values .old-num {
+            text-decoration: line-through;
+        }
+        .notes {
+            background: #fff;
+            border-radius: 10px;
+            padding: 24px;
+            border: 1px solid #e0e4ea;
+        }
+        .notes h3 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #333;
+        }
+        .notes ul {
+            list-style: none;
+            padding: 0;
+        }
+        .notes li {
+            font-size: 13px;
+            color: #555;
+            padding: 6px 0;
+            padding-left: 20px;
+            position: relative;
+            line-height: 1.5;
+        }
+        .notes li::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 13px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #003d8a;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="page-header">
+            <h1>Event Stats Update</h1>
+            <p>Design reference for developer — May 2, 2026</p>
+        </div>
+
+        <div class="section-title">Label changes</div>
+        <div class="label-change">
+            <div class="row">
+                <span class="label-old">Avg. Interviews / Employer</span>
+                <span class="label-arrow">&rarr;</span>
+                <span class="label-new">Avg. Interviews Per Job</span>
+            </div>
+            <div class="row">
+                <span class="label-old">Avg. Hires / Employer</span>
+                <span class="label-arrow">&rarr;</span>
+                <span class="label-new">Avg. Hires Per Job</span>
+            </div>
+        </div>
+
+        <div class="section-title">Updated stats by event type</div>
+        <div class="events-grid">
+
+            <div class="event-card">
+                <div class="event-card-header">
+                    <span class="event-type-name">Entry Level</span>
+                    <span class="starter-badge">Starter: 24+ interviews</span>
+                </div>
+                <div class="stats-bar">
+                    <div class="stat">
+                        <div class="stat-number">26</div>
+                        <div class="stat-label">Avg. Interviews Per Job</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number">8</div>
+                        <div class="stat-label">Avg. Hires Per Job</div>
+                    </div>
+                </div>
+                <div class="old-values">
+                    <span>Previously: <span class="old-num">73 Interviews / Employer</span></span>
+                    <span>|</span>
+                    <span><span class="old-num">9 Hires / Employer</span></span>
+                </div>
+            </div>
+
+            <div class="event-card">
+                <div class="event-card-header">
+                    <span class="event-type-name">Diversity</span>
+                    <span class="starter-badge">Starter: 18+ interviews</span>
+                </div>
+                <div class="stats-bar">
+                    <div class="stat">
+                        <div class="stat-number">20</div>
+                        <div class="stat-label">Avg. Interviews Per Job</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number">6</div>
+                        <div class="stat-label">Avg. Hires Per Job</div>
+                    </div>
+                </div>
+                <div class="old-values">
+                    <span>Previously: <span class="old-num">35 Interviews / Employer</span></span>
+                    <span>|</span>
+                    <span><span class="old-num">11 Hires / Employer</span></span>
+                </div>
+            </div>
+
+            <div class="event-card">
+                <div class="event-card-header">
+                    <span class="event-type-name">Healthcare</span>
+                    <span class="starter-badge">Starter: 15+ interviews</span>
+                </div>
+                <div class="stats-bar">
+                    <div class="stat">
+                        <div class="stat-number">18</div>
+                        <div class="stat-label">Avg. Interviews Per Job</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number">5</div>
+                        <div class="stat-label">Avg. Hires Per Job</div>
+                    </div>
+                </div>
+                <div class="old-values">
+                    <span>Previously: <span class="old-num">35 Interviews / Employer</span></span>
+                    <span>|</span>
+                    <span><span class="old-num">8 Hires / Employer</span></span>
+                </div>
+            </div>
+
+            <div class="event-card">
+                <div class="event-card-header">
+                    <span class="event-type-name">Technology</span>
+                    <span class="starter-badge">Starter: 15+ interviews</span>
+                </div>
+                <div class="stats-bar">
+                    <div class="stat">
+                        <div class="stat-number">17</div>
+                        <div class="stat-label">Avg. Interviews Per Job</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number">5</div>
+                        <div class="stat-label">Avg. Hires Per Job</div>
+                    </div>
+                </div>
+                <div class="old-values">
+                    <span>Previously: <span class="old-num">53 Interviews / Employer</span></span>
+                    <span>|</span>
+                    <span><span class="old-num">11 Hires / Employer</span></span>
+                </div>
+            </div>
+
+            <div class="event-card">
+                <div class="event-card-header">
+                    <span class="event-type-name">Veterans</span>
+                    <span class="starter-badge">Starter: 15+ interviews</span>
+                </div>
+                <div class="stats-bar">
+                    <div class="stat">
+                        <div class="stat-number">18</div>
+                        <div class="stat-label">Avg. Interviews Per Job</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number">6</div>
+                        <div class="stat-label">Avg. Hires Per Job</div>
+                    </div>
+                </div>
+                <div class="old-values">
+                    <span>Previously: <span class="old-num">35 Interviews / Employer</span></span>
+                    <span>|</span>
+                    <span><span class="old-num">7 Hires / Employer</span></span>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="section-title">Implementation notes</div>
+        <div class="notes">
+            <h3>Key points</h3>
+            <ul>
+                <li>Only the interviews and hires stats are changing. The "Pre-Registered Candidates" section stays exactly as-is.</li>
+                <li>Labels should render uppercase to match existing design: "AVG. INTERVIEWS PER JOB"</li>
+                <li>Starter package interview promises need to be updated per event type (no longer a flat 20+ across all types).</li>
+                <li>Growth package = Starter count &times; 3 (e.g., Entry Level = 72+, Healthcare = 45+)</li>
+                <li>Pro package = Starter count &times; 6 (e.g., Entry Level = 144+, Healthcare = 90+)</li>
+                <li>Layout, styling, colors, and positioning of the stats bar are not changing. This is a content-only update.</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>
