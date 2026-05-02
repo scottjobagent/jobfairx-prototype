@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Package Interview Counts Update — Design Reference</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Noto Sans', sans-serif;
+            background: #f5f6f8;
+            color: #1a1a1a;
+            padding: 40px 20px;
+        }
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+        }
+        .page-header {
+            margin-bottom: 40px;
+        }
+        .page-header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: #003d8a;
+            margin-bottom: 8px;
+        }
+        .page-header p {
+            font-size: 14px;
+            color: #666;
+        }
+        .section-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #003d8a;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #003d8a;
+        }
+        .change-summary {
+            background: #fff;
+            border-radius: 10px;
+            padding: 24px;
+            border: 1px solid #e0e4ea;
+            margin-bottom: 32px;
+        }
+        .change-summary p {
+            font-size: 14px;
+            color: #555;
+            line-height: 1.7;
+        }
+        .old-tag {
+            display: inline-block;
+            background: #fef2f2;
+            color: #991b1b;
+            padding: 2px 10px;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 500;
+            text-decoration: line-through;
+        }
+
+        /* Package cards */
+        .event-section {
+            margin-bottom: 36px;
+        }
+        .event-label {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 14px;
+        }
+        .packages {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 16px;
+        }
+        .pkg {
+            background: #fff;
+            border-radius: 12px;
+            border: 1px solid #e0e4ea;
+            padding: 24px 20px;
+            text-align: center;
+            position: relative;
+        }
+        .pkg.popular {
+            border: 2px solid #3b82f6;
+        }
+        .pkg-badge {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #3b82f6;
+            color: #fff;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 4px 14px;
+            border-radius: 20px;
+            white-space: nowrap;
+        }
+        .pkg-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 4px;
+        }
+        .pkg-price {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 2px;
+        }
+        .pkg-per {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 16px;
+        }
+        .pkg-features {
+            list-style: none;
+            text-align: left;
+            padding: 0;
+        }
+        .pkg-features li {
+            font-size: 13px;
+            color: #333;
+            padding: 6px 0;
+            padding-left: 24px;
+            position: relative;
+            line-height: 1.4;
+        }
+        .pkg-features li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: #3b82f6;
+            font-weight: 700;
+            font-size: 14px;
+        }
+        .pkg-features li.highlight {
+            font-weight: 600;
+            color: #003d8a;
+        }
+        .pkg-features li .was {
+            display: block;
+            font-size: 11px;
+            color: #999;
+            font-weight: 400;
+            text-decoration: line-through;
+            margin-top: 2px;
+        }
+        .pkg-btn {
+            display: block;
+            margin-top: 18px;
+            padding: 10px 0;
+            background: #3b82f6;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: default;
+            width: 100%;
+        }
+
+        .notes {
+            background: #fff;
+            border-radius: 10px;
+            padding: 24px;
+            border: 1px solid #e0e4ea;
+        }
+        .notes h3 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #333;
+        }
+        .notes ul {
+            list-style: none;
+            padding: 0;
+        }
+        .notes li {
+            font-size: 13px;
+            color: #555;
+            padding: 6px 0;
+            padding-left: 20px;
+            position: relative;
+            line-height: 1.5;
+        }
+        .notes li::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 13px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #003d8a;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="page-header">
+            <h1>Package Interview Counts Update</h1>
+            <p>Design reference for developer — May 2, 2026</p>
+        </div>
+
+        <div class="section-title">What's changing</div>
+        <div class="change-summary">
+            <p>The "scheduled candidate interviews" line in each package card currently shows a flat count across all event types: <span class="old-tag">20+ / 60+ / 100+</span>. These counts now vary by event type. The number of jobs and recruiter seats per package are NOT changing — only the interview count line.</p>
+        </div>
+
+        <div class="section-title">Updated package cards by event type</div>
+
+        <!-- Entry Level -->
+        <div class="event-section">
+            <div class="event-label">Entry Level Events</div>
+            <div class="packages">
+                <div class="pkg">
+                    <div class="pkg-name">Starter</div>
+                    <div class="pkg-price">$495</div>
+                    <div class="pkg-per">per event</div>
+                    <div class="pkg-features">
+                        <li>Promote 1 job</li>
+                        <li class="highlight">24+ scheduled candidate interviews<span class="was">Was: 20+</span></li>
+                        <li>1 recruiter seat</li>
+                    </div>
+                    <div class="pkg-btn">Reserve My Spot →</div>
+                </div>
+                <div class="pkg popular">
+                    <div class="pkg-badge">Most Popular</div>
+                    <div class="pkg-name">Growth</div>
+                    <div class="pkg-price">$895</div>
+                    <div class="pkg-per">per event</div>
+                    <div class="pkg-features">
+                        <li>Promote up to 3 jobs</li>
+                        <li class="highlight">72+ scheduled candidate interviews<span class="was">Was: 60+</span></li>
+                        <li>Up to 5 recruiter seats</li>
+                    </div>
+                    <div class="pkg-btn">Reserve My Spot →</div>
+                </div>
+                <div class="pkg">
+                    <div class="pkg-name">Pro</div>
+                    <div class="pkg-price">$1,495</div>
+                    <div class="pkg-per">per event</div>
+                    <div class="pkg-features">
+                        <li>Promote up to 6 jobs</li>
+                        <li class="highlight">144+ scheduled candidate interviews<span class="was">Was: 100+</span></li>
+                        <li>Unlimited recruiters</li>
+                    </div>
+                    <div class="pkg-btn">Reserve My Spot →</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Diversity -->
+        <div class="event-section">
+            <div class="event-label">Diversity Events</div>
+            <div class="packages">
+                <div class="pkg">
+                    <div class="pkg-name">Starter</div>
+                    <div class="pkg-price">$495</div>
+                    <div class="pkg-per">per event</div>
+                    <div class="pkg-features">
+                        <li>Promote 1 job</li>
+                        <li class="highlight">18+ scheduled candidate interviews<span class="was">Was: 20+</span></li>
+                        <li>1 recruiter seat</li>
+                    </div>
+                    <div class="pkg-btn">Reserve My Spot →</div>
+                </div>
+                <div class="pkg popular">
+                    <div class="pkg-badge">Most Popular</div>
+                    <div class="pkg-name">Growth</div>
+                    <div class="pkg-price">$895</div>
+                    <div class="pkg-per">per event</div>
+                    <div class="pkg-features">
+                        <li>Promote up to 3 jobs</li>
+                        <li class="highlight">54+ scheduled candidate interviews<span class="was">Was: 60+</span></li>
+                        <li>Up to 5 recruiter seats</li>
+                    </div>
+                    <div class="pkg-btn">Reserve My Spot →</div>
+                </div>
+                <div class="pkg">
+                    <div class="pkg-name">Pro</div>
+                    <div class="pkg-price">$1,495</div>
+                    <div class="pkg-per">per event</div>
+                    <div class="pkg-features">
+                        <li>Promote up to 6 jobs</li>
+                        <li class="highlight">108+ scheduled candidate interviews<span class="was">Was: 100+</span></li>
+                        <li>Unlimited recruiters</li>
+                    </div>
+                    <div class="pkg-btn">Reserve My Spot →</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Healthcare -->
+        <div class="event-section">
+            <div class="event-label">Healthcare Events</div>
+            <div class="packages">
+                <div class="pkg">
+                    <div class="pkg-name">Starter</div>
+                    <div class="pkg-price">$495</div>
+                    <div class="pkg-per">per event</div>
+                    <div class="pkg-features">
+                        <li>Promote 1 job</li>
+                        <li class="highlight">15+ scheduled candidate interviews<span class="was">Was: 20+</span></li>
+                        <li>1 recruiter seat</li>
+                    </div>
+                    <div class="pkg-btn">Reserve My Spot →</div>
+                </div>
+                <div class="pkg popular">
+                    <div class="pkg-badge">Most Popular</div>
+                    <div class="pkg-name">Growth</div>
+                    <div class="pkg-price">$895</div>
+                    <div class="pkg-per">per event</div>
+                    <div class="pkg-features">
+                        <li>Promote up to 3 jobs</li>
+                        <li class="highlight">45+ scheduled candidate interviews<span class="was">Was: 60+</span></li>
+                        <li>Up to 5 recruiter seats</li>
+                    </div>
+                    <div class="pkg-btn">Reserve My Spot →</div>
+                </div>
+                <div class="pkg">
+                    <div class="pkg-name">Pro</div>
+                    <div class="pkg-price">$1,495</div>
+                    <div class="pkg-per">per event</div>
+                    <div class="pkg-features">
+                        <li>Promote up to 6 jobs</li>
+                        <li class="highlight">90+ scheduled candidate interviews<span class="was">Was: 100+</span></li>
+                        <li>Unlimited recruiters</li>
+                    </div>
+                    <div class="pkg-btn">Reserve My Spot →</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Technology -->
+        <div class="event-section">
+            <div class="event-label">Technology Events</div>
+            <div class="packages">
+                <div class="pkg">
+                    <div class="pkg-name">Starter</div>
+                    <div class="pkg-price">$495</div>
+                    <div class="pkg-per">per event</div>
+                    <div class="pkg-features">
+                        <li>Promote 1 job</li>
+                        <li class="highlight">15+ scheduled candidate interviews<span class="was">Was: 20+</span></li>
+                        <li>1 recruiter seat</li>
+                    </div>
+                    <div class="pkg-btn">Reserve My Spot →</div>
+                </div>
+                <div class="pkg popular">
+                    <div class="pkg-badge">Most Popular</div>
+                    <div class="pkg-name">Growth</div>
+                    <div class="pkg-price">$895</div>
+                    <div class="pkg-per">per event</div>
+                    <div class="pkg-features">
+                        <li>Promote up to 3 jobs</li>
+                        <li class="highlight">45+ scheduled candidate interviews<span class="was">Was: 60+</span></li>
+                        <li>Up to 5 recruiter seats</li>
+                    </div>
+                    <div class="pkg-btn">Reserve My Spot →</div>
+                </div>
+                <div class="pkg">
+                    <div class="pkg-name">Pro</div>
+                    <div class="pkg-price">$1,495</div>
+                    <div class="pkg-per">per event</div>
+                    <div class="pkg-features">
+                        <li>Promote up to 6 jobs</li>
+                        <li class="highlight">90+ scheduled candidate interviews<span class="was">Was: 100+</span></li>
+                        <li>Unlimited recruiters</li>
+                    </div>
+                    <div class="pkg-btn">Reserve My Spot →</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Veterans -->
+        <div class="event-section">
+            <div class="event-label">Veterans Events</div>
+            <div class="packages">
+                <div class="pkg">
+                    <div class="pkg-name">Starter</div>
+                    <div class="pkg-price">$495</div>
+                    <div class="pkg-per">per event</div>
+                    <div class="pkg-features">
+                        <li>Promote 1 job</li>
+                        <li class="highlight">15+ scheduled candidate interviews<span class="was">Was: 20+</span></li>
+                        <li>1 recruiter seat</li>
+                    </div>
+                    <div class="pkg-btn">Reserve My Spot →</div>
+                </div>
+                <div class="pkg popular">
+                    <div class="pkg-badge">Most Popular</div>
+                    <div class="pkg-name">Growth</div>
+                    <div class="pkg-price">$895</div>
+                    <div class="pkg-per">per event</div>
+                    <div class="pkg-features">
+                        <li>Promote up to 3 jobs</li>
+                        <li class="highlight">45+ scheduled candidate interviews<span class="was">Was: 60+</span></li>
+                        <li>Up to 5 recruiter seats</li>
+                    </div>
+                    <div class="pkg-btn">Reserve My Spot →</div>
+                </div>
+                <div class="pkg">
+                    <div class="pkg-name">Pro</div>
+                    <div class="pkg-price">$1,495</div>
+                    <div class="pkg-per">per event</div>
+                    <div class="pkg-features">
+                        <li>Promote up to 6 jobs</li>
+                        <li class="highlight">90+ scheduled candidate interviews<span class="was">Was: 100+</span></li>
+                        <li>Unlimited recruiters</li>
+                    </div>
+                    <div class="pkg-btn">Reserve My Spot →</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-title">Implementation notes</div>
+        <div class="notes">
+            <h3>Key points</h3>
+            <ul>
+                <li>Only the "scheduled candidate interviews" line is changing. Job counts, prices, recruiter seats, and all other copy remain the same.</li>
+                <li>The interview count should be determined by the event type of the page being viewed.</li>
+                <li>Formula: Growth = Starter count × 3, Pro = Starter count × 6.</li>
+                <li>Layout, styling, button text, and card structure are not changing. This is a content-only update.</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>
