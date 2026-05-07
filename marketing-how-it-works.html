@@ -243,7 +243,7 @@
                 </div>
             </div>
             <div class="step-image">
-                <div class="iframe-wrap"><iframe src="marketing-candidates.html" title="Candidates matched to your open roles" scrolling="no"></iframe></div>
+                <div class="iframe-wrap"><iframe id="iframe-step1" src="lobby-v3.html?mode=live&tab=notyet" title="Candidates matched to your open roles" scrolling="no"></iframe></div>
             </div>
         </div>
 
@@ -271,7 +271,7 @@
                 </div>
             </div>
             <div class="step-image">
-                <div class="iframe-wrap"><iframe src="marketing-ready.html" title="Interview lobby with candidates ready to interview" scrolling="no"></iframe></div>
+                <div class="iframe-wrap"><iframe id="iframe-step2" src="lobby-v3.html?mode=live&tab=waiting" title="Interview lobby with candidates ready to interview" scrolling="no"></iframe></div>
             </div>
         </div>
 
@@ -299,7 +299,7 @@
                 </div>
             </div>
             <div class="step-image">
-                <div class="iframe-wrap"><iframe src="interview-screen-v3.html" title="Video interview with resume panel" scrolling="no"></iframe></div>
+                <div class="iframe-wrap"><iframe id="iframe-step3" src="interview-screen-v3.html" title="Video interview with resume panel" scrolling="no"></iframe></div>
             </div>
         </div>
 
@@ -327,7 +327,7 @@
                 </div>
             </div>
             <div class="step-image">
-                <div class="iframe-wrap"><iframe src="interview-screen-v3.html" title="Post-interview evaluation modal" scrolling="no"></iframe></div>
+                <div class="iframe-wrap"><iframe id="iframe-step4" src="interview-screen-v3.html" title="Post-interview evaluation modal" scrolling="no"></iframe></div>
             </div>
         </div>
 
@@ -348,6 +348,38 @@
     }
     window.addEventListener('load', scaleIframes);
     window.addEventListener('resize', scaleIframes);
+
+    /* Hide dev toggles in lobby iframes and trigger interview screen states */
+    function setupIframe(iframe, callback) {
+        iframe.addEventListener('load', function() {
+            try {
+                var doc = iframe.contentDocument || iframe.contentWindow.document;
+                /* Hide all dev toggle bars */
+                var devToggles = doc.querySelectorAll('.dev-toggle');
+                devToggles.forEach(function(el) { el.style.display = 'none'; });
+                /* Run any additional setup */
+                if (callback) callback(iframe);
+            } catch(e) { /* cross-origin safety */ }
+        });
+    }
+
+    /* Step 1 & 2: lobby iframes - hide dev toggles (mode/tab set via query params) */
+    setupIframe(document.getElementById('iframe-step1'));
+    setupIframe(document.getElementById('iframe-step2'));
+
+    /* Step 3: interview screen - open the resume panel */
+    setupIframe(document.getElementById('iframe-step3'), function(iframe) {
+        try {
+            iframe.contentWindow.togglePanel('resume');
+        } catch(e) {}
+    });
+
+    /* Step 4: interview screen - open end-call evaluation modal */
+    setupIframe(document.getElementById('iframe-step4'), function(iframe) {
+        try {
+            iframe.contentWindow.openEndModal();
+        } catch(e) {}
+    });
     </script>
 </body>
 </html>
