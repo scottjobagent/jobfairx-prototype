@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JobFairX — Matched Candidates</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f7f8fa;
+            color: #1a1a2e;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Top nav bar */
+        .top-nav {
+            background: #fff;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 0 32px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+        }
+        .logo {
+            font-size: 20px;
+            font-weight: 700;
+            color: #0044B3;
+            letter-spacing: -0.5px;
+        }
+        .nav-links {
+            display: flex;
+            gap: 24px;
+        }
+        .nav-links a {
+            font-size: 13px;
+            font-weight: 500;
+            color: #6b7280;
+            text-decoration: none;
+            padding: 16px 0;
+            border-bottom: 2px solid transparent;
+        }
+        .nav-links a.active {
+            color: #0044B3;
+            border-bottom-color: #0044B3;
+        }
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .nav-user {
+            font-size: 13px;
+            color: #6b7280;
+        }
+
+        /* Page content */
+        .page {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 28px 32px;
+        }
+
+        /* Event header */
+        .event-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 24px;
+        }
+        .event-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin-bottom: 6px;
+        }
+        .event-meta {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            font-size: 13px;
+            color: #6b7280;
+        }
+        .event-meta .badge {
+            background: #ecfdf5;
+            color: #059669;
+            font-weight: 600;
+            font-size: 12px;
+            padding: 3px 10px;
+            border-radius: 20px;
+        }
+
+        /* Summary stats bar */
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+        .stat-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 16px 20px;
+            border: 1px solid #e5e7eb;
+        }
+        .stat-card .stat-num {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1a1a2e;
+        }
+        .stat-card .stat-label {
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 2px;
+        }
+        .stat-card.highlight {
+            background: #0044B3;
+            border-color: #0044B3;
+        }
+        .stat-card.highlight .stat-num {
+            color: #fff;
+        }
+        .stat-card.highlight .stat-label {
+            color: rgba(255,255,255,0.7);
+        }
+
+        /* Section header */
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1a1a2e;
+        }
+        .section-count {
+            background: #fee2e2;
+            color: #dc2626;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 2px 10px;
+            border-radius: 20px;
+            margin-left: 10px;
+        }
+        .section-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .btn-secondary {
+            font-size: 13px;
+            font-weight: 500;
+            color: #0044B3;
+            background: #fff;
+            border: 1px solid #d1d5db;
+            padding: 7px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        /* Candidate cards grid */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+        .candidate-card {
+            background: #fff;
+            border-radius: 14px;
+            border: 1px solid #e5e7eb;
+            overflow: hidden;
+            transition: box-shadow 0.15s;
+        }
+        .candidate-card:hover {
+            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+        }
+        .card-top {
+            padding: 20px 20px 16px;
+            display: flex;
+            gap: 14px;
+        }
+        .avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 16px;
+            color: #fff;
+            flex-shrink: 0;
+        }
+        .avatar.purple { background: #7c3aed; }
+        .avatar.blue { background: #2563eb; }
+        .avatar.teal { background: #0d9488; }
+        .avatar.rose { background: #e11d48; }
+        .avatar.amber { background: #d97706; }
+        .avatar.indigo { background: #4f46e5; }
+        .avatar.emerald { background: #059669; }
+        .avatar.sky { background: #0284c7; }
+        .card-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .card-name {
+            font-size: 15px;
+            font-weight: 600;
+            color: #1a1a2e;
+            margin-bottom: 2px;
+        }
+        .card-job {
+            font-size: 13px;
+            color: #0044B3;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+        .card-location {
+            font-size: 12px;
+            color: #9ca3af;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .card-location svg {
+            width: 12px;
+            height: 12px;
+            fill: #9ca3af;
+        }
+
+        /* Card details */
+        .card-details {
+            padding: 0 20px 16px;
+            display: flex;
+            gap: 12px;
+        }
+        .detail-chip {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 12px;
+            color: #4b5563;
+            background: #f3f4f6;
+            padding: 5px 10px;
+            border-radius: 6px;
+        }
+        .detail-chip svg {
+            width: 13px;
+            height: 13px;
+            fill: #6b7280;
+        }
+
+        /* Card actions */
+        .card-actions {
+            padding: 12px 20px;
+            border-top: 1px solid #f3f4f6;
+            display: flex;
+            gap: 8px;
+        }
+        .btn-accept {
+            flex: 1;
+            padding: 8px 0;
+            font-size: 13px;
+            font-weight: 600;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            background: #0044B3;
+            color: #fff;
+        }
+        .btn-decline {
+            padding: 8px 16px;
+            font-size: 13px;
+            font-weight: 500;
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
+            background: #fff;
+            color: #6b7280;
+            cursor: pointer;
+        }
+        .btn-reschedule {
+            padding: 8px 16px;
+            font-size: 13px;
+            font-weight: 500;
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
+            background: #fff;
+            color: #6b7280;
+            cursor: pointer;
+        }
+        .btn-message {
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
+            background: #fff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-message svg {
+            width: 16px;
+            height: 16px;
+            fill: #6b7280;
+        }
+
+        /* Resume link */
+        .card-resume {
+            padding: 0 20px 14px;
+        }
+        .resume-link {
+            font-size: 12px;
+            color: #0044B3;
+            text-decoration: none;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .resume-link svg {
+            width: 13px;
+            height: 13px;
+            fill: #0044B3;
+        }
+
+        /* Notification toast */
+        .ai-banner {
+            background: linear-gradient(135deg, #eff6ff 0%, #f0f9ff 100%);
+            border: 1px solid #bfdbfe;
+            border-radius: 12px;
+            padding: 14px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .ai-icon {
+            width: 36px;
+            height: 36px;
+            background: #0044B3;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .ai-icon svg {
+            width: 20px;
+            height: 20px;
+            fill: #fff;
+        }
+        .ai-text {
+            font-size: 13px;
+            color: #1e40af;
+            line-height: 1.5;
+        }
+        .ai-text strong {
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Navigation -->
+    <div class="top-nav">
+        <div class="nav-left">
+            <div class="logo">JobFairX</div>
+            <div class="nav-links">
+                <a href="#">Dashboard</a>
+                <a href="#" class="active">Interviews</a>
+                <a href="#">Messaging</a>
+            </div>
+        </div>
+        <div class="nav-right">
+            <span class="nav-user">scott@jobfairx.com</span>
+        </div>
+    </div>
+
+    <div class="page">
+        <!-- Event Header -->
+        <div class="event-header">
+            <div>
+                <div class="event-title">Dallas Healthcare Hiring Event</div>
+                <div class="event-meta">
+                    <span class="badge">Starts in 2 weeks, 3 days</span>
+                    <span>Apr 22, 2026 &middot; 11:00 AM - 3:00 PM CT</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Bar -->
+        <div class="stats-bar">
+            <div class="stat-card highlight">
+                <div class="stat-num">16</div>
+                <div class="stat-label">Candidates matched</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-num">8</div>
+                <div class="stat-label">Awaiting your response</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-num">6</div>
+                <div class="stat-label">Interviews confirmed</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-num">2</div>
+                <div class="stat-label">Messages received</div>
+            </div>
+        </div>
+
+        <!-- AI Matching Banner -->
+        <div class="ai-banner">
+            <div class="ai-icon">
+                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+            </div>
+            <div class="ai-text">
+                <strong>8 new candidates matched</strong> to your open roles based on skills, experience, and location preferences. Review and accept to confirm interview times.
+            </div>
+        </div>
+
+        <!-- Section Header -->
+        <div class="section-header">
+            <div style="display:flex;align-items:center;">
+                <span class="section-title">Candidates awaiting your response</span>
+                <span class="section-count">8 new</span>
+            </div>
+            <div class="section-actions">
+                <button class="btn-secondary">Accept all</button>
+            </div>
+        </div>
+
+        <!-- Candidate Cards -->
+        <div class="cards-grid">
+            <!-- Tamara Williams -->
+            <div class="candidate-card">
+                <div class="card-top">
+                    <div class="avatar purple">TW</div>
+                    <div class="card-info">
+                        <div class="card-name">Tamara Williams</div>
+                        <div class="card-job">Registered Nurse</div>
+                        <div class="card-location">
+                            <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                            Dallas, TX
+                        </div>
+                    </div>
+                </div>
+                <div class="card-details">
+                    <div class="detail-chip">
+                        <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+                        9:00 - 9:30 AM
+                    </div>
+                    <div class="detail-chip">
+                        <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm-1 7V3.5L18.5 9H13z"/></svg>
+                        Resume
+                    </div>
+                </div>
+                <div class="card-actions">
+                    <button class="btn-accept">Accept</button>
+                    <button class="btn-decline">Decline</button>
+                    <button class="btn-reschedule">Reschedule</button>
+                </div>
+            </div>
+
+            <!-- Marcus Johnson -->
+            <div class="candidate-card">
+                <div class="card-top">
+                    <div class="avatar blue">MJ</div>
+                    <div class="card-info">
+                        <div class="card-name">Marcus Johnson</div>
+                        <div class="card-job">Web Developer</div>
+                        <div class="card-location">
+                            <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                            Remote
+                        </div>
+                    </div>
+                </div>
+                <div class="card-details">
+                    <div class="detail-chip">
+                        <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+                        9:30 - 10:00 AM
+                    </div>
+                    <div class="detail-chip">
+                        <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm-1 7V3.5L18.5 9H13z"/></svg>
+                        Resume
+                    </div>
+                </div>
+                <div class="card-actions">
+                    <button class="btn-accept">Accept</button>
+                    <button class="btn-decline">Decline</button>
+                    <button class="btn-reschedule">Reschedule</button>
+                </div>
+            </div>
+
+            <!-- Priya Patel -->
+            <div class="candidate-card">
+                <div class="card-top">
+                    <div class="avatar teal">PP</div>
+                    <div class="card-info">
+                        <div class="card-name">Priya Patel</div>
+                        <div class="card-job">Frontend Developer</div>
+                        <div class="card-location">
+                            <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                            Remote
+                        </div>
+                    </div>
+                </div>
+                <div class="card-details">
+                    <div class="detail-chip">
+                        <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+                        10:00 - 10:30 AM
+                    </div>
+                    <div class="detail-chip">
+                        <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm-1 7V3.5L18.5 9H13z"/></svg>
+                        Resume
+                    </div>
+                </div>
+                <div class="card-actions">
+                    <button class="btn-accept">Accept</button>
+                    <button class="btn-decline">Decline</button>
+                    <button class="btn-reschedule">Reschedule</button>
+                </div>
+            </div>
+
+            <!-- Jordan Lee -->
+            <div class="candidate-card">
+                <div class="card-top">
+                    <div class="avatar rose">JL</div>
+                    <div class="card-info">
+                        <div class="card-name">Jordan Lee</div>
+                        <div class="card-job">Registered Nurse</div>
+                        <div class="card-location">
+                            <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                            Dallas, TX
+                        </div>
+                    </div>
+                </div>
+                <div class="card-details">
+                    <div class="detail-chip">
+                        <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+                        10:00 - 10:30 AM
+                    </div>
+                    <div class="detail-chip">
+                        <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm-1 7V3.5L18.5 9H13z"/></svg>
+                        Resume
+                    </div>
+                </div>
+                <div class="card-actions">
+                    <button class="btn-accept">Accept</button>
+                    <button class="btn-decline">Decline</button>
+                    <button class="btn-reschedule">Reschedule</button>
+                </div>
+            </div>
+
+            <!-- Keisha Brown -->
+            <div class="candidate-card">
+                <div class="card-top">
+                    <div class="avatar amber">KB</div>
+                    <div class="card-info">
+                        <div class="card-name">Keisha Brown</div>
+                        <div class="card-job">Full Stack Developer</div>
+                        <div class="card-location">
+                            <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                            Remote
+                        </div>
+                    </div>
+                </div>
+                <div class="card-details">
+                    <div class="detail-chip">
+                        <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+                        10:30 - 11:00 AM
+                    </div>
+                    <div class="detail-chip">
+                        <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm-1 7V3.5L18.5 9H13z"/></svg>
+                        Resume
+                    </div>
+                </div>
+                <div class="card-actions">
+                    <button class="btn-accept">Accept</button>
+                    <button class="btn-decline">Decline</button>
+                    <button class="btn-reschedule">Reschedule</button>
+                </div>
+            </div>
+
+            <!-- Daniel Ortiz -->
+            <div class="candidate-card">
+                <div class="card-top">
+                    <div class="avatar indigo">DO</div>
+                    <div class="card-info">
+                        <div class="card-name">Daniel Ortiz</div>
+                        <div class="card-job">Web Developer</div>
+                        <div class="card-location">
+                            <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                            Remote
+                        </div>
+                    </div>
+                </div>
+                <div class="card-details">
+                    <div class="detail-chip">
+                        <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+                        11:00 - 11:30 AM
+                    </div>
+                    <div class="detail-chip">
+                        <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm-1 7V3.5L18.5 9H13z"/></svg>
+                        Resume
+                    </div>
+                </div>
+                <div class="card-actions">
+                    <button class="btn-accept">Accept</button>
+                    <button class="btn-decline">Decline</button>
+                    <button class="btn-reschedule">Reschedule</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
