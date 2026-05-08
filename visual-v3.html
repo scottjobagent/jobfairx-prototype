@@ -617,7 +617,7 @@ tbody tr:last-child td { border-bottom: none; }
 .msg-empty-right p { font-size: 15px; color: #767676; text-align: center; max-width: 420px; line-height: 1.6; margin-bottom: 24px; }
 .msg-empty-badge { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border: 1px solid #d4d2d0; border-radius: 999px; font-size: 14px; color: #595959; background: #fff; }
 .msg-empty-badge svg { width: 16px; height: 16px; color: #767676; }
-.msg-dev-toggle { position: absolute; top: 16px; right: 16px; z-index: 5; }
+/* .msg-dev-toggle removed — toggle moved to top header bar */
 
 /* ═══ COMPLETED EVENT CARDS ═══ */
 .completed-events { display: none; }
@@ -952,6 +952,13 @@ tbody tr:last-child td { border-bottom: none; }
         <button class="dev-toggle-btn active" onclick="setIvCurrentTabMode('empty', this)">Empty</button>
         <button class="dev-toggle-btn" onclick="setIvCurrentTabMode('active', this)">Active</button>
         <button class="dev-toggle-btn" id="ivHeaderLiveBtn" onclick="setIvCurrentTabMode('live', this)">Live</button>
+      </div>
+    </div>
+    <div class="dev-toggle" id="msgDevToggles">
+      <span class="dev-toggle-label">Messaging:</span>
+      <div class="dev-toggle-switch">
+        <button class="dev-toggle-btn active" onclick="setMsgDevMode('empty', this)">Empty</button>
+        <button class="dev-toggle-btn" onclick="setMsgDevMode('active', this)">Active</button>
       </div>
     </div>
   </div>
@@ -2318,15 +2325,6 @@ tbody tr:last-child td { border-bottom: none; }
           <p>When you message a candidate, conversations show up here. Start connecting with talent from your upcoming hiring events.</p>
         </div>
       </div>
-      <div class="msg-dev-toggle">
-        <div class="dev-toggle">
-          <span class="dev-toggle-label">State:</span>
-          <div class="dev-toggle-switch">
-            <button class="dev-toggle-btn active" onclick="setMsgDevMode('empty', this)">Empty</button>
-            <button class="dev-toggle-btn" onclick="setMsgDevMode('active', this)">Active</button>
-          </div>
-        </div>
-      </div>
     </div>
 
     <!-- ACTIVE STATE -->
@@ -2443,15 +2441,6 @@ tbody tr:last-child td { border-bottom: none; }
         </div>
       </div>
 
-    </div>
-    <div class="msg-dev-toggle">
-      <div class="dev-toggle">
-        <span class="dev-toggle-label">State:</span>
-        <div class="dev-toggle-switch">
-          <button class="dev-toggle-btn" onclick="setMsgDevMode('empty', this)">Empty</button>
-          <button class="dev-toggle-btn active" onclick="setMsgDevMode('active', this)">Active</button>
-        </div>
-      </div>
     </div>
     </div><!-- /msgActive -->
   </div>
@@ -3070,9 +3059,9 @@ function ivSendMessage() {
 
 /* ═══ MESSAGING FUNCTIONS ═══ */
 function setMsgDevMode(mode, btn) {
-  // Sync all messaging dev toggles
-  document.querySelectorAll('#view-messaging .dev-toggle-btn').forEach(function(b) { b.classList.remove('active'); });
-  document.querySelectorAll('#view-messaging .dev-toggle-btn').forEach(function(b) {
+  // Sync header messaging toggle
+  document.querySelectorAll('#msgDevToggles .dev-toggle-btn').forEach(function(b) {
+    b.classList.remove('active');
     if (b.textContent.trim().toLowerCase() === mode) b.classList.add('active');
   });
   document.getElementById('msgEmpty').style.display = mode === 'empty' ? '' : 'none';
