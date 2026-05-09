@@ -627,6 +627,9 @@ tbody tr:last-child td { border-bottom: none; }
 .msg-empty-badge { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border: 1px solid #d4d2d0; border-radius: 999px; font-size: 14px; color: #595959; background: #fff; }
 .msg-empty-badge svg { width: 16px; height: 16px; color: #767676; }
 /* .msg-dev-toggle removed — toggle moved to top header bar */
+.msg-welcome-panel { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #fafaf8; padding: 40px; }
+.msg-welcome-panel h2 { font-size: 22px; font-weight: 700; color: #2d2d2d; margin-bottom: 12px; }
+.msg-welcome-panel p { font-size: 15px; color: #767676; text-align: center; max-width: 420px; line-height: 1.6; margin-bottom: 24px; }
 
 /* ═══ COMPLETED EVENT CARDS ═══ */
 .completed-events { display: none; }
@@ -2376,7 +2379,7 @@ tbody tr:last-child td { border-bottom: none; }
             <div class="msg-thread-job">Registered Behavior Technician Trainee (RBT Trainee)</div>
             <div class="msg-thread-preview">Interview Rescheduled</div>
           </div>
-          <div class="msg-thread active" onclick="selectMsgThread(this, 1)">
+          <div class="msg-thread" onclick="selectMsgThread(this, 1)">
             <div class="msg-thread-top"><span class="msg-thread-name">zarreyah reed</span><span class="msg-thread-date">Today</span></div>
             <div class="msg-thread-job">Registered Behavior Technician Trainee (RBT Trainee)</div>
             <div class="msg-thread-preview">Good afternoon Zarreyah, I am looking forward to starting a conv...</div>
@@ -2404,8 +2407,35 @@ tbody tr:last-child td { border-bottom: none; }
         </div>
       </div>
 
+      <!-- RIGHT: Welcome Panel (no conversation selected) -->
+      <div class="msg-welcome-panel" id="msgWelcomePanel">
+        <div class="msg-empty-illustration">
+          <svg width="200" height="160" viewBox="0 0 200 160" fill="none">
+            <!-- Gray bubble (back left) -->
+            <rect x="20" y="50" width="100" height="60" rx="16" fill="#e8e4df"/>
+            <circle cx="50" cy="80" r="6" fill="#c4bfb8"/>
+            <circle cx="70" cy="80" r="6" fill="#c4bfb8"/>
+            <circle cx="90" cy="80" r="6" fill="#c4bfb8"/>
+            <path d="M30 110 L20 130 L50 110" fill="#e8e4df"/>
+            <!-- Blue bubble (front right) -->
+            <rect x="70" y="20" width="110" height="65" rx="16" fill="#0044B3"/>
+            <circle cx="105" cy="52" r="7" fill="rgba(255,255,255,0.8)"/>
+            <circle cx="125" cy="52" r="7" fill="rgba(255,255,255,0.8)"/>
+            <circle cx="145" cy="52" r="7" fill="rgba(255,255,255,0.8)"/>
+            <path d="M160 85 L175 105 L145 85" fill="#0044B3"/>
+            <!-- Yellow accent circle -->
+            <circle cx="165" cy="22" r="18" fill="#fbbf24" opacity="0.3"/>
+            <circle cx="165" cy="22" r="12" fill="#fbbf24" opacity="0.4"/>
+            <!-- Small gray circle -->
+            <circle cx="175" cy="115" r="8" fill="#e0dcd6" opacity="0.5"/>
+          </svg>
+        </div>
+        <h2>Select a conversation</h2>
+        <p>Choose a conversation from your inbox to view and respond to your candidates.</p>
+      </div>
+
       <!-- RIGHT: Chat Panel -->
-      <div class="msg-chat-panel">
+      <div class="msg-chat-panel" id="msgChatPanel" style="display:none;">
         <div class="msg-chat-header">
           <div class="msg-chat-header-info">
             <h3>zarreyah reed</h3>
@@ -3102,6 +3132,14 @@ function setMsgDevMode(mode, btn) {
   });
   document.getElementById('msgEmpty').style.display = mode === 'empty' ? '' : 'none';
   document.getElementById('msgActive').style.display = mode === 'active' ? '' : 'none';
+  /* Reset to welcome state when switching to active */
+  if (mode === 'active') {
+    var welcome = document.getElementById('msgWelcomePanel');
+    var chat = document.getElementById('msgChatPanel');
+    if (welcome) welcome.style.display = '';
+    if (chat) chat.style.display = 'none';
+    document.querySelectorAll('.msg-thread').forEach(function(t) { t.classList.remove('active'); });
+  }
 }
 
 function switchMsgTab(el, tab) {
@@ -3112,6 +3150,11 @@ function switchMsgTab(el, tab) {
 function selectMsgThread(el, index) {
   document.querySelectorAll('.msg-thread').forEach(function(t) { t.classList.remove('active'); });
   el.classList.add('active');
+  /* Hide welcome panel, show chat panel */
+  var welcome = document.getElementById('msgWelcomePanel');
+  var chat = document.getElementById('msgChatPanel');
+  if (welcome) welcome.style.display = 'none';
+  if (chat) chat.style.display = '';
 }
 
 /* ═══ MESSAGING THREE-DOT MENU ═══ */
