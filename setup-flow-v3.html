@@ -330,6 +330,12 @@ body.collapsed .progress-bar-track { left: 60px; }
 .is-number-input { width: 60px; height: 44px; border: none; border-left: 2px solid #a8a8a8; border-right: 2px solid #a8a8a8; text-align: center; font-size: 16px; font-weight: 700; font-family: inherit; color: #2d2d2d; outline: none; background: #fff; -moz-appearance: textfield; }
 .is-number-input::-webkit-outer-spin-button, .is-number-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 .is-recommendation { font-size: 14px; color: #595959; line-height: 1.6; margin-top: 14px; }
+.owner-checkbox-row { display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; background: #f8f9fb; border: 1px solid #e5e7eb; border-radius: 10px; margin-bottom: 10px; cursor: pointer; transition: border-color 0.15s; }
+.owner-checkbox-row:hover { border-color: #0044B3; }
+.owner-checkbox { width: 18px; height: 18px; accent-color: #0044B3; cursor: pointer; flex-shrink: 0; margin-top: 2px; }
+.owner-checkbox-text { display: flex; flex-direction: column; gap: 2px; }
+.owner-checkbox-label { font-size: 14px; font-weight: 600; color: #2d2d2d; }
+.owner-checkbox-note { font-size: 13px; color: #767676; }
 .is-email-box { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; min-height: 48px; padding: 10px 16px; border: 2px solid #a8a8a8; border-radius: 10px; cursor: text; transition: border-color 0.15s; }
 .is-email-box:focus-within { border-color: #0044B3; box-shadow: 0 0 0 2px #0044B3; }
 .is-email-chip { display: inline-flex; align-items: center; gap: 8px; background: #f3f2ef; border: 1px solid #d4d2d0; border-radius: 999px; padding: 6px 14px; font-size: 14px; color: #2d2d2d; }
@@ -1362,8 +1368,14 @@ body.collapsed .progress-bar-track { left: 60px; }
         <p class="is-hint">Separate emails with commas.</p>
         <div class="is-sub-label">Enter the interviewers' email addresses. <span class="required">*</span></div>
         <p class="is-hint">All interviewers will need a JobFairX account to access the event.</p>
+        <label class="owner-checkbox-row">
+          <input type="checkbox" class="owner-checkbox" id="ownerInterviewCheckboxSetup">
+          <span class="owner-checkbox-text">
+            <span class="owner-checkbox-label">scott@jobfairx.com</span>
+            <span class="owner-checkbox-note">I will be interviewing. Won't count toward your interviewer seats.</span>
+          </span>
+        </label>
         <div class="is-email-box" id="interviewerEmailBox" onclick="this.querySelector('input').focus()">
-          <span class="is-email-chip">scott@jobfairx.com <button class="is-chip-x" onclick="removeEmailChip(this)" title="Remove">&times;</button></span>
           <input type="email" class="is-email-field" id="interviewerEmailInput" placeholder="Add email..." onkeydown="handleEmailKeydown(event, 'interviewerEmailBox')" onblur="handleEmailBlur(this, 'interviewerEmailBox')">
         </div>
         <div class="email-error" id="interviewerEmailError">Enter a valid email address.</div>
@@ -3311,7 +3323,7 @@ function populateStep7Review() {
 </style>
 <!-- ═══ REVIEW MODAL: Interview Settings ═══ -->
 <div class="rv-modal-backdrop" id="rvInterviewSettingsModal" onclick="if(event.target===this)closeRvModal('rvInterviewSettingsModal')">
-  <div class="rv-modal-card" style="max-width:560px;">
+  <div class="rv-modal-card" style="max-width:640px;">
     <div class="rv-modal-header">
       <div class="rv-modal-title">Interview settings</div>
       <button class="rv-modal-close" onclick="closeRvModal('rvInterviewSettingsModal')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
@@ -3321,11 +3333,17 @@ function populateStep7Review() {
         <div class="rvm-group-label">Who will be interviewing candidates?</div>
         <div class="rvm-field-label">Enter the interviewers' email addresses.</div>
         <p class="rvm-field-hint">All interviewers will need a JobFairX account to access the event.</p>
+        <label class="owner-checkbox-row">
+          <input type="checkbox" class="owner-checkbox" id="ownerInterviewCheckboxRvm">
+          <span class="owner-checkbox-text">
+            <span class="owner-checkbox-label">scott@jobfairx.com</span>
+            <span class="owner-checkbox-note">I will be interviewing. Won't count toward your interviewer seats.</span>
+          </span>
+        </label>
         <div class="rvm-email-box" id="rvmInterviewerBox" onclick="this.querySelector('input')?.focus()">
-          <span class="rvm-email-chip">scott@jobfairx.com <button class="rvm-email-chip-x" onclick="removeRvmChip(this,'rvmInterviewerBox')" title="Remove">&times;</button></span>
           <input type="email" placeholder="Add email..." class="rvm-email-box-input" id="rvmInterviewerInput" onkeydown="handleRvmKeydown(event,'rvmInterviewerBox')" onblur="handleRvmBlur(this,'rvmInterviewerBox')">
         </div>
-        <div class="rvm-seat-indicator" id="rvmSeatIndicator">Growth package · 1 of 5 interviewer seats used</div>
+        <div class="rvm-seat-indicator" id="rvmSeatIndicator">Growth package · 0 of 5 interviewer seats used</div>
         <div class="rvm-email-error" id="rvmEmailError">Enter a valid email address.</div>
         <div class="rvm-email-error" id="rvmDupeError">This email has already been added.</div>
         <div class="rvm-seat-limit" id="rvmSeatLimit">
