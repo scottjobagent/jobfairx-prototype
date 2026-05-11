@@ -133,3 +133,4 @@
 129. Standardized message bubble color to #3B82F6 across all messaging (visual-v3) — Messaging tab .msg-bubble.sent updated from #4b7bec to match widget and lobby
 130. Fixed "Send a message" button in report resume modal (visual-v3) — was calling undefined openMsgModal, now correctly calls ivOpenMsgModal to open the widget
 131. Resume modal stays open when "Send a message" is clicked (lobby-v3) — message widget opens alongside the resume so employer can reference it while composing, removed overlay click-to-dismiss so resume only closes via X button
+132. Fixed message widget z-index to 10000 (lobby-v3) — widget now floats above resume modal overlay (z-index 9999) so both are interactive simultaneously
