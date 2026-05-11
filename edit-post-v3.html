@@ -212,6 +212,10 @@ body.setup-jobs-incomplete .add-job-row { display: none; }
 
 .id-recommendation { font-size: 15px; color: #595959; line-height: 1.7; margin-top: 16px; }
 
+.id-toggle-row { display: flex; align-items: center; gap: 14px; }
+.id-toggle-status { font-size: 15px; font-weight: 600; color: #767676; }
+.id-toggle-status.on { color: #0044B3; }
+
 .id-editor { border: 1px solid #d4d2d0; border-radius: 10px; overflow: hidden; }
 .id-editor-toolbar { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f3f2ef; border-bottom: 1px solid #d4d2d0; }
 .id-editor-toolbar-left { display: flex; gap: 4px; }
@@ -776,7 +780,7 @@ setTimeout(function() {
     </div>
     <div class="section-divider"></div>
     <div class="section-body">
-      <p class="summary-text" id="interviewDetailsSummary">2 spots available for each 30-minute time slot | Start Advertising Date: 04/07/2026 | Attendance instructions added</p>
+      <p class="summary-text" id="interviewDetailsSummary">2 spots available for each 30-minute time slot | Resume required | Start Advertising Date: 04/07/2026 | Attendance instructions added</p>
 
       <!-- Expandable Interview Details Edit -->
       <div class="id-expand" id="interviewDetailsExpand">
@@ -807,6 +811,19 @@ setTimeout(function() {
             </button>
           </div>
           <p class="id-recommendation">Based on your selection, you can expect to plan for <strong id="candidateCount">3</strong> candidates to show up per time slot. We recommend staffing 1 interviewer for each expected candidate, so if you don't think you'll be able to staff <strong id="staffCount">3</strong> interviewers at the event, we suggest setting a lower number here.</p>
+        </div>
+
+        <!-- Resume requirement toggle -->
+        <div class="id-field">
+          <div class="id-field-label">Require resume to request an interview</div>
+          <p class="id-field-hint">When enabled, candidates must upload a resume before they can request an interview time slot.</p>
+          <div class="id-toggle-row">
+            <label class="toggle-switch">
+              <input type="checkbox" id="resumeRequiredToggle" checked onchange="updateResumeToggleLabel()">
+              <span class="toggle-slider"></span>
+            </label>
+            <span class="id-toggle-status on" id="resumeToggleLabel">Required</span>
+          </div>
         </div>
 
         <!-- Cancel / Update buttons -->
@@ -1111,6 +1128,18 @@ function adjustSlotCount(delta) {
   input.value = val;
   document.getElementById('candidateCount').textContent = val;
   document.getElementById('staffCount').textContent = val;
+}
+
+function updateResumeToggleLabel() {
+  var toggle = document.getElementById('resumeRequiredToggle');
+  var label = document.getElementById('resumeToggleLabel');
+  if (toggle.checked) {
+    label.textContent = 'Required';
+    label.classList.add('on');
+  } else {
+    label.textContent = 'Not required';
+    label.classList.remove('on');
+  }
 }
 
 function toggleInterviewSettings(show) {
