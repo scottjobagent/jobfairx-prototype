@@ -3923,7 +3923,8 @@ var msgData = {
     { sender: 'candidate', name: 'Priya Patel', text: 'Hello! I submitted my application for the Frontend Developer position. I wanted to follow up and express my strong interest in the role.', time: 'Apr 3 at 9:15 AM' },
     { sender: 'employer', name: 'You', text: 'Hi Priya, thanks for reaching out. We have reviewed your application and would like to invite you to interview during our upcoming event on April 22nd.', time: 'Apr 3 at 2:30 PM' },
     { sender: 'candidate', name: 'Priya Patel', text: 'That is perfect! I will be there. Thank you for the opportunity.', time: 'Apr 3 at 3:05 PM' }
-  ]
+  ],
+  'Jordan Lee': []
 };
 
 function openMsgModal(link) {
@@ -3932,27 +3933,35 @@ function openMsgModal(link) {
   var jobTitle = getRowJob(row);
   var firstName = name.split(' ')[0];
 
-  document.getElementById('msgTo').textContent = 'To: ' + name + ' · ' + jobTitle;
-  document.getElementById('msgTextarea').placeholder = 'Write a message to ' + firstName + '...';
+  var toEl = document.getElementById('msgTo');
+  toEl.innerHTML = 'To: ' + name + '<br><span style="font-size:13px;color:#767676;">' + jobTitle + ' · Dallas Healthcare Hiring Event</span>';
+  document.getElementById('msgTextarea').placeholder = 'Write a message...';
   document.getElementById('msgTextarea').value = '';
   document.getElementById('msgCharCount').textContent = '0';
 
-  var messages = msgData[name] || [
-    { sender: 'employer', name: 'You', text: 'Hi ' + firstName + ', we would like to invite you for an interview at our upcoming hiring event.', time: 'Apr 5 at 10:00 AM' },
-    { sender: 'candidate', name: name, text: 'Thank you! I look forward to it.', time: 'Apr 5 at 11:30 AM' }
-  ];
+  var messages = msgData[name];
+  if (messages === undefined) {
+    messages = [
+      { sender: 'employer', name: 'You', text: 'Hi ' + firstName + ', we would like to invite you for an interview at our upcoming hiring event.', time: 'Apr 5 at 10:00 AM' },
+      { sender: 'candidate', name: name, text: 'Thank you! I look forward to it.', time: 'Apr 5 at 11:30 AM' }
+    ];
+  }
 
   var html = '';
-  messages.forEach(function(msg) {
-    if (msg.sender === 'system') {
-      html += '<div><div class="msg-bubble system"><div class="system-label">' + msg.text + '</div><div class="system-time">' + msg.detail + '</div></div>';
-      html += '<div class="msg-meta incoming"><span class="msg-sender">' + msg.name + '</span> ' + msg.time + '</div></div>';
-    } else {
-      var cls = msg.sender === 'employer' ? 'outgoing' : 'incoming';
-      html += '<div><div class="msg-bubble ' + cls + '">' + msg.text + '</div>';
-      html += '<div class="msg-meta ' + cls + '">' + msg.time + '  <span class="msg-sender">' + msg.name + '</span></div></div>';
-    }
-  });
+  if (messages.length === 0) {
+    html = '';
+  } else {
+    messages.forEach(function(msg) {
+      if (msg.sender === 'system') {
+        html += '<div><div class="msg-bubble system"><div class="system-label">' + msg.text + '</div><div class="system-time">' + msg.detail + '</div></div>';
+        html += '<div class="msg-meta incoming"><span class="msg-sender">' + msg.name + '</span> ' + msg.time + '</div></div>';
+      } else {
+        var cls = msg.sender === 'employer' ? 'outgoing' : 'incoming';
+        html += '<div><div class="msg-bubble ' + cls + '">' + msg.text + '</div>';
+        html += '<div class="msg-meta ' + cls + '">' + msg.time + '  <span class="msg-sender">' + msg.name + '</span></div></div>';
+      }
+    });
+  }
 
   document.getElementById('msgMessages').innerHTML = html;
   document.getElementById('msgModal').classList.add('open');
