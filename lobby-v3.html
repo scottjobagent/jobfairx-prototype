@@ -197,6 +197,21 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
 .pending-btn .btn-tooltip { display: none; position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%); background: #2d2d2d; color: #fff; font-size: 12px; font-weight: 400; padding: 4px 8px; border-radius: 4px; white-space: nowrap; z-index: 100; pointer-events: none; }
 .pending-btn:hover .btn-tooltip { display: block; }
 
+/* Proposed reschedule state */
+.proposed-action { display: flex; flex-direction: column; gap: 3px; }
+.proposed-action-top { display: flex; align-items: center; gap: 10px; }
+.proposed-action-label { font-size: 12px; font-weight: 600; color: #0044B3; white-space: nowrap; }
+.proposed-cancel { font-size: 12px; font-weight: 500; color: #767676; cursor: pointer; background: none; border: none; padding: 0; font-family: inherit; text-decoration: underline; text-underline-offset: 2px; transition: color 0.15s; white-space: nowrap; }
+.proposed-cancel:hover { color: #991b1b; }
+.proposed-action-times { font-size: 13px; font-weight: 500; color: #2d2d2d; position: relative; display: inline; }
+.proposed-action-times .proposed-more { color: #0044B3; font-size: 12px; font-weight: 600; cursor: pointer; margin-left: 4px; position: relative; }
+.proposed-action-times .proposed-more-tooltip { display: none; position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%); background: #2d2d2d; color: #fff; font-size: 12px; font-weight: 400; padding: 8px 12px; border-radius: 6px; white-space: nowrap; z-index: 200; pointer-events: none; line-height: 1.6; }
+.proposed-action-times .proposed-more:hover .proposed-more-tooltip { display: block; }
+.proposed-time { position: relative; }
+.proposed-time .proposed-times-more { color: #0044B3; font-size: 12px; font-weight: 600; cursor: pointer; margin-left: 4px; position: relative; }
+.proposed-time .proposed-times-tooltip { display: none; position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%); background: #2d2d2d; color: #fff; font-size: 12px; font-weight: 400; padding: 8px 12px; border-radius: 6px; white-space: nowrap; z-index: 200; pointer-events: none; line-height: 1.6; }
+.proposed-time .proposed-times-more:hover .proposed-times-tooltip { display: block; }
+
 /* Decline confirmation modal */
 .decline-modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center; }
 .decline-modal-overlay.open { display: flex; }
@@ -2065,67 +2080,83 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
                   </div>
                 </td>
               </tr>
-              <tr>
+              <!-- PROPOSED: Single time -->
+              <tr data-proposed="single" data-original-time="10:00 AM - 10:30 AM PDT">
                 <td>
                   <div>Priya Patel</div>
                   <div class="review-actions"><a onclick="openResumeModal(this)" style="cursor:pointer">View resume</a> <a onclick="openMsgModal(this)" style="cursor:pointer">Message</a></div>
                 </td>
                 <td>Frontend Developer</td>
                 <td>Remote</td>
-                <td>10:00 AM - 10:30 AM PDT</td>
+                <td><div class="proposed-time">2:00 PM - 2:30 PM PDT</div></td>
                 <td>
-                  <div class="pending-actions">
-                    <button class="pending-btn accept" onclick="acceptInterview(this)">Accept<span class="btn-tooltip">Accept interview</span></button>
-                    <button class="pending-btn decline" onclick="declineInterview(this)">Decline<span class="btn-tooltip">Decline interview</span></button>
-                    <button class="pending-btn propose" onclick="openScheduleModal(this)">Reschedule<span class="btn-tooltip">Propose new interview time</span></button>
+                  <div class="proposed-action">
+                    <div class="proposed-action-top">
+                      <span class="proposed-action-label">Proposed · awaiting candidate</span>
+                      <button class="proposed-cancel" onclick="openCancelProposalModal(this)">Cancel</button>
+                    </div>
+                    <div class="proposed-action-times">2:00 PM - 2:30 PM PDT</div>
                   </div>
                 </td>
               </tr>
-              <tr>
+              <!-- PROPOSED: Single time -->
+              <tr data-proposed="single" data-original-time="10:00 AM - 10:30 AM PDT">
                 <td>
                   <div>Jordan Lee</div>
                   <div class="review-actions"><a onclick="openResumeModal(this)" style="cursor:pointer">View resume</a> <a onclick="openMsgModal(this)" style="cursor:pointer">Message</a></div>
                 </td>
                 <td>Registered Nurse</td>
                 <td>Dallas, TX</td>
-                <td>10:00 AM - 10:30 AM PDT</td>
+                <td><div class="proposed-time">3:00 PM - 3:30 PM PDT</div></td>
                 <td>
-                  <div class="pending-actions">
-                    <button class="pending-btn accept" onclick="acceptInterview(this)">Accept<span class="btn-tooltip">Accept interview</span></button>
-                    <button class="pending-btn decline" onclick="declineInterview(this)">Decline<span class="btn-tooltip">Decline interview</span></button>
-                    <button class="pending-btn propose" onclick="openScheduleModal(this)">Reschedule<span class="btn-tooltip">Propose new interview time</span></button>
+                  <div class="proposed-action">
+                    <div class="proposed-action-top">
+                      <span class="proposed-action-label">Proposed · awaiting candidate</span>
+                      <button class="proposed-cancel" onclick="openCancelProposalModal(this)">Cancel</button>
+                    </div>
+                    <div class="proposed-action-times">3:00 PM - 3:30 PM PDT</div>
                   </div>
                 </td>
               </tr>
-              <tr>
+              <!-- PROPOSED: Multiple times -->
+              <tr data-proposed="multiple" data-original-time="10:30 AM - 11:00 AM PDT">
                 <td>
                   <div>Keisha Brown</div>
                   <div class="review-actions"><a onclick="openResumeModal(this)" style="cursor:pointer">View resume</a> <a onclick="openMsgModal(this)" style="cursor:pointer">Message</a></div>
                 </td>
                 <td>Full Stack Developer</td>
                 <td>Remote</td>
-                <td>10:30 AM - 11:00 AM PDT</td>
                 <td>
-                  <div class="pending-actions">
-                    <button class="pending-btn accept" onclick="acceptInterview(this)">Accept<span class="btn-tooltip">Accept interview</span></button>
-                    <button class="pending-btn decline" onclick="declineInterview(this)">Decline<span class="btn-tooltip">Decline interview</span></button>
-                    <button class="pending-btn propose" onclick="openScheduleModal(this)">Reschedule<span class="btn-tooltip">Propose new interview time</span></button>
+                  <div class="proposed-time">10:30 AM - 11:00 AM PDT <span class="proposed-times-more">+2 more<span class="proposed-times-tooltip">11:30 AM - 12:00 PM PDT<br>2:00 PM - 2:30 PM PDT</span></span></div>
+                </td>
+                <td>
+                  <div class="proposed-action">
+                    <div class="proposed-action-top">
+                      <span class="proposed-action-label">Proposed · awaiting candidate</span>
+                      <button class="proposed-cancel" onclick="openCancelProposalModal(this)">Cancel</button>
+                    </div>
+                    <div class="proposed-action-times">10:30 AM - 11:00 AM PDT <span class="proposed-more">+2 more<span class="proposed-more-tooltip">11:30 AM - 12:00 PM PDT<br>2:00 PM - 2:30 PM PDT</span></span></div>
                   </div>
                 </td>
               </tr>
-              <tr>
+              <!-- PROPOSED: Multiple times -->
+              <tr data-proposed="multiple" data-original-time="11:00 AM - 11:30 AM PDT">
                 <td>
                   <div>Daniel Ortiz</div>
                   <div class="review-actions"><a onclick="openResumeModal(this)" style="cursor:pointer">View resume</a> <a onclick="openMsgModal(this)" style="cursor:pointer">Message</a></div>
                 </td>
                 <td>Web Developer</td>
                 <td>Remote</td>
-                <td>11:00 AM - 11:30 AM PDT</td>
                 <td>
-                  <div class="pending-actions">
-                    <button class="pending-btn accept" onclick="acceptInterview(this)">Accept<span class="btn-tooltip">Accept interview</span></button>
-                    <button class="pending-btn decline" onclick="declineInterview(this)">Decline<span class="btn-tooltip">Decline interview</span></button>
-                    <button class="pending-btn propose" onclick="openScheduleModal(this)">Reschedule<span class="btn-tooltip">Propose new interview time</span></button>
+                  <div class="proposed-time">1:00 PM - 1:30 PM PDT <span class="proposed-times-more">+1 more<span class="proposed-times-tooltip">3:30 PM - 4:00 PM PDT</span></span></div>
+                </td>
+                <td>
+                  <div class="proposed-action">
+                    <div class="proposed-action-top">
+                      <span class="proposed-action-label">Proposed · awaiting candidate</span>
+                      <button class="proposed-cancel" onclick="openCancelProposalModal(this)">Cancel</button>
+                    </div>
+                    <div class="proposed-action-times">1:00 PM - 1:30 PM PDT <span class="proposed-more">+1 more<span class="proposed-more-tooltip">3:30 PM - 4:00 PM PDT</span></span></div>
                   </div>
                 </td>
               </tr>
@@ -2370,67 +2401,83 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
                   </div>
                 </td>
               </tr>
-              <tr>
+              <!-- PROPOSED: Single time -->
+              <tr data-proposed="single" data-original-time="10:00 AM - 10:30 AM PDT">
                 <td>
                   <div>Priya Patel</div>
                   <div class="review-actions"><a onclick="openResumeModal(this)" style="cursor:pointer">View resume</a> <a onclick="openMsgModal(this)" style="cursor:pointer">Message</a></div>
                 </td>
                 <td>Frontend Developer</td>
                 <td>Remote</td>
-                <td>10:00 AM - 10:30 AM PDT</td>
+                <td><div class="proposed-time">2:00 PM - 2:30 PM PDT</div></td>
                 <td>
-                  <div class="pending-actions">
-                    <button class="pending-btn accept" onclick="acceptInterview(this)">Accept<span class="btn-tooltip">Accept interview</span></button>
-                    <button class="pending-btn decline" onclick="declineInterview(this)">Decline<span class="btn-tooltip">Decline interview</span></button>
-                    <button class="pending-btn propose" onclick="openScheduleModal(this)">Reschedule<span class="btn-tooltip">Propose new interview time</span></button>
+                  <div class="proposed-action">
+                    <div class="proposed-action-top">
+                      <span class="proposed-action-label">Proposed · awaiting candidate</span>
+                      <button class="proposed-cancel" onclick="openCancelProposalModal(this)">Cancel</button>
+                    </div>
+                    <div class="proposed-action-times">2:00 PM - 2:30 PM PDT</div>
                   </div>
                 </td>
               </tr>
-              <tr>
+              <!-- PROPOSED: Single time -->
+              <tr data-proposed="single" data-original-time="10:00 AM - 10:30 AM PDT">
                 <td>
                   <div>Jordan Lee</div>
                   <div class="review-actions"><a onclick="openResumeModal(this)" style="cursor:pointer">View resume</a> <a onclick="openMsgModal(this)" style="cursor:pointer">Message</a></div>
                 </td>
                 <td>Registered Nurse</td>
                 <td>Dallas, TX</td>
-                <td>10:00 AM - 10:30 AM PDT</td>
+                <td><div class="proposed-time">3:00 PM - 3:30 PM PDT</div></td>
                 <td>
-                  <div class="pending-actions">
-                    <button class="pending-btn accept" onclick="acceptInterview(this)">Accept<span class="btn-tooltip">Accept interview</span></button>
-                    <button class="pending-btn decline" onclick="declineInterview(this)">Decline<span class="btn-tooltip">Decline interview</span></button>
-                    <button class="pending-btn propose" onclick="openScheduleModal(this)">Reschedule<span class="btn-tooltip">Propose new interview time</span></button>
+                  <div class="proposed-action">
+                    <div class="proposed-action-top">
+                      <span class="proposed-action-label">Proposed · awaiting candidate</span>
+                      <button class="proposed-cancel" onclick="openCancelProposalModal(this)">Cancel</button>
+                    </div>
+                    <div class="proposed-action-times">3:00 PM - 3:30 PM PDT</div>
                   </div>
                 </td>
               </tr>
-              <tr>
+              <!-- PROPOSED: Multiple times -->
+              <tr data-proposed="multiple" data-original-time="10:30 AM - 11:00 AM PDT">
                 <td>
                   <div>Keisha Brown</div>
                   <div class="review-actions"><a onclick="openResumeModal(this)" style="cursor:pointer">View resume</a> <a onclick="openMsgModal(this)" style="cursor:pointer">Message</a></div>
                 </td>
                 <td>Full Stack Developer</td>
                 <td>Remote</td>
-                <td>10:30 AM - 11:00 AM PDT</td>
                 <td>
-                  <div class="pending-actions">
-                    <button class="pending-btn accept" onclick="acceptInterview(this)">Accept<span class="btn-tooltip">Accept interview</span></button>
-                    <button class="pending-btn decline" onclick="declineInterview(this)">Decline<span class="btn-tooltip">Decline interview</span></button>
-                    <button class="pending-btn propose" onclick="openScheduleModal(this)">Reschedule<span class="btn-tooltip">Propose new interview time</span></button>
+                  <div class="proposed-time">10:30 AM - 11:00 AM PDT <span class="proposed-times-more">+2 more<span class="proposed-times-tooltip">11:30 AM - 12:00 PM PDT<br>2:00 PM - 2:30 PM PDT</span></span></div>
+                </td>
+                <td>
+                  <div class="proposed-action">
+                    <div class="proposed-action-top">
+                      <span class="proposed-action-label">Proposed · awaiting candidate</span>
+                      <button class="proposed-cancel" onclick="openCancelProposalModal(this)">Cancel</button>
+                    </div>
+                    <div class="proposed-action-times">10:30 AM - 11:00 AM PDT <span class="proposed-more">+2 more<span class="proposed-more-tooltip">11:30 AM - 12:00 PM PDT<br>2:00 PM - 2:30 PM PDT</span></span></div>
                   </div>
                 </td>
               </tr>
-              <tr>
+              <!-- PROPOSED: Multiple times -->
+              <tr data-proposed="multiple" data-original-time="11:00 AM - 11:30 AM PDT">
                 <td>
                   <div>Daniel Ortiz</div>
                   <div class="review-actions"><a onclick="openResumeModal(this)" style="cursor:pointer">View resume</a> <a onclick="openMsgModal(this)" style="cursor:pointer">Message</a></div>
                 </td>
                 <td>Web Developer</td>
                 <td>Remote</td>
-                <td>11:00 AM - 11:30 AM PDT</td>
                 <td>
-                  <div class="pending-actions">
-                    <button class="pending-btn accept" onclick="acceptInterview(this)">Accept<span class="btn-tooltip">Accept interview</span></button>
-                    <button class="pending-btn decline" onclick="declineInterview(this)">Decline<span class="btn-tooltip">Decline interview</span></button>
-                    <button class="pending-btn propose" onclick="openScheduleModal(this)">Reschedule<span class="btn-tooltip">Propose new interview time</span></button>
+                  <div class="proposed-time">1:00 PM - 1:30 PM PDT <span class="proposed-times-more">+1 more<span class="proposed-times-tooltip">3:30 PM - 4:00 PM PDT</span></span></div>
+                </td>
+                <td>
+                  <div class="proposed-action">
+                    <div class="proposed-action-top">
+                      <span class="proposed-action-label">Proposed · awaiting candidate</span>
+                      <button class="proposed-cancel" onclick="openCancelProposalModal(this)">Cancel</button>
+                    </div>
+                    <div class="proposed-action-times">1:00 PM - 1:30 PM PDT <span class="proposed-more">+1 more<span class="proposed-more-tooltip">3:30 PM - 4:00 PM PDT</span></span></div>
                   </div>
                 </td>
               </tr>
@@ -4544,6 +4591,22 @@ document.addEventListener('click', function(e) {
 </div>
 
 
+<!-- Cancel Proposal Confirmation Modal -->
+<div class="decline-modal-overlay" id="cancelProposalModal">
+  <div class="decline-modal">
+    <div class="decline-modal-header">Cancel proposed interview</div>
+    <div class="decline-modal-body" id="cancelProposalBody">Are you sure you want to cancel your proposed interview time(s) for <span class="candidate-name" id="cancelProposalName"></span>? The candidate will be notified and the original requested time will be restored.</div>
+    <label class="decline-modal-checkbox">
+      <input type="checkbox" id="cancelProposalDontAsk">
+      <span>Don't show this message when I cancel</span>
+    </label>
+    <div class="decline-modal-actions">
+      <button class="decline-cancel" onclick="closeCancelProposalModal()">Keep proposal</button>
+      <button class="decline-confirm" onclick="confirmCancelProposal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <div class="sched-modal-overlay" id="scheduleModal">
   <div class="sched-modal-box">
     <div class="sched-modal-header">
@@ -4673,15 +4736,150 @@ function submitScheduleModal() {
 
   var name = (document.getElementById('scheduleTitle').textContent || '').replace(/^Schedule with\s*/, '') || 'candidate';
   var msg = (completeCount === 1 ? 'Interview time sent to ' : 'Interview times sent to ') + name;
+
+  // Collect proposed times for row update
+  var proposedTimes = [];
+  slots.forEach(function(slot) {
+    var dateVal = slot.querySelector('.schedule-field[data-field="date"] .schedule-input').value;
+    var timeVal = slot.querySelector('.schedule-field[data-field="time"] .schedule-select').value;
+    if (dateVal && timeVal) proposedTimes.push(formatProposedTime(timeVal));
+  });
+
+  // Update the source row to proposed state
+  if (scheduleSourceRow) {
+    updateRowToProposed(scheduleSourceRow, proposedTimes);
+  }
+
   closeScheduleModal();
   showSchedToast(msg);
+}
+
+function formatProposedTime(startTime) {
+  // Convert "2:00 PM" → "2:00 PM - 2:30 PM CDT"
+  var parts = startTime.match(/^(\d+):(\d+)\s*(AM|PM)$/i);
+  if (!parts) return startTime + ' ' + SCHEDULE_TZ_LABEL;
+  var h = parseInt(parts[1]); var m = parseInt(parts[2]); var p = parts[3].toUpperCase();
+  m += 30;
+  if (m >= 60) { m -= 60; h++; if (h === 12 && p === 'AM') p = 'PM'; else if (h === 12 && p === 'PM') p = 'AM'; if (h > 12) h -= 12; }
+  var endTime = h + ':' + (m < 10 ? '0' : '') + m + ' ' + p;
+  return startTime + ' - ' + endTime + ' ' + SCHEDULE_TZ_LABEL;
+}
+
+function updateRowToProposed(row, proposedTimes) {
+  var tds = row.querySelectorAll('td');
+
+  // Save original time for cancel
+  if (!row.getAttribute('data-original-time') && tds.length >= 4) {
+    row.setAttribute('data-original-time', tds[3].textContent.trim());
+  }
+
+  // Update the time column (4th td)
+  if (tds.length >= 4) {
+    var timeCell = tds[3];
+    if (proposedTimes.length === 1) {
+      timeCell.innerHTML = '<div class="proposed-time">' + proposedTimes[0] + '</div>';
+      row.setAttribute('data-proposed', 'single');
+    } else {
+      var first = proposedTimes[0];
+      var rest = proposedTimes.slice(1);
+      var tooltipHtml = rest.join('<br>');
+      timeCell.innerHTML = '<div class="proposed-time">' + first + ' <span class="proposed-times-more">+' + rest.length + ' more<span class="proposed-times-tooltip">' + tooltipHtml + '</span></span></div>';
+      row.setAttribute('data-proposed', 'multiple');
+    }
+  }
+
+  // Update the action column (5th td) — show times and cancel
+  if (tds.length >= 5) {
+    var actionCell = tds[4];
+    var timesHtml;
+    if (proposedTimes.length === 1) {
+      timesHtml = proposedTimes[0];
+    } else {
+      var first = proposedTimes[0];
+      var rest = proposedTimes.slice(1);
+      timesHtml = first + ' <span class="proposed-more">+' + rest.length + ' more<span class="proposed-more-tooltip">' + rest.join('<br>') + '</span></span>';
+    }
+    actionCell.innerHTML = '<div class="proposed-action">'
+      + '<div class="proposed-action-top">'
+      + '<span class="proposed-action-label">Proposed · awaiting candidate</span>'
+      + '<button class="proposed-cancel" onclick="openCancelProposalModal(this)">Cancel</button>'
+      + '</div>'
+      + '<div class="proposed-action-times">' + timesHtml + '</div>'
+      + '</div>';
+  }
+}
+
+var pendingCancelRow = null;
+var skipCancelProposalWarning = false;
+
+function openCancelProposalModal(el) {
+  var row = el.closest('tr');
+  if (!row) return;
+  var name = getRowName(row);
+
+  if (skipCancelProposalWarning) {
+    executeCancelProposal(row);
+    return;
+  }
+
+  pendingCancelRow = row;
+  document.getElementById('cancelProposalName').textContent = name;
+  document.getElementById('cancelProposalModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeCancelProposalModal() {
+  document.getElementById('cancelProposalModal').classList.remove('open');
+  document.body.style.overflow = '';
+  pendingCancelRow = null;
+}
+
+function confirmCancelProposal() {
+  if (document.getElementById('cancelProposalDontAsk').checked) {
+    skipCancelProposalWarning = true;
+  }
+  document.getElementById('cancelProposalDontAsk').checked = false;
+  document.getElementById('cancelProposalModal').classList.remove('open');
+  document.body.style.overflow = '';
+  if (pendingCancelRow) {
+    executeCancelProposal(pendingCancelRow);
+    pendingCancelRow = null;
+  }
+}
+
+function executeCancelProposal(row) {
+  var originalTime = row.getAttribute('data-original-time') || '';
+  var name = getRowName(row);
+  var tds = row.querySelectorAll('td');
+
+  // Restore the time column
+  if (tds.length >= 4) {
+    tds[3].innerHTML = originalTime;
+  }
+
+  // Restore the action column
+  if (tds.length >= 5) {
+    tds[4].innerHTML = '<div class="pending-actions">'
+      + '<button class="pending-btn accept" onclick="acceptInterview(this)">Accept<span class="btn-tooltip">Accept interview</span></button>'
+      + '<button class="pending-btn decline" onclick="declineInterview(this)">Decline<span class="btn-tooltip">Decline interview</span></button>'
+      + '<button class="pending-btn propose" onclick="openScheduleModal(this)">Reschedule<span class="btn-tooltip">Propose new interview time</span></button>'
+      + '</div>';
+  }
+
+  // Clear proposed state
+  row.removeAttribute('data-proposed');
+  row.removeAttribute('data-original-time');
+
+  showToast('success', 'Proposal cancelled for ' + name);
 }
 
 function closeScheduleModal() {
   document.getElementById('scheduleModal').classList.remove('open');
 }
 
+var scheduleSourceRow = null;
 function openScheduleModal(el) {
+  if (el && el.closest) scheduleSourceRow = el.closest('tr');
   var name = getScheduleName(el);
   document.getElementById('scheduleTitle').textContent = 'Schedule with ' + name;
   document.getElementById('scheduleMsgLabel').textContent = 'Message to ' + name;
@@ -4712,6 +4910,9 @@ function getScheduleName(el) {
 // Close on overlay click
 document.getElementById('scheduleModal').addEventListener('click', function(e) {
   if (e.target === this) closeScheduleModal();
+});
+document.getElementById('cancelProposalModal').addEventListener('click', function(e) {
+  if (e.target === this) closeCancelProposalModal();
 });
 </script>
 
