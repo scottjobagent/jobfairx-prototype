@@ -3763,6 +3763,8 @@ function getResumeContext(row) {
   if (row.closest('#waitingLive') || row.closest('#waitingActive') || row.closest('#waitingLiveEmpty')) return 'live-waiting';
   var notyetParent = row.closest('#notyetActive') || row.closest('#notyetLive') || row.closest('#notyetLiveEmpty');
   if (notyetParent) {
+    // Check if this row is in proposed-reschedule state
+    if (row.querySelector('.proposed-action')) return 'proposed';
     var section = row.closest('.live-panel-section');
     if (section) {
       var title = section.querySelector('.live-section-title');
@@ -3800,6 +3802,21 @@ function getRowLocation(row) {
 
 function buildResumeActions(context) {
   var downloadBtn = '<button class="resume-action-btn download" onclick="fbToast(\'Resume downloaded\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg><span class="btn-tooltip">Download resume</span></button>';
+  if (context === 'proposed') {
+    // Get proposed times and cancel from the source row
+    var proposedHtml = '';
+    if (resumeSourceRow) {
+      var timesEl = resumeSourceRow.querySelector('.proposed-action-times');
+      var timesText = timesEl ? timesEl.textContent.trim() : '';
+      proposedHtml = '<span class="proposed-action-label" style="font-size:13px;">Proposed · awaiting candidate</span>' +
+        '<span style="font-size:13px;color:#2d2d2d;font-weight:500;">' + timesText + '</span>' +
+        '<button class="resume-action-btn outline" onclick="cancelProposalFromResume()">Cancel proposal<span class="btn-tooltip">Cancel proposed interview time</span></button>' + downloadBtn;
+    } else {
+      proposedHtml = '<span class="proposed-action-label" style="font-size:13px;">Proposed · awaiting candidate</span>' +
+        '<button class="resume-action-btn outline" onclick="cancelProposalFromResume()">Cancel proposal<span class="btn-tooltip">Cancel proposed interview time</span></button>' + downloadBtn;
+    }
+    return proposedHtml;
+  }
   if (context === 'pending') {
     return '<button class="resume-action-btn primary" onclick="acceptFromResume()">Accept<span class="btn-tooltip">Accept interview</span></button>' +
            '<button class="resume-action-btn outline" onclick="declineFromResume()">Decline<span class="btn-tooltip">Decline interview</span></button>' +
@@ -3928,6 +3945,15 @@ function rescheduleFromResume() {
   var row = resumeSourceRow;
   closeResumeModal();
   if (row) openScheduleModal(row.querySelector('.pending-btn.propose') || row.querySelector('td'));
+}
+
+function cancelProposalFromResume() {
+  var row = resumeSourceRow;
+  closeResumeModal();
+  if (row) {
+    var cancelBtn = row.querySelector('.proposed-cancel');
+    if (cancelBtn) openCancelProposalModal(cancelBtn);
+  }
 }
 
 function startInterview(btn) {
