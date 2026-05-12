@@ -254,6 +254,9 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
 .resume-modal-name { font-size: 20px; font-weight: 400; color: #2d2d2d; line-height: 1.3; }
 .resume-modal-close { width: 32px; height: 32px; border: none; background: none; font-size: 22px; color: #595959; cursor: pointer; display: flex; align-items: center; justify-content: center; border-radius: 6px; transition: all 0.15s; flex-shrink: 0; }
 .resume-modal-close:hover { background: #f3f2ef; color: #2d2d2d; }
+.resume-modal-download { width: 32px; height: 32px; border: none; background: none; color: #595959; cursor: pointer; display: flex; align-items: center; justify-content: center; border-radius: 6px; transition: all 0.15s; flex-shrink: 0; padding: 0; }
+.resume-modal-download:hover { background: #f0f5ff; color: #0044B3; }
+.resume-modal-download svg { width: 18px; height: 18px; }
 .resume-modal-subtitle { font-size: 14px; font-weight: 400; color: #595959; margin-top: 4px; }
 .resume-modal-contact { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-top: 10px; font-size: 13px; color: #595959; }
 .resume-modal-contact a { color: #0044B3; text-decoration: none; font-weight: 500; }
@@ -3801,7 +3804,6 @@ function getRowLocation(row) {
 }
 
 function buildResumeActions(context) {
-  var downloadBtn = '<button class="resume-action-btn download" onclick="fbToast(\'Resume downloaded\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg><span class="btn-tooltip">Download resume</span></button>';
   if (context === 'proposed') {
     // Get proposed times and cancel from the source row
     var proposedHtml = '';
@@ -3810,36 +3812,36 @@ function buildResumeActions(context) {
       var timesText = timesEl ? timesEl.textContent.trim() : '';
       proposedHtml = '<span class="proposed-action-label" style="font-size:13px;">Proposed · awaiting candidate</span>' +
         '<span style="font-size:13px;color:#2d2d2d;font-weight:500;">' + timesText + '</span>' +
-        '<button class="proposed-cancel" title="Cancel proposed interview time" onclick="cancelProposalFromResume()" style="margin-top:4px;">Cancel</button>' + downloadBtn;
+        '<button class="proposed-cancel" title="Cancel proposed interview time" onclick="cancelProposalFromResume()" style="margin-top:4px;">Cancel</button>';
     } else {
       proposedHtml = '<span class="proposed-action-label" style="font-size:13px;">Proposed · awaiting candidate</span>' +
-        '<button class="proposed-cancel" title="Cancel proposed interview time" onclick="cancelProposalFromResume()" style="margin-top:4px;">Cancel</button>' + downloadBtn;
+        '<button class="proposed-cancel" title="Cancel proposed interview time" onclick="cancelProposalFromResume()" style="margin-top:4px;">Cancel</button>';
     }
     return proposedHtml;
   }
   if (context === 'pending') {
     return '<button class="resume-action-btn primary" onclick="acceptFromResume()">Accept<span class="btn-tooltip">Accept interview</span></button>' +
            '<button class="resume-action-btn outline" onclick="declineFromResume()">Decline<span class="btn-tooltip">Decline interview</span></button>' +
-           '<button class="resume-action-btn outline" onclick="rescheduleFromResume()">Reschedule<span class="btn-tooltip">Propose new interview time</span></button>' + downloadBtn;
+           '<button class="resume-action-btn outline" onclick="rescheduleFromResume()">Reschedule<span class="btn-tooltip">Propose new interview time</span></button>';
   }
   if (context === 'accepted') {
     return '<button class="resume-action-btn primary" onclick="rescheduleFromResume()">Reschedule<span class="btn-tooltip">Propose new interview time</span></button>' +
-           '<button class="resume-action-btn outline" onclick="declineFromResume()">Decline<span class="btn-tooltip">Decline interview</span></button>' + downloadBtn;
+           '<button class="resume-action-btn outline" onclick="declineFromResume()">Decline<span class="btn-tooltip">Decline interview</span></button>';
   }
   if (context === 'ended') {
     return '<button class="resume-action-btn primary" onclick="scheduleFollowupFromResume()">Schedule follow-up interview</button>' +
-           '<button class="resume-action-btn outline" onclick="messageFromResume()">Send a message</button>' + downloadBtn;
+           '<button class="resume-action-btn outline" onclick="messageFromResume()">Send a message</button>';
   }
   if (context === 'ended-interviewed') {
     return '<button class="resume-action-btn primary" onclick="scheduleFollowupFromResume()">Schedule follow-up interview</button>' +
-           '<button class="resume-action-btn outline" onclick="messageFromResume()">Send a message</button>' + downloadBtn;
+           '<button class="resume-action-btn outline" onclick="messageFromResume()">Send a message</button>';
   }
   if (context === 'interviewed') {
     return '<button class="resume-action-btn primary" onclick="scheduleFollowupFromResume()">Schedule follow-up interview</button>' +
-           '<button class="resume-action-btn outline" onclick="messageFromResume()">Send a message</button>' + downloadBtn;
+           '<button class="resume-action-btn outline" onclick="messageFromResume()">Send a message</button>';
   }
   if (context === 'live-waiting') {
-    return '<button class="resume-action-btn primary" onclick="messageFromResume()">Send a message</button>' + downloadBtn;
+    return '<button class="resume-action-btn primary" onclick="messageFromResume()">Send a message</button>';
   }
   // interviewing, view-only — download is the only button (left side), so left-align tooltip
   return '<button class="resume-action-btn download" onclick="fbToast(\'Resume downloaded\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg><span class="btn-tooltip" style="left:0;right:auto;transform:none;">Download resume</span></button>';
@@ -4587,6 +4589,7 @@ document.addEventListener('click', function(e) {
           <div class="resume-modal-name" id="resumeName"></div>
           <div class="resume-modal-subtitle" id="resumeSubtitle"></div>
         </div>
+        <button class="resume-modal-download" title="Download resume" onclick="fbToast('Resume downloaded')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
         <button class="resume-modal-close" onclick="closeResumeModal()">&times;</button>
       </div>
       <div class="resume-modal-contact" id="resumeContact"></div>
