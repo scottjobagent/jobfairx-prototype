@@ -1543,7 +1543,7 @@ body.collapsed .progress-bar-track { left: 60px; }
       <div class="rv-section">
         <div class="rv-section-header">
           <div class="rv-section-title">Resume requirement</div>
-          <button class="rv-pencil" title="Edit" onclick="goToStep(5)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button>
+          <button class="rv-pencil" title="Edit" onclick="openRvModal('resumeRequirement')"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button>
         </div>
         <div class="rv-section-body">
           <div class="rv-item" id="rvResumeRequirement">Resume is required</div>
@@ -1759,8 +1759,22 @@ function openRvModal(type) {
   } else if (type === 'customMessaging') {
     document.getElementById('rvCustomMsgModal').classList.add('open');
     updateRvmPreview();
+  } else if (type === 'resumeRequirement') {
+    // Sync modal toggle with current review state
+    var currentText = document.getElementById('rvResumeRequirement').textContent;
+    document.getElementById('rvmResumeToggle').checked = (currentText === 'Resume is required');
+    document.getElementById('rvResumeModal').classList.add('open');
   }
   document.body.style.overflow = 'hidden';
+}
+
+function saveRvResumeRequirement() {
+  var isChecked = document.getElementById('rvmResumeToggle').checked;
+  document.getElementById('rvResumeRequirement').textContent = isChecked ? 'Resume is required' : 'Resume is not required';
+  // Also sync the Step 5 toggle so it stays consistent
+  var setupToggle = document.getElementById('setupResumeToggle');
+  if (setupToggle) setupToggle.checked = isChecked;
+  closeRvModal('rvResumeModal');
 }
 
 function closeRvModal(id) {
@@ -3364,6 +3378,29 @@ function populateStep7Review() {
 .rvm-edit-link:hover { text-decoration: underline; }
 .req { color: #991b1b; }
 </style>
+<!-- ═══ REVIEW MODAL: Resume Requirement ═══ -->
+<div class="rv-modal-backdrop" id="rvResumeModal" onclick="if(event.target===this)closeRvModal('rvResumeModal')">
+  <div class="rv-modal-card" style="max-width:480px;">
+    <div class="rv-modal-header">
+      <div class="rv-modal-title">Resume requirement</div>
+      <button class="rv-modal-close" onclick="closeRvModal('rvResumeModal')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="rv-modal-body">
+      <div class="is-toggle-row">
+        <span class="is-toggle-label">Require candidates to upload a resume?</span>
+        <label class="toggle-switch">
+          <input type="checkbox" id="rvmResumeToggle" checked>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    </div>
+    <div class="rv-modal-footer">
+      <button class="rv-modal-btn-cancel" onclick="closeRvModal('rvResumeModal')">Cancel</button>
+      <button class="rv-modal-btn-save" onclick="saveRvResumeRequirement()">Save</button>
+    </div>
+  </div>
+</div>
+
 <!-- ═══ REVIEW MODAL: Interview Settings ═══ -->
 <div class="rv-modal-backdrop" id="rvInterviewSettingsModal" onclick="if(event.target===this)closeRvModal('rvInterviewSettingsModal')">
   <div class="rv-modal-card" style="max-width:640px;">
