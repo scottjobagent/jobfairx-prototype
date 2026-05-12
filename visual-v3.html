@@ -600,6 +600,9 @@ tbody tr:last-child td { border-bottom: none; }
 .msg-bubble.sent { background: #3B82F6; color: #fff; margin-left: auto; border-bottom-right-radius: 4px; }
 .msg-bubble.received { background: #f0f0f0; color: #2d2d2d; margin-right: auto; border-bottom-left-radius: 4px; }
 .msg-bubble-time { font-size: 11px; color: #767676; text-align: right; margin-bottom: 12px; }
+.msg-bubble.system-msg { background: #f5f5f4; border: 1px solid #e0dfdd; color: #595959; margin-right: auto; border-bottom-left-radius: 4px; padding: 10px 16px; }
+.msg-bubble.system-msg .system-label { font-weight: 700; font-size: 13px; color: #2d2d2d; }
+.msg-bubble.system-msg .system-detail { font-size: 12px; color: #767676; }
 .msg-chat-input { padding: 16px 24px; border-top: 1px solid #e0e0e0; display: flex; align-items: center; gap: 12px; }
 .msg-chat-input-field { flex: 1; padding: 14px 18px; font-size: 14px; border: 1px solid #d4d2d0; border-radius: 10px; font-family: inherit; outline: none; background: #fff; color: #2d2d2d; }
 .msg-chat-input-field:focus { border-color: #0044B3; box-shadow: 0 0 0 2px rgba(0,68,179,0.15); }
@@ -3165,6 +3168,25 @@ function switchMsgTab(el, tab) {
   el.classList.add('active');
 }
 
+var msgThreadContents = {
+  0: {
+    name: 'Sheena Williams',
+    job: 'Registered Behavior Technician Trainee (RBT Trainee)',
+    location: 'Nashville, TN',
+    date: 'May 2, 2026',
+    body: '<div class="msg-chat-divider">May 2</div>' +
+      '<div class="msg-bubble sent">Hi Sheena,<br><br>Thank you for expressing interest in the Registered Behavior Technician Trainee (RBT Trainee) position.<br><br>My name is Scott, and I am looking forward to meeting you at our upcoming hiring event.<br><br>If you have any questions, feel free to reply to this message.<br><br>Best regards,<br>Scott</div>' +
+      '<div class="msg-bubble-time">9:15 AM</div>' +
+      '<div class="msg-bubble received">Thank you Scott! I am very excited about this opportunity. The interview time works great for me.</div>' +
+      '<div class="msg-bubble-time" style="text-align:left;">10:42 AM</div>' +
+      '<div class="msg-bubble system-msg"><div class="system-label">Sheena confirmed the interview:</div><div class="system-detail">May 15, 2026 at 11:00 AM CDT</div></div>' +
+      '<div class="msg-bubble-time" style="text-align:left;">System · 10:45 AM</div>' +
+      '<div class="msg-chat-divider">Today</div>' +
+      '<div class="msg-bubble system-msg"><div class="system-label">Scott proposed a new interview time:</div><div class="system-detail">May 18, 2026 at 2:00 PM CDT</div></div>' +
+      '<div class="msg-bubble-time" style="text-align:left;">System · 8:19 AM</div>'
+  }
+};
+
 function selectMsgThread(el, index) {
   document.querySelectorAll('.msg-thread').forEach(function(t) { t.classList.remove('active'); });
   el.classList.add('active');
@@ -3173,6 +3195,20 @@ function selectMsgThread(el, index) {
   var chat = document.getElementById('msgChatPanel');
   if (welcome) welcome.style.display = 'none';
   if (chat) chat.style.display = '';
+
+  /* Swap chat content if thread data exists */
+  var data = msgThreadContents[index];
+  if (data) {
+    var headerInfo = chat.querySelector('.msg-chat-header-info');
+    headerInfo.querySelector('h3').textContent = data.name;
+    var metaSvgs = headerInfo.querySelector('.msg-chat-header-meta').querySelectorAll('svg');
+    headerInfo.querySelector('.msg-chat-header-meta').innerHTML =
+      metaSvgs[0].outerHTML + ' ' + data.job +
+      ' <span style="margin:0 4px;">·</span> ' +
+      metaSvgs[1].outerHTML + ' ' + data.location +
+      ' <span style="margin:0 4px;">|</span> ' + data.date;
+    chat.querySelector('.msg-chat-body').innerHTML = data.body;
+  }
 }
 
 /* ═══ MESSAGING THREE-DOT MENU ═══ */
