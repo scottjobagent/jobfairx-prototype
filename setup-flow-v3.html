@@ -344,6 +344,16 @@ body.collapsed .progress-bar-track { left: 60px; }
 .is-email-field { border: none; outline: none; font-size: 14px; font-family: inherit; flex: 1; min-width: 120px; padding: 0; }
 .is-divider { height: 1px; background: #e5e4e1; margin: 24px 0; }
 
+/* Toggle switch */
+.is-toggle-row { display: flex; align-items: center; gap: 14px; }
+.is-toggle-label { font-size: 16px; color: #2d2d2d; font-weight: 600; }
+.toggle-switch { position: relative; width: 48px; height: 28px; flex-shrink: 0; }
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+.toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: #d4d2d0; border-radius: 999px; transition: 0.25s; }
+.toggle-slider:before { content: ''; position: absolute; height: 22px; width: 22px; left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: 0.25s; }
+.toggle-switch input:checked + .toggle-slider { background: #0044B3; }
+.toggle-switch input:checked + .toggle-slider:before { transform: translateX(20px); }
+
 /* ═══ STEP 6: JOB LEVEL SCREENING ═══ */
 .sc-title-card { display: flex; align-items: center; justify-content: space-between; background: #fff; border-radius: 12px; padding: 32px 40px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); margin-bottom: 24px; min-height: 120px; }
 .sc-title-text { font-size: 36px; font-weight: 700; color: #2d2d2d; line-height: 1.25; }
@@ -1349,6 +1359,20 @@ body.collapsed .progress-bar-track { left: 60px; }
         </div>
         <p class="is-recommendation">Based on your selection, you can expect to plan for <strong id="expectedCandidates">3</strong> candidates to show up per time slot. We recommend staffing 1 interviewer for each expected candidate.</p>
       </div>
+
+      <div class="is-divider"></div>
+
+      <!-- Resume requirement -->
+      <div class="is-field-group">
+        <div class="is-label">Resume requirement <span class="required">*</span></div>
+        <div class="is-toggle-row">
+          <span class="is-toggle-label">Require candidates to upload a resume?</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="setupResumeToggle" checked>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
     </div>
 
     <div class="section-divider" style="margin: 32px 0;"></div>
@@ -1510,6 +1534,19 @@ body.collapsed .progress-bar-track { left: 60px; }
           <ul class="rv-list" id="rvUpdatesList">
             <li id="rvUpdatesPlaceholder"><em>No recipients added</em></li>
           </ul>
+        </div>
+      </div>
+
+      <div class="rv-divider"></div>
+
+      <!-- Resume requirement -->
+      <div class="rv-section">
+        <div class="rv-section-header">
+          <div class="rv-section-title">Resume requirement</div>
+          <button class="rv-pencil" title="Edit" onclick="goToStep(5)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button>
+        </div>
+        <div class="rv-section-body">
+          <div class="rv-item" id="rvResumeRequirement">Resume is required</div>
         </div>
       </div>
 
@@ -3161,6 +3198,11 @@ function populateStep7Review() {
   } else {
     updatesList.innerHTML = '<li><em>No recipients added</em></li>';
   }
+
+  // Resume requirement from Step 5
+  var resumeToggle = document.getElementById('setupResumeToggle');
+  var rvResume = document.getElementById('rvResumeRequirement');
+  rvResume.textContent = resumeToggle && resumeToggle.checked ? 'Resume is required' : 'Resume is not required';
 
   // Screening status from Step 6
   var screeningList = document.getElementById('rvScreeningList');
