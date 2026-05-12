@@ -1857,9 +1857,9 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
             <td>
               <div class="iv-time-group">
                 <div><span class="iv-time-label">Interview 1</span></div>
-                <div class="iv-time-date">Apr 22, 11:38 AM PDT</div>
+                <div class="iv-time-date">11:00 AM CDT</div>
                 <div style="margin-top: 6px;"><span class="iv-time-label">Interview 2</span></div>
-                <div class="iv-time-date">Apr 22, 11:53 AM PDT</div>
+                <div class="iv-time-date">11:30 AM CDT</div>
               </div>
             </td>
             <td>
@@ -4797,45 +4797,59 @@ function formatProposedTime(startTime) {
 
 function updateRowToProposed(row, proposedTimes) {
   var tds = row.querySelectorAll('td');
+  var isInterviewed = row.closest('#interviewedLive') !== null;
 
   // Save original time for cancel
   if (!row.getAttribute('data-original-time') && tds.length >= 4) {
-    row.setAttribute('data-original-time', tds[3].textContent.trim());
+    row.setAttribute('data-original-time', tds[3].innerHTML);
   }
 
-  // Update the time column (4th td)
-  if (tds.length >= 4) {
-    var timeCell = tds[3];
-    if (proposedTimes.length === 1) {
-      timeCell.innerHTML = '<div class="proposed-time">' + proposedTimes[0] + '</div>';
-      row.setAttribute('data-proposed', 'single');
-    } else {
-      var first = proposedTimes[0];
-      var rest = proposedTimes.slice(1);
-      var tooltipHtml = rest.join('<br>');
-      timeCell.innerHTML = '<div class="proposed-time">' + first + ' <span class="proposed-times-more">+' + rest.length + ' more<span class="proposed-times-tooltip">' + tooltipHtml + '</span></span></div>';
-      row.setAttribute('data-proposed', 'multiple');
-    }
-  }
-
-  // Update the action column (5th td) — show times and cancel
-  if (tds.length >= 5) {
-    var actionCell = tds[4];
-    var timesHtml;
-    if (proposedTimes.length === 1) {
-      timesHtml = proposedTimes[0];
-    } else {
-      var first = proposedTimes[0];
-      var rest = proposedTimes.slice(1);
-      timesHtml = first + ' <span class="proposed-more">+' + rest.length + ' more<span class="proposed-more-tooltip">' + rest.join('<br>') + '</span></span>';
-    }
-    actionCell.innerHTML = '<div class="proposed-action">'
-      + '<div class="proposed-action-top">'
-      + '<span class="proposed-action-label">Proposed · awaiting candidate</span>'
-      + '<button class="proposed-cancel" title="Cancel proposed interview time" onclick="openCancelProposalModal(this)">Cancel</button>'
+  if (isInterviewed) {
+    // INTERVIEWED ROW: append follow-up status to Interviews column, keep Feedback intact
+    var ivCell = tds[3];
+    // Append follow-up line below existing interview entries
+    var followupHtml = '<div style="margin-top:8px;border-top:1px solid #e8e6e3;padding-top:8px;">'
+      + '<div class="proposed-action">'
+      + '<span class="proposed-action-label" style="font-size:12px;">Follow-up interview · awaiting response</span>'
+      + '<button class="proposed-cancel" title="Cancel proposed interview time" onclick="openCancelProposalModal(this)" style="margin-left:8px;">Cancel</button>'
       + '</div>'
-      + '<div class="proposed-action-times">' + timesHtml + '</div>'
       + '</div>';
+    ivCell.innerHTML = ivCell.innerHTML + followupHtml;
+    row.setAttribute('data-proposed', 'interviewed');
+  } else {
+    // NOT YET INTERVIEWED ROW: replace time and action columns
+    if (tds.length >= 4) {
+      var timeCell = tds[3];
+      if (proposedTimes.length === 1) {
+        timeCell.innerHTML = '<div class="proposed-time">' + proposedTimes[0] + '</div>';
+        row.setAttribute('data-proposed', 'single');
+      } else {
+        var first = proposedTimes[0];
+        var rest = proposedTimes.slice(1);
+        var tooltipHtml = rest.join('<br>');
+        timeCell.innerHTML = '<div class="proposed-time">' + first + ' <span class="proposed-times-more">+' + rest.length + ' more<span class="proposed-times-tooltip">' + tooltipHtml + '</span></span></div>';
+        row.setAttribute('data-proposed', 'multiple');
+      }
+    }
+
+    if (tds.length >= 5) {
+      var actionCell = tds[4];
+      var timesHtml;
+      if (proposedTimes.length === 1) {
+        timesHtml = proposedTimes[0];
+      } else {
+        var first = proposedTimes[0];
+        var rest = proposedTimes.slice(1);
+        timesHtml = first + ' <span class="proposed-more">+' + rest.length + ' more<span class="proposed-more-tooltip">' + rest.join('<br>') + '</span></span>';
+      }
+      actionCell.innerHTML = '<div class="proposed-action">'
+        + '<div class="proposed-action-top">'
+        + '<span class="proposed-action-label">Proposed · awaiting candidate</span>'
+        + '<button class="proposed-cancel" title="Cancel proposed interview time" onclick="openCancelProposalModal(this)">Cancel</button>'
+        + '</div>'
+        + '<div class="proposed-action-times">' + timesHtml + '</div>'
+        + '</div>';
+    }
   }
 }
 
@@ -4881,19 +4895,25 @@ function executeCancelProposal(row) {
   var originalTime = row.getAttribute('data-original-time') || '';
   var name = getRowName(row);
   var tds = row.querySelectorAll('td');
+  var isInterviewed = row.closest('#interviewedLive') !== null;
 
-  // Restore the time column
-  if (tds.length >= 4) {
-    tds[3].innerHTML = originalTime;
-  }
-
-  // Restore the action column
-  if (tds.length >= 5) {
-    tds[4].innerHTML = '<div class="pending-actions">'
-      + '<button class="pending-btn accept" onclick="acceptInterview(this)">Accept<span class="btn-tooltip">Accept interview</span></button>'
-      + '<button class="pending-btn decline" onclick="declineInterview(this)">Decline<span class="btn-tooltip">Decline interview</span></button>'
-      + '<button class="pending-btn propose" onclick="openScheduleModal(this)">Reschedule<span class="btn-tooltip">Propose new interview time</span></button>'
-      + '</div>';
+  if (isInterviewed) {
+    // INTERVIEWED ROW: restore Interviews column only, Feedback stays intact
+    if (tds.length >= 4) {
+      tds[3].innerHTML = originalTime;
+    }
+  } else {
+    // NOT YET INTERVIEWED ROW: restore time and action columns
+    if (tds.length >= 4) {
+      tds[3].innerHTML = originalTime;
+    }
+    if (tds.length >= 5) {
+      tds[4].innerHTML = '<div class="pending-actions">'
+        + '<button class="pending-btn accept" onclick="acceptInterview(this)">Accept<span class="btn-tooltip">Accept interview</span></button>'
+        + '<button class="pending-btn decline" onclick="declineInterview(this)">Decline<span class="btn-tooltip">Decline interview</span></button>'
+        + '<button class="pending-btn propose" onclick="openScheduleModal(this)">Reschedule<span class="btn-tooltip">Propose new interview time</span></button>'
+        + '</div>';
+    }
   }
 
   // Clear proposed state
