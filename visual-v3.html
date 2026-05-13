@@ -197,6 +197,7 @@ body.collapsed .main { margin-left: 60px; }
 .search-events-menu.open { display: block; }
 .search-events-item { display: block; width: 100%; padding: 12px 18px; font-size: 14px; font-weight: 500; color: #2d2d2d; background: none; border: none; text-align: left; cursor: pointer; font-family: inherit; transition: background 0.1s; }
 .search-events-item:hover { background: #f3f2ef; }
+.search-events-item.active { color: #0044B3; font-weight: 700; background: #f0f5ff; }
 
 /* Tab pills (Upcoming / Complete) */
 .tab-pills { display: flex; gap: 8px; }
@@ -1035,15 +1036,16 @@ tbody tr:last-child td { border-bottom: none; }
         <button class="tab-pill" onclick="filterEvents('complete', this)">Past events <span class="count">1</span></button>
       </div>
       <div class="filter-right" style="position:relative;">
-        <button class="search-events-btn" onclick="toggleDropdown('search-events-menu')">
+        <button class="search-events-btn" id="dashFilterBtn" onclick="toggleDropdown('search-events-menu')">
           Search Hiring Events
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
         </button>
         <div class="search-events-menu" id="search-events-menu">
-          <button class="search-events-item">Dallas Healthcare - Apr 22</button>
-          <button class="search-events-item">Chicago Technology - May 6</button>
-          <button class="search-events-item">Atlanta Diversity - Apr 5</button>
-          <button class="search-events-item">Houston Veteran - Mar 18</button>
+          <button class="search-events-item active" data-dash-filter="" onclick="filterDashboardByEvent(this)">All events</button>
+          <button class="search-events-item" data-dash-filter="dallas-healthcare" onclick="filterDashboardByEvent(this)">Dallas Healthcare - Apr 22</button>
+          <button class="search-events-item" data-dash-filter="chicago-technology" onclick="filterDashboardByEvent(this)">Chicago Technology - May 6</button>
+          <button class="search-events-item" data-dash-filter="atlanta-diversity" onclick="filterDashboardByEvent(this)">Atlanta Diversity - Apr 5</button>
+          <button class="search-events-item" data-dash-filter="houston-veteran" onclick="filterDashboardByEvent(this)">Houston Veteran - Mar 18</button>
         </div>
       </div>
     </div>
@@ -1062,7 +1064,7 @@ tbody tr:last-child td { border-bottom: none; }
           </tr>
         </thead>
         <tbody>
-          <tr class="ev-row upcoming" data-event="dallas">
+          <tr class="ev-row upcoming" data-event="dallas" data-dash-event="dallas-healthcare">
             <td>
               <div class="actions-cell">
                 <button class="action-pencil" title="Edit" data-action="edit" onclick="handleEventAction(this, 'edit-post-v3.html?event=dallas')"><svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M16.293 2.293a2.828 2.828 0 114 4l-11 11a1 1 0 01-.39.242l-4.5 1.5a.75.75 0 01-.942-.942l1.5-4.5a1 1 0 01.242-.39l11.09-11.09z"/></svg></button>
@@ -1099,7 +1101,7 @@ tbody tr:last-child td { border-bottom: none; }
               <a onclick="window.open('lobby-v3.html?tab=notyet','_blank')" style="cursor:pointer;">Manage applicants</a>
             </td>
           </tr>
-          <tr class="ev-row upcoming">
+          <tr class="ev-row upcoming" data-dash-event="chicago-technology">
             <td>
               <div class="actions-cell">
                 <button class="action-pencil" title="Edit" onclick="window.open('edit-post-v3.html?event=chicago','_blank')"><svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M16.293 2.293a2.828 2.828 0 114 4l-11 11a1 1 0 01-.39.242l-4.5 1.5a.75.75 0 01-.942-.942l1.5-4.5a1 1 0 01.242-.39l11.09-11.09z"/></svg></button>
@@ -1143,7 +1145,7 @@ tbody tr:last-child td { border-bottom: none; }
               <a onclick="window.open('lobby-v3.html?tab=notyet','_blank')" style="cursor:pointer;">Manage applicants</a>
             </td>
           </tr>
-          <tr class="ev-row upcoming">
+          <tr class="ev-row upcoming" data-dash-event="atlanta-diversity">
             <td>
               <div class="actions-cell">
                 <button class="action-pencil" title="Edit" onclick="window.open('setup-flow-v3.html','_blank')"><svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M16.293 2.293a2.828 2.828 0 114 4l-11 11a1 1 0 01-.39.242l-4.5 1.5a.75.75 0 01-.942-.942l1.5-4.5a1 1 0 01.242-.39l11.09-11.09z"/></svg></button>
@@ -1234,7 +1236,7 @@ tbody tr:last-child td { border-bottom: none; }
             </tr>
           </thead>
           <tbody>
-            <tr class="ev-row complete">
+            <tr class="ev-row complete" data-dash-event="houston-veteran">
               <td>
                 <div class="actions-cell">
                   <button class="action-dots" onclick="toggleMenu(this)"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="6" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="18" cy="12" r="2"/></svg></button>
@@ -2665,28 +2667,132 @@ function showView(view) {
 
 }
 
-function filterEvents(type, el) {
-  document.querySelectorAll('.tab-pill').forEach(t => t.classList.remove('active'));
-  el.classList.add('active');
+var dashEventFilter = ''; // '' = all events
+
+function filterDashboardByEvent(btn) {
+  var filterVal = btn.getAttribute('data-dash-filter');
+  dashEventFilter = filterVal;
+
+  // Update active state on dropdown items
+  document.querySelectorAll('.search-events-item').forEach(function(item) { item.classList.remove('active'); });
+  btn.classList.add('active');
+
+  // Update button label
+  var btnEl = document.getElementById('dashFilterBtn');
+  var label = filterVal ? btn.textContent.trim() : 'Search Hiring Events';
+  btnEl.childNodes[0].textContent = label + ' ';
+
+  // Close dropdown
+  document.getElementById('search-events-menu').classList.remove('open');
+
+  // Recount and apply filter
+  applyDashboardFilter();
+}
+
+function applyDashboardFilter() {
+  var filter = dashEventFilter;
+  var upcomingRows = document.querySelectorAll('#upcomingTable .ev-row');
+  var completedRows = document.querySelectorAll('#completedEvents .ev-row');
+
+  // Count visible rows per tab
+  var upcomingCount = 0;
+  var pastCount = 0;
+
+  upcomingRows.forEach(function(row) {
+    var evId = row.getAttribute('data-dash-event') || '';
+    if (!filter || evId === filter) {
+      row.style.display = '';
+      upcomingCount++;
+    } else {
+      row.style.display = 'none';
+    }
+  });
+
+  completedRows.forEach(function(row) {
+    var evId = row.getAttribute('data-dash-event') || '';
+    if (!filter || evId === filter) {
+      row.style.display = '';
+      pastCount++;
+    } else {
+      row.style.display = 'none';
+    }
+  });
+
+  // Update tab pill counts
+  var pills = document.querySelectorAll('.tab-pills .tab-pill');
+  if (pills[0]) pills[0].innerHTML = 'Upcoming events <span class="count">' + upcomingCount + '</span>';
+  if (pills[1]) pills[1].innerHTML = 'Past events <span class="count">' + pastCount + '</span>';
+
+  // Determine which tab is active
+  var activePill = document.querySelector('.tab-pills .tab-pill.active');
+  var activeType = activePill && activePill.textContent.indexOf('Past') !== -1 ? 'complete' : 'upcoming';
+
+  // Auto-switch if current tab has 0 results but the other has results
+  if (activeType === 'upcoming' && upcomingCount === 0 && pastCount > 0) {
+    filterEvents('complete', pills[1]);
+    return;
+  } else if (activeType === 'complete' && pastCount === 0 && upcomingCount > 0) {
+    filterEvents('upcoming', pills[0]);
+    return;
+  }
+
+  // Show/hide the correct table
+  showDashboardTab(activeType, upcomingCount, pastCount);
+}
+
+function showDashboardTab(type, upcomingCount, pastCount) {
   var upcomingTable = document.getElementById('upcomingTable');
   var completedSection = document.getElementById('completedEvents');
   var noUpcomingState = document.getElementById('noUpcomingState');
-  var isNoUpcomingMode = noUpcomingState.style.display !== 'none';
+
   if (type === 'complete') {
     upcomingTable.style.display = 'none';
     noUpcomingState.style.display = 'none';
     completedSection.classList.add('active');
   } else {
     completedSection.classList.remove('active');
-    if (isNoUpcomingMode || upcomingTable.querySelectorAll('.ev-row').length === 0) {
+    if (upcomingCount === 0) {
       upcomingTable.style.display = 'none';
       noUpcomingState.style.display = '';
     } else {
       upcomingTable.style.display = '';
       noUpcomingState.style.display = 'none';
-      document.querySelectorAll('#upcomingTable .ev-row').forEach(r => r.style.display = r.classList.contains(type) ? '' : 'none');
     }
   }
+}
+
+function filterEvents(type, el) {
+  document.querySelectorAll('.tab-pill').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+
+  // Recount with current event filter applied
+  var filter = dashEventFilter;
+  var upcomingRows = document.querySelectorAll('#upcomingTable .ev-row');
+  var completedRows = document.querySelectorAll('#completedEvents .ev-row');
+  var upcomingCount = 0;
+  var pastCount = 0;
+
+  upcomingRows.forEach(function(row) {
+    var evId = row.getAttribute('data-dash-event') || '';
+    if (!filter || evId === filter) {
+      row.style.display = '';
+      upcomingCount++;
+    } else {
+      row.style.display = 'none';
+    }
+  });
+
+  completedRows.forEach(function(row) {
+    var evId = row.getAttribute('data-dash-event') || '';
+    if (!filter || evId === filter) {
+      row.style.display = '';
+      pastCount++;
+    } else {
+      row.style.display = 'none';
+    }
+  });
+
+  showDashboardTab(type, upcomingCount, pastCount);
 }
 
 /* ═══ INTERVIEWS PAGE FUNCTIONS ═══ */
@@ -3350,6 +3456,14 @@ function toggleAllCheckboxes(master) {
 function setDevMode(mode, btn) {
   document.querySelectorAll('.dev-toggle-btn').forEach(function(b) { b.classList.remove('active'); });
   btn.classList.add('active');
+
+  // Reset event filter
+  dashEventFilter = '';
+  document.querySelectorAll('.search-events-item').forEach(function(item) { item.classList.remove('active'); });
+  var allItem = document.querySelector('.search-events-item[data-dash-filter=""]');
+  if (allItem) allItem.classList.add('active');
+  var filterBtn = document.getElementById('dashFilterBtn');
+  if (filterBtn) filterBtn.childNodes[0].textContent = 'Search Hiring Events ';
 
   // Dashboard elements
   var activeHeader = document.querySelector('#view-events > .header-card');
