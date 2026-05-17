@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How Hiring Events Work — JobFairX</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans', -apple-system, sans-serif; background: #fff; color: #2d2d2d; -webkit-font-smoothing: antialiased; }
+
+        /* ═══ STICKY BANNER ═══ */
+        .top-banner {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 12px 48px 12px 24px;
+            background: #f8faff;
+            border-bottom: 1px solid #e8ecf2;
+            position: relative;
+            font-size: 17px;
+            color: #2d2d2d;
+            font-weight: 700;
+            line-height: 26px;
+        }
+        .top-banner .banner-icon {
+            display: inline-flex;
+            flex-shrink: 0;
+        }
+        .top-banner .banner-icon svg { width: 16px; height: 16px; }
+        .top-banner .banner-text { }
+        .top-banner .banner-cta {
+            color: #0044B3;
+            font-weight: 700;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+        .top-banner .banner-cta:hover { text-decoration: underline; }
+        .top-banner .banner-close {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            color: #999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            transition: background 0.15s, color 0.15s;
+        }
+        .top-banner .banner-close:hover { background: #e8ecf2; color: #2d2d2d; }
+        .top-banner .banner-close svg { width: 18px; height: 18px; }
+        .top-banner.hidden { display: none; }
+
+        /* ═══ SITE HEADER ═══ */
+        .site-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 40px;
+            background: #fff;
+            border-bottom: 1px solid #e8ecf2;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .site-header-left { display: flex; align-items: center; gap: 40px; }
+        .site-header-logo { font-size: 22px; font-weight: 800; color: #0044B3; text-decoration: none; letter-spacing: -0.5px; }
+        .site-header-nav { display: flex; gap: 32px; }
+        .site-header-nav a { font-size: 15px; font-weight: 600; color: #2d2d2d; text-decoration: none; }
+        .site-header-nav a:hover { color: #0044B3; }
+        .site-header-right { display: flex; align-items: center; gap: 20px; }
+        .site-header-signin { font-size: 15px; font-weight: 600; color: #2d2d2d; text-decoration: none; }
+        .site-header-signin:hover { color: #0044B3; }
+        .site-header-cta {
+            padding: 10px 22px;
+            background: #0044B3;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 700;
+            border-radius: 8px;
+            text-decoration: none;
+            border: none;
+            font-family: inherit;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .site-header-cta:hover { background: #003399; }
+
+        /* ═══ SECTION CONTAINER ═══ */
+        .how-section { max-width: 1140px; margin: 0 auto; padding: 80px 32px 40px; }
+        .section-heading { text-align: center; margin-bottom: 72px; }
+        .section-heading h2 { font-size: 38px; font-weight: 800; color: #1a1a1a; margin-bottom: 14px; line-height: 1.2; }
+        .section-heading p { font-size: 18px; color: #595959; max-width: 620px; margin: 0 auto; line-height: 1.6; }
+
+        /* ═══ STEP BLOCKS ═══ */
+        .step { display: flex; align-items: center; gap: 60px; margin-bottom: 48px; }
+        .step.reverse { flex-direction: row-reverse; }
+        .step-content { flex: 1; min-width: 0; }
+        .step-image { flex: 1.25; min-width: 0; }
+
+        .step-badge { display: inline-block; padding: 5px 14px; background: #e8f0fe; color: #0044B3; border-radius: 20px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 14px; }
+        .step-title { font-size: 26px; font-weight: 800; color: #1a1a1a; margin-bottom: 14px; line-height: 1.3; }
+        .step-desc { font-size: 15px; color: #595959; line-height: 1.7; margin-bottom: 20px; }
+        .feature-list { display: flex; flex-wrap: wrap; gap: 10px; }
+        .feature-pill { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; background: #f0f5ff; border-radius: 8px; font-size: 13px; font-weight: 600; color: #0044B3; }
+        .feature-pill svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+        /* Divider */
+        .step-divider { display: flex; align-items: center; justify-content: center; margin-bottom: 48px; }
+        .step-divider .line { width: 2px; height: 48px; background: linear-gradient(to bottom, #0044B3, #d1d5db); border-radius: 1px; }
+
+        /* ═══ MOCKUP FRAMES ═══ */
+        .mockup-frame {
+            border-radius: 12px;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.12);
+            border: 1px solid #e0e0e0;
+            overflow: hidden;
+            background: #f8f9fb;
+        }
+
+        /* ═══ STEP 1 — MARKETING CARDS ═══ */
+        .match-visual { padding: 32px 28px; background: linear-gradient(135deg, #f8faff 0%, #f0f5ff 100%); }
+        .match-header { display: flex; align-items: center; gap: 10px; margin-bottom: 24px; }
+        .match-ai-badge { display: inline-flex; align-items: center; gap: 7px; padding: 7px 14px; background: linear-gradient(135deg, #0044B3, #1a6be0); color: #fff; border-radius: 8px; font-size: 12px; font-weight: 700; letter-spacing: 0.3px; }
+        .match-ai-badge svg { width: 15px; height: 15px; }
+        .match-subtitle { font-size: 13px; color: #595959; font-weight: 500; }
+        .match-cards { display: flex; flex-direction: column; gap: 12px; }
+        .match-card { display: flex; align-items: center; gap: 16px; padding: 16px 20px; background: #fff; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); border: 1px solid #e8ecf2; transition: transform 0.15s; }
+        .match-card:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+        .match-avatar { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; color: #fff; flex-shrink: 0; }
+        .match-info { flex: 1; min-width: 0; }
+        .match-name { font-size: 15px; font-weight: 700; color: #1a1a1a; margin-bottom: 2px; }
+        .match-role { font-size: 13px; color: #595959; font-weight: 500; }
+        .match-score-block { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
+        .match-pct { font-size: 20px; font-weight: 800; line-height: 1; }
+        .match-pct.high { color: #059669; }
+        .match-pct.good { color: #0044B3; }
+        .match-bar-outer { width: 64px; height: 6px; background: #e5e7eb; border-radius: 3px; overflow: hidden; }
+        .match-bar-inner { height: 100%; border-radius: 3px; }
+        .match-bar-inner.high { background: linear-gradient(90deg, #059669, #10b981); }
+        .match-bar-inner.good { background: linear-gradient(90deg, #0044B3, #3b82f6); }
+        .match-label { font-size: 10px; font-weight: 600; color: #999; text-transform: uppercase; letter-spacing: 0.5px; }
+        .match-actions { display: flex; gap: 8px; flex-shrink: 0; }
+        .match-accept { padding: 8px 18px; background: #0044B3; color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; font-family: inherit; cursor: pointer; }
+        .match-decline { padding: 8px 14px; background: #fff; color: #767676; border: 1.5px solid #d4d2d0; border-radius: 8px; font-size: 13px; font-weight: 600; font-family: inherit; cursor: pointer; }
+        .match-more-badge { text-align: center; padding: 12px; font-size: 13px; font-weight: 600; color: #0044B3; }
+
+        /* ═══ SHARED MOCKUP STYLES ═══ */
+        .mk-shell { display: flex; }
+        .mk-sidebar { width: 160px; background: #fff; border-right: 1px solid #e5e7eb; padding: 16px 0; flex-shrink: 0; }
+        .mk-logo { font-size: 17px; font-weight: 800; color: #0044B3; padding: 0 14px; margin-bottom: 20px; letter-spacing: -0.3px; }
+        .mk-nav { display: flex; align-items: center; gap: 8px; padding: 9px 14px; font-size: 11px; font-weight: 600; color: #999; border-left: 3px solid transparent; }
+        .mk-nav.active { background: #f0f5ff; color: #0044B3; border-left-color: #0044B3; }
+        .mk-nav svg { width: 15px; height: 15px; flex-shrink: 0; }
+        .mk-main { flex: 1; padding: 16px 20px; min-width: 0; }
+        .mk-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+        .mk-title { font-size: 17px; font-weight: 800; color: #1a1a1a; }
+        .mk-select { padding: 6px 12px; border: 1.5px solid #d4d2d0; border-radius: 7px; font-size: 10px; font-weight: 600; color: #2d2d2d; background: #fff; font-family: inherit; }
+
+        .mk-tabs { display: flex; border-bottom: 2px solid #e5e7eb; margin-bottom: 14px; }
+        .mk-tab { padding: 8px 16px; font-size: 11px; font-weight: 600; color: #999; border-bottom: 3px solid transparent; margin-bottom: -2px; }
+        .mk-tab.active { color: #2d2d2d; border-bottom-color: #2d2d2d; font-weight: 700; }
+        .mk-tab-count { color: #999; font-weight: 400; margin-left: 3px; }
+
+        /* Table styles */
+        .mk-table { width: 100%; border-collapse: separate; border-spacing: 0; background: #fff; border-radius: 8px; border: 1px solid #e5e7eb; overflow: hidden; font-size: 10px; }
+        .mk-table thead th { padding: 8px 10px; text-align: left; font-size: 8px; font-weight: 700; color: #999; text-transform: uppercase; letter-spacing: 0.4px; border-bottom: 1.5px solid #e5e7eb; background: #fafbfc; }
+        .mk-table tbody td { padding: 10px 10px; border-bottom: 1px solid #f5f5f5; vertical-align: middle; }
+        .mk-table tbody tr:last-child td { border-bottom: none; }
+
+        .mk-avatar { width: 26px; height: 26px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; color: #fff; flex-shrink: 0; vertical-align: middle; margin-right: 8px; }
+        .mk-name { font-weight: 700; color: #2d2d2d; }
+        .mk-links { font-size: 8px; color: #0044B3; margin-top: 2px; }
+        .mk-links a { color: #0044B3; text-decoration: none; font-weight: 600; margin-right: 6px; }
+
+        /* Match score */
+        .mk-score { display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px; border-radius: 12px; font-size: 9px; font-weight: 700; }
+        .mk-score.high { background: #ecfdf5; color: #065f46; }
+        .mk-score.good { background: #e8f0fe; color: #0044B3; }
+        .mk-bar { width: 28px; height: 4px; background: #e5e7eb; border-radius: 2px; overflow: hidden; }
+        .mk-bar-fill { height: 100%; border-radius: 2px; }
+        .mk-score.high .mk-bar-fill { background: #059669; }
+        .mk-score.good .mk-bar-fill { background: #0044B3; }
+
+        /* Buttons */
+        .mk-btn-group { display: inline-flex; border: 1px solid #d4d2d0; border-radius: 6px; overflow: hidden; }
+        .mk-btn { padding: 5px 10px; font-size: 9px; font-weight: 700; border: none; background: #fff; color: #2d2d2d; font-family: inherit; border-right: 1px solid #d4d2d0; }
+        .mk-btn:last-child { border-right: none; }
+        .mk-btn.accept { background: #0044B3; color: #fff; }
+
+        /* Status badges */
+        .mk-status { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 12px; font-size: 9px; font-weight: 700; }
+        .mk-status.confirmed { background: #ecfdf5; color: #065f46; }
+        .mk-status-dot { width: 5px; height: 5px; background: #059669; border-radius: 50%; }
+
+        /* Banners */
+        .mk-banner { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 8px; margin-bottom: 12px; font-size: 10px; font-weight: 600; }
+        .mk-banner.ai { background: linear-gradient(135deg, #e8f0fe, #f0f5ff); border: 1px solid #b8d4ff; color: #0044B3; }
+        .mk-banner.auto { background: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; }
+        .mk-banner-icon { width: 24px; height: 24px; background: #0044B3; border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .mk-banner-icon svg { width: 13px; height: 13px; }
+        .mk-auto-badge { display: inline-flex; align-items: center; gap: 3px; padding: 2px 7px; background: #059669; color: #fff; border-radius: 4px; font-size: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; }
+        .mk-toggle { width: 28px; height: 16px; background: #059669; border-radius: 8px; position: relative; margin-left: auto; flex-shrink: 0; }
+        .mk-toggle-knob { width: 12px; height: 12px; background: #fff; border-radius: 50%; position: absolute; top: 2px; right: 2px; }
+
+        .mk-section-title { font-size: 12px; font-weight: 700; color: #2d2d2d; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+        .mk-section-title svg { width: 14px; height: 14px; }
+
+        /* ═══ STEP 3 — INTERVIEW ═══ */
+        .mk-interview { display: flex; flex-direction: column; height: 380px; }
+        .mk-video-area { flex: 1; display: flex; position: relative; overflow: hidden; }
+        .mk-video-main { flex: 1; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 40%, #0f3460 100%); display: flex; align-items: center; justify-content: center; position: relative; }
+        .mk-candidate-avatar { width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #0044B3, #1e6fd9); display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 700; color: #fff; letter-spacing: 2px; box-shadow: 0 0 30px rgba(0,68,179,0.3); }
+        .mk-candidate-name-below { text-align: center; margin-top: 8px; }
+        .mk-candidate-name-below .name { font-size: 13px; font-weight: 600; color: #fff; }
+        .mk-candidate-name-below .title { font-size: 10px; color: rgba(255,255,255,0.6); }
+
+        .mk-float { position: absolute; display: flex; align-items: center; gap: 5px; background: rgba(255,255,255,0.92); padding: 5px 10px; border-radius: 6px; font-size: 9px; font-weight: 600; color: #2d2d2d; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+        .mk-float.top-left { top: 10px; left: 10px; }
+        .mk-float.top-center { top: 10px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.35); color: #fff; backdrop-filter: blur(6px); }
+        .mk-float.bottom-left { bottom: 10px; left: 10px; }
+        .mk-timer-dot { width: 6px; height: 6px; border-radius: 50%; background: #ef4444; animation: pulse 1.5s ease-in-out infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        .mk-audio-bars { display: inline-flex; align-items: flex-end; gap: 1.5px; height: 10px; }
+        .mk-audio-bars span { width: 2px; background: #0044B3; border-radius: 1px; animation: audioBar 0.8s ease-in-out infinite alternate; }
+        .mk-audio-bars span:nth-child(1) { height: 3px; animation-delay: 0s; }
+        .mk-audio-bars span:nth-child(2) { height: 7px; animation-delay: 0.15s; }
+        .mk-audio-bars span:nth-child(3) { height: 4px; animation-delay: 0.3s; }
+        @keyframes audioBar { 0% { transform: scaleY(0.5); } 100% { transform: scaleY(1.4); } }
+
+        .mk-pip { position: absolute; bottom: 10px; right: 10px; width: 100px; height: 70px; background: linear-gradient(135deg, #2d2d2d, #4a4a4a); border-radius: 8px; display: flex; align-items: center; justify-content: center; border: 1.5px solid rgba(255,255,255,0.15); }
+        .mk-pip-avatar { width: 28px; height: 28px; border-radius: 50%; background: #0044B3; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: #fff; }
+        .mk-pip-you { position: absolute; bottom: 4px; left: 6px; font-size: 7px; color: rgba(255,255,255,0.7); background: rgba(0,0,0,0.4); padding: 1px 5px; border-radius: 3px; }
+
+        /* Resume panel */
+        .mk-resume-panel { width: 200px; background: #fff; border-left: 1px solid #e5e7eb; display: flex; flex-direction: column; overflow: hidden; flex-shrink: 0; }
+        .mk-resume-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-bottom: 1px solid #e8e6e3; }
+        .mk-resume-header h4 { font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 5px; }
+        .mk-resume-header h4 svg { width: 13px; height: 13px; color: #595959; }
+        .mk-resume-body { flex: 1; overflow: hidden; padding: 10px 12px; font-size: 9px; }
+        .mk-resume-name { font-size: 13px; font-weight: 400; margin-bottom: 2px; }
+        .mk-resume-sub { font-size: 9px; color: #595959; margin-bottom: 8px; }
+        .mk-resume-actions { display: flex; gap: 5px; margin-bottom: 10px; }
+        .mk-resume-btn { padding: 4px 8px; border-radius: 5px; font-size: 8px; font-weight: 600; border: none; cursor: pointer; font-family: inherit; }
+        .mk-resume-btn.primary { background: #0044B3; color: #fff; }
+        .mk-resume-btn.secondary { background: #f3f2ef; color: #2d2d2d; }
+        .mk-resume-section { margin-bottom: 8px; }
+        .mk-resume-section-title { font-size: 8px; font-weight: 700; color: #0044B3; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; }
+        .mk-resume-job-title { font-size: 10px; font-weight: 700; color: #2d2d2d; }
+        .mk-resume-job-co { font-size: 8px; color: #595959; }
+        .mk-resume-job-dates { font-size: 7px; color: #999; margin-bottom: 3px; }
+        .mk-resume-desc { font-size: 8px; color: #595959; line-height: 1.5; }
+        .mk-resume-skills { display: flex; flex-wrap: wrap; gap: 3px; }
+        .mk-resume-skill { padding: 2px 6px; background: #f0f5ff; color: #0044B3; border-radius: 3px; font-size: 7px; font-weight: 600; }
+
+        /* Toolbar */
+        .mk-toolbar { display: flex; align-items: center; justify-content: center; padding: 8px 12px; background: #fff; border-top: 1px solid #e8e6e3; position: relative; }
+        .mk-toolbar-center { display: flex; align-items: center; gap: 6px; }
+        .mk-toolbar-right { position: absolute; right: 12px; display: flex; align-items: center; gap: 2px; }
+        .mk-tb-box { display: flex; align-items: center; background: #f3f2ef; border-radius: 8px; height: 28px; }
+        .mk-tb-icon { width: 30px; height: 28px; display: flex; align-items: center; justify-content: center; }
+        .mk-tb-icon svg { width: 14px; height: 14px; color: #2d2d2d; }
+        .mk-tb-icon.muted svg { color: #991b1b; }
+        .mk-tb-div { width: 1px; height: 16px; background: #d4d2d0; }
+        .mk-tb-caret { width: 16px; height: 28px; display: flex; align-items: center; justify-content: center; }
+        .mk-tb-caret svg { width: 7px; height: 7px; color: #999; }
+        .mk-tb-end { width: 30px; height: 28px; border-radius: 8px; background: #991b1b; display: flex; align-items: center; justify-content: center; }
+        .mk-tb-end svg { width: 14px; height: 14px; color: #fff; }
+        .mk-tb-label { font-size: 7px; font-weight: 500; color: #595959; text-align: center; margin-top: 2px; }
+        .mk-tb-label.red { color: #991b1b; }
+        .mk-tb-tool { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 8px; font-size: 7px; font-weight: 500; color: #595959; }
+        .mk-tb-tool svg { width: 14px; height: 14px; }
+        .mk-tb-tool.active { color: #0044B3; }
+
+        /* ═══ STEP 4 — RESULTS ═══ */
+        .mk-results-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+        .mk-results-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; background: #ecfdf5; color: #065f46; border-radius: 5px; font-size: 8px; font-weight: 700; }
+        .mk-results-badge-dot { width: 5px; height: 5px; background: #059669; border-radius: 50%; }
+        .mk-export-btn { padding: 5px 10px; background: #0044B3; color: #fff; border: none; border-radius: 5px; font-size: 8px; font-weight: 700; font-family: inherit; display: flex; align-items: center; gap: 4px; }
+        .mk-export-btn svg { width: 10px; height: 10px; }
+        .mk-event-meta { font-size: 9px; color: #595959; margin-bottom: 12px; }
+        .mk-event-meta strong { color: #2d2d2d; }
+
+        /* Metrics */
+        .mk-metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px; }
+        .mk-metric { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 10px 12px; }
+        .mk-metric-label { font-size: 7px; font-weight: 700; color: #999; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 4px; }
+        .mk-metric-value { font-size: 22px; font-weight: 800; color: #1a1a1a; line-height: 1; }
+        .mk-metric-sub { font-size: 8px; color: #059669; font-weight: 600; margin-top: 3px; }
+        .mk-metric-sub.neutral { color: #595959; }
+
+        /* Two columns */
+        .mk-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .mk-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px; }
+        .mk-card-title { font-size: 11px; font-weight: 700; color: #2d2d2d; margin-bottom: 10px; }
+
+        /* Funnel */
+        .mk-funnel { display: flex; flex-direction: column; gap: 5px; }
+        .mk-funnel-step { display: flex; align-items: center; gap: 8px; }
+        .mk-funnel-label { width: 60px; font-size: 8px; font-weight: 600; color: #595959; text-align: right; flex-shrink: 0; }
+        .mk-funnel-bar { height: 24px; border-radius: 6px; display: flex; align-items: center; padding: 0 8px; font-size: 8px; font-weight: 700; color: #fff; position: relative; }
+        .mk-funnel-bar .count { position: absolute; right: 8px; font-size: 13px; font-weight: 800; }
+        .mk-funnel-bar.r1 { background: linear-gradient(135deg, #0044B3, #1a6be0); width: 100%; }
+        .mk-funnel-bar.r2 { background: linear-gradient(135deg, #0891b2, #22b8cf); width: 80%; }
+        .mk-funnel-bar.r3 { background: linear-gradient(135deg, #7c3aed, #9b5de5); width: 55%; }
+        .mk-funnel-bar.r4 { background: linear-gradient(135deg, #059669, #10b981); width: 32%; }
+        .mk-funnel-arrow { padding-left: 68px; display: flex; justify-content: flex-start; }
+        .mk-funnel-arrow svg { width: 12px; height: 10px; color: #d4d2d0; }
+
+        /* Dispositions */
+        .mk-dispo-summary { display: flex; gap: 6px; margin-bottom: 8px; }
+        .mk-dispo-badge { display: flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 6px; font-size: 9px; font-weight: 700; }
+        .mk-dispo-badge.yes { background: #ecfdf5; color: #065f46; }
+        .mk-dispo-badge.maybe { background: #fffbeb; color: #92400e; }
+        .mk-dispo-badge.no { background: #fef2f2; color: #991b1b; }
+        .mk-dispo-badge .num { font-size: 13px; font-weight: 800; }
+
+        .mk-dispo-list { display: flex; flex-direction: column; gap: 4px; }
+        .mk-dispo-item { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 6px; border: 1px solid #f0f0f0; }
+        .mk-dispo-av { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 8px; font-weight: 700; color: #fff; flex-shrink: 0; }
+        .mk-dispo-info { flex: 1; min-width: 0; }
+        .mk-dispo-name { font-size: 9px; font-weight: 700; color: #2d2d2d; }
+        .mk-dispo-role { font-size: 7px; color: #595959; }
+        .mk-dispo-note { font-size: 7px; color: #999; flex-shrink: 0; max-width: 80px; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .mk-dispo-tag { padding: 2px 6px; border-radius: 4px; font-size: 7px; font-weight: 700; flex-shrink: 0; }
+        .mk-dispo-tag.yes { background: #ecfdf5; color: #065f46; }
+        .mk-dispo-tag.maybe { background: #fffbeb; color: #92400e; }
+        .mk-dispo-tag.no { background: #fef2f2; color: #991b1b; }
+
+        /* ═══ TOOLS SECTION ═══ */
+        .tools-section { max-width: 1140px; margin: 0 auto; padding: 40px 32px 60px; }
+        .tools-heading { text-align: center; margin-bottom: 40px; }
+        .tools-heading h2 { font-size: 30px; font-weight: 800; color: #1a1a1a; margin-bottom: 10px; }
+        .tools-heading p { font-size: 16px; color: #595959; }
+        .tools-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+        .tool-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 16px; padding: 32px 28px; transition: box-shadow 0.2s; }
+        .tool-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
+        .tool-card-icon { width: 48px; height: 48px; background: #e8f0fe; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; }
+        .tool-card-icon svg { width: 24px; height: 24px; color: #0044B3; }
+        .tool-card h4 { font-size: 18px; font-weight: 700; color: #2d2d2d; margin-bottom: 10px; }
+        .tool-card p { font-size: 14px; color: #595959; line-height: 1.6; }
+
+        /* ═══ CTA ═══ */
+        .cta-block { text-align: center; padding: 60px 32px; background: linear-gradient(135deg, #0044B3, #003399); border-radius: 20px; margin: 0 32px 80px; max-width: 1076px; margin-left: auto; margin-right: auto; }
+        .cta-block h3 { font-size: 28px; font-weight: 800; color: #fff; margin-bottom: 12px; }
+        .cta-block p { font-size: 16px; color: rgba(255,255,255,0.8); margin-bottom: 28px; max-width: 500px; margin-left: auto; margin-right: auto; line-height: 1.6; }
+        .cta-btn { display: inline-block; padding: 16px 40px; background: #fff; color: #0044B3; font-size: 16px; font-weight: 700; border-radius: 10px; text-decoration: none; font-family: inherit; border: none; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
+        .cta-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,0,0,0.15); }
+
+        @media (max-width: 768px) {
+            .step, .step.reverse { flex-direction: column; gap: 28px; }
+            .section-heading h2 { font-size: 28px; }
+            .step-title { font-size: 22px; }
+            .tools-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ═══════════════════════════════════════
+         STICKY BANNER + SITE HEADER
+         ═══════════════════════════════════════ -->
+    <div class="top-banner" id="topBanner">
+        <span class="banner-icon"><svg viewBox="0 0 28 24" fill="none"><path d="M8 1L10.2 6.5L16 7.3L11.8 11.2L12.8 17L8 14.3L3.2 17L4.2 11.2L0 7.3L5.8 6.5L8 1Z" fill="#0044B3"/><path d="M21 5L22.5 8.8L26.5 9.3L23.6 12L24.3 16L21 14.2L17.7 16L18.4 12L15.5 9.3L19.5 8.8L21 5Z" fill="#0044B3" opacity="0.5"/></svg></span>
+        <span class="banner-text">Fill your open roles in one day with a virtual hiring event.</span>
+        <a href="/employer" class="banner-cta">Learn how &rarr;</a>
+        <button class="banner-close" onclick="document.getElementById('topBanner').classList.add('hidden')" aria-label="Dismiss banner">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+    </div>
+
+    <header class="site-header">
+        <div class="site-header-left">
+            <a href="/" class="site-header-logo">JobFairX</a>
+            <nav class="site-header-nav">
+                <a href="#">Upcoming Job Fairs</a>
+                <a href="#">Search Jobs</a>
+                <a href="#">FAQ's</a>
+            </nav>
+        </div>
+        <div class="site-header-right">
+            <a href="#" class="site-header-signin">Sign In</a>
+            <a href="#" class="site-header-cta">Job Seeker Registration</a>
+        </div>
+    </header>
+
+    <!-- ═══════════════════════════════════════
+         HOW HIRING EVENTS WORK — 4 Steps
+         ═══════════════════════════════════════ -->
+    <div class="how-section">
+        <div class="section-heading">
+            <h2>How Hiring Events Work</h2>
+            <p>From candidate matching to hiring decisions — everything happens on one platform, in one day.</p>
+        </div>
+
+        <!-- ── STEP 1 ── -->
+        <div class="step">
+            <div class="step-content">
+                <span class="step-badge">Before the Event</span>
+                <h3 class="step-title">Qualified candidates matched to your jobs</h3>
+                <p class="step-desc">Post your open roles and our AI matches pre-registered local candidates based on skills, experience, and qualifications. Only candidates who meet your requirements are invited to schedule an interview — your calendar starts filling up before the event begins.</p>
+                <div class="feature-list">
+                    <span class="feature-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>AI candidate matching</span>
+                    <span class="feature-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Resume screening</span>
+                    <span class="feature-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Screening questions</span>
+                </div>
+            </div>
+            <div class="step-image">
+                <div class="mockup-frame">
+                    <div class="match-visual">
+                        <div class="match-header">
+                            <div class="match-ai-badge"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>AI Matched</div>
+                            <span class="match-subtitle">12 candidates matched to your open roles</span>
+                        </div>
+                        <div class="match-cards">
+                            <div class="match-card">
+                                <div class="match-avatar" style="background:#0044B3">TW</div>
+                                <div class="match-info"><div class="match-name">Tamara Williams</div><div class="match-role">Registered Nurse</div></div>
+                                <div class="match-score-block"><div class="match-pct high">96%</div><div class="match-bar-outer"><div class="match-bar-inner high" style="width:96%"></div></div><div class="match-label">Match</div></div>
+                                <div class="match-actions"><button class="match-accept">Accept</button><button class="match-decline">Decline</button></div>
+                            </div>
+                            <div class="match-card">
+                                <div class="match-avatar" style="background:#7c3aed">MJ</div>
+                                <div class="match-info"><div class="match-name">Marcus Johnson</div><div class="match-role">Web Developer</div></div>
+                                <div class="match-score-block"><div class="match-pct high">94%</div><div class="match-bar-outer"><div class="match-bar-inner high" style="width:94%"></div></div><div class="match-label">Match</div></div>
+                                <div class="match-actions"><button class="match-accept">Accept</button><button class="match-decline">Decline</button></div>
+                            </div>
+                            <div class="match-card">
+                                <div class="match-avatar" style="background:#0891b2">PP</div>
+                                <div class="match-info"><div class="match-name">Priya Patel</div><div class="match-role">Frontend Developer</div></div>
+                                <div class="match-score-block"><div class="match-pct high">92%</div><div class="match-bar-outer"><div class="match-bar-inner high" style="width:92%"></div></div><div class="match-label">Match</div></div>
+                                <div class="match-actions"><button class="match-accept">Accept</button><button class="match-decline">Decline</button></div>
+                            </div>
+                            <div class="match-card">
+                                <div class="match-avatar" style="background:#059669">JL</div>
+                                <div class="match-info"><div class="match-name">Jordan Lee</div><div class="match-role">Registered Nurse</div></div>
+                                <div class="match-score-block"><div class="match-pct good">89%</div><div class="match-bar-outer"><div class="match-bar-inner good" style="width:89%"></div></div><div class="match-label">Match</div></div>
+                                <div class="match-actions"><button class="match-accept">Accept</button><button class="match-decline">Decline</button></div>
+                            </div>
+                        </div>
+                        <div class="match-more-badge">+ 8 more candidates matched</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="step-divider"><div class="line"></div></div>
+
+        <!-- ── STEP 2 ── -->
+        <div class="step reverse">
+            <div class="step-content">
+                <span class="step-badge">Before the Event</span>
+                <h3 class="step-title">Your interview schedule is set</h3>
+                <p class="step-desc">Matched candidates request interview times that work for them. Accept requests individually, or turn on auto-accept to confirm interviews instantly. Need to reach a candidate first? Message them directly. Need to adjust a time? Propose a new slot with one click.</p>
+                <div class="feature-list">
+                    <span class="feature-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Auto-accept interviews</span>
+                    <span class="feature-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>Candidate messaging</span>
+                    <span class="feature-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Flexible rescheduling</span>
+                </div>
+            </div>
+            <div class="step-image">
+                <div class="mockup-frame">
+                    <div class="mk-shell">
+                        <div class="mk-sidebar">
+                            <div class="mk-logo">JobFairX</div>
+                            <div class="mk-nav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard</div>
+                            <div class="mk-nav active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>Interviews</div>
+                            <div class="mk-nav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>Messaging</div>
+                        </div>
+                        <div class="mk-main">
+                            <div class="mk-header">
+                                <div class="mk-title">Interviews</div>
+                                <select class="mk-select"><option>Dallas Healthcare Hiring Event</option></select>
+                            </div>
+                            <div class="mk-tabs">
+                                <div class="mk-tab active">Upcoming<span class="mk-tab-count">8</span></div>
+                                <div class="mk-tab">Pending<span class="mk-tab-count">4</span></div>
+                                <div class="mk-tab">Past<span class="mk-tab-count">5</span></div>
+                            </div>
+                            <div class="mk-banner auto">
+                                <span class="mk-auto-badge"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" style="width:9px;height:9px"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Auto-Accept</span>
+                                Interviews are being confirmed automatically
+                                <div class="mk-toggle"><div class="mk-toggle-knob"></div></div>
+                            </div>
+                            <div class="mk-section-title"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="18" rx="2" fill="#0044B3"/><path d="M16 2v4M8 2v4M3 10h18" stroke="#fff" stroke-width="2"/></svg>Candidates with upcoming interviews (8)</div>
+                            <table class="mk-table">
+                                <thead><tr><th>Candidate</th><th>Desired Job</th><th>Interview Time</th><th>Status</th><th>Action</th></tr></thead>
+                                <tbody>
+                                    <tr><td><span class="mk-avatar" style="background:#0044B3">TW</span><span class="mk-name">Tamara Williams</span><div class="mk-links"><a>View resume</a><a>Message</a></div></td><td>Registered Nurse</td><td>9:00 - 9:30 AM</td><td><span class="mk-status confirmed"><span class="mk-status-dot"></span>Confirmed</span></td><td><span class="mk-btn-group"><span class="mk-btn">Reschedule</span><span class="mk-btn">Cancel</span></span></td></tr>
+                                    <tr><td><span class="mk-avatar" style="background:#7c3aed">MJ</span><span class="mk-name">Marcus Johnson</span><div class="mk-links"><a>View resume</a><a>Message</a></div></td><td>Web Developer</td><td>9:30 - 10:00 AM</td><td><span class="mk-status confirmed"><span class="mk-status-dot"></span>Confirmed</span></td><td><span class="mk-btn-group"><span class="mk-btn">Reschedule</span><span class="mk-btn">Cancel</span></span></td></tr>
+                                    <tr><td><span class="mk-avatar" style="background:#0891b2">PP</span><span class="mk-name">Priya Patel</span><div class="mk-links"><a>View resume</a><a>Message</a></div></td><td>Frontend Developer</td><td>10:00 - 10:30 AM</td><td><span class="mk-status confirmed"><span class="mk-status-dot"></span>Confirmed</span></td><td><span class="mk-btn-group"><span class="mk-btn">Reschedule</span><span class="mk-btn">Cancel</span></span></td></tr>
+                                    <tr><td><span class="mk-avatar" style="background:#059669">JL</span><span class="mk-name">Jordan Lee</span><div class="mk-links"><a>View resume</a><a>Message</a></div></td><td>Registered Nurse</td><td>10:30 - 11:00 AM</td><td><span class="mk-status confirmed"><span class="mk-status-dot"></span>Confirmed</span></td><td><span class="mk-btn-group"><span class="mk-btn">Reschedule</span><span class="mk-btn">Cancel</span></span></td></tr>
+                                    <tr><td><span class="mk-avatar" style="background:#dc2626">KB</span><span class="mk-name">Keisha Brown</span><div class="mk-links"><a>View resume</a><a>Message</a></div></td><td>Full Stack Dev</td><td>11:00 - 11:30 AM</td><td><span class="mk-status confirmed"><span class="mk-status-dot"></span>Confirmed</span></td><td><span class="mk-btn-group"><span class="mk-btn">Reschedule</span><span class="mk-btn">Cancel</span></span></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="step-divider"><div class="line"></div></div>
+
+        <!-- ── STEP 3 ── -->
+        <div class="step">
+            <div class="step-content">
+                <span class="step-badge">Event Day</span>
+                <h3 class="step-title">Interview candidates live</h3>
+                <p class="step-desc">On event day, join live video interviews directly on JobFairX. The candidate's resume, your notes, and a chat window sit right alongside the call — no external links, no downloads, no switching between apps. Everything you need to evaluate a candidate is in one screen.</p>
+                <div class="feature-list">
+                    <span class="feature-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>Live video interviews</span>
+                    <span class="feature-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Side-panel resume</span>
+                    <span class="feature-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Interview notes</span>
+                    <span class="feature-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>In-call chat</span>
+                </div>
+            </div>
+            <div class="step-image">
+                <div class="mockup-frame">
+                    <div class="mk-interview">
+                        <div class="mk-video-area">
+                            <div class="mk-video-main">
+                                <div class="mk-float top-left"><div class="mk-audio-bars"><span></span><span></span><span></span></div>Alisha Rahman</div>
+                                <div class="mk-float top-center"><div class="mk-timer-dot"></div>12:34</div>
+                                <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+                                    <div class="mk-candidate-avatar">AR</div>
+                                    <div class="mk-candidate-name-below"><div class="name">Alisha Rahman</div><div class="title">Registered Nurse</div></div>
+                                </div>
+                                <div class="mk-float bottom-left"><svg viewBox="0 0 24 24" fill="none" stroke="#991b1b" stroke-width="2" style="width:10px;height:10px"><path d="M1 1l22 22M9 9v3a3 3 0 005.12 2.12L9 9z"/><path d="M17 16.95A7 7 0 015 12v-2m14 0v2"/></svg>Scott (You)</div>
+                                <div class="mk-pip"><div class="mk-pip-avatar">SC</div><div class="mk-pip-you">You</div></div>
+                            </div>
+                            <div class="mk-resume-panel">
+                                <div class="mk-resume-header"><h4><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Resume</h4><span style="color:#999;cursor:pointer">&times;</span></div>
+                                <div class="mk-resume-body">
+                                    <div class="mk-resume-name">Alisha Rahman</div>
+                                    <div class="mk-resume-sub">Registered Nurse | Dallas, TX</div>
+                                    <div class="mk-resume-actions"><button class="mk-resume-btn primary">Send a message</button><button class="mk-resume-btn secondary">Download PDF</button></div>
+                                    <div class="mk-resume-section">
+                                        <div class="mk-resume-section-title">Experience</div>
+                                        <div class="mk-resume-job-title">Registered Nurse — ICU</div>
+                                        <div class="mk-resume-job-co">Baylor Scott & White Medical Center</div>
+                                        <div class="mk-resume-job-dates">Mar 2021 - Present</div>
+                                        <div class="mk-resume-desc">Critical care for ICU patients. Managed ventilator settings, administered medications, coordinated with physicians.</div>
+                                    </div>
+                                    <div class="mk-resume-section">
+                                        <div class="mk-resume-section-title">Skills</div>
+                                        <div class="mk-resume-skills">
+                                            <span class="mk-resume-skill">ICU / Critical Care</span>
+                                            <span class="mk-resume-skill">Ventilator Mgmt</span>
+                                            <span class="mk-resume-skill">IV Therapy</span>
+                                            <span class="mk-resume-skill">Patient Assessment</span>
+                                            <span class="mk-resume-skill">BLS / ACLS</span>
+                                        </div>
+                                    </div>
+                                    <div class="mk-resume-section">
+                                        <div class="mk-resume-section-title">Education</div>
+                                        <div class="mk-resume-job-title">BSN, Nursing</div>
+                                        <div class="mk-resume-job-co">UT Arlington | May 2018</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mk-toolbar">
+                            <div class="mk-toolbar-center">
+                                <div style="display:flex;flex-direction:column;align-items:center;gap:2px"><div class="mk-tb-box"><div class="mk-tb-icon muted"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 1l22 22M9 9v3a3 3 0 005.12 2.12L9 9z"/><path d="M17 16.95A7 7 0 015 12v-2m14 0v2"/></svg></div><div class="mk-tb-div"></div><div class="mk-tb-caret"><svg viewBox="0 0 10 6" fill="currentColor"><path d="M1 1l4 4 4-4"/></svg></div></div><div class="mk-tb-label red">Unmute</div></div>
+                                <div style="display:flex;flex-direction:column;align-items:center;gap:2px"><div class="mk-tb-box"><div class="mk-tb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></div><div class="mk-tb-div"></div><div class="mk-tb-caret"><svg viewBox="0 0 10 6" fill="currentColor"><path d="M1 1l4 4 4-4"/></svg></div></div><div class="mk-tb-label">Start Video</div></div>
+                                <div style="display:flex;flex-direction:column;align-items:center;gap:2px"><div class="mk-tb-end"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg></div><div class="mk-tb-label red">End Interview</div></div>
+                            </div>
+                            <div class="mk-toolbar-right">
+                                <div class="mk-tb-tool"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Notes</div>
+                                <div class="mk-tb-tool active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Resume</div>
+                                <div class="mk-tb-tool"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>Chat</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="step-divider"><div class="line"></div></div>
+
+        <!-- ── STEP 4 ── -->
+        <div class="step reverse">
+            <div class="step-content">
+                <span class="step-badge">After the Event</span>
+                <h3 class="step-title">See your hiring results</h3>
+                <p class="step-desc">After each interview, rate candidates as Yes, Maybe, or No and add notes while the conversation is fresh. When the event wraps, you have a clear view of every candidate — who you'd recommend, who needs a follow-up, and who to pass on. Export your data and move hiring forward.</p>
+                <div class="feature-list">
+                    <span class="feature-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Candidate dispositions</span>
+                    <span class="feature-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Event metrics</span>
+                    <span class="feature-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Exportable data</span>
+                </div>
+            </div>
+            <div class="step-image">
+                <div class="mockup-frame">
+                    <div class="mk-shell">
+                        <div class="mk-sidebar">
+                            <div class="mk-logo">JobFairX</div>
+                            <div class="mk-nav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard</div>
+                            <div class="mk-nav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Interviews</div>
+                            <div class="mk-nav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>Messaging</div>
+                            <div class="mk-nav active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Event Report</div>
+                        </div>
+                        <div class="mk-main">
+                            <div class="mk-results-header">
+                                <div style="display:flex;align-items:center;gap:10px;"><div class="mk-title">Event Report</div><div class="mk-results-badge"><div class="mk-results-badge-dot"></div>Complete</div></div>
+                                <button class="mk-export-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export Report</button>
+                            </div>
+                            <div class="mk-event-meta"><strong>Dallas Healthcare Hiring Event</strong> &middot; Apr 22, 2026 &middot; 11 AM - 3 PM CT</div>
+                            <div class="mk-metrics">
+                                <div class="mk-metric"><div class="mk-metric-label">Registered</div><div class="mk-metric-value">48</div><div class="mk-metric-sub">+32% vs avg</div></div>
+                                <div class="mk-metric"><div class="mk-metric-label">Interviewed</div><div class="mk-metric-value">16</div><div class="mk-metric-sub">100% show rate</div></div>
+                                <div class="mk-metric"><div class="mk-metric-label">Recommended</div><div class="mk-metric-value">8</div><div class="mk-metric-sub neutral">50% of interviewed</div></div>
+                                <div class="mk-metric"><div class="mk-metric-label">Avg Length</div><div class="mk-metric-value">22m</div><div class="mk-metric-sub neutral">Target: 30 min</div></div>
+                            </div>
+                            <div class="mk-two-col">
+                                <div class="mk-card">
+                                    <div class="mk-card-title">Hiring Funnel</div>
+                                    <div class="mk-funnel">
+                                        <div class="mk-funnel-step"><div class="mk-funnel-label">Registered</div><div class="mk-funnel-bar r1"><span class="count">48</span></div></div>
+                                        <div class="mk-funnel-arrow"><svg viewBox="0 0 12 10" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 1v8M2 5l4 4 4-4"/></svg></div>
+                                        <div class="mk-funnel-step"><div class="mk-funnel-label">Screened</div><div class="mk-funnel-bar r2"><span class="count">38</span></div></div>
+                                        <div class="mk-funnel-arrow"><svg viewBox="0 0 12 10" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 1v8M2 5l4 4 4-4"/></svg></div>
+                                        <div class="mk-funnel-step"><div class="mk-funnel-label">Interviewed</div><div class="mk-funnel-bar r3"><span class="count">16</span></div></div>
+                                        <div class="mk-funnel-arrow"><svg viewBox="0 0 12 10" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 1v8M2 5l4 4 4-4"/></svg></div>
+                                        <div class="mk-funnel-step"><div class="mk-funnel-label">Recommended</div><div class="mk-funnel-bar r4"><span class="count">8</span></div></div>
+                                    </div>
+                                </div>
+                                <div class="mk-card">
+                                    <div class="mk-card-title">Candidate Dispositions</div>
+                                    <div class="mk-dispo-summary">
+                                        <div class="mk-dispo-badge yes"><span class="num">8</span> Yes</div>
+                                        <div class="mk-dispo-badge maybe"><span class="num">4</span> Maybe</div>
+                                        <div class="mk-dispo-badge no"><span class="num">4</span> No</div>
+                                    </div>
+                                    <div class="mk-dispo-list">
+                                        <div class="mk-dispo-item"><div class="mk-dispo-av" style="background:#0044B3">TW</div><div class="mk-dispo-info"><div class="mk-dispo-name">Tamara Williams</div><div class="mk-dispo-role">Registered Nurse</div></div><div class="mk-dispo-note">Strong ICU exp</div><div class="mk-dispo-tag yes">Yes</div></div>
+                                        <div class="mk-dispo-item"><div class="mk-dispo-av" style="background:#0891b2">PP</div><div class="mk-dispo-info"><div class="mk-dispo-name">Priya Patel</div><div class="mk-dispo-role">Frontend Developer</div></div><div class="mk-dispo-note">Great React skills</div><div class="mk-dispo-tag yes">Yes</div></div>
+                                        <div class="mk-dispo-item"><div class="mk-dispo-av" style="background:#059669">JL</div><div class="mk-dispo-info"><div class="mk-dispo-name">Jordan Lee</div><div class="mk-dispo-role">Registered Nurse</div></div><div class="mk-dispo-note">Pediatrics bkgd</div><div class="mk-dispo-tag yes">Yes</div></div>
+                                        <div class="mk-dispo-item"><div class="mk-dispo-av" style="background:#ea580c">DO</div><div class="mk-dispo-info"><div class="mk-dispo-name">Daniel Ortiz</div><div class="mk-dispo-role">Web Developer</div></div><div class="mk-dispo-note">Need 2nd interview</div><div class="mk-dispo-tag maybe">Maybe</div></div>
+                                        <div class="mk-dispo-item"><div class="mk-dispo-av" style="background:#7c3aed">MJ</div><div class="mk-dispo-info"><div class="mk-dispo-name">Marcus Johnson</div><div class="mk-dispo-role">Web Developer</div></div><div class="mk-dispo-note">Not enough exp</div><div class="mk-dispo-tag no">No</div></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════
+         TOOLS SECTION
+         ═══════════════════════════════════════ -->
+    <div class="tools-section">
+        <div class="tools-heading">
+            <h2>Everything you need, built in</h2>
+            <p>No extra tools, no external links. Every feature works inside the platform.</p>
+        </div>
+        <div class="tools-grid">
+            <div class="tool-card">
+                <div class="tool-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div>
+                <h4>Candidate Messaging</h4>
+                <p>Message candidates before, during, and after the event to answer questions, share details, and keep them engaged through the hiring process.</p>
+            </div>
+            <div class="tool-card">
+                <div class="tool-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div>
+                <h4>Flexible Scheduling</h4>
+                <p>Reschedule interviews, propose new times, or schedule follow-up conversations — all from one view, without leaving the platform.</p>
+            </div>
+            <div class="tool-card">
+                <div class="tool-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
+                <h4>Post-Event Report</h4>
+                <p>View your hiring event results from applications to completed interviews — candidate dispositions, real-time metrics, and downloadable data.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════
+         CTA
+         ═══════════════════════════════════════ -->
+    <div class="cta-block">
+        <h3>Ready to meet your next hire?</h3>
+        <p>Join hundreds of employers who fill open roles faster with structured virtual hiring events.</p>
+        <a href="#" class="cta-btn">Register for an Event &rarr;</a>
+    </div>
+
+</body>
+</html>
