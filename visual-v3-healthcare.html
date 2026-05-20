@@ -235,7 +235,7 @@ tbody tr:last-child td { border-bottom: none; }
 .cell-live-indicator { display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 13px; font-weight: 600; color: #16a34a; }
 .cell-live-indicator .live-dot { width: 8px; height: 8px; border-radius: 50%; background: #16a34a; animation: dashLivePulse 2s ease-in-out infinite; }
 @keyframes dashLivePulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
-.cell-setup-complete { display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 13px; font-weight: 600; color: #16a34a; }
+.cell-setup-complete { display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 11px; font-weight: 600; color: #16a34a; white-space: nowrap; }
 .setup-complete-dot { width: 8px; height: 8px; border-radius: 50%; background: #16a34a; flex-shrink: 0; }
 
 /* Actions column */
@@ -1081,7 +1081,7 @@ tbody tr:last-child td { border-bottom: none; }
             </td>
             <td>
               <div class="setup-summary">
-                <a class="iv-count-tip" style="color:#0044B3;cursor:pointer;text-decoration:none;font-size:14px;font-weight:400;" onclick="openInterviewSettings()">2 interviewers<span class="iv-count-tiptext">Includes account owner. Doesn't count toward interviewer seats.</span></a>
+                <a class="iv-count-tip" style="color:#0044B3;cursor:pointer;text-decoration:none;font-size:14px;font-weight:400;" onclick="openInterviewSettings('dallas')">2 interviewers<span class="iv-count-tiptext">Includes account owner. Doesn't count toward interviewer seats.</span></a>
               </div>
               <div class="cell-col-count">2 of 5 interviewers</div>
             </td>
@@ -1128,7 +1128,7 @@ tbody tr:last-child td { border-bottom: none; }
                 Incomplete
               </div>
               <div class="cell-col-count">0 of 1 interviewer</div>
-          <a class="cell-add-link" onclick="openInterviewSettings()" style="color:#0044B3;cursor:pointer;font-size:14px;display:inline-block;margin-top:4px;text-decoration:none;">Add</a>
+          <a class="cell-add-link" onclick="openInterviewSettings('chicago')" style="color:#0044B3;cursor:pointer;font-size:14px;display:inline-block;margin-top:4px;text-decoration:none;">Add</a>
             </td>
             <td>
               <div class="incomplete-indicator">
@@ -2488,7 +2488,7 @@ tbody tr:last-child td { border-bottom: none; }
           <input type="text" placeholder="Add email...">
         </div>
         <div class="email-error" id="emailError">Enter a valid email address.</div>
-        <div style="font-size:13px;color:#767676;margin-top:10px;">Starter package <span style="color:#d4d2d0;">·</span> 0 of 1 interviewer seats used</div>
+        <div id="ivPackageText" style="font-size:13px;color:#767676;margin-top:10px;">Starter package <span style="color:#d4d2d0;">·</span> 0 of 1 interviewer seats used</div>
       </div>
       <div class="modal-divider" style="margin:0 -28px;"></div>
       <div class="iv-settings-section" style="margin-top:24px;">
@@ -3600,8 +3600,27 @@ function getRowInterviewer(el) {
   return iv ? iv.textContent : 'N/A';
 }
 
-function openInterviewSettings() {
-  document.getElementById('interviewSettingsModal').classList.add('open');
+function openInterviewSettings(ctx) {
+  var modal = document.getElementById('interviewSettingsModal');
+  var ownerCb = document.getElementById('ownerInterviewCheckbox');
+  var tagsInput = modal.querySelector('.email-tags-input');
+  var packageDiv = document.getElementById('ivPackageText');
+  if (tagsInput) { tagsInput.querySelectorAll('.email-tag').forEach(function(el) { el.remove(); }); }
+  if (ctx === 'dallas') {
+    if (ownerCb) ownerCb.checked = true;
+    if (tagsInput) {
+      var pill = document.createElement('span');
+      pill.className = 'email-tag';
+      pill.innerHTML = 'demo1@jobfairx.com <button class="remove-tag" onclick="this.parentElement.remove()">&times;</button>';
+      var inp = tagsInput.querySelector('input');
+      if (inp) tagsInput.insertBefore(pill, inp); else tagsInput.appendChild(pill);
+    }
+    if (packageDiv) packageDiv.innerHTML = 'Growth package <span style="color:#d4d2d0;">&middot;</span> 1 of 5 interviewer seats used';
+  } else {
+    if (ownerCb) ownerCb.checked = false;
+    if (packageDiv) packageDiv.innerHTML = 'Starter package <span style="color:#d4d2d0;">&middot;</span> 0 of 1 interviewer seats used';
+  }
+  modal.classList.add('open');
 }
 
 function openDetailModal(el) {
