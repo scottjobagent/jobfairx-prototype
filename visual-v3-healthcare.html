@@ -4510,4 +4510,37 @@ function updateIvDashTabCounts() {
   if (tabs[1]) { var s1 = tabs[1].querySelector('.iv-count'); if (s1) s1.textContent = penRows; }
 }
 </script>
+
+<script>
+(function() {
+  window.addEventListener("DOMContentLoaded", function() {
+    var origOpen = window.openInterviewSettings;
+    window.openInterviewSettings = function(ctx) {
+      window._modalContext = ctx;
+      if (typeof origOpen === "function") return origOpen.call(this, ctx);
+    };
+    var updateBtn = document.querySelector("#interviewSettingsModal .modal-btn-blue");
+    if (updateBtn) {
+      updateBtn.addEventListener("click", function() {
+        if (window._modalContext !== "chicago") return;
+        var modal = document.getElementById("interviewSettingsModal");
+        var ownerCb = document.getElementById("ownerInterviewCheckbox");
+        var pills = modal.querySelectorAll(".email-tag").length;
+        var count = pills + (ownerCb && ownerCb.checked ? 1 : 0);
+        if (count < 1) count = 1;
+        var chicagoRow = document.querySelector("tr[data-dash-event=\"chicago-healthcare\"]");
+        if (!chicagoRow) return;
+        var cells = chicagoRow.querySelectorAll(".cell-col-count");
+        cells.forEach(function(c) {
+          if (c.textContent.indexOf("interviewer") !== -1 && c.textContent.indexOf("job") === -1) {
+            c.textContent = count + " of 1 interviewer";
+            c.style.background = "#dcfce7";
+            setTimeout(function() { c.style.transition = "background 1.5s"; c.style.background = ""; }, 50);
+          }
+        });
+      });
+    }
+  });
+})();
+</script>
 </body></html>
