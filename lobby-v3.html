@@ -1029,6 +1029,27 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
 /* ═══ BG PICKER V2 ═══ */
 .av-bg-options { grid-template-columns: repeat(4, 1fr) !important; max-width: 720px !important; }
 .av-bg-thumb-custom { background: conic-gradient(from 0deg, #ff3b30, #ff9500, #ffcc00, #34c759, #00c7be, #007aff, #5856d6, #af52de, #ff2d55, #ff3b30); }
+
+/* ═══ CUSTOM COLOR PICKER ═══ */
+.bg-cpx { display: none; padding: 6px 2px; }
+.bg-cpx.open { display: block; }
+.bg-cpx-header { display: flex; align-items: center; gap: 6px; margin-bottom: 12px; }
+.bg-cpx-back { background: transparent; border: none; cursor: pointer; padding: 4px; border-radius: 6px; color: #555; display: inline-flex; align-items: center; }
+.bg-cpx-back svg { width: 16px; height: 16px; }
+.bg-cpx-back:hover { background: #f3f2ef; }
+.bg-cpx-title { font-size: 13px; font-weight: 600; color: #2d2d2d; }
+.bg-cpx-sl { position: relative; width: 100%; height: 130px; border-radius: 8px; cursor: crosshair; margin-bottom: 14px; touch-action: none; background: linear-gradient(to top, #000, transparent), linear-gradient(to right, #fff, #f00); }
+.bg-cpx-sl-cursor { position: absolute; width: 14px; height: 14px; border: 2px solid #fff; border-radius: 50%; box-shadow: 0 0 0 1px rgba(0,0,0,0.4); transform: translate(-50%, -50%); pointer-events: none; top: 0; left: 100%; }
+.bg-cpx-hue { position: relative; width: 100%; height: 12px; border-radius: 6px; background: linear-gradient(to right, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00); cursor: pointer; touch-action: none; }
+.bg-cpx-hue-cursor { position: absolute; width: 16px; height: 16px; border: 2px solid #fff; border-radius: 50%; box-shadow: 0 0 0 1px rgba(0,0,0,0.4); transform: translate(-50%, -50%); pointer-events: none; top: 50%; left: 0; background: #f00; }
+.bg-cpx-footer { display: flex; align-items: center; gap: 10px; margin-top: 14px; }
+.bg-cpx-current { width: 28px; height: 28px; border-radius: 50%; border: 1px solid #e8e6e3; background: #f00; }
+.bg-cpx-done { margin-left: auto; padding: 6px 16px; background: #2563eb; color: #fff; border: none; border-radius: 6px; font-weight: 500; cursor: pointer; font-family: inherit; font-size: 13px; }
+.bg-cpx-done:hover { background: #1d4ed8; }
+/* Edit affordance */
+.iv-bg-custom.custom-set::after, .av-bg-opt-custom.custom-set .av-bg-thumb-custom::after { content: "✎"; position: absolute; bottom: 3px; right: 5px; font-size: 11px; color: rgba(255,255,255,0.9); text-shadow: 0 1px 2px rgba(0,0,0,0.6); opacity: 0; transition: opacity 0.15s; pointer-events: none; }
+.iv-bg-custom.custom-set:hover::after, .av-bg-opt-custom.custom-set:hover .av-bg-thumb-custom::after { opacity: 1; }
+.av-bg-thumb-custom { position: relative; }
 </style>
 </head>
 <body>
@@ -3163,6 +3184,13 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
           <button class="av-bg-opt av-bg-opt-custom" data-bg="custom" onclick="openLobbyCustomBg(event)"><div class="av-bg-thumb av-bg-thumb-custom"></div><span class="av-bg-name">Custom</span></button>
         </div>
         <input type="color" id="lobbyBgCustomInput" style="position:absolute;width:0;height:0;opacity:0;pointer-events:none" oninput="applyLobbyCustomBg(this.value)">
+<div class="bg-cpx" id="bgCpxAv">
+  <div class="bg-cpx-header"><button class="bg-cpx-back" onclick="closeBgCpx()" aria-label="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button><span class="bg-cpx-title">Custom color</span></div>
+  <div class="bg-cpx-sl"><div class="bg-cpx-sl-cursor"></div></div>
+  <div class="bg-cpx-hue"><div class="bg-cpx-hue-cursor"></div></div>
+  <div class="bg-cpx-footer"><div class="bg-cpx-current"></div><button class="bg-cpx-done" onclick="closeBgCpx()">Done</button></div>
+</div>
+
       </div>
     </div>
 
@@ -5727,6 +5755,19 @@ window.__lobbyCustomColor = null;
 function openLobbyCustomBg(e) { if (e) e.stopPropagation(); const inp = document.getElementById("lobbyBgCustomInput"); if (window.__lobbyCustomColor) inp.value = window.__lobbyCustomColor; inp.click(); }
 function applyLobbyCustomBg(color) { window.__lobbyCustomColor = color; const thumb = document.querySelector(".av-bg-thumb-custom"); if (thumb) thumb.style.background = color; setLobbyBg("custom"); }
 function setLobbyBg(type) { document.querySelectorAll(".av-bg-opt").forEach(o => o.classList.remove("active")); const sel = document.querySelector(".av-bg-opt[data-bg=\"" + type + "\"]"); if (sel) sel.classList.add("active"); const preview = document.querySelector(".video-preview"); if (!preview) return; const colors = { lightblue: "#cfe2f3", royalblue: "#2056d3", pink: "#fbcfcf", red: "#cc2218", emerald: "#1e7c4f", charcoal: "#2c2e35", lavender: "#c5beea", periwinkle: "#6862e8", yellow: "#fde79b", orange: "#f49120", gray: "#bbbbbb" }; if (type === "none") { preview.style.background = ""; } else if (type === "blur") { preview.style.background = "linear-gradient(135deg, #cfcfcf 0%, #a5a5a5 60%, #8a8a8a 100%)"; } else if (type === "custom" && window.__lobbyCustomColor) { preview.style.background = window.__lobbyCustomColor; } else if (colors[type]) { preview.style.background = colors[type]; } }
+
+// ═══ CUSTOM COLOR PICKER ═══
+window.__bgHsv = { h: 0, s: 100, v: 100 };
+window.__bgPickerContext = null;
+function hsvToHex(h, s, v) { s /= 100; v /= 100; const f = (n, k = (n + h / 60) % 6) => v - v * s * Math.max(Math.min(k, 4 - k, 1), 0); const toHex = x => Math.round(x * 255).toString(16).padStart(2, "0"); return "#" + toHex(f(5)) + toHex(f(3)) + toHex(f(1)); }
+function openCustomBg(e) { if (e) e.stopPropagation(); window.__bgPickerContext = "iv"; const g = document.querySelector(".iv-bg-grid"); const p = document.getElementById("bgCpxIv"); if (g) g.style.display = "none"; if (p) { p.classList.add("open"); updateBgCpxVisuals(); } }
+function openLobbyCustomBg(e) { if (e) e.stopPropagation(); window.__bgPickerContext = "av"; const g = document.querySelector(".av-bg-options"); const h = document.querySelector(".av-bg-help"); const p = document.getElementById("bgCpxAv"); if (g) g.style.display = "none"; if (h) h.style.display = "none"; if (p) { p.classList.add("open"); updateBgCpxVisuals(); } }
+function closeBgCpx() { document.querySelectorAll(".bg-cpx").forEach(p => p.classList.remove("open")); const g1 = document.querySelector(".iv-bg-grid"); const g2 = document.querySelector(".av-bg-options"); const h = document.querySelector(".av-bg-help"); if (g1) g1.style.display = ""; if (g2) g2.style.display = ""; if (h) h.style.display = ""; }
+function updateBgCpxVisuals() { const hsv = window.__bgHsv; const color = hsvToHex(hsv.h, hsv.s, hsv.v); document.querySelectorAll(".bg-cpx-sl").forEach(sl => { sl.style.background = "linear-gradient(to top, #000, transparent), linear-gradient(to right, #fff, hsl(" + hsv.h + ", 100%, 50%))"; const c = sl.querySelector(".bg-cpx-sl-cursor"); if (c) { c.style.left = hsv.s + "%"; c.style.top = (100 - hsv.v) + "%"; } }); document.querySelectorAll(".bg-cpx-hue").forEach(hue => { const c = hue.querySelector(".bg-cpx-hue-cursor"); if (c) { c.style.left = (hsv.h / 360 * 100) + "%"; c.style.background = "hsl(" + hsv.h + ", 100%, 50%)"; } }); document.querySelectorAll(".bg-cpx-current").forEach(c => c.style.background = color); applyCustomBgColor(color); }
+function applyCustomBgColor(color) { if (window.__bgPickerContext === "iv") { const m = document.querySelector(".iv-pip-placeholder"); if (m) { m.style.background = color; m.style.filter = ""; } const t = document.querySelector(".iv-bg-custom"); if (t) { t.style.background = color; t.classList.add("custom-set"); } document.querySelectorAll(".iv-bg-swatch").forEach(s => s.classList.remove("active")); if (t) t.classList.add("active"); window.__customBgColor = color; } else if (window.__bgPickerContext === "av") { const p = document.querySelector(".video-preview"); if (p) p.style.background = color; const th = document.querySelector(".av-bg-thumb-custom"); const op = document.querySelector(".av-bg-opt-custom"); if (th) th.style.background = color; if (op) op.classList.add("custom-set"); document.querySelectorAll(".av-bg-opt").forEach(o => o.classList.remove("active")); if (op) op.classList.add("active"); window.__lobbyCustomColor = color; } }
+function initBgCpxDrag() { document.querySelectorAll(".bg-cpx-sl").forEach(sl => { const h = e => { const r = sl.getBoundingClientRect(); const cx = e.touches ? e.touches[0].clientX : e.clientX; const cy = e.touches ? e.touches[0].clientY : e.clientY; const x = Math.max(0, Math.min(r.width, cx - r.left)); const y = Math.max(0, Math.min(r.height, cy - r.top)); window.__bgHsv.s = (x / r.width) * 100; window.__bgHsv.v = (1 - y / r.height) * 100; updateBgCpxVisuals(); }; let d = false; sl.addEventListener("pointerdown", e => { d = true; try { sl.setPointerCapture(e.pointerId); } catch(_){} h(e); }); sl.addEventListener("pointermove", e => { if (d) h(e); }); sl.addEventListener("pointerup", e => { d = false; try { sl.releasePointerCapture(e.pointerId); } catch(_){} }); sl.addEventListener("pointercancel", () => { d = false; }); }); document.querySelectorAll(".bg-cpx-hue").forEach(hue => { const h = e => { const r = hue.getBoundingClientRect(); const cx = e.touches ? e.touches[0].clientX : e.clientX; const x = Math.max(0, Math.min(r.width, cx - r.left)); window.__bgHsv.h = (x / r.width) * 360; updateBgCpxVisuals(); }; let d = false; hue.addEventListener("pointerdown", e => { d = true; try { hue.setPointerCapture(e.pointerId); } catch(_){} h(e); }); hue.addEventListener("pointermove", e => { if (d) h(e); }); hue.addEventListener("pointerup", e => { d = false; try { hue.releasePointerCapture(e.pointerId); } catch(_){} }); hue.addEventListener("pointercancel", () => { d = false; }); }); }
+if (document.readyState !== "loading") initBgCpxDrag();
+else document.addEventListener("DOMContentLoaded", initBgCpxDrag);
 </script>
 
 </body>
