@@ -1025,6 +1025,10 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
 .av-bg-icon-x { font-size: 28px; color: #888; line-height: 1; }
 .av-bg-thumb-blur { background: linear-gradient(135deg, #d4d4d4 0%, #a5a5a5 60%, #828282 100%); }
 .av-bg-name { font-size: 13px; font-weight: 500; color: #2d2d2d; }
+
+/* ═══ BG PICKER V2 ═══ */
+.av-bg-options { grid-template-columns: repeat(4, 1fr) !important; max-width: 720px !important; }
+.av-bg-thumb-custom { background: conic-gradient(from 0deg, #ff3b30, #ff9500, #ffcc00, #34c759, #00c7be, #007aff, #5856d6, #af52de, #ff2d55, #ff3b30); }
 </style>
 </head>
 <body>
@@ -3145,11 +3149,20 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
         <div class="av-bg-options">
           <button class="av-bg-opt active" data-bg="none" onclick="setLobbyBg('none')"><div class="av-bg-thumb av-bg-thumb-none"><span class="av-bg-icon-x">⊘</span></div><span class="av-bg-name">None</span></button>
           <button class="av-bg-opt" data-bg="blur" onclick="setLobbyBg('blur')"><div class="av-bg-thumb av-bg-thumb-blur"></div><span class="av-bg-name">Blur</span></button>
-          <button class="av-bg-opt" data-bg="slate" onclick="setLobbyBg('slate')"><div class="av-bg-thumb" style="background:#5b7c99"></div><span class="av-bg-name">Slate Blue</span></button>
-          <button class="av-bg-opt" data-bg="sage" onclick="setLobbyBg('sage')"><div class="av-bg-thumb" style="background:#7d9b76"></div><span class="av-bg-name">Sage Green</span></button>
-          <button class="av-bg-opt" data-bg="cream" onclick="setLobbyBg('cream')"><div class="av-bg-thumb" style="background:#ede4d3"></div><span class="av-bg-name">Warm Cream</span></button>
-          <button class="av-bg-opt" data-bg="charcoal" onclick="setLobbyBg('charcoal')"><div class="av-bg-thumb" style="background:#3d4451"></div><span class="av-bg-name">Charcoal Gray</span></button>
+          <button class="av-bg-opt" data-bg="lightblue" onclick="setLobbyBg('lightblue')"><div class="av-bg-thumb" style="background:#cfe2f3"></div><span class="av-bg-name">Light Blue</span></button>
+          <button class="av-bg-opt" data-bg="royalblue" onclick="setLobbyBg('royalblue')"><div class="av-bg-thumb" style="background:#2056d3"></div><span class="av-bg-name">Royal Blue</span></button>
+          <button class="av-bg-opt" data-bg="pink" onclick="setLobbyBg('pink')"><div class="av-bg-thumb" style="background:#fbcfcf"></div><span class="av-bg-name">Soft Pink</span></button>
+          <button class="av-bg-opt" data-bg="red" onclick="setLobbyBg('red')"><div class="av-bg-thumb" style="background:#cc2218"></div><span class="av-bg-name">Red</span></button>
+          <button class="av-bg-opt" data-bg="emerald" onclick="setLobbyBg('emerald')"><div class="av-bg-thumb" style="background:#1e7c4f"></div><span class="av-bg-name">Emerald</span></button>
+          <button class="av-bg-opt" data-bg="charcoal" onclick="setLobbyBg('charcoal')"><div class="av-bg-thumb" style="background:#2c2e35"></div><span class="av-bg-name">Charcoal</span></button>
+          <button class="av-bg-opt" data-bg="lavender" onclick="setLobbyBg('lavender')"><div class="av-bg-thumb" style="background:#c5beea"></div><span class="av-bg-name">Lavender</span></button>
+          <button class="av-bg-opt" data-bg="periwinkle" onclick="setLobbyBg('periwinkle')"><div class="av-bg-thumb" style="background:#6862e8"></div><span class="av-bg-name">Periwinkle</span></button>
+          <button class="av-bg-opt" data-bg="yellow" onclick="setLobbyBg('yellow')"><div class="av-bg-thumb" style="background:#fde79b"></div><span class="av-bg-name">Pale Yellow</span></button>
+          <button class="av-bg-opt" data-bg="orange" onclick="setLobbyBg('orange')"><div class="av-bg-thumb" style="background:#f49120"></div><span class="av-bg-name">Orange</span></button>
+          <button class="av-bg-opt" data-bg="gray" onclick="setLobbyBg('gray')"><div class="av-bg-thumb" style="background:#bbbbbb"></div><span class="av-bg-name">Light Gray</span></button>
+          <button class="av-bg-opt av-bg-opt-custom" data-bg="custom" onclick="openLobbyCustomBg(event)"><div class="av-bg-thumb av-bg-thumb-custom"></div><span class="av-bg-name">Custom</span></button>
         </div>
+        <input type="color" id="lobbyBgCustomInput" style="position:absolute;width:0;height:0;opacity:0;pointer-events:none" oninput="applyLobbyCustomBg(this.value)">
       </div>
     </div>
 
@@ -5708,6 +5721,12 @@ document.getElementById('purchaseModal').addEventListener('click', function(e) {
 
 function switchAvTab(btn, panelName) { btn.parentElement.querySelectorAll(".av-tab").forEach(t => t.classList.remove("active")); btn.classList.add("active"); document.querySelectorAll(".av-tab-panel").forEach(p => p.classList.remove("active")); const target = document.getElementById("av-tab-" + panelName); if (target) target.classList.add("active"); }
 function setLobbyBg(type) { document.querySelectorAll(".av-bg-opt").forEach(o => o.classList.remove("active")); const sel = document.querySelector(".av-bg-opt[data-bg=\"" + type + "\"]"); if (sel) sel.classList.add("active"); const preview = document.querySelector(".video-preview"); if (!preview) return; const colors = { slate: "#5b7c99", sage: "#7d9b76", cream: "#ede4d3", charcoal: "#3d4451" }; if (type === "none") { preview.style.background = ""; } else if (type === "blur") { preview.style.background = "linear-gradient(135deg, #cfcfcf 0%, #a5a5a5 60%, #8a8a8a 100%)"; } else if (colors[type]) { preview.style.background = colors[type]; } }
+
+// ═══ BG PICKER V2 (overrides) ═══
+window.__lobbyCustomColor = null;
+function openLobbyCustomBg(e) { if (e) e.stopPropagation(); const inp = document.getElementById("lobbyBgCustomInput"); if (window.__lobbyCustomColor) inp.value = window.__lobbyCustomColor; inp.click(); }
+function applyLobbyCustomBg(color) { window.__lobbyCustomColor = color; const thumb = document.querySelector(".av-bg-thumb-custom"); if (thumb) thumb.style.background = color; setLobbyBg("custom"); }
+function setLobbyBg(type) { document.querySelectorAll(".av-bg-opt").forEach(o => o.classList.remove("active")); const sel = document.querySelector(".av-bg-opt[data-bg=\"" + type + "\"]"); if (sel) sel.classList.add("active"); const preview = document.querySelector(".video-preview"); if (!preview) return; const colors = { lightblue: "#cfe2f3", royalblue: "#2056d3", pink: "#fbcfcf", red: "#cc2218", emerald: "#1e7c4f", charcoal: "#2c2e35", lavender: "#c5beea", periwinkle: "#6862e8", yellow: "#fde79b", orange: "#f49120", gray: "#bbbbbb" }; if (type === "none") { preview.style.background = ""; } else if (type === "blur") { preview.style.background = "linear-gradient(135deg, #cfcfcf 0%, #a5a5a5 60%, #8a8a8a 100%)"; } else if (type === "custom" && window.__lobbyCustomColor) { preview.style.background = window.__lobbyCustomColor; } else if (colors[type]) { preview.style.background = colors[type]; } }
 </script>
 
 </body>

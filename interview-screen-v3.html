@@ -247,6 +247,12 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
 .iv-bg-blur { background: linear-gradient(135deg, #e0e0e0 0%, #b6b6b6 60%, #989898 100%); color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.25); }
 .iv-bg-color { color: transparent; }
 .iv-tool-btn.active { background: rgba(37,99,235,0.10); color: #2563eb; }
+
+/* ═══ BACKGROUND PICKER V2: 14 swatches + custom ═══ */
+.iv-bg-grid { grid-template-columns: repeat(4, 1fr) !important; gap: 6px !important; }
+.iv-bg-panel { width: 280px !important; }
+.iv-bg-swatch { height: 48px !important; min-width: 0; }
+.iv-bg-custom { background: conic-gradient(from 0deg, #ff3b30, #ff9500, #ffcc00, #34c759, #00c7be, #007aff, #5856d6, #af52de, #ff2d55, #ff3b30) !important; color: #fff !important; text-shadow: 0 1px 3px rgba(0,0,0,0.6); font-weight: 600; }
 </style>
 </head>
 <body>
@@ -437,12 +443,21 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
           <div class="iv-bg-panel-title">Background</div>
           <div class="iv-bg-grid">
             <button class="iv-bg-swatch iv-bg-none active" data-bg="none" title="None" onclick="setBackground('none')"><span class="iv-bg-icon">⊘</span><span class="iv-bg-lbl">None</span></button>
-            <button class="iv-bg-swatch iv-bg-blur" data-bg="blur" title="Blur background" onclick="setBackground('blur')"><span class="iv-bg-lbl">Blur</span></button>
-            <button class="iv-bg-swatch iv-bg-color" data-bg="slate" title="Slate Blue" style="background:#5b7c99" onclick="setBackground('slate')"></button>
-            <button class="iv-bg-swatch iv-bg-color" data-bg="sage" title="Sage Green" style="background:#7d9b76" onclick="setBackground('sage')"></button>
-            <button class="iv-bg-swatch iv-bg-color" data-bg="cream" title="Warm Cream" style="background:#ede4d3" onclick="setBackground('cream')"></button>
-            <button class="iv-bg-swatch iv-bg-color" data-bg="charcoal" title="Charcoal Gray" style="background:#3d4451" onclick="setBackground('charcoal')"></button>
+            <button class="iv-bg-swatch iv-bg-blur" data-bg="blur" title="Blur" onclick="setBackground('blur')"><span class="iv-bg-lbl">Blur</span></button>
+            <button class="iv-bg-swatch iv-bg-color" data-bg="lightblue" title="Light Blue" style="background:#cfe2f3" onclick="setBackground('lightblue')"></button>
+            <button class="iv-bg-swatch iv-bg-color" data-bg="royalblue" title="Royal Blue" style="background:#2056d3" onclick="setBackground('royalblue')"></button>
+            <button class="iv-bg-swatch iv-bg-color" data-bg="pink" title="Soft Pink" style="background:#fbcfcf" onclick="setBackground('pink')"></button>
+            <button class="iv-bg-swatch iv-bg-color" data-bg="red" title="Red" style="background:#cc2218" onclick="setBackground('red')"></button>
+            <button class="iv-bg-swatch iv-bg-color" data-bg="emerald" title="Emerald Green" style="background:#1e7c4f" onclick="setBackground('emerald')"></button>
+            <button class="iv-bg-swatch iv-bg-color" data-bg="charcoal" title="Charcoal" style="background:#2c2e35" onclick="setBackground('charcoal')"></button>
+            <button class="iv-bg-swatch iv-bg-color" data-bg="lavender" title="Lavender" style="background:#c5beea" onclick="setBackground('lavender')"></button>
+            <button class="iv-bg-swatch iv-bg-color" data-bg="periwinkle" title="Periwinkle" style="background:#6862e8" onclick="setBackground('periwinkle')"></button>
+            <button class="iv-bg-swatch iv-bg-color" data-bg="yellow" title="Pale Yellow" style="background:#fde79b" onclick="setBackground('yellow')"></button>
+            <button class="iv-bg-swatch iv-bg-color" data-bg="orange" title="Orange" style="background:#f49120" onclick="setBackground('orange')"></button>
+            <button class="iv-bg-swatch iv-bg-color" data-bg="gray" title="Light Gray" style="background:#bbbbbb" onclick="setBackground('gray')"></button>
+            <button class="iv-bg-swatch iv-bg-custom" data-bg="custom" title="Custom color" onclick="openCustomBg(event)"><span class="iv-bg-lbl">Custom</span></button>
           </div>
+          <input type="color" id="ivBgCustomInput" style="position:absolute;width:0;height:0;opacity:0;pointer-events:none" oninput="applyCustomBg(this.value)">
         </div>
       </div>
     </div>
@@ -732,6 +747,12 @@ document.addEventListener('click', function(e) {
   p.classList.remove('open');
   if (btn) btn.classList.remove('active');
 });
+
+// ═══ BG PICKER V2 (overrides) ═══
+window.__customBgColor = null;
+function openCustomBg(e) { if (e) e.stopPropagation(); const inp = document.getElementById("ivBgCustomInput"); if (window.__customBgColor) inp.value = window.__customBgColor; inp.click(); }
+function applyCustomBg(color) { window.__customBgColor = color; const tile = document.querySelector(".iv-bg-custom"); if (tile) tile.style.background = color; setBackground("custom"); }
+function setBackground(type) { const main = document.querySelector(".iv-pip-placeholder"); document.querySelectorAll(".iv-bg-swatch").forEach(s => s.classList.remove("active")); const sel = document.querySelector(".iv-bg-swatch[data-bg=\"" + type + "\"]"); if (sel) sel.classList.add("active"); if (!main) return; const colors = { lightblue: "#cfe2f3", royalblue: "#2056d3", pink: "#fbcfcf", red: "#cc2218", emerald: "#1e7c4f", charcoal: "#2c2e35", lavender: "#c5beea", periwinkle: "#6862e8", yellow: "#fde79b", orange: "#f49120", gray: "#bbbbbb" }; if (type === "none") { main.style.background = ""; main.style.filter = ""; } else if (type === "blur") { main.style.background = "linear-gradient(135deg, #cfcfcf 0%, #a5a5a5 60%, #8a8a8a 100%)"; main.style.filter = ""; } else if (type === "custom" && window.__customBgColor) { main.style.background = window.__customBgColor; main.style.filter = ""; } else if (colors[type]) { main.style.background = colors[type]; main.style.filter = ""; } }
 </script>
 
 </body>
