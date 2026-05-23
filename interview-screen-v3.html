@@ -232,6 +232,21 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
 .call-feedback-skip:hover { background: #f3f2ef; }
 .call-feedback-submit { background: #0044B3; border: none; color: #fff; }
 .call-feedback-submit:hover { background: #003399; }
+
+/* ═══ BACKGROUND PICKER ═══ */
+.iv-bg-wrap { position: relative; display: inline-block; }
+.iv-bg-panel { position: absolute; bottom: calc(100% + 12px); right: 0; background: #fff; border: 1px solid #e5e5e5; border-radius: 12px; padding: 14px; box-shadow: 0 10px 32px rgba(0,0,0,0.15); width: 260px; z-index: 200; display: none; }
+.iv-bg-panel.open { display: block; }
+.iv-bg-panel-title { font-size: 13px; font-weight: 600; color: #2d2d2d; margin-bottom: 10px; letter-spacing: -0.005em; }
+.iv-bg-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.iv-bg-swatch { width: 100%; height: 60px; border-radius: 8px; border: 2px solid transparent; cursor: pointer; padding: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 11px; font-weight: 500; color: #555; background: #f3f2ef; transition: transform 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease; position: relative; outline: none; }
+.iv-bg-swatch:hover { transform: scale(1.04); }
+.iv-bg-swatch.active { border-color: #2563eb; box-shadow: 0 0 0 2px rgba(37,99,235,0.18); }
+.iv-bg-icon { font-size: 18px; color: #888; line-height: 1; }
+.iv-bg-lbl { font-size: 11px; line-height: 1.1; }
+.iv-bg-blur { background: linear-gradient(135deg, #e0e0e0 0%, #b6b6b6 60%, #989898 100%); color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.25); }
+.iv-bg-color { color: transparent; }
+.iv-tool-btn.active { background: rgba(37,99,235,0.10); color: #2563eb; }
 </style>
 </head>
 <body>
@@ -414,6 +429,22 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
       <button class="iv-tool-btn" onclick="togglePanel('notes')" id="notesPanelBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="8" y1="8" x2="16" y2="8"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="12" y2="16"/></svg> Notes</button>
       <button class="iv-tool-btn" onclick="togglePanel('resume')" id="resumePanelBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> Resume</button>
       <button class="iv-tool-btn" onclick="togglePanel('chat')" id="chatPanelBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg> Chat</button>
+      <div class="iv-bg-wrap">
+        <button class="iv-tool-btn" id="bgPanelBtn" onclick="toggleBgPanel(event)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg> Background
+        </button>
+        <div class="iv-bg-panel" id="bgPanel">
+          <div class="iv-bg-panel-title">Background</div>
+          <div class="iv-bg-grid">
+            <button class="iv-bg-swatch iv-bg-none active" data-bg="none" title="None" onclick="setBackground('none')"><span class="iv-bg-icon">⊘</span><span class="iv-bg-lbl">None</span></button>
+            <button class="iv-bg-swatch iv-bg-blur" data-bg="blur" title="Blur background" onclick="setBackground('blur')"><span class="iv-bg-lbl">Blur</span></button>
+            <button class="iv-bg-swatch iv-bg-color" data-bg="slate" title="Slate Blue" style="background:#5b7c99" onclick="setBackground('slate')"></button>
+            <button class="iv-bg-swatch iv-bg-color" data-bg="sage" title="Sage Green" style="background:#7d9b76" onclick="setBackground('sage')"></button>
+            <button class="iv-bg-swatch iv-bg-color" data-bg="cream" title="Warm Cream" style="background:#ede4d3" onclick="setBackground('cream')"></button>
+            <button class="iv-bg-swatch iv-bg-color" data-bg="charcoal" title="Charcoal Gray" style="background:#3d4451" onclick="setBackground('charcoal')"></button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -670,6 +701,36 @@ document.getElementById('endModal').addEventListener('click', function(e) {
 });
 document.getElementById('recModal').addEventListener('click', function(e) {
   if (e.target === this) closeRecModal();
+});
+
+// ═══ BACKGROUND PICKER ═══
+function toggleBgPanel(e) {
+  if (e) e.stopPropagation();
+  var p = document.getElementById('bgPanel');
+  var btn = document.getElementById('bgPanelBtn');
+  if (!p) return;
+  var open = p.classList.contains('open');
+  p.classList.toggle('open');
+  if (btn) btn.classList.toggle('active', !open);
+}
+function setBackground(type) {
+  var main = document.querySelector('.iv-pip-placeholder');
+  document.querySelectorAll('.iv-bg-swatch').forEach(function(s){ s.classList.remove('active'); });
+  var sel = document.querySelector('.iv-bg-swatch[data-bg="' + type + '"]');
+  if (sel) sel.classList.add('active');
+  if (!main) return;
+  var colors = { slate: '#5b7c99', sage: '#7d9b76', cream: '#ede4d3', charcoal: '#3d4451' };
+  if (type === 'none') { main.style.background = ''; main.style.filter = ''; }
+  else if (type === 'blur') { main.style.background = 'linear-gradient(135deg, #cfcfcf 0%, #a5a5a5 60%, #8a8a8a 100%)'; main.style.filter = ''; }
+  else if (colors[type]) { main.style.background = colors[type]; main.style.filter = ''; }
+}
+document.addEventListener('click', function(e) {
+  var p = document.getElementById('bgPanel');
+  var btn = document.getElementById('bgPanelBtn');
+  if (!p || !p.classList.contains('open')) return;
+  if (p.contains(e.target) || (btn && btn.contains(e.target))) return;
+  p.classList.remove('open');
+  if (btn) btn.classList.remove('active');
 });
 </script>
 
