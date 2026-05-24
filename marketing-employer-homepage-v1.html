@@ -690,6 +690,34 @@
   .cat-grid { grid-template-columns: 1fr; }
   .cat-title { margin-bottom: 32px; }
 }
+
+/* ═══ HOW IT WORKS V2: eyebrows, spacing, animations ═══ */
+.step-eyebrow { display: inline-block; font-size: 12px; font-weight: 700; color: #2563eb; text-transform: uppercase; letter-spacing: 0.14em; margin-bottom: 14px; }
+.how-step { margin-bottom: 120px !important; }
+.how-step:last-child { margin-bottom: 0 !important; }
+.how-step .mk-events, .how-step .mk-calendar, .how-step .mk-interview, .how-step .mk-report { transform: scale(1.08); transform-origin: center; }
+@media (max-width: 900px) { .how-step .mk-events, .how-step .mk-calendar, .how-step .mk-interview, .how-step .mk-report { transform: none; } .how-step { margin-bottom: 80px !important; } }
+
+/* Animations — initial state */
+.how-step .mk-events > *, .how-step .mk-calendar > *, .how-step .mk-interview, .how-step .mk-report { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease, transform 0.6s ease; }
+/* In-view triggers */
+.how-step.in-view .mk-events > *, .how-step.in-view .mk-calendar > *, .how-step.in-view .mk-interview, .how-step.in-view .mk-report { opacity: 1; transform: translateY(0); }
+/* Stagger children for mk-events and mk-calendar */
+.how-step.in-view .mk-events > *:nth-child(1) { transition-delay: 0.05s; }
+.how-step.in-view .mk-events > *:nth-child(2) { transition-delay: 0.15s; }
+.how-step.in-view .mk-events > *:nth-child(3) { transition-delay: 0.25s; }
+.how-step.in-view .mk-events > *:nth-child(4) { transition-delay: 0.35s; }
+.how-step.in-view .mk-events > *:nth-child(5) { transition-delay: 0.45s; }
+.how-step.in-view .mk-events > *:nth-child(6) { transition-delay: 0.55s; }
+.how-step.in-view .mk-calendar > *:nth-child(1) { transition-delay: 0.05s; }
+.how-step.in-view .mk-calendar > *:nth-child(2) { transition-delay: 0.15s; }
+.how-step.in-view .mk-calendar > *:nth-child(3) { transition-delay: 0.25s; }
+.how-step.in-view .mk-calendar > *:nth-child(4) { transition-delay: 0.35s; }
+.how-step.in-view .mk-calendar > *:nth-child(5) { transition-delay: 0.45s; }
+.how-step.in-view .mk-calendar > *:nth-child(6) { transition-delay: 0.55s; }
+/* Step 3 interview screen — pulse the record dot */
+@keyframes hiwPulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.25); opacity: 0.6; } }
+.how-step .mk-interview .rec-dot, .how-step .mk-interview [class*="record"], .how-step .mk-interview [class*="dot"] { animation: hiwPulse 1.8s ease-in-out infinite; }
 </style>
 </head>
 <body>
@@ -877,7 +905,8 @@
 
     <div class="how-step">
       <div class="how-text">
-        <span class="num">1</span>
+        <div class="step-eyebrow">SET UP</div>
+          <span class="num">1</span>
         <h3>Your roles get matched.</h3>
         <p>Register for an upcoming event, post your jobs, and set your screening questions. Once your jobs are live, we match local pre-qualified candidates to your open roles.</p>
         <div class="how-tags">
@@ -930,7 +959,8 @@
 
     <div class="how-step reverse">
       <div class="how-text">
-        <span class="num">2</span>
+        <div class="step-eyebrow">MATCH</div>
+          <span class="num">2</span>
         <h3>Your calendar fills with matched interviews.</h3>
         <p>Pre-qualified candidates request your time slots. Accept individually or flip on auto-accept and let your calendar fill itself.</p>
         <div class="how-tags">
@@ -960,7 +990,8 @@
 
     <div class="how-step">
       <div class="how-text">
-        <span class="num">3</span>
+        <div class="step-eyebrow">INTERVIEW</div>
+          <span class="num">3</span>
         <h3>You interview back-to-back on event day.</h3>
         <p>Eight interview slots from 11 AM to 3 PM. Mark Yes/Maybe/No, take notes, and message candidates in real time — all from one shared lobby. Resume, notes, and chat sit next to the call.</p>
         <div class="how-tags">
@@ -995,7 +1026,8 @@
 
     <div class="how-step reverse">
       <div class="how-text">
-        <span class="num">4</span>
+        <div class="step-eyebrow">RESULTS</div>
+          <span class="num">4</span>
         <h3>You leave with a hiring shortlist.</h3>
         <p>Post-event report with ratings, notes, messages, and resumes ready to export. Schedule follow-up interviews and send follow-up messages — all before the day ends.</p>
         <div class="how-tags">
@@ -1203,6 +1235,46 @@
       }
     });
   });
+
+// ═══ HOW IT WORKS V2 — scroll animations + count-up ═══
+(function() {
+  function initHowItWorks() {
+    var steps = document.querySelectorAll('.how-step');
+    if (!steps.length) return;
+    var observer = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('in-view');
+          // Count-up for step 4 stats
+          var stats = entry.target.querySelectorAll('.stat-num, .mk-report-stat-num, [class*="stat-num"]');
+          stats.forEach(function(el) {
+            if (el.dataset.counted) return;
+            var raw = el.textContent.trim();
+            var match = raw.match(/^(\d+)(.*)$/);
+            if (!match) return;
+            var target = parseInt(match[1], 10);
+            var suffix = match[2];
+            if (target < 5) return;
+            el.dataset.counted = '1';
+            var start = 0;
+            var duration = 1200;
+            var t0 = performance.now();
+            function step(t) {
+              var p = Math.min(1, (t - t0) / duration);
+              var eased = 1 - Math.pow(1 - p, 3);
+              el.textContent = Math.round(start + (target - start) * eased) + suffix;
+              if (p < 1) requestAnimationFrame(step);
+            }
+            requestAnimationFrame(step);
+          });
+        }
+      });
+    }, { threshold: 0.2, rootMargin: '0px 0px -10% 0px' });
+    steps.forEach(function(s) { observer.observe(s); });
+  }
+  if (document.readyState !== 'loading') initHowItWorks();
+  else document.addEventListener('DOMContentLoaded', initHowItWorks);
+})();
 </script>
 </body>
 </html>
