@@ -1169,7 +1169,8 @@
 </style>
 <div class="variant-toggle" id="variant-toggle">
   <span class="variant-toggle-label">Event type</span>
-  <button class="variant-toggle-btn active" data-variant="healthcare">Healthcare</button>
+  <button class="variant-toggle-btn" data-variant="all">Homepage</button>
+  <button class="variant-toggle-btn" data-variant="healthcare">Healthcare</button>
   <button class="variant-toggle-btn" data-variant="diversity">Diversity</button>
   <button class="variant-toggle-btn" data-variant="veterans">Veterans</button>
   <button class="variant-toggle-btn" data-variant="technology">Technology</button>
@@ -2042,6 +2043,72 @@
 <script>
 (function() {
   const variants = {
+    "all": {
+      label: "Homepage",
+      events: [
+        { date: "Apr 17", time: "11 AM CT", city: "Dallas, TX",    type: "healthcare",  typeLabel: "Healthcare" },
+        { date: "May 1",  time: "11 AM CT", city: "Nashville, TN", type: "entry-level", typeLabel: "Entry-Level" },
+        { date: "Jun 18", time: "10 AM ET", city: "Boston, MA",    type: "technology",  typeLabel: "Technology" },
+        { date: "Aug 14", time: "10 AM PT", city: "San Diego, CA", type: "veterans",    typeLabel: "Veteran" },
+        { date: "Sep 23", time: "11 AM ET", city: "Miami, FL",     type: "diversity",   typeLabel: "Diversity" }
+      ],
+      awaiting: [
+        { name: "Andre Diaz",     job: "Registered<br>Nurse",         city: "Denver" },
+        { name: "Sanjay Iyer",    job: "Software<br>Engineer",        city: "San Francisco" },
+        { name: "Riley Foster",   job: "Customer<br>Representative",  city: "Nashville" },
+        { name: "Aaliyah Lee",    job: "Marketing<br>Manager",        city: "New York" },
+        { name: "James Ward",     job: "Logistics<br>Coordinator",    city: "San Antonio" }
+      ],
+      awaitingCount: 31,
+      interview: {
+        initials: "AR",
+        name: "Aisha Rahman",
+        roleShort: "Registered Nurse",
+        resumeName: "Aisha Rahman",
+        resumeRole: "Registered Nurse, BSN",
+        resumeLoc: "Dallas, TX",
+        jobTitle: "ICU Registered Nurse",
+        employer: "Memorial Hermann Hospital",
+        dates: "Mar 2021 - Present",
+        bullets: ["1:2 critical-care ratio with vent support", "Trained 8 new grad nurses on vent management", "BLS, ACLS, PALS, CCRN certified"]
+      },
+      report: {
+        title: "Spring Hiring Event",
+        date: "May 15, 2026",
+        counts: { all: 25, yes: 14, maybe: 6, no: 5 },
+        rows: [
+          { name: "Carla Mendoza",   job: "Registered Nurse",   time: "9:00 AM",  rating: "yes" },
+          { name: "Raj Mehta",       job: "Software Engineer",  time: "9:30 AM",  rating: "yes" },
+          { name: "Imani Patterson", job: "Marketing Director", time: "10:00 AM", rating: "maybe" },
+          { name: "Sam Bradford",    job: "Sales Lead",         time: "11:00 AM", rating: "yes" }
+        ]
+      },
+      scheduling: {
+        fullName: "Maya Rodriguez",
+        firstName: "Maya",
+        job: "Surgical Tech"
+      },
+      messaging: {
+        inbox: [
+          { name: "Tamara Williams", role: "Registered Nurse",       when: "Today",     preview: "Interview confirmed" },
+          { name: "Sanjay Iyer",     role: "Software Engineer",       when: "Today",     preview: "Thanks for the info" },
+          { name: "Aaliyah Lee",     role: "Marketing Manager",       when: "Today",     preview: "Looking forward" },
+          { name: "James Ward",      role: "Logistics Coordinator",   when: "Today",     preview: "See you Friday" },
+          { name: "Riley Foster",    role: "Customer Representative", when: "Yesterday", preview: "Quick question" },
+          { name: "Naomi Carter",    role: "Medical Receptionist",    when: "Yesterday", preview: "Sounds good!" }
+        ],
+        chat: {
+          name: "Tamara Williams",
+          role: "Registered Nurse",
+          city: "Nashville, TN",
+          date: "May 2, 2026",
+          divider: "May 2",
+          outgoing: "Hi Tamara, looking forward to meeting you at our upcoming hiring event. Let me know if you have any questions before then.<br><br>— Sarah",
+          time: "9:15 AM",
+          incoming: "Thanks Sarah! The interview time works great for me."
+        }
+      }
+    },
     "healthcare": {
       label: "Healthcare",
       events: [
@@ -2382,10 +2449,12 @@
     data.events.forEach(e => {
       const row = document.createElement("div");
       row.className = "mk-event-row";
+      var rowType = e.type || variant;
+      var rowLabel = e.typeLabel || data.label;
       row.innerHTML =
         '<div class="mk-event-date"><b>' + e.date + '</b><span>' + e.time + '</span></div>' +
         '<div class="mk-event-city">' + e.city + '</div>' +
-        '<span class="mk-event-type ' + variant + '">' + data.label + '</span>' +
+        '<span class="mk-event-type ' + rowType + '">' + rowLabel + '</span>' +
         '<button class="mk-btn">Register</button>';
       container.appendChild(row);
     });
@@ -2604,7 +2673,7 @@
       });
     });
     // Initialize with healthcare (default — matches static HTML)
-    setVariant("healthcare");
+    setVariant("all");
   });
 })();
 </script>
