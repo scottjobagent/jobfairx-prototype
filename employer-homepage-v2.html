@@ -2827,21 +2827,46 @@ document.addEventListener('keydown', function(e) {
 
 <script>
 (function() {
-  if (window.innerWidth < 900) return; // mobile uses stacked layout
+  if (window.innerWidth < 900) return;
   const blocks = document.querySelectorAll('.sticky-scroll-block');
   const visuals = document.querySelectorAll('.sticky-scroll-visual');
   if (!blocks.length || !visuals.length) return;
-  const observer = new IntersectionObserver(function(entries) {
-    entries.forEach(function(entry) {
-      if (entry.isIntersecting) {
-        const tool = entry.target.dataset.tool;
-        visuals.forEach(function(v) {
-          v.classList.toggle('active', v.dataset.tool === tool);
-        });
+  let raf = null;
+  function update() {
+    raf = null;
+    const vh = window.innerHeight;
+    const triggerY = vh * 0.5; // middle of viewport
+    // Find which block contains the trigger line
+    let activeTool = null;
+    let smallestDist = Infinity;
+    blocks.forEach(function(b) {
+      const r = b.getBoundingClientRect();
+      if (r.top <= triggerY && r.bottom >= triggerY) {
+        // Block contains the trigger line
+        activeTool = b.dataset.tool;
+      } else {
+        // Fall back to closest center
+        const center = (r.top + r.bottom) / 2;
+        const dist = Math.abs(center - triggerY);
+        if (dist < smallestDist) {
+          smallestDist = dist;
+          if (!activeTool) activeTool = b.dataset.tool;
+        }
       }
     });
-  }, { rootMargin: '-40% 0px -40% 0px', threshold: 0 });
-  blocks.forEach(function(b) { observer.observe(b); });
+    if (activeTool) {
+      visuals.forEach(function(v) {
+        v.classList.toggle('active', v.dataset.tool === activeTool);
+      });
+    }
+  }
+  function onScroll() {
+    if (raf) return;
+    raf = requestAnimationFrame(update);
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', onScroll, { passive: true });
+  update();
 })();
 </script>
 </body>
