@@ -1156,6 +1156,17 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script>
+(function(){
+  if (window.location.search.indexOf('view=inframe') !== -1) {
+    document.documentElement.classList.add('in-iframe-preview');
+    var s = document.createElement('style');
+    s.textContent = '.in-iframe-preview .variant-toggle { display: none !important; }';
+    document.head.appendChild(s);
+  }
+})();
+</script>
+
 </head>
 <body>
 <style>
@@ -1287,6 +1298,30 @@ body.variant-entry-level .trust-stats { grid-template-columns: repeat(3, 1fr); m
 .sched-table-mu-time-more { color: #2563eb; font-weight: 600; white-space: nowrap; }
 .sched-table-mu-status { display: inline-flex; align-items: center; font-size: 12px; font-weight: 600; color: #475569; background: #F1F3F7; padding: 6px 14px; border-radius: 999px; white-space: nowrap; }
 
+
+/* === Desktop / Mobile view toggle === */
+.view-mode-separator { width: 1px; align-self: stretch; background: #e8e6e3; margin: 0 4px; }
+
+/* === Mobile preview frame (shown when body.view-mobile) === */
+.mobile-preview-stage { display: none; position: fixed; inset: 0; background: #1a2942; z-index: 100; padding-top: 80px; overflow-y: auto; }
+body.view-mobile .mobile-preview-stage { display: flex; justify-content: center; align-items: flex-start; padding-bottom: 80px; }
+body.view-mobile > *:not(.variant-toggle):not(.mobile-preview-stage):not(script):not(style) { display: none !important; }
+body.view-mobile { background: #1a2942; }
+
+.phone-bezel { width: 412px; background: #0d1525; border: 14px solid #0d1525; border-radius: 56px; box-shadow: 0 32px 80px -16px rgba(0,0,0,0.6), 0 8px 24px rgba(0,0,0,0.3); overflow: hidden; position: relative; }
+.phone-bezel-statusbar { background: #fff; height: 44px; display: flex; align-items: center; justify-content: space-between; padding: 0 22px 0 28px; font-family: -apple-system, BlinkMacSystemFont, sans-serif; font-size: 14px; font-weight: 600; color: #000; position: relative; z-index: 2; }
+.phone-bezel-statusbar-notch { position: absolute; left: 50%; top: 6px; transform: translateX(-50%); width: 110px; height: 30px; background: #0d1525; border-radius: 999px; }
+.phone-bezel-statusbar-icons { display: flex; align-items: center; gap: 5px; }
+.phone-bezel-statusbar-icons svg { width: 16px; height: 12px; }
+.phone-bezel-frame { width: 100%; height: 800px; border: 0; display: block; background: #fff; }
+.phone-bezel-home { background: #fff; padding: 8px 0 10px; display: flex; justify-content: center; }
+.phone-bezel-home-bar { width: 134px; height: 5px; background: #000; border-radius: 999px; }
+
+@media (max-width: 900px) {
+  body.view-mobile .mobile-preview-stage { padding-top: 16px; padding-bottom: 100px; }
+  .phone-bezel { width: 92vw; max-width: 412px; }
+}
+
 </style>
 <div class="variant-toggle" id="variant-toggle">
   <span class="variant-toggle-label">Event type</span>
@@ -1296,7 +1331,27 @@ body.variant-entry-level .trust-stats { grid-template-columns: repeat(3, 1fr); m
   <button class="variant-toggle-btn" data-variant="veterans">Veterans</button>
   <button class="variant-toggle-btn" data-variant="technology">Technology</button>
   <button class="variant-toggle-btn" data-variant="entry-level">Entry-Level</button>
+  <div class="view-mode-separator"></div>
+  <button class="variant-toggle-btn view-mode-btn active" data-view="desktop">Desktop</button>
+  <button class="variant-toggle-btn view-mode-btn" data-view="mobile">Mobile</button>
 </div>
+
+<div class="mobile-preview-stage" id="mobilePreviewStage">
+  <div class="phone-bezel">
+    <div class="phone-bezel-statusbar">
+      <div class="phone-bezel-statusbar-notch"></div>
+      <span style="z-index:3;">9:41</span>
+      <div class="phone-bezel-statusbar-icons" style="z-index:3;">
+        <svg viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="8" width="3" height="4"/><rect x="5" y="5" width="3" height="7"/><rect x="10" y="2" width="3" height="10"/><rect x="15" y="0" width="3" height="12"/></svg>
+        <svg viewBox="0 0 18 12" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M1 6.5c4-4 12-4 16 0M3.5 8.5c2.5-2.5 8.5-2.5 11 0M6 10.5c1.5-1.5 4.5-1.5 6 0M8.5 11.5h1"/></svg>
+        <svg viewBox="0 0 24 12" fill="none"><rect x="1" y="1" width="20" height="10" rx="2" stroke="currentColor" stroke-width="1"/><rect x="22" y="4" width="1.5" height="4" fill="currentColor"/><rect x="3" y="3" width="16" height="6" fill="currentColor" rx="1"/></svg>
+      </div>
+    </div>
+    <iframe class="phone-bezel-frame" id="phoneBezelFrame" title="Mobile preview"></iframe>
+    <div class="phone-bezel-home"><div class="phone-bezel-home-bar"></div></div>
+  </div>
+</div>
+
 
 
 
@@ -3071,6 +3126,34 @@ body.variant-entry-level .trust-stats { grid-template-columns: repeat(3, 1fr); m
     });
     // Initialize with healthcare (default — matches static HTML)
     setVariant("all");
+
+    // === Desktop / Mobile view-mode toggle ===
+    function setViewMode(mode) {
+      document.body.classList.toggle('view-mobile', mode === 'mobile');
+      document.querySelectorAll('.view-mode-btn').forEach(function(btn) {
+        btn.classList.toggle('active', btn.dataset.view === mode);
+      });
+      if (mode === 'mobile') {
+        var activeVariant = (document.body.className.match(/variant-(\S+)/) || [,'all'])[1];
+        var iframe = document.getElementById('phoneBezelFrame');
+        var url = window.location.pathname + '?view=inframe&variant=' + encodeURIComponent(activeVariant);
+        if (iframe && iframe.src.indexOf('view=inframe') === -1) {
+          iframe.src = url;
+        }
+      }
+    }
+    document.querySelectorAll('.view-mode-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        setViewMode(this.dataset.view);
+      });
+    });
+    
+    // If we're in an iframe preview, set the variant from URL
+    var params = new URLSearchParams(window.location.search);
+    if (params.get('view') === 'inframe') {
+      var v = params.get('variant') || 'all';
+      setVariant(v);
+    }
   });
 })();
 </script>
