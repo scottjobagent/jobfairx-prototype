@@ -1550,11 +1550,6 @@ body.variant-entry-level .trust-stats { grid-template-columns: repeat(3, 1fr); m
 body.page-event-details .how-step:first-of-type { display: none !important; }
 
 
-/* Device-size picker visibility — only when Mobile mode is active */
-.device-size-btn, .device-size-btn-label, .device-size-only { display: none; }
-body.view-mobile .device-size-btn, body.view-mobile .device-size-btn-label, body.view-mobile .device-size-only { display: block; }
-body.view-mobile .device-size-only { display: block; }
-
 /* === Desktop / Mobile view toggle === */
 .view-mode-separator { height: 1px; width: auto; align-self: stretch; background: #e8e6e3; margin: 6px 8px; }
 
@@ -1564,6 +1559,10 @@ body.view-mobile .mobile-preview-stage { display: flex; justify-content: center;
 body.view-mobile > *:not(.variant-toggle):not(.mobile-preview-stage):not(script):not(style) { display: none !important; }
 body.view-mobile { background: #1a2942; }
 
+.mobile-preview-stage { display: flex; flex-wrap: wrap; gap: 48px 32px; justify-content: center; padding: 40px 24px; }
+.device-card { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+.device-label { text-align: center; font-size: 14px; font-weight: 700; color: #fff; line-height: 1.3; }
+.device-label-size { font-size: 11px; font-weight: 500; opacity: 0.6; }
 .phone-bezel { width: var(--bezel-width, 412px); background: #0d1525; border: 14px solid #0d1525; border-radius: 56px; box-shadow: 0 32px 80px -16px rgba(0,0,0,0.6), 0 8px 24px rgba(0,0,0,0.3); overflow: hidden; position: relative; transition: width 0.25s ease; }
 .phone-bezel-statusbar { background: #fff; height: 44px; display: flex; align-items: center; justify-content: space-between; padding: 0 22px 0 28px; font-family: -apple-system, BlinkMacSystemFont, sans-serif; font-size: 14px; font-weight: 600; color: #000; position: relative; z-index: 2; }
 .phone-bezel-statusbar-notch { position: absolute; left: 50%; top: 6px; transform: translateX(-50%); width: 110px; height: 30px; background: #0d1525; border-radius: 999px; }
@@ -1575,7 +1574,8 @@ body.view-mobile { background: #1a2942; }
 
 @media (max-width: 900px) {
   body.view-mobile .mobile-preview-stage { padding-top: 16px; padding-bottom: 100px; }
-  .phone-bezel { width: 92vw; max-width: 412px; }
+  .phone-bezel { width: var(--bezel-width); max-width: 92vw; }
+  .mobile-preview-stage { padding: 24px 8px; gap: 24px; }
 }
 
 
@@ -1727,26 +1727,104 @@ body.view-mobile { background: #1a2942; }
   <div class="view-mode-separator"></div>
   <button class="variant-toggle-btn page-type-btn active" data-page="homepage">Homepage</button>
   <button class="variant-toggle-btn page-type-btn" data-page="event-details">Event details</button>
-  <div class="view-mode-separator device-size-only" id="device-size-sep"></div>
-  <button class="variant-toggle-btn device-size-btn-label" id="device-size-label" style="pointer-events:none; opacity:0.7;">Device</button>
-  <button class="variant-toggle-btn device-size-btn" data-device="iphone-se">iPhone SE<br><span style="font-size:9px;opacity:0.6;">375px</span></button>
-  <button class="variant-toggle-btn device-size-btn active" data-device="iphone-14">iPhone 14<br><span style="font-size:9px;opacity:0.6;">390px</span></button>
-  <button class="variant-toggle-btn device-size-btn" data-device="iphone-plus">iPhone Plus<br><span style="font-size:9px;opacity:0.6;">428px</span></button>
-</div>
+          </div>
 
 <div class="mobile-preview-stage" id="mobilePreviewStage">
-  <div class="phone-bezel">
-    <div class="phone-bezel-statusbar">
-      <div class="phone-bezel-statusbar-notch"></div>
-      <span style="z-index:3;">9:41</span>
-      <div class="phone-bezel-statusbar-icons" style="z-index:3;">
-        <svg viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="8" width="3" height="4"/><rect x="5" y="5" width="3" height="7"/><rect x="10" y="2" width="3" height="10"/><rect x="15" y="0" width="3" height="12"/></svg>
-        <svg viewBox="0 0 18 12" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M1 6.5c4-4 12-4 16 0M3.5 8.5c2.5-2.5 8.5-2.5 11 0M6 10.5c1.5-1.5 4.5-1.5 6 0M8.5 11.5h1"/></svg>
-        <svg viewBox="0 0 24 12" fill="none"><rect x="1" y="1" width="20" height="10" rx="2" stroke="currentColor" stroke-width="1"/><rect x="22" y="4" width="1.5" height="4" fill="currentColor"/><rect x="3" y="3" width="16" height="6" fill="currentColor" rx="1"/></svg>
+  <div class="device-card">
+    <div class="device-label">iPhone SE<br><span class="device-label-size">375px</span></div>
+    <div class="phone-bezel" style="--bezel-width: 403px;">
+      <div class="phone-bezel-statusbar">
+        <div class="phone-bezel-statusbar-notch"></div>
+        <span style="z-index:3;">9:41</span>
+        <div class="phone-bezel-statusbar-icons" style="z-index:3;">
+          <svg viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="8" width="3" height="4"/><rect x="5" y="5" width="3" height="7"/><rect x="10" y="2" width="3" height="10"/><rect x="15" y="0" width="3" height="12"/></svg>
+          <svg viewBox="0 0 18 12" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M1 6.5c4-4 12-4 16 0M3.5 8.5c2.5-2.5 8.5-2.5 11 0M6 10.5c1.5-1.5 4.5-1.5 6 0M8.5 11.5h1"/></svg>
+          <svg viewBox="0 0 24 12" fill="none"><rect x="1" y="1" width="20" height="10" rx="2" stroke="currentColor" stroke-width="1"/><rect x="22" y="4" width="1.5" height="4" fill="currentColor"/><rect x="3" y="3" width="16" height="6" fill="currentColor" rx="1"/></svg>
+        </div>
       </div>
+      <iframe class="phone-bezel-frame device-iframe" data-device="iphone-se" title="iPhone SE mobile preview"></iframe>
+      <div class="phone-bezel-home"><div class="phone-bezel-home-bar"></div></div>
     </div>
-    <iframe class="phone-bezel-frame" id="phoneBezelFrame" title="Mobile preview"></iframe>
-    <div class="phone-bezel-home"><div class="phone-bezel-home-bar"></div></div>
+  </div>
+  <div class="device-card">
+    <div class="device-label">iPhone 14<br><span class="device-label-size">390px</span></div>
+    <div class="phone-bezel" style="--bezel-width: 418px;">
+      <div class="phone-bezel-statusbar">
+        <div class="phone-bezel-statusbar-notch"></div>
+        <span style="z-index:3;">9:41</span>
+        <div class="phone-bezel-statusbar-icons" style="z-index:3;">
+          <svg viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="8" width="3" height="4"/><rect x="5" y="5" width="3" height="7"/><rect x="10" y="2" width="3" height="10"/><rect x="15" y="0" width="3" height="12"/></svg>
+          <svg viewBox="0 0 18 12" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M1 6.5c4-4 12-4 16 0M3.5 8.5c2.5-2.5 8.5-2.5 11 0M6 10.5c1.5-1.5 4.5-1.5 6 0M8.5 11.5h1"/></svg>
+          <svg viewBox="0 0 24 12" fill="none"><rect x="1" y="1" width="20" height="10" rx="2" stroke="currentColor" stroke-width="1"/><rect x="22" y="4" width="1.5" height="4" fill="currentColor"/><rect x="3" y="3" width="16" height="6" fill="currentColor" rx="1"/></svg>
+        </div>
+      </div>
+      <iframe class="phone-bezel-frame device-iframe" data-device="iphone-14" title="iPhone 14 mobile preview"></iframe>
+      <div class="phone-bezel-home"><div class="phone-bezel-home-bar"></div></div>
+    </div>
+  </div>
+  <div class="device-card">
+    <div class="device-label">iPhone 14 Pro Max<br><span class="device-label-size">430px</span></div>
+    <div class="phone-bezel" style="--bezel-width: 458px;">
+      <div class="phone-bezel-statusbar">
+        <div class="phone-bezel-statusbar-notch"></div>
+        <span style="z-index:3;">9:41</span>
+        <div class="phone-bezel-statusbar-icons" style="z-index:3;">
+          <svg viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="8" width="3" height="4"/><rect x="5" y="5" width="3" height="7"/><rect x="10" y="2" width="3" height="10"/><rect x="15" y="0" width="3" height="12"/></svg>
+          <svg viewBox="0 0 18 12" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M1 6.5c4-4 12-4 16 0M3.5 8.5c2.5-2.5 8.5-2.5 11 0M6 10.5c1.5-1.5 4.5-1.5 6 0M8.5 11.5h1"/></svg>
+          <svg viewBox="0 0 24 12" fill="none"><rect x="1" y="1" width="20" height="10" rx="2" stroke="currentColor" stroke-width="1"/><rect x="22" y="4" width="1.5" height="4" fill="currentColor"/><rect x="3" y="3" width="16" height="6" fill="currentColor" rx="1"/></svg>
+        </div>
+      </div>
+      <iframe class="phone-bezel-frame device-iframe" data-device="iphone-14-pro-max" title="iPhone 14 Pro Max mobile preview"></iframe>
+      <div class="phone-bezel-home"><div class="phone-bezel-home-bar"></div></div>
+    </div>
+  </div>
+  <div class="device-card">
+    <div class="device-label">Pixel 7<br><span class="device-label-size">412px</span></div>
+    <div class="phone-bezel" style="--bezel-width: 440px;">
+      <div class="phone-bezel-statusbar">
+        <div class="phone-bezel-statusbar-notch"></div>
+        <span style="z-index:3;">9:41</span>
+        <div class="phone-bezel-statusbar-icons" style="z-index:3;">
+          <svg viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="8" width="3" height="4"/><rect x="5" y="5" width="3" height="7"/><rect x="10" y="2" width="3" height="10"/><rect x="15" y="0" width="3" height="12"/></svg>
+          <svg viewBox="0 0 18 12" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M1 6.5c4-4 12-4 16 0M3.5 8.5c2.5-2.5 8.5-2.5 11 0M6 10.5c1.5-1.5 4.5-1.5 6 0M8.5 11.5h1"/></svg>
+          <svg viewBox="0 0 24 12" fill="none"><rect x="1" y="1" width="20" height="10" rx="2" stroke="currentColor" stroke-width="1"/><rect x="22" y="4" width="1.5" height="4" fill="currentColor"/><rect x="3" y="3" width="16" height="6" fill="currentColor" rx="1"/></svg>
+        </div>
+      </div>
+      <iframe class="phone-bezel-frame device-iframe" data-device="pixel-7" title="Pixel 7 mobile preview"></iframe>
+      <div class="phone-bezel-home"><div class="phone-bezel-home-bar"></div></div>
+    </div>
+  </div>
+  <div class="device-card">
+    <div class="device-label">Pixel 8 Pro<br><span class="device-label-size">448px</span></div>
+    <div class="phone-bezel" style="--bezel-width: 476px;">
+      <div class="phone-bezel-statusbar">
+        <div class="phone-bezel-statusbar-notch"></div>
+        <span style="z-index:3;">9:41</span>
+        <div class="phone-bezel-statusbar-icons" style="z-index:3;">
+          <svg viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="8" width="3" height="4"/><rect x="5" y="5" width="3" height="7"/><rect x="10" y="2" width="3" height="10"/><rect x="15" y="0" width="3" height="12"/></svg>
+          <svg viewBox="0 0 18 12" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M1 6.5c4-4 12-4 16 0M3.5 8.5c2.5-2.5 8.5-2.5 11 0M6 10.5c1.5-1.5 4.5-1.5 6 0M8.5 11.5h1"/></svg>
+          <svg viewBox="0 0 24 12" fill="none"><rect x="1" y="1" width="20" height="10" rx="2" stroke="currentColor" stroke-width="1"/><rect x="22" y="4" width="1.5" height="4" fill="currentColor"/><rect x="3" y="3" width="16" height="6" fill="currentColor" rx="1"/></svg>
+        </div>
+      </div>
+      <iframe class="phone-bezel-frame device-iframe" data-device="pixel-8-pro" title="Pixel 8 Pro mobile preview"></iframe>
+      <div class="phone-bezel-home"><div class="phone-bezel-home-bar"></div></div>
+    </div>
+  </div>
+  <div class="device-card">
+    <div class="device-label">Galaxy S22<br><span class="device-label-size">360px</span></div>
+    <div class="phone-bezel" style="--bezel-width: 388px;">
+      <div class="phone-bezel-statusbar">
+        <div class="phone-bezel-statusbar-notch"></div>
+        <span style="z-index:3;">9:41</span>
+        <div class="phone-bezel-statusbar-icons" style="z-index:3;">
+          <svg viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="8" width="3" height="4"/><rect x="5" y="5" width="3" height="7"/><rect x="10" y="2" width="3" height="10"/><rect x="15" y="0" width="3" height="12"/></svg>
+          <svg viewBox="0 0 18 12" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M1 6.5c4-4 12-4 16 0M3.5 8.5c2.5-2.5 8.5-2.5 11 0M6 10.5c1.5-1.5 4.5-1.5 6 0M8.5 11.5h1"/></svg>
+          <svg viewBox="0 0 24 12" fill="none"><rect x="1" y="1" width="20" height="10" rx="2" stroke="currentColor" stroke-width="1"/><rect x="22" y="4" width="1.5" height="4" fill="currentColor"/><rect x="3" y="3" width="16" height="6" fill="currentColor" rx="1"/></svg>
+        </div>
+      </div>
+      <iframe class="phone-bezel-frame device-iframe" data-device="galaxy-s22" title="Galaxy S22 mobile preview"></iframe>
+      <div class="phone-bezel-home"><div class="phone-bezel-home-bar"></div></div>
+    </div>
   </div>
 </div>
 
@@ -3575,23 +3653,8 @@ body.view-mobile { background: #1a2942; }
         btn.classList.toggle('active', btn.dataset.page === mode);
       });
 
-    // === Device size picker (mobile view only) ===
-    var BEZEL_WIDTHS = { 'iphone-se': 375, 'iphone-14': 390, 'iphone-plus': 428 };
-    function setDeviceSize(device) {
-      var w = BEZEL_WIDTHS[device] || 390;
-      // Bezel width = device width + 28px borders (14px each side)
-      var bezelW = w + 28;
-      document.documentElement.style.setProperty('--bezel-width', bezelW + 'px');
-      document.querySelectorAll('.device-size-btn').forEach(function(btn) {
-        if (btn.id === 'device-size-label') return;
-        btn.classList.toggle('active', btn.dataset.device === device);
-      });
-    }
-    document.querySelectorAll('.device-size-btn').forEach(function(btn) {
-      if (btn.id === 'device-size-label') return;
-      btn.addEventListener('click', function() { setDeviceSize(this.dataset.device); });
-    });
-    // (Visibility handled by CSS via body.view-mobile)
+// Device picker JS removed — using grid of all devices instead
+
 
     }
     document.querySelectorAll('.page-type-btn').forEach(function(btn) {
@@ -3606,11 +3669,12 @@ body.view-mobile { background: #1a2942; }
       });
       if (mode === 'mobile') {
         var activeVariant = (document.body.className.match(/variant-(\S+)/) || [,'all'])[1];
-        var iframe = document.getElementById('phoneBezelFrame');
         var url = window.location.pathname + '?view=inframe&variant=' + encodeURIComponent(activeVariant);
-        if (iframe && iframe.src.indexOf('view=inframe') === -1) {
-          iframe.src = url;
-        }
+        document.querySelectorAll('.device-iframe').forEach(function(iframe) {
+          if (iframe.src.indexOf('view=inframe') === -1) {
+            iframe.src = url;
+          }
+        });
       }
     }
     document.querySelectorAll('.view-mode-btn').forEach(function(btn) {
