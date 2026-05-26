@@ -1542,7 +1542,7 @@ body.view-mobile .mobile-preview-stage { display: flex; justify-content: center;
 body.view-mobile > *:not(.variant-toggle):not(.mobile-preview-stage):not(script):not(style) { display: none !important; }
 body.view-mobile { background: #1a2942; }
 
-.phone-bezel { width: 412px; background: #0d1525; border: 14px solid #0d1525; border-radius: 56px; box-shadow: 0 32px 80px -16px rgba(0,0,0,0.6), 0 8px 24px rgba(0,0,0,0.3); overflow: hidden; position: relative; }
+.phone-bezel { width: var(--bezel-width, 412px); background: #0d1525; border: 14px solid #0d1525; border-radius: 56px; box-shadow: 0 32px 80px -16px rgba(0,0,0,0.6), 0 8px 24px rgba(0,0,0,0.3); overflow: hidden; position: relative; transition: width 0.25s ease; }
 .phone-bezel-statusbar { background: #fff; height: 44px; display: flex; align-items: center; justify-content: space-between; padding: 0 22px 0 28px; font-family: -apple-system, BlinkMacSystemFont, sans-serif; font-size: 14px; font-weight: 600; color: #000; position: relative; z-index: 2; }
 .phone-bezel-statusbar-notch { position: absolute; left: 50%; top: 6px; transform: translateX(-50%); width: 110px; height: 30px; background: #0d1525; border-radius: 999px; }
 .phone-bezel-statusbar-icons { display: flex; align-items: center; gap: 5px; }
@@ -1705,6 +1705,11 @@ body.view-mobile { background: #1a2942; }
   <div class="view-mode-separator"></div>
   <button class="variant-toggle-btn page-type-btn active" data-page="homepage">Homepage</button>
   <button class="variant-toggle-btn page-type-btn" data-page="event-details">Event details</button>
+  <div class="view-mode-separator" id="device-size-sep" style="display:none;"></div>
+  <button class="variant-toggle-btn device-size-btn" id="device-size-label" data-device="iphone-14" style="display:none; pointer-events:none; opacity:0.7;">Device</button>
+  <button class="variant-toggle-btn device-size-btn" data-device="iphone-se" style="display:none;">iPhone SE<br><span style="font-size:9px;opacity:0.6;">375px</span></button>
+  <button class="variant-toggle-btn device-size-btn active" data-device="iphone-14" style="display:none;">iPhone 14<br><span style="font-size:9px;opacity:0.6;">390px</span></button>
+  <button class="variant-toggle-btn device-size-btn" data-device="iphone-plus" style="display:none;">iPhone Plus<br><span style="font-size:9px;opacity:0.6;">428px</span></button>
 </div>
 
 <div class="mobile-preview-stage" id="mobilePreviewStage">
@@ -3547,6 +3552,33 @@ body.view-mobile { background: #1a2942; }
       document.querySelectorAll('.page-type-btn').forEach(function(btn) {
         btn.classList.toggle('active', btn.dataset.page === mode);
       });
+
+    // === Device size picker (mobile view only) ===
+    var BEZEL_WIDTHS = { 'iphone-se': 375, 'iphone-14': 390, 'iphone-plus': 428 };
+    function setDeviceSize(device) {
+      var w = BEZEL_WIDTHS[device] || 390;
+      // Bezel width = device width + 28px borders (14px each side)
+      var bezelW = w + 28;
+      document.documentElement.style.setProperty('--bezel-width', bezelW + 'px');
+      document.querySelectorAll('.device-size-btn').forEach(function(btn) {
+        if (btn.id === 'device-size-label') return;
+        btn.classList.toggle('active', btn.dataset.device === device);
+      });
+    }
+    document.querySelectorAll('.device-size-btn').forEach(function(btn) {
+      if (btn.id === 'device-size-label') return;
+      btn.addEventListener('click', function() { setDeviceSize(this.dataset.device); });
+    });
+    // Show/hide device picker based on view mode
+    var origSetViewMode = setViewMode;
+    setViewMode = function(mode) {
+      origSetViewMode(mode);
+      var show = (mode === 'mobile');
+      document.querySelectorAll('.device-size-btn, #device-size-sep').forEach(function(el) {
+        el.style.display = show ? '' : 'none';
+      });
+    };
+
     }
     document.querySelectorAll('.page-type-btn').forEach(function(btn) {
       btn.addEventListener('click', function() { setPageType(this.dataset.page); });
