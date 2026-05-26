@@ -1554,6 +1554,12 @@ body.variant-entry-level .trust-stats { grid-template-columns: repeat(3, 1fr); m
 body.page-event-details .how-step:first-of-type { display: none !important; }
 
 
+
+/* Page-type isolation — show only How It Works section when Homepage or Event details is active */
+body.page-isolated > *:not(.variant-toggle):not(#how):not(.mobile-preview-stage):not(script):not(style) { display: none !important; }
+body.page-isolated #how { padding-top: 100px !important; }
+body.page-isolated { background: var(--bg-soft); }
+
 /* === Desktop / Mobile view toggle === */
 .view-mode-separator { height: 1px; width: auto; align-self: stretch; background: #e8e6e3; margin: 6px 8px; }
 
@@ -3651,19 +3657,27 @@ body.view-mobile { background: #1a2942; }
     setVariant("all");
 
     // === Page type toggle (Homepage / Event details) ===
-    function setPageType(mode) {
-      document.body.classList.toggle('page-event-details', mode === 'event-details');
+    function setPageType(mode, forceState) {
+      // forceState: true = enable isolation, false = disable, undefined = toggle
+      var isActive = document.body.classList.contains('page-isolated') &&
+                     document.querySelector('.page-type-btn.active') &&
+                     document.querySelector('.page-type-btn.active').dataset.page === mode;
+      var shouldIsolate;
+      if (forceState === true) shouldIsolate = true;
+      else if (forceState === false) shouldIsolate = false;
+      else shouldIsolate = !isActive;
+
+      document.body.classList.toggle('page-isolated', shouldIsolate);
+      document.body.classList.toggle('page-event-details', shouldIsolate && mode === 'event-details');
       document.querySelectorAll('.page-type-btn').forEach(function(btn) {
-        btn.classList.toggle('active', btn.dataset.page === mode);
+        btn.classList.toggle('active', shouldIsolate && btn.dataset.page === mode);
       });
-
-// Device picker JS removed — using grid of all devices instead
-
-
     }
     document.querySelectorAll('.page-type-btn').forEach(function(btn) {
       btn.addEventListener('click', function() { setPageType(this.dataset.page); });
     });
+    // Default: no isolation (page-type-btn.active class removed from HTML default)
+    document.querySelectorAll('.page-type-btn').forEach(function(btn) { btn.classList.remove('active'); });
 
         // === Desktop / Mobile view-mode toggle ===
     function setViewMode(mode) {
