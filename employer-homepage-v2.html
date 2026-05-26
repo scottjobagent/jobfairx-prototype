@@ -1549,6 +1549,12 @@ body.variant-entry-level .trust-stats { grid-template-columns: repeat(3, 1fr); m
 /* === Event-details preview mode === */
 body.page-event-details .how-step:first-of-type { display: none !important; }
 
+
+/* Device-size picker visibility — only when Mobile mode is active */
+.device-size-btn, .device-size-btn-label, .device-size-only { display: none; }
+body.view-mobile .device-size-btn, body.view-mobile .device-size-btn-label, body.view-mobile .device-size-only { display: block; }
+body.view-mobile .device-size-only { display: block; }
+
 /* === Desktop / Mobile view toggle === */
 .view-mode-separator { height: 1px; width: auto; align-self: stretch; background: #e8e6e3; margin: 6px 8px; }
 
@@ -1721,11 +1727,11 @@ body.view-mobile { background: #1a2942; }
   <div class="view-mode-separator"></div>
   <button class="variant-toggle-btn page-type-btn active" data-page="homepage">Homepage</button>
   <button class="variant-toggle-btn page-type-btn" data-page="event-details">Event details</button>
-  <div class="view-mode-separator" id="device-size-sep" style="display:none;"></div>
-  <button class="variant-toggle-btn device-size-btn" id="device-size-label" data-device="iphone-14" style="display:none; pointer-events:none; opacity:0.7;">Device</button>
-  <button class="variant-toggle-btn device-size-btn" data-device="iphone-se" style="display:none;">iPhone SE<br><span style="font-size:9px;opacity:0.6;">375px</span></button>
-  <button class="variant-toggle-btn device-size-btn active" data-device="iphone-14" style="display:none;">iPhone 14<br><span style="font-size:9px;opacity:0.6;">390px</span></button>
-  <button class="variant-toggle-btn device-size-btn" data-device="iphone-plus" style="display:none;">iPhone Plus<br><span style="font-size:9px;opacity:0.6;">428px</span></button>
+  <div class="view-mode-separator device-size-only" id="device-size-sep"></div>
+  <button class="variant-toggle-btn device-size-btn-label" id="device-size-label" style="pointer-events:none; opacity:0.7;">Device</button>
+  <button class="variant-toggle-btn device-size-btn" data-device="iphone-se">iPhone SE<br><span style="font-size:9px;opacity:0.6;">375px</span></button>
+  <button class="variant-toggle-btn device-size-btn active" data-device="iphone-14">iPhone 14<br><span style="font-size:9px;opacity:0.6;">390px</span></button>
+  <button class="variant-toggle-btn device-size-btn" data-device="iphone-plus">iPhone Plus<br><span style="font-size:9px;opacity:0.6;">428px</span></button>
 </div>
 
 <div class="mobile-preview-stage" id="mobilePreviewStage">
@@ -3585,15 +3591,7 @@ body.view-mobile { background: #1a2942; }
       if (btn.id === 'device-size-label') return;
       btn.addEventListener('click', function() { setDeviceSize(this.dataset.device); });
     });
-    // Show/hide device picker based on view mode
-    var origSetViewMode = setViewMode;
-    setViewMode = function(mode) {
-      origSetViewMode(mode);
-      var show = (mode === 'mobile');
-      document.querySelectorAll('.device-size-btn, #device-size-sep').forEach(function(el) {
-        el.style.display = show ? '' : 'none';
-      });
-    };
+    // (Visibility handled by CSS via body.view-mobile)
 
     }
     document.querySelectorAll('.page-type-btn').forEach(function(btn) {
