@@ -773,6 +773,7 @@
 .mk-matching-cell-name-text { font-size: 14px; font-weight: 700; color: #1a1a1a; white-space: nowrap; }
 .mk-matching-cell-links { display: flex; gap: 14px; white-space: nowrap; }
 .mk-matching-cell-link { font-size: 12px; color: #2563eb; text-decoration: underline; white-space: nowrap; }
+.mk-matching-cell-meta { display: contents; }
 .mk-matching-cell-job { font-size: 13px; color: #4b5563; line-height: 1.35; }
 .mk-matching-cell-loc { font-size: 13px; color: #4b5563; white-space: nowrap; }
 .mk-matching-cell-actions { display: inline-flex; justify-self: start; }
@@ -1263,9 +1264,9 @@
   .sched-mu-modal { width: 100% !important; max-width: 100% !important; }
   .sched-mu-modal-body { padding: 16px !important; }
 
-  /* 5. Event Types — keep faces in frame on mobile (was: aspect-ratio 16/8 + 160px cap was cropping heads) */
-  .cat-image { aspect-ratio: 16/11 !important; max-height: none !important; }
-  .cat-image img { object-position: center 22% !important; }
+  /* 5. Event Types — show FULL photo (no crop) on mobile, anchor top to keep faces in frame */
+  .cat-image { aspect-ratio: 4/3 !important; max-height: none !important; }
+  .cat-image img { object-position: center top !important; }
   .cat-card { border-radius: 12px !important; }
   .cat-body { padding: 16px !important; }
   .cat-name { font-size: 16px !important; }
@@ -1329,22 +1330,25 @@
     font-weight: 700 !important;
     white-space: nowrap !important;
   }
-  .mk-matching-cell-job {
-    grid-column: 1 !important;
+  /* On mobile, .cell-meta becomes a flex container so job + loc flow inline with separator */
+  .mk-matching-cell-meta {
+    display: flex !important;
+    align-items: baseline !important;
+    gap: 6px !important;
+    grid-column: 1 / span 2 !important;
     grid-row: 2 !important;
+  }
+  .mk-matching-cell-job {
     font-size: 13px !important;
     color: #4b5563 !important;
     font-weight: 400 !important;
     white-space: nowrap !important;
   }
   .mk-matching-cell-loc {
-    grid-column: 2 !important;
-    grid-row: 2 !important;
     font-size: 13px !important;
     color: #4b5563 !important;
     font-weight: 400 !important;
     white-space: nowrap !important;
-    justify-self: start !important;
   }
   .mk-matching-cell-loc::before {
     content: "·" !important;
@@ -1360,8 +1364,7 @@
   }
   /* Hide Message link on mobile — only View resume → */
   .mk-matching-cell-links a:not(:first-child) { display: none !important; }
-  .mk-matching-cell-links a:first-child::after { content: " →" !important; }
-  .mk-matching-cell-link { font-size: 13px !important; text-decoration: none !important; font-weight: 500 !important; }
+  .mk-matching-cell-link { font-size: 13px !important; font-weight: 500 !important; }
   .mk-matching-cell-actions {
     grid-column: 3 !important;
     grid-row: 1 !important;
@@ -2286,8 +2289,10 @@ body.view-mobile { background: #1a2942; }
                 <a class="mk-matching-cell-link" href="#">Message</a>
               </div>
             </div>
-            <div class="mk-matching-cell-job">Phlebotomist</div>
-            <div class="mk-matching-cell-loc">Houston</div>
+            <div class="mk-matching-cell-meta">
+              <div class="mk-matching-cell-job">Phlebotomist</div>
+              <div class="mk-matching-cell-loc">Houston</div>
+            </div>
             <div class="mk-matching-cell-actions"><button>Accept</button></div>
           </div>
           <div class="mk-matching-trow">
@@ -2298,8 +2303,10 @@ body.view-mobile { background: #1a2942; }
                 <a class="mk-matching-cell-link" href="#">Message</a>
               </div>
             </div>
-            <div class="mk-matching-cell-job">Home Health Aide</div>
-            <div class="mk-matching-cell-loc">Tampa</div>
+            <div class="mk-matching-cell-meta">
+              <div class="mk-matching-cell-job">Home Health Aide</div>
+              <div class="mk-matching-cell-loc">Tampa</div>
+            </div>
             <div class="mk-matching-cell-actions"><button>Accept</button></div>
           </div>
           <div class="mk-matching-trow">
@@ -2310,8 +2317,10 @@ body.view-mobile { background: #1a2942; }
                 <a class="mk-matching-cell-link" href="#">Message</a>
               </div>
             </div>
-            <div class="mk-matching-cell-job">Dental Hygienist</div>
-            <div class="mk-matching-cell-loc">Portland</div>
+            <div class="mk-matching-cell-meta">
+              <div class="mk-matching-cell-job">Dental Hygienist</div>
+              <div class="mk-matching-cell-loc">Portland</div>
+            </div>
             <div class="mk-matching-cell-actions"><button>Accept</button></div>
           </div>
           <div class="mk-matching-trow">
@@ -2322,8 +2331,10 @@ body.view-mobile { background: #1a2942; }
                 <a class="mk-matching-cell-link" href="#">Message</a>
               </div>
             </div>
-            <div class="mk-matching-cell-job">Registered Nurse</div>
-            <div class="mk-matching-cell-loc">Denver</div>
+            <div class="mk-matching-cell-meta">
+              <div class="mk-matching-cell-job">Registered Nurse</div>
+              <div class="mk-matching-cell-loc">Denver</div>
+            </div>
             <div class="mk-matching-cell-actions"><button>Accept</button></div>
           </div>
         </div>
@@ -3295,8 +3306,10 @@ body.view-mobile { background: #1a2942; }
             '<a class="mk-matching-cell-link" href="#">View resume</a>' +
           '</div>' +
         '</div>' +
-        '<div class="mk-matching-cell-job">' + c.job + '</div>' +
-        '<div class="mk-matching-cell-loc">' + c.city + '</div>' +
+        '<div class="mk-matching-cell-meta">' +
+          '<div class="mk-matching-cell-job">' + c.job + '</div>' +
+          '<div class="mk-matching-cell-loc">' + c.city + '</div>' +
+        '</div>' +
         '<div class="mk-matching-cell-actions"><button>Accept</button></div>';
       container.appendChild(row);
     });
