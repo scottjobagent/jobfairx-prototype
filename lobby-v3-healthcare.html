@@ -1135,10 +1135,10 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
 <!-- Tabs — full width -->
 <div class="tabs-wrapper">
   <div class="tabs">
-    <button class="tab active" onclick="switchTab(this, 'waiting')">Waiting to interview (0)</button>
+    <button class="tab" onclick="switchTab(this, 'waiting')">Waiting to interview (0)</button>
     <button class="tab" onclick="switchTab(this, 'interviewing')">Interviewing (0)</button>
     <button class="tab" onclick="switchTab(this, 'interviewed')">Interviewed (0)</button>
-    <button class="tab" onclick="switchTab(this, 'notyet')">Not yet interviewed (16)</button>
+    <button class="tab active" onclick="switchTab(this, 'notyet')">Not yet interviewed (16)</button>
   </div>
 </div>
 
@@ -1184,7 +1184,7 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
 </div>
 
 <!-- Waiting to interview -->
-<div class="tab-panel" id="panel-waiting">
+<div class="tab-panel" id="panel-waiting" style="display:none;">
   <div class="tab-panel-wrapper">
 
     <!-- ACTIVE STATE -->
@@ -2022,7 +2022,7 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
 </div>
 
 <!-- Not yet interviewed -->
-<div class="tab-panel" id="panel-notyet" style="display:none;">
+<div class="tab-panel" id="panel-notyet">
   <div class="tab-panel-wrapper">
     <!-- Dev toggle -->
     <!-- ACTIVE STATE -->
@@ -5686,8 +5686,12 @@ document.getElementById('purchaseModal').addEventListener('click', function(e) {
 
 <script>
 window.addEventListener("DOMContentLoaded", function() {
-  var liveBtn = document.querySelector('[onclick*="setLobbyMode(\'live\'"]');
-  if (typeof setLobbyMode === "function" && liveBtn) setLobbyMode("live", liveBtn);
+  // Default to Active view (not Live) so dashboard "Go to lobby" lands on pre-event state
+  var activeBtn = document.querySelector('[onclick*="setLobbyMode(\'active\'"]');
+  if (typeof setLobbyMode === "function" && activeBtn) setLobbyMode("active", activeBtn);
+  // Default to "Not yet interviewed" tab
+  var notyetTab = document.querySelector('button.tab[onclick*="switchTab(this, \'notyet\')"]');
+  if (typeof switchTab === "function" && notyetTab) switchTab(notyetTab, 'notyet');
 });
 </script>
 
@@ -5741,8 +5745,8 @@ window.addEventListener("DOMContentLoaded", function() {
 <!-- Dev/preview toggle — skinny vertical A/L only, bottom-left gutter -->
 <div class="dev-toggle-corner dev-toggle-vertical" id="lobbyDevToggle">
   <div class="dev-toggle-switch">
-    <button class="dev-toggle-btn" onclick="setLobbyMode('active', this)" title="Active">A</button>
-    <button class="dev-toggle-btn active" onclick="setLobbyMode('live', this)" title="Live">L</button>
+    <button class="dev-toggle-btn active" onclick="setLobbyMode('active', this)" title="Active">A</button>
+    <button class="dev-toggle-btn" onclick="setLobbyMode('live', this)" title="Live">L</button>
   </div>
 </div>
 
