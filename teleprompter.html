@@ -66,7 +66,7 @@
 
 <div class="topbar">
   <div>
-    <div class="topbar-title">JobFairX Demo Script <span style="opacity:0.3;font-weight:400;font-size:10px;">v5</span></div>
+    <div class="topbar-title">JobFairX Demo Script <span style="opacity:0.3;font-weight:400;font-size:10px;">v6</span></div>
     <div class="topbar-sub">~2:40</div>
   </div>
   <div class="controls">
@@ -214,16 +214,24 @@ function updatePlayBtn() {
   }
 }
 
+let scrollAccumulator = 0;
+
 function startScroll() {
+  scrollAccumulator = 0;
   function step() {
     if (!isPlaying) return;
     const target = getScrollTarget();
-    // Use documentElement scroll for PiP windows (more reliable than window.scrollBy)
-    if (pipWindow && target === pipWindow) {
-      const doc = pipWindow.document.documentElement;
-      doc.scrollTop = doc.scrollTop + speed;
-    } else {
-      target.scrollBy(0, speed);
+    // Accumulate fractional pixels — browsers can't scroll less than 1 pixel
+    scrollAccumulator += speed;
+    if (scrollAccumulator >= 1) {
+      const whole = Math.floor(scrollAccumulator);
+      scrollAccumulator -= whole;
+      if (pipWindow && target === pipWindow) {
+        const doc = pipWindow.document.documentElement;
+        doc.scrollTop = doc.scrollTop + whole;
+      } else {
+        target.scrollBy(0, whole);
+      }
     }
     scrollRAF = requestAnimationFrame(step);
   }
