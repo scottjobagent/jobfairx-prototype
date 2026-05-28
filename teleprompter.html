@@ -72,9 +72,9 @@
   <div class="controls">
     <button class="play-btn" id="playBtn" onclick="togglePlay()">▶ Play <span class="shortcut-hint">space</span></button>
     <div class="speed-control">
-      <button class="speed-btn" onclick="changeSpeed(-0.2)">−</button>
+      <button class="speed-btn" onclick="changeSpeed(-0.1)">−</button>
       <span class="speed-label" id="speedLabel">1.0×</span>
-      <button class="speed-btn" onclick="changeSpeed(0.2)">+</button>
+      <button class="speed-btn" onclick="changeSpeed(0.1)">+</button>
     </div>
     <button class="control-btn float-btn" onclick="popFloat()">⬆ Float</button>
     <button class="control-btn" onclick="document.body.classList.toggle('hide-directions'); this.classList.toggle('active')">Hide cues</button>
@@ -227,7 +227,7 @@ function stopScroll() {
 }
 
 function changeSpeed(delta) {
-  speed = Math.max(0.2, Math.min(5.0, parseFloat((speed + delta).toFixed(1))));
+  speed = Math.max(0.1, Math.min(5.0, parseFloat((speed + delta).toFixed(1))));
   updateSpeedLabel();
 }
 
@@ -246,9 +246,9 @@ document.addEventListener('keydown', e => {
     e.preventDefault();
     togglePlay();
   } else if (e.code === 'Equal' || e.code === 'NumpadAdd') {
-    changeSpeed(0.2);
+    changeSpeed(0.1);
   } else if (e.code === 'Minus' || e.code === 'NumpadSubtract') {
-    changeSpeed(-0.2);
+    changeSpeed(-0.1);
   } else if (e.code === 'KeyR') {
     resetToTop();
   }
@@ -294,8 +294,8 @@ async function popFloat() {
     // Build a minimal control bar in the PiP window
     const pipBar = pipWindow.document.createElement('div');
     pipBar.className = 'topbar';
-    pipBar.style.cssText = 'position:sticky;top:0;background:rgba(10,14,26,0.97);padding:8px 14px;border-bottom:1px solid rgba(255,255,255,0.08);display:flex;justify-content:center;align-items:center;z-index:100;gap:8px;';
-    pipBar.innerHTML = '<button class="control-btn pip-reset" style="margin-right:auto;">↺ Top</button><button class="speed-btn pip-speed-down">−</button><button class="play-btn pip-play-btn" style="padding:6px 18px;font-size:13px;">▶ Play</button><button class="speed-btn pip-speed-up">+</button><span class="speed-label pip-speed-label" style="margin-left:4px;">' + speed.toFixed(1) + '×</span>';
+    pipBar.style.cssText = 'position:sticky;top:0;background:rgba(10,14,26,0.97);padding:8px 14px;border-bottom:1px solid rgba(255,255,255,0.08);display:grid;grid-template-columns:1fr auto 1fr;align-items:center;z-index:100;gap:8px;';
+    pipBar.innerHTML = '<div style="justify-self:start;"><button class="control-btn pip-reset">↺ Top</button></div><button class="play-btn pip-play-btn" style="padding:6px 22px;font-size:14px;justify-self:center;">▶ Play</button><div style="justify-self:end;display:flex;align-items:center;gap:6px;"><button class="speed-btn pip-speed-down">−</button><span class="speed-label pip-speed-label">' + speed.toFixed(1) + '×</span><button class="speed-btn pip-speed-up">+</button></div>';
     pipWindow.document.body.appendChild(pipBar);
 
     // Clone content into PiP
@@ -304,8 +304,8 @@ async function popFloat() {
 
     // Wire up the PiP controls to shared functions
     pipWindow.document.querySelector('.pip-play-btn').addEventListener('click', togglePlay);
-    pipWindow.document.querySelector('.pip-speed-down').addEventListener('click', () => changeSpeed(-0.2));
-    pipWindow.document.querySelector('.pip-speed-up').addEventListener('click', () => changeSpeed(0.2));
+    pipWindow.document.querySelector('.pip-speed-down').addEventListener('click', () => changeSpeed(-0.1));
+    pipWindow.document.querySelector('.pip-speed-up').addEventListener('click', () => changeSpeed(0.1));
     pipWindow.document.querySelector('.pip-reset').addEventListener('click', resetToTop);
 
     // Spacebar in PiP window
