@@ -33,7 +33,55 @@
   ::-webkit-scrollbar { width: 8px; }
   ::-webkit-scrollbar-track { background: #0a0e1a; }
   ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
+.float-btn { background: #2563eb; color: #fff; border-color: #2563eb; font-weight: 700; }
+.float-btn:hover { background: #1d4ed8; color: #fff; }
+.pip-notice { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #0a0e1a; color: #fff; padding: 32px 40px; border-radius: 16px; max-width: 480px; font-size: 16px; line-height: 1.5; box-shadow: 0 24px 60px rgba(0,0,0,0.5); z-index: 99999; border: 1px solid rgba(255,255,255,0.1); display: none; }
+.pip-notice h3 { margin: 0 0 12px; font-size: 22px; }
+.pip-notice button { margin-top: 16px; padding: 10px 20px; background: #2563eb; color: #fff; border: 0; border-radius: 999px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; }
 </style>
+<script>
+async function popFloat() {
+  if (!('documentPictureInPicture' in window)) {
+    document.getElementById('pipNotice').style.display = 'block';
+    return;
+  }
+  try {
+    const pipWindow = await documentPictureInPicture.requestWindow({
+      width: 500,
+      height: 720,
+      disallowReturnToOpener: false,
+    });
+    // Copy all stylesheets into the PiP window
+    [...document.styleSheets].forEach(sheet => {
+      try {
+        const cssRules = [...sheet.cssRules].map(rule => rule.cssText).join('\n');
+        const style = document.createElement('style');
+        style.textContent = cssRules;
+        pipWindow.document.head.appendChild(style);
+      } catch (e) {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = sheet.href;
+        pipWindow.document.head.appendChild(link);
+      }
+    });
+    // Copy Inter font link
+    const fontLink = document.createElement('link');
+    fontLink.rel = 'stylesheet';
+    fontLink.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap';
+    pipWindow.document.head.appendChild(fontLink);
+    // Set title and move the content
+    pipWindow.document.title = 'Demo Script — Floating';
+    const clonedContent = document.querySelector('.content').cloneNode(true);
+    pipWindow.document.body.style.cssText = 'margin:0;padding:0;background:#0a0e1a;color:#fff;font-family:Inter,sans-serif;';
+    pipWindow.document.body.appendChild(clonedContent);
+    // Show notice in main window
+    document.body.innerHTML = '<div style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#0a0e1a;color:#fff;font-family:Inter,sans-serif;text-align:center;padding:32px;"><div style="max-width:560px;"><div style="font-size:14px;color:#2563eb;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;margin-bottom:16px;">FLOATING</div><h1 style="font-size:36px;font-weight:800;margin:0 0 16px;letter-spacing:-0.02em;">Teleprompter is now floating ↗</h1><p style="font-size:16px;color:rgba(255,255,255,0.7);line-height:1.55;">The script is now in a small window that always stays on top of other windows. Drag it wherever you want to read it. Close the floating window to return here.</p><button onclick="location.reload()" style="margin-top:24px;padding:12px 28px;background:#2563eb;color:#fff;border:0;border-radius:999px;font-size:14px;font-weight:600;cursor:pointer;">Reload teleprompter</button></div></div>';
+  } catch (e) {
+    alert('Could not open floating window: ' + e.message);
+  }
+}
+</script>
 </head>
 <body>
 
@@ -43,6 +91,7 @@
     <div class="topbar-sub">Healthcare walkthrough · ~2:40</div>
   </div>
   <div class="controls">
+    <button class="control-btn float-btn" onclick="popFloat()" id="floatBtn">⬆ Float on top</button>
     <button class="control-btn" onclick="document.body.classList.toggle('hide-directions'); this.classList.toggle('active')">Hide cues</button>
     <button class="control-btn" onclick="document.body.classList.toggle('large-text'); this.classList.toggle('active')">Larger text</button>
   </div>
@@ -154,7 +203,13 @@
 
 </div>
 
-<div class="runtime">Total runtime: ~2 min 40 sec · Use the buttons above to hide stage cues or boost text size</div>
+<div class="runtime">Total runtime: ~2 min 40 sec · Use the buttons above to hide stage cues, boost text size, or float on top</div>
+
+<div class="pip-notice" id="pipNotice">
+  <h3>Float-on-top needs Chrome</h3>
+  <p>This feature uses Chrome's Document Picture-in-Picture. It's not supported in your current browser. Open this page in Chrome (latest version) and click "Float on top" again.</p>
+  <button onclick="document.getElementById('pipNotice').style.display='none'">Got it</button>
+</div>
 
 </body>
 </html>
