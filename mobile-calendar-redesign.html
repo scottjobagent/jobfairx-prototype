@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mobile Calendar — Before vs After</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: #0a0e1a; color: #fff; padding: 32px 16px 80px; }
+  .page-head { text-align: center; max-width: 900px; margin: 0 auto 32px; }
+  .page-title { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; margin: 0 0 8px; }
+  .page-sub { color: #9ca3af; font-size: 14px; margin: 0; }
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; max-width: 900px; margin: 0 auto; }
+  .col { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+  .col-label { font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 4px 12px; border-radius: 999px; }
+  .col-label.before { background: #ef4444; color: #fff; }
+  .col-label.after { background: #10b981; color: #fff; }
+  .col-stat { color: #9ca3af; font-size: 12px; text-align: center; }
+  .col-stat strong { color: #fff; font-weight: 700; }
+  .phone { width: 393px; background: #0d1525; border: 12px solid #0d1525; border-radius: 44px; overflow: hidden; box-shadow: 0 24px 60px rgba(0,0,0,0.3); }
+  .phone-statusbar { background: #fff; height: 36px; display: flex; align-items: center; justify-content: space-between; padding: 0 18px 0 22px; font-size: 12px; font-weight: 600; color: #000; position: relative; }
+  .phone-statusbar-notch { position: absolute; left: 50%; top: 4px; transform: translateX(-50%); width: 90px; height: 24px; background: #0d1525; border-radius: 999px; }
+  .phone-content { background: #fff; }
+
+  /* Shared site styles */
+  .banner { background: #0a0e1a; padding: 12px 16px; text-align: center; color: #fff; font-family: 'Inter', sans-serif; }
+  .banner-q { font-size: 13px; margin-bottom: 2px; }
+  .banner-link { font-size: 13px; font-weight: 600; text-decoration: underline; }
+  .site-header { background: #fff; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e8e6e3; }
+  .brand { font-size: 20px; font-weight: 800; color: #2563eb; letter-spacing: -0.02em; }
+  .hamburger { width: 28px; display: flex; flex-direction: column; gap: 5px; }
+  .hamburger span { display: block; height: 2px; background: #1a1a1a; border-radius: 2px; }
+
+  /* BEFORE styles — what's live now */
+  .b-hero { padding: 32px 20px 40px; background: linear-gradient(180deg, #f8fafc, #fff); }
+  .b-h1 { font-size: 38px; font-weight: 800; line-height: 1.1; color: #0f172a; letter-spacing: -0.02em; margin: 0 0 24px; }
+  .b-sub { font-size: 17px; color: #475569; line-height: 1.5; margin: 0 0 16px; }
+  .b-controls { padding: 0 20px 16px; background: #f5f4f1; }
+  .b-search, .b-filter { width: 100%; padding: 16px 18px; border: 1px solid #e0e0e0; border-radius: 8px; background: #fff; font-size: 15px; color: #6b6862; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }
+  .b-search-icon { color: #9ca3af; }
+  .b-events { background: #f5f4f1; padding: 0 20px 16px; }
+  .b-event-card { background: #fff; border: 1px solid #e8e6e3; border-radius: 8px; padding: 16px; }
+  .b-event-name { font-size: 16px; font-weight: 700; color: #1a1a1a; }
+  .b-event-date { font-size: 14px; color: #6b6862; margin-top: 4px; }
+  .b-event-pill { display: inline-block; background: #eff6ff; color: #2563eb; padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 600; margin-top: 8px; }
+
+  /* AFTER styles — proposed redesign */
+  .a-hero { padding: 20px 20px 18px; background: linear-gradient(180deg, #f8fafc, #fff); }
+  .a-h1 { font-size: 24px; font-weight: 600; line-height: 1.2; color: #0f172a; letter-spacing: -0.02em; margin: 0 0 14px; }
+  .a-sub { font-size: 14px; color: #6b7280; line-height: 1.4; margin: 0; }
+  .a-controls { padding: 16px 20px 16px; background: #fff; display: flex; gap: 8px; }
+  .a-search { flex: 1; padding: 12px 14px; border: 1px solid #e0e0e0; border-radius: 8px; background: #fff; font-size: 14px; color: #6b6862; display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .a-search-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .a-filter { flex: 0 0 110px; padding: 12px 14px; border: 1px solid #e0e0e0; border-radius: 8px; background: #fff; font-size: 14px; color: #1a1a1a; display: flex; align-items: center; justify-content: space-between; }
+  .a-events { background: #f5f4f1; padding: 12px 20px 20px; }
+  .a-event-card { background: #fff; border: 1px solid #e8e6e3; border-radius: 10px; padding: 14px 16px; margin-bottom: 10px; cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s; display: flex; align-items: center; gap: 12px; }
+  .a-event-card:active { border-color: #2563eb; box-shadow: 0 2px 8px rgba(37,99,235,0.12); }
+  .a-event-main { flex: 1; min-width: 0; }
+  .a-event-date { font-size: 11px; color: #6b6862; font-weight: 600; letter-spacing: 0.4px; text-transform: uppercase; margin-bottom: 3px; }
+  .a-event-name { font-size: 16px; font-weight: 400; color: #1a1a1a; margin-bottom: 8px; line-height: 1.25; }
+  .a-event-pill { background: #eff6ff; color: #2563eb; padding: 3px 9px; border-radius: 999px; font-size: 11px; font-weight: 600; display: inline-block; white-space: nowrap; }
+  .a-event-chevron { color: #9ca3af; font-size: 22px; line-height: 1; flex-shrink: 0; }
+  .a-event-pill.veteran { background: #fee2e2; color: #b91c1c; }
+  .a-event-pill.diversity { background: #fed7aa; color: #c2410c; }
+  .a-event-pill.healthcare { background: #d1fae5; color: #047857; }
+
+  /* Markers */
+  .fold-line { width: 393px; height: 0; border-top: 2px dashed #ef4444; margin: 8px 0; position: relative; }
+  .fold-line::after { content: 'iPhone Air fold (~810px)'; position: absolute; right: 0; top: -22px; color: #ef4444; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; }
+  .fold-line.after::after { color: #10b981; }
+
+  .notes { max-width: 900px; margin: 48px auto 0; padding: 24px; background: #1a2538; border-radius: 12px; color: #d1d5db; line-height: 1.7; }
+  .notes h3 { color: #fff; margin: 0 0 12px; font-size: 16px; }
+  .notes ul { margin: 0 0 12px; padding-left: 20px; }
+  .notes li { margin-bottom: 6px; font-size: 14px; }
+  .notes .savings { background: rgba(16,185,129,0.15); border-left: 3px solid #10b981; padding: 10px 14px; border-radius: 4px; margin-top: 16px; color: #d1fae5; font-size: 14px; }
+</style>
+</head>
+<body>
+
+<div class="page-head">
+  <h1 class="page-title">Employer Calendar — Mobile Redesign</h1>
+  <p class="page-sub">Both phones shown at actual iPhone Air width (393px). Red dashed line = where the screen folds.</p>
+</div>
+
+<div class="compare">
+
+  <!-- BEFORE -->
+  <div class="col">
+    <span class="col-label before">BEFORE (live now)</span>
+    <p class="col-stat"><strong>0 events</strong> visible above the fold</p>
+    <div class="phone">
+      <div class="phone-statusbar"><span>9:41</span><div class="phone-statusbar-notch"></div><span style="font-size:11px">●●● ▶ ▮</span></div>
+      <div class="phone-content">
+        <div class="banner">
+          <div class="banner-q">Looking for a job?</div>
+          <div class="banner-link">Browse upcoming job fairs →</div>
+        </div>
+        <div class="site-header">
+          <div class="brand">JobFairX</div>
+          <div class="hamburger"><span></span><span></span><span></span></div>
+        </div>
+        <div class="b-hero">
+          <h1 class="b-h1">Virtual Hiring Events by City</h1>
+          <p class="b-sub">Search by city or event type to learn more about upcoming hiring events in 300+ cities nationwide.</p>
+        </div>
+        <div class="b-controls">
+          <div class="b-search"><span class="b-search-icon">🔍</span> Search by city (e.g. Dallas, TX)</div>
+          <div class="b-filter">All Types <span style="margin-left:auto;">▾</span></div>
+        </div>
+        <div class="fold-line"></div>
+        <div class="b-events">
+          <div class="b-event-card">
+            <div class="b-event-name">Paterson, NJ Hiring Event</div>
+            <div class="b-event-date">Fri, May 29</div>
+            <div class="b-event-pill">Technology</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AFTER -->
+  <div class="col">
+    <span class="col-label after">AFTER (proposed)</span>
+    <p class="col-stat"><strong>3 events</strong> visible above the fold</p>
+    <div class="phone">
+      <div class="phone-statusbar"><span>9:41</span><div class="phone-statusbar-notch"></div><span style="font-size:11px">●●● ▶ ▮</span></div>
+      <div class="phone-content">
+        <div class="banner">
+          <div class="banner-q">Looking for a job?</div>
+          <div class="banner-link">Browse upcoming job fairs →</div>
+        </div>
+        <div class="site-header">
+          <div class="brand">JobFairX</div>
+          <div class="hamburger"><span></span><span></span><span></span></div>
+        </div>
+        <div class="a-hero">
+          <h1 class="a-h1">Virtual Hiring Events by City</h1>
+        </div>
+        <div class="a-controls">
+          <div class="a-search">🔍 <span class="a-search-text">Search by city</span></div>
+          <div class="a-filter">All Types <span>▾</span></div>
+        </div>
+        <div class="a-events">
+          <div class="a-event-card">
+            <div class="a-event-main">
+              <div class="a-event-date">Fri, May 29</div>
+              <div class="a-event-name">Paterson, NJ Hiring Event</div>
+              <div class="a-event-pill">Technology</div>
+            </div>
+            <div class="a-event-chevron">›</div>
+          </div>
+          <div class="a-event-card">
+            <div class="a-event-main">
+              <div class="a-event-date">Thu, Jun 18</div>
+              <div class="a-event-name">Huntsville, AL Hiring Event</div>
+              <div class="a-event-pill diversity">Diversity</div>
+            </div>
+            <div class="a-event-chevron">›</div>
+          </div>
+          <div class="fold-line after"></div>
+          <div class="a-event-card">
+            <div class="a-event-main">
+              <div class="a-event-date">Wed, Jun 10</div>
+              <div class="a-event-name">Omaha, NE Hiring Event</div>
+              <div class="a-event-pill healthcare">Healthcare</div>
+            </div>
+            <div class="a-event-chevron">›</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="notes">
+  <h3>What changed</h3>
+  <ul>
+    <li><strong>Headline</strong> 38px → 24px (no longer eats 2 lines)</li>
+    <li><strong>Subtitle</strong> trimmed from 3 lines to 1: "Search 300+ cities nationwide."</li>
+    <li><strong>Search + filter</strong> stacked vertically → side by side (70/30 split)</li>
+    <li><strong>Padding</strong> tightened around the hero and controls</li>
+    <li><strong>Event cards</strong> — dropped the full-width "View Event Details" button. Whole card is now the tap target. Small chevron (›) on the right signals tappability. Each card is ~40px shorter.</li>
+  </ul>
+  <div class="savings">
+    <strong>Result:</strong> Above-the-fold space goes from 0 events visible → 2 events fully visible + a third peeking. User sees the actual product in the first second.
+  </div>
+</div>
+
+</body>
+</html>
