@@ -4918,23 +4918,45 @@ function openScheduleModal(el) {
   var container = document.getElementById('scheduleSlots');
   container.innerHTML = scheduleSlotMarkup(SCHEDULE_TZ_LABEL);
 
-  // Demo pre-fill for Tamara Williams — two proposed slots + draft message
-  if (name === 'Tamara Williams') {
-    container.insertAdjacentHTML('beforeend', scheduleSlotMarkup(SCHEDULE_TZ_LABEL));
+  // Demo pre-fill for select candidates — two proposed slots + draft message
+  var DEMO_PREFILLS = {
+    'Tamara Williams': {
+      slots: [
+        { date: '2026-06-03', time: '8:30 AM' },
+        { date: '2026-06-04', time: '10:30 AM' }
+      ],
+      message: "Hi Tamara — I'd like to interview you before the hiring event. Either of these times work for you? Looking forward to meeting you."
+    },
+    'Aisha Mohammed': {
+      slots: [
+        { date: '2026-04-17', time: '9:30 AM' },
+        { date: '2026-04-18', time: '11:00 AM' }
+      ],
+      message: "Hi Aisha — I'd like to interview you before the hiring event. Either of these times work for you? Looking forward to meeting you."
+    },
+    'Ryan Cooper': {
+      slots: [
+        { date: '2026-04-18', time: '10:00 AM' },
+        { date: '2026-04-19', time: '2:00 PM' }
+      ],
+      message: "Hi Ryan — I'd like to interview you before the hiring event. Either of these times work for you? Looking forward to meeting you."
+    }
+  };
+  var prefill = DEMO_PREFILLS[name];
+  if (prefill) {
+    // Add extra slots beyond the default one
+    for (var s = 1; s < prefill.slots.length; s++) {
+      container.insertAdjacentHTML('beforeend', scheduleSlotMarkup(SCHEDULE_TZ_LABEL));
+    }
     var slots = container.querySelectorAll('.schedule-slot');
-    var fills = [
-      { date: '2026-06-03', time: '8:30 AM' },
-      { date: '2026-06-04', time: '10:30 AM' }
-    ];
     slots.forEach(function(slot, i) {
-      if (!fills[i]) return;
+      if (!prefill.slots[i]) return;
       var dateInput = slot.querySelector('.schedule-input');
       var timeSelect = slot.querySelector('.schedule-select');
-      if (dateInput) dateInput.value = fills[i].date;
-      if (timeSelect) timeSelect.value = fills[i].time;
+      if (dateInput) dateInput.value = prefill.slots[i].date;
+      if (timeSelect) timeSelect.value = prefill.slots[i].time;
     });
-    document.getElementById('scheduleTextarea').value =
-      "Hi Tamara — I'd like to interview you before the hiring event. Either of these times work for you? Looking forward to meeting you.";
+    document.getElementById('scheduleTextarea').value = prefill.message;
   }
 
   updateScheduleSlotState();
