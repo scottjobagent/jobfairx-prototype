@@ -3858,13 +3858,45 @@ function openDetailModal(el) {
 }
 
 function openMsgModal(el) {
+  // Event Report row -> open the same bottom-right widget used in the lobby
   var name = getRowName(el);
-  document.getElementById('msgTo').textContent = 'To: ' + name;
-  document.getElementById('msgTextarea').placeholder = 'Write a message to ' + name.split(' ')[0] + '...';
-  document.getElementById('msgTextarea').value = '';
-  document.getElementById('msgCharCount').textContent = '0';
+  var jobTitle = getRowJob(el);
+  var firstName = name.split(' ')[0];
+
+  // Pull event name from the report header label (strip leading "- ")
+  var labelEl = document.getElementById('reportEventLabel');
+  var eventLabel = labelEl ? labelEl.textContent.replace(/^[\s\-]+/, '').trim() : 'Hiring Event';
+  // Drop the date suffix after " | " if present
+  var eventName = eventLabel.split(' | ')[0] || eventLabel;
+
+  var widget = document.getElementById('ivMsgWidget');
+  document.getElementById('ivMsgWidgetName').textContent = name;
+  document.getElementById('ivMsgWidgetSub').textContent = jobTitle + ' \u00b7 ' + eventName;
+  document.getElementById('ivMsgTextarea').value = '';
+  document.getElementById('ivMsgTextarea').placeholder = 'Write a message...';
+
+  var messages = (typeof ivMsgData !== 'undefined' && ivMsgData[name]) || [
+    { sender: 'employer', name: 'You', text: 'Hi ' + firstName + ', thanks for interviewing with us at the ' + eventName + '. Wanted to follow up on next steps.', time: 'Mar 18 at 2:15 PM' },
+    { sender: 'candidate', name: name, text: 'Thanks for reaching out — happy to discuss next steps.', time: 'Mar 18 at 3:42 PM' }
+  ];
+
+  var html = '';
+  messages.forEach(function(msg) {
+    var cls = msg.sender === 'employer' ? 'outgoing' : 'incoming';
+    html += '<div><div class="msg-bubble ' + cls + '">' + msg.text + '</div>';
+    html += '<div class="msg-meta ' + cls + '">' + msg.time + '  <span class="msg-sender">' + msg.name + '</span></div></div>';
+  });
+  document.getElementById('ivMsgMessages').innerHTML = html;
+
+  // Close any open row menu, then open widget
   document.querySelectorAll('.row-menu.open').forEach(function(m) { m.classList.remove('open'); });
-  document.getElementById('msgModal').classList.add('open');
+  widget.classList.remove('minimized');
+  widget.classList.add('open');
+
+  setTimeout(function() {
+    var c = document.getElementById('ivMsgMessages');
+    c.scrollTop = c.scrollHeight;
+  }, 50);
 }
 
 /* ═══ SCHEDULE / RESCHEDULE MODAL ═══ */
