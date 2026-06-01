@@ -9,45 +9,62 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: #fff; min-height: 100vh; color: #1a1a1a; -webkit-font-smoothing: antialiased; }
+  body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: #fff; min-height: 100vh; color: #1a1a1a; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
 
-  .step-bar { position: fixed; top: 16px; left: 50%; transform: translateX(-50%); background: #1a1a1a; color: #fff; border-radius: 999px; padding: 6px; display: flex; gap: 4px; z-index: 100; box-shadow: 0 2px 12px rgba(0,0,0,0.15); }
+  .step-bar { position: fixed; top: 16px; left: 50%; transform: translateX(-50%); background: #1a1a1a; color: #fff; border-radius: 999px; padding: 6px; display: flex; gap: 4px; z-index: 200; box-shadow: 0 2px 12px rgba(0,0,0,0.15); }
   .step-bar button { background: transparent; color: #aaa; border: none; padding: 6px 14px; border-radius: 999px; font-family: inherit; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.15s; }
   .step-bar button.active { background: #0044B3; color: #fff; }
   .step-bar button:hover:not(.active) { color: #fff; }
   .step-bar-label { font-size: 11px; color: #888; padding: 6px 12px 6px 14px; border-right: 1px solid #333; margin-right: 4px; display: flex; align-items: center; }
 
-  .page { min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 80px 20px 60px; }
-  .wordmark { font-size: 22px; font-weight: 700; color: #0044B3; letter-spacing: -0.02em; margin-bottom: 28px; }
+  /* ========== MARKETING SITE BACKDROP (visible behind modals) ========== */
+  .marketing-bg { min-height: 100vh; background: #fff; padding: 20px 0 0; }
+  .mk-nav { max-width: 1200px; margin: 0 auto; padding: 0 32px 28px; display: flex; align-items: center; justify-content: space-between; }
+  .mk-logo { font-size: 22px; font-weight: 700; color: #0044B3; letter-spacing: -0.02em; }
+  .mk-nav-links { display: flex; gap: 28px; align-items: center; }
+  .mk-nav-links a { font-size: 14px; color: #1a1a1a; text-decoration: none; font-weight: 500; }
+  .mk-nav-btn { background: #0044B3; color: #fff; padding: 10px 18px; border-radius: 6px; font-size: 14px; font-weight: 600; }
+  .mk-hero { max-width: 1200px; margin: 0 auto; padding: 80px 32px 60px; text-align: center; }
+  .mk-eyebrow { font-size: 13px; font-weight: 600; color: #0044B3; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 18px; }
+  .mk-hero h1 { font-size: 64px; font-weight: 700; color: #1a1a1a; line-height: 1.1; letter-spacing: -0.02em; margin-bottom: 22px; }
+  .mk-hero h1 .accent { color: #0044B3; }
+  .mk-hero p { font-size: 18px; color: #4b5563; line-height: 1.55; max-width: 720px; margin: 0 auto 32px; }
+  .mk-cta-row { display: flex; gap: 14px; justify-content: center; }
+  .mk-cta-primary { background: #0044B3; color: #fff; padding: 13px 28px; border-radius: 6px; font-size: 15px; font-weight: 600; text-decoration: none; }
+  .mk-cta-secondary { background: #fff; color: #1a1a1a; border: 1px solid #d4d2d0; padding: 13px 28px; border-radius: 6px; font-size: 15px; font-weight: 600; text-decoration: none; }
 
-  .content { width: 100%; }
-  .content-narrow { max-width: 540px; }
-  .content-wide { max-width: 720px; }
+  /* Modal backdrop */
+  .modal-backdrop { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.55); display: flex; align-items: center; justify-content: center; padding: 40px 20px; z-index: 150; overflow-y: auto; }
 
-  /* Universal title/subtitle */
-  .page-title { font-size: 32px; font-weight: 700; color: #1a1a1a; line-height: 1.2; letter-spacing: -0.02em; margin-bottom: 14px; }
-  .page-subtitle { font-size: 15px; color: #4b5563; line-height: 1.6; margin-bottom: 24px; }
-  .page-subtitle strong { color: #1a1a1a; font-weight: 700; }
-  .page-subtitle a { color: #0044B3; text-decoration: underline; }
+  /* Modal container */
+  .modal { background: #fff; border-radius: 14px; width: 100%; max-width: 560px; box-shadow: 0 20px 50px rgba(0,0,0,0.25); padding: 32px 32px 0; position: relative; }
+  .modal-close { position: absolute; top: 20px; right: 22px; background: none; border: none; cursor: pointer; color: #555; padding: 4px; line-height: 0; }
+
+  /* Modal content (shared with full-page step 3 styling) */
+  .modal-title { font-size: 26px; font-weight: 700; color: #1a1a1a; line-height: 1.2; margin-bottom: 18px; letter-spacing: -0.01em; padding-top: 4px; }
+  .modal-subtitle { font-size: 15px; color: #4b5563; line-height: 1.55; margin-bottom: 22px; }
+  .modal-subtitle strong { color: #1a1a1a; font-weight: 700; }
+  .modal-subtitle a { color: #0044B3; text-decoration: underline; }
 
   .all-fields-note { font-size: 13px; color: #6b7280; margin-bottom: 16px; }
 
-  /* Escape link at top */
-  .escape-link { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: #0044B3; text-decoration: none; font-weight: 700; margin-bottom: 44px; }
-  .escape-link:hover { text-decoration: underline; }
-
-  /* Form fields */
-  .field { margin-bottom: 22px; }
-  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 22px; }
-  .field-row .field { margin-bottom: 0; }
-  .field label { display: block; font-size: 16px; font-weight: 700; color: #1a1a1a; margin-bottom: 6px; }
+  .field { margin-bottom: 18px; }
+  .field label { display: block; font-size: 16px; font-weight: 700; color: #1a1a1a; margin-bottom: 4px; }
   .field label .req { color: #1a1a1a; font-weight: 700; margin-left: 2px; }
-  .field label .opt { color: #6b7280; font-weight: 400; margin-left: 6px; font-size: 14px; }
   .field-helper { font-size: 14px; color: #4b5563; margin-bottom: 10px; }
-  .field input, .field select { width: 100%; padding: 14px 16px; border: 1px solid #2d2d2d; border-radius: 6px; font-family: inherit; font-size: 16px; color: #1a1a1a; background: #fff; transition: border-color 0.15s, box-shadow 0.15s; outline: none; }
-  .field input:focus, .field select:focus { border-color: #0044B3; box-shadow: 0 0 0 3px rgba(0,68,179,0.12); }
-  .field input::placeholder { color: #9ca3af; }
-  .field-help { font-size: 14px; color: #4b5563; margin-top: 8px; line-height: 1.5; }
+  .field input { width: 100%; padding: 14px 16px; border: 1px solid #2d2d2d; border-radius: 6px; font-family: inherit; font-size: 16px; color: #1a1a1a; background: #fff; outline: none; transition: border-color 0.15s, box-shadow 0.15s; }
+  .field input:focus { border-color: #0044B3; box-shadow: 0 0 0 3px rgba(0,68,179,0.12); }
+
+  /* Modal footer */
+  .modal-footer { border-top: 1px solid #e5e7eb; margin: 24px -32px 0; padding: 18px 24px; display: flex; justify-content: flex-end; align-items: center; gap: 16px; }
+  .modal-footer-left { margin-right: auto; }
+  .modal-footer-link { font-size: 14px; font-weight: 700; color: #0044B3; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+  .modal-footer-link:hover { text-decoration: underline; }
+
+  /* Buttons */
+  .btn-primary { background: #0044B3; color: #fff; border: none; padding: 12px 24px; border-radius: 6px; font-family: inherit; font-size: 15px; font-weight: 700; cursor: pointer; transition: background 0.15s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+  .btn-primary:hover { background: #003399; }
+  .btn-primary-large { width: 100%; padding: 14px 24px; }
 
   /* OAuth provider button */
   .oauth-btn { width: 100%; background: #fff; color: #1a1a1a; border: 1px solid #2d2d2d; padding: 14px 20px; border-radius: 6px; font-family: inherit; font-size: 15px; font-weight: 700; cursor: pointer; transition: background 0.15s; display: inline-flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 10px; }
@@ -62,24 +79,14 @@
   .divider { display: flex; align-items: center; gap: 14px; margin: 18px 0 24px; color: #4b5563; font-size: 14px; }
   .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: #e5e7eb; }
 
-  /* Buttons */
-  .btn-primary { background: #0044B3; color: #fff; border: none; padding: 12px 24px; border-radius: 6px; font-family: inherit; font-size: 15px; font-weight: 700; cursor: pointer; transition: background 0.15s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
-  .btn-primary:hover { background: #003399; }
-  .btn-primary-large { width: 100%; padding: 14px 24px; }
-
-  /* Footer with hr divider + button bottom-right */
-  .page-footer { border-top: 1px solid #e5e7eb; margin-top: 28px; padding-top: 22px; display: flex; justify-content: flex-end; align-items: center; gap: 16px; }
-  .page-footer-left { margin-right: auto; }
-  .page-footer-link { font-size: 14px; font-weight: 700; color: #0044B3; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
-  .page-footer-link:hover { text-decoration: underline; }
-
   /* Illustration */
-  .illustration { display: flex; justify-content: center; padding: 0 0 16px; }
-  .illustration svg { width: 120px; height: 120px; }
+  .illustration { display: flex; justify-content: center; padding: 12px 0 8px; }
+  .illustration svg { width: 110px; height: 110px; }
 
   /* Verify human */
   .verify-human { display: flex; align-items: center; gap: 12px; background: #f4f5f7; border: 1px solid #d4d2d0; border-radius: 4px; padding: 14px 16px; margin: 12px 0 16px; font-size: 15px; color: #1a1a1a; }
   .verify-human input { width: 22px; height: 22px; cursor: pointer; }
+  .verify-human label { font-weight: 400; margin: 0; cursor: pointer; }
   .verify-human .cf-logo { margin-left: auto; display: flex; flex-direction: column; align-items: flex-end; font-size: 10px; color: #4b5563; }
   .verify-human .cf-logo strong { color: #f48120; font-weight: 700; font-size: 11px; letter-spacing: 0.05em; }
   .verify-human .cf-logo a { color: #4b5563; text-decoration: underline; }
@@ -88,14 +95,32 @@
   .resend-line a { color: #0044B3; font-weight: 700; text-decoration: none; }
   .resend-line a:hover { text-decoration: underline; }
 
+  /* ========== STEP 3: FULL-PAGE STYLE ========== */
+  .page-full { min-height: 100vh; background: #fff; display: flex; flex-direction: column; align-items: center; padding: 80px 20px 60px; }
+  .page-wordmark { font-size: 22px; font-weight: 700; color: #0044B3; letter-spacing: -0.02em; margin-bottom: 28px; }
+  .page-content { max-width: 720px; width: 100%; }
+  .escape-link { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: #0044B3; text-decoration: none; font-weight: 700; margin-bottom: 44px; }
+  .escape-link:hover { text-decoration: underline; }
+  .page-title { font-size: 36px; font-weight: 700; color: #1a1a1a; line-height: 1.15; letter-spacing: -0.02em; margin-bottom: 12px; }
+  .page-subtitle { font-size: 15px; color: #4b5563; line-height: 1.55; margin-bottom: 40px; }
+  .page-content .field { margin-bottom: 28px; }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 28px; }
+  .field-row .field { margin-bottom: 0; }
+  .page-content .field label .req { color: #dc2626; margin-left: 2px; font-weight: 700; }
+  .page-content .field label .opt { color: #6b7280; font-weight: 400; margin-left: 6px; font-size: 14px; }
+  .page-content .field input, .page-content .field select { width: 100%; padding: 14px 16px; border: 1px solid #2d2d2d; border-radius: 6px; font-family: inherit; font-size: 16px; color: #1a1a1a; background: #fff; transition: border-color 0.15s, box-shadow 0.15s; outline: none; }
+  .page-content .field input:focus, .page-content .field select:focus { border-color: #0044B3; box-shadow: 0 0 0 3px rgba(0,68,179,0.12); }
+  .page-content .field input::placeholder { color: #9ca3af; }
+  .page-content .field-help { font-size: 14px; color: #4b5563; margin-top: 8px; line-height: 1.5; }
   .terms-row { font-size: 13px; color: #6b7280; margin-top: 24px; line-height: 1.55; }
   .terms-row a { color: #0044B3; text-decoration: underline; }
 
   .screen { display: none; }
-  .screen.active { display: flex; }
+  .screen.active { display: block; }
 
-  /* Dev note (replaces step 4) */
-  .dev-note { background: #fffbeb; border: 1px solid #fde68a; border-radius: 10px; padding: 24px; max-width: 560px; width: 100%; }
+  /* Dev note */
+  .dev-note-wrap { min-height: 100vh; background: #fff; display: flex; flex-direction: column; align-items: center; padding: 80px 20px 60px; }
+  .dev-note { background: #fffbeb; border: 1px solid #fde68a; border-radius: 10px; padding: 24px; max-width: 560px; width: 100%; margin-top: 20px; }
   .dev-note h3 { font-size: 14px; font-weight: 700; color: #92400e; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px; }
   .dev-note p { font-size: 15px; color: #78350f; line-height: 1.6; }
   .dev-note p code { background: #fef3c7; padding: 2px 6px; border-radius: 4px; font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: 13px; }
@@ -109,194 +134,225 @@
 
 <div class="step-bar">
   <span class="step-bar-label">FLOW</span>
-  <button class="active" data-screen="1">1. Sign in</button>
-  <button data-screen="2">2. Verify email</button>
-  <button data-screen="3">3. Create account</button>
+  <button class="active" data-screen="1">1. Sign in (modal)</button>
+  <button data-screen="2">2. Verify email (modal)</button>
+  <button data-screen="3">3. Create account (page)</button>
   <button data-screen="4">4. Dev note</button>
 </div>
 
 <div class="notes" id="notes">
   <button class="close-notes" onclick="document.getElementById('notes').style.display='none'">×</button>
-  <strong>Click 1 → 2 → 3 → 4</strong>
-  All steps full-page white. Step 4 is a dev note — in production, user lands on dashboard.
+  <strong>Modal stays open across 1 → 2</strong>
+  Content swaps inside the modal. After verify, user navigates to /create-account (Step 3).
 </div>
 
-<!-- SCREEN 1: Sign in -->
-<div class="page screen active" data-screen-id="1">
-  <div class="wordmark">JobFairX</div>
-  <div class="content content-narrow">
-
-    <h1 class="page-title">Sign in to your employer account</h1>
-    <p class="page-subtitle">By clicking 'Continue' below, you understand and agree to JobFairX's <a href="#">Terms</a>. You also acknowledge our <a href="#">Cookie</a> and <a href="#">Privacy</a> policies.</p>
-
-    <button class="oauth-btn">
-      <span class="ms-icon"><span></span><span></span><span></span><span></span></span>
-      Continue with Microsoft
-    </button>
-
-    <div class="divider">or</div>
-
-    <div class="all-fields-note">All fields marked with * are required.</div>
-
-    <div class="field">
-      <label for="email1">Email address <span class="req">*</span></label>
-      <div class="field-helper">Use your company email</div>
-      <input type="email" id="email1" placeholder="">
+<!-- ========== MARKETING SITE BACKDROP (shown behind Steps 1 & 2) ========== -->
+<div class="marketing-bg" id="marketingBg">
+  <div class="mk-nav">
+    <div class="mk-logo">JobFairX</div>
+    <div class="mk-nav-links">
+      <a href="#">Upcoming events</a>
+      <a href="#">Pricing</a>
+      <a href="#">Resources</a>
+      <a href="#">Contact</a>
+      <a href="#" class="mk-nav-btn">Sign In</a>
     </div>
-
-    <div class="page-footer">
-      <button class="btn-primary" onclick="goTo(2)">Continue</button>
+  </div>
+  <div class="mk-hero">
+    <div class="mk-eyebrow">VIRTUAL HIRING EVENTS</div>
+    <h1>Hire faster with <span class="accent">interview-ready</span> candidates</h1>
+    <p>Join upcoming hiring events and connect with candidates across healthcare, technology, veterans, entry-level, and diversity hiring.</p>
+    <div class="mk-cta-row">
+      <a href="#" class="mk-cta-primary">Register for an event</a>
+      <a href="#" class="mk-cta-secondary">See upcoming events</a>
     </div>
   </div>
 </div>
 
-<!-- SCREEN 2: Verify email -->
-<div class="page screen" data-screen-id="2">
-  <div class="wordmark">JobFairX</div>
-  <div class="content content-narrow">
+<!-- ========== SCREEN 1: Sign in MODAL ========== -->
+<div class="screen active" data-screen-id="1">
+  <div class="modal-backdrop">
+    <div class="modal">
+      <button class="modal-close" onclick="goTo(3)" aria-label="Close"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
 
-    <div class="illustration">
-      <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <ellipse cx="100" cy="170" rx="80" ry="8" fill="#f4f5f7"/>
-        <rect x="55" y="60" width="80" height="55" rx="3" fill="#fce7f3" stroke="#f9a8d4" stroke-width="1"/>
-        <rect x="55" y="60" width="80" height="55" rx="3" fill="none" stroke="#ec4899" stroke-width="1" stroke-dasharray="2 2"/>
-        <path d="M55 65 L95 90 L135 65" fill="none" stroke="#ec4899" stroke-width="1.5"/>
-        <rect x="115" y="80" width="55" height="55" rx="4" fill="#1e3a8a"/>
-        <rect x="115" y="80" width="55" height="14" rx="4" fill="#0044B3"/>
-        <rect x="115" y="94" width="48" height="41" rx="2" fill="#0044B3"/>
-        <rect x="168" y="68" width="2" height="20" fill="#d97706"/>
-        <rect x="170" y="68" width="12" height="9" fill="#dc2626"/>
-        <rect x="138" y="135" width="3" height="35" fill="#92400e"/>
-        <path d="M80 130 Q90 115 110 110 L130 108 L130 122 L110 124 Q98 128 90 138 Z" fill="#fbbf24" stroke="#d97706" stroke-width="0.5"/>
-        <rect x="100" y="100" width="30" height="20" fill="#fff" stroke="#9ca3af" stroke-width="0.8" transform="rotate(-12 115 110)"/>
-      </svg>
-    </div>
+      <h2 class="modal-title">Sign in to your employer account</h2>
+      <p class="modal-subtitle">By clicking 'Continue' below, you understand and agree to JobFairX's <a href="#">Terms</a>. You also acknowledge our <a href="#">Cookie</a> and <a href="#">Privacy</a> policies.</p>
 
-    <h1 class="page-title">Create an employer account</h1>
-    <p class="page-subtitle">We sent a code to <strong>scott@northwindco.com</strong>. This code will expire after 10 minutes.</p>
-    <div class="all-fields-note">All fields marked with * are required.</div>
+      <button class="oauth-btn">
+        <span class="ms-icon"><span></span><span></span><span></span><span></span></span>
+        Continue with Microsoft
+      </button>
 
-    <div class="field">
-      <label for="code">Enter code <span class="req">*</span></label>
-      <input type="text" id="code" inputmode="numeric" placeholder="">
-    </div>
+      <div class="divider">or</div>
 
-    <div class="verify-human">
-      <input type="checkbox" id="verifyhuman">
-      <label for="verifyhuman" style="font-weight: 400; margin: 0; cursor: pointer;">Verify you are human</label>
-      <div class="cf-logo">
-        <strong>CLOUDFLARE</strong>
-        <span><a href="#">Privacy</a> · <a href="#">Help</a></span>
+      <div class="all-fields-note">All fields marked with * are required.</div>
+
+      <div class="field">
+        <label for="email1">Email address <span class="req">*</span></label>
+        <div class="field-helper">Use your company email</div>
+        <input type="email" id="email1" placeholder="">
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-primary" onclick="goTo(2)">Continue</button>
       </div>
     </div>
+  </div>
+</div>
 
-    <div class="resend-line">Didn't receive your code? <a href="#">Send new code</a></div>
+<!-- ========== SCREEN 2: Verify email MODAL (same container, swapped content) ========== -->
+<div class="screen" data-screen-id="2">
+  <div class="modal-backdrop">
+    <div class="modal">
+      <button class="modal-close" onclick="goTo(3)" aria-label="Close"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
 
-    <div class="page-footer">
-      <div class="page-footer-left">
-        <a href="#" class="page-footer-link">
-          Wait, I am a job seeker
+      <div class="illustration">
+        <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <ellipse cx="100" cy="170" rx="80" ry="8" fill="#f4f5f7"/>
+          <rect x="55" y="60" width="80" height="55" rx="3" fill="#fce7f3" stroke="#f9a8d4" stroke-width="1"/>
+          <rect x="55" y="60" width="80" height="55" rx="3" fill="none" stroke="#ec4899" stroke-width="1" stroke-dasharray="2 2"/>
+          <path d="M55 65 L95 90 L135 65" fill="none" stroke="#ec4899" stroke-width="1.5"/>
+          <rect x="115" y="80" width="55" height="55" rx="4" fill="#1e3a8a"/>
+          <rect x="115" y="80" width="55" height="14" rx="4" fill="#0044B3"/>
+          <rect x="115" y="94" width="48" height="41" rx="2" fill="#0044B3"/>
+          <rect x="168" y="68" width="2" height="20" fill="#d97706"/>
+          <rect x="170" y="68" width="12" height="9" fill="#dc2626"/>
+          <rect x="138" y="135" width="3" height="35" fill="#92400e"/>
+          <path d="M80 130 Q90 115 110 110 L130 108 L130 122 L110 124 Q98 128 90 138 Z" fill="#fbbf24" stroke="#d97706" stroke-width="0.5"/>
+          <rect x="100" y="100" width="30" height="20" fill="#fff" stroke="#9ca3af" stroke-width="0.8" transform="rotate(-12 115 110)"/>
+        </svg>
+      </div>
+
+      <h2 class="modal-title">Create an employer account</h2>
+      <p class="modal-subtitle">We sent a code to <strong>scott@northwindco.com</strong>. This code will expire after 10 minutes.</p>
+      <div class="all-fields-note">All fields marked with * are required.</div>
+
+      <div class="field">
+        <label for="code">Enter code <span class="req">*</span></label>
+        <input type="text" id="code" inputmode="numeric" placeholder="">
+      </div>
+
+      <div class="verify-human">
+        <input type="checkbox" id="verifyhuman">
+        <label for="verifyhuman">Verify you are human</label>
+        <div class="cf-logo">
+          <strong>CLOUDFLARE</strong>
+          <span><a href="#">Privacy</a> · <a href="#">Help</a></span>
+        </div>
+      </div>
+
+      <div class="resend-line">Didn't receive your code? <a href="#">Send new code</a></div>
+
+      <div class="modal-footer">
+        <div class="modal-footer-left">
+          <a href="#" class="modal-footer-link">
+            Wait, I am a job seeker
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="M12 5l7 7-7 7"></path></svg>
+          </a>
+        </div>
+        <button class="btn-primary" onclick="goTo(3)">Create account</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== SCREEN 3: Create an employer account (FULL PAGE) ========== -->
+<div class="screen" data-screen-id="3">
+  <div class="page-full">
+    <div class="page-wordmark">JobFairX</div>
+    <div class="page-content">
+
+      <div>
+        <a href="#" class="escape-link">
+          I'm looking for a job
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="M12 5l7 7-7 7"></path></svg>
         </a>
       </div>
-      <button class="btn-primary" onclick="goTo(3)">Create account</button>
+
+      <h1 class="page-title">Create an employer account</h1>
+      <p class="page-subtitle">Just a few details so we can set up your account. We'll ask for billing info later when you register for an event.</p>
+
+      <div class="field">
+        <label for="country">Country <span class="req">*</span></label>
+        <select id="country">
+          <option value="">Select a country</option>
+          <option value="US">United States</option>
+          <option value="CA">Canada</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="cn">Company name <span class="req">*</span></label>
+        <input type="text" id="cn" placeholder="Acme Inc.">
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label for="fn">First name <span class="req">*</span></label>
+          <input type="text" id="fn" placeholder="John">
+        </div>
+        <div class="field">
+          <label for="ln">Last name <span class="req">*</span></label>
+          <input type="text" id="ln" placeholder="Smith">
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="jt">Job title <span class="opt">(optional)</span></label>
+        <select id="jt">
+          <option value="">Select an option</option>
+          <option>Recruiter</option>
+          <option>Talent Acquisition Manager</option>
+          <option>HR Manager</option>
+          <option>HR Director</option>
+          <option>VP of HR / VP of Talent</option>
+          <option>Hiring Manager</option>
+          <option>CEO / Founder / Owner</option>
+          <option>Other</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="ph">Phone number <span class="opt">(optional)</span></label>
+        <input type="tel" id="ph" placeholder="(555) 123-4567">
+        <div class="field-help">For account management only. Not shared with candidates.</div>
+      </div>
+
+      <div class="field">
+        <label for="src">How did you hear about us? <span class="opt">(optional)</span></label>
+        <select id="src">
+          <option value="">Select an option</option>
+          <option>Google search</option>
+          <option>LinkedIn</option>
+          <option>Referral from a colleague</option>
+          <option>Email from JobFairX</option>
+          <option>Industry event or webinar</option>
+          <option>Other</option>
+        </select>
+      </div>
+
+      <div style="margin-top: 16px;">
+        <button class="btn-primary btn-primary-large" onclick="goTo(4)">Continue
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="M12 5l7 7-7 7"></path></svg>
+        </button>
+      </div>
+
+      <div class="terms-row">
+        By creating an account, you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.
+      </div>
+
     </div>
   </div>
 </div>
 
-<!-- SCREEN 3: Create an employer account -->
-<div class="page screen" data-screen-id="3">
-  <div class="wordmark">JobFairX</div>
-  <div class="content content-wide">
-
-    <div>
-      <a href="#" class="escape-link">
-        I'm looking for a job
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="M12 5l7 7-7 7"></path></svg>
-      </a>
+<!-- ========== SCREEN 4: Dev note ========== -->
+<div class="screen" data-screen-id="4">
+  <div class="dev-note-wrap">
+    <div class="page-wordmark">JobFairX</div>
+    <div class="dev-note">
+      <h3>Developer note</h3>
+      <p>After Step 3 <code>Continue</code> is clicked and the account is successfully created, route the user directly to their employer dashboard at <code>/dashboard</code>. No success/confirmation screen needed — the dashboard's empty state ("You haven't registered for an event") handles next-steps prompting.</p>
     </div>
-
-    <h1 class="page-title" style="font-size: 36px;">Create an employer account</h1>
-    <p class="page-subtitle" style="margin-bottom: 40px;">Just a few details so we can set up your account. We'll ask for billing info later when you register for an event.</p>
-
-    <div class="field">
-      <label for="country">Country <span class="req" style="color: #dc2626;">*</span></label>
-      <select id="country">
-        <option value="">Select a country</option>
-        <option value="US">United States</option>
-        <option value="CA">Canada</option>
-      </select>
-    </div>
-
-    <div class="field">
-      <label for="cn">Company name <span class="req" style="color: #dc2626;">*</span></label>
-      <input type="text" id="cn" placeholder="Acme Inc.">
-    </div>
-
-    <div class="field-row">
-      <div class="field">
-        <label for="fn">First name <span class="req" style="color: #dc2626;">*</span></label>
-        <input type="text" id="fn" placeholder="John">
-      </div>
-      <div class="field">
-        <label for="ln">Last name <span class="req" style="color: #dc2626;">*</span></label>
-        <input type="text" id="ln" placeholder="Smith">
-      </div>
-    </div>
-
-    <div class="field">
-      <label for="jt">Job title <span class="opt">(optional)</span></label>
-      <select id="jt">
-        <option value="">Select an option</option>
-        <option>Recruiter</option>
-        <option>Talent Acquisition Manager</option>
-        <option>HR Manager</option>
-        <option>HR Director</option>
-        <option>VP of HR / VP of Talent</option>
-        <option>Hiring Manager</option>
-        <option>CEO / Founder / Owner</option>
-        <option>Other</option>
-      </select>
-    </div>
-
-    <div class="field">
-      <label for="ph">Phone number <span class="opt">(optional)</span></label>
-      <input type="tel" id="ph" placeholder="(555) 123-4567">
-      <div class="field-help">For account management only. Not shared with candidates.</div>
-    </div>
-
-    <div class="field">
-      <label for="src">How did you hear about us? <span class="opt">(optional)</span></label>
-      <select id="src">
-        <option value="">Select an option</option>
-        <option>Google search</option>
-        <option>LinkedIn</option>
-        <option>Referral from a colleague</option>
-        <option>Email from JobFairX</option>
-        <option>Industry event or webinar</option>
-        <option>Other</option>
-      </select>
-    </div>
-
-    <div style="margin-top: 16px;">
-      <button class="btn-primary btn-primary-large" onclick="goTo(4)">Continue
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="M12 5l7 7-7 7"></path></svg>
-      </button>
-    </div>
-
-    <div class="terms-row">
-      By creating an account, you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.
-    </div>
-
-  </div>
-</div>
-
-<!-- SCREEN 4: Dev note -->
-<div class="page screen" data-screen-id="4">
-  <div class="wordmark">JobFairX</div>
-  <div class="dev-note">
-    <h3>Developer note</h3>
-    <p>After Step 3 <code>Continue</code> is clicked and the account is successfully created, route the user directly to their employer dashboard at <code>/dashboard</code>. No success/confirmation screen needed — the dashboard's empty state ("You haven't registered for an event") handles next-steps prompting.</p>
   </div>
 </div>
 
@@ -305,6 +361,9 @@
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.querySelector('.screen[data-screen-id="' + n + '"]').classList.add('active');
     document.querySelectorAll('.step-bar button').forEach(b => b.classList.toggle('active', b.dataset.screen === String(n)));
+    // Show marketing backdrop only for Steps 1 & 2
+    const showBg = (String(n) === '1' || String(n) === '2');
+    document.getElementById('marketingBg').style.display = showBg ? 'block' : 'none';
     window.scrollTo(0, 0);
   }
   document.querySelectorAll('.step-bar button').forEach(b => {
