@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JobFairX — Employer Signup Flow Mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: #f4f5f7; min-height: 100vh; color: #1a1a1a; -webkit-font-smoothing: antialiased; }
+
+  .step-bar { position: fixed; top: 16px; left: 50%; transform: translateX(-50%); background: #1a1a1a; color: #fff; border-radius: 999px; padding: 6px; display: flex; gap: 4px; z-index: 100; box-shadow: 0 2px 12px rgba(0,0,0,0.15); }
+  .step-bar button { background: transparent; color: #aaa; border: none; padding: 6px 14px; border-radius: 999px; font-family: inherit; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.15s; }
+  .step-bar button.active { background: #0044B3; color: #fff; }
+  .step-bar button:hover:not(.active) { color: #fff; }
+  .step-bar-label { font-size: 11px; color: #888; padding: 6px 12px 6px 14px; border-right: 1px solid #333; margin-right: 4px; display: flex; align-items: center; }
+
+  .page { min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 80px 20px 40px; }
+  .wordmark { font-size: 22px; font-weight: 700; color: #0044B3; letter-spacing: -0.02em; margin-bottom: 28px; }
+
+  .card { background: #fff; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.04); padding: 32px; width: 100%; max-width: 460px; position: relative; }
+  .card-close { position: absolute; top: 18px; right: 18px; background: none; border: none; cursor: pointer; color: #888; padding: 4px; line-height: 0; }
+  .card-back { background: none; border: none; cursor: pointer; color: #4b5563; font-family: inherit; font-size: 14px; padding: 0; margin-bottom: 18px; display: inline-flex; align-items: center; gap: 6px; }
+  .card-back:hover { color: #1a1a1a; }
+
+  .escape-link { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: #0044B3; text-decoration: none; font-weight: 500; margin-bottom: 18px; }
+  .escape-link:hover { text-decoration: underline; }
+
+  .card-title { font-size: 20px; font-weight: 600; color: #1a1a1a; margin-bottom: 8px; letter-spacing: -0.01em; }
+  .card-subtitle { font-size: 14px; color: #4b5563; line-height: 1.55; margin-bottom: 22px; }
+  .card-subtitle strong { color: #1a1a1a; font-weight: 500; }
+
+  .field { margin-bottom: 16px; }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .field label { display: block; font-size: 13px; font-weight: 500; color: #1a1a1a; margin-bottom: 6px; }
+  .field label .req { color: #dc2626; margin-left: 2px; }
+  .field label .opt { color: #888; font-weight: 400; margin-left: 4px; font-size: 12px; }
+  .field input, .field select { width: 100%; padding: 11px 14px; border: 1px solid #d4d2d0; border-radius: 8px; font-family: inherit; font-size: 14px; color: #1a1a1a; background: #fff; transition: border-color 0.15s, box-shadow 0.15s; outline: none; }
+  .field input:focus, .field select:focus { border-color: #0044B3; box-shadow: 0 0 0 3px rgba(0,68,179,0.1); }
+  .field input::placeholder { color: #9ca3af; }
+  .field select { appearance: none; background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 38px; }
+  .field-help { font-size: 12px; color: #6b7280; margin-top: 5px; }
+
+  .code-input { display: flex; gap: 8px; justify-content: center; margin: 8px 0 4px; }
+  .code-input input { width: 48px; height: 56px; text-align: center; font-size: 22px; font-weight: 600; padding: 0; }
+
+  .email-row { background: #f4f5f7; border-radius: 8px; padding: 12px 14px; display: flex; align-items: center; gap: 10px; margin-bottom: 20px; font-size: 13px; }
+  .email-row .email-text { flex: 1; color: #1a1a1a; }
+  .email-row .email-icon { color: #16a34a; }
+  .email-row a { color: #0044B3; text-decoration: none; font-weight: 500; font-size: 13px; }
+  .email-row a:hover { text-decoration: underline; }
+
+  .btn-primary { width: 100%; background: #0044B3; color: #fff; border: none; padding: 13px 20px; border-radius: 8px; font-family: inherit; font-size: 15px; font-weight: 600; cursor: pointer; transition: background 0.15s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+  .btn-primary:hover { background: #003399; }
+  .btn-primary:disabled { background: #b8c6e0; cursor: not-allowed; }
+  .btn-text { background: none; border: none; color: #0044B3; font-family: inherit; font-size: 13px; font-weight: 500; cursor: pointer; padding: 0; }
+  .btn-text:hover { text-decoration: underline; }
+
+  .divider { display: flex; align-items: center; gap: 12px; margin: 22px 0; color: #9ca3af; font-size: 12px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; }
+  .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: #e5e7eb; }
+
+  .btn-secondary { width: 100%; background: #fff; color: #1a1a1a; border: 1px solid #d4d2d0; padding: 12px 20px; border-radius: 8px; font-family: inherit; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.15s; display: inline-flex; align-items: center; justify-content: center; gap: 10px; }
+  .btn-secondary:hover { background: #f9fafb; border-color: #9ca3af; }
+  .ms-icon { display: inline-grid; grid-template-columns: 1fr 1fr; gap: 1.5px; width: 16px; height: 16px; }
+  .ms-icon span { display: block; }
+  .ms-icon span:nth-child(1) { background: #f25022; }
+  .ms-icon span:nth-child(2) { background: #7fba00; }
+  .ms-icon span:nth-child(3) { background: #00a4ef; }
+  .ms-icon span:nth-child(4) { background: #ffb900; }
+
+  .card-footer { margin-top: 22px; text-align: center; }
+  .card-footer-row { display: flex; justify-content: center; gap: 4px; font-size: 13px; color: #4b5563; align-items: center; }
+  .card-footer-row a { color: #0044B3; text-decoration: none; font-weight: 500; }
+  .card-footer-row a:hover { text-decoration: underline; }
+
+  .screen { display: none; }
+  .screen.active { display: flex; }
+
+  .success-icon { width: 56px; height: 56px; border-radius: 50%; background: #ECFDF5; color: #059669; display: flex; align-items: center; justify-content: center; margin: 0 auto 18px; }
+
+  .notes { position: fixed; right: 16px; top: 16px; background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 12px 14px; font-size: 12px; color: #78350f; max-width: 260px; line-height: 1.5; z-index: 99; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+  .notes strong { display: block; margin-bottom: 4px; color: #92400e; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .notes .close-notes { position: absolute; top: 6px; right: 8px; background: none; border: none; color: #92400e; cursor: pointer; font-size: 16px; line-height: 1; }
+</style>
+</head>
+<body>
+
+<div class="step-bar">
+  <span class="step-bar-label">FLOW</span>
+  <button class="active" data-screen="1">1. Sign in</button>
+  <button data-screen="2">2. Verify email</button>
+  <button data-screen="3">3. Profile</button>
+  <button data-screen="4">4. Done</button>
+</div>
+
+<div class="notes" id="notes">
+  <button class="close-notes" onclick="document.getElementById('notes').style.display='none'">×</button>
+  <strong>Click 1 → 2 → 3 → 4</strong>
+  Buttons inside each screen also advance to the next step.
+</div>
+
+<div class="page screen active" data-screen-id="1">
+  <div class="wordmark">JobFairX</div>
+  <div class="card">
+    <button class="card-close" aria-label="Close"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+
+    <a href="#" class="escape-link">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="M12 5l7 7-7 7"></path></svg>
+      Looking for a job?
+    </a>
+
+    <div class="card-title">Sign in to your employer account</div>
+    <div class="card-subtitle">Enter your email to sign in or create an account.</div>
+
+    <div class="field">
+      <label for="email1">Email address <span class="req">*</span></label>
+      <input type="email" id="email1" placeholder="you@company.com" value="">
+    </div>
+
+    <button class="btn-primary" onclick="goTo(2)">Continue
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="M12 5l7 7-7 7"></path></svg>
+    </button>
+
+    <div class="divider">or</div>
+
+    <button class="btn-secondary">
+      <span class="ms-icon"><span></span><span></span><span></span><span></span></span>
+      Sign in with Microsoft
+    </button>
+  </div>
+</div>
+
+<div class="page screen" data-screen-id="2">
+  <div class="wordmark">JobFairX</div>
+  <div class="card">
+    <button class="card-close" aria-label="Close"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+
+    <button class="card-back" onclick="goTo(1)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"></path><path d="M12 19l-7-7 7-7"></path></svg>
+      Back
+    </button>
+
+    <div class="card-title">Verify your email</div>
+    <div class="card-subtitle">We sent a 6-digit code to <strong>scott@northwindco.com</strong>. Enter it below to continue. The code expires in 10 minutes.</div>
+
+    <div class="code-input">
+      <input type="text" maxlength="1" inputmode="numeric">
+      <input type="text" maxlength="1" inputmode="numeric">
+      <input type="text" maxlength="1" inputmode="numeric">
+      <input type="text" maxlength="1" inputmode="numeric">
+      <input type="text" maxlength="1" inputmode="numeric">
+      <input type="text" maxlength="1" inputmode="numeric">
+    </div>
+
+    <div style="text-align:center; margin: 6px 0 22px; font-size: 13px; color: #6b7280;">
+      Didn't get it? <button class="btn-text">Send a new code</button>
+    </div>
+
+    <button class="btn-primary" onclick="goTo(3)">Verify and continue
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="M12 5l7 7-7 7"></path></svg>
+    </button>
+
+    <div class="card-footer">
+      <div class="card-footer-row">
+        Wrong email? <a href="#" onclick="goTo(1); return false;">Use a different one</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="page screen" data-screen-id="3">
+  <div class="wordmark">JobFairX</div>
+  <div class="card" style="max-width: 540px;">
+    <div class="email-row">
+      <svg class="email-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+      <span class="email-text"><strong>scott@northwindco.com</strong> verified</span>
+    </div>
+
+    <div class="card-title">Tell us about yourself</div>
+    <div class="card-subtitle">Just a few details so we can set up your account. We'll ask for billing info later when you register for an event.</div>
+
+    <div class="field-row">
+      <div class="field">
+        <label for="fn">First name <span class="req">*</span></label>
+        <input type="text" id="fn" placeholder="John">
+      </div>
+      <div class="field">
+        <label for="ln">Last name <span class="req">*</span></label>
+        <input type="text" id="ln" placeholder="Smith">
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="cn">Company name <span class="req">*</span></label>
+      <input type="text" id="cn" placeholder="Acme Inc.">
+    </div>
+
+    <div class="field">
+      <label for="country">Country <span class="req">*</span></label>
+      <select id="country">
+        <option value="">Select a country</option>
+        <option value="US">United States</option>
+        <option value="CA">Canada</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="jt">Job title <span class="opt">(optional)</span></label>
+      <input type="text" id="jt" placeholder="Talent Acquisition Manager">
+    </div>
+
+    <div class="field">
+      <label for="ph">Phone number <span class="opt">(optional)</span></label>
+      <input type="tel" id="ph" placeholder="(555) 123-4567">
+      <div class="field-help">For account management only. Not shared with candidates.</div>
+    </div>
+
+    <div class="field">
+      <label for="src">How did you hear about us? <span class="opt">(optional)</span></label>
+      <select id="src">
+        <option value="">Select an option</option>
+        <option>Google search</option>
+        <option>LinkedIn</option>
+        <option>Referral from a colleague</option>
+        <option>Email from JobFairX</option>
+        <option>Industry event or webinar</option>
+        <option>Other</option>
+      </select>
+    </div>
+
+    <button class="btn-primary" onclick="goTo(4)" style="margin-top: 8px;">Continue to dashboard
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="M12 5l7 7-7 7"></path></svg>
+    </button>
+
+    <div class="card-footer">
+      <div class="card-footer-row">
+        By continuing, you agree to our <a href="#">Terms</a> and <a href="#">Privacy Policy</a>.
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="page screen" data-screen-id="4">
+  <div class="wordmark">JobFairX</div>
+  <div class="card" style="text-align: center;">
+    <div class="success-icon">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+    </div>
+    <div class="card-title" style="font-size: 22px;">You're in.</div>
+    <div class="card-subtitle">Your account is ready. Next step: register for a hiring event so candidates can request interviews with your team.</div>
+    <button class="btn-primary">Register for an event
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="M12 5l7 7-7 7"></path></svg>
+    </button>
+    <div class="card-footer">
+      <div class="card-footer-row">
+        <a href="#">Skip — take me to the dashboard</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function goTo(n) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.querySelector('.screen[data-screen-id="' + n + '"]').classList.add('active');
+    document.querySelectorAll('.step-bar button').forEach(b => b.classList.toggle('active', b.dataset.screen === String(n)));
+    window.scrollTo(0, 0);
+  }
+  document.querySelectorAll('.step-bar button').forEach(b => {
+    b.addEventListener('click', () => goTo(b.dataset.screen));
+  });
+  document.querySelectorAll('.code-input input').forEach((input, i, all) => {
+    input.addEventListener('input', e => {
+      if (e.target.value && i < all.length - 1) all[i + 1].focus();
+    });
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Backspace' && !e.target.value && i > 0) all[i - 1].focus();
+    });
+  });
+</script>
+</body>
+</html>
