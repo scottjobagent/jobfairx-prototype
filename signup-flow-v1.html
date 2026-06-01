@@ -63,7 +63,8 @@
 
   /* Buttons */
   .btn-primary { background: #0044B3; color: #fff; border: none; padding: 12px 24px; border-radius: 6px; font-family: inherit; font-size: 15px; font-weight: 700; cursor: pointer; transition: background 0.15s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
-  .btn-primary:hover { background: #003399; }
+  .btn-primary:hover:not(:disabled) { background: #003399; }
+  .btn-primary:disabled { background: #b8c6e0; cursor: not-allowed; }
   .btn-primary-large { width: 100%; padding: 14px 24px; }
 
   /* OAuth provider button */
@@ -191,7 +192,7 @@
       </button>
 
       <div class="modal-footer">
-        <button class="btn-primary" onclick="goTo(2)">Continue</button>
+        <button class="btn-primary" id="btn-step1" onclick="goTo(2)" disabled>Continue</button>
       </div>
     </div>
   </div>
@@ -237,7 +238,7 @@
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="M12 5l7 7-7 7"></path></svg>
           </a>
         </div>
-        <button class="btn-primary" onclick="goTo(3)">Create account</button>
+        <button class="btn-primary" id="btn-step2" onclick="goTo(3)" disabled>Create account</button>
       </div>
     </div>
   </div>
@@ -322,7 +323,7 @@
       </div>
 
       <div style="border-top: 1px solid #e5e7eb; padding-top: 22px; display: flex; justify-content: flex-end;">
-        <button class="btn-primary" onclick="goTo(4)">Continue
+        <button class="btn-primary" id="btn-step3" onclick="goTo(4)" disabled>Continue
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="M12 5l7 7-7 7"></path></svg>
         </button>
       </div>
@@ -336,8 +337,15 @@
   <div class="dev-note-wrap">
     <div class="page-wordmark">JobFairX</div>
     <div class="dev-note">
-      <h3>Developer note</h3>
-      <p>After Step 3 <code>Continue</code> is clicked and the account is successfully created, route the user directly to their employer dashboard at <code>/dashboard</code>. No success/confirmation screen needed — the dashboard's empty state ("You haven't registered for an event") handles next-steps prompting.</p>
+      <h3>Developer notes</h3>
+      <p style="margin-bottom: 16px;"><strong>Post-signup routing:</strong> After Step 3 <code>Continue</code> is clicked and the account is successfully created, route the user directly to their employer dashboard at <code>/dashboard</code>. No success/confirmation screen needed — the dashboard's empty state ("You haven't registered for an event") handles next-steps prompting.</p>
+      <p style="margin-bottom: 16px;"><strong>Button enable/disable validation:</strong></p>
+      <ul style="margin: 0 0 16px 20px; color: #78350f; font-size: 15px; line-height: 1.6;">
+        <li><strong>Step 1 (Sign in):</strong> <code>Continue</code> button stays disabled until the email field contains a valid email format.</li>
+        <li><strong>Step 2 (Verify email):</strong> <code>Create account</code> button stays disabled until exactly 6 digits are entered in the code field.</li>
+        <li><strong>Step 3 (Create account):</strong> <code>Continue</code> button stays disabled until all four required fields (Country, Company name, First name, Last name) are filled. Optional fields don't block.</li>
+      </ul>
+      <p><strong>Account creation timing:</strong> The user record should be created in the database the moment they verify the email code (end of Step 2), not at the end of Step 3. This lets you flag the record as "incomplete profile" and re-engage by email if they bail before finishing Step 3.</p>
     </div>
   </div>
 </div>
@@ -354,6 +362,46 @@
   }
   document.querySelectorAll('.step-bar button').forEach(b => {
     b.addEventListener('click', () => goTo(b.dataset.screen));
+  });
+
+  // === Button enable/disable validation ===
+  // Step 1: enable when valid email
+  const emailInput = document.getElementById('email1');
+  const btnStep1 = document.getElementById('btn-step1');
+  if (emailInput && btnStep1) {
+    emailInput.addEventListener('input', () => {
+      const v = emailInput.value.trim();
+      const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+      btnStep1.disabled = !valid;
+    });
+  }
+
+  // Step 2: enable when code is 6 digits
+  const codeInput = document.getElementById('code');
+  const btnStep2 = document.getElementById('btn-step2');
+  if (codeInput && btnStep2) {
+    codeInput.addEventListener('input', () => {
+      const v = codeInput.value.trim();
+      btnStep2.disabled = !/^\d{6}$/.test(v);
+    });
+  }
+
+  // Step 3: enable when all required fields filled
+  const btnStep3 = document.getElementById('btn-step3');
+  const reqIds = ['country', 'cn', 'fn', 'ln'];
+  function checkStep3() {
+    const allFilled = reqIds.every(id => {
+      const el = document.getElementById(id);
+      return el && el.value.trim() !== '';
+    });
+    if (btnStep3) btnStep3.disabled = !allFilled;
+  }
+  reqIds.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener('input', checkStep3);
+      el.addEventListener('change', checkStep3);
+    }
   });
 </script>
 </body>
