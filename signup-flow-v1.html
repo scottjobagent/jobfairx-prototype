@@ -129,6 +129,46 @@
   .notes { position: fixed; right: 16px; top: 16px; background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 12px 14px; font-size: 12px; color: #78350f; max-width: 260px; line-height: 1.5; z-index: 99; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
   .notes strong { display: block; margin-bottom: 4px; color: #92400e; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; }
   .notes .close-notes { position: absolute; top: 6px; right: 8px; background: none; border: none; color: #92400e; cursor: pointer; font-size: 16px; line-height: 1; }
+
+  /* === VIEW toggle (Desktop / Mobile) === */
+  .view-toggle { position: fixed; top: 56px; left: 50%; transform: translateX(-50%); background: #1a1a1a; color: #fff; border-radius: 999px; padding: 6px; display: flex; gap: 4px; z-index: 100; box-shadow: 0 2px 12px rgba(0,0,0,0.15); }
+  .view-toggle button { background: transparent; color: #aaa; border: none; padding: 6px 14px; border-radius: 999px; font-family: inherit; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.15s; }
+  .view-toggle button.active { background: #0044B3; color: #fff; }
+  .view-toggle button:hover:not(.active) { color: #fff; }
+  .view-toggle-label { font-size: 11px; color: #888; padding: 6px 12px 6px 14px; border-right: 1px solid #333; margin-right: 4px; display: flex; align-items: center; }
+
+  /* === MOBILE MODE === */
+  body.mode-mobile { background: #2d2d2d; }
+  body.mode-mobile .page-full { max-width: 390px; min-height: 800px; margin: 100px auto 40px; padding: 0; background: transparent; border: 12px solid #0a0a0a; border-radius: 44px; box-shadow: 0 25px 60px rgba(0,0,0,0.4); position: relative; overflow: hidden; }
+  body.mode-mobile .page-full::before { content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 110px; height: 26px; background: #0a0a0a; border-radius: 0 0 18px 18px; z-index: 10; }
+  body.mode-mobile .page-wordmark { font-size: 18px; margin: 40px 0 22px; }
+  body.mode-mobile .page-content { max-width: 100% !important; background: #fff !important; box-shadow: none !important; border-radius: 0 !important; padding: 0 22px 28px !important; min-height: calc(100% - 90px); display: flex; flex-direction: column; }
+  body.mode-mobile .escape-link { font-size: 13px !important; margin-bottom: 24px !important; }
+  body.mode-mobile .page-title { font-size: 22px !important; margin-bottom: 22px !important; line-height: 1.25 !important; }
+  body.mode-mobile .page-subtitle { font-size: 14px !important; margin-bottom: 22px !important; }
+  body.mode-mobile .field { margin-bottom: 18px !important; }
+  body.mode-mobile .field label { font-size: 14px !important; }
+  body.mode-mobile .field-helper { font-size: 13px !important; }
+  body.mode-mobile .field input, body.mode-mobile .field select { font-size: 15px !important; padding: 12px 14px !important; }
+  body.mode-mobile .field-row { grid-template-columns: 1fr !important; gap: 0 !important; }
+  body.mode-mobile .field-row .field { margin-bottom: 18px !important; }
+  body.mode-mobile .oauth-btn { font-size: 14px !important; padding: 13px 16px !important; }
+  body.mode-mobile .divider { margin: 14px 0 18px !important; font-size: 12px !important; }
+  body.mode-mobile .resend-line { font-size: 13px !important; }
+  body.mode-mobile .terms-row { font-size: 12px !important; margin-top: 4px !important; margin-bottom: 16px !important; }
+  body.mode-mobile .btn-primary { width: 100% !important; padding: 14px 24px !important; font-size: 15px !important; }
+  /* Full-width footer button container on mobile (replace hr/right-align) */
+  body.mode-mobile .step-footer { border-top: 1px solid #e5e7eb !important; padding-top: 18px !important; margin-top: auto !important; display: block !important; }
+  body.mode-mobile .step-footer .btn-primary { width: 100%; }
+  /* Dev note in mobile mode */
+  body.mode-mobile .dev-note-wrap { max-width: 390px; margin: 100px auto 40px; padding: 30px 16px 40px; background: #fff; border: 12px solid #0a0a0a; border-radius: 44px; }
+  body.mode-mobile .dev-note { padding: 18px; font-size: 14px; }
+  body.mode-mobile .dev-note p, body.mode-mobile .dev-note li { font-size: 13px; }
+  /* Step bar repositioning to avoid phone overlap */
+  body.mode-mobile .step-bar { top: 12px; }
+  body.mode-mobile .view-toggle { top: 56px; }
+  body.mode-mobile .notes { display: none; }
+
 </style>
 </head>
 <body>
@@ -139,6 +179,12 @@
   <button data-screen="2">2. Verify email</button>
   <button data-screen="3">3. Create account</button>
   <button data-screen="4">4. Dev note</button>
+</div>
+
+<div class="view-toggle">
+  <span class="view-toggle-label">VIEW</span>
+  <button class="active" data-view="desktop">Desktop</button>
+  <button data-view="mobile">Mobile</button>
 </div>
 
 <div class="notes" id="notes">
@@ -185,7 +231,7 @@
         <input type="email" id="email1">
       </div>
 
-      <div style="border-top: 1px solid #e5e7eb; padding-top: 22px; margin-top: 28px; display: flex; justify-content: flex-end;">
+      <div class="step-footer" style="border-top: 1px solid #e5e7eb; padding-top: 22px; margin-top: 28px; display: flex; justify-content: flex-end;">
         <button class="btn-primary" id="btn-step1" onclick="goTo(2)" disabled>Continue</button>
       </div>
 
@@ -216,7 +262,7 @@
 
       <div class="resend-line" style="margin-top: 14px;">Didn't receive your code? <a href="#">Send new code</a></div>
 
-      <div style="border-top: 1px solid #e5e7eb; padding-top: 22px; margin-top: 28px; display: flex; justify-content: flex-end;">
+      <div class="step-footer" style="border-top: 1px solid #e5e7eb; padding-top: 22px; margin-top: 28px; display: flex; justify-content: flex-end;">
         <button class="btn-primary" id="btn-step2" onclick="goTo(3)" disabled>Create account</button>
       </div>
 
@@ -302,7 +348,7 @@
         By creating an account, you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.
       </div>
 
-      <div style="border-top: 1px solid #e5e7eb; padding-top: 22px; display: flex; justify-content: flex-end;">
+      <div class="step-footer" style="border-top: 1px solid #e5e7eb; padding-top: 22px; display: flex; justify-content: flex-end;">
         <button class="btn-primary" id="btn-step3" onclick="goTo(4)" disabled>Continue
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="M12 5l7 7-7 7"></path></svg>
         </button>
@@ -382,6 +428,14 @@
       el.addEventListener('input', checkStep3);
       el.addEventListener('change', checkStep3);
     }
+  });
+
+  document.querySelectorAll('.view-toggle button').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('.view-toggle button').forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      document.body.classList.toggle('mode-mobile', b.dataset.view === 'mobile');
+    });
   });
 </script>
 </body>
