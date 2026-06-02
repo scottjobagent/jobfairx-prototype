@@ -169,6 +169,26 @@
   body.mode-mobile .view-toggle { top: 56px; }
   body.mode-mobile .notes { display: none; }
 
+
+  /* === Mobile fixes: white interior + size variant === */
+  body.mode-mobile .page-full { background: #fff !important; }
+  body.mode-mobile .page-title { font-size: 20px !important; }
+  body.mode-mobile.size-se .page-full { max-width: 375px; }
+  body.mode-mobile.size-15 .page-full { max-width: 393px; }
+  body.mode-mobile.size-air .page-full { max-width: 402px; }
+  body.mode-mobile.size-promax .page-full { max-width: 430px; }
+  body.mode-mobile.size-se .dev-note-wrap { max-width: 375px; }
+  body.mode-mobile.size-15 .dev-note-wrap { max-width: 393px; }
+  body.mode-mobile.size-air .dev-note-wrap { max-width: 402px; }
+  body.mode-mobile.size-promax .dev-note-wrap { max-width: 430px; }
+  /* SIZE toggle */
+  .size-toggle { position: fixed; top: 100px; left: 50%; transform: translateX(-50%); background: #1a1a1a; color: #fff; border-radius: 999px; padding: 6px; display: none; gap: 4px; z-index: 100; box-shadow: 0 2px 12px rgba(0,0,0,0.15); }
+  body.mode-mobile .size-toggle { display: flex; }
+  .size-toggle button { background: transparent; color: #aaa; border: none; padding: 6px 12px; border-radius: 999px; font-family: inherit; font-size: 11px; font-weight: 500; cursor: pointer; transition: all 0.15s; }
+  .size-toggle button.active { background: #0044B3; color: #fff; }
+  .size-toggle button:hover:not(.active) { color: #fff; }
+  .size-toggle-label { font-size: 11px; color: #888; padding: 6px 10px 6px 12px; border-right: 1px solid #333; margin-right: 4px; display: flex; align-items: center; }
+
 </style>
 </head>
 <body>
@@ -185,6 +205,14 @@
   <span class="view-toggle-label">VIEW</span>
   <button class="active" data-view="desktop">Desktop</button>
   <button data-view="mobile">Mobile</button>
+</div>
+
+<div class="size-toggle">
+  <span class="size-toggle-label">SIZE</span>
+  <button data-size="se">iPhone SE · 375</button>
+  <button class="active" data-size="15">iPhone 15 · 393</button>
+  <button data-size="air">iPhone Air · 402</button>
+  <button data-size="promax">15 Pro Max · 430</button>
 </div>
 
 <div class="notes" id="notes">
@@ -434,7 +462,23 @@
     b.addEventListener('click', () => {
       document.querySelectorAll('.view-toggle button').forEach(x => x.classList.remove('active'));
       b.classList.add('active');
-      document.body.classList.toggle('mode-mobile', b.dataset.view === 'mobile');
+      const isMobile = b.dataset.view === 'mobile';
+      document.body.classList.toggle('mode-mobile', isMobile);
+      if (isMobile && !document.body.className.match(/size-/)) {
+        document.body.classList.add('size-15');
+      }
+      if (!isMobile) {
+        document.body.classList.remove('size-se','size-15','size-air','size-promax');
+      }
+    });
+  });
+
+  document.querySelectorAll('.size-toggle button').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('.size-toggle button').forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      document.body.classList.remove('size-se','size-15','size-air','size-promax');
+      document.body.classList.add('size-' + b.dataset.size);
     });
   });
 </script>
