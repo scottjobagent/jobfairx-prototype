@@ -9,106 +9,111 @@
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: #f4f5f7; min-height: 100vh; color: #1a1a1a; -webkit-font-smoothing: antialiased; padding: 40px 24px; }
-  .stage { max-width: 920px; margin: 0 auto; }
-  .stage-note { background: #FEF7E6; border: 1px solid #fde68a; border-radius: 8px; padding: 14px 20px; font-size: 13px; color: #78350f; line-height: 1.55; margin-bottom: 24px; text-align: center; }
+  .stage { max-width: 1080px; margin: 0 auto; }
+  .stage-note { background: #FEF7E6; border: 1px solid #fde68a; border-radius: 8px; padding: 14px 20px; font-size: 13px; color: #78350f; line-height: 1.6; margin-bottom: 18px; }
   .stage-note strong { color: #92400e; }
-
+  .legend { display: flex; gap: 16px; margin-bottom: 22px; font-size: 12px; align-items: center; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 7px; padding: 5px 11px; border-radius: 999px; font-weight: 600; }
+  .legend-evb { background: #f3f4f6; color: #4b5563; border: 1px solid #e5e7eb; }
+  .legend-ours { background: #E6F1FB; color: #003399; border: 1px solid #C7DEF7; }
+  .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .legend-dot.evb { background: #9ca3af; }
+  .legend-dot.ours { background: #0044B3; }
   .page { background: #fff; border-radius: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 8px 32px rgba(0,0,0,0.06); overflow: hidden; }
-
-  /* Hero cover */
+  .mod { position: relative; }
+  .mod::after { content: attr(data-mod); position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.95); border: 1px solid #e5e7eb; padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; color: #6b7280; z-index: 5; pointer-events: none; }
   .cover { width: 100%; aspect-ratio: 2 / 1; background: linear-gradient(135deg, #0044B3 0%, #003399 60%, #1e3a8a 100%); position: relative; overflow: hidden; color: #fff; }
   .cover::before { content: ''; position: absolute; inset: 0; background-image: radial-gradient(circle at 15% 25%, rgba(255,255,255,0.1) 0%, transparent 40%), radial-gradient(circle at 85% 75%, rgba(255,255,255,0.08) 0%, transparent 40%); }
   .cover-grid-bg { position: absolute; inset: 0; opacity: 0.07; background-image: linear-gradient(rgba(255,255,255,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.3) 1px, transparent 1px); background-size: 40px 40px; }
-  .cover-content { position: relative; z-index: 2; height: 100%; display: flex; flex-direction: column; padding: 36px 48px; }
-  .cover-logo { font-size: 22px; font-weight: 800; letter-spacing: -0.02em; }
-  .cover-eyebrow { font-size: 15px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; opacity: 0.85; margin-top: auto; }
-  .cover-title { font-size: 60px; font-weight: 900; letter-spacing: -0.02em; line-height: 1; margin: 14px 0 22px; }
+  .cover-content { position: relative; z-index: 2; height: 100%; display: flex; flex-direction: column; justify-content: center; padding: 36px 56px; }
+  .cover-title { font-size: 64px; font-weight: 900; letter-spacing: -0.02em; line-height: 1; margin: 0 0 28px; }
   .cover-meta-row { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
   .cover-pill { background: rgba(255,255,255,0.18); backdrop-filter: blur(8px); padding: 8px 16px; border-radius: 999px; font-size: 13px; font-weight: 600; letter-spacing: 0.04em; }
   .cover-pill.gold { background: #fbbf24; color: #1a1a1a; }
-
-  /* Illustrated figures in cover */
-  .cover-figures { position: absolute; right: 36px; bottom: 24px; display: flex; gap: 12px; z-index: 1; opacity: 0.6; }
-  .cover-figure { width: 60px; height: 60px; border-radius: 50%; background: rgba(255,255,255,0.12); display: flex; align-items: center; justify-content: center; }
-  .cover-figure svg { color: #fff; opacity: 0.8; }
-
-  /* Supplementary images strip */
-  .supp-strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 16px 24px; background: #fafafa; }
-  .supp-img { aspect-ratio: 1.6 / 1; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 8px; padding: 16px; text-align: center; color: #fff; font-weight: 700; font-size: 13px; letter-spacing: 0.04em; position: relative; overflow: hidden; }
-  .supp-img.a { background: linear-gradient(135deg, #1e40af 0%, #0044B3 100%); }
-  .supp-img.b { background: linear-gradient(135deg, #0f766e 0%, #0d9488 100%); }
-  .supp-img.c { background: linear-gradient(135deg, #c2410c 0%, #ea580c 100%); }
-  .supp-img svg { opacity: 0.9; }
-
-  /* Page body */
-  .page-body { padding: 44px 56px 56px; }
-  .event-title { font-size: 38px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.15; margin-bottom: 14px; color: #1a1a1a; }
-  .event-meta { display: flex; gap: 22px; align-items: center; flex-wrap: wrap; margin-bottom: 32px; padding-bottom: 28px; border-bottom: 1px solid #f0eeea; }
-  .event-meta-item { display: flex; align-items: center; gap: 8px; font-size: 15px; color: #4b5563; }
-  .event-online-pill { background: #DBEAFE; color: #1e3a8a; padding: 4px 12px; border-radius: 6px; font-size: 13px; font-weight: 700; letter-spacing: 0.04em; }
-
-  /* Section header */
-  .section-head { font-size: 26px; font-weight: 700; color: #1a1a1a; margin: 44px 0 22px; letter-spacing: -0.01em; }
-
-  /* Body content */
-  .body-greeting { font-size: 22px; font-weight: 700; color: #1a1a1a; line-height: 1.3; margin-bottom: 20px; letter-spacing: -0.01em; }
-  .body-hr { border: none; border-top: 1px solid #e5e7eb; margin: 24px 0; }
+  .evb-event-details { padding: 28px 56px 24px; }
+  .evb-title { font-size: 32px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.2; color: #1a1a1a; margin-bottom: 14px; }
+  .evb-organizer-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 18px; }
+  .evb-top-org-pill { background: #1e1e1e; color: #fff; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; }
+  .evb-org-name { font-size: 14px; color: #1a1a1a; font-weight: 600; }
+  .evb-org-stats { font-size: 13px; color: #6b7280; }
+  .evb-follow-btn { margin-left: auto; padding: 7px 18px; border: 1px solid #0044B3; color: #0044B3; background: #fff; border-radius: 6px; font-size: 13px; font-weight: 700; cursor: pointer; }
+  .evb-meta-strip { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; padding-top: 16px; border-top: 1px solid #f0eeea; font-size: 14px; color: #4b5563; }
+  .evb-meta-item { display: flex; align-items: center; gap: 8px; }
+  .evb-meta-item svg { color: #6b7280; }
+  .evb-meta-item.online-tag { background: #DBEAFE; color: #1e3a8a; padding: 3px 10px; border-radius: 4px; font-size: 12px; font-weight: 700; letter-spacing: 0.04em; }
+  .evb-meta-item.free-tag { background: #dcfce7; color: #166534; padding: 3px 10px; border-radius: 4px; font-size: 12px; font-weight: 700; letter-spacing: 0.04em; }
+  .evb-ticket-strip { padding: 16px 56px; background: #fafafa; border-top: 1px solid #f0eeea; border-bottom: 1px solid #f0eeea; display: flex; justify-content: space-between; align-items: center; }
+  .evb-ticket-price { font-size: 18px; font-weight: 800; color: #1a1a1a; }
+  .evb-register-btn { background: #d1410c; color: #fff; padding: 12px 36px; border-radius: 6px; font-size: 15px; font-weight: 700; border: none; cursor: pointer; }
+  .overview-section { padding: 0; }
+  .overview-header { padding: 36px 56px 0; display: flex; justify-content: space-between; align-items: baseline; }
+  .overview-h2 { font-size: 26px; font-weight: 700; color: #1a1a1a; letter-spacing: -0.01em; }
+  .ours-tag { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; color: #003399; background: #E6F1FB; padding: 5px 10px; border-radius: 6px; }
+  .overview-body { padding: 24px 56px 48px; }
+  .module { position: relative; margin-bottom: 28px; }
+  .module-label { font-size: 9px; font-weight: 700; letter-spacing: 0.14em; color: #003399; background: #E6F1FB; padding: 3px 8px; border-radius: 4px; display: inline-block; margin-bottom: 10px; }
+  .module-label.text { background: #f3f4f6; color: #4b5563; }
+  .tiles-strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; border-radius: 10px; overflow: hidden; }
+  .tile { aspect-ratio: 1.5 / 1; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 10px; padding: 18px; text-align: center; color: #fff; font-weight: 700; font-size: 14px; letter-spacing: 0.02em; line-height: 1.3; position: relative; overflow: hidden; }
+  .tile.a { background: linear-gradient(135deg, #1e40af 0%, #0044B3 100%); }
+  .tile.b { background: linear-gradient(135deg, #0f766e 0%, #0d9488 100%); }
+  .tile.c { background: linear-gradient(135deg, #c2410c 0%, #ea580c 100%); }
+  .tile svg { opacity: 0.95; }
+  .body-greeting { font-size: 22px; font-weight: 700; color: #1a1a1a; line-height: 1.3; margin-bottom: 22px; letter-spacing: -0.01em; }
   .body p { font-size: 16px; color: #2d2d2d; line-height: 1.75; margin-bottom: 14px; }
-
-  /* Employer CTA */
-  .emp-cta { border-top: 4px solid #0044B3; border-bottom: 4px solid #0044B3; padding: 24px 0; margin: 6px 0 36px; }
-  .emp-cta h3 { font-size: 22px; font-weight: 700; color: #1a1a1a; margin-bottom: 16px; line-height: 1.3; }
-  .emp-cta-link { font-size: 16px; color: #0044B3; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; display: inline-block; margin-bottom: 12px; }
+  .body p:last-child { margin-bottom: 0; }
+  .emp-cta { border-top: 4px solid #0044B3; border-bottom: 4px solid #0044B3; padding: 22px 0; margin: 4px 0 28px; }
+  .emp-cta h3 { font-size: 20px; font-weight: 700; color: #1a1a1a; margin-bottom: 12px; line-height: 1.3; }
+  .emp-cta-link { font-size: 16px; color: #0044B3; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; display: inline-block; margin-bottom: 10px; }
   .emp-cta-pricing { font-size: 14px; color: #4b5563; line-height: 1.55; }
-
-  .body-opener { font-size: 17px; font-weight: 500; color: #1a1a1a; line-height: 1.6; margin-bottom: 36px; padding-bottom: 28px; border-bottom: 1px solid #e5e7eb; }
-  .body-caps { font-size: 16px; font-weight: 800; color: #1a1a1a; letter-spacing: 0.06em; margin: 30px 0 12px; }
+  .body-caps { font-size: 15px; font-weight: 800; color: #1a1a1a; letter-spacing: 0.08em; margin: 26px 0 12px; }
   .body-industries { font-size: 15px; line-height: 1.85; color: #2d2d2d; }
-
-  /* Trust stats row */
-  .trust-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin: 36px 0; padding: 28px; background: #f9fafb; border-radius: 12px; }
+  .trust-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; padding: 26px; background: linear-gradient(135deg, #0044B3 0%, #003399 100%); border-radius: 12px; color: #fff; }
   .trust-stat { text-align: center; }
-  .trust-stat-num { font-size: 30px; font-weight: 800; color: #0044B3; letter-spacing: -0.02em; line-height: 1; margin-bottom: 6px; }
-  .trust-stat-label { font-size: 12px; font-weight: 600; color: #4b5563; letter-spacing: 0.04em; }
-
-  /* How it works steps */
-  .how-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin: 28px 0 8px; }
-  .how-step { background: #f9fafb; border-radius: 12px; padding: 22px 18px; text-align: center; position: relative; }
+  .trust-stat-num { font-size: 30px; font-weight: 800; letter-spacing: -0.02em; line-height: 1; margin-bottom: 6px; color: #fff; }
+  .trust-stat-label { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; opacity: 0.85; }
+  .how-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; padding: 22px; background: #f3f6fb; border-radius: 12px; }
+  .how-step { background: #fff; border-radius: 10px; padding: 22px 16px; text-align: center; position: relative; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
   .how-step-num { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); width: 26px; height: 26px; background: #0044B3; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; }
-  .how-step-icon { width: 56px; height: 56px; margin: 8px auto 14px; background: #DBEAFE; color: #0044B3; border-radius: 14px; display: flex; align-items: center; justify-content: center; }
-  .how-step h4 { font-size: 14px; font-weight: 700; color: #1a1a1a; margin-bottom: 6px; line-height: 1.3; }
-  .how-step p { font-size: 12px; color: #4b5563; line-height: 1.55; margin: 0; }
-
-  /* Past companies */
-  .companies-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin: 24px 0 8px; }
-  .company-tile { background: #fff; border: 1px solid #f0eeea; border-radius: 10px; padding: 22px 16px; display: flex; align-items: center; justify-content: center; min-height: 80px; }
-  .company-tile .name { font-weight: 800; font-size: 14px; letter-spacing: -0.01em; text-align: center; }
+  .how-step-icon { width: 50px; height: 50px; margin: 6px auto 12px; background: #DBEAFE; color: #0044B3; border-radius: 12px; display: flex; align-items: center; justify-content: center; }
+  .how-step h4 { font-size: 13px; font-weight: 700; color: #1a1a1a; margin-bottom: 6px; line-height: 1.3; }
+  .how-step p { font-size: 11px; color: #4b5563; line-height: 1.5; margin: 0; }
+  .logos-frame { padding: 22px 26px; background: #fafafa; border-radius: 12px; }
+  .logos-frame-eyebrow { font-size: 11px; font-weight: 700; color: #6b7280; letter-spacing: 0.12em; text-transform: uppercase; text-align: center; margin-bottom: 14px; }
+  .companies-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; }
+  .company-tile { background: #fff; border: 1px solid #f0eeea; border-radius: 8px; padding: 16px 12px; display: flex; align-items: center; justify-content: center; min-height: 60px; }
+  .company-tile .name { font-weight: 800; font-size: 12px; letter-spacing: -0.01em; text-align: center; line-height: 1.2; }
   .company-tile .name.cvs { color: #cc0000; }
-  .company-tile .name.sherwin { color: #00377a; }
-  .company-tile .name.tesla { color: #cc0000; letter-spacing: 0.18em; font-weight: 900; }
-  .company-tile .name.kaiser { color: #006e9d; font-size: 12px; letter-spacing: 0.05em; line-height: 1.3; }
-  .company-tile .name.tmobile { color: #e20074; letter-spacing: 0.04em; }
-  .company-tile .name.amazon { color: #232f3e; font-size: 18px; font-style: italic; }
-  .company-tile .name.uhc { color: #002677; font-size: 12px; line-height: 1.3; }
+  .company-tile .name.sherwin { color: #00377a; font-size: 10px; }
+  .company-tile .name.tesla { color: #cc0000; letter-spacing: 0.15em; font-weight: 900; }
+  .company-tile .name.kaiser { color: #006e9d; font-size: 10px; line-height: 1.2; }
+  .company-tile .name.tmobile { color: #e20074; }
+  .company-tile .name.amazon { color: #232f3e; font-size: 14px; font-style: italic; }
+  .company-tile .name.uhc { color: #002677; font-size: 10px; line-height: 1.2; }
   .company-tile .name.target { color: #cc0000; }
-  .company-tile .name.nylife { color: #0033a0; font-size: 12px; line-height: 1.3; }
-  .company-tile .name.hca { color: #00a4e1; font-size: 13px; line-height: 1.3; }
+  .company-tile .name.nylife { color: #0033a0; font-size: 10px; line-height: 1.2; }
+  .company-tile .name.hca { color: #00a4e1; font-size: 11px; line-height: 1.2; }
   .company-tile .name.verizon { color: #cd040b; letter-spacing: 0.03em; font-weight: 900; }
   .company-tile .name.ascension { color: #009dc4; }
-
-  .trusted-eyebrow { font-size: 12px; font-weight: 700; color: #6b7280; letter-spacing: 0.12em; text-transform: uppercase; text-align: center; margin-bottom: 14px; }
-
-  /* FAQ section split callout */
-  .faq-callout { background: #E6F1FB; border-left: 4px solid #0044B3; padding: 14px 18px; border-radius: 6px; margin-top: 14px; font-size: 13px; color: #1a2942; line-height: 1.55; }
+  .evb-section { padding: 28px 56px; border-top: 1px solid #f0eeea; }
+  .evb-section h3 { font-size: 22px; font-weight: 700; color: #1a1a1a; margin-bottom: 18px; }
+  .evb-highlight-row { display: flex; gap: 28px; flex-wrap: wrap; }
+  .evb-highlight { display: flex; align-items: center; gap: 8px; font-size: 14px; color: #4b5563; }
+  .evb-highlight svg { color: #6b7280; }
+  .evb-org-card { display: flex; align-items: center; gap: 16px; }
+  .evb-org-avatar { width: 70px; height: 70px; border-radius: 50%; background: linear-gradient(135deg, #0044B3 0%, #003399 100%); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 900; flex-shrink: 0; }
+  .evb-org-info { flex: 1; }
+  .evb-org-top-pill-row { display: flex; gap: 10px; align-items: center; margin-bottom: 6px; }
+  .evb-org-info h4 { font-size: 17px; font-weight: 700; color: #1a1a1a; margin-bottom: 4px; }
+  .evb-org-info-stats { font-size: 13px; color: #6b7280; }
+  .faq-callout { background: #E6F1FB; border-left: 4px solid #0044B3; padding: 12px 16px; border-radius: 6px; margin-bottom: 18px; font-size: 12px; color: #1a2942; line-height: 1.6; }
   .faq-callout strong { color: #003399; }
-
-  /* FAQ items */
   .faq-list { display: flex; flex-direction: column; gap: 6px; }
   .faq-item { border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; }
-  .faq-q { padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; background: #fff; }
-  .faq-q-text { font-size: 16px; font-weight: 600; color: #1a1a1a; flex: 1; padding-right: 16px; }
+  .faq-q { padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; background: #fff; }
+  .faq-q-text { font-size: 15px; font-weight: 600; color: #1a1a1a; flex: 1; padding-right: 16px; }
   .faq-chevron { color: #6b7280; flex-shrink: 0; transition: transform 0.2s; }
-  .faq-a { padding: 0 20px 18px; font-size: 14px; color: #4b5563; line-height: 1.7; display: none; }
+  .faq-a { padding: 0 18px 16px; font-size: 14px; color: #4b5563; line-height: 1.65; display: none; }
   .faq-item.open .faq-a { display: block; }
   .faq-item.open .faq-chevron { transform: rotate(180deg); }
 </style>
@@ -118,232 +123,240 @@
 <div class="stage">
 
 <div class="stage-note">
-  <strong>Visual preview</strong> · Birmingham used as example. Cover photo + 3 supplementary images at top, then Overview body with How It Works + Past Companies + Trust stats. FAQ at bottom uses Eventbrite's <strong>dedicated FAQ section</strong> (separate from the description body).
+  <strong>Visual preview</strong> · Birmingham · June 25, 2026 used as example. Sections tagged <span style="background:#f3f4f6;color:#4b5563;padding:1px 7px;border-radius:4px;font-weight:700;font-size:11px;">EVENTBRITE</span> are auto-rendered by the platform — we don't control their styling, only the data we pass in. Sections tagged <span style="background:#E6F1FB;color:#003399;padding:1px 7px;border-radius:4px;font-weight:700;font-size:11px;">OUR CONTENT</span> are what we push via the <code style="background:#fff;padding:1px 5px;border-radius:3px;border:1px solid #e5e7eb;font-size:11px;">structured_content</code> API as image and text modules.
+</div>
+
+<div class="legend">
+  <span class="legend-item legend-evb"><span class="legend-dot evb"></span>Eventbrite chrome (auto-rendered)</span>
+  <span class="legend-item legend-ours"><span class="legend-dot ours"></span>Our content (structured_content modules)</span>
 </div>
 
 <div class="page">
 
-  <div class="cover">
-    <div class="cover-grid-bg"></div>
-    <div class="cover-content" style="justify-content: center;">
-      <div class="cover-title" style="margin: 0 0 28px;">Entry-Level<br>Virtual Job Fair</div>
-      <div class="cover-meta-row">
-        <span class="cover-pill">11 AM – 3 PM</span>
-        <span class="cover-pill">100% Virtual</span>
-        <span class="cover-pill gold">Free for Job Seekers</span>
+  <div class="mod" data-mod="EVENTBRITE · cover image upload">
+    <div class="cover">
+      <div class="cover-grid-bg"></div>
+      <div class="cover-content">
+        <div class="cover-title">Entry-Level<br>Virtual Job Fair</div>
+        <div class="cover-meta-row">
+          <span class="cover-pill">11 AM – 3 PM</span>
+          <span class="cover-pill">100% Virtual</span>
+          <span class="cover-pill gold">Free for Job Seekers</span>
+        </div>
       </div>
     </div>
-    <div class="cover-figures">
-      <div class="cover-figure"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/></svg></div>
-      <div class="cover-figure"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
-      <div class="cover-figure"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg></div>
-    </div>
   </div>
 
-  <div class="supp-strip">
-    <div class="supp-img a">
-      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
-      Pre-scheduled video interviews
+  <div class="evb-event-details mod" data-mod="EVENTBRITE · auto from event metadata">
+    <h1 class="evb-title">Birmingham Entry-Level Virtual Job Fair – June 25, 2026</h1>
+    <div class="evb-organizer-row">
+      <span class="evb-top-org-pill">TOP ORGANIZER</span>
+      <span class="evb-org-name">by JobFairX</span>
+      <span class="evb-org-stats">216.9k followers · 3,199 events · 8y hosting</span>
+      <button class="evb-follow-btn">Follow</button>
     </div>
-    <div class="supp-img b">
-      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-      Matched with open roles
-    </div>
-    <div class="supp-img c">
-      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
-      Hiring teams that hire fast
-    </div>
-  </div>
-
-  <div class="page-body">
-
-    <h1 class="event-title">Birmingham Entry-Level Virtual Job Fair - June 25, 2026</h1>
-
-    <div class="event-meta">
-      <div class="event-meta-item">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    <div class="evb-meta-strip">
+      <div class="evb-meta-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
         Thursday, June 25, 2026 · 11:00 AM – 3:00 PM CT
       </div>
-      <div class="event-meta-item"><span class="event-online-pill">ONLINE EVENT</span></div>
-      <div class="event-meta-item">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-        Free for job seekers
-      </div>
+      <span class="evb-meta-item online-tag">ONLINE EVENT</span>
+      <span class="evb-meta-item free-tag">FREE</span>
     </div>
+  </div>
 
-    <h2 class="section-head">Overview</h2>
+  <div class="evb-ticket-strip mod" data-mod="EVENTBRITE · register strip">
+    <div class="evb-ticket-price">Free</div>
+    <button class="evb-register-btn">Register</button>
+  </div>
 
-    <div class="body">
-
-      <div class="body-greeting">Connect and interview with top employers.</div>
-      <hr class="body-hr">
-
-      <div class="emp-cta">
-        <h3>Are you an employer hiring?</h3>
-        <a href="#" class="emp-cta-link">View employer details and register here →</a>
-        <p class="emp-cta-pricing">Pricing starts at $495, scaled to the number of roles you want to fill.</p>
-      </div>
-
-      <p class="body-opener">Looking for a job in Birmingham? If you are, this event is a must-attend. Meet with employers hiring entry-level talent in Birmingham — and skip the resume pile.</p>
-
-      <div class="trust-stats">
-        <div class="trust-stat"><div class="trust-stat-num">4,000+</div><div class="trust-stat-label">EMPLOYERS</div></div>
-        <div class="trust-stat"><div class="trust-stat-num">500K+</div><div class="trust-stat-label">INTERVIEWS CONDUCTED</div></div>
-        <div class="trust-stat"><div class="trust-stat-num">8 yrs</div><div class="trust-stat-label">HOSTING VIRTUAL EVENTS</div></div>
-        <div class="trust-stat"><div class="trust-stat-num">FREE</div><div class="trust-stat-label">FOR JOB SEEKERS</div></div>
-      </div>
-
-      <p class="body-caps">HOW THE BIRMINGHAM VIRTUAL JOB FAIR WORKS</p>
-
-      <div class="how-grid">
-        <div class="how-step">
-          <div class="how-step-num">1</div>
-          <div class="how-step-icon">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 9V5a2 2 0 0 1 2-2h4"/><path d="M2 15v4a2 2 0 0 0 2 2h4"/><path d="M22 9V5a2 2 0 0 0-2-2h-4"/><path d="M22 15v4a2 2 0 0 1-2 2h-4"/><circle cx="12" cy="12" r="3"/></svg>
-          </div>
-          <h4>Register on Eventbrite</h4>
-          <p>Reserve your spot at the Birmingham Virtual Job Fair.</p>
-        </div>
-        <div class="how-step">
-          <div class="how-step-num">2</div>
-          <div class="how-step-icon">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg>
-          </div>
-          <h4>Complete your profile</h4>
-          <p>Upload a resume or build one free on JobFairX.</p>
-        </div>
-        <div class="how-step">
-          <div class="how-step-num">3</div>
-          <div class="how-step-icon">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-          </div>
-          <h4>Get matched & request interviews</h4>
-          <p>We pair you with employers. You request interviews. They accept.</p>
-        </div>
-        <div class="how-step">
-          <div class="how-step-num">4</div>
-          <div class="how-step-icon">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
-          </div>
-          <h4>Live video interview</h4>
-          <p>Join your interview on event day. 15-20 min, one-on-one.</p>
-        </div>
-      </div>
-
-      <p class="body-caps">ABOUT THIS BIRMINGHAM VIRTUAL JOB FAIR</p>
-      <p>Join JobFairX on June 25, 2026 for the Birmingham Entry-Level Virtual Job Fair. Unlike a traditional job fair, you won't show up and hope someone notices your resume. JobFairX matches you with employers based on your profile, then schedules video interviews you'll attend on event day. Just real conversations with companies hiring entry-level talent in Birmingham.</p>
-
-      <p class="body-caps">TRUSTED BY TOP EMPLOYERS</p>
-      <div class="trusted-eyebrow">Companies that have hired through JobFairX</div>
-      <div class="companies-grid">
-        <div class="company-tile"><div class="name cvs">CVS Health</div></div>
-        <div class="company-tile"><div class="name sherwin">SHERWIN-WILLIAMS.</div></div>
-        <div class="company-tile"><div class="name tesla">T E S L A</div></div>
-        <div class="company-tile"><div class="name kaiser">KAISER<br>PERMANENTE.</div></div>
-        <div class="company-tile"><div class="name tmobile">T &middot; Mobile</div></div>
-        <div class="company-tile"><div class="name amazon">amazon</div></div>
-        <div class="company-tile"><div class="name uhc">UNITED<br>HEALTHCARE</div></div>
-        <div class="company-tile"><div class="name target">target.</div></div>
-        <div class="company-tile"><div class="name nylife">NEW YORK<br>LIFE</div></div>
-        <div class="company-tile"><div class="name hca">HCA<br>HEALTHCARE</div></div>
-        <div class="company-tile"><div class="name verizon">verizon</div></div>
-        <div class="company-tile"><div class="name ascension">Ascension</div></div>
-      </div>
-
-      <p class="body-caps">COST OF ATTENDING THE BIRMINGHAM VIRTUAL JOB FAIR</p>
-      <p>Attending is 100% free for job seekers. There is no registration fee, no interview fee, no resume submission fee. JobFairX has always been free for candidates and always will be.</p>
-
-      <p class="body-caps">EVENT FORMAT</p>
-      <p>100% virtual. All interviews happen by video. You can attend from anywhere with an internet connection.</p>
-
-      <p class="body-caps">DATE AND TIME</p>
-      <p>Thursday, June 25, 2026 from 11:00 AM to 3:00 PM CT. Specific interview times are assigned individually based on employer schedules and your match results. You'll receive your interview time before the event. Registration closes when the event starts.</p>
-
-      <p class="body-caps">WHO IS HIRING AT THIS EVENT</p>
-      <p>Employers attending the Birmingham Entry-Level Virtual Job Fair are actively hiring for entry-level positions across a wide range of industries. The list of attending companies is shared with confirmed registrants before the event.</p>
-
-      <p class="body-caps">INDUSTRIES THAT HIRE AT OUR BIRMINGHAM ENTRY-LEVEL VIRTUAL JOB FAIRS</p>
-      <p class="body-industries">Accommodations, Accounting, Administrative Support, Advertising, Aerospace, Agriculture, Air Transportation, Animal Care, Apparel, Architecture, Auto, Banking, Beauty, Biotechnology, Broadcasting, Building Materials, Business Services, Call Center, Catering, Chemicals, Childcare, Cleaning Services, Communications, Construction, Consulting, Consumer Products, Customer Service, Data Entry, Delivery Services, Dental, Distribution, Education, Electrical, Electronics, Energy, Engineering, Entertainment, Environmental Services, Event Planning, Fashion, Financial Services, Fitness, Food &amp; Beverage, Food Service, Funeral Services, Furniture, Gaming, Government, Grocery, Healthcare, Home Services, Hospitality, Hotel, Human Resources, HVAC, Industrial, Information Technology, Insurance, Janitorial, Jewelry, Journalism, Landscaping, Law Enforcement, Legal Services, Library, Logistics, Maintenance, Manufacturing, Marketing, Media, Medical Devices, Mining, Mortgage, Moving &amp; Storage, Music, Nonprofit, Nursing, Optometry, Packaging, Personal Care, Pest Control, Pet Care, Pharmaceutical, Photography, Plumbing, Postal Services, Printing &amp; Publishing, Production, Property Management, Public Administration, Public Relations, Public Safety, Quality Assurance, Real Estate, Recreation, Recruiting, Religious Services, Renewable Energy, Repair Services, Research, Restaurant, Retail, Sales, Sanitation, Security, Senior Care, Service Industry, Shipping &amp; Receiving, Social Services, Solar, Sports, Staffing, Technology, Telecommunications, Textiles, Tourism, Trades, Transportation, Travel, Trucking, Tutoring, Utilities, Veterinary, Warehouse, Waste Management, Web Services, Wellness, Wholesale, Wireless — and more entry-level positions in Birmingham.</p>
-
+  <div class="overview-section">
+    <div class="overview-header">
+      <h2 class="overview-h2">Overview</h2>
+      <span class="ours-tag">OUR CONTENT · structured_content modules</span>
     </div>
+    <div class="overview-body">
 
-    <h2 class="section-head">Frequently asked questions</h2>
-    <div class="faq-callout"><strong>FAQ lives in Eventbrite's dedicated FAQ section</strong> — NOT in the description body. Each Q/A pair is a separate Eventbrite FAQ item. Eventbrite renders them as collapsible accordion items with schema.org markup (the 8% organic traffic boost).</div>
-
-    <div class="faq-list" style="margin-top: 22px;">
-
-      <div class="faq-item open">
-        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')"><div class="faq-q-text">How does JobFairX work for job seekers?</div><svg class="faq-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div>
-        <div class="faq-a">After you register on Eventbrite, we send you a message to complete your registration on JobFairX. You create an account, upload an existing resume or build a free one through JobFairX, and we match you with employers actively hiring for roles that fit your background. You request interviews with the employers you want to meet, and if accepted, you'll have a scheduled video interview on event day.</div>
+      <div class="module">
+        <div class="module-label">IMAGE MODULE · tiles_strip.png</div>
+        <div class="tiles-strip">
+          <div class="tile a">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+            Pre-scheduled video interviews
+          </div>
+          <div class="tile b">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+            Matched with open roles
+          </div>
+          <div class="tile c">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+            Hiring teams that hire fast
+          </div>
+        </div>
       </div>
 
-      <div class="faq-item">
-        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')"><div class="faq-q-text">How do you match job seekers with employers?</div><svg class="faq-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div>
-        <div class="faq-a">Our matching system reviews your resume, skills, experience, location, and job preferences against open roles from employers attending the event. Roles that align with your profile are surfaced for you to request an interview.</div>
+      <div class="module">
+        <div class="module-label text">TEXT MODULE · greeting + employer CTA</div>
+        <div class="body">
+          <div class="body-greeting">Connect and interview with top employers.</div>
+          <div class="emp-cta">
+            <h3>Are you an employer hiring?</h3>
+            <a href="#" class="emp-cta-link">View employer details and register here →</a>
+            <p class="emp-cta-pricing">Pricing starts at $495, scaled to the number of roles you want to fill.</p>
+          </div>
+          <p>Looking for a job in Birmingham? If you are, this event is a must-attend. Meet with employers hiring entry-level talent in Birmingham — and skip the resume pile.</p>
+        </div>
       </div>
 
-      <div class="faq-item">
-        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')"><div class="faq-q-text">How can I prepare for the virtual job fair?</div><svg class="faq-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div>
-        <div class="faq-a">Complete your JobFairX profile with up-to-date skills, experience, and job preferences. Upload a current resume or use JobFairX's free resume builder. Research the employers and roles you're interviewing with. Test your computer, internet connection, microphone, and camera ahead of time. Dress as you would for an in-person interview.</div>
+      <div class="module">
+        <div class="module-label">IMAGE MODULE · how_it_works.png</div>
+        <p class="body-caps" style="margin-top:0;">HOW THE BIRMINGHAM VIRTUAL JOB FAIR WORKS</p>
+        <div class="how-grid">
+          <div class="how-step">
+            <div class="how-step-num">1</div>
+            <div class="how-step-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 9V5a2 2 0 0 1 2-2h4"/><path d="M2 15v4a2 2 0 0 0 2 2h4"/><path d="M22 9V5a2 2 0 0 0-2-2h-4"/><path d="M22 15v4a2 2 0 0 1-2 2h-4"/><circle cx="12" cy="12" r="3"/></svg></div>
+            <h4>Register on Eventbrite</h4>
+            <p>Reserve your spot at the Birmingham Virtual Job Fair.</p>
+          </div>
+          <div class="how-step">
+            <div class="how-step-num">2</div>
+            <div class="how-step-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg></div>
+            <h4>Complete your profile</h4>
+            <p>Upload a resume or build one free on JobFairX.</p>
+          </div>
+          <div class="how-step">
+            <div class="how-step-num">3</div>
+            <div class="how-step-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+            <h4>Get matched &amp; request interviews</h4>
+            <p>We pair you with employers. You request interviews. They accept.</p>
+          </div>
+          <div class="how-step">
+            <div class="how-step-num">4</div>
+            <div class="how-step-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg></div>
+            <h4>Live video interview</h4>
+            <p>Join your interview on event day. 15-20 min, one-on-one.</p>
+          </div>
+        </div>
       </div>
 
-      <div class="faq-item">
-        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')"><div class="faq-q-text">Is there a fee to participate?</div><svg class="faq-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div>
-        <div class="faq-a">No. Registering, getting matched, requesting interviews, and attending interviews on JobFairX is 100% free for job seekers.</div>
+      <div class="module">
+        <div class="module-label text">TEXT MODULE · about + cost + format + date</div>
+        <div class="body">
+          <p class="body-caps" style="margin-top:0;">ABOUT THIS BIRMINGHAM VIRTUAL JOB FAIR</p>
+          <p>Join JobFairX on June 25, 2026 for the Birmingham Entry-Level Virtual Job Fair. Unlike a traditional job fair, you won't show up and hope someone notices your resume. JobFairX matches you with employers based on your profile, then schedules video interviews you'll attend on event day. Just real conversations with companies hiring entry-level talent in Birmingham.</p>
+          <p class="body-caps">COST OF ATTENDING THE BIRMINGHAM VIRTUAL JOB FAIR</p>
+          <p>Attending is 100% free for job seekers. There is no registration fee, no interview fee, no resume submission fee. JobFairX has always been free for candidates and always will be.</p>
+          <p class="body-caps">EVENT FORMAT</p>
+          <p>100% virtual. All interviews happen by video. You can attend from anywhere with an internet connection.</p>
+          <p class="body-caps">DATE AND TIME</p>
+          <p>Thursday, June 25, 2026 from 11:00 AM to 3:00 PM CT. Specific interview times are assigned individually based on employer schedules and your match results. You'll receive your interview time before the event. Registration closes when the event starts.</p>
+          <p class="body-caps">WHO IS HIRING AT THIS EVENT</p>
+          <p>Employers attending the Birmingham Entry-Level Virtual Job Fair are actively hiring for entry-level positions across a wide range of industries. The list of attending companies is shared with confirmed registrants before the event.</p>
+        </div>
       </div>
 
-      <div class="faq-item">
-        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')"><div class="faq-q-text">What should I do before my scheduled interview?</div><svg class="faq-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div>
-        <div class="faq-a">Make sure you have a stable internet connection and a quiet, well-lit environment. Test your microphone and webcam. Review the employer and job requirements. Have your resume ready to share.</div>
+      <div class="module">
+        <div class="module-label">IMAGE MODULE · past_companies.png</div>
+        <div class="logos-frame">
+          <div class="logos-frame-eyebrow">Trusted by top employers</div>
+          <div class="companies-grid">
+            <div class="company-tile"><div class="name cvs">CVS Health</div></div>
+            <div class="company-tile"><div class="name sherwin">SHERWIN-WILLIAMS.</div></div>
+            <div class="company-tile"><div class="name tesla">T E S L A</div></div>
+            <div class="company-tile"><div class="name kaiser">KAISER<br>PERMANENTE.</div></div>
+            <div class="company-tile"><div class="name tmobile">T &middot; Mobile</div></div>
+            <div class="company-tile"><div class="name amazon">amazon</div></div>
+            <div class="company-tile"><div class="name uhc">UNITED<br>HEALTHCARE</div></div>
+            <div class="company-tile"><div class="name target">target.</div></div>
+            <div class="company-tile"><div class="name nylife">NEW YORK<br>LIFE</div></div>
+            <div class="company-tile"><div class="name hca">HCA<br>HEALTHCARE</div></div>
+            <div class="company-tile"><div class="name verizon">verizon</div></div>
+            <div class="company-tile"><div class="name ascension">Ascension</div></div>
+          </div>
+        </div>
       </div>
 
-      <div class="faq-item">
-        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')"><div class="faq-q-text">Can I conduct the interview from a mobile device?</div><svg class="faq-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div>
-        <div class="faq-a">Yes, you can use a smartphone or tablet. A laptop or desktop is recommended for the best experience, but mobile works if your connection is stable.</div>
+      <div class="module">
+        <div class="module-label text">TEXT MODULE · industries (Eventbrite ranking signal)</div>
+        <div class="body">
+          <p class="body-caps" style="margin-top:0;">INDUSTRIES THAT HIRE AT OUR BIRMINGHAM ENTRY-LEVEL VIRTUAL JOB FAIRS</p>
+          <p class="body-industries">Accommodations, Accounting, Administrative Support, Advertising, Aerospace, Agriculture, Air Transportation, Animal Care, Apparel, Architecture, Auto, Banking, Beauty, Biotechnology, Broadcasting, Building Materials, Business Services, Call Center, Catering, Chemicals, Childcare, Cleaning Services, Communications, Construction, Consulting, Consumer Products, Customer Service, Data Entry, Delivery Services, Dental, Distribution, Education, Electrical, Electronics, Energy, Engineering, Entertainment, Environmental Services, Event Planning, Fashion, Financial Services, Fitness, Food &amp; Beverage, Food Service, Funeral Services, Furniture, Gaming, Government, Grocery, Healthcare, Home Services, Hospitality, Hotel, Human Resources, HVAC, Industrial, Information Technology, Insurance, Janitorial, Jewelry, Journalism, Landscaping, Law Enforcement, Legal Services, Library, Logistics, Maintenance, Manufacturing, Marketing, Media, Medical Devices, Mining, Mortgage, Moving &amp; Storage, Music, Nonprofit, Nursing, Optometry, Packaging, Personal Care, Pest Control, Pet Care, Pharmaceutical, Photography, Plumbing, Postal Services, Printing &amp; Publishing, Production, Property Management, Public Administration, Public Relations, Public Safety, Quality Assurance, Real Estate, Recreation, Recruiting, Religious Services, Renewable Energy, Repair Services, Research, Restaurant, Retail, Sales, Sanitation, Security, Senior Care, Service Industry, Shipping &amp; Receiving, Social Services, Solar, Sports, Staffing, Technology, Telecommunications, Textiles, Tourism, Trades, Transportation, Travel, Trucking, Tutoring, Utilities, Veterinary, Warehouse, Waste Management, Web Services, Wellness, Wholesale, Wireless — and more entry-level positions in Birmingham.</p>
+        </div>
       </div>
 
-      <div class="faq-item">
-        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')"><div class="faq-q-text">What if I need to reschedule my interview?</div><svg class="faq-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div>
-        <div class="faq-a">Log into your JobFairX account and go to your scheduled interview. You can reschedule directly from your dashboard. Let the employer know if possible.</div>
-      </div>
-
-      <div class="faq-item">
-        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')"><div class="faq-q-text">When will I hear back from the employer after my interview?</div><svg class="faq-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div>
-        <div class="faq-a">Timing varies by employer. Some give immediate feedback, others take days or weeks. If the employer mentioned a timeline during the interview, wait until that period passes before following up.</div>
-      </div>
-
-      <div class="faq-item">
-        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')"><div class="faq-q-text">How do I participate in a JobFairX virtual job fair?</div><svg class="faq-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div>
-        <div class="faq-a">Register on Eventbrite, then complete your registration on JobFairX. Once your profile is complete, our matching system surfaces open roles for you. You request interviews with employers you want to meet. If accepted, you'll receive a scheduled interview time and join the video interview on event day.</div>
-      </div>
-
-      <div class="faq-item">
-        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')"><div class="faq-q-text">What time does the event run?</div><svg class="faq-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div>
-        <div class="faq-a">All JobFairX events run from 11:00 AM to 3:00 PM local time. Your specific interview time is assigned individually based on the employer's schedule and your accepted requests. Registration closes when the event starts.</div>
-      </div>
-
-      <div class="faq-item">
-        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')"><div class="faq-q-text">Can I attend from anywhere?</div><svg class="faq-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div>
-        <div class="faq-a">Yes. JobFairX events are accessible from anywhere with an internet connection.</div>
-      </div>
-
-      <div class="faq-item">
-        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')"><div class="faq-q-text">How do I join my scheduled interview?</div><svg class="faq-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div>
-        <div class="faq-a">Log into your JobFairX account on event day. Your scheduled interview details and join link will be in your account.</div>
-      </div>
-
-      <div class="faq-item">
-        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')"><div class="faq-q-text">How does the interview itself work?</div><svg class="faq-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div>
-        <div class="faq-a">Interviews happen by video through JobFairX. Log in about 5 minutes before your scheduled time. Most interviews last 15–20 minutes. Test your microphone and camera in advance. Dress professionally. Thank the interviewer at the end.</div>
-      </div>
-
-      <div class="faq-item">
-        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')"><div class="faq-q-text">What if I have technical difficulties during the interview?</div><svg class="faq-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div>
-        <div class="faq-a">Check your internet, refresh your browser, verify your microphone and camera are working. Try a different browser or device if needed. Contact JobFairX support if the issue persists.</div>
+      <div class="module">
+        <div class="module-label">IMAGE MODULE · trust_stats.png</div>
+        <div class="trust-stats">
+          <div class="trust-stat"><div class="trust-stat-num">4,000+</div><div class="trust-stat-label">EMPLOYERS</div></div>
+          <div class="trust-stat"><div class="trust-stat-num">500K+</div><div class="trust-stat-label">INTERVIEWS CONDUCTED</div></div>
+          <div class="trust-stat"><div class="trust-stat-num">8 yrs</div><div class="trust-stat-label">HOSTING VIRTUAL EVENTS</div></div>
+          <div class="trust-stat"><div class="trust-stat-num">FREE</div><div class="trust-stat-label">FOR JOB SEEKERS</div></div>
+        </div>
       </div>
 
     </div>
+  </div>
 
+  <div class="evb-section mod" data-mod="EVENTBRITE · auto from event metadata">
+    <h3>Good to know</h3>
+    <div class="evb-highlight-row">
+      <div class="evb-highlight">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        4 hours
+      </div>
+      <div class="evb-highlight">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        Online
+      </div>
+      <div class="evb-highlight">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        English
+      </div>
+    </div>
+  </div>
+
+  <div class="evb-section mod" data-mod="EVENTBRITE · auto from event metadata">
+    <h3>Location</h3>
+    <div class="evb-highlight">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+      Online event — instructions sent after registration
+    </div>
+  </div>
+
+  <div class="evb-section mod" data-mod="EVENTBRITE · auto from organizer profile">
+    <h3>Organized by</h3>
+    <div class="evb-org-card">
+      <div class="evb-org-avatar">JX</div>
+      <div class="evb-org-info">
+        <div class="evb-org-top-pill-row">
+          <span class="evb-top-org-pill">TOP ORGANIZER</span>
+        </div>
+        <h4>JobFairX</h4>
+        <div class="evb-org-info-stats">216,871 followers · 3,199 events · 8 years hosting</div>
+      </div>
+      <button class="evb-follow-btn">Follow</button>
+    </div>
+  </div>
+
+  <div class="evb-section mod" data-mod="EVENTBRITE · dedicated FAQ component">
+    <h3>Frequently asked questions</h3>
+    <div class="faq-callout"><strong>FAQ lives in Eventbrite's dedicated FAQ component</strong> — NOT in the description body. Each Q/A pair is a separate Eventbrite FAQ item with schema.org markup (the 8% organic traffic boost).</div>
+    <div class="faq-list">
+      <div class="faq-item open"><div class="faq-q" onclick="this.parentElement.classList.toggle('open')"><div class="faq-q-text">How does JobFairX work for job seekers?</div><svg class="faq-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div><div class="faq-a">After you register on Eventbrite, we send you a message to complete your registration on JobFairX. You create an account, upload an existing resume or build a free one through JobFairX, and we match you with employers actively hiring for roles that fit your background. You request interviews with the employers you want to meet, and if accepted, you'll have a scheduled video interview on event day.</div></div>
+      <div class="faq-item"><div class="faq-q" onclick="this.parentElement.classList.toggle('open')"><div class="faq-q-text">How do you match job seekers with employers?</div><svg class="faq-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div><div class="faq-a">Our matching system reviews your resume, skills, experience, location, and job preferences against open roles from employers attending the event. Roles that align with your profile are surfaced for you to request an interview.</div></div>
+      <div class="faq-item"><div class="faq-q" onclick="this.parentElement.classList.toggle('open')"><div class="faq-q-text">How can I prepare for the virtual job fair?</div><svg class="faq-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div><div class="faq-a">Complete your JobFairX profile with up-to-date skills, experience, and job preferences. Upload a current resume or use JobFairX's free resume builder. Research the employers and roles you're interviewing with. Test your computer, internet connection, microphone, and camera ahead of time. Dress as you would for an in-person interview.</div></div>
+      <div class="faq-item"><div class="faq-q" onclick="this.parentElement.classList.toggle('open')"><div class="faq-q-text">Is there a fee to participate?</div><svg class="faq-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div><div class="faq-a">No. Registering, getting matched, requesting interviews, and attending interviews on JobFairX is 100% free for job seekers.</div></div>
+      <div class="faq-item"><div class="faq-q" onclick="this.parentElement.classList.toggle('open')"><div class="faq-q-text">What should I do before my scheduled interview?</div><svg class="faq-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div><div class="faq-a">Make sure you have a stable internet connection and a quiet, well-lit environment. Test your microphone and webcam. Review the employer and job requirements. Have your resume ready to share.</div></div>
+      <div class="faq-item"><div class="faq-q" onclick="this.parentElement.classList.toggle('open')"><div class="faq-q-text">Can I conduct the interview from a mobile device?</div><svg class="faq-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div><div class="faq-a">Yes, you can use a smartphone or tablet. A laptop or desktop is recommended for the best experience, but mobile works if your connection is stable.</div></div>
+      <div class="faq-item"><div class="faq-q" onclick="this.parentElement.classList.toggle('open')"><div class="faq-q-text">What if I need to reschedule my interview?</div><svg class="faq-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div><div class="faq-a">Log into your JobFairX account and go to your scheduled interview. You can reschedule directly from your dashboard. Let the employer know if possible.</div></div>
+      <div class="faq-item"><div class="faq-q" onclick="this.parentElement.classList.toggle('open')"><div class="faq-q-text">When will I hear back from the employer after my interview?</div><svg class="faq-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div><div class="faq-a">Timing varies by employer. Some give immediate feedback, others take days or weeks. If the employer mentioned a timeline during the interview, wait until that period passes before following up.</div></div>
+      <div class="faq-item"><div class="faq-q" onclick="this.parentElement.classList.toggle('open')"><div class="faq-q-text">How do I participate in a JobFairX virtual job fair?</div><svg class="faq-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div><div class="faq-a">Register on Eventbrite, then complete your registration on JobFairX. Once your profile is complete, our matching system surfaces open roles for you. You request interviews with employers you want to meet. If accepted, you'll receive a scheduled interview time and join the video interview on event day.</div></div>
+      <div class="faq-item"><div class="faq-q" onclick="this.parentElement.classList.toggle('open')"><div class="faq-q-text">What time does the event run?</div><svg class="faq-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div><div class="faq-a">All JobFairX events run from 11:00 AM to 3:00 PM local time. Your specific interview time is assigned individually based on the employer's schedule and your accepted requests. Registration closes when the event starts.</div></div>
+      <div class="faq-item"><div class="faq-q" onclick="this.parentElement.classList.toggle('open')"><div class="faq-q-text">Can I attend from anywhere?</div><svg class="faq-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div><div class="faq-a">Yes. JobFairX events are accessible from anywhere with an internet connection.</div></div>
+      <div class="faq-item"><div class="faq-q" onclick="this.parentElement.classList.toggle('open')"><div class="faq-q-text">How do I join my scheduled interview?</div><svg class="faq-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div><div class="faq-a">Log into your JobFairX account on event day. Your scheduled interview details and join link will be in your account.</div></div>
+      <div class="faq-item"><div class="faq-q" onclick="this.parentElement.classList.toggle('open')"><div class="faq-q-text">How does the interview itself work?</div><svg class="faq-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div><div class="faq-a">Interviews happen by video through JobFairX. Log in about 5 minutes before your scheduled time. Most interviews last 15–20 minutes. Test your microphone and camera in advance. Dress professionally. Thank the interviewer at the end.</div></div>
+      <div class="faq-item"><div class="faq-q" onclick="this.parentElement.classList.toggle('open')"><div class="faq-q-text">What if I have technical difficulties during the interview?</div><svg class="faq-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div><div class="faq-a">Check your internet, refresh your browser, verify your microphone and camera are working. Try a different browser or device if needed. Contact JobFairX support if the issue persists.</div></div>
+    </div>
   </div>
 
 </div>
