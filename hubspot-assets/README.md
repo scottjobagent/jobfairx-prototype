@@ -12,11 +12,14 @@ hubspot-assets/
 │   ├── cover-veterans.png       (red          #A02525)
 │   ├── cover-diversity.png      (orange       #E8731B)
 │   └── cover-technology.png     (purple       #5B3DAB)
-├── sections/            — 3 composited section graphics
-│   ├── how-it-works.png       (1600×900 — 3-step grid)
-│   ├── trust-stats.png        (2160×320 — 4-stat banner)
-│   └── past-companies.png     (1600×900 — 16-logo grid)
-├── logos/               — 16 individual company logos (PNGs)
+├── sections/            — section graphics
+│   ├── how-it-works.png             (1600×900 — shared across all types)
+│   ├── trust-stats.png              (2160×320 — shared across all types)
+│   ├── past-companies-entry-level.png   (1600×900 — Birmingham/Entry-Level grid)
+│   ├── past-companies-healthcare.png    (1600×900 — Healthcare grid)
+│   ├── past-companies-veterans.png      (1600×900 — Veterans grid)
+│   ├── past-companies-diversity.png     (1600×900 — Diversity grid)
+│   └── past-companies-technology.png    (1600×900 — Technology grid)
 └── README.md
 ```
 
@@ -24,8 +27,8 @@ hubspot-assets/
 
 | Element            | Hex        | Use                                    |
 |--------------------|------------|----------------------------------------|
-| Brand blue         | `#0044B3`  | Primary CTA, links, trust banner, icons |
-| Brand blue (dark)  | `#003399`  | Secondary brand blue                   |
+| Brand blue         | `#0044B3`  | Primary CTA, links, trust banner       |
+| Brand blue (dark)  | `#003399`  | Hover state, secondary blue            |
 | Gold accent        | `#FFB800`  | "Free for Job Seekers" pill            |
 | Body text          | `#1a1a1a`  | Headings, body copy                    |
 | Secondary text     | `#4b5563`  | Subtitles, meta                        |
@@ -71,7 +74,7 @@ hubspot-assets/
 
 ## Reference
 
-Live design templates (visual + dev doc toggle): 
+Live design templates (visual + dev doc toggle):
 https://scottjobagent.github.io/jobfairx-prototype/eventbrite-entry-level-mockup.html
 
 Use the toggle at the top right to switch between Visual and Dev Doc views.
