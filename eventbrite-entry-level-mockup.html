@@ -122,9 +122,270 @@
   .cover-wrap { position: relative; }
 
   .body-section-head { font-size: 22px; font-weight: 800; color: #1a1a1a; letter-spacing: 0.02em; margin: 6px 0 18px; line-height: 1.25; }
+
+  .view-toggle { position: sticky; top: 0; z-index: 100; background: #1a1a1a; padding: 12px 24px; display: flex; justify-content: center; gap: 0; margin: -40px -24px 32px; }
+  .view-toggle button { background: transparent; color: rgba(255,255,255,0.6); border: 1px solid rgba(255,255,255,0.25); padding: 8px 24px; font-size: 13px; font-weight: 600; letter-spacing: 0.04em; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+  .view-toggle button:first-child { border-radius: 6px 0 0 6px; }
+  .view-toggle button:last-child { border-radius: 0 6px 6px 0; border-left: none; }
+  .view-toggle button.active { background: #fff; color: #1a1a1a; border-color: #fff; }
+  .dev-doc { display: none; max-width: 920px; margin: 0 auto; padding: 0; }
+  body.devdoc-mode .stage { display: none; }
+  body.devdoc-mode .dev-doc { display: block; }
+  .dev-section { background: #fff; border-radius: 12px; padding: 32px 40px; margin-bottom: 22px; box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 14px rgba(0,0,0,0.04); }
+  .dev-section h2 { font-size: 24px; font-weight: 800; color: #1a1a1a; margin-bottom: 8px; letter-spacing: -0.01em; }
+  .dev-section-sub { font-size: 14px; color: #6b7280; margin-bottom: 24px; }
+  .dev-section h3 { font-size: 16px; font-weight: 700; color: #1a1a1a; margin: 24px 0 10px; }
+  .dev-section p { font-size: 15px; line-height: 1.7; color: #2d2d2d; margin-bottom: 12px; }
+  .dev-section ul, .dev-section ol { margin: 12px 0 18px 22px; }
+  .dev-section li { font-size: 15px; line-height: 1.7; color: #2d2d2d; margin-bottom: 6px; }
+  .dev-section code { background: #f3f4f6; padding: 2px 7px; border-radius: 4px; font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 13px; color: #1f2937; }
+  .dev-section pre { background: #1a1a1a; color: #e5e7eb; padding: 18px 22px; border-radius: 10px; overflow-x: auto; font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12.5px; line-height: 1.6; margin: 14px 0 18px; }
+  .dev-section pre .k { color: #fbbf24; }
+  .dev-section pre .s { color: #86efac; }
+  .dev-section pre .n { color: #93c5fd; }
+  .dev-section table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 14px; }
+  .dev-section th { text-align: left; padding: 10px 12px; background: #f9fafb; color: #4b5563; font-weight: 700; font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; border-bottom: 1px solid #e5e7eb; }
+  .dev-section td { padding: 12px; border-bottom: 1px solid #f0eeea; vertical-align: top; }
+  .dev-section td:first-child { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 13px; color: #0044B3; font-weight: 600; white-space: nowrap; }
+  .dev-callout { background: #FEF7E6; border-left: 3px solid #fbbf24; padding: 14px 18px; border-radius: 6px; font-size: 14px; color: #78350f; line-height: 1.6; margin: 14px 0; }
+  .dev-callout strong { color: #92400e; }
+  .dev-callout.info { background: #E6F1FB; border-color: #0044B3; color: #1a2942; }
+  .dev-callout.info strong { color: #003399; }
+  .dev-step { background: #fafafa; border: 1px solid #f0eeea; border-radius: 10px; padding: 18px 22px; margin-bottom: 14px; }
+  .dev-step-num { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; background: #0044B3; color: #fff; border-radius: 50%; font-size: 12px; font-weight: 800; margin-right: 10px; vertical-align: middle; }
+  .dev-step-title { font-size: 16px; font-weight: 700; color: #1a1a1a; display: inline; }
+  .dev-step p { font-size: 14px; margin: 10px 0 0; }
+  .dev-modules-list { counter-reset: mod; }
+  .dev-module-row { display: grid; grid-template-columns: 40px 130px 1fr; gap: 14px; padding: 12px 0; border-bottom: 1px solid #f0eeea; font-size: 14px; align-items: start; }
+  .dev-module-row:last-child { border-bottom: none; }
+  .dev-module-row::before { counter-increment: mod; content: counter(mod); width: 28px; height: 28px; background: #E6F1FB; color: #003399; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; }
+  .dev-module-type { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12px; color: #0044B3; background: #E6F1FB; padding: 4px 8px; border-radius: 4px; font-weight: 700; height: fit-content; }
+  .dev-module-type.text { background: #f3f4f6; color: #4b5563; }
+  .dev-module-desc { color: #2d2d2d; line-height: 1.55; }
 </style>
 </head>
 <body>
+
+<div class="view-toggle">
+  <button id="btn-visual" class="active" onclick="document.body.classList.remove('devdoc-mode'); document.getElementById('btn-visual').classList.add('active'); document.getElementById('btn-doc').classList.remove('active'); window.scrollTo(0,0);">Visual</button>
+  <button id="btn-doc" onclick="document.body.classList.add('devdoc-mode'); document.getElementById('btn-doc').classList.add('active'); document.getElementById('btn-visual').classList.remove('active'); window.scrollTo(0,0);">Developer doc</button>
+</div>
+
+<div class="dev-doc">
+
+  <div class="dev-section">
+    <h2>Eventbrite Entry-Level Job Fair — Developer doc</h2>
+    <div class="dev-section-sub">API spec for the universal entry-level event template. Toggle to <strong>Visual</strong> at the top to see the rendered output.</div>
+    <div class="dev-callout info">
+      <strong>One template, infinite events.</strong> All 4 image assets are uploaded once and reused across every entry-level event. Each new event is a single API call sequence with <code>{City}</code> and <code>{EventDate}</code> swapped in.
+    </div>
+  </div>
+
+  <div class="dev-section">
+    <h2>1. One-time asset uploads</h2>
+    <div class="dev-section-sub">Upload each PNG once. Store the returned <code>image_id</code> in config. Reuse across every event forever.</div>
+    <h3>Upload sequence (per asset)</h3>
+    <ol>
+      <li><code>POST /media/upload/?type=image-event-logo</code> → returns S3 pre-signed URL + upload token</li>
+      <li><code>PUT</code> image bytes to S3 URL → HTTP 204</li>
+      <li><code>POST /media/upload/</code> confirm with token → returns <code>image_id</code></li>
+    </ol>
+    <h3>Assets to upload</h3>
+    <table>
+      <thead><tr><th>Asset</th><th>Filename</th><th>Purpose</th><th>Stored as</th></tr></thead>
+      <tbody>
+        <tr><td>Cover</td><td>cover.png</td><td>2160×1080 universal hero image</td><td><code>COVER_IMAGE_ID</code></td></tr>
+        <tr><td>How It Works</td><td>how_it_works.png</td><td>4-step grid graphic</td><td><code>HOW_IT_WORKS_IMAGE_ID</code></td></tr>
+        <tr><td>Past Companies</td><td>past_companies.png</td><td>16-logo grid graphic</td><td><code>PAST_COMPANIES_IMAGE_ID</code></td></tr>
+        <tr><td>Trust Stats</td><td>trust_stats.png</td><td>4-stat banner (4,000+ / 500K+ / 8 yrs / FREE)</td><td><code>TRUST_STATS_IMAGE_ID</code></td></tr>
+      </tbody>
+    </table>
+    <div class="dev-callout">
+      <strong>Why image uploads instead of HTML/CSS?</strong> Eventbrite's structured_content text module strips inline styles, classes, divs, backgrounds, and tables. Colored tiles, grids, and styled layouts can only survive as image uploads.
+    </div>
+  </div>
+
+  <div class="dev-section">
+    <h2>2. Template variables</h2>
+    <div class="dev-section-sub">These are the only per-event variables. Everything else is universal.</div>
+    <table>
+      <thead><tr><th>Variable</th><th>Example</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>{City}</td><td>Birmingham</td><td>Used 15+ times in body copy</td></tr>
+        <tr><td>{CitySlug}</td><td>birmingham</td><td>Lowercase, no spaces</td></tr>
+        <tr><td>{StateSlug}</td><td>alabama</td><td>Lowercase, no spaces</td></tr>
+        <tr><td>{EventDate}</td><td>June 25, 2026</td><td>For title</td></tr>
+        <tr><td>{EventDateLong}</td><td>Thursday, June 25, 2026</td><td>For display</td></tr>
+        <tr><td>{StartDateTime}</td><td>2026-06-25T16:00:00Z</td><td>11 AM local in UTC</td></tr>
+        <tr><td>{EndDateTime}</td><td>2026-06-25T20:00:00Z</td><td>3 PM local in UTC</td></tr>
+        <tr><td>{TimezoneId}</td><td>America/Chicago</td><td>Local timezone</td></tr>
+        <tr><td>{EmployerRegisterURL}</td><td>https://app.jobfairx.com/...</td><td>Employer signup link</td></tr>
+        <tr><td>{CityNearMeURL}</td><td>jobfairx.com/job-fairs-near-me/alabama/birmingham</td><td>Closing link</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="dev-section">
+    <h2>3. Per-event API sequence</h2>
+    <div class="dev-section-sub">Run these 4 calls in order for every new event. Fully automated.</div>
+
+    <div class="dev-step">
+      <span class="dev-step-num">1</span><span class="dev-step-title">Create the event shell</span>
+      <p><code>POST /v3/organizations/{ORG_ID}/events/</code></p>
+<pre>{
+  <span class="k">"event"</span>: {
+    <span class="k">"name"</span>: { <span class="k">"html"</span>: <span class="s">"{City} Entry-Level Virtual Job Fair – {EventDate}"</span> },
+    <span class="k">"start"</span>: { <span class="k">"timezone"</span>: <span class="s">"{TimezoneId}"</span>, <span class="k">"utc"</span>: <span class="s">"{StartDateTime}"</span> },
+    <span class="k">"end"</span>:   { <span class="k">"timezone"</span>: <span class="s">"{TimezoneId}"</span>, <span class="k">"utc"</span>: <span class="s">"{EndDateTime}"</span> },
+    <span class="k">"currency"</span>: <span class="s">"USD"</span>,
+    <span class="k">"online_event"</span>: <span class="n">true</span>,
+    <span class="k">"listed"</span>: <span class="n">true</span>,
+    <span class="k">"shareable"</span>: <span class="n">true</span>,
+    <span class="k">"logo_id"</span>: <span class="s">"COVER_IMAGE_ID"</span>
+  }
+}</pre>
+      <p>Returns the new <code>event_id</code>.</p>
+    </div>
+
+    <div class="dev-step">
+      <span class="dev-step-num">2</span><span class="dev-step-title">Push the Overview body</span>
+      <p><code>POST /v3/events/{event_id}/structured_content/?purpose=listing</code></p>
+      <p>Send the modules array. See section 4 for the full payload structure.</p>
+    </div>
+
+    <div class="dev-step">
+      <span class="dev-step-num">3</span><span class="dev-step-title">Add FAQ items</span>
+      <p>For each of the 14 FAQ items: <code>POST /v3/events/{event_id}/questions/</code></p>
+      <p>Use Eventbrite's <strong>dedicated FAQ component</strong>, not the description body. The FAQ component adds schema.org markup which gives an 8% organic traffic boost.</p>
+    </div>
+
+    <div class="dev-step">
+      <span class="dev-step-num">4</span><span class="dev-step-title">Publish</span>
+      <p><code>POST /v3/events/{event_id}/publish/</code></p>
+      <p>Event goes live on Eventbrite.</p>
+    </div>
+  </div>
+
+  <div class="dev-section">
+    <h2>4. structured_content modules</h2>
+    <div class="dev-section-sub">7 modules in this exact order. Body text modules use HTML, sanitized by Eventbrite (see section 5).</div>
+    <div class="dev-modules-list">
+      <div class="dev-module-row"><span class="dev-module-type text">text</span><div class="dev-module-desc"><strong>Greeting + employer CTA</strong> — body greeting line, employer CTA bordered block (link to {EmployerRegisterURL}), opener paragraph with high {City} density.</div></div>
+      <div class="dev-module-row"><span class="dev-module-type">image</span><div class="dev-module-desc"><strong>How It Works graphic</strong> — references <code>HOW_IT_WORKS_IMAGE_ID</code>. No caption.</div></div>
+      <div class="dev-module-row"><span class="dev-module-type">image</span><div class="dev-module-desc"><strong>Past Companies logos</strong> — references <code>PAST_COMPANIES_IMAGE_ID</code>. No caption.</div></div>
+      <div class="dev-module-row"><span class="dev-module-type text">text</span><div class="dev-module-desc"><strong>Searchable companies caption</strong> — names each company as plain text so the Eventbrite indexer can read them. Italic paragraph.</div></div>
+      <div class="dev-module-row"><span class="dev-module-type text">text</span><div class="dev-module-desc"><strong>Industries list</strong> — ALL CAPS heading "INDUSTRIES THAT HIRE AT OUR {City} ENTRY-LEVEL VIRTUAL JOB FAIRS" + 130-industry list. Critical Eventbrite ranking signal.</div></div>
+      <div class="dev-module-row"><span class="dev-module-type">image</span><div class="dev-module-desc"><strong>Trust stats banner</strong> — references <code>TRUST_STATS_IMAGE_ID</code>.</div></div>
+      <div class="dev-module-row"><span class="dev-module-type text">text</span><div class="dev-module-desc"><strong>Closing link</strong> — sentence with hyperlink to <code>{CityNearMeURL}</code>.</div></div>
+    </div>
+    <h3>Full payload shape</h3>
+<pre>{
+  <span class="k">"modules"</span>: [
+    {
+      <span class="k">"type"</span>: <span class="s">"text"</span>,
+      <span class="k">"data"</span>: { <span class="k">"body"</span>: { <span class="k">"text"</span>: <span class="s">"&lt;p&gt;Connect and interview...&lt;/p&gt;..."</span> } }
+    },
+    {
+      <span class="k">"type"</span>: <span class="s">"image"</span>,
+      <span class="k">"data"</span>: { <span class="k">"image"</span>: { <span class="k">"image_id"</span>: <span class="s">"HOW_IT_WORKS_IMAGE_ID"</span> } }
+    },
+    {
+      <span class="k">"type"</span>: <span class="s">"image"</span>,
+      <span class="k">"data"</span>: { <span class="k">"image"</span>: { <span class="k">"image_id"</span>: <span class="s">"PAST_COMPANIES_IMAGE_ID"</span> } }
+    },
+    {
+      <span class="k">"type"</span>: <span class="s">"text"</span>,
+      <span class="k">"data"</span>: { <span class="k">"body"</span>: { <span class="k">"text"</span>: <span class="s">"&lt;p&gt;&lt;em&gt;Past hiring companies at JobFairX events include...&lt;/em&gt;&lt;/p&gt;"</span> } }
+    },
+    {
+      <span class="k">"type"</span>: <span class="s">"text"</span>,
+      <span class="k">"data"</span>: { <span class="k">"body"</span>: { <span class="k">"text"</span>: <span class="s">"&lt;h3&gt;INDUSTRIES THAT HIRE...&lt;/h3&gt;&lt;p&gt;Accommodations, Accounting...&lt;/p&gt;"</span> } }
+    },
+    {
+      <span class="k">"type"</span>: <span class="s">"image"</span>,
+      <span class="k">"data"</span>: { <span class="k">"image"</span>: { <span class="k">"image_id"</span>: <span class="s">"TRUST_STATS_IMAGE_ID"</span> } }
+    },
+    {
+      <span class="k">"type"</span>: <span class="s">"text"</span>,
+      <span class="k">"data"</span>: { <span class="k">"body"</span>: { <span class="k">"text"</span>: <span class="s">"&lt;p&gt;For more information... visit &lt;a href=&quot;{CityNearMeURL}&quot;&gt;our {City} job fairs page&lt;/a&gt;.&lt;/p&gt;"</span> } }
+    }
+  ]
+}</pre>
+  </div>
+
+  <div class="dev-section">
+    <h2>5. Sanitizer rules — text module</h2>
+    <div class="dev-section-sub">Eventbrite strips a lot. Only these tags survive in text modules.</div>
+    <h3>Allowed</h3>
+    <ul>
+      <li><code>&lt;p&gt;</code>, <code>&lt;br&gt;</code> — paragraphs and line breaks</li>
+      <li><code>&lt;h2&gt;</code>, <code>&lt;h3&gt;</code> — headings (NOT <code>&lt;h1&gt;</code> — use ALL CAPS paragraphs instead)</li>
+      <li><code>&lt;strong&gt;</code>, <code>&lt;b&gt;</code> — bold</li>
+      <li><code>&lt;em&gt;</code>, <code>&lt;i&gt;</code> — italic</li>
+      <li><code>&lt;a href&gt;</code> — links</li>
+      <li><code>&lt;ul&gt;</code>, <code>&lt;ol&gt;</code>, <code>&lt;li&gt;</code> — lists</li>
+    </ul>
+    <h3>Stripped before render</h3>
+    <ul>
+      <li>Inline <code>style</code> attributes (no backgrounds, padding, widths)</li>
+      <li>Class names, IDs</li>
+      <li><code>&lt;div&gt;</code>, <code>&lt;span&gt;</code> containers with styling</li>
+      <li><code>&lt;table&gt;</code>, <code>&lt;tr&gt;</code>, <code>&lt;td&gt;</code></li>
+      <li>SVG, embedded <code>&lt;img&gt;</code> (images go in their own module)</li>
+      <li>Custom fonts, sizes, colors</li>
+    </ul>
+    <div class="dev-callout">
+      <strong>Implications:</strong> the 4-step graphic, the logo grid, the gradient trust banner — all of these must be uploaded as image modules. They cannot be rendered as HTML/CSS in a text module.
+    </div>
+  </div>
+
+  <div class="dev-section">
+    <h2>6. Native Eventbrite config (outside the description body)</h2>
+    <div class="dev-section-sub">These settings sit on the event object itself, not in <code>structured_content</code>.</div>
+    <h3>Event metadata</h3>
+    <ul>
+      <li><strong>Refund policy</strong>: "Free event — no refund required"</li>
+      <li><strong>Tags</strong>: <code>virtual, online, job fair, hiring event, careers, {city}, entry-level</code></li>
+      <li><strong>Language</strong>: <code>en_US</code></li>
+      <li><strong>Capacity</strong>: large or uncapped (recommend 10,000+)</li>
+      <li><strong>Online event</strong>: <code>true</code></li>
+    </ul>
+    <h3>Series</h3>
+    <p>Group all entry-level events under one Eventbrite <strong>series</strong>. SEO compounds across cities when events are sibling-linked.</p>
+    <h3>Highlights chips</h3>
+    <p>Eventbrite auto-renders these from event metadata. Should show: <strong>4 hours</strong>, <strong>Online</strong>, <strong>English</strong>.</p>
+    <h3>Ticket class</h3>
+    <p>Single free ticket class:</p>
+<pre>{
+  <span class="k">"name"</span>: <span class="s">"Free admission"</span>,
+  <span class="k">"free"</span>: <span class="n">true</span>,
+  <span class="k">"quantity_total"</span>: <span class="n">10000</span>
+}</pre>
+  </div>
+
+  <div class="dev-section">
+    <h2>7. Cover image specs</h2>
+    <ul>
+      <li><strong>Recommended size</strong>: 2160×1080 (2:1 aspect)</li>
+      <li><strong>Min size</strong>: 940×470</li>
+      <li><strong>Format</strong>: PNG or JPG</li>
+      <li><strong>Content baked in</strong>: title "Entry-Level Virtual Job Fair" + gold "Free for Job Seekers" pill</li>
+      <li><strong>No</strong> city name, no date — universal across all 1,000+ events</li>
+    </ul>
+  </div>
+
+  <div class="dev-section">
+    <h2>8. Updating assets later</h2>
+    <p>When we refresh a graphic (e.g., new tile design, updated logo set):</p>
+    <ol>
+      <li>Upload the new PNG → get new <code>image_id</code></li>
+      <li>Swap the <code>image_id</code> in config</li>
+      <li>Future events use the new asset automatically</li>
+      <li>To update existing live events, run a patch script: <code>POST /events/{id}/structured_content/</code> with the new payload</li>
+    </ol>
+  </div>
+
+</div>
 
 <div class="stage">
 
