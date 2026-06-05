@@ -1,25 +1,31 @@
-# JobFairX Eventbrite → HubSpot Template Assets
+# JobFairX Event Template Assets
 
-Everything Bryce needs to rebuild the 5 event templates in HubSpot.
+Build pack with all images needed for HubSpot and Eventbrite versions of the 5 event templates.
 
 ## Folder structure
 
 ```
 hubspot-assets/
-├── covers/              — 5 hero cover photos (2160×1080)
-│   ├── cover-entry-level.png    (brand blue   #0044B3)
-│   ├── cover-healthcare.png     (green        #0F8E57)
-│   ├── cover-veterans.png       (red          #A02525)
-│   ├── cover-diversity.png      (orange       #E8731B)
-│   └── cover-technology.png     (purple       #5B3DAB)
-├── sections/            — section graphics
+├── covers/                          — 5 covers WITH "Virtual" (HubSpot version)
+│   ├── cover-entry-level.png        Entry-Level Virtual Job Fair
+│   ├── cover-healthcare.png         Healthcare Virtual Job Fair
+│   ├── cover-veterans.png           Veterans Virtual Job Fair
+│   ├── cover-diversity.png          Diversity Virtual Job Fair
+│   └── cover-technology.png         Technology Virtual Job Fair
+├── covers-eventbrite/               — 5 covers WITHOUT "Virtual" (Eventbrite version)
+│   ├── cover-entry-level.png        Entry-Level Job Fair
+│   ├── cover-healthcare.png         Healthcare Job Fair
+│   ├── cover-veterans.png           Veterans Job Fair
+│   ├── cover-diversity.png          Diversity Job Fair
+│   └── cover-technology.png         Technology Job Fair
+├── sections/                        — section graphics
 │   ├── how-it-works.png             (1600×900 — shared across all types)
 │   ├── trust-stats.png              (2160×320 — shared across all types)
-│   ├── past-companies-entry-level.png   (1600×900 — Birmingham/Entry-Level grid)
-│   ├── past-companies-healthcare.png    (1600×900 — Healthcare grid)
-│   ├── past-companies-veterans.png      (1600×900 — Veterans grid)
-│   ├── past-companies-diversity.png     (1600×900 — Diversity grid)
-│   └── past-companies-technology.png    (1600×900 — Technology grid)
+│   ├── past-companies-entry-level.png
+│   ├── past-companies-healthcare.png
+│   ├── past-companies-veterans.png
+│   ├── past-companies-diversity.png
+│   └── past-companies-technology.png
 └── README.md
 ```
 
@@ -76,6 +82,3 @@ hubspot-assets/
 
 Live design templates (visual + dev doc toggle):
 https://scottjobagent.github.io/jobfairx-prototype/eventbrite-entry-level-mockup.html
-
-Use the toggle at the top right to switch between Visual and Dev Doc views.
-There's also a cross-template toggle to jump between all 5 event types.
