@@ -271,6 +271,25 @@
   .brand-toggle a.active { background: #fff; color: #1a1a1a; }
   @media (max-width: 640px) { .brand-toggle { font-size: 10px; bottom: 12px; right: 12px; } .brand-toggle a { padding: 6px 9px; } }
 
+
+  /* DESKTOP/MOBILE PREVIEW TOGGLE */
+  .view-toggle { position: fixed; bottom: 60px; right: 18px; z-index: 91; background: #1a1a1a; border-radius: 999px; padding: 5px; display: flex; gap: 2px; box-shadow: 0 10px 28px rgba(0,0,0,0.22); font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-size: 11px; }
+  .view-toggle button { padding: 7px 12px; border-radius: 999px; background: transparent; border: none; color: rgba(255,255,255,0.55); font-weight: 700; letter-spacing: 0.04em; cursor: pointer; font-family: inherit; font-size: inherit; transition: color 0.15s, background 0.15s; }
+  .view-toggle button:hover { color: #fff; }
+  .view-toggle button.active { background: #fff; color: #1a1a1a; }
+  .mobile-preview { position: fixed; inset: 0; background: rgba(15,20,25,0.92); z-index: 80; display: none; align-items: center; justify-content: center; padding: 32px 16px; }
+  body.view-mobile .mobile-preview { display: flex; }
+  body.view-mobile { overflow: hidden; }
+  .mobile-phone { width: 390px; max-width: 100%; height: min(844px, calc(100vh - 64px)); background: #fff; border: 10px solid #1a1a1a; border-radius: 44px; overflow: hidden; box-shadow: 0 24px 64px rgba(0,0,0,0.55); position: relative; }
+  .mobile-phone iframe { width: 100%; height: 100%; border: none; display: block; }
+  body.embed-mode .view-toggle,
+  body.embed-mode .brand-toggle,
+  body.embed-mode .mobile-preview { display: none !important; }
+  @media (max-width: 640px) {
+    .view-toggle { bottom: 50px; right: 12px; font-size: 10px; }
+    .view-toggle button { padding: 6px 9px; }
+  }
+
   @media (max-width: 880px) {
     .page-title { font-size: 30px; }
     .filter-bar { grid-template-columns: 1fr; }
@@ -735,6 +754,50 @@ document.addEventListener('keydown', function(e) {
   <a href="diversityhiringevents-events.html">Diversity</a>
   <a href="techjobfairs-events.html">Tech</a>
 </div>
+
+
+<!-- DESKTOP / MOBILE VIEW TOGGLE -->
+<div class="view-toggle">
+  <button data-view="desktop" onclick="setView('desktop')">Desktop</button>
+  <button data-view="mobile" onclick="setView('mobile')">Mobile</button>
+</div>
+
+<!-- MOBILE PREVIEW OVERLAY -->
+<div class="mobile-preview">
+  <div class="mobile-phone">
+    <iframe id="mobilePreviewFrame" title="Mobile preview"></iframe>
+  </div>
+</div>
+
+<script>
+function setView(mode) {
+  try { sessionStorage.setItem('hjf-view-mode', mode); } catch (e) {}
+  const iframe = document.getElementById('mobilePreviewFrame');
+  if (mode === 'mobile') {
+    document.body.classList.add('view-mobile');
+    if (iframe && !iframe.src) {
+      const url = new URL(window.location.href);
+      url.searchParams.set('embed', '1');
+      iframe.src = url.toString();
+    }
+  } else {
+    document.body.classList.remove('view-mobile');
+  }
+  document.querySelectorAll('.view-toggle button').forEach(function(b) {
+    b.classList.toggle('active', b.dataset.view === mode);
+  });
+}
+(function() {
+  var params = new URLSearchParams(location.search);
+  if (params.get('embed') === '1') {
+    document.body.classList.add('embed-mode');
+    return;
+  }
+  var saved = 'desktop';
+  try { saved = sessionStorage.getItem('hjf-view-mode') || 'desktop'; } catch (e) {}
+  setView(saved);
+})();
+</script>
 
 </body>
 </html>
