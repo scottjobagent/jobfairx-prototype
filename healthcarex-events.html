@@ -136,6 +136,53 @@
   }
 
   /* RESPONSIVE */
+
+  /* EMPLOYER MODAL */
+  .emp-modal-backdrop { position: fixed; inset: 0; background: rgba(15, 20, 25, 0.55); backdrop-filter: blur(4px); z-index: 200; display: none; align-items: flex-start; justify-content: center; padding: 60px 24px; overflow-y: auto; }
+  .emp-modal-backdrop.open { display: flex; }
+  .emp-modal { position: relative; width: 100%; max-width: 720px; background: #fff; border-radius: 18px; box-shadow: 0 24px 64px rgba(15,20,25,0.25); overflow: hidden; animation: empModalIn 0.22s ease-out; }
+  @keyframes empModalIn { from { opacity: 0; transform: translateY(-12px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+  .emp-modal-head { padding: 36px 40px 24px; border-bottom: 1px solid var(--line-soft); }
+  .emp-modal-eyebrow { display: inline-block; font-size: 11px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--green-dark); background: var(--green-tint); padding: 5px 12px; border-radius: 6px; margin-bottom: 14px; }
+  .emp-modal-head h2 { font-size: 26px; font-weight: 800; color: var(--ink); letter-spacing: -0.02em; line-height: 1.2; margin-bottom: 10px; }
+  .emp-modal-head p { font-size: 15px; color: var(--muted); line-height: 1.6; }
+  .emp-modal-close { position: absolute; top: 20px; right: 20px; width: 36px; height: 36px; border-radius: 10px; border: none; background: transparent; color: var(--muted); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.15s, color 0.15s; }
+  .emp-modal-close:hover { background: #f3f4f6; color: var(--ink); }
+  .emp-modal-body { padding: 28px 40px 36px; }
+  .emp-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .emp-form-field { display: flex; flex-direction: column; gap: 6px; }
+  .emp-form-field.full { grid-column: 1 / -1; }
+  .emp-form-field label { font-size: 13px; font-weight: 700; color: var(--ink-2); }
+  .emp-form-field label .req { color: #d14a4a; margin-left: 2px; }
+  .emp-form-field input, .emp-form-field select, .emp-form-field textarea {
+    width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--line);
+    background: #fff; font-size: 14px; color: var(--ink-2); font-family: inherit;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .emp-form-field input:focus, .emp-form-field select:focus, .emp-form-field textarea:focus {
+    outline: none; border-color: var(--green); box-shadow: 0 0 0 3px rgba(15,142,87,0.12);
+  }
+  .emp-form-field textarea { resize: vertical; min-height: 110px; line-height: 1.55; }
+  .emp-form-field select { cursor: pointer; appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 38px; }
+  .emp-modal-foot { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 22px 40px; border-top: 1px solid var(--line-soft); background: #fafafa; flex-wrap: wrap; }
+  .emp-foot-note { font-size: 12px; color: var(--muted); }
+  .emp-submit { background: var(--green); color: #fff; border: none; padding: 13px 30px; border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; transition: background 0.15s; }
+  .emp-submit:hover { background: var(--green-dark); }
+  .emp-modal-success { padding: 56px 40px; text-align: center; display: none; }
+  .emp-modal-success.show { display: block; }
+  .emp-modal-success .check-circle { width: 64px; height: 64px; border-radius: 50%; background: var(--green-tint); color: var(--green); display: flex; align-items: center; justify-content: center; margin: 0 auto 22px; }
+  .emp-modal-success h3 { font-size: 24px; font-weight: 800; color: var(--ink); margin-bottom: 12px; letter-spacing: -0.01em; }
+  .emp-modal-success p { font-size: 15px; color: var(--muted); line-height: 1.6; max-width: 440px; margin: 0 auto 26px; }
+  body.emp-modal-open { overflow: hidden; }
+  @media (max-width: 640px) {
+    .emp-modal-head { padding: 28px 24px 20px; }
+    .emp-modal-head h2 { font-size: 22px; }
+    .emp-modal-body { padding: 22px 24px 28px; }
+    .emp-modal-foot { padding: 18px 24px; }
+    .emp-form-grid { grid-template-columns: 1fr; }
+    .emp-modal-backdrop { padding: 24px 12px; }
+  }
+
   @media (max-width: 880px) {
     .page-title { font-size: 30px; }
     .filter-bar { grid-template-columns: 1fr; }
@@ -161,7 +208,7 @@
     </a>
     <nav class="nav">
       <a href="healthcarex-events.html" class="active">Upcoming events</a>
-      <a href="#">For employers</a>
+      <a href="#" onclick="openEmpModal(event)">For employers</a>
       <a href="#" class="nav-cta">Request invite</a>
     </nav>
   </div>
@@ -271,6 +318,171 @@ function filterEvents() {
 }
 
 renderEvents(EVENTS);
+</script>
+
+
+<!-- EMPLOYER INQUIRY MODAL -->
+<div class="emp-modal-backdrop" id="empModalBackdrop" onclick="if(event.target===this) closeEmpModal()">
+  <div class="emp-modal" role="dialog" aria-labelledby="empModalTitle" aria-modal="true">
+    <button class="emp-modal-close" type="button" aria-label="Close" onclick="closeEmpModal()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+
+    <div class="emp-modal-form-wrap">
+      <div class="emp-modal-head">
+        <span class="emp-modal-eyebrow">For employers</span>
+        <h2 id="empModalTitle">Tell us about your hiring needs</h2>
+        <p>We'll reach out to see if you're a good match for our upcoming events. Takes 60 seconds.</p>
+      </div>
+
+      <form class="emp-modal-body" id="empForm" onsubmit="submitEmpForm(event)">
+        <div class="emp-form-grid">
+
+          <div class="emp-form-field">
+            <label for="empFirstName">First name <span class="req">*</span></label>
+            <input type="text" id="empFirstName" name="firstName" required>
+          </div>
+
+          <div class="emp-form-field">
+            <label for="empLastName">Last name <span class="req">*</span></label>
+            <input type="text" id="empLastName" name="lastName" required>
+          </div>
+
+          <div class="emp-form-field">
+            <label for="empEmail">Business email <span class="req">*</span></label>
+            <input type="email" id="empEmail" name="email" required>
+          </div>
+
+          <div class="emp-form-field">
+            <label for="empPhone">Phone number <span class="req">*</span></label>
+            <input type="tel" id="empPhone" name="phone" required>
+          </div>
+
+          <div class="emp-form-field">
+            <label for="empCompany">Company name <span class="req">*</span></label>
+            <input type="text" id="empCompany" name="company" required>
+          </div>
+
+          <div class="emp-form-field">
+            <label for="empCompanySize">Company size <span class="req">*</span></label>
+            <select id="empCompanySize" name="companySize" required>
+              <option value="" disabled selected>Select company size</option>
+              <option>1–10 employees</option>
+              <option>11–50 employees</option>
+              <option>51–200 employees</option>
+              <option>201–500 employees</option>
+              <option>501–1,000 employees</option>
+              <option>1,001–5,000 employees</option>
+              <option>5,001–10,000 employees</option>
+              <option>10,000+ employees</option>
+            </select>
+          </div>
+
+          <div class="emp-form-field">
+            <label for="empJobTitle">Job title <span class="req">*</span></label>
+            <select id="empJobTitle" name="jobTitle" required>
+              <option value="" disabled selected>Select job title</option>
+              <option>Recruiter</option>
+              <option>Talent Acquisition Manager</option>
+              <option>HR Manager</option>
+              <option>HR Director</option>
+              <option>VP of HR</option>
+              <option>Hiring Manager</option>
+              <option>Operations Manager</option>
+              <option>Other</option>
+            </select>
+          </div>
+
+          <div class="emp-form-field">
+            <label for="empSubject">Subject <span class="req">*</span></label>
+            <select id="empSubject" name="subject" required>
+              <option value="" disabled selected>Select a subject</option>
+              <option>Event registration</option>
+              <option>Pricing and packages</option>
+              <option>Technical support</option>
+              <option>Partnership inquiry</option>
+              <option>General question</option>
+            </select>
+          </div>
+
+          <div class="emp-form-field full">
+            <label for="empEvent">Which event are you interested in? <span class="req">*</span></label>
+            <select id="empEvent" name="event" required>
+              <option value="" disabled selected>Select an event</option>
+              <option>Multiple events / Not sure yet</option>
+              <option>Los Angeles, CA · Jun 9, 2026</option>
+              <option>Dallas, TX · Jun 18, 2026</option>
+              <option>Seattle, WA · Jun 24, 2026</option>
+              <option>Oklahoma City, OK · Jul 7, 2026</option>
+              <option>Houston, TX · Jul 16, 2026</option>
+              <option>Atlanta, GA · Jul 22, 2026</option>
+              <option>Boston, MA · Jul 29, 2026</option>
+              <option>Chicago, IL · Aug 6, 2026</option>
+              <option>Phoenix, AZ · Aug 11, 2026</option>
+              <option>Philadelphia, PA · Aug 19, 2026</option>
+              <option>New York, NY · Aug 27, 2026</option>
+              <option>Miami, FL · Sep 2, 2026</option>
+              <option>Minneapolis, MN · Sep 10, 2026</option>
+              <option>San Diego, CA · Sep 16, 2026</option>
+              <option>Denver, CO · Sep 22, 2026</option>
+              <option>Nashville, TN · Sep 30, 2026</option>
+              <option>Charlotte, NC · Oct 7, 2026</option>
+              <option>Tampa, FL · Oct 14, 2026</option>
+              <option>Columbus, OH · Oct 21, 2026</option>
+              <option>Indianapolis, IN · Oct 28, 2026</option>
+            </select>
+          </div>
+
+          <div class="emp-form-field full">
+            <label for="empMessage">How can we help you?</label>
+            <textarea id="empMessage" name="message" placeholder="Tell us about the roles you're hiring for, ideal candidate profile, or anything else..."></textarea>
+          </div>
+
+        </div>
+      </form>
+
+      <div class="emp-modal-foot">
+        <span class="emp-foot-note">We respond within 1 business day.</span>
+        <button type="submit" form="empForm" class="emp-submit">Submit inquiry</button>
+      </div>
+    </div>
+
+    <div class="emp-modal-success" id="empModalSuccess">
+      <div class="check-circle">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <h3>Thanks — we got your inquiry</h3>
+      <p>A member of our team will be in touch within 1 business day to see if you're a good match for our upcoming HealthcareX events.</p>
+      <button type="button" class="emp-submit" onclick="closeEmpModal()">Close</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+function openEmpModal(e) {
+  if (e) e.preventDefault();
+  document.getElementById('empModalBackdrop').classList.add('open');
+  document.body.classList.add('emp-modal-open');
+  // Reset to form view in case it was on success
+  document.querySelector('.emp-modal-form-wrap').style.display = 'block';
+  document.getElementById('empModalSuccess').classList.remove('show');
+}
+function closeEmpModal() {
+  document.getElementById('empModalBackdrop').classList.remove('open');
+  document.body.classList.remove('emp-modal-open');
+}
+function submitEmpForm(e) {
+  e.preventDefault();
+  // Comp behavior — switch to success state
+  document.querySelector('.emp-modal-form-wrap').style.display = 'none';
+  document.getElementById('empModalSuccess').classList.add('show');
+}
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape' && document.getElementById('empModalBackdrop').classList.contains('open')) {
+    closeEmpModal();
+  }
+});
 </script>
 
 </body>
