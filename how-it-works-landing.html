@@ -65,29 +65,10 @@
     position: relative; cursor: pointer; background: #0a0e1a;
     border: 0; padding: 0; aspect-ratio: 16 / 9;
     transition: transform 0.2s;
+    overflow: hidden;
   }
-  .poster { position: absolute; inset: 0; display: grid; grid-template-rows: 38px 1fr; background: #f5f7fb; }
-  .poster-top { background: #fff; border-bottom: 1px solid #e5e7eb; display: flex; align-items: center; padding: 0 16px; gap: 12px; }
-  .poster-brand { color: #2563eb; font-size: 13px; font-weight: 700; }
-  .poster-tabs { display: flex; gap: 14px; margin-left: 10px; font-size: 11px; color: #6b6862; font-weight: 500; }
-  .poster-tabs span.on { color: #0a0e1a; font-weight: 600; }
-  .poster-status { margin-left: auto; display: flex; align-items: center; gap: 6px; font-size: 10px; color: #16a34a; font-weight: 600; }
-  .poster-status::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #16a34a; }
-  .poster-grid { display: grid; grid-template-columns: 150px 1fr; height: 100%; }
-  .poster-side { background: #fafaf8; border-right: 1px solid #ececec; padding: 14px 10px; font-size: 11px; color: #6b6862; }
-  .poster-side-item { padding: 7px 10px; border-radius: 6px; margin-bottom: 2px; font-weight: 500; }
-  .poster-side-item.active { background: #eff6ff; color: #2563eb; font-weight: 600; }
-  .poster-main { padding: 18px 20px; background: #fbfbf7; display: flex; flex-direction: column; }
-  .poster-h { font-size: 14px; font-weight: 700; color: #0a0e1a; margin: 0 0 3px; }
-  .poster-sub { font-size: 11px; color: #6b6862; margin: 0 0 12px; }
-  .poster-table { background: #fff; border: 1px solid #ececec; border-radius: 8px; overflow: hidden; }
-  .p-row { display: grid; grid-template-columns: 1.2fr 1.1fr 0.7fr 60px; gap: 8px; padding: 8px 12px; align-items: center; border-bottom: 1px solid #f1f1ed; font-size: 11px; }
-  .p-row:last-child { border-bottom: 0; }
-  .p-row.head { background: #fafaf8; font-size: 9px; font-weight: 700; color: #9ca3af; letter-spacing: 0.4px; text-transform: uppercase; padding: 7px 12px; }
-  .p-name { font-weight: 600; color: #0a0e1a; }
-  .p-job { color: #2563eb; font-weight: 500; }
-  .p-loc { color: #6b6862; }
-  .p-btn { padding: 4px 8px; background: #2563eb; color: #fff; border-radius: 999px; font-size: 9px; font-weight: 600; text-align: center; }
+  .poster-thumb { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+  .video-player iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
   .play-btn {
     position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
     width: 88px; height: 88px; border-radius: 50%;
@@ -375,33 +356,8 @@
     <!-- VIDEO + PLAYLIST -->
     <div class="video-stage">
       <!-- DEV: clicking the .video-player or any .playlist-item should swap the poster for a YouTube iframe and seek to the chapter timestamp. -->
-      <button class="video-player" data-youtube-id="REPLACE_WITH_YOUTUBE_ID" data-start="0" aria-label="Play the JobFairX walkthrough">
-        <div class="poster">
-          <div class="poster-top">
-            <div class="poster-brand">JobFairX</div>
-            <div class="poster-tabs"><span class="on">Lobby</span><span>Dashboard</span><span>Interviews</span><span>Messaging</span></div>
-            <div class="poster-status">Lobby live</div>
-          </div>
-          <div class="poster-grid">
-            <div class="poster-side">
-              <div class="poster-side-item active">Lobby</div>
-              <div class="poster-side-item">Dashboard</div>
-              <div class="poster-side-item">Interviews</div>
-              <div class="poster-side-item">Messaging</div>
-              <div class="poster-side-item">Past events</div>
-            </div>
-            <div class="poster-main">
-              <h4 class="poster-h">Candidates ready to interview</h4>
-              <p class="poster-sub">Sarah, you have 3 candidates in the waiting room</p>
-              <div class="poster-table">
-                <div class="p-row head"><div>Candidate</div><div>Job</div><div>Loc.</div><div></div></div>
-                <div class="p-row"><div class="p-name">Sarah Mitchell</div><div class="p-job">Software Engineer</div><div class="p-loc">Seattle</div><div class="p-btn">Start</div></div>
-                <div class="p-row"><div class="p-name">Marcus Chen</div><div class="p-job">Account Executive</div><div class="p-loc">Austin</div><div class="p-btn">Start</div></div>
-                <div class="p-row"><div class="p-name">Priya Patel</div><div class="p-job">Data Analyst</div><div class="p-loc">Dallas</div><div class="p-btn">Start</div></div>
-              </div>
-            </div>
-          </div>
-        </div>
+      <button class="video-player" id="videoPlayer" data-youtube-id="QuRalPnpPLA" data-start="0" aria-label="Play the JobFairX walkthrough">
+        <img class="poster-thumb" src="https://img.youtube.com/vi/QuRalPnpPLA/maxresdefault.jpg" alt="JobFairX walkthrough" onerror="this.src='https://img.youtube.com/vi/QuRalPnpPLA/hqdefault.jpg'">
         <span class="play-btn">
           <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
         </span>
@@ -714,5 +670,92 @@
   </div>
 </footer>
 
+
+<!-- YouTube iframe API + chapter wiring -->
+<script>
+(function(){
+  var YOUTUBE_ID = "QuRalPnpPLA";
+  var player = null;
+  var pendingStart = 0;
+  var videoStage = document.querySelector('.video-player');
+
+  function ensurePlayerContainer() {
+    if (document.getElementById('ytPlayer')) return;
+    var stage = document.querySelector('.video-stage');
+    // Replace the button with a div housing the iframe
+    var oldBtn = document.querySelector('.video-player');
+    if (oldBtn && !oldBtn.dataset.swapped) {
+      var newWrap = document.createElement('div');
+      newWrap.className = 'video-player';
+      newWrap.id = 'videoPlayerWrap';
+      newWrap.dataset.swapped = 'true';
+      newWrap.innerHTML = '<div id="ytPlayer" style="position:absolute;inset:0;"></div>';
+      oldBtn.replaceWith(newWrap);
+      videoStage = newWrap;
+    }
+  }
+
+  function createPlayer(startSeconds) {
+    ensurePlayerContainer();
+    if (player) {
+      player.seekTo(startSeconds, true);
+      player.playVideo();
+      return;
+    }
+    player = new YT.Player('ytPlayer', {
+      videoId: YOUTUBE_ID,
+      playerVars: {
+        autoplay: 1,
+        start: startSeconds,
+        modestbranding: 1,
+        rel: 0,
+        playsinline: 1
+      },
+      events: {
+        onReady: function(e){ e.target.playVideo(); }
+      }
+    });
+  }
+
+  function loadPlayer(startSeconds) {
+    pendingStart = startSeconds || 0;
+    if (window.YT && window.YT.Player) {
+      createPlayer(pendingStart);
+    } else {
+      if (!window._ytScriptLoaded) {
+        var tag = document.createElement('script');
+        tag.src = 'https://www.youtube.com/iframe_api';
+        document.head.appendChild(tag);
+        window._ytScriptLoaded = true;
+      }
+    }
+  }
+
+  window.onYouTubeIframeAPIReady = function() {
+    createPlayer(pendingStart);
+  };
+
+  // Click handlers
+  var playerBtn = document.querySelector('.video-player');
+  if (playerBtn) {
+    playerBtn.addEventListener('click', function(){ loadPlayer(0); });
+  }
+
+  document.querySelectorAll('.playlist-item').forEach(function(item){
+    item.addEventListener('click', function(){
+      var start = parseInt(item.dataset.start, 10) || 0;
+      document.querySelectorAll('.playlist-item').forEach(function(i){ i.classList.remove('active'); });
+      item.classList.add('active');
+      // Update count
+      var count = document.querySelector('.playlist-count');
+      if (count) {
+        var num = item.querySelector('.playlist-num');
+        if (num) count.textContent = num.textContent + ' / 4';
+      }
+      loadPlayer(start);
+    });
+  });
+})();
+</script>
 </body>
 </html>
