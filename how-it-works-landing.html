@@ -1,0 +1,718 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>See JobFairX in action — Watch the walkthrough</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body { font-family: 'Inter', -apple-system, sans-serif; color: #0a0e1a; background: #fff; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+  a { color: inherit; text-decoration: none; }
+
+  /* === NAV === */
+  .nav { padding: 22px 40px; display: flex; align-items: center; justify-content: space-between; background: #fff; border-bottom: 1px solid rgba(15, 23, 42, 0.06); }
+  .nav-brand { color: #2563eb; font-size: 22px; font-weight: 800; letter-spacing: -0.02em; }
+  .nav-right { display: flex; gap: 24px; align-items: center; font-size: 14px; }
+  .nav-right a.signin { color: #1a1a1a; font-weight: 500; }
+  .nav-right a.signin:hover { color: #2563eb; }
+  .nav-btn { padding: 10px 22px; background: #2563eb; color: #fff; border-radius: 999px; font-weight: 600; font-size: 14px; transition: background 0.15s, transform 0.15s; box-shadow: 0 2px 8px rgba(37, 99, 235, 0.18); }
+  .nav-btn:hover { background: #1d4ed8; transform: translateY(-1px); }
+
+  /* === HERO (with personality) === */
+  .hero {
+    padding: 90px 24px 60px;
+    text-align: center;
+    background:
+      radial-gradient(ellipse 800px 400px at 15% 0%, rgba(96, 165, 250, 0.12), transparent 60%),
+      radial-gradient(ellipse 700px 400px at 85% 10%, rgba(147, 197, 253, 0.18), transparent 55%),
+      linear-gradient(180deg, #fbfbf7 0%, #fff 100%);
+    position: relative;
+    overflow: hidden;
+  }
+  /* Decorative blobs */
+  .hero::before, .hero::after { content: ""; position: absolute; pointer-events: none; }
+  .hero::before {
+    top: 80px; left: -120px; width: 240px; height: 240px;
+    background: radial-gradient(circle, rgba(96, 165, 250, 0.18), transparent 70%);
+    border-radius: 50%;
+  }
+  .hero::after {
+    top: 120px; right: -100px; width: 280px; height: 280px;
+    background: radial-gradient(circle, rgba(16, 185, 129, 0.14), transparent 70%);
+    border-radius: 50%;
+  }
+  .hero-wrap { max-width: 1180px; margin: 0 auto; position: relative; z-index: 1; }
+  .hero-eyebrow { display: inline-block; font-size: 12px; font-weight: 700; color: #2563eb; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 18px; background: #eff6ff; padding: 6px 14px; border-radius: 999px; }
+  .hero-h1 { font-size: 60px; font-weight: 800; letter-spacing: -0.025em; color: #0a0e1a; line-height: 1.04; margin: 0 auto 22px; max-width: 760px; }
+  .hero-h1 .hl { color: #2563eb; }
+  .hero-sub { font-size: 19px; color: #6b6862; margin: 0 auto 56px; max-width: 600px; line-height: 1.55; }
+
+  /* === VIDEO + PLAYLIST === */
+  .video-stage {
+    max-width: 1140px;
+    margin: 0 auto;
+    background: #fff;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    border-radius: 16px;
+    box-shadow: 0 30px 60px -22px rgba(15, 23, 42, 0.18), 0 12px 30px rgba(15, 23, 42, 0.06);
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: 1fr 340px;
+  }
+  .video-player {
+    position: relative; cursor: pointer; background: #0a0e1a;
+    border: 0; padding: 0; aspect-ratio: 16 / 9;
+    transition: transform 0.2s;
+  }
+  .poster { position: absolute; inset: 0; display: grid; grid-template-rows: 38px 1fr; background: #f5f7fb; }
+  .poster-top { background: #fff; border-bottom: 1px solid #e5e7eb; display: flex; align-items: center; padding: 0 16px; gap: 12px; }
+  .poster-brand { color: #2563eb; font-size: 13px; font-weight: 700; }
+  .poster-tabs { display: flex; gap: 14px; margin-left: 10px; font-size: 11px; color: #6b6862; font-weight: 500; }
+  .poster-tabs span.on { color: #0a0e1a; font-weight: 600; }
+  .poster-status { margin-left: auto; display: flex; align-items: center; gap: 6px; font-size: 10px; color: #16a34a; font-weight: 600; }
+  .poster-status::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #16a34a; }
+  .poster-grid { display: grid; grid-template-columns: 150px 1fr; height: 100%; }
+  .poster-side { background: #fafaf8; border-right: 1px solid #ececec; padding: 14px 10px; font-size: 11px; color: #6b6862; }
+  .poster-side-item { padding: 7px 10px; border-radius: 6px; margin-bottom: 2px; font-weight: 500; }
+  .poster-side-item.active { background: #eff6ff; color: #2563eb; font-weight: 600; }
+  .poster-main { padding: 18px 20px; background: #fbfbf7; display: flex; flex-direction: column; }
+  .poster-h { font-size: 14px; font-weight: 700; color: #0a0e1a; margin: 0 0 3px; }
+  .poster-sub { font-size: 11px; color: #6b6862; margin: 0 0 12px; }
+  .poster-table { background: #fff; border: 1px solid #ececec; border-radius: 8px; overflow: hidden; }
+  .p-row { display: grid; grid-template-columns: 1.2fr 1.1fr 0.7fr 60px; gap: 8px; padding: 8px 12px; align-items: center; border-bottom: 1px solid #f1f1ed; font-size: 11px; }
+  .p-row:last-child { border-bottom: 0; }
+  .p-row.head { background: #fafaf8; font-size: 9px; font-weight: 700; color: #9ca3af; letter-spacing: 0.4px; text-transform: uppercase; padding: 7px 12px; }
+  .p-name { font-weight: 600; color: #0a0e1a; }
+  .p-job { color: #2563eb; font-weight: 500; }
+  .p-loc { color: #6b6862; }
+  .p-btn { padding: 4px 8px; background: #2563eb; color: #fff; border-radius: 999px; font-size: 9px; font-weight: 600; text-align: center; }
+  .play-btn {
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    width: 88px; height: 88px; border-radius: 50%;
+    background: rgba(255,255,255,0.96);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.32);
+    transition: transform 0.2s; z-index: 2; pointer-events: none;
+  }
+  .video-player:hover .play-btn { transform: translate(-50%, -50%) scale(1.06); }
+  .play-btn svg { width: 32px; height: 32px; margin-left: 4px; color: #2563eb; }
+
+  /* PLAYLIST sidebar */
+  .playlist {
+    background: #fafafa;
+    border-left: 1px solid rgba(15, 23, 42, 0.06);
+    display: flex; flex-direction: column;
+    max-height: 480px;
+    overflow-y: auto;
+  }
+  .playlist-head {
+    padding: 16px 20px;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 11px; font-weight: 700;
+    color: #6b6862; letter-spacing: 0.8px; text-transform: uppercase;
+  }
+  .playlist-count { color: #2563eb; }
+  .playlist-list { padding: 8px; }
+  .playlist-item {
+    display: grid; grid-template-columns: 28px 84px 1fr; gap: 12px;
+    padding: 10px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.15s;
+    align-items: center;
+  }
+  .playlist-item:hover { background: rgba(37, 99, 235, 0.06); }
+  .playlist-item.active { background: #eff6ff; }
+  .playlist-num {
+    font-size: 13px; font-weight: 700; color: #6b6862;
+    text-align: center;
+  }
+  .playlist-item.active .playlist-num { color: #2563eb; }
+  .playlist-thumb {
+    aspect-ratio: 16/9; border-radius: 6px; overflow: hidden;
+    background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+    position: relative;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px; font-weight: 700; color: rgba(255,255,255,0.9);
+    text-transform: uppercase; letter-spacing: 0.4px;
+    text-align: center; padding: 4px;
+  }
+  .playlist-thumb.t1 { background: linear-gradient(135deg, #1e3a8a, #2563eb); }
+  .playlist-thumb.t2 { background: linear-gradient(135deg, #047857, #10b981); }
+  .playlist-thumb.t3 { background: linear-gradient(135deg, #7c2d12, #ea580c); }
+  .playlist-thumb.t4 { background: linear-gradient(135deg, #581c87, #9333ea); }
+  .playlist-text { min-width: 0; }
+  .playlist-title { font-size: 13px; font-weight: 700; color: #0a0e1a; margin: 0 0 2px; letter-spacing: -0.01em; }
+  .playlist-time { font-size: 11px; color: #6b6862; font-weight: 500; }
+
+  /* === TRUST LINE under video === */
+  .trust-line {
+    text-align: center;
+    padding: 36px 24px 90px;
+    font-size: 14px;
+    color: #6b6862;
+  }
+  .trust-line strong { color: #0a0e1a; font-weight: 700; }
+  .trust-line a {
+    display: inline-block;
+    color: #2563eb;
+    font-weight: 600;
+    text-decoration: underline;
+    margin-left: 6px;
+  }
+
+  /* === SHARED SECTION TYPES === */
+  .section-head { text-align: center; margin-bottom: 56px; }
+  .section-eb { display: inline-block; font-size: 12px; font-weight: 600; color: #2563eb; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 14px; }
+  .section-h2 { font-size: 40px; font-weight: 800; letter-spacing: -0.025em; color: #0a0e1a; margin: 0 auto 14px; line-height: 1.12; max-width: 640px; }
+  .section-sub { font-size: 17px; color: #6b6862; margin: 0 auto; max-width: 580px; line-height: 1.55; }
+
+  /* === EVENT TYPES === */
+  .events-section { padding: 110px 24px; background: #fafafa; border-top: 1px solid rgba(15, 23, 42, 0.04); border-bottom: 1px solid rgba(15, 23, 42, 0.04); }
+  .events-wrap { max-width: 1080px; margin: 0 auto; }
+  .events-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; }
+  .event-tile { padding: 26px 20px; border: 1px solid rgba(15, 23, 42, 0.08); border-radius: 12px; background: #fff; text-align: center; transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s; cursor: pointer; }
+  .event-tile:hover { transform: translateY(-2px); border-color: rgba(37, 99, 235, 0.25); box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06); }
+  .event-tile-icon { width: 44px; height: 44px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 14px; font-size: 22px; }
+  .event-tile.healthcare .event-tile-icon { background: #d1fae5; color: #047857; }
+  .event-tile.technology .event-tile-icon { background: #eff6ff; color: #2563eb; }
+  .event-tile.veterans .event-tile-icon { background: #fee2e2; color: #b91c1c; }
+  .event-tile.diversity .event-tile-icon { background: #fed7aa; color: #c2410c; }
+  .event-tile.entry .event-tile-icon { background: #fef3c7; color: #b45309; }
+  .event-tile-title { font-size: 15px; font-weight: 700; color: #0a0e1a; margin: 0; letter-spacing: -0.01em; }
+
+  /* === CALENDAR === */
+  .calendar-section { padding: 110px 24px; }
+  .calendar-wrap { max-width: 1080px; margin: 0 auto; }
+  .calendar-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+  .cal-card { background: #fff; border: 1px solid rgba(15, 23, 42, 0.08); border-radius: 14px; padding: 22px; transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s; display: flex; flex-direction: column; }
+  .cal-card:hover { transform: translateY(-2px); border-color: rgba(37, 99, 235, 0.25); box-shadow: 0 10px 28px rgba(15, 23, 42, 0.06); }
+  .cal-date { font-size: 11px; font-weight: 700; color: #6b6862; letter-spacing: 0.6px; text-transform: uppercase; margin-bottom: 8px; }
+  .cal-city { font-size: 17px; font-weight: 700; color: #0a0e1a; margin: 0 0 14px; letter-spacing: -0.01em; }
+  .cal-pill { display: inline-block; padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; margin-bottom: 22px; align-self: flex-start; }
+  .cal-pill.healthcare { background: #d1fae5; color: #047857; }
+  .cal-pill.technology { background: #eff6ff; color: #2563eb; }
+  .cal-pill.veterans { background: #fee2e2; color: #b91c1c; }
+  .cal-pill.entry { background: #fef3c7; color: #b45309; }
+  .cal-cta { margin-top: auto; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: #2563eb; }
+  .cal-cta::after { content: " →"; }
+  .cal-view-all { text-align: center; margin-top: 40px; }
+  .cal-view-all a { display: inline-flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 600; color: #2563eb; padding: 12px 24px; border: 1.5px solid #2563eb; border-radius: 999px; transition: background 0.15s, color 0.15s; }
+  .cal-view-all a:hover { background: #2563eb; color: #fff; }
+
+  /* === PRICING === */
+  .pricing-section { padding: 110px 24px; background: #fafafa; border-top: 1px solid rgba(15, 23, 42, 0.04); border-bottom: 1px solid rgba(15, 23, 42, 0.04); }
+  .pricing-wrap { max-width: 1080px; margin: 0 auto; }
+  .tiers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .tier { background: #fff; border: 1px solid rgba(15, 23, 42, 0.08); border-radius: 16px; padding: 32px 28px 30px; position: relative; transition: transform 0.15s, box-shadow 0.15s; }
+  .tier:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06); }
+  .tier.featured { border: 2px solid #2563eb; box-shadow: 0 12px 32px rgba(37, 99, 235, 0.12); }
+  .tier-popular { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: #2563eb; color: #fff; font-size: 11px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; padding: 5px 14px; border-radius: 999px; }
+  .tier-name { font-size: 18px; font-weight: 700; color: #0a0e1a; margin: 0 0 8px; }
+  .tier-price { font-size: 44px; font-weight: 800; color: #0a0e1a; letter-spacing: -0.02em; line-height: 1; margin: 0 0 4px; }
+  .tier-per { font-size: 13px; color: #6b6862; margin: 0 0 22px; }
+  .tier-features { list-style: none; padding: 0; margin: 0 0 26px; }
+  .tier-features li { display: flex; align-items: flex-start; gap: 10px; font-size: 14px; color: #1a1a1a; padding: 7px 0; }
+  .tier-features li::before { content: "✓"; color: #2563eb; font-weight: 800; flex-shrink: 0; }
+  .tier-cta { display: block; text-align: center; padding: 12px 20px; border-radius: 999px; font-weight: 600; font-size: 14px; background: #fff; color: #2563eb; border: 1.5px solid #2563eb; transition: background 0.15s, color 0.15s; }
+  .tier-cta:hover { background: #2563eb; color: #fff; }
+  .tier.featured .tier-cta { background: #2563eb; color: #fff; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.22); }
+  .tier.featured .tier-cta:hover { background: #1d4ed8; }
+  .pricing-foot { text-align: center; margin-top: 36px; font-size: 14px; color: #6b6862; }
+  .pricing-foot a { color: #2563eb; font-weight: 600; text-decoration: underline; }
+
+
+  /* === TESTIMONIALS === */
+  .testimonials { padding: 110px 24px; }
+  .testimonials-wrap { max-width: 1180px; margin: 0 auto; }
+  .testimonials-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+  .testimonial {
+    background: #fff;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    border-radius: 16px;
+    padding: 30px 28px 28px;
+    display: flex; flex-direction: column;
+    transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+  }
+  .testimonial:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.06);
+    border-color: rgba(37, 99, 235, 0.2);
+  }
+  .tst-label {
+    font-size: 14px; font-weight: 700; color: #0a0e1a;
+    margin: 0 0 18px;
+    letter-spacing: -0.01em;
+  }
+  .tst-stats {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+    margin-bottom: 24px;
+  }
+  .tst-stat {
+    background: #f5f7fb;
+    border-radius: 12px;
+    padding: 16px 14px;
+    text-align: center;
+  }
+  .tst-stat-num {
+    font-size: 36px; font-weight: 800;
+    color: #2563eb; letter-spacing: -0.02em;
+    line-height: 1;
+    margin: 0 0 6px;
+  }
+  .tst-stat-lbl {
+    font-size: 12px; color: #6b6862; font-weight: 500;
+    line-height: 1.3;
+  }
+  .tst-quote {
+    font-size: 15px; color: #1a1a1a; line-height: 1.55;
+    margin: 0 0 24px;
+    flex: 1;
+  }
+  .tst-divider {
+    height: 1px; background: rgba(15, 23, 42, 0.08);
+    margin: 0 0 18px;
+  }
+  .tst-name { font-size: 14px; font-weight: 700; color: #0a0e1a; margin: 0 0 4px; }
+  .tst-company { font-size: 14px; color: #6b6862; }
+
+  /* === FINAL CTAs (two cards like Salesforce) === */
+  .final-cta { padding: 110px 24px; }
+  .final-wrap { max-width: 880px; margin: 0 auto; }
+  .final-h2 { text-align: center; font-size: 40px; font-weight: 800; color: #0a0e1a; letter-spacing: -0.025em; margin: 0 0 50px; line-height: 1.12; }
+  .final-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .final-card {
+    background: #fff;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    border-radius: 16px;
+    padding: 32px 30px 30px;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .final-card:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(15, 23, 42, 0.08); }
+  .final-icon {
+    width: 44px; height: 44px; border-radius: 10px;
+    display: inline-flex; align-items: center; justify-content: center;
+    margin-bottom: 16px;
+    background: #eff6ff; color: #2563eb;
+  }
+  .final-icon.alt { background: #d1fae5; color: #047857; }
+  .final-icon svg { width: 22px; height: 22px; }
+  .final-card-title { font-size: 20px; font-weight: 700; color: #0a0e1a; margin: 0 0 8px; letter-spacing: -0.01em; }
+  .final-card-sub { font-size: 14px; color: #6b6862; margin: 0 0 22px; line-height: 1.55; }
+  .final-card-cta {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 14px; font-weight: 600; color: #2563eb;
+  }
+  .final-card-cta.alt { color: #047857; }
+  .final-card-cta::after { content: " →"; }
+  .seeker-link { margin-top: 36px; text-align: center; font-size: 14px; color: #6b6862; }
+  .seeker-link a { color: #2563eb; font-weight: 600; text-decoration: underline; }
+
+  /* === FOOTER (unchanged) === */
+  .footer { background: #0a1838; color: #fff; position: relative; overflow: hidden; padding: 90px 48px 36px; }
+  .footer::before { content: ""; position: absolute; inset: 0; background-image: radial-gradient(rgba(255,255,255,0.045) 1px, transparent 1px); background-size: 22px 22px; pointer-events: none; }
+  .footer-grid { position: relative; display: grid; grid-template-columns: 1.4fr 1.4fr 0.8fr 0.9fr; gap: 56px; max-width: 1200px; margin: 0 auto 70px; }
+  .footer-col h4 { font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.5); margin: 0 0 22px; letter-spacing: 0.3px; }
+  .footer-col a { display: block; color: rgba(255,255,255,0.92); text-decoration: none; font-size: 14px; font-weight: 500; letter-spacing: 0.6px; text-transform: uppercase; padding: 7px 0; transition: color 0.15s, transform 0.15s; }
+  .footer-col a:hover { color: #fff; transform: translateX(2px); }
+  .footer-wordmark-wrap { position: relative; margin: 0 auto; max-width: 1500px; padding: 20px 40px 60px; text-align: center; }
+  .footer-wordmark-svg { display: block; width: 100%; height: auto; max-height: 280px; }
+  .wm-base { font-family: 'Inter', sans-serif; font-weight: 900; font-size: 280px; letter-spacing: -10px; fill: #1d4ed8; filter: url(#wm-outline-base); }
+  .wm-glow { font-family: 'Inter', sans-serif; font-weight: 900; font-size: 280px; letter-spacing: -10px; fill: #93c5fd; filter: url(#wm-outline-glow); animation: wm-pulse 4.5s ease-in-out infinite; }
+  @keyframes wm-pulse { 0%, 100% { opacity: 0; } 50% { opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) { .wm-glow { animation: none; opacity: 0.5; } }
+  .footer-legal { position: relative; border-top: 1px solid rgba(255,255,255,0.10); padding-top: 26px; display: flex; align-items: center; flex-wrap: wrap; gap: 18px 26px; font-size: 12px; color: rgba(255,255,255,0.55); max-width: 1200px; margin: 0 auto; }
+  .footer-legal a { color: rgba(255,255,255,0.7); text-decoration: none; font-size: 12px; }
+  .footer-legal .country { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+  .footer-legal .country span { color: rgba(255,255,255,0.55); font-weight: 500; }
+  .footer-legal .country span.on { color: #fff; }
+
+  @media (max-width: 1000px) {
+    .video-stage { grid-template-columns: 1fr; }
+    .playlist { max-height: 320px; border-left: 0; border-top: 1px solid rgba(15, 23, 42, 0.06); }
+  }
+  @media (max-width: 900px) {
+    .nav { padding: 18px 24px; }
+    .hero { padding: 60px 20px 40px; }
+    .hero-h1 { font-size: 38px; }
+    .hero-sub { font-size: 16px; }
+    .events-grid { grid-template-columns: 1fr 1fr; }
+    .calendar-grid { grid-template-columns: 1fr 1fr; }
+    .tiers { grid-template-columns: 1fr; }
+    .final-grid { grid-template-columns: 1fr; }
+    .testimonials-grid { grid-template-columns: 1fr; }
+    .testimonials { padding: 70px 20px; }
+    .section-h2, .final-h2 { font-size: 28px; }
+    .events-section, .calendar-section, .pricing-section, .final-cta { padding: 70px 20px; }
+    .footer-grid { grid-template-columns: 1fr 1fr; gap: 36px; }
+    .play-btn { width: 64px; height: 64px; }
+    .play-btn svg { width: 24px; height: 24px; }
+    .wm-base, .wm-glow { font-size: 110px; letter-spacing: -4px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <a class="nav-brand" href="/">JobFairX</a>
+  <div class="nav-right">
+    <a class="signin" href="#">Sign In</a>
+    <a class="nav-btn" href="#">Register for an Event</a>
+  </div>
+</nav>
+
+<!-- HERO + VIDEO + PLAYLIST -->
+<section class="hero">
+  <div class="hero-wrap">
+    <span class="hero-eyebrow">How it works</span>
+    <h1 class="hero-h1">Match, interview, and hire <span class="hl">faster.</span></h1>
+    <p class="hero-sub">See how a virtual hiring event runs on JobFairX — from candidate matching to event day to your post-event report.</p>
+
+    <!-- VIDEO + PLAYLIST -->
+    <div class="video-stage">
+      <!-- DEV: clicking the .video-player or any .playlist-item should swap the poster for a YouTube iframe and seek to the chapter timestamp. -->
+      <button class="video-player" data-youtube-id="REPLACE_WITH_YOUTUBE_ID" data-start="0" aria-label="Play the JobFairX walkthrough">
+        <div class="poster">
+          <div class="poster-top">
+            <div class="poster-brand">JobFairX</div>
+            <div class="poster-tabs"><span class="on">Lobby</span><span>Dashboard</span><span>Interviews</span><span>Messaging</span></div>
+            <div class="poster-status">Lobby live</div>
+          </div>
+          <div class="poster-grid">
+            <div class="poster-side">
+              <div class="poster-side-item active">Lobby</div>
+              <div class="poster-side-item">Dashboard</div>
+              <div class="poster-side-item">Interviews</div>
+              <div class="poster-side-item">Messaging</div>
+              <div class="poster-side-item">Past events</div>
+            </div>
+            <div class="poster-main">
+              <h4 class="poster-h">Candidates ready to interview</h4>
+              <p class="poster-sub">Sarah, you have 3 candidates in the waiting room</p>
+              <div class="poster-table">
+                <div class="p-row head"><div>Candidate</div><div>Job</div><div>Loc.</div><div></div></div>
+                <div class="p-row"><div class="p-name">Sarah Mitchell</div><div class="p-job">Software Engineer</div><div class="p-loc">Seattle</div><div class="p-btn">Start</div></div>
+                <div class="p-row"><div class="p-name">Marcus Chen</div><div class="p-job">Account Executive</div><div class="p-loc">Austin</div><div class="p-btn">Start</div></div>
+                <div class="p-row"><div class="p-name">Priya Patel</div><div class="p-job">Data Analyst</div><div class="p-loc">Dallas</div><div class="p-btn">Start</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <span class="play-btn">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        </span>
+      </button>
+
+      <aside class="playlist" aria-label="Video chapters">
+        <div class="playlist-head">
+          <span>Playlist</span>
+          <span class="playlist-count">1 / 4</span>
+        </div>
+        <div class="playlist-list">
+          <div class="playlist-item active" data-start="0">
+            <div class="playlist-num">1</div>
+            <div class="playlist-thumb t1">Dashboard</div>
+            <div class="playlist-text">
+              <h4 class="playlist-title">Dashboard overview</h4>
+              <span class="playlist-time">0:00</span>
+            </div>
+          </div>
+          <div class="playlist-item" data-start="35">
+            <div class="playlist-num">2</div>
+            <div class="playlist-thumb t2">Matching</div>
+            <div class="playlist-text">
+              <h4 class="playlist-title">Matching &amp; review</h4>
+              <span class="playlist-time">0:35</span>
+            </div>
+          </div>
+          <div class="playlist-item" data-start="70">
+            <div class="playlist-num">3</div>
+            <div class="playlist-thumb t3">Lobby</div>
+            <div class="playlist-text">
+              <h4 class="playlist-title">Event day lobby</h4>
+              <span class="playlist-time">1:10</span>
+            </div>
+          </div>
+          <div class="playlist-item" data-start="140">
+            <div class="playlist-num">4</div>
+            <div class="playlist-thumb t4">Report</div>
+            <div class="playlist-text">
+              <h4 class="playlist-title">Post-event report</h4>
+              <span class="playlist-time">2:20</span>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <div class="trust-line">
+      <strong>Take JobFairX for a spin.</strong> No credit card required, no software to install.
+      <a href="#">View upcoming events →</a>
+    </div>
+  </div>
+</section>
+
+<!-- EVENT TYPES -->
+<section class="events-section">
+  <div class="events-wrap">
+    <div class="section-head">
+      <span class="section-eb">Event types</span>
+      <h2 class="section-h2">The hiring events we host</h2>
+      <p class="section-sub">JobFairX hosts virtual hiring events across the country every week, rotating themes so you can target the candidates you need.</p>
+    </div>
+    <div class="events-grid">
+      <div class="event-tile healthcare"><div class="event-tile-icon">⚕</div><h3 class="event-tile-title">Healthcare</h3></div>
+      <div class="event-tile technology"><div class="event-tile-icon">⌘</div><h3 class="event-tile-title">Technology</h3></div>
+      <div class="event-tile veterans"><div class="event-tile-icon">★</div><h3 class="event-tile-title">Veterans</h3></div>
+      <div class="event-tile diversity"><div class="event-tile-icon">◆</div><h3 class="event-tile-title">Diversity</h3></div>
+      <div class="event-tile entry"><div class="event-tile-icon">↗</div><h3 class="event-tile-title">Entry-Level</h3></div>
+    </div>
+  </div>
+</section>
+
+<!-- CALENDAR -->
+<section class="calendar-section">
+  <div class="calendar-wrap">
+    <div class="section-head">
+      <span class="section-eb">Upcoming events</span>
+      <h2 class="section-h2">Find your next hiring event</h2>
+      <p class="section-sub">Reserve a spot at an upcoming JobFairX hiring event in the city and category that fits your roles.</p>
+    </div>
+    <div class="calendar-grid">
+      <div class="cal-card">
+        <div class="cal-date">Thu · Jun 19, 2026</div>
+        <h3 class="cal-city">Cedar Rapids, IA</h3>
+        <span class="cal-pill entry">Entry-Level</span>
+        <a class="cal-cta" href="#">Reserve your spot</a>
+      </div>
+      <div class="cal-card">
+        <div class="cal-date">Wed · Jun 25, 2026</div>
+        <h3 class="cal-city">Houston, TX</h3>
+        <span class="cal-pill healthcare">Healthcare</span>
+        <a class="cal-cta" href="#">Reserve your spot</a>
+      </div>
+      <div class="cal-card">
+        <div class="cal-date">Wed · Jul 2, 2026</div>
+        <h3 class="cal-city">Austin, TX</h3>
+        <span class="cal-pill technology">Technology</span>
+        <a class="cal-cta" href="#">Reserve your spot</a>
+      </div>
+      <div class="cal-card">
+        <div class="cal-date">Wed · Jul 9, 2026</div>
+        <h3 class="cal-city">San Diego, CA</h3>
+        <span class="cal-pill veterans">Veterans</span>
+        <a class="cal-cta" href="#">Reserve your spot</a>
+      </div>
+    </div>
+    <div class="cal-view-all"><a href="#">View full calendar</a></div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="pricing-section">
+  <div class="pricing-wrap">
+    <div class="section-head">
+      <span class="section-eb">Pricing</span>
+      <h2 class="section-h2">Flexible packages for every hiring goal</h2>
+      <p class="section-sub">Choose the package that fits your hiring goals, budget, and schedule.</p>
+    </div>
+    <div class="tiers">
+      <div class="tier">
+        <h3 class="tier-name">Starter</h3>
+        <div class="tier-price">$495</div>
+        <p class="tier-per">per event</p>
+        <ul class="tier-features">
+          <li>Promote 1 job</li>
+          <li>20+ scheduled candidate interviews</li>
+          <li>1 recruiter seat</li>
+        </ul>
+        <a class="tier-cta" href="#">Reserve my spot</a>
+      </div>
+      <div class="tier featured">
+        <span class="tier-popular">Most Popular</span>
+        <h3 class="tier-name">Growth</h3>
+        <div class="tier-price">$895</div>
+        <p class="tier-per">per event</p>
+        <ul class="tier-features">
+          <li>Promote up to 3 jobs</li>
+          <li>60+ scheduled candidate interviews</li>
+          <li>Up to 5 recruiter seats</li>
+        </ul>
+        <a class="tier-cta" href="#">Reserve my spot</a>
+      </div>
+      <div class="tier">
+        <h3 class="tier-name">Pro</h3>
+        <div class="tier-price">$1,495</div>
+        <p class="tier-per">per event</p>
+        <ul class="tier-features">
+          <li>Promote up to 6 jobs</li>
+          <li>100+ scheduled candidate interviews</li>
+          <li>Unlimited recruiters</li>
+        </ul>
+        <a class="tier-cta" href="#">Reserve my spot</a>
+      </div>
+    </div>
+    <p class="pricing-foot">Hiring across multiple events? <a href="#">See all bundles →</a></p>
+  </div>
+</section>
+
+
+<!-- TESTIMONIALS -->
+<section class="testimonials">
+  <div class="testimonials-wrap">
+    <div class="section-head">
+      <span class="section-eb">Hiring event results</span>
+      <h2 class="section-h2">What our customers are saying</h2>
+    </div>
+    <div class="testimonials-grid">
+
+      <div class="testimonial">
+        <h3 class="tst-label">Healthcare hiring event</h3>
+        <div class="tst-stats">
+          <div class="tst-stat">
+            <div class="tst-stat-num">36</div>
+            <div class="tst-stat-lbl">Interviews conducted</div>
+          </div>
+          <div class="tst-stat">
+            <div class="tst-stat-num">7</div>
+            <div class="tst-stat-lbl">Hires made</div>
+          </div>
+        </div>
+        <p class="tst-quote">"My team hired two LPNs, three RNs, and two MAs at the hiring event. What a great way to meet candidates and move quickly through interviews."</p>
+        <div class="tst-divider"></div>
+        <div class="tst-name">Director of Talent Acquisition</div>
+        <div class="tst-company">Western Regional Medical Center</div>
+      </div>
+
+      <div class="testimonial">
+        <h3 class="tst-label">Entry-level hiring event</h3>
+        <div class="tst-stats">
+          <div class="tst-stat">
+            <div class="tst-stat-num">92</div>
+            <div class="tst-stat-lbl">Interviews conducted</div>
+          </div>
+          <div class="tst-stat">
+            <div class="tst-stat-num">19</div>
+            <div class="tst-stat-lbl">Hires made</div>
+          </div>
+        </div>
+        <p class="tst-quote">"This was our second event and we interviewed over 90 candidates in one day. The pre-scheduled interview times kept everything moving. We've already registered for the next one."</p>
+        <div class="tst-divider"></div>
+        <div class="tst-name">Senior Recruiter</div>
+        <div class="tst-company">Target</div>
+      </div>
+
+      <div class="testimonial">
+        <h3 class="tst-label">Veterans hiring event</h3>
+        <div class="tst-stats">
+          <div class="tst-stat">
+            <div class="tst-stat-num">51</div>
+            <div class="tst-stat-lbl">Interviews conducted</div>
+          </div>
+          <div class="tst-stat">
+            <div class="tst-stat-num">14</div>
+            <div class="tst-stat-lbl">Hires made</div>
+          </div>
+        </div>
+        <p class="tst-quote">"We've used JobFairX for three veterans events now. The candidates came prepared and were all qualified for the roles we were hiring for. We hired 14 engineers across those three events."</p>
+        <div class="tst-divider"></div>
+        <div class="tst-name">Recruiter</div>
+        <div class="tst-company">Tesla</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- FINAL CTAs -->
+<section class="final-cta">
+  <div class="final-wrap">
+    <h2 class="final-h2">Ready to take the next step?</h2>
+    <div class="final-grid">
+      <div class="final-card">
+        <div class="final-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        </div>
+        <h3 class="final-card-title">Reserve a hiring event</h3>
+        <p class="final-card-sub">Pick a date and category that fits your hiring goals. You'll be set up in minutes.</p>
+        <a class="final-card-cta" href="#">View upcoming events</a>
+      </div>
+      <div class="final-card">
+        <div class="final-icon alt">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+        </div>
+        <h3 class="final-card-title">Talk to our team</h3>
+        <p class="final-card-sub">Tell us about the roles you're filling and we'll match you to the right event.</p>
+        <a class="final-card-cta alt" href="#">Contact us</a>
+      </div>
+    </div>
+    <p class="seeker-link">Looking for a job? <a href="/job-seekers">Browse upcoming events →</a></p>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-grid">
+    <div class="footer-col">
+      <h4>For Employers</h4>
+      <a href="#">Hiring Event Calendar</a>
+      <a href="#">Hiring Event Pricing</a>
+      <a href="#">Hiring Event Bundles</a>
+      <a href="#">Hiring Event FAQs</a>
+      <a href="#">Resources</a>
+      <a href="#">Contact Us</a>
+    </div>
+    <div class="footer-col">
+      <h4>For Job Seekers</h4>
+      <a href="#">Job Fairs Near Me</a>
+      <a href="#">Virtual Job Fair Calendar</a>
+      <a href="#">Search Jobs</a>
+      <a href="#">FAQs</a>
+      <a href="#">JobAgentX</a>
+    </div>
+    <div class="footer-col">
+      <h4>Social</h4>
+      <a href="#">LinkedIn</a>
+      <a href="#">Facebook</a>
+    </div>
+    <div class="footer-col">
+      <h4>JobFairX</h4>
+      <a href="#">About Us</a>
+    </div>
+  </div>
+
+  <div class="footer-wordmark-wrap">
+    <svg class="footer-wordmark-svg" viewBox="0 0 1500 280" aria-hidden="true">
+      <defs>
+        <filter id="wm-outline-base" x="-5%" y="-5%" width="110%" height="110%">
+          <feMorphology operator="dilate" radius="3" in="SourceAlpha" result="dil"/>
+          <feComposite in="dil" in2="SourceAlpha" operator="out"/>
+        </filter>
+        <filter id="wm-outline-glow" x="-5%" y="-5%" width="110%" height="110%">
+          <feMorphology operator="dilate" radius="2.5" in="SourceAlpha" result="dil"/>
+          <feComposite in="dil" in2="SourceAlpha" operator="out"/>
+        </filter>
+      </defs>
+      <text class="wm-base" x="50%" y="78%" text-anchor="middle">JOBFAIRX</text>
+      <text class="wm-glow" x="50%" y="78%" text-anchor="middle">JOBFAIRX</text>
+    </svg>
+  </div>
+
+  <div class="footer-legal">
+    <span>© 2026 JobFairX. All rights reserved.</span>
+    <a href="#">Privacy Policy</a>
+    <a href="#">Terms and Conditions</a>
+    <div class="country">
+      <span class="on">US</span>
+      <span>·</span>
+      <span>Canada</span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
