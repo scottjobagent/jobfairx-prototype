@@ -401,6 +401,17 @@ body.join-live .iv-tip { display:none !important; }
 .why-box p { font-size:13.5px; color:#767676; line-height:1.55; }
 .why-box p + p { margin-top:9px; }
 .td-status.pending { color:#9A6700; } .td-status.pending .dot { background:#d9a200; }
+.iv-table .c-evt { width:26%; } .iv-table .c-job { width:25%; } .iv-table .c-int { width:27%; } .iv-table .c-act { width:22%; }
+.td-state { font-size:13px; font-weight:600; }
+.td-state.confirmed { color:#16a34a; }
+.td-state.awaiting { color:#9A6700; }
+.td-state.injoined { color:#0044B3; }
+.td-state.done { color:#595959; }
+.td-state.none { color:#767676; font-weight:400; }
+.td-itime { font-size:14px; color:#2d2d2d; font-weight:500; }
+.td-itime + .td-state { margin-top:4px; }
+.td-substate { font-size:12px; color:#767676; margin-top:5px; }
+.td-jfx { font-size:12px; color:#767676; margin-top:6px; }
 /* Dev toggle */
 .dev { position:fixed; bottom:14px; left:50%; transform:translateX(-50%); background:#2d2d2d; border-radius:8px; padding:6px; display:flex; flex-wrap:wrap; gap:4px; row-gap:4px; max-width:94vw; justify-content:center; align-items:center; z-index:600; box-shadow:0 6px 20px rgba(0,0,0,.25); }
 .dev span { color:#767676; font-size:10px; font-weight:700; padding:6px 6px 6px 8px; text-transform:uppercase; letter-spacing:.5px; }
@@ -470,71 +481,64 @@ body.join-live .iv-tip { display:none !important; }
       <div id="tab-upcoming">
         <div class="table-card">
           <table class="iv-table">
-            <thead><tr><th class="c-evt">Event details</th><th class="c-int">Interview details</th><th class="c-stat">Status</th><th class="c-act">Action</th></tr></thead>
+            <thead><tr><th class="c-evt">Event details</th><th class="c-job">Job</th><th class="c-int">Interview details</th><th class="c-act">Action</th></tr></thead>
 
-            <!-- SCHEDULE -->
             <tbody class="scn" id="scn-schedule">
               <tr data-iv="rn" data-evt="Dallas Healthcare Hiring Event" data-evtmeta="Apr 22, 2026" data-job="Registered Nurse" data-co="Baylor Scott &amp; White">
                 <td><div class="td-evt-name">Dallas Healthcare Hiring Event</div><div class="td-evt-meta">Apr 22, 2026</div></td>
-                <td><div class="td-job" onclick="openJob('rn')">Registered Nurse</div><div class="td-co">Baylor Scott &amp; White</div><div class="td-itime td-muted">Not scheduled yet</div></td>
-                <td><span class="td-status matched"><span class="dot"></span>Matched</span></td>
+                <td><div class="td-job" onclick="openJob('rn')">Registered Nurse</div><div class="td-co">Baylor Scott &amp; White</div></td>
+                <td><div class="td-state none">Not scheduled yet</div></td>
                 <td><div class="td-actions"><button class="iv-request" onclick="requestInterview('rn')"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Schedule interview</button></div></td>
               </tr>
             </tbody>
 
-            <!-- CONFIRMED / JOIN NOW / IN INTERVIEW (phase-driven) -->
             <tbody class="scn hidden" id="scn-confirmed">
               <tr class="iv-confirmed" data-iv="pct" data-evt="Dallas Healthcare Hiring Event" data-evtmeta="Apr 22, 2026" data-job="Patient Care Tech" data-co="Texas Health" data-time="Apr 22, 2026 · 12:30 PM CT"></tr>
             </tbody>
 
-            <!-- PROPOSED -->
             <tbody class="scn hidden" id="scn-proposed">
               <tr data-iv="se" data-evt="Austin Technology Hiring Event" data-evtmeta="Apr 24, 2026" data-job="Software Engineer" data-co="Vertex Labs">
                 <td><div class="td-evt-name">Austin Technology Hiring Event</div><div class="td-evt-meta">Apr 24, 2026</div></td>
-                <td><div class="td-job" onclick="openJob('se')">Software Engineer</div><div class="td-co">Vertex Labs</div><div class="td-itime td-muted">Pick a proposed time →</div></td>
-                <td><span class="td-status proposed"><span class="dot"></span>New time proposed</span></td>
+                <td><div class="td-job" onclick="openJob('se')">Software Engineer</div><div class="td-co">Vertex Labs</div></td>
+                <td><div class="td-state awaiting">New time proposed</div><div class="td-substate">Choose a time to confirm →</div></td>
                 <td><div class="td-actions"><button class="time-btn" onclick="askAcceptTime('se','Apr 24, 2026 · 1:00 PM CT')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/></svg>Apr 24, 2026 · 1:00 PM CT</button><button class="time-btn" onclick="askAcceptTime('se','Apr 24, 2026 · 2:30 PM CT')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/></svg>Apr 24, 2026 · 2:30 PM CT</button><div class="td-links"><button class="iv-cancel" onclick="askCancel('se')">Decline</button><button class="iv-link" onclick="setView('messages')">Message employer</button></div></div></td>
               </tr>
             </tbody>
 
-            <!-- NOT ACCEPTED -->
             <tbody class="scn hidden" id="scn-declined">
               <tr data-iv="da" data-evt="Austin Technology Hiring Event" data-evtmeta="Apr 24, 2026" data-job="Data Analyst" data-co="Vertex Labs">
                 <td><div class="td-evt-name">Austin Technology Hiring Event</div><div class="td-evt-meta">Apr 24, 2026</div></td>
-                <td><div class="td-job" onclick="openJob('da')">Data Analyst</div><div class="td-co">Vertex Labs</div><div class="td-itime td-muted">No time confirmed</div></td>
-                <td><span class="td-status declined"><span class="dot"></span>Request not accepted</span></td>
+                <td><div class="td-job" onclick="openJob('da')">Data Analyst</div><div class="td-co">Vertex Labs</div></td>
+                <td><div class="td-state none">Request not accepted</div></td>
                 <td><div class="td-actions"><div class="td-links"><button class="iv-link" onclick="setView('messages')">Message employer</button></div></div></td>
               </tr>
             </tbody>
 
-            <!-- NOT MATCHED (row + expandable details) -->
             <tbody class="scn hidden" id="scn-notmatched">
               <tr>
                 <td><div class="td-evt-name">Chicago Technology Hiring Event</div><div class="td-evt-meta">May 6, 2026</div></td>
                 <td><div class="td-muted">Not matched yet</div><button class="link-why" onclick="toggleWhy(this)">What this means →</button></td>
-                <td><span class="td-status pending"><span class="dot"></span>Not yet matched</span></td>
+                <td><span class="td-dash">—</span></td>
                 <td><span class="td-dash">—</span></td>
               </tr>
               <tr class="why-row hidden"><td colspan="4"><div class="why-box"><p class="gate-lead">You're registered for the event.</p><p>This is a private, invite-only hiring event. To participate, you must be matched to an employer's job. Once you're matched, we'll email you an invitation to schedule an interview.</p><p>If you're not matched, you won't be able to schedule an interview or access the event.</p><p>There's nothing you need to do right now. If you're matched, you'll receive an email and the interview invitation will also appear on your dashboard.</p></div></td></tr>
             </tbody>
 
-            <!-- TWO INTERVIEWS (one event, rowspan) -->
             <tbody class="scn hidden" id="scn-multi">
               <tr>
                 <td rowspan="2"><div class="td-evt-name">Dallas Healthcare Hiring Event</div><div class="td-evt-meta">Apr 22, 2026</div></td>
-                <td><div class="td-job" onclick="openJob('rnm')">Registered Nurse</div><div class="td-co">Baylor Scott &amp; White</div><div class="td-itime">Apr 22, 2026 · 11:15 AM CT</div><div class="td-jfx">Interviews are on JobFairX</div></td>
-                <td><span class="td-status confirmed"><span class="dot"></span>Interview confirmed</span></td>
+                <td><div class="td-job" onclick="openJob('rnm')">Registered Nurse</div><div class="td-co">Baylor Scott &amp; White</div></td>
+                <td><div class="td-itime">Apr 22, 2026 · 11:15 AM CT</div><div class="td-state confirmed">Confirmed</div><div class="td-jfx">Interviews are on JobFairX</div></td>
                 <td><div class="td-actions"><button class="iv-join"><svg viewBox="0 0 24 24"><rect x="2" y="6" width="13" height="12" rx="2"/><path d="M22 8.5l-7 4 7 4v-8z"/></svg>Join interview<span class="iv-tip">You can join when your interview starts · 11:15 AM CT</span></button><div class="td-links"><button class="iv-cancel" onclick="askCancel('rnm')">Cancel interview</button></div></div></td>
               </tr>
               <tr>
-                <td><div class="td-job" onclick="openJob('pctm')">Patient Care Tech</div><div class="td-co">Texas Health</div><div class="td-itime">Apr 22, 2026 · 12:30 PM CT</div><div class="td-jfx">Interviews are on JobFairX</div></td>
-                <td><span class="td-status confirmed"><span class="dot"></span>Interview confirmed</span></td>
+                <td><div class="td-job" onclick="openJob('pctm')">Patient Care Tech</div><div class="td-co">Texas Health</div></td>
+                <td><div class="td-itime">Apr 22, 2026 · 12:30 PM CT</div><div class="td-state confirmed">Confirmed</div><div class="td-jfx">Interviews are on JobFairX</div></td>
                 <td><div class="td-actions"><button class="iv-join"><svg viewBox="0 0 24 24"><rect x="2" y="6" width="13" height="12" rx="2"/><path d="M22 8.5l-7 4 7 4v-8z"/></svg>Join interview<span class="iv-tip">You can join when your interview starts · 12:30 PM CT</span></button><div class="td-links"><button class="iv-cancel" onclick="askCancel('pctm')">Cancel interview</button></div></div></td>
               </tr>
             </tbody>
           </table>
         </div>
-
         <div id="tab-upcoming-empty" class="up-empty hidden">
           <h3>No upcoming events</h3>
           <p>When you register for a job fair and an employer matches you, your interviews show up here.</p>
@@ -546,18 +550,18 @@ body.join-live .iv-tip { display:none !important; }
       <div id="tab-past" class="hidden">
         <div class="table-card">
           <table class="iv-table">
-            <thead><tr><th class="c-evt">Event details</th><th class="c-int">Interview details</th><th class="c-stat">Status</th><th class="c-act">Action</th></tr></thead>
+            <thead><tr><th class="c-evt">Event details</th><th class="c-job">Job</th><th class="c-int">Interview details</th><th class="c-act">Action</th></tr></thead>
             <tbody>
               <tr>
                 <td><div class="td-evt-name">Houston Veteran Hiring Event</div><div class="td-evt-meta">Mar 18, 2026</div></td>
-                <td><div class="td-jobname">Operations Coordinator</div><div class="td-co">Northwind Co</div><div class="td-itime">Mar 18, 2026 · 1:00 PM CT</div></td>
-                <td><span class="td-status interviewed"><span class="dot"></span>Interviewed</span></td>
+                <td><div class="td-jobname">Operations Coordinator</div><div class="td-co">Northwind Co</div></td>
+                <td><div class="td-itime">Mar 18, 2026 · 1:00 PM CT</div><div class="td-state done">Interviewed</div></td>
                 <td><div class="td-actions"><a class="iv-link">View summary</a></div></td>
               </tr>
               <tr>
                 <td><div class="td-evt-name">Phoenix Manufacturing Hiring Event</div><div class="td-evt-meta">Feb 25, 2026</div></td>
-                <td><div class="td-jobname">Quality Inspector</div><div class="td-co">Cactus Components</div><div class="td-itime">Feb 25, 2026 · 1:00 PM CT</div></td>
-                <td><span class="td-status declined"><span class="dot"></span>Missed</span></td>
+                <td><div class="td-jobname">Quality Inspector</div><div class="td-co">Cactus Components</div></td>
+                <td><div class="td-itime">Feb 25, 2026 · 1:00 PM CT</div><div class="td-state none">Missed</div></td>
                 <td><span class="td-dash">—</span></td>
               </tr>
             </tbody>
@@ -1049,8 +1053,8 @@ body.join-live .iv-tip { display:none !important; }
     var tr=document.querySelector('[data-iv="'+key+'"]'); if(!tr){ closeReq(); return; }
     var job=tr.getAttribute('data-job')||'', co=tr.getAttribute('data-co')||'', evt=tr.getAttribute('data-evt')||'', evtmeta=tr.getAttribute('data-evtmeta')||'';
     tr.innerHTML='<td><div class="td-evt-name">'+evt+'</div><div class="td-evt-meta">'+evtmeta+'</div></td>'
-      +'<td><div class="td-job" onclick="openJob(\''+key+'\')">'+job+'</div><div class="td-co">'+co+'</div><div class="td-itime">'+time+'</div><div class="td-jfx">Interviews are on JobFairX</div></td>'
-      +'<td><span class="td-status proposed"><span class="dot"></span>Scheduled · awaiting confirmation</span></td>'
+      +'<td><div class="td-job" onclick="openJob(\''+key+'\')">'+job+'</div><div class="td-co">'+co+'</div></td>'
+      +'<td><div class="td-itime">'+time+'</div><div class="td-state awaiting">Awaiting confirmation</div></td>'
       +'<td><div class="td-actions"><div class="td-links"><button class="iv-cancel" onclick="askCancel(\''+key+'\')">Cancel request</button></div></div></td>';
     closeReq();
   }
@@ -1064,18 +1068,19 @@ body.join-live .iv-tip { display:none !important; }
   function renderConfirmed(tr){
     var key=tr.getAttribute('data-iv'), job=tr.getAttribute('data-job'), co=tr.getAttribute('data-co'), time=tr.getAttribute('data-time'), evt=tr.getAttribute('data-evt'), evtmeta=tr.getAttribute('data-evtmeta');
     var short=time.split('· ').pop();
+    var cam='<svg viewBox="0 0 24 24">'+CAM+'</svg>';
     var c1='<td><div class="td-evt-name">'+evt+'</div><div class="td-evt-meta">'+evtmeta+'</div></td>';
-    var c2='<td><div class="td-job" onclick="openJob(\''+key+'\')">'+job+'</div><div class="td-co">'+co+'</div><div class="td-itime">'+time+'</div><div class="td-jfx">Interviews are on JobFairX</div></td>';
-    var c3, c4, cam='<svg viewBox="0 0 24 24">'+CAM+'</svg>';
+    var c2='<td><div class="td-job" onclick="openJob(\''+key+'\')">'+job+'</div><div class="td-co">'+co+'</div></td>';
     var links='<div class="td-links"><button class="iv-link" onclick="openTest()">Test camera &amp; mic</button><button class="iv-link" onclick="setView(\'messages\')">Message employer</button><button class="iv-cancel" onclick="askCancel(\''+key+'\')">Cancel interview</button></div>';
+    var c3, c4;
     if(PHASE==='before'){
-      c3='<td><span class="td-status confirmed"><span class="dot"></span>Interview confirmed</span></td>';
+      c3='<td><div class="td-itime">'+time+'</div><div class="td-state confirmed">Confirmed</div><div class="td-jfx">Interviews are on JobFairX</div></td>';
       c4='<td><div class="td-actions"><button class="iv-join">'+cam+'Join interview<span class="iv-tip">You can join when your interview starts · '+short+'</span></button>'+links+'</div></td>';
     } else if(PHASE==='live'){
-      c3='<td><span class="td-status confirmed"><span class="dot"></span>Interview confirmed</span></td>';
+      c3='<td><div class="td-itime">'+time+'</div><div class="td-state confirmed">Confirmed</div><div class="td-jfx">Interviews are on JobFairX</div></td>';
       c4='<td><div class="td-actions"><button class="iv-join-now">'+cam+'Join now</button>'+links+'</div></td>';
     } else {
-      c3='<td><span class="td-status injoined"><span class="dot"></span>In interview</span></td>';
+      c3='<td><div class="td-itime">'+time+'</div><div class="td-state injoined">In interview</div></td>';
       c4='<td><div class="td-actions"><button class="iv-join-now">'+cam+'Return to interview</button><div class="td-links"><button class="iv-link" onclick="setView(\'messages\')">Message employer</button></div></div></td>';
     }
     tr.innerHTML=c1+c2+c3+c4;
