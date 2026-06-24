@@ -355,6 +355,33 @@ body.join-live .iv-tip { display:none !important; }
 .time-btn { display:inline-flex; align-items:center; gap:8px; background:#0044B3; color:#fff; border:none; border-radius:8px; padding:10px 20px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; white-space:nowrap; }
 .time-btn:hover { background:#003399; }
 .time-btn svg { width:15px; height:15px; stroke:currentColor; fill:none; stroke-width:2; }
+.iv-table { width:100%; border-collapse:collapse; }
+.iv-table thead th { text-align:left; font-size:11px; font-weight:700; color:#595959; text-transform:uppercase; letter-spacing:.5px; padding:11px 16px; background:#fafaf8; border-top:1px solid #ebebeb; border-bottom:1px solid #ebebeb; }
+.iv-table th:first-child, .iv-table td:first-child { padding-left:24px; }
+.iv-table th:last-child, .iv-table td:last-child { padding-right:24px; }
+.iv-table .th-job { width:30%; }
+.iv-table .th-act { width:26%; }
+.iv-table tbody td { padding:18px 16px; border-bottom:1px solid #f0f0f0; font-size:14px; color:#2d2d2d; vertical-align:top; }
+.iv-table tbody tr:last-child td { border-bottom:none; }
+.td-job { font-weight:700; font-size:14px; color:#2d2d2d; cursor:pointer; display:inline-block; }
+.td-job:hover { color:#0044B3; text-decoration:underline; }
+.td-jobname { font-weight:700; font-size:14px; color:#2d2d2d; }
+.td-co { font-size:13px; color:#767676; margin-top:3px; }
+.td-status { display:inline-flex; align-items:center; gap:7px; font-size:13px; font-weight:600; }
+.td-status .dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.td-status.confirmed { color:#16a34a; } .td-status.confirmed .dot { background:#16a34a; }
+.td-status.matched { color:#0044B3; } .td-status.matched .dot { background:#0044B3; }
+.td-status.proposed { color:#9A6700; } .td-status.proposed .dot { background:#d9a200; }
+.td-status.declined { color:#767676; } .td-status.declined .dot { background:#9a9794; }
+.td-status.injoined { color:#0044B3; } .td-status.injoined .dot { background:#0044B3; }
+.td-status.interviewed { color:#595959; } .td-status.interviewed .dot { background:#9a9794; }
+.td-sub { font-size:12px; color:#767676; margin-top:5px; max-width:230px; line-height:1.45; }
+.td-time { font-size:14px; color:#2d2d2d; font-weight:500; }
+.td-time.none { color:#9a9794; font-weight:400; }
+.td-actions { display:flex; flex-direction:column; gap:9px; align-items:flex-start; }
+.td-times { display:flex; flex-direction:column; gap:8px; align-items:flex-start; }
+.td-links { display:flex; flex-direction:column; gap:7px; align-items:flex-start; }
+.evt-note { font-size:12px; color:#767676; padding:13px 24px; border-top:1px solid #f0f0f0; }
 /* Dev toggle */
 .dev { position:fixed; bottom:14px; left:50%; transform:translateX(-50%); background:#2d2d2d; border-radius:8px; padding:6px; display:flex; flex-wrap:wrap; gap:4px; row-gap:4px; max-width:94vw; justify-content:center; align-items:center; z-index:600; box-shadow:0 6px 20px rgba(0,0,0,.25); }
 .dev span { color:#767676; font-size:10px; font-weight:700; padding:6px 6px 6px 8px; text-transform:uppercase; letter-spacing:.5px; }
@@ -423,78 +450,65 @@ body.join-live .iv-tip { display:none !important; }
       <!-- UPCOMING -->
       <div id="tab-upcoming">
 
-        <!-- SCHEDULE -->
         <div class="scn" id="scn-schedule">
-          <div class="evt-card">
-            <div class="evt-head"><div><div class="evt-title">Dallas Healthcare Hiring Event</div><div class="evt-meta">Apr 22, 2026 · 11:00 AM - 3:00 PM CT · Virtual</div></div></div>
-            <div class="evt-body">
-              <div class="iv-block" data-iv="rn">
-                <div>
-                  <div class="iv-job" onclick="openJob('rn')">Registered Nurse</div>
-                  <div class="iv-company">Baylor Scott &amp; White</div>
-                </div>
-                <div class="iv-right">
-                  <button class="iv-request" onclick="requestInterview('rn')"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Schedule interview</button>
-                  <div class="iv-where">Interviews are on JobFairX</div>
-                </div>
-              </div>
-            </div>
+          <div class="evt-card"><div class="evt-head"><div><div class="evt-title">Dallas Healthcare Hiring Event</div><div class="evt-meta">Apr 22, 2026 · 11:00 AM - 3:00 PM CT · Virtual</div></div></div>
+            <table class="iv-table"><thead><tr><th class="th-job">Job</th><th>Status</th><th>Interview time</th><th class="th-act"></th></tr></thead>
+              <tbody>
+                <tr data-iv="rn">
+                  <td><div class="td-job" onclick="openJob('rn')">Registered Nurse</div><div class="td-co">Baylor Scott &amp; White</div></td>
+                  <td><span class="td-status matched"><span class="dot"></span>Matched</span></td>
+                  <td><span class="td-time none">—</span></td>
+                  <td><div class="td-actions"><button class="iv-request" onclick="requestInterview('rn')"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Schedule interview</button></div></td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="evt-note">Interviews are on JobFairX</div>
           </div>
         </div>
 
-        <!-- CONFIRMED / JOIN NOW / IN INTERVIEW (phase-driven) -->
         <div class="scn hidden" id="scn-confirmed">
-          <div class="evt-card">
-            <div class="evt-head"><div><div class="evt-title">Dallas Healthcare Hiring Event</div><div class="evt-meta">Apr 22, 2026 · 11:00 AM - 3:00 PM CT · Virtual</div></div></div>
-            <div class="evt-body">
-              <div class="iv-block iv-confirmed" data-iv="pct" data-job="Patient Care Tech" data-co="Texas Health" data-time="Apr 22, 2026 · 12:30 PM CT"></div>
-            </div>
+          <div class="evt-card"><div class="evt-head"><div><div class="evt-title">Dallas Healthcare Hiring Event</div><div class="evt-meta">Apr 22, 2026 · 11:00 AM - 3:00 PM CT · Virtual</div></div></div>
+            <table class="iv-table"><thead><tr><th class="th-job">Job</th><th>Status</th><th>Interview time</th><th class="th-act"></th></tr></thead>
+              <tbody>
+                <tr class="iv-confirmed" data-iv="pct" data-job="Patient Care Tech" data-co="Texas Health" data-time="Apr 22, 2026 · 12:30 PM CT"></tr>
+              </tbody>
+            </table>
+            <div class="evt-note">Interviews are on JobFairX</div>
           </div>
         </div>
 
-        <!-- PROPOSED -->
         <div class="scn hidden" id="scn-proposed">
-          <div class="evt-card">
-            <div class="evt-head"><div><div class="evt-title">Austin Technology Hiring Event</div><div class="evt-meta">Apr 24, 2026 · 10:00 AM - 2:00 PM CT · Virtual</div></div></div>
-            <div class="evt-body">
-              <div class="iv-block" data-iv="se">
-                <div>
-                  <div class="iv-job" onclick="openJob('se')">Software Engineer</div>
-                  <div class="iv-company">Vertex Labs</div>
-                  <div class="iv-conf iv-proposed"><span class="dot"></span>Employer proposed a new interview time</div>
-                  <div class="iv-detail">Your requested time (Apr 24, 11:00 AM CT) wasn't available, so the employer proposed new times. Pick one to accept:</div>
-                  <div class="iv-links"><button class="iv-link" onclick="setView('messages')">Message employer</button></div>
-                </div>
-                <div class="iv-right">
-                  <button class="time-btn" onclick="askAcceptTime('se','Apr 24, 2026 · 1:00 PM CT')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/></svg>Apr 24, 2026 · 1:00 PM CT</button>
-                  <button class="time-btn" onclick="askAcceptTime('se','Apr 24, 2026 · 2:30 PM CT')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/></svg>Apr 24, 2026 · 2:30 PM CT</button>
-                  <div class="iv-where">Interviews are on JobFairX</div>
-                  <button class="iv-cancel" onclick="askCancel('se')">Decline</button>
-                </div>
-              </div>
-            </div>
+          <div class="evt-card"><div class="evt-head"><div><div class="evt-title">Austin Technology Hiring Event</div><div class="evt-meta">Apr 24, 2026 · 10:00 AM - 2:00 PM CT · Virtual</div></div></div>
+            <table class="iv-table"><thead><tr><th class="th-job">Job</th><th>Status</th><th>Interview time</th><th class="th-act"></th></tr></thead>
+              <tbody>
+                <tr data-iv="se">
+                  <td><div class="td-job" onclick="openJob('se')">Software Engineer</div><div class="td-co">Vertex Labs</div></td>
+                  <td><span class="td-status proposed"><span class="dot"></span>New time proposed</span></td>
+                  <td><div class="td-times"><button class="time-btn" onclick="askAcceptTime('se','Apr 24, 2026 · 1:00 PM CT')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/></svg>Apr 24, 2026 · 1:00 PM CT</button><button class="time-btn" onclick="askAcceptTime('se','Apr 24, 2026 · 2:30 PM CT')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/></svg>Apr 24, 2026 · 2:30 PM CT</button></div></td>
+                  <td><div class="td-actions"><div class="td-links"><button class="iv-cancel" onclick="askCancel('se')">Decline</button><button class="iv-link" onclick="setView('messages')">Message employer</button></div></div></td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="evt-note">Interviews are on JobFairX</div>
           </div>
         </div>
 
-        <!-- NOT ACCEPTED -->
         <div class="scn hidden" id="scn-declined">
-          <div class="evt-card">
-            <div class="evt-head"><div><div class="evt-title">Austin Technology Hiring Event</div><div class="evt-meta">Apr 24, 2026 · 10:00 AM - 2:00 PM CT · Virtual</div></div></div>
-            <div class="evt-body">
-              <div class="iv-block" data-iv="da">
-                <div>
-                  <div class="iv-job" onclick="openJob('da')">Data Analyst</div>
-                  <div class="iv-company">Vertex Labs</div>
-                  <div class="iv-conf iv-missed"><span class="dot"></span>Interview request not accepted</div>
-                  <div class="iv-detail">The employer couldn't confirm your scheduled time. If a new time opens up, they'll propose it and you'll get an email. Nothing to do right now.</div>
-                  <div class="iv-links"><button class="iv-link" onclick="setView('messages')">Message employer</button></div>
-                </div>
-              </div>
-            </div>
+          <div class="evt-card"><div class="evt-head"><div><div class="evt-title">Austin Technology Hiring Event</div><div class="evt-meta">Apr 24, 2026 · 10:00 AM - 2:00 PM CT · Virtual</div></div></div>
+            <table class="iv-table"><thead><tr><th class="th-job">Job</th><th>Status</th><th>Interview time</th><th class="th-act"></th></tr></thead>
+              <tbody>
+                <tr data-iv="da">
+                  <td><div class="td-job" onclick="openJob('da')">Data Analyst</div><div class="td-co">Vertex Labs</div></td>
+                  <td><span class="td-status declined"><span class="dot"></span>Request not accepted</span><div class="td-sub">The employer will propose a new time if one opens.</div></td>
+                  <td><span class="td-time none">—</span></td>
+                  <td><div class="td-actions"><div class="td-links"><button class="iv-link" onclick="setView('messages')">Message employer</button></div></div></td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="evt-note">Interviews are on JobFairX</div>
           </div>
         </div>
 
-        <!-- NOT MATCHED (gate) -->
         <div class="scn hidden" id="scn-notmatched">
           <div class="evt-card">
             <div class="evt-head">
@@ -511,14 +525,15 @@ body.join-live .iv-tip { display:none !important; }
           </div>
         </div>
 
-        <!-- TWO INTERVIEWS (one event, two roles) -->
         <div class="scn hidden" id="scn-multi">
-          <div class="evt-card">
-            <div class="evt-head"><div><div class="evt-title">Dallas Healthcare Hiring Event</div><div class="evt-meta">Apr 22, 2026 · 11:00 AM - 3:00 PM CT · Virtual</div></div></div>
-            <div class="evt-body">
-              <div class="iv-block iv-confirmed" data-iv="rnm" data-job="Registered Nurse" data-co="Baylor Scott &amp; White" data-time="Apr 22, 2026 · 11:15 AM CT"></div>
-              <div class="iv-block iv-confirmed" data-iv="pctm" data-job="Patient Care Tech" data-co="Texas Health" data-time="Apr 22, 2026 · 12:30 PM CT"></div>
-            </div>
+          <div class="evt-card"><div class="evt-head"><div><div class="evt-title">Dallas Healthcare Hiring Event</div><div class="evt-meta">Apr 22, 2026 · 11:00 AM - 3:00 PM CT · Virtual</div></div></div>
+            <table class="iv-table"><thead><tr><th class="th-job">Job</th><th>Status</th><th>Interview time</th><th class="th-act"></th></tr></thead>
+              <tbody>
+                <tr class="iv-confirmed" data-iv="rnm" data-job="Registered Nurse" data-co="Baylor Scott &amp; White" data-time="Apr 22, 2026 · 11:15 AM CT"></tr>
+                <tr class="iv-confirmed" data-iv="pctm" data-job="Patient Care Tech" data-co="Texas Health" data-time="Apr 22, 2026 · 12:30 PM CT"></tr>
+              </tbody>
+            </table>
+            <div class="evt-note">Interviews are on JobFairX</div>
           </div>
         </div>
 
@@ -531,45 +546,30 @@ body.join-live .iv-tip { display:none !important; }
 
       <!-- PAST -->
       <div id="tab-past" class="hidden">
-        <div class="evt-card">
-          <div class="evt-head">
-            <div>
-              <div class="evt-title">Houston Veteran Hiring Event</div>
-              <div class="evt-meta">Mar 18, 2026 · 11:00 AM - 3:00 PM CT · Virtual</div>
-            </div>
-            <span class="evt-pill done"><span class="dot"></span>Interviewed</span>
-          </div>
-          <div class="evt-body">
-            <div class="iv-block">
-              <div>
-                <div class="iv-jobname">Operations Coordinator</div>
-                <div class="iv-company">Northwind Co</div>
-                <div class="iv-done">Interviewed · Mar 18, 2026 · 1:00 PM CT</div>
-              </div>
-              <div class="iv-right"><a class="iv-summary">View summary</a></div>
-            </div>
-          </div>
+        <div class="evt-card"><div class="evt-head"><div><div class="evt-title">Houston Veteran Hiring Event</div><div class="evt-meta">Mar 18, 2026 · 11:00 AM - 3:00 PM CT · Virtual</div></div></div>
+          <table class="iv-table"><thead><tr><th class="th-job">Job</th><th>Status</th><th>Interview time</th><th class="th-act"></th></tr></thead>
+            <tbody>
+              <tr>
+                <td><div class="td-jobname">Operations Coordinator</div><div class="td-co">Northwind Co</div></td>
+                <td><span class="td-status interviewed"><span class="dot"></span>Interviewed</span></td>
+                <td><span class="td-time">Mar 18, 2026 · 1:00 PM CT</span></td>
+                <td><div class="td-actions"><a class="iv-link">View summary</a></div></td>
+              </tr>
+            </tbody>
+          </table>
         </div>
 
-        <div class="evt-card">
-          <div class="evt-head">
-            <div>
-              <div class="evt-title">Phoenix Manufacturing Hiring Event</div>
-              <div class="evt-meta">Feb 25, 2026 · 11:00 AM - 3:00 PM CT · Virtual</div>
-            </div>
-            <span class="evt-pill done"><span class="dot"></span>Missed</span>
-          </div>
-          <div class="evt-body">
-            <div class="iv-block">
-              <div>
-                <div class="iv-jobname">Quality Inspector</div>
-                <div class="iv-company">Cactus Components</div>
-                <div class="iv-conf iv-missed"><span class="dot"></span>You missed this interview</div>
-                <div class="iv-when">Feb 25, 2026 · 1:00 PM CT</div>
-                <div class="iv-detail">This interview has passed. There's nothing to join — it's over.</div>
-              </div>
-            </div>
-          </div>
+        <div class="evt-card"><div class="evt-head"><div><div class="evt-title">Phoenix Manufacturing Hiring Event</div><div class="evt-meta">Feb 25, 2026 · 11:00 AM - 3:00 PM CT · Virtual</div></div></div>
+          <table class="iv-table"><thead><tr><th class="th-job">Job</th><th>Status</th><th>Interview time</th><th class="th-act"></th></tr></thead>
+            <tbody>
+              <tr>
+                <td><div class="td-jobname">Quality Inspector</div><div class="td-co">Cactus Components</div></td>
+                <td><span class="td-status declined"><span class="dot"></span>Missed</span><div class="td-sub">This interview has passed.</div></td>
+                <td><span class="td-time">Feb 25, 2026 · 1:00 PM CT</span></td>
+                <td><span class="td-time none">—</span></td>
+              </tr>
+            </tbody>
+          </table>
         </div>
 
         <div id="tab-past-empty" class="up-empty hidden">
@@ -1059,20 +1059,13 @@ body.join-live .iv-tip { display:none !important; }
     var key=REQ_KEY; if(!key){ closeReq(); return; }
     var sel=document.querySelector('input[name="reqslot"]:checked');
     var time=sel?sel.value:'';
-    var blk=document.querySelector('.iv-block[data-iv="'+key+'"]'); if(!blk){ closeReq(); return; }
-    var job=blk.querySelector('.iv-job').textContent;
-    var co=blk.querySelector('.iv-company').textContent;
-    blk.innerHTML='<div>'
-      +'<div class="iv-job" onclick="openJob(\''+key+'\')">'+job+'</div>'
-      +'<div class="iv-company">'+co+'</div>'
-      +'<div class="iv-conf iv-requested"><span class="dot"></span>Interview scheduled \u00b7 awaiting confirmation</div>'
-      +'<div class="iv-when">'+time+'</div>'
-      +'<div class="iv-msub">We\'ll email you when '+co+' confirms your time.</div>'
-      +'<div class="iv-where"><svg viewBox="0 0 24 24">'+MON+'</svg>Interviews are on JobFairX</div>'
-      +'</div>'
-      +'<div class="iv-right">'
-      +'<button class="iv-cancel" onclick="askCancel(\''+key+'\')">Cancel request</button>'
-      +'</div>';
+    var tr=document.querySelector('[data-iv="'+key+'"]'); if(!tr){ closeReq(); return; }
+    var job=(tr.querySelector('.td-job')||{textContent:''}).textContent;
+    var co=(tr.querySelector('.td-co')||{textContent:''}).textContent;
+    tr.innerHTML='<td><div class="td-job" onclick="openJob(\''+key+'\')">'+job+'</div><div class="td-co">'+co+'</div></td>'
+      +'<td><span class="td-status proposed"><span class="dot"></span>Scheduled \u00b7 awaiting confirmation</span><div class="td-sub">We\'ll email you when '+co+' confirms.</div></td>'
+      +'<td><span class="td-time">'+time+'</span></td>'
+      +'<td><div class="td-actions"><div class="td-links"><button class="iv-cancel" onclick="askCancel(\''+key+'\')">Cancel request</button></div></div></td>';
     closeReq();
   }
   var PHASE='before';
@@ -1082,36 +1075,33 @@ body.join-live .iv-tip { display:none !important; }
     document.querySelectorAll('.iv-confirmed').forEach(renderConfirmed);
     if(el){ el.closest('.dev-group').querySelectorAll('button').forEach(function(b){b.classList.remove('active');}); el.classList.add('active'); }
   }
-  function renderConfirmed(blk){
-    var key=blk.getAttribute('data-iv'), job=blk.getAttribute('data-job'), co=blk.getAttribute('data-co'), time=blk.getAttribute('data-time');
+  function renderConfirmed(tr){
+    var key=tr.getAttribute('data-iv'), job=tr.getAttribute('data-job'), co=tr.getAttribute('data-co'), time=tr.getAttribute('data-time');
     var short=time.split('\u00b7 ').pop();
-    var note='<div class="iv-where"><svg viewBox="0 0 24 24">'+MON+'</svg>Interviews are on JobFairX</div>';
-    var msg='<button class="iv-link" onclick="setView(\'messages\')">Message employer</button>';
-    var test='<button class="iv-link" onclick="openTest()">Test your camera &amp; mic</button>';
-    var head='<div class="iv-job" onclick="openJob(\''+key+'\')">'+job+'</div><div class="iv-company">'+co+'</div>';
-    var left, right;
+    var jobCell='<td><div class="td-job" onclick="openJob(\''+key+'\')">'+job+'</div><div class="td-co">'+co+'</div></td>';
+    var timeCell='<td><span class="td-time">'+time+'</span></td>';
+    var statusCell, actionCell;
     if(PHASE==='before'){
-      left=head+'<div class="iv-conf"><span class="dot"></span>Interview confirmed</div><div class="iv-when">'+time+'</div><div class="iv-links">'+test+msg+'</div>';
-      right='<button class="iv-join"><svg viewBox="0 0 24 24">'+CAM+'</svg>Join interview<span class="iv-tip">You can join when your interview starts \u00b7 '+short+'</span></button>'+note+'<button class="iv-cancel" onclick="askCancel(\''+key+'\')">Cancel interview</button>';
+      statusCell='<td><span class="td-status confirmed"><span class="dot"></span>Interview confirmed</span></td>';
+      actionCell='<td><div class="td-actions"><button class="iv-join"><svg viewBox="0 0 24 24">'+CAM+'</svg>Join interview<span class="iv-tip">You can join when your interview starts \u00b7 '+short+'</span></button><div class="td-links"><button class="iv-link" onclick="openTest()">Test camera &amp; mic</button><button class="iv-link" onclick="setView(\'messages\')">Message employer</button><button class="iv-cancel" onclick="askCancel(\''+key+'\')">Cancel interview</button></div></div></td>';
     } else if(PHASE==='live'){
-      left=head+'<div class="iv-conf"><span class="dot"></span>Interview confirmed<span class="iv-now">Starting now</span></div><div class="iv-when">'+time+'</div><div class="iv-links">'+test+msg+'</div>';
-      right='<button class="iv-join-now"><svg viewBox="0 0 24 24">'+CAM+'</svg>Join now</button>'+note+'<button class="iv-cancel" onclick="askCancel(\''+key+'\')">Cancel interview</button>';
+      statusCell='<td><span class="td-status confirmed"><span class="dot"></span>Interview confirmed</span></td>';
+      actionCell='<td><div class="td-actions"><button class="iv-join-now"><svg viewBox="0 0 24 24">'+CAM+'</svg>Join now</button><div class="td-links"><button class="iv-link" onclick="openTest()">Test camera &amp; mic</button><button class="iv-link" onclick="setView(\'messages\')">Message employer</button><button class="iv-cancel" onclick="askCancel(\''+key+'\')">Cancel interview</button></div></div></td>';
     } else {
-      left=head+'<div class="iv-conf iv-injoined"><span class="dot"></span>You\'re in the interview</div><div class="iv-when">'+time+'</div><div class="iv-links">'+msg+'</div>';
-      right='<button class="iv-join-now"><svg viewBox="0 0 24 24">'+CAM+'</svg>Return to interview</button>'+note;
+      statusCell='<td><span class="td-status injoined"><span class="dot"></span>In interview</span></td>';
+      actionCell='<td><div class="td-actions"><button class="iv-join-now"><svg viewBox="0 0 24 24">'+CAM+'</svg>Return to interview</button><div class="td-links"><button class="iv-link" onclick="setView(\'messages\')">Message employer</button></div></div></td>';
     }
-    blk.innerHTML='<div>'+left+'</div><div class="iv-right">'+right+'</div>';
+    tr.innerHTML=jobCell+statusCell+timeCell+actionCell;
   }
   function openTest(){ document.getElementById('testModal').classList.add('open'); }
   function closeTest(){ var m=document.getElementById('testModal'); if(m) m.classList.remove('open'); }
   function acceptProposed(key, time){
-    var blk=document.querySelector('.iv-block[data-iv="'+key+'"]'); if(!blk) return;
-    var t=time||'';
-    blk.setAttribute('data-job', blk.querySelector('.iv-job').textContent);
-    blk.setAttribute('data-co', blk.querySelector('.iv-company').textContent);
-    blk.setAttribute('data-time', t);
-    blk.classList.add('iv-confirmed');
-    renderConfirmed(blk);
+    var tr=document.querySelector('[data-iv="'+key+'"]'); if(!tr) return;
+    tr.setAttribute('data-job', (tr.querySelector('.td-job')||{textContent:''}).textContent);
+    tr.setAttribute('data-co', (tr.querySelector('.td-co')||{textContent:''}).textContent);
+    tr.setAttribute('data-time', time||'');
+    tr.classList.add('iv-confirmed');
+    renderConfirmed(tr);
   }
   var ACCEPT_KEY=null, ACCEPT_TIME=null;
   function askAcceptTime(key, time){
@@ -1155,21 +1145,21 @@ body.join-live .iv-tip { display:none !important; }
   var CANCEL_KEY=null;
   function askCancel(key){
     CANCEL_KEY=key;
-    var blk=document.querySelector('.iv-block[data-iv="'+key+'"]'); if(!blk) return;
-    var role=blk.querySelector('.iv-job').textContent;
-    var co=blk.querySelector('.iv-company').textContent;
-    var when=blk.querySelector('.iv-when').textContent;
-    document.getElementById('cancelBody').innerHTML='You\'re about to cancel your <strong>'+role+'</strong> interview with '+co+' ('+when+'). This releases your interview time and lets the employer know. It can\'t be undone \u2014 you\'d need to be matched again to get another time.';
+    var tr=document.querySelector('[data-iv="'+key+'"]'); if(!tr) return;
+    var role=(tr.querySelector('.td-job')||{textContent:''}).textContent;
+    var co=(tr.querySelector('.td-co')||{textContent:''}).textContent;
+    var wEl=tr.querySelector('.td-time'); var when=wEl?wEl.textContent:'';
+    var wtxt=(when&&when!=='\u2014')?(' ('+when+')'):'';
+    document.getElementById('cancelBody').innerHTML='You\'re about to cancel your <strong>'+role+'</strong> interview with '+co+wtxt+'. This releases your interview time and lets the employer know. It can\'t be undone \u2014 you\'d need to be matched again to get another time.';
     document.getElementById('cancelModal').classList.add('open');
   }
   function closeCancel(){ var m=document.getElementById('cancelModal'); if(m) m.classList.remove('open'); CANCEL_KEY=null; }
   function confirmCancel(){
     var key=CANCEL_KEY; if(!key){ closeCancel(); return; }
-    var blk=document.querySelector('.iv-block[data-iv="'+key+'"]');
-    var card=blk?blk.closest('.evt-card'):null;
-    if(blk) blk.remove();
-    var btn=document.querySelector('.evt-cancel[data-cancel="'+key+'"]'); if(btn) btn.remove();
-    if(card && !card.querySelector('.iv-block')){
+    var tr=document.querySelector('[data-iv="'+key+'"]');
+    var card=tr?tr.closest('.evt-card'):null;
+    if(tr) tr.remove();
+    if(card && card.querySelectorAll('tbody tr').length===0){
       card.remove();
       var c=document.getElementById('cUp'); if(c){ c.textContent=Math.max(0,(parseInt(c.textContent,10)||0)-1); }
     }
