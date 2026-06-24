@@ -352,6 +352,9 @@ body.join-live .iv-tip { display:none !important; }
 .time-opt:hover { border-color:#0044B3; background:#f0f5ff; color:#0044B3; }
 .time-opt svg { width:16px; height:16px; color:#0044B3; stroke:currentColor; fill:none; stroke-width:2; flex-shrink:0; }
 .time-opt:hover svg { color:#0044B3; }
+.time-btn { display:inline-flex; align-items:center; gap:8px; background:#0044B3; color:#fff; border:none; border-radius:8px; padding:10px 20px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; white-space:nowrap; }
+.time-btn:hover { background:#003399; }
+.time-btn svg { width:15px; height:15px; stroke:currentColor; fill:none; stroke-width:2; }
 /* Dev toggle */
 .dev { position:fixed; bottom:14px; left:50%; transform:translateX(-50%); background:#2d2d2d; border-radius:8px; padding:5px; display:flex; gap:4px; z-index:600; box-shadow:0 6px 20px rgba(0,0,0,.25); }
 .dev span { color:#767676; font-size:10px; font-weight:700; padding:6px 6px 6px 8px; text-transform:uppercase; letter-spacing:.5px; }
@@ -457,13 +460,14 @@ body.join-live .iv-tip { display:none !important; }
                 <div class="iv-job" onclick="openJob('se')">Software Engineer</div>
                 <div class="iv-company">Vertex Labs</div>
                 <div class="iv-conf iv-proposed"><span class="dot"></span>Employer proposed a new interview time</div>
-                <div class="iv-detail">Your requested time (Apr 24, 11:00 AM CT) wasn't available, so the employer proposed new times. Tap a time to accept it:</div>
-                <div class="time-opts">
-                  <button class="time-opt" onclick="acceptProposed('se','Apr 24, 2026 · 1:00 PM CT')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/></svg>Apr 24, 2026 · 1:00 PM CT</button>
-                  <button class="time-opt" onclick="acceptProposed('se','Apr 24, 2026 · 2:30 PM CT')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/></svg>Apr 24, 2026 · 2:30 PM CT</button>
-                </div>
-                <div class="iv-where" style="margin-top:12px">Interviews are on JobFairX</div>
-                <div class="iv-links"><button class="iv-cancel" onclick="askCancel('se')">Decline</button><button class="iv-link" onclick="setView('messages')">Message employer</button></div>
+                <div class="iv-detail">Your requested time (Apr 24, 11:00 AM CT) wasn't available, so the employer proposed new times. Pick one to accept:</div>
+                <div class="iv-links"><button class="iv-link" onclick="setView('messages')">Message employer</button></div>
+              </div>
+              <div class="iv-right">
+                <button class="time-btn" onclick="askAcceptTime('se','Apr 24, 2026 · 1:00 PM CT')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/></svg>Apr 24, 2026 · 1:00 PM CT</button>
+                <button class="time-btn" onclick="askAcceptTime('se','Apr 24, 2026 · 2:30 PM CT')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/></svg>Apr 24, 2026 · 2:30 PM CT</button>
+                <div class="iv-where">Interviews are on JobFairX</div>
+                <button class="iv-cancel" onclick="askCancel('se')">Decline</button>
               </div>
             </div>
             <div class="iv-block" data-iv="da">
@@ -918,6 +922,18 @@ body.join-live .iv-tip { display:none !important; }
     </div>
   </div>
 
+  <!-- ACCEPT PROPOSED TIME MODAL -->
+  <div class="modal-overlay" id="acceptModal">
+    <div class="modal" style="max-width:420px;">
+      <div class="modal-head"><h2 style="font-size:20px;">Accept this interview time?</h2><button class="modal-close" onclick="closeAccept()">&times;</button></div>
+      <p id="acceptBody" style="font-size:14px;color:#4b5563;line-height:1.6;"></p>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="closeAccept()">Cancel</button>
+        <button class="btn-save" onclick="confirmAccept()">Accept time</button>
+      </div>
+    </div>
+  </div>
+
 <script>
   var STATE='has', VIEW='dashboard';
   function setView(v){
@@ -929,7 +945,7 @@ body.join-live .iv-tip { display:none !important; }
     document.getElementById('nav-messages').classList.toggle('active', v==='messages');
     document.getElementById('nav-profile').classList.toggle('active', v==='profile');
     if(v==='profile'){ showProfileSub('main'); }
-    closeJT(); closeCancel(); closeJob(); closeReq(); closeTest();
+    closeJT(); closeCancel(); closeJob(); closeReq(); closeTest(); closeAccept();
   }
   function showProfileSub(sub){
     document.getElementById('profile-main').classList.toggle('hidden', sub!=='main');
@@ -1065,6 +1081,14 @@ body.join-live .iv-tip { display:none !important; }
     blk.classList.add('iv-confirmed');
     renderConfirmed(blk);
   }
+  var ACCEPT_KEY=null, ACCEPT_TIME=null;
+  function askAcceptTime(key, time){
+    ACCEPT_KEY=key; ACCEPT_TIME=time;
+    document.getElementById('acceptBody').innerHTML='Confirm your interview for <strong>'+time+'</strong>. It\'ll be booked right here on JobFairX \u2014 no app or external links.';
+    document.getElementById('acceptModal').classList.add('open');
+  }
+  function closeAccept(){ var m=document.getElementById('acceptModal'); if(m) m.classList.remove('open'); }
+  function confirmAccept(){ var k=ACCEPT_KEY, t=ACCEPT_TIME; closeAccept(); if(k) acceptProposed(k, t); }
   function checkUpcomingEmpty(){
     var t=document.getElementById('tab-upcoming'); if(!t) return;
     var has=t.querySelector('.evt-card');
