@@ -44,6 +44,10 @@ body.collapsed .topbar { left:60px; }
 .user-menu-item:hover { background:#f3f2ef; }
 .user-menu-item.muted { color:#767676; }
 .user-menu-divider { height:1px; background:#ebebeb; margin:4px 0; }
+.pw-input { width:100%; padding:11px 12px; border:1px solid #d4d2d0; border-radius:8px; font-size:14px; font-family:inherit; box-sizing:border-box; color:#2d2d2d; }
+.pw-input:focus { outline:none; border-color:#0044B3; box-shadow:0 0 0 2px rgba(0,68,179,.15); }
+.fb-textarea { width:100%; min-height:120px; border:1px solid #d4d2d0; border-radius:8px; padding:12px; font-family:inherit; font-size:14px; resize:vertical; box-sizing:border-box; color:#2d2d2d; }
+.fb-textarea:focus { outline:none; border-color:#0044B3; box-shadow:0 0 0 2px rgba(0,68,179,.15); }
 .user-trigger .u-avatar { width:22px; height:22px; border-radius:50%; background:#eef2f9; display:flex; align-items:center; justify-content:center; }
 .user-trigger .u-avatar svg { width:13px; height:13px; color:#767676; stroke:currentColor; fill:none; stroke-width:2; }
 .user-trigger span { font-size:14px; font-weight:400; color:#2d2d2d; }
@@ -520,8 +524,8 @@ body.join-live .iv-tip { display:none !important; }
       <svg class="caret" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
       <div class="user-menu" id="userMenu">
         <button class="user-menu-item">Communication Settings</button>
-        <button class="user-menu-item">Feedback</button>
-        <button class="user-menu-item">Change Password</button>
+        <button class="user-menu-item" onclick="openFeedback()">Feedback</button>
+        <button class="user-menu-item" onclick="openChangePw()">Change Password</button>
         <div class="user-menu-divider"></div>
         <button class="user-menu-item muted">Sign Out</button>
       </div>
@@ -1077,9 +1081,56 @@ body.join-live .iv-tip { display:none !important; }
     </div>
   </div>
 
+  <!-- FEEDBACK MODAL -->
+  <div class="modal-overlay" id="feedbackModal">
+    <div class="modal" style="max-width:480px;">
+      <div class="modal-head"><h2 style="font-size:20px;">Send us feedback</h2><button class="modal-close" onclick="closeFeedback()">&times;</button></div>
+      <div id="feedbackForm">
+        <p style="font-size:14px;color:#4b5563;line-height:1.6;margin-bottom:14px;">Found a bug or have an idea? Tell us what's working and what could be better.</p>
+        <textarea id="feedbackText" class="fb-textarea" placeholder="Your feedback..."></textarea>
+        <div class="modal-actions">
+          <button class="btn-cancel" onclick="closeFeedback()">Cancel</button>
+          <button class="btn-save" onclick="sendFeedback()">Send feedback</button>
+        </div>
+      </div>
+      <div id="feedbackThanks" class="hidden" style="text-align:center;padding:24px 0 8px;">
+        <h3 style="font-size:18px;font-weight:700;color:#2d2d2d;margin-bottom:8px;">Thanks — we got it.</h3>
+        <p style="font-size:14px;color:#767676;line-height:1.5;">We read every note. Appreciate you helping us improve.</p>
+        <div class="modal-actions" style="justify-content:center;"><button class="btn-save" onclick="closeFeedback()">Done</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHANGE PASSWORD MODAL -->
+  <div class="modal-overlay" id="pwModal">
+    <div class="modal" style="max-width:440px;">
+      <div class="modal-head"><h2 style="font-size:20px;">Change password</h2><button class="modal-close" onclick="closePw()">&times;</button></div>
+      <label style="display:block;font-size:13px;font-weight:600;color:#2d2d2d;margin-bottom:6px;">New password</label>
+      <input id="pwNew" type="password" class="pw-input" placeholder="Enter new password">
+      <label style="display:block;font-size:13px;font-weight:600;color:#2d2d2d;margin:14px 0 6px;">Confirm password</label>
+      <input id="pwConfirm" type="password" class="pw-input" placeholder="Re-enter new password">
+      <div id="pwError" class="hidden" style="color:#991b1b;font-size:13px;margin-top:10px;"></div>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="closePw()">Cancel</button>
+        <button class="btn-save" onclick="savePw()">Save password</button>
+      </div>
+    </div>
+  </div>
+
 <script>
   var STATE='has', VIEW='dashboard';
   function toggleUserMenu(e){ e.stopPropagation(); document.getElementById('userMenu').classList.toggle('open'); }
+  function openFeedback(){ document.getElementById('feedbackForm').classList.remove('hidden'); document.getElementById('feedbackThanks').classList.add('hidden'); document.getElementById('feedbackText').value=''; document.getElementById('feedbackModal').classList.add('open'); }
+  function closeFeedback(){ var m=document.getElementById('feedbackModal'); if(m) m.classList.remove('open'); }
+  function sendFeedback(){ document.getElementById('feedbackForm').classList.add('hidden'); document.getElementById('feedbackThanks').classList.remove('hidden'); }
+  function openChangePw(){ document.getElementById('pwNew').value=''; document.getElementById('pwConfirm').value=''; document.getElementById('pwError').classList.add('hidden'); document.getElementById('pwModal').classList.add('open'); }
+  function closePw(){ var m=document.getElementById('pwModal'); if(m) m.classList.remove('open'); }
+  function savePw(){
+    var n=document.getElementById('pwNew').value, c=document.getElementById('pwConfirm').value, err=document.getElementById('pwError');
+    if(!n||!c){ err.textContent='Enter and confirm your new password.'; err.classList.remove('hidden'); return; }
+    if(n!==c){ err.textContent='Passwords do not match.'; err.classList.remove('hidden'); return; }
+    err.classList.add('hidden'); closePw();
+  }
   document.addEventListener('click', function(){ var m=document.getElementById('userMenu'); if(m) m.classList.remove('open'); });
   function setView(v){
     VIEW=v;
@@ -1095,7 +1146,7 @@ body.join-live .iv-tip { display:none !important; }
       var cp=document.getElementById('msgChatPanel'), ms=document.getElementById('msgSelect');
       if(cp) cp.classList.add('hidden'); if(ms) ms.classList.remove('hidden');
     }
-    closeJT(); closeCancel(); closeJob(); closeReq(); closeTest(); closeAccept();
+    closeJT(); closeCancel(); closeJob(); closeReq(); closeTest(); closeAccept(); closeFeedback(); closePw();
   }
   function showProfileSub(sub){
     document.getElementById('profile-main').classList.toggle('hidden', sub!=='main');
