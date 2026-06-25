@@ -205,6 +205,8 @@ tbody tr:last-child td { border-bottom:none; }
 .rb-sub { font-size:13px; color:#767676; margin-top:2px; }
 .rb-check { width:26px; height:26px; border-radius:50%; background:#f3f2ef; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
 .rb-check svg { width:14px; height:14px; color:#9a9794; stroke:currentColor; fill:none; stroke-width:2; }
+.jt-chips { display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
+.jt-chip { background:#eef2f9; color:#0044B3; font-size:13px; font-weight:600; padding:5px 12px; border-radius:16px; }
 .resume-build-box { display:flex; align-items:center; justify-content:center; text-align:center; border:1px solid #d4d2d0; border-radius:12px; padding:24px; margin-top:4px; max-width:520px; cursor:pointer; font-size:18px; font-weight:700; color:#0044B3; transition:border-color .15s, box-shadow .15s; }
 .resume-build-box:hover { border-color:#0044B3; box-shadow:0 2px 8px rgba(0,0,0,.06); }
 .resume-hint { font-size:14px; color:#767676; line-height:1.55; margin-top:12px; max-width:620px; }
@@ -812,7 +814,8 @@ body.join-live .iv-tip { display:none !important; }
           <div class="profile-row">
             <div class="row-main">
               <div class="row-title">Job titles</div>
-              <div class="row-sub">Specify your desired job titles for personalized job matches.</div>
+              <div class="row-sub hidden" id="jtEmpty">Add job titles to get matched to roles.</div>
+              <div class="jt-chips" id="jtFilled"><span class="jt-chip">Registered Nurse</span><span class="jt-chip">Patient Care Tech</span><span class="jt-chip">Medical Assistant</span></div>
             </div>
             <button class="profile-edit" onclick="openJT()"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg></button>
           </div>
@@ -974,9 +977,10 @@ body.join-live .iv-tip { display:none !important; }
     <button class="dev-msg-btn" onclick="msgState('empty',this)">Empty</button>
     <button class="dev-msg-btn active" onclick="msgState('active',this)">Active</button>
     <span class="dev-sep"></span>
-    <span class="dev-label">Resume</span>
-    <button class="dev-rsm-btn active" onclick="resumeState('none',this)">No resume</button>
-    <button class="dev-rsm-btn" onclick="resumeState('has',this)">Built</button>
+    <span class="dev-label">Profile</span>
+    <button class="dev-prof-btn" onclick="profileState('empty',this)">Empty</button>
+    <button class="dev-prof-btn active" onclick="profileState('noresume',this)">No resume</button>
+    <button class="dev-prof-btn" onclick="profileState('hasresume',this)">With resume</button>
     </div>
   </div>
 
@@ -1415,12 +1419,15 @@ body.join-live .iv-tip { display:none !important; }
   function toggleWhy(btn){ var tb=btn.closest('tbody'); var w=tb?tb.querySelector('.why-row'):null; if(w){ var open=w.classList.toggle('hidden')===false; btn.textContent=open?'What this means \u2191':'What this means \u2193'; } }
   var SCN_MAP={notmatched:'scn-notmatched',schedule:'scn-schedule',confirmed:'scn-confirmed',joinnow:'scn-confirmed',injoined:'scn-confirmed',proposed:'scn-proposed',declined:'scn-declined',multi:'scn-multi'};
   function toggleDevBar(){ document.getElementById('devBar').classList.toggle('collapsed'); }
-  function resumeState(state, el){
+  function profileState(state, el){
     setView('profile'); showProfileSub('main');
-    var has = state==='has';
+    var filled = state!=='empty';
+    var has = state==='hasresume';
+    document.getElementById('jtEmpty').classList.toggle('hidden', filled);
+    document.getElementById('jtFilled').classList.toggle('hidden', !filled);
     document.getElementById('resumeNone').classList.toggle('hidden', has);
     document.getElementById('resumeHas').classList.toggle('hidden', !has);
-    if(el){ el.closest('.dev').querySelectorAll('.dev-rsm-btn').forEach(function(b){b.classList.remove('active');}); el.classList.add('active'); }
+    if(el){ el.closest('.dev').querySelectorAll('.dev-prof-btn').forEach(function(b){b.classList.remove('active');}); el.classList.add('active'); }
   }
   function msgState(state, el){
     setView('messages');
@@ -1439,7 +1446,7 @@ body.join-live .iv-tip { display:none !important; }
       document.querySelectorAll('.iv-confirmed').forEach(renderConfirmed);
       setTab('upcoming', document.querySelector('#dashFilter .tab-pill'));
     }
-    if(el){ el.closest('.dev').querySelectorAll('button:not(.dev-msg-btn):not(.dev-rsm-btn)').forEach(function(b){b.classList.remove('active');}); el.classList.add('active'); }
+    if(el){ el.closest('.dev').querySelectorAll('button:not(.dev-msg-btn):not(.dev-prof-btn)').forEach(function(b){b.classList.remove('active');}); el.classList.add('active'); }
   }
   setDemo('schedule');
   var CANCEL_KEY=null;
