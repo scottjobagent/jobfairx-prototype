@@ -455,6 +455,16 @@ body.join-live .iv-tip { display:none !important; }
 .msg-widget .msg-compose-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:8px; }
 .msg-widget .msg-btn-send { background:#0044B3; border:none; color:#fff; padding:6px 16px; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; transition:all 0.15s; }
 .msg-widget .msg-btn-send:hover { background:#003399; }
+
+/* Messages list delete + header delete */
+.msg-thread { position:relative; }
+.msg-thread-del { position:absolute; right:14px; bottom:14px; width:30px; height:30px; border:none; background:#fff; border-radius:6px; color:#767676; cursor:pointer; display:none; align-items:center; justify-content:center; }
+.msg-thread:hover .msg-thread-del { display:flex; }
+.msg-thread-del:hover { background:#fdecec; color:#991b1b; }
+.msg-thread-del svg { width:16px; height:16px; stroke:currentColor; fill:none; stroke-width:2; }
+.msg-chat-del-btn { display:inline-flex; align-items:center; gap:6px; background:#fff; border:1px solid #d4d2d0; color:#595959; font-size:13px; font-weight:600; padding:7px 12px; border-radius:8px; cursor:pointer; font-family:inherit; transition:all .15s; }
+.msg-chat-del-btn:hover { border-color:#991b1b; color:#991b1b; background:#fdecec; }
+.msg-chat-del-btn svg { width:15px; height:15px; stroke:currentColor; fill:none; stroke-width:2; }
 </style>
 </head>
 <body>
@@ -628,34 +638,25 @@ body.join-live .iv-tip { display:none !important; }
               <span class="msg-status-dot active"></span>
               <h2>Messages</h2>
             </div>
-            <div class="msg-inbox-tabs">
-              <button class="msg-inbox-tab active"><svg viewBox="0 0 24 24"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5h13l3.5 7v6a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1v-6z"/></svg>Inbox <span class="msg-badge">2</span></button>
-              <button class="msg-inbox-tab"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="4" rx="1"/><path d="M5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8M10 12h4"/></svg>Archived</button>
-            </div>
-            <div class="msg-filters">
-              <button class="msg-filter-btn">All events <svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
-              <button class="msg-filter-btn">All jobs <svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
-            </div>
-          </div>
-          <div class="msg-search">
-            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
-            <span>Search conversations...</span>
           </div>
           <div class="msg-thread-list">
             <div class="msg-thread active" onclick="openThread(this,'maria')">
-              <div class="msg-thread-top"><span class="msg-thread-name">Maria Lopez</span><span class="msg-thread-date">Today</span></div>
-              <div class="msg-thread-job">Registered Nurse · Baylor Scott &amp; White</div>
+              <div class="msg-thread-top"><span class="msg-thread-name">Baylor Scott &amp; White</span><span class="msg-thread-date">Today</span></div>
+              <div class="msg-thread-job">Registered Nurse · Dallas, TX</div>
               <div class="msg-thread-preview">Congrats on matching, Brad! Looking forward to our interview on the 22nd.</div>
+              <button class="msg-thread-del" title="Delete conversation" onclick="event.stopPropagation();deleteThread(this)"><svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg></button>
             </div>
             <div class="msg-thread" onclick="openThread(this,'david')">
-              <div class="msg-thread-top"><span class="msg-thread-name">David Park</span><span class="msg-thread-date">Today</span></div>
-              <div class="msg-thread-job">Patient Care Tech · Texas Health</div>
+              <div class="msg-thread-top"><span class="msg-thread-name">Texas Health</span><span class="msg-thread-date">Today</span></div>
+              <div class="msg-thread-job">Patient Care Tech · Dallas, TX</div>
               <div class="msg-thread-preview">Hi Brad — we'd love to set up a time to talk during the event.</div>
+              <button class="msg-thread-del" title="Delete conversation" onclick="event.stopPropagation();deleteThread(this)"><svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg></button>
             </div>
             <div class="msg-thread" onclick="openThread(this,'northwind')">
-              <div class="msg-thread-top"><span class="msg-thread-name">Northwind Recruiting</span><span class="msg-thread-date">Mar 18</span></div>
-              <div class="msg-thread-job">Operations Coordinator · Northwind Co</div>
+              <div class="msg-thread-top"><span class="msg-thread-name">Northwind Co</span><span class="msg-thread-date">Mar 18</span></div>
+              <div class="msg-thread-job">Operations Coordinator · Houston, TX</div>
               <div class="msg-thread-preview">Thanks for interviewing with us — we'll be in touch on next steps.</div>
+              <button class="msg-thread-del" title="Delete conversation" onclick="event.stopPropagation();deleteThread(this)"><svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg></button>
             </div>
           </div>
         </div>
@@ -663,22 +664,13 @@ body.join-live .iv-tip { display:none !important; }
         <div class="msg-chat-panel">
           <div class="msg-chat-header">
             <div class="msg-chat-header-info">
-              <h3 id="chatName">Maria Lopez</h3>
+              <h3 id="chatName">Baylor Scott &amp; White</h3>
               <div class="msg-chat-header-meta" id="chatMeta">
                 <svg viewBox="0 0 24 24"><path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-3"/></svg>
-                Baylor Scott &amp; White · Registered Nurse <span>|</span> Apr 22, 2026
+                Registered Nurse · Dallas, TX <span>|</span> Apr 22, 2026
               </div>
             </div>
-            <div class="msg-dots-wrap">
-              <button class="msg-chat-dots" onclick="document.getElementById('dotsMenu').classList.toggle('open')">&#8942;</button>
-              <div class="msg-dots-menu" id="dotsMenu">
-                <button class="msg-dots-menu-item"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>View job details</button>
-                <button class="msg-dots-menu-item"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Request to reschedule</button>
-                <button class="msg-dots-menu-item"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="4" rx="1"/><path d="M5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8"/></svg>Archive</button>
-                <button class="msg-dots-menu-item danger"><svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg>Delete conversation</button>
-                <button class="msg-dots-menu-item danger"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M5 5l14 14"/></svg>Block user</button>
-              </div>
-            </div>
+            <button class="msg-chat-del-btn" title="Delete conversation" onclick="deleteActiveThread()"><svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg> Delete</button>
           </div>
           <div class="msg-chat-body" id="chatBody">
             <div class="msg-chat-divider">Today</div>
@@ -708,14 +700,6 @@ body.join-live .iv-tip { display:none !important; }
               <span class="msg-status-dot inactive"></span>
               <h2>Messages</h2>
             </div>
-            <div class="msg-inbox-tabs">
-              <button class="msg-inbox-tab active"><svg viewBox="0 0 24 24"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5h13l3.5 7v6a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1v-6z"/></svg>Inbox</button>
-              <button class="msg-inbox-tab"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="4" rx="1"/><path d="M5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8M10 12h4"/></svg>Archived</button>
-            </div>
-          </div>
-          <div class="msg-search">
-            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
-            <span>Search conversations...</span>
           </div>
           <div class="msg-empty-list-body">
             <svg class="msg-empty-list-icon" viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.5 8.5 8.5 0 0 1-3.6-.8L3 21l1.9-5.4A8.38 8.38 0 0 1 4 11.5 8.5 8.5 0 0 1 12.5 3 8.38 8.38 0 0 1 21 11.5z"/></svg>
@@ -1080,13 +1064,27 @@ body.join-live .iv-tip { display:none !important; }
     document.querySelectorAll('.msg-thread').forEach(t=>t.classList.remove('active'));
     el.classList.add('active');
     var data={
-      maria:{n:'Maria Lopez', m:'Baylor Scott &amp; White · Registered Nurse <span>|</span> Apr 22, 2026'},
-      david:{n:'David Park', m:'Texas Health · Patient Care Tech <span>|</span> Apr 22, 2026'},
-      northwind:{n:'Northwind Recruiting', m:'Northwind Co · Operations Coordinator <span>|</span> Mar 18, 2026'}
+      maria:{n:'Baylor Scott &amp; White', m:'Registered Nurse · Dallas, TX <span>|</span> Apr 22, 2026'},
+      david:{n:'Texas Health', m:'Patient Care Tech · Dallas, TX <span>|</span> Apr 22, 2026'},
+      northwind:{n:'Northwind Co', m:'Operations Coordinator · Houston, TX <span>|</span> Mar 18, 2026'}
     }[who];
     document.getElementById('chatName').textContent=data.n;
     document.getElementById('chatMeta').innerHTML='<svg viewBox="0 0 24 24"><path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-3"/></svg> '+data.m;
   }
+  function removeThreadRow(row){
+    if(!row) return;
+    var wasActive=row.classList.contains('active');
+    row.remove();
+    var rest=document.querySelectorAll('.msg-thread');
+    if(rest.length===0){
+      document.getElementById('msg-populated').classList.add('hidden');
+      document.getElementById('msg-empty').classList.remove('hidden');
+    } else if(wasActive){
+      rest[0].click();
+    }
+  }
+  function deleteThread(btn){ removeThreadRow(btn.closest('.msg-thread')); }
+  function deleteActiveThread(){ removeThreadRow(document.querySelector('.msg-thread.active')); }
   function setState(s, el){
     STATE=s; var empty = s==='empty';
     // dashboard
