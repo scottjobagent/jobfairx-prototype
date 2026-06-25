@@ -652,6 +652,20 @@ body.join-live .iv-tip { display:none !important; }
 .devsel-item:hover { background:rgba(255,255,255,.1); color:#fff; }
 .devsel-item.active { background:#0044B3; color:#fff; font-weight:700; }
 @media (max-width:768px){ .devsel { bottom:78px; left:10px; } .devsel-panel { width:210px; max-height:60vh; } }
+
+/* Toast (matches employer v3) */
+.jfx-toast { position:fixed; top:24px; right:24px; min-width:320px; max-width:420px; border-radius:10px; box-shadow:0 4px 24px rgba(0,0,0,0.14); border:1px solid #d4d2d0; z-index:10001; display:flex; align-items:flex-start; gap:12px; padding:16px 18px; opacity:0; transform:translateX(40px); transition:opacity 0.3s, transform 0.3s; pointer-events:none; }
+.jfx-toast.toast-success { background:#dcfce7; border-color:#bbf7d0; }
+.jfx-toast.show { opacity:1; transform:translateX(0); pointer-events:auto; }
+.jfx-toast-icon { flex-shrink:0; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin-top:1px; }
+.jfx-toast-icon.success { background:#bbf7d0; color:#16a34a; }
+.jfx-toast-icon svg { width:16px; height:16px; }
+.jfx-toast-body { flex:1; min-width:0; }
+.jfx-toast-title { font-size:14px; font-weight:700; color:#2d2d2d; line-height:1.4; }
+.jfx-toast-msg { font-size:14px; font-weight:400; color:#595959; line-height:1.4; margin-top:2px; }
+.jfx-toast-close { flex-shrink:0; width:28px; height:28px; display:flex; align-items:center; justify-content:center; background:none; border:none; cursor:pointer; color:#767676; font-size:18px; border-radius:6px; transition:background 0.15s; margin:-4px -4px 0 0; }
+.jfx-toast-close:hover { background:rgba(0,0,0,.06); color:#2d2d2d; }
+@media (max-width:768px){ .jfx-toast { left:12px; right:12px; top:12px; min-width:0; max-width:none; } }
 </style>
 </head>
 <body>
@@ -1379,21 +1393,21 @@ body.join-live .iv-tip { display:none !important; }
 
   <!-- JOB FAIR REGISTER MODAL -->
   <div class="modal-overlay" id="evtRegModal">
-    <div class="modal" style="max-width:460px;">
-      <div class="modal-head"><h2 style="font-size:20px;">Register for this job fair?</h2><button class="modal-close" onclick="closeEvtReg()">&times;</button></div>
-      <div id="evtRegForm">
-        <p id="evtRegBody" style="font-size:14px;color:#4b5563;line-height:1.6;"></p>
-        <div class="modal-actions">
-          <button class="btn-cancel" onclick="closeEvtReg()">Cancel</button>
-          <button class="btn-save" onclick="confirmEvtReg()">Register</button>
-        </div>
-      </div>
-      <div id="evtRegThanks" class="hidden" style="text-align:center;padding:24px 0 8px;">
-        <h3 style="font-size:18px;font-weight:700;color:#2d2d2d;margin-bottom:8px;">You're registered.</h3>
-        <p style="font-size:14px;color:#767676;line-height:1.55;">If an employer matches you, we'll email you and it'll show up on your dashboard.</p>
-        <div class="modal-actions" style="justify-content:center;"><button class="btn-save" onclick="closeEvtReg()">Done</button></div>
+    <div class="modal" style="max-width:440px;">
+      <div class="modal-head"><span></span><button class="modal-close" onclick="closeEvtReg()">&times;</button></div>
+      <p id="evtRegBody" style="font-size:16px;color:#2d2d2d;line-height:1.5;margin:2px 0 22px;"></p>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="closeEvtReg()">Cancel</button>
+        <button class="btn-save" onclick="confirmEvtReg()">Register</button>
       </div>
     </div>
+  </div>
+
+  <!-- TOAST (matches employer v3) -->
+  <div class="jfx-toast toast-success" id="jfxToast">
+    <div class="jfx-toast-icon success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+    <div class="jfx-toast-body"><div class="jfx-toast-title" id="jfxToastTitle">Registered</div><div class="jfx-toast-msg" id="jfxToastMsg"></div></div>
+    <button class="jfx-toast-close" onclick="hideToast()">&times;</button>
   </div>
 
   <!-- DEVICE PREVIEW (mobile frame) -->
@@ -1445,9 +1459,12 @@ body.join-live .iv-tip { display:none !important; }
     document.getElementById('evtNone').classList.toggle('hidden', n>0);
   }
   var EVT_TITLE='';
-  function registerEvent(btn){ var r=btn.closest('.evt-row'); EVT_TITLE=r.getAttribute('data-title'); document.getElementById('evtRegBody').innerHTML='Register for the <strong>'+EVT_TITLE+'</strong>? It happens right here on JobFairX on event day.'; document.getElementById('evtRegForm').classList.remove('hidden'); document.getElementById('evtRegThanks').classList.add('hidden'); document.getElementById('evtRegModal').classList.add('open'); }
+  function registerEvent(btn){ var r=btn.closest('.evt-row'); EVT_TITLE=r.getAttribute('data-title'); document.getElementById('evtRegBody').textContent='Register for the '+EVT_TITLE+'?'; document.getElementById('evtRegModal').classList.add('open'); }
   function closeEvtReg(){ var m=document.getElementById('evtRegModal'); if(m) m.classList.remove('open'); }
-  function confirmEvtReg(){ document.getElementById('evtRegForm').classList.add('hidden'); document.getElementById('evtRegThanks').classList.remove('hidden'); }
+  function confirmEvtReg(){ closeEvtReg(); showToast("You're registered", "If you're matched, we'll email you and it'll show on your dashboard."); }
+  var TOAST_T=null;
+  function showToast(title, msg){ var t=document.getElementById('jfxToast'); document.getElementById('jfxToastTitle').textContent=title; document.getElementById('jfxToastMsg').textContent=msg||''; t.classList.add('show'); clearTimeout(TOAST_T); TOAST_T=setTimeout(hideToast, 4200); }
+  function hideToast(){ var t=document.getElementById('jfxToast'); if(t) t.classList.remove('show'); }
   function setView(v){
     VIEW=v;
     document.getElementById('view-events').classList.add('hidden');
