@@ -196,6 +196,9 @@ tbody tr:last-child td { border-bottom:none; }
 .profile-contact .lines { font-size:16px; color:#2d2d2d; line-height:1.7; }
 .profile-contact .chev { width:22px; height:22px; color:#595959; stroke:currentColor; fill:none; stroke-width:2; flex-shrink:0; }
 .profile-section-title { font-size:18px; font-weight:700; color:#2d2d2d; margin-top:30px; }
+.form-row3 { display:flex; gap:14px; }
+.form-row3 .form-group { flex:1; min-width:0; }
+@media (max-width:768px){ .form-row3 { flex-direction:column; gap:0; } }
 .resume-build-card { display:flex; align-items:center; gap:14px; border:1px solid #d4d2d0; border-radius:12px; padding:18px 20px; max-width:520px; cursor:pointer; transition:border-color .15s, box-shadow .15s; }
 .resume-build-card:hover { border-color:#0044B3; box-shadow:0 2px 8px rgba(0,0,0,.06); }
 .rb-icon { width:40px; height:40px; border-radius:8px; background:#eef2f9; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
@@ -1008,20 +1011,26 @@ body.join-live .iv-tip { display:none !important; }
             <label class="form-label">Address <span class="opt">(optional)</span></label>
             <input class="form-input" value="">
           </div>
+          <div class="form-row3">
+            <div class="form-group">
+              <label class="form-label">City <span class="req">*</span></label>
+              <input class="form-input" id="cityInput" value="Dallas">
+            </div>
+            <div class="form-group">
+              <label class="form-label" id="stateLabel">State <span class="req">*</span></label>
+              <select class="form-input" id="stateInput"></select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" id="zipLabel">ZIP Code <span class="req">*</span></label>
+              <input class="form-input" id="zipInput" value="75201">
+            </div>
+          </div>
           <div class="form-group">
             <label class="form-label">Country <span class="req">*</span></label>
             <select class="form-input" id="countrySelect" onchange="onCountryChange()">
               <option value="us">United States</option>
               <option value="ca">Canada</option>
             </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label" id="zipLabel">ZIP Code <span class="req">*</span></label>
-            <input class="form-input" id="zipInput" value="75201">
-          </div>
-          <div class="form-group">
-            <label class="form-label" id="cityLabel">City, State <span class="req">*</span></label>
-            <input class="form-input" id="cityInput" value="Dallas, TX">
           </div>
           <div class="form-actions">
             <button class="btn-cancel" onclick="showProfileSub('main')">Cancel</button>
@@ -1451,14 +1460,23 @@ body.join-live .iv-tip { display:none !important; }
     }
     closeJT(); closeCancel(); closeJob(); closeReq(); closeTest(); closeAccept(); closeFeedback(); closePw(); closeEvtReg();
   }
+  var US_STATES='AL AK AZ AR CA CO CT DE FL GA HI ID IL IN IA KS KY LA ME MD MA MI MN MS MO MT NE NV NH NJ NM NY NC ND OH OK OR PA RI SC SD TN TX UT VT VA WA WV WI WY'.split(' ');
+  var CA_PROV='AB BC MB NB NL NS NT NU ON PE QC SK YT'.split(' ');
+  function populateStates(country, selected){
+    var list = country==='ca' ? CA_PROV : US_STATES;
+    var sel=document.getElementById('stateInput'); if(!sel) return;
+    sel.innerHTML = list.map(function(x){ return '<option value="'+x+'"'+(x===selected?' selected':'')+'>'+x+'</option>'; }).join('');
+  }
   function onCountryChange(){
     var ca = document.getElementById('countrySelect').value==='ca';
     document.getElementById('zipLabel').innerHTML = (ca?'Postal Code':'ZIP Code')+' <span class="req">*</span>';
-    document.getElementById('cityLabel').innerHTML = (ca?'City, Province':'City, State')+' <span class="req">*</span>';
+    document.getElementById('stateLabel').innerHTML = (ca?'Province':'State')+' <span class="req">*</span>';
+    populateStates(ca?'ca':'us', ca?'ON':'TX');
     var city=document.getElementById('cityInput');
-    if(ca && city.value==='Dallas, TX') city.value='Toronto, ON';
-    if(!ca && city.value==='Toronto, ON') city.value='Dallas, TX';
+    if(ca && city.value==='Dallas') city.value='Toronto';
+    if(!ca && city.value==='Toronto') city.value='Dallas';
   }
+  populateStates('us','TX');
   function showProfileSub(sub){
     document.getElementById('profile-main').classList.toggle('hidden', sub!=='main');
     document.getElementById('profile-edit').classList.toggle('hidden', sub!=='edit');
