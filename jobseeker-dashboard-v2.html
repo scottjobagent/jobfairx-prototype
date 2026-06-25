@@ -196,6 +196,16 @@ tbody tr:last-child td { border-bottom:none; }
 .profile-contact .lines { font-size:16px; color:#2d2d2d; line-height:1.7; }
 .profile-contact .chev { width:22px; height:22px; color:#595959; stroke:currentColor; fill:none; stroke-width:2; flex-shrink:0; }
 .profile-section-title { font-size:18px; font-weight:700; color:#2d2d2d; margin-top:30px; }
+.resume-build-card { display:flex; align-items:center; gap:14px; border:1px solid #d4d2d0; border-radius:12px; padding:18px 20px; max-width:520px; cursor:pointer; transition:border-color .15s, box-shadow .15s; }
+.resume-build-card:hover { border-color:#0044B3; box-shadow:0 2px 8px rgba(0,0,0,.06); }
+.rb-icon { width:40px; height:40px; border-radius:8px; background:#eef2f9; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.rb-icon svg { width:22px; height:22px; color:#0044B3; stroke:currentColor; fill:none; stroke-width:1.8; }
+.rb-text { flex:1; }
+.rb-title { font-size:16px; font-weight:700; color:#0044B3; }
+.rb-sub { font-size:13px; color:#767676; margin-top:2px; }
+.rb-check { width:26px; height:26px; border-radius:50%; background:#f3f2ef; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.rb-check svg { width:14px; height:14px; color:#9a9794; stroke:currentColor; fill:none; stroke-width:2; }
+.resume-note { font-size:14px; color:#dc2626; line-height:1.55; margin-top:14px; max-width:660px; }
 .profile-divider { height:1px; background:#e6e5e2; margin:14px 0; }
 .profile-row { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; }
 .profile-row .row-title { font-size:18px; font-weight:700; color:#2d2d2d; margin-bottom:6px; }
@@ -779,9 +789,10 @@ body.join-live .iv-tip { display:none !important; }
 
           <div class="profile-contact" onclick="showProfileSub('edit')">
             <div class="lines">
-              Dallas, TX<br>
               demo@jobfairx.com<br>
-              (555) 010-2026
+              (555) 010-2026<br>
+              Dallas, TX 75201<br>
+              United States
             </div>
             <svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>
           </div>
@@ -799,11 +810,21 @@ body.join-live .iv-tip { display:none !important; }
 
           <div class="profile-section-title">Resume</div>
           <div class="profile-divider"></div>
-          <div class="profile-resume-box" onclick="showProfileSub('resume')">
-            <span class="rlink">View your JobFairX Resume</span>
-            <svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>
+          <div id="resumeNone">
+            <div class="resume-build-card">
+              <div class="rb-icon"><svg viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M12 12v5M9.5 14.5h5"/></svg></div>
+              <div class="rb-text"><div class="rb-title">Build a resume</div><div class="rb-sub">We'll guide you through it</div></div>
+              <div class="rb-check"><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></div>
+            </div>
+            <p class="resume-note">To keep resumes clean and consistent for interviews, uploads aren't allowed. Build yours using our free easy resume builder.</p>
           </div>
-          <button class="profile-danger">Delete resume</button>
+          <div id="resumeHas" class="hidden">
+            <div class="profile-resume-box" onclick="showProfileSub('resume')">
+              <span class="rlink">View your JobFairX Resume</span>
+              <svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>
+            </div>
+            <button class="profile-danger">Delete resume</button>
+          </div>
 
           <button class="profile-danger account">Delete account</button>
         </div>
@@ -944,6 +965,10 @@ body.join-live .iv-tip { display:none !important; }
     <span class="dev-label">Messages</span>
     <button class="dev-msg-btn" onclick="msgState('empty',this)">Empty</button>
     <button class="dev-msg-btn active" onclick="msgState('active',this)">Active</button>
+    <span class="dev-sep"></span>
+    <span class="dev-label">Resume</span>
+    <button class="dev-rsm-btn active" onclick="resumeState('none',this)">No resume</button>
+    <button class="dev-rsm-btn" onclick="resumeState('has',this)">Built</button>
   </div>
 
   <!-- ADD JOB TITLES MODAL -->
@@ -1380,6 +1405,13 @@ body.join-live .iv-tip { display:none !important; }
   }
   function toggleWhy(btn){ var tb=btn.closest('tbody'); var w=tb?tb.querySelector('.why-row'):null; if(w){ var open=w.classList.toggle('hidden')===false; btn.textContent=open?'What this means \u2191':'What this means \u2193'; } }
   var SCN_MAP={notmatched:'scn-notmatched',schedule:'scn-schedule',confirmed:'scn-confirmed',joinnow:'scn-confirmed',injoined:'scn-confirmed',proposed:'scn-proposed',declined:'scn-declined',multi:'scn-multi'};
+  function resumeState(state, el){
+    setView('profile'); showProfileSub('main');
+    var has = state==='has';
+    document.getElementById('resumeNone').classList.toggle('hidden', has);
+    document.getElementById('resumeHas').classList.toggle('hidden', !has);
+    if(el){ el.closest('.dev').querySelectorAll('.dev-rsm-btn').forEach(function(b){b.classList.remove('active');}); el.classList.add('active'); }
+  }
   function msgState(state, el){
     setView('messages');
     var empty = state==='empty';
@@ -1397,7 +1429,7 @@ body.join-live .iv-tip { display:none !important; }
       document.querySelectorAll('.iv-confirmed').forEach(renderConfirmed);
       setTab('upcoming', document.querySelector('#dashFilter .tab-pill'));
     }
-    if(el){ el.closest('.dev').querySelectorAll('button:not(.dev-msg-btn)').forEach(function(b){b.classList.remove('active');}); el.classList.add('active'); }
+    if(el){ el.closest('.dev').querySelectorAll('button:not(.dev-msg-btn):not(.dev-rsm-btn)').forEach(function(b){b.classList.remove('active');}); el.classList.add('active'); }
   }
   setDemo('schedule');
   var CANCEL_KEY=null;
