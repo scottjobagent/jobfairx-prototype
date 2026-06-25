@@ -530,6 +530,68 @@ body.join-live .iv-tip { display:none !important; }
 .evt-reg-btn { background:#0044B3; color:#fff; border:none; border-radius:8px; padding:10px 22px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; }
 .evt-reg-btn:hover { background:#003399; }
 .evt-empty { padding:40px 22px; text-align:center; color:#767676; font-size:15px; }
+
+/* ============ MOBILE BOTTOM NAV (base hidden) ============ */
+.mobile-nav { display:none; position:fixed; bottom:0; left:0; right:0; height:64px; background:#fff; border-top:1px solid #d4d2d0; z-index:400; }
+.mnav-item { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; text-decoration:none; color:#767676; font-size:11px; font-weight:600; position:relative; cursor:pointer; }
+.mnav-item.active { color:#0044B3; }
+.mnav-item svg { width:23px; height:23px; stroke:currentColor; fill:none; stroke-width:2; }
+.mnav-badge { position:absolute; top:7px; left:calc(50% + 5px); background:#0044B3; color:#fff; font-size:10px; font-weight:700; padding:0 5px; border-radius:8px; min-width:16px; height:16px; line-height:16px; text-align:center; }
+.msg-back-mobile { display:none; background:none; border:none; cursor:pointer; color:#2d2d2d; padding:2px 8px 2px 0; margin-right:2px; align-items:center; }
+.msg-back-mobile svg { width:24px; height:24px; stroke:currentColor; fill:none; stroke-width:2; }
+
+/* ============ RESPONSIVE: phones ============ */
+@media (max-width:768px) {
+  .sidebar { display:none; }
+  .topbar { left:0; padding:0 14px; }
+  body.collapsed .topbar { left:0; }
+  .main { margin-left:0; padding:16px 14px 84px; }
+  body.collapsed .main { margin-left:0; }
+  .mobile-nav { display:flex; }
+  .dev { display:none !important; }
+
+  .header-card { padding:18px 16px; }
+  .content-header { flex-direction:column; align-items:flex-start; gap:12px; }
+  .account-name { font-size:20px; }
+  .content-header .btn-primary { width:100%; justify-content:center; }
+
+  /* interview + past tables -> stacked cards */
+  .table-card { border:none; background:transparent; }
+  .iv-table, .iv-table tbody, .iv-table tr, .iv-table td { display:block; width:100%; }
+  .iv-table thead { display:none; }
+  .iv-table tr { border:1px solid #ebebeb; border-radius:12px; margin:0 0 12px; padding:6px 2px; background:#fff; }
+  .iv-table td { border:none !important; padding:8px 16px; }
+  .iv-request, .iv-join, .iv-join-now, .time-btn { width:100%; box-sizing:border-box; justify-content:center; }
+  .td-actions { align-items:stretch; }
+  .why-row td { padding:0 16px 12px !important; }
+
+  /* messages: list then full-screen chat */
+  .msg-layout { margin:-16px -14px 0; height:calc(100vh - 56px - 64px); }
+  .msg-list-panel { width:100%; min-width:0; border-right:none; }
+  #msgSelect { display:none !important; }
+  .msg-chat-panel { position:fixed; top:0; left:0; right:0; bottom:0; z-index:1500; }
+  .msg-back-mobile { display:flex; }
+
+  /* message employer widget -> bottom sheet */
+  .msg-widget { left:0; right:0; bottom:0; width:100%; height:82vh; border-radius:14px 14px 0 0; }
+
+  /* job fairs list -> stacked */
+  .evt-toolbar { flex-direction:column; }
+  .evt-type { width:100%; }
+  .evt-head { display:none; }
+  .evt-row { flex-direction:column; align-items:flex-start; gap:10px; }
+  .evt-date, .evt-type-col, .evt-action { width:auto; }
+  .evt-action { width:100%; }
+  .evt-reg-btn { width:100%; }
+  .evt-h2 { font-size:22px; }
+
+  /* profile */
+  .profile-card { padding:22px 18px; }
+  .resume-build-box { max-width:none; }
+
+  /* modals full width */
+  .modal-overlay { padding:24px 14px; }
+}
 </style>
 </head>
 <body>
@@ -563,6 +625,14 @@ body.join-live .iv-tip { display:none !important; }
       </a>
     </nav>
   </aside>
+
+  <!-- MOBILE BOTTOM NAV -->
+  <nav class="mobile-nav">
+    <a class="mnav-item active" id="mnav-dashboard" onclick="setView('dashboard')"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg><span>Dashboard</span></a>
+    <a class="mnav-item" id="mnav-messages" onclick="setView('messages')"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.5 8.5 8.5 0 0 1-3.6-.8L3 21l1.9-5.4A8.38 8.38 0 0 1 4 11.5 8.5 8.5 0 0 1 12.5 3 8.38 8.38 0 0 1 21 11.5z"/></svg><span class="mnav-badge" id="mnavMsgBadge">2</span><span>Messages</span></a>
+    <a class="mnav-item" id="mnav-profile" onclick="setView('profile')"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg><span>Profile</span></a>
+    <a class="mnav-item" href="https://jobagentx.com" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h7l-1 8 10-12h-7z"/></svg><span>JobAgentX</span></a>
+  </nav>
 
   <!-- TOPBAR -->
   <div class="topbar">
@@ -761,6 +831,7 @@ body.join-live .iv-tip { display:none !important; }
         </div>
         <div class="msg-chat-panel hidden" id="msgChatPanel">
           <div class="msg-chat-header">
+            <button class="msg-back-mobile" onclick="closeChatMobile()"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
             <div class="msg-chat-header-info">
               <h3 id="chatName">Baylor Scott &amp; White</h3>
               <div class="msg-chat-header-meta" id="chatMeta">
@@ -1273,6 +1344,8 @@ body.join-live .iv-tip { display:none !important; }
     document.getElementById('nav-dashboard').classList.toggle('active', v==='dashboard');
     document.getElementById('nav-messages').classList.toggle('active', v==='messages');
     document.getElementById('nav-profile').classList.toggle('active', v==='profile');
+    var mn={dashboard:'mnav-dashboard',messages:'mnav-messages',profile:'mnav-profile'};
+    ['mnav-dashboard','mnav-messages','mnav-profile'].forEach(function(id){var e=document.getElementById(id); if(e) e.classList.toggle('active', mn[v]===id);});
     if(v==='profile'){ showProfileSub('main'); }
     if(v==='messages'){
       document.querySelectorAll('.msg-thread').forEach(t=>t.classList.remove('active'));
@@ -1362,6 +1435,7 @@ body.join-live .iv-tip { display:none !important; }
     refreshMsgLists();
     if(wasActive) showSelectPlaceholder();
   }
+  function closeChatMobile(){ document.getElementById('msgChatPanel').classList.add('hidden'); document.querySelectorAll('.msg-thread').forEach(function(t){t.classList.remove('active');}); }
   function archiveActiveThread(){ var a=document.querySelector('.msg-thread.active'); if(a){ var b=a.querySelector('.msg-thread-del'); if(b) archiveThread(b); } }
   refreshMsgLists();
   function setState(s, el){
@@ -1377,7 +1451,7 @@ body.join-live .iv-tip { display:none !important; }
     // messages
     document.getElementById('msg-populated').classList.toggle('hidden', empty);
     document.getElementById('msg-empty').classList.toggle('hidden', !empty);
-    document.getElementById('navMsgBadge').style.display = empty?'none':'';
+    document.getElementById('navMsgBadge').style.display = empty?'none':''; var _mb=document.getElementById('mnavMsgBadge'); if(_mb) _mb.style.display = empty?'none':'';
     // dev buttons
     el.closest('.dev-group').querySelectorAll('button').forEach(b=>b.classList.remove('active'));
     el.classList.add('active');
@@ -1491,7 +1565,7 @@ body.join-live .iv-tip { display:none !important; }
     if(!empty){ setTab('upcoming', document.querySelector('#dashFilter .tab-pill')); }
     document.getElementById('msg-populated').classList.toggle('hidden', empty);
     document.getElementById('msg-empty').classList.toggle('hidden', !empty);
-    document.getElementById('navMsgBadge').style.display = empty?'none':'';
+    document.getElementById('navMsgBadge').style.display = empty?'none':''; var _mb=document.getElementById('mnavMsgBadge'); if(_mb) _mb.style.display = empty?'none':'';
   }
   function openMsgEmployer(co, sub){
     document.getElementById('msgWidgetName').textContent = co || 'Employer';
