@@ -604,9 +604,17 @@ body.join-live .iv-tip { display:none !important; }
 .device-frame iframe { display:block; border:none; width:100%; height:100%; background:#f3f2ef; }
 
 /* Compact demo state selector */
-.devsel { position:fixed; bottom:14px; left:14px; z-index:1800; }
-.devsel select { background:#2d2d2d; color:#fff; border:none; border-radius:9px; padding:10px 14px; font-size:13px; font-weight:600; font-family:inherit; cursor:pointer; box-shadow:0 6px 20px rgba(0,0,0,.28); max-width:220px; }
-.devsel select:focus { outline:none; }
+.devsel { position:fixed; bottom:14px; left:14px; z-index:1800; display:flex; flex-direction:column; align-items:flex-start; gap:8px; }
+.devsel-launch { background:#2d2d2d; color:#fff; border:none; border-radius:9px; padding:10px 14px; font-size:13px; font-weight:700; font-family:inherit; cursor:pointer; box-shadow:0 6px 20px rgba(0,0,0,.28); }
+.devsel-panel { display:none; background:#2d2d2d; border-radius:12px; box-shadow:0 12px 34px rgba(0,0,0,.38); padding:10px; width:230px; max-height:72vh; overflow-y:auto; }
+.devsel.open .devsel-panel { display:block; }
+.devsel-head { display:flex; align-items:center; justify-content:space-between; padding:2px 4px 6px; color:#fff; font-size:13px; font-weight:700; }
+.devsel-x { background:none; border:none; color:#b0afad; cursor:pointer; font-size:13px; font-family:inherit; padding:2px 6px; }
+.devsel-x:hover { color:#fff; }
+.devsel-glabel { color:#7e8a99; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; margin:9px 4px 3px; }
+.devsel-item { display:block; width:100%; text-align:left; background:none; border:none; color:rgba(255,255,255,.85); font-size:13px; font-weight:500; font-family:inherit; padding:7px 10px; border-radius:7px; cursor:pointer; }
+.devsel-item:hover { background:rgba(255,255,255,.1); color:#fff; }
+.devsel-item.active { background:#0044B3; color:#fff; font-weight:700; }
 @media (max-width:768px){ .devsel { display:none; } }
 </style>
 </head>
@@ -1126,36 +1134,34 @@ body.join-live .iv-tip { display:none !important; }
     </div>
   </div>
 
-  <!-- COMPACT DEMO STATE SELECTOR -->
+  <!-- DEMO STATE PANEL (lockable) -->
   <div class="devsel" id="devSel">
-    <select id="devSelect" onchange="devSelect(this.value)" title="Demo states">
-      <optgroup label="Dashboard">
-        <option value="d:newuser">New user</option>
-        <option value="d:notmatched">Not matched</option>
-        <option value="d:schedule" selected>Job Alert</option>
-        <option value="d:confirmed">Interview confirmed</option>
-        <option value="d:joinnow">Join now</option>
-        <option value="d:injoined">In interview</option>
-        <option value="d:proposed">Proposed time</option>
-        <option value="d:declined">Not accepted</option>
-        <option value="d:multi">Two interviews</option>
-      </optgroup>
-      <optgroup label="Messages">
-        <option value="m:empty">Messages — Empty</option>
-        <option value="m:active">Messages — Active</option>
-      </optgroup>
-      <optgroup label="Profile">
-        <option value="p:empty">Profile — Empty</option>
-        <option value="p:noresume">Profile — No resume</option>
-        <option value="p:hasresume">Profile — With resume</option>
-      </optgroup>
-      <optgroup label="Device">
-        <option value="v:desktop">Device — Desktop</option>
-        <option value="v:se">Device — iPhone SE</option>
-        <option value="v:std">Device — iPhone 14</option>
-        <option value="v:max">Device — Pro Max</option>
-      </optgroup>
-    </select>
+    <div class="devsel-panel" id="devselPanel">
+      <div class="devsel-head"><span>Demo states</span><button class="devsel-x" onclick="document.getElementById('devSel').classList.remove('open')">✕</button></div>
+      <div class="devsel-glabel">Dashboard</div>
+        <button class="devsel-item" data-v="d:newuser" onclick="devPick(this)">New user</button>
+        <button class="devsel-item" data-v="d:notmatched" onclick="devPick(this)">Not matched</button>
+        <button class="devsel-item active" data-v="d:schedule" onclick="devPick(this)">Job Alert</button>
+        <button class="devsel-item" data-v="d:confirmed" onclick="devPick(this)">Interview confirmed</button>
+        <button class="devsel-item" data-v="d:joinnow" onclick="devPick(this)">Join now</button>
+        <button class="devsel-item" data-v="d:injoined" onclick="devPick(this)">In interview</button>
+        <button class="devsel-item" data-v="d:proposed" onclick="devPick(this)">Proposed time</button>
+        <button class="devsel-item" data-v="d:declined" onclick="devPick(this)">Not accepted</button>
+        <button class="devsel-item" data-v="d:multi" onclick="devPick(this)">Two interviews</button>
+      <div class="devsel-glabel">Messages</div>
+        <button class="devsel-item" data-v="m:empty" onclick="devPick(this)">Empty</button>
+        <button class="devsel-item" data-v="m:active" onclick="devPick(this)">Active</button>
+      <div class="devsel-glabel">Profile</div>
+        <button class="devsel-item" data-v="p:empty" onclick="devPick(this)">Empty</button>
+        <button class="devsel-item" data-v="p:noresume" onclick="devPick(this)">No resume</button>
+        <button class="devsel-item" data-v="p:hasresume" onclick="devPick(this)">With resume</button>
+      <div class="devsel-glabel">Device</div>
+        <button class="devsel-item" data-v="v:desktop" onclick="devPick(this)">Desktop</button>
+        <button class="devsel-item" data-v="v:se" onclick="devPick(this)">iPhone SE</button>
+        <button class="devsel-item" data-v="v:std" onclick="devPick(this)">iPhone 14</button>
+        <button class="devsel-item" data-v="v:max" onclick="devPick(this)">Pro Max</button>
+    </div>
+    <button class="devsel-launch" onclick="toggleDevPanel()">Demo states</button>
   </div>
 
   <!-- ADD JOB TITLES MODAL -->
@@ -1663,6 +1669,8 @@ body.join-live .iv-tip { display:none !important; }
     if(el){ el.closest('.dev').querySelectorAll('.dev-dev-btn').forEach(function(b){b.classList.remove('active');}); el.classList.add('active'); }
     else { var btns=document.querySelectorAll('.dev-dev-btn'); btns.forEach(function(b){b.classList.remove('active');}); if(btns[0]) btns[0].classList.add('active'); }
   }
+  function toggleDevPanel(){ document.getElementById('devSel').classList.toggle('open'); }
+  function devPick(btn){ document.querySelectorAll('.devsel-item').forEach(function(b){b.classList.remove('active');}); btn.classList.add('active'); devSelect(btn.getAttribute('data-v')); }
   function devSelect(val){
     var p=val.split(':'), k=p[0], v=p[1];
     if(k==='d'){ setView('dashboard'); setDemo(v); }
