@@ -508,6 +508,28 @@ body.join-live .iv-tip { display:none !important; }
 .msg-chat-del-btn { display:inline-flex; align-items:center; gap:6px; background:#fff; border:1px solid #d4d2d0; color:#595959; font-size:13px; font-weight:600; padding:7px 12px; border-radius:8px; cursor:pointer; font-family:inherit; transition:all .15s; }
 .msg-chat-del-btn:hover { border-color:#991b1b; color:#991b1b; background:#fdecec; }
 .msg-chat-del-btn svg { width:15px; height:15px; stroke:currentColor; fill:none; stroke-width:2; }
+
+/* Job Fairs (events) view */
+.evt-h2 { font-size:28px; font-weight:700; color:#2d2d2d; margin:14px 0 18px; }
+.evt-toolbar { display:flex; gap:14px; margin-bottom:22px; flex-wrap:wrap; }
+.evt-search { flex:1; min-width:240px; position:relative; }
+.evt-search input { width:100%; padding:14px 16px 14px 44px; border:1px solid #d4d2d0; border-radius:10px; font-size:15px; font-family:inherit; box-sizing:border-box; color:#2d2d2d; }
+.evt-search input:focus { outline:none; border-color:#0044B3; box-shadow:0 0 0 2px rgba(0,68,179,.15); }
+.evt-search svg { position:absolute; left:16px; top:50%; transform:translateY(-50%); width:18px; height:18px; color:#767676; stroke:currentColor; fill:none; stroke-width:2; }
+.evt-type { padding:14px 16px; border:1px solid #d4d2d0; border-radius:10px; font-size:15px; font-family:inherit; min-width:170px; cursor:pointer; background:#fff; color:#2d2d2d; }
+.evt-head { display:flex; align-items:center; gap:16px; padding:0 22px 10px; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:#595959; }
+.evt-row { display:flex; align-items:center; gap:16px; background:#fff; border:1px solid #ebebeb; border-radius:12px; padding:20px 22px; margin-bottom:12px; }
+.evt-date { width:120px; flex-shrink:0; font-size:14px; color:#767676; }
+.evt-city { flex:1; font-size:15px; font-weight:600; color:#2d2d2d; }
+.evt-type-col { width:150px; flex-shrink:0; }
+.evt-pill { display:inline-block; font-size:12px; font-weight:700; padding:5px 12px; border-radius:14px; border:1px solid transparent; }
+.evt-pill.green { background:#e9f7ef; color:#16a34a; border-color:#bfe8cf; }
+.evt-pill.blue { background:#eef2fb; color:#0044B3; border-color:#cfdcf5; }
+.evt-pill.orange { background:#fdf1e3; color:#b76e00; border-color:#f3d8ad; }
+.evt-action { width:130px; flex-shrink:0; text-align:right; }
+.evt-reg-btn { background:#0044B3; color:#fff; border:none; border-radius:8px; padding:10px 22px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; }
+.evt-reg-btn:hover { background:#003399; }
+.evt-empty { padding:40px 22px; text-align:center; color:#767676; font-size:15px; }
 </style>
 </head>
 <body>
@@ -566,7 +588,7 @@ body.join-live .iv-tip { display:none !important; }
       <div class="header-card">
         <div class="content-header">
           <div class="account-name">Brad Feuerbacher</div>
-          <a class="btn btn-primary">
+          <a class="btn btn-primary" onclick="openEvents()" style="cursor:pointer;">
             <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
             Find a job fair near you
           </a>
@@ -646,7 +668,7 @@ body.join-live .iv-tip { display:none !important; }
         <div id="tab-upcoming-empty" class="up-empty hidden">
           <h3>No upcoming events</h3>
           <p>When you register for a job fair and an employer matches you, your interviews show up here.</p>
-          <a class="btn btn-primary">Find a job fair near you</a>
+          <a class="btn btn-primary" onclick="openEvents()" style="cursor:pointer;">Find a job fair near you</a>
         </div>
       </div>
 
@@ -679,7 +701,7 @@ body.join-live .iv-tip { display:none !important; }
           <div class="ic"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></div>
           <h2>You're not registered for any upcoming events.</h2>
           <p>Register for a virtual job fair to get matched and invited to interview.</p>
-          <a class="btn btn-primary">Find a job fair near you</a>
+          <a class="btn btn-primary" onclick="openEvents()" style="cursor:pointer;">Find a job fair near you</a>
         </div>
       </div>
     </div>
@@ -961,6 +983,28 @@ body.join-live .iv-tip { display:none !important; }
       </div>
     </div>
 
+    <!-- ============ JOB FAIRS (EVENTS) VIEW ============ -->
+    <div id="view-events" class="hidden">
+      <div class="back-link" onclick="setView('dashboard')"><svg viewBox="0 0 24 24"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>Back to dashboard</div>
+      <h2 class="evt-h2">Job Fairs in 2026</h2>
+      <div class="evt-toolbar">
+        <div class="evt-search">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+          <input id="evtSearch" oninput="filterEvents()" placeholder="Search by city (e.g. Dallas, TX)">
+        </div>
+        <select id="evtType" class="evt-type" onchange="filterEvents()">
+          <option value="all">All Types</option>
+          <option value="Healthcare">Healthcare</option>
+          <option value="Technology">Technology</option>
+          <option value="Entry-Level">Entry-Level</option>
+          <option value="Diversity">Diversity</option>
+        </select>
+      </div>
+      <div class="evt-head"><div class="evt-date">Date</div><div class="evt-city">City</div><div class="evt-type-col">Event type</div><div class="evt-action"></div></div>
+      <div id="evtList"><div class="evt-row" data-title="Hartford, CT Diversity Virtual Job Fair" data-city="Hartford, CT" data-type="Diversity"><div class="evt-date">Jul 1, 2026</div><div class="evt-city">Hartford, CT Diversity Virtual Job Fair</div><div class="evt-type-col"><span class="evt-pill orange">Diversity</span></div><div class="evt-action"><button class="evt-reg-btn" onclick="registerEvent(this)">Register</button></div></div><div class="evt-row" data-title="Columbus, GA Healthcare Virtual Job Fair" data-city="Columbus, GA" data-type="Healthcare"><div class="evt-date">Jul 7, 2026</div><div class="evt-city">Columbus, GA Healthcare Virtual Job Fair</div><div class="evt-type-col"><span class="evt-pill green">Healthcare</span></div><div class="evt-action"><button class="evt-reg-btn" onclick="registerEvent(this)">Register</button></div></div><div class="evt-row" data-title="Independence, MO Technology Virtual Job Fair" data-city="Independence, MO" data-type="Technology"><div class="evt-date">Jul 9, 2026</div><div class="evt-city">Independence, MO Technology Virtual Job Fair</div><div class="evt-type-col"><span class="evt-pill blue">Technology</span></div><div class="evt-action"><button class="evt-reg-btn" onclick="registerEvent(this)">Register</button></div></div><div class="evt-row" data-title="Dallas, TX Healthcare Virtual Job Fair" data-city="Dallas, TX" data-type="Healthcare"><div class="evt-date">Jul 14, 2026</div><div class="evt-city">Dallas, TX Healthcare Virtual Job Fair</div><div class="evt-type-col"><span class="evt-pill green">Healthcare</span></div><div class="evt-action"><button class="evt-reg-btn" onclick="registerEvent(this)">Register</button></div></div><div class="evt-row" data-title="Lubbock, TX Entry-Level Virtual Job Fair" data-city="Lubbock, TX" data-type="Entry-Level"><div class="evt-date">Jul 17, 2026</div><div class="evt-city">Lubbock, TX Entry-Level Virtual Job Fair</div><div class="evt-type-col"><span class="evt-pill blue">Entry-Level</span></div><div class="evt-action"><button class="evt-reg-btn" onclick="registerEvent(this)">Register</button></div></div><div class="evt-row" data-title="Phoenix, AZ Technology Virtual Job Fair" data-city="Phoenix, AZ" data-type="Technology"><div class="evt-date">Jul 21, 2026</div><div class="evt-city">Phoenix, AZ Technology Virtual Job Fair</div><div class="evt-type-col"><span class="evt-pill blue">Technology</span></div><div class="evt-action"><button class="evt-reg-btn" onclick="registerEvent(this)">Register</button></div></div><div class="evt-row" data-title="Atlanta, GA Diversity Virtual Job Fair" data-city="Atlanta, GA" data-type="Diversity"><div class="evt-date">Jul 28, 2026</div><div class="evt-city">Atlanta, GA Diversity Virtual Job Fair</div><div class="evt-type-col"><span class="evt-pill orange">Diversity</span></div><div class="evt-action"><button class="evt-reg-btn" onclick="registerEvent(this)">Register</button></div></div></div>
+      <div id="evtNone" class="evt-empty hidden">No job fairs match your search.</div>
+    </div>
+
   </div>
 
   <!-- DEV STATE TOGGLE -->
@@ -1164,6 +1208,25 @@ body.join-live .iv-tip { display:none !important; }
     </div>
   </div>
 
+  <!-- JOB FAIR REGISTER MODAL -->
+  <div class="modal-overlay" id="evtRegModal">
+    <div class="modal" style="max-width:460px;">
+      <div class="modal-head"><h2 style="font-size:20px;">Register for this job fair?</h2><button class="modal-close" onclick="closeEvtReg()">&times;</button></div>
+      <div id="evtRegForm">
+        <p id="evtRegBody" style="font-size:14px;color:#4b5563;line-height:1.6;"></p>
+        <div class="modal-actions">
+          <button class="btn-cancel" onclick="closeEvtReg()">Cancel</button>
+          <button class="btn-save" onclick="confirmEvtReg()">Register</button>
+        </div>
+      </div>
+      <div id="evtRegThanks" class="hidden" style="text-align:center;padding:24px 0 8px;">
+        <h3 style="font-size:18px;font-weight:700;color:#2d2d2d;margin-bottom:8px;">You're registered.</h3>
+        <p style="font-size:14px;color:#767676;line-height:1.55;">If an employer matches you, we'll email you and it'll show up on your dashboard.</p>
+        <div class="modal-actions" style="justify-content:center;"><button class="btn-save" onclick="closeEvtReg()">Done</button></div>
+      </div>
+    </div>
+  </div>
+
 <script>
   var STATE='has', VIEW='dashboard';
   function toggleUserMenu(e){ e.stopPropagation(); document.getElementById('userMenu').classList.toggle('open'); }
@@ -1186,8 +1249,24 @@ body.join-live .iv-tip { display:none !important; }
     else { inp.type='password'; btn.innerHTML=EYE_SVG; }
   }
   document.addEventListener('click', function(){ var m=document.getElementById('userMenu'); if(m) m.classList.remove('open'); });
+  function openEvents(){ ['view-dashboard','view-messages','view-profile'].forEach(function(id){document.getElementById(id).classList.add('hidden');}); document.getElementById('view-events').classList.remove('hidden'); window.scrollTo(0,0); }
+  function filterEvents(){
+    var q=(document.getElementById('evtSearch').value||'').toLowerCase();
+    var t=document.getElementById('evtType').value, n=0;
+    document.querySelectorAll('#evtList .evt-row').forEach(function(r){
+      var city=(r.getAttribute('data-city')||'').toLowerCase(), typ=r.getAttribute('data-type');
+      var show=(!q||city.indexOf(q)>-1)&&(t==='all'||typ===t);
+      r.classList.toggle('hidden', !show); if(show) n++;
+    });
+    document.getElementById('evtNone').classList.toggle('hidden', n>0);
+  }
+  var EVT_TITLE='';
+  function registerEvent(btn){ var r=btn.closest('.evt-row'); EVT_TITLE=r.getAttribute('data-title'); document.getElementById('evtRegBody').innerHTML='Register for the <strong>'+EVT_TITLE+'</strong>? It happens right here on JobFairX on event day.'; document.getElementById('evtRegForm').classList.remove('hidden'); document.getElementById('evtRegThanks').classList.add('hidden'); document.getElementById('evtRegModal').classList.add('open'); }
+  function closeEvtReg(){ var m=document.getElementById('evtRegModal'); if(m) m.classList.remove('open'); }
+  function confirmEvtReg(){ document.getElementById('evtRegForm').classList.add('hidden'); document.getElementById('evtRegThanks').classList.remove('hidden'); }
   function setView(v){
     VIEW=v;
+    document.getElementById('view-events').classList.add('hidden');
     document.getElementById('view-dashboard').classList.toggle('hidden', v!=='dashboard');
     document.getElementById('view-messages').classList.toggle('hidden', v!=='messages');
     document.getElementById('view-profile').classList.toggle('hidden', v!=='profile');
@@ -1200,7 +1279,7 @@ body.join-live .iv-tip { display:none !important; }
       var cp=document.getElementById('msgChatPanel'), ms=document.getElementById('msgSelect');
       if(cp) cp.classList.add('hidden'); if(ms) ms.classList.remove('hidden');
     }
-    closeJT(); closeCancel(); closeJob(); closeReq(); closeTest(); closeAccept(); closeFeedback(); closePw();
+    closeJT(); closeCancel(); closeJob(); closeReq(); closeTest(); closeAccept(); closeFeedback(); closePw(); closeEvtReg();
   }
   function onCountryChange(){
     var ca = document.getElementById('countrySelect').value==='ca';
