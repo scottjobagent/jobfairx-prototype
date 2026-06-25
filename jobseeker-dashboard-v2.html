@@ -638,8 +638,12 @@ body.join-live .iv-tip { display:none !important; }
               <span class="msg-status-dot active"></span>
               <h2>Messages</h2>
             </div>
+            <div class="msg-inbox-tabs">
+              <button class="msg-inbox-tab active" id="tabInbox" onclick="msgTab('inbox',this)"><svg viewBox="0 0 24 24"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5h13l3.5 7v6a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1v-6z"/></svg>Inbox <span class="msg-badge">2</span></button>
+              <button class="msg-inbox-tab" id="tabArchived" onclick="msgTab('archived',this)"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="4" rx="1"/><path d="M5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8M10 12h4"/></svg>Archived</button>
+            </div>
           </div>
-          <div class="msg-thread-list">
+          <div class="msg-thread-list" id="msgInboxList">
             <div class="msg-thread" onclick="openThread(this,'maria')">
               <div class="msg-thread-top"><span class="msg-thread-name">Baylor Scott &amp; White</span><span class="msg-thread-date">Today</span></div>
               <div class="msg-thread-job">Registered Nurse · Dallas, TX</div>
@@ -658,6 +662,11 @@ body.join-live .iv-tip { display:none !important; }
               <div class="msg-thread-preview">Thanks for interviewing with us — we'll be in touch on next steps.</div>
               <button class="msg-thread-del" title="Delete conversation" onclick="event.stopPropagation();deleteThread(this)"><svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg></button>
             </div>
+          </div>
+          <div class="msg-empty-list-body hidden" id="msgArchivedList">
+            <svg class="msg-empty-list-icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="4" rx="1"/><path d="M5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8M10 12h4"/></svg>
+            <div class="msg-empty-list-title">No archived conversations</div>
+            <div class="msg-empty-list-sub">Conversations you archive will show up here.</div>
           </div>
         </div>
 
@@ -704,6 +713,10 @@ body.join-live .iv-tip { display:none !important; }
             <div class="msg-list-header-top">
               <span class="msg-status-dot inactive"></span>
               <h2>Messages</h2>
+            </div>
+            <div class="msg-inbox-tabs">
+              <button class="msg-inbox-tab active"><svg viewBox="0 0 24 24"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5h13l3.5 7v6a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1v-6z"/></svg>Inbox</button>
+              <button class="msg-inbox-tab"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="4" rx="1"/><path d="M5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8M10 12h4"/></svg>Archived</button>
             </div>
           </div>
           <div class="msg-empty-list-body">
@@ -1096,6 +1109,15 @@ body.join-live .iv-tip { display:none !important; }
       document.getElementById('msgChatPanel').classList.add('hidden');
       document.getElementById('msgSelect').classList.remove('hidden');
     }
+  }
+  function msgTab(which, el){
+    document.getElementById('tabInbox').classList.toggle('active', which==='inbox');
+    document.getElementById('tabArchived').classList.toggle('active', which==='archived');
+    document.getElementById('msgInboxList').classList.toggle('hidden', which!=='inbox');
+    document.getElementById('msgArchivedList').classList.toggle('hidden', which!=='archived');
+    document.querySelectorAll('.msg-thread').forEach(t=>t.classList.remove('active'));
+    var cp=document.getElementById('msgChatPanel'), ms=document.getElementById('msgSelect');
+    if(cp) cp.classList.add('hidden'); if(ms) ms.classList.remove('hidden');
   }
   function deleteThread(btn){ removeThreadRow(btn.closest('.msg-thread')); }
   function deleteActiveThread(){ removeThreadRow(document.querySelector('.msg-thread.active')); }
