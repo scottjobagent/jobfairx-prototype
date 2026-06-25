@@ -864,14 +864,20 @@ body.join-live .iv-tip { display:none !important; }
             <input class="form-input" value="">
           </div>
           <div class="form-group">
-            <label class="form-label">ZIP Code <span class="req">*</span></label>
-            <input class="form-input" value="75201">
+            <label class="form-label">Country <span class="req">*</span></label>
+            <select class="form-input" id="countrySelect" onchange="onCountryChange()">
+              <option value="us">United States</option>
+              <option value="ca">Canada</option>
+            </select>
           </div>
           <div class="form-group">
-            <label class="form-label">City, State <span class="req">*</span></label>
-            <input class="form-input" value="Dallas, TX">
+            <label class="form-label" id="zipLabel">ZIP Code <span class="req">*</span></label>
+            <input class="form-input" id="zipInput" value="75201">
           </div>
-          <div class="form-help">Not in United States? <a>Change country</a></div>
+          <div class="form-group">
+            <label class="form-label" id="cityLabel">City, State <span class="req">*</span></label>
+            <input class="form-input" id="cityInput" value="Dallas, TX">
+          </div>
           <div class="form-actions">
             <button class="btn-cancel" onclick="showProfileSub('main')">Cancel</button>
             <button class="btn-save" onclick="showProfileSub('main')">Save</button>
@@ -1195,6 +1201,14 @@ body.join-live .iv-tip { display:none !important; }
       if(cp) cp.classList.add('hidden'); if(ms) ms.classList.remove('hidden');
     }
     closeJT(); closeCancel(); closeJob(); closeReq(); closeTest(); closeAccept(); closeFeedback(); closePw();
+  }
+  function onCountryChange(){
+    var ca = document.getElementById('countrySelect').value==='ca';
+    document.getElementById('zipLabel').innerHTML = (ca?'Postal Code':'ZIP Code')+' <span class="req">*</span>';
+    document.getElementById('cityLabel').innerHTML = (ca?'City, Province':'City, State')+' <span class="req">*</span>';
+    var city=document.getElementById('cityInput');
+    if(ca && city.value==='Dallas, TX') city.value='Toronto, ON';
+    if(!ca && city.value==='Toronto, ON') city.value='Dallas, TX';
   }
   function showProfileSub(sub){
     document.getElementById('profile-main').classList.toggle('hidden', sub!=='main');
