@@ -465,7 +465,7 @@ body.join-live .iv-tip { display:none !important; }
 .td-actions-label { font-size:12px; font-weight:700; color:#595959; margin-bottom:2px; }
 .td-jfx { font-size:12px; color:#767676; margin-top:6px; }
 /* Dev toggle */
-.dev { position:fixed; bottom:14px; left:50%; transform:translateX(-50%); background:#2d2d2d; border-radius:8px; padding:6px; display:flex; flex-wrap:wrap; gap:4px; row-gap:4px; max-width:94vw; justify-content:center; align-items:center; z-index:600; box-shadow:0 6px 20px rgba(0,0,0,.25); }
+.dev { display:none !important; position:fixed; bottom:14px; left:50%; transform:translateX(-50%); background:#2d2d2d; border-radius:8px; padding:6px; display:flex; flex-wrap:wrap; gap:4px; row-gap:4px; max-width:94vw; justify-content:center; align-items:center; z-index:600; box-shadow:0 6px 20px rgba(0,0,0,.25); }
 .dev span { color:#767676; font-size:10px; font-weight:700; padding:6px 6px 6px 8px; text-transform:uppercase; letter-spacing:.5px; }
 .dev button { font-family:inherit; font-size:11px; font-weight:700; color:#b0afad; background:transparent; border:none; border-radius:5px; padding:6px 12px; cursor:pointer; }
 .dev button.active { background:#0044B3; color:#fff; }
@@ -602,6 +602,12 @@ body.join-live .iv-tip { display:none !important; }
 .device-close:hover { background:rgba(255,255,255,.28); }
 .device-frame { background:#fff; border:11px solid #111; border-radius:40px; overflow:hidden; box-shadow:0 24px 70px rgba(0,0,0,.5); }
 .device-frame iframe { display:block; border:none; width:100%; height:100%; background:#f3f2ef; }
+
+/* Compact demo state selector */
+.devsel { position:fixed; bottom:14px; left:14px; z-index:1800; }
+.devsel select { background:#2d2d2d; color:#fff; border:none; border-radius:9px; padding:10px 14px; font-size:13px; font-weight:600; font-family:inherit; cursor:pointer; box-shadow:0 6px 20px rgba(0,0,0,.28); max-width:220px; }
+.devsel select:focus { outline:none; }
+@media (max-width:768px){ .devsel { display:none; } }
 </style>
 </head>
 <body>
@@ -1120,6 +1126,38 @@ body.join-live .iv-tip { display:none !important; }
     </div>
   </div>
 
+  <!-- COMPACT DEMO STATE SELECTOR -->
+  <div class="devsel" id="devSel">
+    <select id="devSelect" onchange="devSelect(this.value)" title="Demo states">
+      <optgroup label="Dashboard">
+        <option value="d:newuser">New user</option>
+        <option value="d:notmatched">Not matched</option>
+        <option value="d:schedule" selected>Job Alert</option>
+        <option value="d:confirmed">Interview confirmed</option>
+        <option value="d:joinnow">Join now</option>
+        <option value="d:injoined">In interview</option>
+        <option value="d:proposed">Proposed time</option>
+        <option value="d:declined">Not accepted</option>
+        <option value="d:multi">Two interviews</option>
+      </optgroup>
+      <optgroup label="Messages">
+        <option value="m:empty">Messages — Empty</option>
+        <option value="m:active">Messages — Active</option>
+      </optgroup>
+      <optgroup label="Profile">
+        <option value="p:empty">Profile — Empty</option>
+        <option value="p:noresume">Profile — No resume</option>
+        <option value="p:hasresume">Profile — With resume</option>
+      </optgroup>
+      <optgroup label="Device">
+        <option value="v:desktop">Device — Desktop</option>
+        <option value="v:se">Device — iPhone SE</option>
+        <option value="v:std">Device — iPhone 14</option>
+        <option value="v:max">Device — Pro Max</option>
+      </optgroup>
+    </select>
+  </div>
+
   <!-- ADD JOB TITLES MODAL -->
   <div class="modal-overlay" id="jtModal">
     <div class="modal">
@@ -1569,7 +1607,7 @@ body.join-live .iv-tip { display:none !important; }
   var ACCEPT_KEY=null, ACCEPT_TIME=null;
   function askAcceptTime(key, time){
     ACCEPT_KEY=key; ACCEPT_TIME=time;
-    document.getElementById('acceptBody').innerHTML='Confirm your interview for <strong>'+time+'</strong>. It\'ll be booked right here on JobFairX \u2014 no app or external links.';
+    document.getElementById('acceptBody').innerHTML='Confirm your interview for <strong>'+time+'</strong>. It\'ll be booked right here on JobFairX — no app or external links.';
     document.getElementById('acceptModal').classList.add('open');
   }
   function closeAccept(){ var m=document.getElementById('acceptModal'); if(m) m.classList.remove('open'); }
@@ -1624,6 +1662,13 @@ body.join-live .iv-tip { display:none !important; }
     }
     if(el){ el.closest('.dev').querySelectorAll('.dev-dev-btn').forEach(function(b){b.classList.remove('active');}); el.classList.add('active'); }
     else { var btns=document.querySelectorAll('.dev-dev-btn'); btns.forEach(function(b){b.classList.remove('active');}); if(btns[0]) btns[0].classList.add('active'); }
+  }
+  function devSelect(val){
+    var p=val.split(':'), k=p[0], v=p[1];
+    if(k==='d'){ setView('dashboard'); setDemo(v); }
+    else if(k==='m'){ msgState(v); }
+    else if(k==='p'){ profileState(v); }
+    else if(k==='v'){ setDevice(v); }
   }
   function toggleDevBar(){ document.getElementById('devBar').classList.toggle('collapsed'); }
   function profileState(state, el){
