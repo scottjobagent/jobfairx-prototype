@@ -385,6 +385,14 @@ body.join-live .iv-tip { display:none !important; }
 .up-empty p { font-size:14px; color:#767676; margin-bottom:20px; max-width:420px; margin-left:auto; margin-right:auto; }
 .dev-label { color:#b0afad; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; padding:0 4px 0 6px; }
 .dev-sep { width:1px; height:18px; background:#555; margin:0 6px; }
+.dev-body { display:flex; flex-wrap:wrap; gap:4px; row-gap:4px; align-items:center; justify-content:center; }
+.dev-toggle-btn { background:none; border:none; color:#b0afad; cursor:pointer; display:flex; align-items:center; gap:5px; font-family:inherit; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; padding:4px 6px; }
+.dev-toggle-btn:hover { color:#fff; }
+.dev-toggle-btn svg { width:14px; height:14px; stroke:currentColor; fill:none; stroke-width:2.5; transition:transform .2s; }
+.dev-launcher-label { display:none; }
+.dev.collapsed .dev-body { display:none; }
+.dev.collapsed .dev-toggle-btn svg { transform:rotate(180deg); }
+.dev.collapsed .dev-launcher-label { display:inline; }
 .dev select { font-family:inherit; font-size:12.5px; font-weight:700; color:#fff; background:#0044B3; border:none; border-radius:6px; padding:7px 12px; cursor:pointer; }
 .prop-times { margin-top:10px; display:flex; flex-direction:column; gap:9px; }
 .prop-time { display:inline-flex; align-items:center; gap:10px; font-size:13.5px; font-weight:600; color:#2d2d2d; cursor:pointer; }
@@ -948,7 +956,9 @@ body.join-live .iv-tip { display:none !important; }
   </div>
 
   <!-- DEV STATE TOGGLE -->
-  <div class="dev">
+  <div class="dev" id="devBar">
+    <button class="dev-toggle-btn" onclick="toggleDevBar()" title="Hide/show demo toggles"><span class="dev-launcher-label">Demo</span><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
+    <div class="dev-body">
     <span class="dev-label">Demo state</span>
     <button onclick="setDemo('newuser',this)">New user</button>
     <button onclick="setDemo('notmatched',this)">Not matched</button>
@@ -967,6 +977,7 @@ body.join-live .iv-tip { display:none !important; }
     <span class="dev-label">Resume</span>
     <button class="dev-rsm-btn active" onclick="resumeState('none',this)">No resume</button>
     <button class="dev-rsm-btn" onclick="resumeState('has',this)">Built</button>
+    </div>
   </div>
 
   <!-- ADD JOB TITLES MODAL -->
@@ -1403,6 +1414,7 @@ body.join-live .iv-tip { display:none !important; }
   }
   function toggleWhy(btn){ var tb=btn.closest('tbody'); var w=tb?tb.querySelector('.why-row'):null; if(w){ var open=w.classList.toggle('hidden')===false; btn.textContent=open?'What this means \u2191':'What this means \u2193'; } }
   var SCN_MAP={notmatched:'scn-notmatched',schedule:'scn-schedule',confirmed:'scn-confirmed',joinnow:'scn-confirmed',injoined:'scn-confirmed',proposed:'scn-proposed',declined:'scn-declined',multi:'scn-multi'};
+  function toggleDevBar(){ document.getElementById('devBar').classList.toggle('collapsed'); }
   function resumeState(state, el){
     setView('profile'); showProfileSub('main');
     var has = state==='has';
