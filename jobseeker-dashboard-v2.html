@@ -44,7 +44,11 @@ body.collapsed .topbar { left:60px; }
 .user-menu-item:hover { background:#f3f2ef; }
 .user-menu-item.muted { color:#767676; }
 .user-menu-divider { height:1px; background:#ebebeb; margin:4px 0; }
-.pw-input { width:100%; padding:11px 12px; border:1px solid #d4d2d0; border-radius:8px; font-size:14px; font-family:inherit; box-sizing:border-box; color:#2d2d2d; }
+.pw-field { position:relative; }
+.pw-input { width:100%; padding:11px 42px 11px 12px; border:1px solid #d4d2d0; border-radius:8px; font-size:14px; font-family:inherit; box-sizing:border-box; color:#2d2d2d; }
+.pw-eye { position:absolute; right:8px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; color:#767676; display:flex; align-items:center; padding:4px; }
+.pw-eye:hover { color:#2d2d2d; }
+.pw-eye svg { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width:2; }
 .pw-input:focus { outline:none; border-color:#0044B3; box-shadow:0 0 0 2px rgba(0,68,179,.15); }
 .fb-textarea { width:100%; min-height:120px; border:1px solid #d4d2d0; border-radius:8px; padding:12px; font-family:inherit; font-size:14px; resize:vertical; box-sizing:border-box; color:#2d2d2d; }
 .fb-textarea:focus { outline:none; border-color:#0044B3; box-shadow:0 0 0 2px rgba(0,68,179,.15); }
@@ -1106,9 +1110,9 @@ body.join-live .iv-tip { display:none !important; }
     <div class="modal" style="max-width:440px;">
       <div class="modal-head"><h2 style="font-size:20px;">Change password</h2><button class="modal-close" onclick="closePw()">&times;</button></div>
       <label style="display:block;font-size:13px;font-weight:600;color:#2d2d2d;margin-bottom:6px;">New password</label>
-      <input id="pwNew" type="password" class="pw-input" placeholder="Enter new password">
+      <div class="pw-field"><input id="pwNew" type="password" class="pw-input" placeholder="Enter new password"><button type="button" class="pw-eye" onclick="togglePw('pwNew',this)"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
       <label style="display:block;font-size:13px;font-weight:600;color:#2d2d2d;margin:14px 0 6px;">Confirm password</label>
-      <input id="pwConfirm" type="password" class="pw-input" placeholder="Re-enter new password">
+      <div class="pw-field"><input id="pwConfirm" type="password" class="pw-input" placeholder="Re-enter new password"><button type="button" class="pw-eye" onclick="togglePw('pwConfirm',this)"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
       <div id="pwError" class="hidden" style="color:#991b1b;font-size:13px;margin-top:10px;"></div>
       <div class="modal-actions">
         <button class="btn-cancel" onclick="closePw()">Cancel</button>
@@ -1130,6 +1134,13 @@ body.join-live .iv-tip { display:none !important; }
     if(!n||!c){ err.textContent='Enter and confirm your new password.'; err.classList.remove('hidden'); return; }
     if(n!==c){ err.textContent='Passwords do not match.'; err.classList.remove('hidden'); return; }
     err.classList.add('hidden'); closePw();
+  }
+  var EYE_SVG='<svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+  var EYEOFF_SVG='<svg viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><path d="M1 1l22 22"/></svg>';
+  function togglePw(id, btn){
+    var inp=document.getElementById(id);
+    if(inp.type==='password'){ inp.type='text'; btn.innerHTML=EYEOFF_SVG; }
+    else { inp.type='password'; btn.innerHTML=EYE_SVG; }
   }
   document.addEventListener('click', function(){ var m=document.getElementById('userMenu'); if(m) m.classList.remove('open'); });
   function setView(v){
