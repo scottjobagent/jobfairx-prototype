@@ -592,6 +592,16 @@ body.join-live .iv-tip { display:none !important; }
   /* modals full width */
   .modal-overlay { padding:24px 14px; }
 }
+
+/* Device preview */
+.device-overlay { position:fixed; inset:0; background:rgba(20,20,20,.6); z-index:2000; display:none; flex-direction:column; align-items:center; justify-content:center; gap:14px; }
+.device-overlay.open { display:flex; }
+.device-bar { display:flex; align-items:center; gap:14px; }
+.device-label { color:#fff; font-size:13px; font-weight:600; }
+.device-close { background:rgba(255,255,255,.15); color:#fff; border:none; border-radius:8px; padding:7px 14px; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; }
+.device-close:hover { background:rgba(255,255,255,.28); }
+.device-frame { background:#fff; border:11px solid #111; border-radius:40px; overflow:hidden; box-shadow:0 24px 70px rgba(0,0,0,.5); }
+.device-frame iframe { display:block; border:none; width:100%; height:100%; background:#f3f2ef; }
 </style>
 </head>
 <body>
@@ -1101,6 +1111,12 @@ body.join-live .iv-tip { display:none !important; }
     <button class="dev-prof-btn" onclick="profileState('empty',this)">Empty</button>
     <button class="dev-prof-btn active" onclick="profileState('noresume',this)">No resume</button>
     <button class="dev-prof-btn" onclick="profileState('hasresume',this)">With resume</button>
+    <span class="dev-sep"></span>
+    <span class="dev-label">Device</span>
+    <button class="dev-dev-btn active" onclick="setDevice('desktop',this)">Desktop</button>
+    <button class="dev-dev-btn" onclick="setDevice('se',this)">iPhone SE</button>
+    <button class="dev-dev-btn" onclick="setDevice('std',this)">iPhone 14</button>
+    <button class="dev-dev-btn" onclick="setDevice('max',this)">Pro Max</button>
     </div>
   </div>
 
@@ -1296,6 +1312,15 @@ body.join-live .iv-tip { display:none !important; }
         <div class="modal-actions" style="justify-content:center;"><button class="btn-save" onclick="closeEvtReg()">Done</button></div>
       </div>
     </div>
+  </div>
+
+  <!-- DEVICE PREVIEW (mobile frame) -->
+  <div class="device-overlay" id="deviceOverlay">
+    <div class="device-bar">
+      <span class="device-label" id="deviceLabel">iPhone 14 · 390×844</span>
+      <button class="device-close" onclick="setDevice('desktop')">✕ Close</button>
+    </div>
+    <div class="device-frame" id="deviceFrame"><iframe id="deviceIframe" title="Mobile preview"></iframe></div>
   </div>
 
 <script>
@@ -1584,6 +1609,22 @@ body.join-live .iv-tip { display:none !important; }
   }
   function toggleWhy(btn){ var tb=btn.closest('tbody'); var w=tb?tb.querySelector('.why-row'):null; if(w){ var open=w.classList.toggle('hidden')===false; btn.textContent=open?'What this means \u2191':'What this means \u2193'; } }
   var SCN_MAP={notmatched:'scn-notmatched',schedule:'scn-schedule',confirmed:'scn-confirmed',joinnow:'scn-confirmed',injoined:'scn-confirmed',proposed:'scn-proposed',declined:'scn-declined',multi:'scn-multi'};
+  var DEVICES={ se:{w:375,h:760,n:'iPhone SE \u00b7 375\u00d7667'}, std:{w:390,h:800,n:'iPhone 14 \u00b7 390\u00d7844'}, max:{w:430,h:820,n:'iPhone 15 Pro Max \u00b7 430\u00d7932'} };
+  function setDevice(size, el){
+    var ov=document.getElementById('deviceOverlay');
+    if(size==='desktop'){ ov.classList.remove('open'); }
+    else {
+      var d=DEVICES[size]; var fr=document.getElementById('deviceFrame'), ifr=document.getElementById('deviceIframe');
+      // fit height to viewport
+      var maxH=window.innerHeight-120; var h=Math.min(d.h, maxH);
+      fr.style.width=d.w+'px'; fr.style.height=h+'px';
+      if(!ifr.src){ ifr.src='jobseeker-dashboard-v2.html'; }
+      document.getElementById('deviceLabel').textContent=d.n;
+      ov.classList.add('open');
+    }
+    if(el){ el.closest('.dev').querySelectorAll('.dev-dev-btn').forEach(function(b){b.classList.remove('active');}); el.classList.add('active'); }
+    else { var btns=document.querySelectorAll('.dev-dev-btn'); btns.forEach(function(b){b.classList.remove('active');}); if(btns[0]) btns[0].classList.add('active'); }
+  }
   function toggleDevBar(){ document.getElementById('devBar').classList.toggle('collapsed'); }
   function profileState(state, el){
     setView('profile'); showProfileSub('main');
@@ -1609,7 +1650,7 @@ body.join-live .iv-tip { display:none !important; }
       document.querySelectorAll('.iv-confirmed').forEach(renderConfirmed);
       setTab('upcoming', document.querySelector('#dashFilter .tab-pill'));
     }
-    if(el){ el.closest('.dev').querySelectorAll('button:not(.dev-msg-btn):not(.dev-prof-btn)').forEach(function(b){b.classList.remove('active');}); el.classList.add('active'); }
+    if(el){ el.closest('.dev').querySelectorAll('button:not(.dev-msg-btn):not(.dev-prof-btn):not(.dev-dev-btn)').forEach(function(b){b.classList.remove('active');}); el.classList.add('active'); }
   }
   setDemo('schedule');
   var CANCEL_KEY=null;
