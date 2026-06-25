@@ -352,6 +352,7 @@ body.join-live .iv-tip { display:none !important; }
 .up-empty h3 { font-size:18px; font-weight:700; color:#2d2d2d; margin-bottom:8px; }
 .up-empty p { font-size:14px; color:#767676; margin-bottom:20px; max-width:420px; margin-left:auto; margin-right:auto; }
 .dev-label { color:#b0afad; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; padding:0 4px 0 6px; }
+.dev-sep { width:1px; height:18px; background:#555; margin:0 6px; }
 .dev select { font-family:inherit; font-size:12.5px; font-weight:700; color:#fff; background:#0044B3; border:none; border-radius:6px; padding:7px 12px; cursor:pointer; }
 .prop-times { margin-top:10px; display:flex; flex-direction:column; gap:9px; }
 .prop-time { display:inline-flex; align-items:center; gap:10px; font-size:13.5px; font-weight:600; color:#2d2d2d; cursor:pointer; }
@@ -635,7 +636,6 @@ body.join-live .iv-tip { display:none !important; }
         <div class="msg-list-panel">
           <div class="msg-list-header">
             <div class="msg-list-header-top">
-              <span class="msg-status-dot active"></span>
               <h2>Messages</h2>
             </div>
             <div class="msg-inbox-tabs">
@@ -711,7 +711,6 @@ body.join-live .iv-tip { display:none !important; }
         <div class="msg-list-panel">
           <div class="msg-list-header">
             <div class="msg-list-header-top">
-              <span class="msg-status-dot inactive"></span>
               <h2>Messages</h2>
             </div>
             <div class="msg-inbox-tabs">
@@ -902,6 +901,10 @@ body.join-live .iv-tip { display:none !important; }
     <button onclick="setDemo('proposed',this)">Proposed time</button>
     <button onclick="setDemo('declined',this)">Not accepted</button>
     <button onclick="setDemo('multi',this)">Two interviews</button>
+    <span class="dev-sep"></span>
+    <span class="dev-label">Messages</span>
+    <button class="dev-msg-btn" onclick="msgState('empty',this)">Empty</button>
+    <button class="dev-msg-btn active" onclick="msgState('active',this)">Active</button>
   </div>
 
   <!-- ADD JOB TITLES MODAL -->
@@ -1267,6 +1270,13 @@ body.join-live .iv-tip { display:none !important; }
   }
   function toggleWhy(btn){ var tb=btn.closest('tbody'); var w=tb?tb.querySelector('.why-row'):null; if(w){ var open=w.classList.toggle('hidden')===false; btn.textContent=open?'What this means \u2191':'What this means \u2193'; } }
   var SCN_MAP={notmatched:'scn-notmatched',schedule:'scn-schedule',confirmed:'scn-confirmed',joinnow:'scn-confirmed',injoined:'scn-confirmed',proposed:'scn-proposed',declined:'scn-declined',multi:'scn-multi'};
+  function msgState(state, el){
+    setView('messages');
+    var empty = state==='empty';
+    document.getElementById('msg-populated').classList.toggle('hidden', empty);
+    document.getElementById('msg-empty').classList.toggle('hidden', !empty);
+    if(el){ el.closest('.dev').querySelectorAll('.dev-msg-btn').forEach(function(b){b.classList.remove('active');}); el.classList.add('active'); }
+  }
   function setDemo(val, el){
     var empty=(val==='newuser');
     applyAccount(empty);
@@ -1277,7 +1287,7 @@ body.join-live .iv-tip { display:none !important; }
       document.querySelectorAll('.iv-confirmed').forEach(renderConfirmed);
       setTab('upcoming', document.querySelector('#dashFilter .tab-pill'));
     }
-    if(el){ el.closest('.dev').querySelectorAll('button').forEach(function(b){b.classList.remove('active');}); el.classList.add('active'); }
+    if(el){ el.closest('.dev').querySelectorAll('button:not(.dev-msg-btn)').forEach(function(b){b.classList.remove('active');}); el.classList.add('active'); }
   }
   setDemo('schedule');
   var CANCEL_KEY=null;
