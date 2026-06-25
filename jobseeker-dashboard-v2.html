@@ -31,7 +31,14 @@ body.collapsed .nav-item .badge { display:none; }
 /* ═══ TOPBAR ═══ */
 .topbar { position:fixed; top:0; left:220px; right:0; height:56px; background:#fff; border-bottom:1px solid #d4d2d0; display:flex; align-items:center; justify-content:flex-end; padding:0 24px; z-index:200; transition:left .2s ease; }
 body.collapsed .topbar { left:60px; }
-.user-trigger { display:flex; align-items:center; gap:6px; cursor:default; padding:6px 12px; border-radius:8px; }
+.user-trigger { display:flex; align-items:center; gap:6px; cursor:pointer; padding:6px 12px; border-radius:8px; position:relative; transition:background .15s; }
+.user-trigger:hover { background:#f3f2ef; }
+.user-menu { position:absolute; top:42px; right:0; background:#fff; border-radius:10px; box-shadow:0 4px 20px rgba(0,0,0,0.12); border:1px solid #d4d2d0; min-width:220px; z-index:500; display:none; padding:6px 0; }
+.user-menu.open { display:block; }
+.user-menu-item { display:flex; align-items:center; width:100%; padding:12px 18px; font-size:14px; font-weight:500; color:#2d2d2d; background:none; border:none; text-align:left; cursor:pointer; font-family:inherit; transition:background .1s; text-decoration:none; }
+.user-menu-item:hover { background:#f3f2ef; }
+.user-menu-item.muted { color:#767676; }
+.user-menu-divider { height:1px; background:#ebebeb; margin:4px 0; }
 .user-trigger .u-avatar { width:22px; height:22px; border-radius:50%; background:#eef2f9; display:flex; align-items:center; justify-content:center; }
 .user-trigger .u-avatar svg { width:13px; height:13px; color:#767676; stroke:currentColor; fill:none; stroke-width:2; }
 .user-trigger span { font-size:14px; font-weight:400; color:#2d2d2d; }
@@ -496,10 +503,17 @@ body.join-live .iv-tip { display:none !important; }
 
   <!-- TOPBAR -->
   <div class="topbar">
-    <div class="user-trigger">
+    <div class="user-trigger" onclick="toggleUserMenu(event)">
       <span class="u-avatar"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg></span>
       <span>demo@jobfairx.com</span>
       <svg class="caret" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+      <div class="user-menu" id="userMenu">
+        <button class="user-menu-item">Communication Settings</button>
+        <button class="user-menu-item">Feedback</button>
+        <button class="user-menu-item">Change Password</button>
+        <div class="user-menu-divider"></div>
+        <button class="user-menu-item muted">Sign Out</button>
+      </div>
     </div>
   </div>
 
@@ -1054,6 +1068,8 @@ body.join-live .iv-tip { display:none !important; }
 
 <script>
   var STATE='has', VIEW='dashboard';
+  function toggleUserMenu(e){ e.stopPropagation(); document.getElementById('userMenu').classList.toggle('open'); }
+  document.addEventListener('click', function(){ var m=document.getElementById('userMenu'); if(m) m.classList.remove('open'); });
   function setView(v){
     VIEW=v;
     document.getElementById('view-dashboard').classList.toggle('hidden', v!=='dashboard');
