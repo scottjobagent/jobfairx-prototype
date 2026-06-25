@@ -648,25 +648,32 @@ body.join-live .iv-tip { display:none !important; }
               <div class="msg-thread-top"><span class="msg-thread-name">Baylor Scott &amp; White</span><span class="msg-thread-date">Today</span></div>
               <div class="msg-thread-job">Registered Nurse · Dallas, TX</div>
               <div class="msg-thread-preview">Congrats on matching, Brad! Looking forward to our interview on the 22nd.</div>
-              <button class="msg-thread-del" title="Delete conversation" onclick="event.stopPropagation();deleteThread(this)"><svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg></button>
+              <button class="msg-thread-del" title="Archive conversation" onclick="event.stopPropagation();archiveThread(this)"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="4" rx="1"/><path d="M5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8M10 12h4"/></svg></button>
             </div>
             <div class="msg-thread" onclick="openThread(this,'david')">
               <div class="msg-thread-top"><span class="msg-thread-name">Texas Health</span><span class="msg-thread-date">Today</span></div>
               <div class="msg-thread-job">Patient Care Tech · Dallas, TX</div>
               <div class="msg-thread-preview">Hi Brad — we'd love to set up a time to talk during the event.</div>
-              <button class="msg-thread-del" title="Delete conversation" onclick="event.stopPropagation();deleteThread(this)"><svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg></button>
+              <button class="msg-thread-del" title="Archive conversation" onclick="event.stopPropagation();archiveThread(this)"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="4" rx="1"/><path d="M5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8M10 12h4"/></svg></button>
             </div>
             <div class="msg-thread" onclick="openThread(this,'northwind')">
               <div class="msg-thread-top"><span class="msg-thread-name">Northwind Co</span><span class="msg-thread-date">Mar 18</span></div>
               <div class="msg-thread-job">Operations Coordinator · Houston, TX</div>
               <div class="msg-thread-preview">Thanks for interviewing with us — we'll be in touch on next steps.</div>
-              <button class="msg-thread-del" title="Delete conversation" onclick="event.stopPropagation();deleteThread(this)"><svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg></button>
+              <button class="msg-thread-del" title="Archive conversation" onclick="event.stopPropagation();archiveThread(this)"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="4" rx="1"/><path d="M5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8M10 12h4"/></svg></button>
+            </div>
+            <div class="msg-empty-list-body hidden" id="msgInboxEmpty">
+              <svg class="msg-empty-list-icon" viewBox="0 0 24 24"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5h13l3.5 7v6a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1v-6z"/></svg>
+              <div class="msg-empty-list-title">No conversations</div>
+              <div class="msg-empty-list-sub">Messages from employers show up here.</div>
             </div>
           </div>
-          <div class="msg-empty-list-body hidden" id="msgArchivedList">
-            <svg class="msg-empty-list-icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="4" rx="1"/><path d="M5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8M10 12h4"/></svg>
-            <div class="msg-empty-list-title">No archived conversations</div>
-            <div class="msg-empty-list-sub">Conversations you archive will show up here.</div>
+          <div class="msg-thread-list hidden" id="msgArchivedList">
+            <div class="msg-empty-list-body" id="msgArchivedEmpty">
+              <svg class="msg-empty-list-icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="4" rx="1"/><path d="M5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8M10 12h4"/></svg>
+              <div class="msg-empty-list-title">No archived conversations</div>
+              <div class="msg-empty-list-sub">Conversations you archive show up here.</div>
+            </div>
           </div>
         </div>
 
@@ -684,7 +691,7 @@ body.join-live .iv-tip { display:none !important; }
                 Registered Nurse · Dallas, TX <span>|</span> Apr 22, 2026
               </div>
             </div>
-            <button class="msg-chat-del-btn" title="Delete conversation" onclick="deleteActiveThread()"><svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg> Delete</button>
+            <button class="msg-chat-del-btn" title="Archive conversation" onclick="archiveActiveThread()"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="4" rx="1"/><path d="M5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8M10 12h4"/></svg> Archive</button>
           </div>
           <div class="msg-chat-body" id="chatBody">
             <div class="msg-chat-divider">Today</div>
@@ -1099,31 +1106,46 @@ body.join-live .iv-tip { display:none !important; }
     document.getElementById('chatName').textContent=data.n;
     document.getElementById('chatMeta').innerHTML='<svg viewBox="0 0 24 24"><path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-3"/></svg> '+data.m;
   }
-  function removeThreadRow(row){
-    if(!row) return;
-    var wasActive=row.classList.contains('active');
-    row.remove();
-    var rest=document.querySelectorAll('.msg-thread');
-    if(rest.length===0){
-      document.getElementById('msg-populated').classList.add('hidden');
-      document.getElementById('msg-empty').classList.remove('hidden');
-    } else if(wasActive){
-      rest.forEach(t=>t.classList.remove('active'));
-      document.getElementById('msgChatPanel').classList.add('hidden');
-      document.getElementById('msgSelect').classList.remove('hidden');
-    }
+  var ARCH_SVG='<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="4" rx="1"/><path d="M5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8M10 12h4"/></svg>';
+  var UNARCH_SVG='<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="4" rx="1"/><path d="M5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8M12 18v-6M9 15l3-3 3 3"/></svg>';
+  function refreshMsgLists(){
+    var inboxN=document.querySelectorAll('#msgInboxList .msg-thread').length;
+    var archN=document.querySelectorAll('#msgArchivedList .msg-thread').length;
+    var ie=document.getElementById('msgInboxEmpty'); if(ie) ie.classList.toggle('hidden', inboxN>0);
+    var ae=document.getElementById('msgArchivedEmpty'); if(ae) ae.classList.toggle('hidden', archN>0);
+    var badge=document.querySelector('#tabInbox .msg-badge');
+    if(badge){ badge.textContent=inboxN; badge.style.display=inboxN>0?'':'none'; }
+  }
+  function showSelectPlaceholder(){
+    document.querySelectorAll('.msg-thread').forEach(function(t){t.classList.remove('active');});
+    var cp=document.getElementById('msgChatPanel'), ms=document.getElementById('msgSelect');
+    if(cp) cp.classList.add('hidden'); if(ms) ms.classList.remove('hidden');
   }
   function msgTab(which, el){
     document.getElementById('tabInbox').classList.toggle('active', which==='inbox');
     document.getElementById('tabArchived').classList.toggle('active', which==='archived');
     document.getElementById('msgInboxList').classList.toggle('hidden', which!=='inbox');
     document.getElementById('msgArchivedList').classList.toggle('hidden', which!=='archived');
-    document.querySelectorAll('.msg-thread').forEach(t=>t.classList.remove('active'));
-    var cp=document.getElementById('msgChatPanel'), ms=document.getElementById('msgSelect');
-    if(cp) cp.classList.add('hidden'); if(ms) ms.classList.remove('hidden');
+    showSelectPlaceholder();
   }
-  function deleteThread(btn){ removeThreadRow(btn.closest('.msg-thread')); }
-  function deleteActiveThread(){ removeThreadRow(document.querySelector('.msg-thread.active')); }
+  function archiveThread(btn){
+    var row=btn.closest('.msg-thread'); if(!row) return;
+    var wasActive=row.classList.contains('active');
+    btn.outerHTML='<button class="msg-thread-del" title="Unarchive conversation" onclick="event.stopPropagation();unarchiveThread(this)">'+UNARCH_SVG+'</button>';
+    document.getElementById('msgArchivedList').appendChild(row);
+    refreshMsgLists();
+    if(wasActive) showSelectPlaceholder();
+  }
+  function unarchiveThread(btn){
+    var row=btn.closest('.msg-thread'); if(!row) return;
+    var wasActive=row.classList.contains('active');
+    btn.outerHTML='<button class="msg-thread-del" title="Archive conversation" onclick="event.stopPropagation();archiveThread(this)">'+ARCH_SVG+'</button>';
+    document.getElementById('msgInboxList').appendChild(row);
+    refreshMsgLists();
+    if(wasActive) showSelectPlaceholder();
+  }
+  function archiveActiveThread(){ var a=document.querySelector('.msg-thread.active'); if(a){ var b=a.querySelector('.msg-thread-del'); if(b) archiveThread(b); } }
+  refreshMsgLists();
   function setState(s, el){
     STATE=s; var empty = s==='empty';
     // dashboard
