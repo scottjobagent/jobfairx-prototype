@@ -213,6 +213,14 @@ tbody tr:last-child td { border-bottom:none; }
 .btn-cancel:hover { background:#f3f2ef; }
 .btn-save { background:#0044B3; border:none; color:#fff; padding:11px 28px; border-radius:8px; font-weight:700; cursor:pointer; font-family:inherit; font-size:15px; }
 .btn-save:hover { background:#003399; }
+.resched-day { font-size:15px; font-weight:700; color:#2d2d2d; margin:18px 0 12px; }
+.resched-slots { border:1px solid #d4d2d0; border-radius:10px; overflow:hidden; max-height:264px; overflow-y:auto; }
+.resched-slot { display:flex; align-items:center; gap:12px; padding:15px 16px; border-bottom:1px solid #ebebeb; cursor:pointer; }
+.resched-slot:last-child { border-bottom:none; }
+.resched-slot:hover { background:#fafaf8; }
+.resched-slot input { accent-color:#0044B3; width:17px; height:17px; margin:0; cursor:pointer; }
+.rs-time { font-size:15px; font-weight:600; color:#2d2d2d; }
+.rs-spots { font-size:13px; color:#9a9794; }
 /* resume doc */
 .resume-doc { background:#fff; border:1px solid #e0e0e0; border-radius:12px; padding:34px 40px; }
 .resume-head { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
@@ -517,9 +525,9 @@ body.join-live .iv-tip { display:none !important; }
             <tbody class="scn hidden" id="scn-notmatched">
               <tr>
                 <td><div class="td-evt-name">Chicago Technology Hiring Event</div><div class="td-evt-meta">May 6, 2026</div></td>
-                <td><div class="td-muted">Not matched yet</div><button class="link-why" onclick="toggleWhy(this)">What this means →</button></td>
-                <td><span class="td-dash">—</span></td>
-                <td><span class="td-dash">—</span></td>
+                <td><div class="td-muted">Not matched to a job yet</div></td>
+                <td><div class="td-muted">No interview yet</div></td>
+                <td><button class="link-why" style="margin-top:0;" onclick="toggleWhy(this)">What this means →</button></td>
               </tr>
               <tr class="why-row hidden"><td colspan="4"><div class="why-box"><p class="gate-lead">You're registered for the event.</p><p>This is a private, invite-only hiring event. To participate, you must be matched to an employer's job. Once you're matched, we'll email you an invitation to schedule an interview.</p><p>If you're not matched, you won't be able to schedule an interview or access the event.</p><p>There's nothing you need to do right now. If you're matched, you'll receive an email and the interview invitation will also appear on your dashboard.</p></div></td></tr>
             </tbody>
@@ -898,6 +906,26 @@ body.join-live .iv-tip { display:none !important; }
     </div>
   </div>
 
+  <!-- RESCHEDULE INTERVIEW MODAL -->
+  <div class="modal-overlay" id="reschedModal">
+    <div class="modal" style="max-width:560px;">
+      <div class="modal-head"><h2 style="font-size:24px;">Reschedule your interview</h2><button class="modal-close" onclick="closeResched()">&times;</button></div>
+      <p style="font-size:14px;color:#4b5563;line-height:1.6;margin-bottom:4px;">Note that interviews can start within a 30-minute window. So if you select an 11:00 AM interview time, it can start anywhere between 11:00 AM and 11:30 AM.</p>
+      <div class="resched-day">Wednesday, Apr 22</div>
+      <div id="reschedSlots" class="resched-slots">
+        <label class="resched-slot"><input type="radio" name="reschedslot" value="Apr 22, 2026 &middot; 11:00 AM CT" checked><span class="rs-time">11:00 AM CT</span><span class="rs-spots">2 spots left</span></label>
+        <label class="resched-slot"><input type="radio" name="reschedslot" value="Apr 22, 2026 &middot; 11:30 AM CT"><span class="rs-time">11:30 AM CT</span><span class="rs-spots">3 spots left</span></label>
+        <label class="resched-slot"><input type="radio" name="reschedslot" value="Apr 22, 2026 &middot; 12:00 PM CT"><span class="rs-time">12:00 PM CT</span><span class="rs-spots">3 spots left</span></label>
+        <label class="resched-slot"><input type="radio" name="reschedslot" value="Apr 22, 2026 &middot; 1:30 PM CT"><span class="rs-time">1:30 PM CT</span><span class="rs-spots">2 spots left</span></label>
+        <label class="resched-slot"><input type="radio" name="reschedslot" value="Apr 22, 2026 &middot; 2:00 PM CT"><span class="rs-time">2:00 PM CT</span><span class="rs-spots">4 spots left</span></label>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="closeResched()">Cancel</button>
+        <button class="btn-save" onclick="confirmResched()">Reschedule interview</button>
+      </div>
+    </div>
+  </div>
+
   <!-- JOB POSTING MODAL (dev stub) -->
   <div class="modal-overlay" id="jobModal">
     <div class="modal" style="max-width:480px;">
@@ -1072,10 +1100,11 @@ body.join-live .iv-tip { display:none !important; }
     var c1='<td><div class="td-evt-name">'+evt+'</div><div class="td-evt-meta">'+evtmeta+'</div></td>';
     var c2='<td><div class="td-job" onclick="openJob(\''+key+'\')">'+job+'</div><div class="td-co">'+co+'</div></td>';
     var links='<div class="td-links"><button class="iv-link" onclick="openTest()">Test camera &amp; mic</button><button class="iv-cancel" onclick="askCancel(\''+key+'\')">Cancel interview</button></div>';
+    var linksBefore='<div class="td-links"><button class="iv-link" onclick="openTest()">Test camera &amp; mic</button><button class="iv-link" onclick="openReschedule(\''+key+'\')">Reschedule interview</button><button class="iv-cancel" onclick="askCancel(\''+key+'\')">Cancel interview</button></div>';
     var c3, c4;
     if(PHASE==='before'){
       c3='<td><div class="td-itime">'+time+'</div><div class="td-state confirmed">Confirmed</div><div class="td-jfx">Interviews are on JobFairX</div></td>';
-      c4='<td><div class="td-actions"><button class="iv-join">'+cam+'Join interview<span class="iv-tip">You can join when your interview starts · '+short+'</span></button>'+links+'</div></td>';
+      c4='<td><div class="td-actions"><button class="iv-join">'+cam+'Join interview<span class="iv-tip">You can join when your interview starts · '+short+'</span></button>'+linksBefore+'</div></td>';
     } else if(PHASE==='live'){
       c3='<td><div class="td-itime">'+time+'</div><div class="td-state confirmed">It\'s time for your interview</div><div class="td-jfx">Interviews are on JobFairX</div></td>';
       c4='<td><div class="td-actions"><button class="iv-join-now">'+cam+'Join interview now</button>'+links+'</div></td>';
@@ -1087,6 +1116,15 @@ body.join-live .iv-tip { display:none !important; }
   }
   function openTest(){ document.getElementById('testModal').classList.add('open'); }
   function closeTest(){ var m=document.getElementById('testModal'); if(m) m.classList.remove('open'); }
+  var RESCHED_KEY=null;
+  function openReschedule(key){ RESCHED_KEY=key; document.getElementById('reschedModal').classList.add('open'); }
+  function closeResched(){ var m=document.getElementById('reschedModal'); if(m) m.classList.remove('open'); RESCHED_KEY=null; }
+  function confirmResched(){
+    var sel=document.querySelector('input[name="reschedslot"]:checked');
+    var tr=document.querySelector('[data-iv="'+RESCHED_KEY+'"]');
+    if(sel && tr){ tr.setAttribute('data-time', sel.value); renderConfirmed(tr); }
+    closeResched();
+  }
   function acceptProposed(key, time){
     var tr=document.querySelector('[data-iv="'+key+'"]'); if(!tr) return;
     tr.setAttribute('data-time', time||'');
