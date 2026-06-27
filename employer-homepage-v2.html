@@ -4121,12 +4121,12 @@ document.addEventListener('keydown', function(e) {
 <style>
 .jax-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.55); z-index: 99999; align-items: center; justify-content: center; padding: 28px; }
 .jax-modal-overlay.open { display: flex; }
-.jax-modal-box { background: #fff; border-radius: 16px; width: 100%; max-width: 640px; max-height: 90vh; overflow-y: auto; box-shadow: 0 30px 60px rgba(0, 0, 0, 0.25); font-family: inherit; }
-.jax-modal-head { padding: 26px 28px 18px; }
+.jax-modal-box { background: #fff; border-radius: 16px; width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto; box-shadow: 0 30px 60px rgba(0, 0, 0, 0.25); font-family: inherit; }
+.jax-modal-head { padding: 22px 24px 14px; }
 .jax-modal-eyebrow { display: inline-block; font-size: 11px; font-weight: 700; color: #2563eb; letter-spacing: 0.8px; text-transform: uppercase; background: #eff6ff; padding: 4px 10px; border-radius: 999px; margin-bottom: 12px; }
-.jax-modal-title { margin: 0 0 8px; font-size: 22px; font-weight: 700; color: #0a0e1a; letter-spacing: -0.01em; line-height: 1.25; }
+.jax-modal-title { margin: 0 0 6px; font-size: 20px; font-weight: 700; color: #0a0e1a; letter-spacing: -0.01em; line-height: 1.25; }
 .jax-modal-sub { margin: 0; font-size: 14px; color: #6b6862; line-height: 1.5; }
-.jax-modal-body { padding: 8px 28px 4px; }
+.jax-modal-body { padding: 4px 24px 4px; }
 
 /* Step 1: audience gate */
 .jax-gate-options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 8px 0 18px; }
@@ -4140,8 +4140,8 @@ document.addEventListener('keydown', function(e) {
 .jax-gate-desc { display: block; font-size: 13px; color: #6b6862; line-height: 1.4; }
 
 /* Step 2: agent options (same as dashboard) */
-.jax-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
-.jax-option { position: relative; border: 1.5px solid #e0dfdb; border-radius: 12px; padding: 14px 14px 14px 42px; cursor: pointer; transition: border-color 0.15s, background 0.15s; background: #fff; }
+.jax-options { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+.jax-option { position: relative; border: 1.5px solid #e0dfdb; border-radius: 10px; padding: 11px 12px 11px 40px; cursor: pointer; transition: border-color 0.15s, background 0.15s; background: #fff; }
 .jax-option:hover { border-color: #2563eb; background: #f8faff; }
 .jax-option.is-checked { border-color: #2563eb; background: #eff6ff; }
 .jax-option input[type="checkbox"] { position: absolute; top: 15px; left: 14px; width: 18px; height: 18px; accent-color: #2563eb; cursor: pointer; }
@@ -4152,7 +4152,7 @@ document.addEventListener('keydown', function(e) {
 .jax-option-other input[type="text"]:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
 .jax-option-other input[type="text"]:disabled { background: #f5f5f4; color: #a0a0a0; }
 
-.jax-modal-foot { padding: 14px 28px 22px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; border-top: 1px solid #f0efec; }
+.jax-modal-foot { padding: 12px 24px 18px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; border-top: 1px solid #f0efec; }
 .jax-dontshow { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: #6b6862; cursor: pointer; }
 .jax-dontshow input { accent-color: #2563eb; cursor: pointer; }
 .jax-foot-actions { display: inline-flex; gap: 10px; }
@@ -4259,8 +4259,7 @@ document.addEventListener('keydown', function(e) {
     { id: 'screening', name: 'Screening agent', desc: 'Pre-qualifies candidates against your requirements before they hit your inbox' },
     { id: 'scheduling', name: 'Scheduling agent', desc: 'Handles interview scheduling, reschedules, and reminders' },
     { id: 'followup', name: 'Follow-up agent', desc: 'Sends thank-you, status, and rejection emails after interviews' },
-    { id: 'jd', name: 'Job description agent', desc: 'Turns rough notes into polished job postings' },
-    { id: 'reporting', name: 'Hiring report agent', desc: 'Generates weekly pipeline and hiring summaries' }
+    { id: 'jd', name: 'Job description agent', desc: 'Turns rough notes into polished job postings' }
   ];
 
   function shuffle(arr) {
@@ -4284,11 +4283,6 @@ document.addEventListener('keydown', function(e) {
         + '<span class="jax-option-desc">' + a.desc + '</span>'
         + '</label>';
     });
-    html += '<label class="jax-option jax-option-other" data-agent="other">'
-      + '<input type="checkbox" value="other" onchange="jaxOtherToggle(this)">'
-      + '<span class="jax-option-name">Other</span>'
-      + '<input type="text" id="jaxOtherText" placeholder="Tell us what you want" oninput="jaxUpdateSubmit()" disabled>'
-      + '</label>';
     grid.innerHTML = html;
   }
 
@@ -4320,10 +4314,7 @@ document.addEventListener('keydown', function(e) {
 
   window.jaxUpdateSubmit = function() {
     var anyChecked = document.querySelectorAll('#jaxOptionsGrid input[type="checkbox"]:checked').length > 0;
-    var otherCb = document.querySelector('#jaxOptionsGrid input[value="other"]');
-    var otherText = document.getElementById('jaxOtherText');
-    var validOther = otherCb && otherCb.checked ? (otherText && otherText.value.trim().length > 0) : true;
-    document.getElementById('jaxSubmitBtn').disabled = !(anyChecked && validOther);
+    document.getElementById('jaxSubmitBtn').disabled = !anyChecked;
   };
 
   window.jaxPickAudience = function(audience) {
@@ -4364,9 +4355,8 @@ document.addEventListener('keydown', function(e) {
 
   window.jaxModalSubmit = function() {
     var picks = Array.from(document.querySelectorAll('#jaxOptionsGrid input[type="checkbox"]:checked')).map(function(cb) { return cb.value; });
-    var otherText = document.getElementById('jaxOtherText');
     var dontShow = document.getElementById('jaxDontShow').checked;
-    var payload = { picks: picks, other: otherText ? otherText.value.trim() : '' };
+    var payload = { picks: picks };
     if (dontShow) {
       try { localStorage.setItem(JAX_KEY, 'submitted'); } catch (e) {}
     }

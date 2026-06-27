@@ -5178,14 +5178,14 @@ function assignInterviewer(option, name) {
 <style>
 .jax-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.55); z-index: 99999; align-items: center; justify-content: center; padding: 28px; }
 .jax-modal-overlay.open { display: flex; }
-.jax-modal-box { background: #fff; border-radius: 16px; width: 100%; max-width: 640px; max-height: 90vh; overflow-y: auto; box-shadow: 0 30px 60px rgba(0, 0, 0, 0.25); font-family: inherit; }
-.jax-modal-head { padding: 26px 28px 18px; }
+.jax-modal-box { background: #fff; border-radius: 16px; width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto; box-shadow: 0 30px 60px rgba(0, 0, 0, 0.25); font-family: inherit; }
+.jax-modal-head { padding: 22px 24px 14px; }
 .jax-modal-eyebrow { display: inline-block; font-size: 11px; font-weight: 700; color: #0044B3; letter-spacing: 0.8px; text-transform: uppercase; background: #eff6ff; padding: 4px 10px; border-radius: 999px; margin-bottom: 12px; }
-.jax-modal-title { margin: 0 0 8px; font-size: 22px; font-weight: 700; color: #0a0e1a; letter-spacing: -0.01em; line-height: 1.25; }
+.jax-modal-title { margin: 0 0 6px; font-size: 20px; font-weight: 700; color: #0a0e1a; letter-spacing: -0.01em; line-height: 1.25; }
 .jax-modal-sub { margin: 0; font-size: 14px; color: #595959; line-height: 1.5; }
-.jax-modal-body { padding: 8px 28px 4px; }
-.jax-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
-.jax-option { position: relative; border: 1.5px solid #e0dfdb; border-radius: 12px; padding: 14px 14px 14px 42px; cursor: pointer; transition: border-color 0.15s, background 0.15s; background: #fff; }
+.jax-modal-body { padding: 4px 24px 4px; }
+.jax-options { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+.jax-option { position: relative; border: 1.5px solid #e0dfdb; border-radius: 10px; padding: 11px 12px 11px 40px; cursor: pointer; transition: border-color 0.15s, background 0.15s; background: #fff; }
 .jax-option:hover { border-color: #0044B3; background: #f8faff; }
 .jax-option.is-checked { border-color: #0044B3; background: #eff6ff; }
 .jax-option input[type="checkbox"] { position: absolute; top: 15px; left: 14px; width: 18px; height: 18px; accent-color: #0044B3; cursor: pointer; }
@@ -5195,7 +5195,7 @@ function assignInterviewer(option, name) {
 .jax-option-other input[type="text"] { width: 100%; margin-top: 8px; padding: 9px 11px; border: 1px solid #d4d2d0; border-radius: 8px; font-size: 13px; font-family: inherit; color: #2d2d2d; }
 .jax-option-other input[type="text"]:focus { outline: none; border-color: #0044B3; box-shadow: 0 0 0 3px rgba(0, 68, 179, 0.08); }
 .jax-option-other input[type="text"]:disabled { background: #f5f5f4; color: #a0a0a0; }
-.jax-modal-foot { padding: 14px 28px 22px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; border-top: 1px solid #f0efec; }
+.jax-modal-foot { padding: 12px 24px 18px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; border-top: 1px solid #f0efec; }
 .jax-dontshow { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: #595959; cursor: pointer; }
 .jax-dontshow input { accent-color: #0044B3; cursor: pointer; }
 .jax-foot-actions { display: inline-flex; gap: 10px; }
@@ -5240,8 +5240,7 @@ function assignInterviewer(option, name) {
     { id: 'screening', name: 'Screening agent', desc: 'Pre-qualifies candidates against your requirements before they hit your inbox' },
     { id: 'scheduling', name: 'Scheduling agent', desc: 'Handles interview scheduling, reschedules, and reminders' },
     { id: 'followup', name: 'Follow-up agent', desc: 'Sends thank-you, status, and rejection emails after interviews' },
-    { id: 'jd', name: 'Job description agent', desc: 'Turns rough notes into polished job postings' },
-    { id: 'reporting', name: 'Hiring report agent', desc: 'Generates weekly pipeline and hiring summaries' }
+    { id: 'jd', name: 'Job description agent', desc: 'Turns rough notes into polished job postings' }
   ];
 
   function shuffle(arr) {
@@ -5266,11 +5265,6 @@ function assignInterviewer(option, name) {
         + '</label>';
     });
     // Other option, always last so it's recognizable
-    html += '<label class="jax-option jax-option-other" data-agent="other">'
-      + '<input type="checkbox" value="other" onchange="jaxOtherToggle(this)">'
-      + '<span class="jax-option-name">Other</span>'
-      + '<input type="text" id="jaxOtherText" placeholder="Tell us what you want" oninput="jaxUpdateSubmit()" disabled>'
-      + '</label>';
     grid.innerHTML = html;
   }
 
@@ -5294,10 +5288,7 @@ function assignInterviewer(option, name) {
 
   window.jaxUpdateSubmit = function() {
     var anyChecked = document.querySelectorAll('#jaxOptionsGrid input[type="checkbox"]:checked').length > 0;
-    var otherCb = document.querySelector('#jaxOptionsGrid input[value="other"]');
-    var otherText = document.getElementById('jaxOtherText');
-    var validOther = otherCb && otherCb.checked ? (otherText && otherText.value.trim().length > 0) : true;
-    document.getElementById('jaxSubmitBtn').disabled = !(anyChecked && validOther);
+    document.getElementById('jaxSubmitBtn').disabled = !anyChecked;
   };
 
   window.jaxOpenModal = function() {
@@ -5321,9 +5312,8 @@ function assignInterviewer(option, name) {
 
   window.jaxModalSubmit = function() {
     var picks = Array.from(document.querySelectorAll('#jaxOptionsGrid input[type="checkbox"]:checked')).map(function(cb) { return cb.value; });
-    var otherText = document.getElementById('jaxOtherText');
     var dontShow = document.getElementById('jaxDontShow').checked;
-    var payload = { picks: picks, other: otherText ? otherText.value.trim() : '' };
+    var payload = { picks: picks };
     if (dontShow) {
       try { localStorage.setItem(JAX_KEY, 'submitted'); } catch (e) {}
     }
