@@ -4148,6 +4148,18 @@ document.addEventListener('keydown', function(e) {
 .jax-option-name { display: block; font-size: 14px; font-weight: 700; color: #0a0e1a; margin-bottom: 4px; }
 .jax-option-desc { display: block; font-size: 12px; color: #6b6862; line-height: 1.4; }
 .jax-option-other { grid-column: 1 / -1; padding: 14px 14px 14px 42px; }
+
+/* Single-select radio styling */
+.jax-option input[type="radio"] { position: absolute; top: 13px; left: 14px; width: 18px; height: 18px; accent-color: #2563eb; cursor: pointer; }
+
+/* Email input */
+.jax-email-input { width: 100%; padding: 12px 14px; font-size: 15px; font-family: inherit; border: 1.5px solid #d4d2d0; border-radius: 10px; background: #fff; color: #2d2d2d; }
+.jax-email-input:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+.jax-email-helper { margin: 8px 0 0; font-size: 12px; color: #6b6862; }
+
+/* Back link button */
+.jax-link-btn { background: none; border: none; padding: 8px 0; color: #2563eb; font-weight: 600; font-size: 13px; cursor: pointer; font-family: inherit; }
+.jax-link-btn:hover { color: #1d4ed8; text-decoration: underline; background: none; }
 .jax-option-other input[type="text"] { width: 100%; margin-top: 8px; padding: 9px 11px; border: 1px solid #d4d2d0; border-radius: 8px; font-size: 13px; font-family: inherit; color: #2d2d2d; }
 .jax-option-other input[type="text"]:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
 .jax-option-other input[type="text"]:disabled { background: #f5f5f4; color: #a0a0a0; }
@@ -4226,12 +4238,12 @@ document.addEventListener('keydown', function(e) {
       </div>
     </div>
 
-    <!-- Step 2: agent picker (hidden until hiring is selected) -->
+    <!-- Step 2: agent picker (single-select, early access) -->
     <div id="jaxStep2" style="display:none;">
       <div class="jax-modal-head">
-        <span class="jax-modal-eyebrow">Coming soon · JobAgentX</span>
-        <h3 class="jax-modal-title">What JobAgentX agents would help you most?</h3>
-        <p class="jax-modal-sub">Pick all that would save your team time. We're using this to shape what we build next.</p>
+        <span class="jax-modal-eyebrow">Early access · JobAgentX</span>
+        <h3 class="jax-modal-title">Which JobAgentX agent do you want first?</h3>
+        <p class="jax-modal-sub">Pick one to claim early access. We'll email you when it ships.</p>
       </div>
       <div class="jax-modal-body">
         <div class="jax-options" id="jaxOptionsGrid"></div>
@@ -4240,8 +4252,40 @@ document.addEventListener('keydown', function(e) {
         <label class="jax-dontshow"><input type="checkbox" id="jaxDontShow"> Don't show this message again</label>
         <div class="jax-foot-actions">
           <button class="jax-btn" onclick="jaxModalDismiss()">Maybe later</button>
-          <button class="jax-btn jax-btn-primary" id="jaxSubmitBtn" onclick="jaxModalSubmit()" disabled>Submit</button>
+          <button class="jax-btn jax-btn-primary" id="jaxSubmitBtn" onclick="jaxAdvanceToEmail()" disabled>Continue →</button>
         </div>
+      </div>
+    </div>
+
+    <!-- Step 3: email capture -->
+    <div id="jaxStep3" style="display:none;">
+      <div class="jax-modal-head">
+        <span class="jax-modal-eyebrow">Early access · JobAgentX</span>
+        <h3 class="jax-modal-title">You're in. Where should we email you?</h3>
+        <p class="jax-modal-sub">We'll let you know the moment <span id="jaxPickName">your pick</span> is ready.</p>
+      </div>
+      <div class="jax-modal-body" style="padding-top: 16px; padding-bottom: 8px;">
+        <input type="email" id="jaxEmail" class="jax-email-input" placeholder="you@company.com" autocomplete="email" oninput="jaxValidateEmail()">
+        <p class="jax-email-helper">We won't share or sell your email. Just access updates.</p>
+      </div>
+      <div class="jax-modal-foot">
+        <button class="jax-btn jax-link-btn" onclick="jaxBackToStep2()">← Back</button>
+        <div class="jax-foot-actions">
+          <button class="jax-btn" onclick="jaxModalDismiss()">Maybe later</button>
+          <button class="jax-btn jax-btn-primary" id="jaxClaimBtn" onclick="jaxClaimAccess()" disabled>Claim early access</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 4: thanks -->
+    <div id="jaxStep4" style="display:none;">
+      <div class="jax-seeker-thanks">
+        <div class="icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <h4>You're on the list</h4>
+        <p>We'll email <strong id="jaxConfirmEmail">you</strong> when <span id="jaxConfirmPick">your pick</span> is ready to try.</p>
+        <button class="jax-link-cta" onclick="jaxCloseModal()" style="border:none;cursor:pointer;font-family:inherit;">Got it</button>
       </div>
     </div>
 
@@ -4277,8 +4321,8 @@ document.addEventListener('keydown', function(e) {
     var shuffled = shuffle(AGENTS);
     var html = '';
     shuffled.forEach(function(a) {
-      html += '<label class="jax-option" data-agent="' + a.id + '">'
-        + '<input type="checkbox" value="' + a.id + '" onchange="jaxOptionToggle(this)">'
+      html += '<label class="jax-option" data-agent="' + a.id + '" data-name="' + a.name + '">'
+        + '<input type="radio" name="jaxAgent" value="' + a.id + '" onchange="jaxOptionToggle(this)">'
         + '<span class="jax-option-name">' + a.name + '</span>'
         + '<span class="jax-option-desc">' + a.desc + '</span>'
         + '</label>';
@@ -4294,9 +4338,10 @@ document.addEventListener('keydown', function(e) {
     setTimeout(function() { t.classList.remove('show'); }, 3500);
   }
 
-  window.jaxOptionToggle = function(cb) {
-    var label = cb.closest('.jax-option');
-    if (label) label.classList.toggle('is-checked', cb.checked);
+  window.jaxOptionToggle = function(input) {
+    document.querySelectorAll('#jaxOptionsGrid .jax-option').forEach(function(l) { l.classList.remove('is-checked'); });
+    var label = input.closest('.jax-option');
+    if (label && input.checked) label.classList.add('is-checked');
     jaxUpdateSubmit();
   };
 
@@ -4313,8 +4358,13 @@ document.addEventListener('keydown', function(e) {
   };
 
   window.jaxUpdateSubmit = function() {
-    var anyChecked = document.querySelectorAll('#jaxOptionsGrid input[type="checkbox"]:checked').length > 0;
-    document.getElementById('jaxSubmitBtn').disabled = !anyChecked;
+    var picked = document.querySelector('#jaxOptionsGrid input[type="radio"]:checked');
+    document.getElementById('jaxSubmitBtn').disabled = !picked;
+  };
+  window.jaxValidateEmail = function() {
+    var email = document.getElementById('jaxEmail').value.trim();
+    var valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    document.getElementById('jaxClaimBtn').disabled = !valid;
   };
 
   window.jaxPickAudience = function(audience) {
@@ -4337,6 +4387,8 @@ document.addEventListener('keydown', function(e) {
   window.jaxOpenModal = function() {
     document.getElementById('jaxStep1').style.display = '';
     document.getElementById('jaxStep2').style.display = 'none';
+    document.getElementById('jaxStep3').style.display = 'none';
+    document.getElementById('jaxStep4').style.display = 'none';
     document.getElementById('jaxStepSeeker').style.display = 'none';
     document.getElementById('jaxAgentModal').classList.add('open');
   };
@@ -4353,15 +4405,40 @@ document.addEventListener('keydown', function(e) {
     jaxCloseModal();
   };
 
-  window.jaxModalSubmit = function() {
-    var picks = Array.from(document.querySelectorAll('#jaxOptionsGrid input[type="checkbox"]:checked')).map(function(cb) { return cb.value; });
-    var dontShow = document.getElementById('jaxDontShow').checked;
-    var payload = { picks: picks };
-    if (dontShow) {
+  var jaxPickedAgent = null;
+
+  window.jaxAdvanceToEmail = function() {
+    var picked = document.querySelector('#jaxOptionsGrid input[type="radio"]:checked');
+    if (!picked) return;
+    var label = picked.closest('.jax-option');
+    var name = label ? label.getAttribute('data-name') : 'your pick';
+    jaxPickedAgent = { id: picked.value, name: name, dontShow: document.getElementById('jaxDontShow').checked };
+    document.getElementById('jaxPickName').textContent = 'the ' + name.toLowerCase();
+    document.getElementById('jaxStep2').style.display = 'none';
+    document.getElementById('jaxStep3').style.display = '';
+    document.getElementById('jaxEmail').value = '';
+    document.getElementById('jaxClaimBtn').disabled = true;
+    setTimeout(function(){ document.getElementById('jaxEmail').focus(); }, 0);
+  };
+
+  window.jaxBackToStep2 = function() {
+    document.getElementById('jaxStep3').style.display = 'none';
+    document.getElementById('jaxStep2').style.display = '';
+  };
+
+  window.jaxClaimAccess = function() {
+    var email = document.getElementById('jaxEmail').value.trim();
+    if (!email || !jaxPickedAgent) return;
+    var payload = { agent: jaxPickedAgent.id, agentName: jaxPickedAgent.name, email: email };
+    if (jaxPickedAgent.dontShow) {
       try { localStorage.setItem(JAX_KEY, 'submitted'); } catch (e) {}
+    } else {
+      try { localStorage.setItem(JAX_KEY, 'claimed'); } catch (e) {}
     }
-    jaxCloseModal();
-    showToast('Thanks — your picks help shape what we build next.');
+    document.getElementById('jaxConfirmEmail').textContent = email;
+    document.getElementById('jaxConfirmPick').textContent = 'the ' + jaxPickedAgent.name.toLowerCase();
+    document.getElementById('jaxStep3').style.display = 'none';
+    document.getElementById('jaxStep4').style.display = '';
     console.log('[JobAgentX marketing]', payload);
   };
 
@@ -4369,7 +4446,7 @@ document.addEventListener('keydown', function(e) {
     try {
       if (location.search.indexOf('showAgentModal=1') !== -1) return true;
       var state = localStorage.getItem(JAX_KEY);
-      return state !== 'submitted' && state !== 'dismissed' && state !== 'seeker';
+      return state !== 'submitted' && state !== 'dismissed' && state !== 'seeker' && state !== 'claimed';
     } catch (e) { return true; }
   }
 
