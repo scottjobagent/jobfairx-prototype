@@ -5322,8 +5322,11 @@ function assignInterviewer(option, name) {
   window.jaxModalSubmit = function() {
     var picks = Array.from(document.querySelectorAll('#jaxOptionsGrid input[type="checkbox"]:checked')).map(function(cb) { return cb.value; });
     var otherText = document.getElementById('jaxOtherText');
+    var dontShow = document.getElementById('jaxDontShow').checked;
     var payload = { picks: picks, other: otherText ? otherText.value.trim() : '' };
-    try { localStorage.setItem(JAX_KEY, 'submitted'); } catch (e) {}
+    if (dontShow) {
+      try { localStorage.setItem(JAX_KEY, 'submitted'); } catch (e) {}
+    }
     jaxCloseModal();
     if (typeof showToast === 'function') {
       showToast('success', 'Thanks — your picks help shape what we build next.');
