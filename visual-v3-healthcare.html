@@ -5173,4 +5173,187 @@ function assignInterviewer(option, name) {
   if (activePill) activePill.click();
 }
 </script>
+
+<!-- JobAgentX research modal -->
+<style>
+.jax-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.55); z-index: 99999; align-items: center; justify-content: center; padding: 28px; }
+.jax-modal-overlay.open { display: flex; }
+.jax-modal-box { background: #fff; border-radius: 16px; width: 100%; max-width: 640px; max-height: 90vh; overflow-y: auto; box-shadow: 0 30px 60px rgba(0, 0, 0, 0.25); font-family: inherit; }
+.jax-modal-head { padding: 26px 28px 18px; }
+.jax-modal-eyebrow { display: inline-block; font-size: 11px; font-weight: 700; color: #0044B3; letter-spacing: 0.8px; text-transform: uppercase; background: #eff6ff; padding: 4px 10px; border-radius: 999px; margin-bottom: 12px; }
+.jax-modal-title { margin: 0 0 8px; font-size: 22px; font-weight: 700; color: #0a0e1a; letter-spacing: -0.01em; line-height: 1.25; }
+.jax-modal-sub { margin: 0; font-size: 14px; color: #595959; line-height: 1.5; }
+.jax-modal-body { padding: 8px 28px 4px; }
+.jax-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+.jax-option { position: relative; border: 1.5px solid #e0dfdb; border-radius: 12px; padding: 14px 14px 14px 42px; cursor: pointer; transition: border-color 0.15s, background 0.15s; background: #fff; }
+.jax-option:hover { border-color: #0044B3; background: #f8faff; }
+.jax-option.is-checked { border-color: #0044B3; background: #eff6ff; }
+.jax-option input[type="checkbox"] { position: absolute; top: 15px; left: 14px; width: 18px; height: 18px; accent-color: #0044B3; cursor: pointer; }
+.jax-option-name { display: block; font-size: 14px; font-weight: 700; color: #0a0e1a; margin-bottom: 4px; }
+.jax-option-desc { display: block; font-size: 12px; color: #595959; line-height: 1.4; }
+.jax-option-other { grid-column: 1 / -1; padding: 14px; }
+.jax-option-other input[type="text"] { width: 100%; margin-top: 8px; padding: 9px 11px; border: 1px solid #d4d2d0; border-radius: 8px; font-size: 13px; font-family: inherit; color: #2d2d2d; }
+.jax-option-other input[type="text"]:focus { outline: none; border-color: #0044B3; box-shadow: 0 0 0 3px rgba(0, 68, 179, 0.08); }
+.jax-option-other input[type="text"]:disabled { background: #f5f5f4; color: #a0a0a0; }
+.jax-modal-foot { padding: 14px 28px 22px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; border-top: 1px solid #f0efec; }
+.jax-dontshow { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: #595959; cursor: pointer; }
+.jax-dontshow input { accent-color: #0044B3; cursor: pointer; }
+.jax-foot-actions { display: inline-flex; gap: 10px; }
+.jax-btn { padding: 10px 18px; border-radius: 8px; font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer; border: 1px solid #d4d2d0; background: #fff; color: #2d2d2d; }
+.jax-btn:hover { background: #f5f5f4; }
+.jax-btn-primary { background: #0044B3; color: #fff; border-color: #0044B3; }
+.jax-btn-primary:hover { background: #003899; }
+.jax-btn-primary:disabled { background: #c4cad6; border-color: #c4cad6; cursor: not-allowed; }
+@media (max-width: 640px) {
+  .jax-options { grid-template-columns: 1fr; }
+  .jax-modal-foot { flex-direction: column; align-items: stretch; }
+  .jax-foot-actions { justify-content: flex-end; }
+}
+</style>
+
+<div class="jax-modal-overlay" id="jaxAgentModal">
+  <div class="jax-modal-box">
+    <div class="jax-modal-head">
+      <span class="jax-modal-eyebrow">Coming soon · JobAgentX</span>
+      <h3 class="jax-modal-title">What JobAgentX agents would help you most?</h3>
+      <p class="jax-modal-sub">Pick all that would save your team time. We're using this to shape what we build next.</p>
+    </div>
+    <div class="jax-modal-body">
+      <div class="jax-options" id="jaxOptionsGrid"></div>
+    </div>
+    <div class="jax-modal-foot">
+      <label class="jax-dontshow"><input type="checkbox" id="jaxDontShow"> Don't show this message again</label>
+      <div class="jax-foot-actions">
+        <button class="jax-btn" onclick="jaxModalDismiss()">Maybe later</button>
+        <button class="jax-btn jax-btn-primary" id="jaxSubmitBtn" onclick="jaxModalSubmit()" disabled>Submit</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var JAX_KEY = 'jfx_agent_research_modal_v1';
+  var AGENTS = [
+    { id: 'sourcing', name: 'Sourcing agent', desc: 'Finds qualified candidates outside your registered pool' },
+    { id: 'outreach', name: 'Outreach agent', desc: 'Drafts and sends personalized messages to candidates' },
+    { id: 'screening', name: 'Screening agent', desc: 'Pre-qualifies candidates against your requirements before they hit your inbox' },
+    { id: 'scheduling', name: 'Scheduling agent', desc: 'Handles interview scheduling, reschedules, and reminders' },
+    { id: 'followup', name: 'Follow-up agent', desc: 'Sends thank-you, status, and rejection emails after interviews' },
+    { id: 'jd', name: 'Job description agent', desc: 'Turns rough notes into polished job postings' },
+    { id: 'reporting', name: 'Hiring report agent', desc: 'Generates weekly pipeline and hiring summaries' }
+  ];
+
+  function shuffle(arr) {
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+
+  function renderOptions() {
+    var grid = document.getElementById('jaxOptionsGrid');
+    if (!grid) return;
+    var shuffled = shuffle(AGENTS);
+    var html = '';
+    shuffled.forEach(function(a) {
+      html += '<label class="jax-option" data-agent="' + a.id + '">'
+        + '<input type="checkbox" value="' + a.id + '" onchange="jaxOptionToggle(this)">'
+        + '<span class="jax-option-name">' + a.name + '</span>'
+        + '<span class="jax-option-desc">' + a.desc + '</span>'
+        + '</label>';
+    });
+    // Other option, always last so it's recognizable
+    html += '<label class="jax-option jax-option-other" data-agent="other">'
+      + '<input type="checkbox" value="other" onchange="jaxOtherToggle(this)">'
+      + '<span class="jax-option-name">Other</span>'
+      + '<input type="text" id="jaxOtherText" placeholder="Tell us what you want" oninput="jaxUpdateSubmit()" disabled>'
+      + '</label>';
+    grid.innerHTML = html;
+  }
+
+  window.jaxOptionToggle = function(cb) {
+    var label = cb.closest('.jax-option');
+    if (label) label.classList.toggle('is-checked', cb.checked);
+    jaxUpdateSubmit();
+  };
+
+  window.jaxOtherToggle = function(cb) {
+    var label = cb.closest('.jax-option');
+    if (label) label.classList.toggle('is-checked', cb.checked);
+    var input = document.getElementById('jaxOtherText');
+    if (input) {
+      input.disabled = !cb.checked;
+      if (cb.checked) setTimeout(function(){ input.focus(); }, 0);
+      else input.value = '';
+    }
+    jaxUpdateSubmit();
+  };
+
+  window.jaxUpdateSubmit = function() {
+    var anyChecked = document.querySelectorAll('#jaxOptionsGrid input[type="checkbox"]:checked').length > 0;
+    var otherCb = document.querySelector('#jaxOptionsGrid input[value="other"]');
+    var otherText = document.getElementById('jaxOtherText');
+    var validOther = otherCb && otherCb.checked ? (otherText && otherText.value.trim().length > 0) : true;
+    document.getElementById('jaxSubmitBtn').disabled = !(anyChecked && validOther);
+  };
+
+  window.jaxOpenModal = function() {
+    renderOptions();
+    document.getElementById('jaxDontShow').checked = false;
+    document.getElementById('jaxSubmitBtn').disabled = true;
+    document.getElementById('jaxAgentModal').classList.add('open');
+  };
+
+  window.jaxCloseModal = function() {
+    document.getElementById('jaxAgentModal').classList.remove('open');
+  };
+
+  window.jaxModalDismiss = function() {
+    var dontShow = document.getElementById('jaxDontShow').checked;
+    if (dontShow) {
+      try { localStorage.setItem(JAX_KEY, 'dismissed'); } catch (e) {}
+    }
+    jaxCloseModal();
+  };
+
+  window.jaxModalSubmit = function() {
+    var picks = Array.from(document.querySelectorAll('#jaxOptionsGrid input[type="checkbox"]:checked')).map(function(cb) { return cb.value; });
+    var otherText = document.getElementById('jaxOtherText');
+    var payload = { picks: picks, other: otherText ? otherText.value.trim() : '' };
+    try { localStorage.setItem(JAX_KEY, 'submitted'); } catch (e) {}
+    jaxCloseModal();
+    if (typeof showToast === 'function') {
+      showToast('success', 'Thanks — your picks help shape what we build next.');
+    }
+    // For dev: log payload
+    console.log('[JobAgentX research]', payload);
+  };
+
+  // Dev escape hatch: ?showAgentModal=1 forces it open regardless of localStorage
+  function shouldShow() {
+    try {
+      if (location.search.indexOf('showAgentModal=1') !== -1) return true;
+      var state = localStorage.getItem(JAX_KEY);
+      return state !== 'submitted' && state !== 'dismissed';
+    } catch (e) { return true; }
+  }
+
+  // Dev reset helper, callable from console
+  window.jaxResetModal = function() {
+    try { localStorage.removeItem(JAX_KEY); } catch (e) {}
+    console.log('[JobAgentX research] state cleared, reload to see modal');
+  };
+
+  // Open after a small delay so dashboard renders first
+  window.addEventListener('DOMContentLoaded', function() {
+    if (!shouldShow()) return;
+    setTimeout(function() {
+      jaxOpenModal();
+    }, 700);
+  });
+})();
+</script>
 </body></html>
