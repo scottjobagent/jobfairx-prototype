@@ -4116,5 +4116,302 @@ document.addEventListener('keydown', function(e) {
   update();
 })();
 </script>
+
+<!-- JobAgentX research modal (marketing) -->
+<style>
+.jax-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.55); z-index: 99999; align-items: center; justify-content: center; padding: 28px; }
+.jax-modal-overlay.open { display: flex; }
+.jax-modal-box { background: #fff; border-radius: 16px; width: 100%; max-width: 640px; max-height: 90vh; overflow-y: auto; box-shadow: 0 30px 60px rgba(0, 0, 0, 0.25); font-family: inherit; }
+.jax-modal-head { padding: 26px 28px 18px; }
+.jax-modal-eyebrow { display: inline-block; font-size: 11px; font-weight: 700; color: #2563eb; letter-spacing: 0.8px; text-transform: uppercase; background: #eff6ff; padding: 4px 10px; border-radius: 999px; margin-bottom: 12px; }
+.jax-modal-title { margin: 0 0 8px; font-size: 22px; font-weight: 700; color: #0a0e1a; letter-spacing: -0.01em; line-height: 1.25; }
+.jax-modal-sub { margin: 0; font-size: 14px; color: #6b6862; line-height: 1.5; }
+.jax-modal-body { padding: 8px 28px 4px; }
+
+/* Step 1: audience gate */
+.jax-gate-options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 8px 0 18px; }
+.jax-gate-tile { border: 1.5px solid #e0dfdb; border-radius: 12px; padding: 22px 18px; background: #fff; cursor: pointer; text-align: left; font-family: inherit; transition: border-color 0.15s, background 0.15s, transform 0.1s; }
+.jax-gate-tile:hover { border-color: #2563eb; background: #f8faff; transform: translateY(-1px); }
+.jax-gate-icon { width: 36px; height: 36px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 12px; }
+.jax-gate-icon.hiring { background: #eff6ff; color: #2563eb; }
+.jax-gate-icon.seeker { background: #fef3c7; color: #b45309; }
+.jax-gate-icon svg { width: 18px; height: 18px; }
+.jax-gate-name { display: block; font-size: 15px; font-weight: 700; color: #0a0e1a; margin-bottom: 4px; }
+.jax-gate-desc { display: block; font-size: 13px; color: #6b6862; line-height: 1.4; }
+
+/* Step 2: agent options (same as dashboard) */
+.jax-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+.jax-option { position: relative; border: 1.5px solid #e0dfdb; border-radius: 12px; padding: 14px 14px 14px 42px; cursor: pointer; transition: border-color 0.15s, background 0.15s; background: #fff; }
+.jax-option:hover { border-color: #2563eb; background: #f8faff; }
+.jax-option.is-checked { border-color: #2563eb; background: #eff6ff; }
+.jax-option input[type="checkbox"] { position: absolute; top: 15px; left: 14px; width: 18px; height: 18px; accent-color: #2563eb; cursor: pointer; }
+.jax-option-name { display: block; font-size: 14px; font-weight: 700; color: #0a0e1a; margin-bottom: 4px; }
+.jax-option-desc { display: block; font-size: 12px; color: #6b6862; line-height: 1.4; }
+.jax-option-other { grid-column: 1 / -1; padding: 14px 14px 14px 42px; }
+.jax-option-other input[type="text"] { width: 100%; margin-top: 8px; padding: 9px 11px; border: 1px solid #d4d2d0; border-radius: 8px; font-size: 13px; font-family: inherit; color: #2d2d2d; }
+.jax-option-other input[type="text"]:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+.jax-option-other input[type="text"]:disabled { background: #f5f5f4; color: #a0a0a0; }
+
+.jax-modal-foot { padding: 14px 28px 22px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; border-top: 1px solid #f0efec; }
+.jax-dontshow { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: #6b6862; cursor: pointer; }
+.jax-dontshow input { accent-color: #2563eb; cursor: pointer; }
+.jax-foot-actions { display: inline-flex; gap: 10px; }
+.jax-btn { padding: 10px 18px; border-radius: 8px; font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer; border: 1px solid #d4d2d0; background: #fff; color: #2d2d2d; }
+.jax-btn:hover { background: #f5f5f4; }
+.jax-btn-primary { background: #2563eb; color: #fff; border-color: #2563eb; }
+.jax-btn-primary:hover { background: #1d4ed8; }
+.jax-btn-primary:disabled { background: #c4cad6; border-color: #c4cad6; cursor: not-allowed; }
+
+/* Seeker thank-you state */
+.jax-seeker-thanks { padding: 28px; text-align: center; }
+.jax-seeker-thanks .icon { width: 48px; height: 48px; border-radius: 50%; background: #d1fae5; color: #047857; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 14px; }
+.jax-seeker-thanks .icon svg { width: 22px; height: 22px; }
+.jax-seeker-thanks h4 { margin: 0 0 6px; font-size: 18px; font-weight: 700; color: #0a0e1a; }
+.jax-seeker-thanks p { margin: 0 0 18px; font-size: 14px; color: #6b6862; line-height: 1.5; }
+.jax-seeker-thanks .jax-link-cta { display: inline-block; padding: 11px 22px; background: #2563eb; color: #fff; border-radius: 999px; font-weight: 600; font-size: 14px; text-decoration: none; }
+.jax-seeker-thanks .jax-link-cta:hover { background: #1d4ed8; }
+
+/* Toast for marketing site */
+.jax-toast { position: fixed; right: 24px; bottom: 24px; background: #dcfce7; border: 1px solid #86efac; color: #166534; padding: 12px 16px; border-radius: 10px; font-size: 14px; font-weight: 600; box-shadow: 0 8px 22px rgba(0,0,0,0.12); z-index: 100000; display: none; }
+.jax-toast.show { display: block; animation: jax-toast-in 0.25s ease-out; }
+@keyframes jax-toast-in { from { transform: translateY(8px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+@media (max-width: 640px) {
+  .jax-gate-options { grid-template-columns: 1fr; }
+  .jax-options { grid-template-columns: 1fr; }
+  .jax-modal-foot { flex-direction: column; align-items: stretch; }
+  .jax-foot-actions { justify-content: flex-end; }
+}
+</style>
+
+<div class="jax-modal-overlay" id="jaxAgentModal">
+  <div class="jax-modal-box">
+
+    <!-- Step 1: audience gate -->
+    <div id="jaxStep1">
+      <div class="jax-modal-head">
+        <span class="jax-modal-eyebrow">Coming soon · JobAgentX</span>
+        <h3 class="jax-modal-title">Are you hiring or looking for a job?</h3>
+        <p class="jax-modal-sub">We're working on AI agents to make hiring easier — quick question before you go.</p>
+      </div>
+      <div class="jax-modal-body">
+        <div class="jax-gate-options">
+          <button class="jax-gate-tile" onclick="jaxPickAudience('hiring')">
+            <div class="jax-gate-icon hiring">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
+            <span class="jax-gate-name">I'm hiring</span>
+            <span class="jax-gate-desc">I run hiring events or recruit candidates</span>
+          </button>
+          <button class="jax-gate-tile" onclick="jaxPickAudience('seeker')">
+            <div class="jax-gate-icon seeker">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+            </div>
+            <span class="jax-gate-name">I'm looking for a job</span>
+            <span class="jax-gate-desc">I want to find work</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 1b: seeker thank-you -->
+    <div id="jaxStepSeeker" style="display:none;">
+      <div class="jax-seeker-thanks">
+        <div class="icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <h4>Thanks — we'll point you the right way</h4>
+        <p>This page is for employers. To find a job, browse our upcoming hiring events.</p>
+        <a class="jax-link-cta" href="https://www.jobfairx.com/" target="_blank">Browse upcoming events →</a>
+      </div>
+    </div>
+
+    <!-- Step 2: agent picker (hidden until hiring is selected) -->
+    <div id="jaxStep2" style="display:none;">
+      <div class="jax-modal-head">
+        <span class="jax-modal-eyebrow">Coming soon · JobAgentX</span>
+        <h3 class="jax-modal-title">What JobAgentX agents would help you most?</h3>
+        <p class="jax-modal-sub">Pick all that would save your team time. We're using this to shape what we build next.</p>
+      </div>
+      <div class="jax-modal-body">
+        <div class="jax-options" id="jaxOptionsGrid"></div>
+      </div>
+      <div class="jax-modal-foot">
+        <label class="jax-dontshow"><input type="checkbox" id="jaxDontShow"> Don't show this message again</label>
+        <div class="jax-foot-actions">
+          <button class="jax-btn" onclick="jaxModalDismiss()">Maybe later</button>
+          <button class="jax-btn jax-btn-primary" id="jaxSubmitBtn" onclick="jaxModalSubmit()" disabled>Submit</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="jax-toast" id="jaxToast"></div>
+
+<script>
+(function(){
+  var JAX_KEY = 'jfx_marketing_agent_modal_v1';
+  var AGENTS = [
+    { id: 'sourcing', name: 'Sourcing agent', desc: 'Finds qualified candidates outside your registered pool' },
+    { id: 'outreach', name: 'Outreach agent', desc: 'Drafts and sends personalized messages to candidates' },
+    { id: 'screening', name: 'Screening agent', desc: 'Pre-qualifies candidates against your requirements before they hit your inbox' },
+    { id: 'scheduling', name: 'Scheduling agent', desc: 'Handles interview scheduling, reschedules, and reminders' },
+    { id: 'followup', name: 'Follow-up agent', desc: 'Sends thank-you, status, and rejection emails after interviews' },
+    { id: 'jd', name: 'Job description agent', desc: 'Turns rough notes into polished job postings' },
+    { id: 'reporting', name: 'Hiring report agent', desc: 'Generates weekly pipeline and hiring summaries' }
+  ];
+
+  function shuffle(arr) {
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+
+  function renderOptions() {
+    var grid = document.getElementById('jaxOptionsGrid');
+    if (!grid) return;
+    var shuffled = shuffle(AGENTS);
+    var html = '';
+    shuffled.forEach(function(a) {
+      html += '<label class="jax-option" data-agent="' + a.id + '">'
+        + '<input type="checkbox" value="' + a.id + '" onchange="jaxOptionToggle(this)">'
+        + '<span class="jax-option-name">' + a.name + '</span>'
+        + '<span class="jax-option-desc">' + a.desc + '</span>'
+        + '</label>';
+    });
+    html += '<label class="jax-option jax-option-other" data-agent="other">'
+      + '<input type="checkbox" value="other" onchange="jaxOtherToggle(this)">'
+      + '<span class="jax-option-name">Other</span>'
+      + '<input type="text" id="jaxOtherText" placeholder="Tell us what you want" oninput="jaxUpdateSubmit()" disabled>'
+      + '</label>';
+    grid.innerHTML = html;
+  }
+
+  function showToast(msg) {
+    var t = document.getElementById('jaxToast');
+    if (!t) return;
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(function() { t.classList.remove('show'); }, 3500);
+  }
+
+  window.jaxOptionToggle = function(cb) {
+    var label = cb.closest('.jax-option');
+    if (label) label.classList.toggle('is-checked', cb.checked);
+    jaxUpdateSubmit();
+  };
+
+  window.jaxOtherToggle = function(cb) {
+    var label = cb.closest('.jax-option');
+    if (label) label.classList.toggle('is-checked', cb.checked);
+    var input = document.getElementById('jaxOtherText');
+    if (input) {
+      input.disabled = !cb.checked;
+      if (cb.checked) setTimeout(function(){ input.focus(); }, 0);
+      else input.value = '';
+    }
+    jaxUpdateSubmit();
+  };
+
+  window.jaxUpdateSubmit = function() {
+    var anyChecked = document.querySelectorAll('#jaxOptionsGrid input[type="checkbox"]:checked').length > 0;
+    var otherCb = document.querySelector('#jaxOptionsGrid input[value="other"]');
+    var otherText = document.getElementById('jaxOtherText');
+    var validOther = otherCb && otherCb.checked ? (otherText && otherText.value.trim().length > 0) : true;
+    document.getElementById('jaxSubmitBtn').disabled = !(anyChecked && validOther);
+  };
+
+  window.jaxPickAudience = function(audience) {
+    if (audience === 'hiring') {
+      document.getElementById('jaxStep1').style.display = 'none';
+      document.getElementById('jaxStep2').style.display = '';
+      renderOptions();
+      document.getElementById('jaxDontShow').checked = false;
+      document.getElementById('jaxSubmitBtn').disabled = true;
+      console.log('[JobAgentX marketing] audience=hiring');
+    } else {
+      document.getElementById('jaxStep1').style.display = 'none';
+      document.getElementById('jaxStepSeeker').style.display = '';
+      try { localStorage.setItem(JAX_KEY, 'seeker'); } catch (e) {}
+      console.log('[JobAgentX marketing] audience=seeker');
+      setTimeout(jaxCloseModal, 6000); // auto-close after 6s so they can read
+    }
+  };
+
+  window.jaxOpenModal = function() {
+    document.getElementById('jaxStep1').style.display = '';
+    document.getElementById('jaxStep2').style.display = 'none';
+    document.getElementById('jaxStepSeeker').style.display = 'none';
+    document.getElementById('jaxAgentModal').classList.add('open');
+  };
+
+  window.jaxCloseModal = function() {
+    document.getElementById('jaxAgentModal').classList.remove('open');
+  };
+
+  window.jaxModalDismiss = function() {
+    var dontShow = document.getElementById('jaxDontShow').checked;
+    if (dontShow) {
+      try { localStorage.setItem(JAX_KEY, 'dismissed'); } catch (e) {}
+    }
+    jaxCloseModal();
+  };
+
+  window.jaxModalSubmit = function() {
+    var picks = Array.from(document.querySelectorAll('#jaxOptionsGrid input[type="checkbox"]:checked')).map(function(cb) { return cb.value; });
+    var otherText = document.getElementById('jaxOtherText');
+    var payload = { picks: picks, other: otherText ? otherText.value.trim() : '' };
+    try { localStorage.setItem(JAX_KEY, 'submitted'); } catch (e) {}
+    jaxCloseModal();
+    showToast('Thanks — your picks help shape what we build next.');
+    console.log('[JobAgentX marketing]', payload);
+  };
+
+  function shouldShow() {
+    try {
+      if (location.search.indexOf('showAgentModal=1') !== -1) return true;
+      var state = localStorage.getItem(JAX_KEY);
+      return state !== 'submitted' && state !== 'dismissed' && state !== 'seeker';
+    } catch (e) { return true; }
+  }
+
+  window.jaxResetModal = function() {
+    try { localStorage.removeItem(JAX_KEY); } catch (e) {}
+    console.log('[JobAgentX marketing] state cleared, reload to see modal');
+  };
+
+  // Trigger: scroll past 50% OR 25 seconds, whichever first
+  function setupTriggers() {
+    if (!shouldShow()) return;
+    var triggered = false;
+    function trigger() {
+      if (triggered) return;
+      triggered = true;
+      jaxOpenModal();
+    }
+    var scrollHandler = function() {
+      var scrolled = window.scrollY + window.innerHeight;
+      var total = document.documentElement.scrollHeight;
+      if (total > 0 && scrolled / total >= 0.5) {
+        trigger();
+        window.removeEventListener('scroll', scrollHandler);
+      }
+    };
+    window.addEventListener('scroll', scrollHandler, { passive: true });
+    setTimeout(trigger, 25000);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupTriggers);
+  } else {
+    setupTriggers();
+  }
+})();
+</script>
 </body>
 </html>
