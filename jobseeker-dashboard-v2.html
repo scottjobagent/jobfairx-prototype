@@ -463,6 +463,7 @@ body.join-live .iv-tip { display:none !important; }
 .td-state { font-size:13px; font-weight:600; }
 .td-state.confirmed { color:#16a34a; }
 .td-state.awaiting { color:#9A6700; }
+.td-state.pending { color:#9A6700; }
 .td-state.injoined { color:#0044B3; }
 .td-state.done { color:#595959; }
 .td-state.none { color:#767676; font-weight:400; }
@@ -588,8 +589,9 @@ body.join-live .iv-tip { display:none !important; }
   #scn-schedule .td-state { display:none; }
   .td-co { margin-top:1px; }
   .td-itime { display:inline; font-size:14px; margin-top:2px; }
-  .td-itime + .td-state.confirmed, .td-itime + .td-state.injoined, .td-itime + .td-state.done, .td-itime + .td-state.none { display:inline-block; margin-left:8px; margin-top:0; padding:2px 9px; border-radius:10px; font-size:11.5px; font-weight:700; vertical-align:middle; }
+  .td-itime + .td-state.confirmed, .td-itime + .td-state.injoined, .td-itime + .td-state.done, .td-itime + .td-state.none, .td-itime + .td-state.pending { display:inline-block; margin-left:8px; margin-top:0; padding:2px 9px; border-radius:10px; font-size:11.5px; font-weight:700; vertical-align:middle; }
   .td-itime + .td-state.confirmed { background:#e9f7ef; color:#16a34a; }
+  .td-itime + .td-state.pending { background:#fdf1e3; color:#9A6700; }
   .td-itime + .td-state.injoined { background:#eef2fb; color:#0044B3; }
   .td-itime + .td-state.done { background:#f0f0ee; color:#595959; }
   .td-itime + .td-state.none { background:#f0f0ee; color:#767676; }
@@ -752,6 +754,15 @@ body.join-live .iv-tip { display:none !important; }
                 <td><div class="td-job" onclick="openJob('rn')">Registered Nurse</div><div class="td-co">Baylor Scott &amp; White</div></td>
                 <td><div class="td-state none">Not scheduled yet</div></td>
                 <td><div class="td-actions"><button class="iv-request" onclick="requestInterview('rn')"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Schedule interview</button><div class="td-links"><button class="iv-link" onclick="openMsgEmployer('Baylor Scott &amp; White','Registered Nurse · Dallas, TX')">Message employer</button><button class="iv-cancel" onclick="openUnregister('Dallas Healthcare Hiring Event',false)">Unregister</button></div></div></td>
+              </tr>
+            </tbody>
+
+            <tbody class="scn hidden" id="scn-pending">
+              <tr data-iv="rnp" data-evt="Dallas Healthcare Hiring Event" data-evtmeta="Apr 22, 2026" data-job="Registered Nurse" data-co="Baylor Scott &amp; White" data-time="Apr 22, 2026 · 11:15 AM CT">
+                <td><div class="td-evt-name">Dallas Healthcare Hiring Event</div><div class="td-evt-meta">Apr 22, 2026</div></td>
+                <td><div class="td-job" onclick="openJob('rnp')">Registered Nurse</div><div class="td-co">Baylor Scott &amp; White</div></td>
+                <td><div class="td-itime">Requested · Apr 22, 2026 · 11:15 AM CT</div><div class="td-state pending">Pending</div><div class="td-substate">Waiting for the employer to confirm.</div></td>
+                <td><div class="td-actions"><div class="td-links"><button class="iv-cancel" onclick="askCancel('rnp')">Cancel request</button><button class="iv-link" onclick="openMsgEmployer('Baylor Scott &amp; White','Registered Nurse · Dallas, TX')">Message employer</button><button class="iv-cancel" onclick="openUnregister('Dallas Healthcare Hiring Event',false)">Unregister</button></div></div></td>
               </tr>
             </tbody>
 
@@ -1194,6 +1205,7 @@ body.join-live .iv-tip { display:none !important; }
         <button class="devsel-item" data-v="d:newuser" onclick="devPick(this)">New user</button>
         <button class="devsel-item" data-v="d:notmatched" onclick="devPick(this)">Not matched</button>
         <button class="devsel-item active" data-v="d:schedule" onclick="devPick(this)">Job Alert</button>
+        <button class="devsel-item" data-v="d:pending" onclick="devPick(this)">Pending</button>
         <button class="devsel-item" data-v="d:confirmed" onclick="devPick(this)">Interview confirmed</button>
         <button class="devsel-item" data-v="d:joinnow" onclick="devPick(this)">Join now</button>
         <button class="devsel-item" data-v="d:injoined" onclick="devPick(this)">In interview</button>
@@ -1761,7 +1773,7 @@ body.join-live .iv-tip { display:none !important; }
     inp.value=''; body.scrollTop=body.scrollHeight;
   }
   function toggleWhy(btn){ var tb=btn.closest('tbody'); var w=tb?tb.querySelector('.why-row'):null; if(w){ var open=w.classList.toggle('hidden')===false; btn.textContent=open?'What this means \u2191':'What this means \u2193'; } }
-  var SCN_MAP={notmatched:'scn-notmatched',schedule:'scn-schedule',confirmed:'scn-confirmed',joinnow:'scn-confirmed',injoined:'scn-confirmed',proposed:'scn-proposed',declined:'scn-declined',multi:'scn-multi'};
+  var SCN_MAP={notmatched:'scn-notmatched',schedule:'scn-schedule',pending:'scn-pending',confirmed:'scn-confirmed',joinnow:'scn-confirmed',injoined:'scn-confirmed',proposed:'scn-proposed',declined:'scn-declined',multi:'scn-multi'};
   var DEVICES={ se:{w:375,h:760,n:'iPhone SE \u00b7 375\u00d7667'}, std:{w:390,h:800,n:'iPhone 14 \u00b7 390\u00d7844'}, max:{w:430,h:820,n:'iPhone 15 Pro Max \u00b7 430\u00d7932'} };
   function setDevice(size, el){
     var ov=document.getElementById('deviceOverlay');
