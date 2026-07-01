@@ -3,95 +3,105 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Join your interview · JobFairX</title>
+<title>Interview join flow · JobFairX</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
-  html, body { height:100%; }
-  body { font-family:'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; background:#fff; color:#2d2d2d; -webkit-font-smoothing:antialiased; }
+  body { font-family:'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; background:#eceae7; color:#2d2d2d; -webkit-font-smoothing:antialiased; padding:34px 28px 60px; }
+  .page-head { max-width:1200px; margin:0 auto 30px; }
+  .page-head h1 { font-size:26px; font-weight:700; }
+  .page-head p { font-size:15px; color:#767676; margin-top:6px; }
 
-  .screen { display:none; min-height:100vh; flex-direction:column; }
-  .screen.active { display:flex; }
+  .board { display:flex; flex-wrap:wrap; gap:34px 26px; max-width:1200px; margin:0 auto; }
+  .step-card { width:290px; }
+  .step-label { font-size:13px; font-weight:700; color:#2d2d2d; margin-bottom:10px; }
+  .step-label span { color:#0044B3; }
 
-  /* top bar */
-  .topbar { height:52px; display:flex; align-items:center; justify-content:center; border-bottom:1px solid #eee; flex-shrink:0; }
-  .topbar .brand { font-size:16px; font-weight:700; color:#0044B3; }
+  .phone { width:290px; height:600px; background:#fff; border:9px solid #111; border-radius:32px; overflow:hidden; box-shadow:0 10px 26px rgba(0,0,0,.16); }
+  .phone-inner { width:100%; height:100%; overflow:hidden; }
+  .screen { width:100%; height:100%; display:flex; flex-direction:column; }
 
-  /* ===== Step 1: Loader ===== */
-  #s1 { align-items:center; justify-content:center; text-align:center; padding:24px; }
-  #s1 .brand { font-size:20px; font-weight:700; color:#0044B3; margin-bottom:44px; }
-  .spin-wrap { position:relative; width:76px; height:76px; margin-bottom:26px; }
+  .topbar { height:46px; display:flex; align-items:center; justify-content:center; border-bottom:1px solid #eee; flex-shrink:0; }
+  .topbar .brand { font-size:15px; font-weight:700; color:#0044B3; }
+
+  /* Step 1 Loader */
+  .loader { align-items:center; justify-content:center; text-align:center; padding:22px; }
+  .loader .brand { font-size:18px; font-weight:700; color:#0044B3; margin-bottom:38px; }
+  .spin-wrap { position:relative; width:66px; height:66px; margin-bottom:22px; }
   .ring { position:absolute; inset:0; border:4px solid #e8eefb; border-top-color:#0044B3; border-radius:50%; animation:spin .9s linear infinite; }
-  .cam { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:28px; height:28px; stroke:#0044B3; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; animation:pulse 1.6s ease-in-out infinite; }
+  .cam { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:25px; height:25px; stroke:#0044B3; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
   @keyframes spin { to { transform:rotate(360deg); } }
-  @keyframes pulse { 0%,100%{opacity:.55;} 50%{opacity:1;} }
-  #s1 h1 { font-size:19px; font-weight:700; }
-  #s1 p { font-size:14.5px; color:#767676; margin-top:8px; max-width:300px; }
-  .dots::after { content:''; animation:dots 1.4s steps(4,end) infinite; }
-  @keyframes dots { 0%{content:'';}25%{content:'.';}50%{content:'..';}75%{content:'...';}100%{content:'';} }
+  .loader h2 { font-size:17px; font-weight:700; }
+  .loader p { font-size:13.5px; color:#767676; margin-top:7px; max-width:230px; }
 
-  /* ===== Step 2: Test A/V ===== */
-  .body { flex:1; padding:28px 22px 26px; max-width:460px; margin:0 auto; width:100%; display:flex; flex-direction:column; }
-  .body h1 { font-size:22px; font-weight:700; line-height:1.3; }
-  .body .sub { font-size:15px; color:#767676; line-height:1.55; margin-top:8px; }
-
-  .av-preview { margin:26px 0; aspect-ratio:4/3; border-radius:16px; background:#f3f5f9; border:1px solid #e6e9ef; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; }
-  .av-preview .glow { position:relative; width:72px; height:72px; border-radius:50%; background:#eaf1fc; display:flex; align-items:center; justify-content:center; }
-  .av-preview .glow svg { width:32px; height:32px; stroke:#0044B3; fill:none; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round; }
-  .av-preview .pills { display:flex; gap:8px; }
-  .av-pill { display:flex; align-items:center; gap:6px; background:#fff; border:1px solid #e6e9ef; border-radius:20px; padding:6px 12px; font-size:12.5px; font-weight:600; color:#595959; }
-  .av-pill svg { width:14px; height:14px; stroke:#0044B3; fill:none; stroke-width:2; }
-
-  .spacer { flex:1; }
-  .btn { display:block; width:100%; background:#0044B3; color:#fff; border:none; border-radius:10px; padding:15px; font-size:16px; font-weight:700; font-family:inherit; cursor:pointer; transition:background .15s; }
+  /* Step 2 */
+  .body { flex:1; padding:22px 20px 22px; display:flex; flex-direction:column; overflow:hidden; }
+  .body h2 { font-size:19px; font-weight:700; line-height:1.3; }
+  .body .sub { font-size:13.5px; color:#767676; line-height:1.5; margin-top:7px; }
+  .av-preview { margin:18px 0; flex:1; min-height:0; border-radius:14px; background:#f3f5f9; border:1px solid #e6e9ef; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; }
+  .glow { width:60px; height:60px; border-radius:50%; background:#eaf1fc; display:flex; align-items:center; justify-content:center; }
+  .glow svg { width:28px; height:28px; stroke:#0044B3; fill:none; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round; }
+  .pills { display:flex; gap:7px; }
+  .av-pill { display:flex; align-items:center; gap:5px; background:#fff; border:1px solid #e6e9ef; border-radius:18px; padding:5px 10px; font-size:11.5px; font-weight:600; color:#595959; }
+  .av-pill svg { width:13px; height:13px; stroke:#0044B3; fill:none; stroke-width:2; }
+  .btn { display:block; width:100%; background:#0044B3; color:#fff; border:none; border-radius:9px; padding:13px; font-size:15px; font-weight:700; font-family:inherit; cursor:pointer; }
   .btn:hover { background:#003399; }
 
-  /* stub */
-  #s3 { align-items:center; justify-content:center; text-align:center; padding:24px; color:#767676; }
+  /* placeholder */
+  .placeholder { align-items:center; justify-content:center; text-align:center; padding:22px; color:#b0aeab; }
+  .placeholder .ph-t { font-size:14px; font-weight:700; color:#8a8785; }
+  .placeholder .ph-s { font-size:12px; margin-top:6px; }
 </style>
 </head>
 <body>
+  <div class="page-head">
+    <h1>Interview join flow</h1>
+    <p>Every screen a job seeker sees &mdash; from the email link through the interview to their dashboard.</p>
+  </div>
 
-  <!-- Step 1: Loader -->
-  <section class="screen active" id="s1" data-step="1">
-    <div class="brand">JobFairX</div>
-    <div class="spin-wrap"><div class="ring"></div><svg class="cam" viewBox="0 0 24 24"><rect x="2" y="6" width="13" height="12" rx="2"/><path d="M22 8.5l-7 4 7 4v-8z"/></svg></div>
-    <h1>Loading your interview experience<span class="dots"></span></h1>
-    <p>Getting your video and audio ready. This only takes a moment.</p>
-  </section>
+  <div class="board">
 
-  <!-- Step 2: Test audio & video -->
-  <section class="screen" id="s2" data-step="2">
-    <div class="topbar"><span class="brand">JobFairX</span></div>
-    <div class="body">
-      <h1>Test audio and video connection</h1>
-      <div class="sub">Let&rsquo;s make sure your camera and microphone work well for a smooth connection.</div>
-
-      <div class="av-preview">
-        <div class="glow"><svg viewBox="0 0 24 24"><rect x="2" y="6" width="13" height="12" rx="2"/><path d="M22 8.5l-7 4 7 4v-8z"/></svg></div>
-        <div class="pills">
-          <span class="av-pill"><svg viewBox="0 0 24 24"><rect x="2" y="6" width="13" height="12" rx="2"/><path d="M22 8.5l-7 4 7 4v-8z"/></svg>Camera</span>
-          <span class="av-pill"><svg viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v4"/></svg>Microphone</span>
-        </div>
-      </div>
-
-      <div class="spacer"></div>
-      <button class="btn" onclick="goStep(3)">Test Now</button>
+    <!-- Step 1 -->
+    <div class="step-card">
+      <div class="step-label"><span>Step 1</span> &middot; Loader</div>
+      <div class="phone"><div class="phone-inner"><div class="screen loader">
+        <div class="brand">JobFairX</div>
+        <div class="spin-wrap"><div class="ring"></div><svg class="cam" viewBox="0 0 24 24"><rect x="2" y="6" width="13" height="12" rx="2"/><path d="M22 8.5l-7 4 7 4v-8z"/></svg></div>
+        <h2>Loading your interview experience</h2>
+        <p>Getting your video and audio ready. This only takes a moment.</p>
+      </div></div></div>
     </div>
-  </section>
 
-  <!-- Step 3 stub (built next) -->
-  <section class="screen" id="s3" data-step="3">
-    <div>Step 3 &mdash; Device setup<br><span style="font-size:13px;">(building this next)</span></div>
-  </section>
+    <!-- Step 2 -->
+    <div class="step-card">
+      <div class="step-label"><span>Step 2</span> &middot; Test audio &amp; video</div>
+      <div class="phone"><div class="phone-inner"><div class="screen">
+        <div class="topbar"><span class="brand">JobFairX</span></div>
+        <div class="body">
+          <h2>Test audio and video connection</h2>
+          <div class="sub">Let&rsquo;s make sure your camera and microphone work well for a smooth connection.</div>
+          <div class="av-preview">
+            <div class="glow"><svg viewBox="0 0 24 24"><rect x="2" y="6" width="13" height="12" rx="2"/><path d="M22 8.5l-7 4 7 4v-8z"/></svg></div>
+            <div class="pills">
+              <span class="av-pill"><svg viewBox="0 0 24 24"><rect x="2" y="6" width="13" height="12" rx="2"/><path d="M22 8.5l-7 4 7 4v-8z"/></svg>Camera</span>
+              <span class="av-pill"><svg viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v4"/></svg>Microphone</span>
+            </div>
+          </div>
+          <button class="btn">Test Now</button>
+        </div>
+      </div></div></div>
+    </div>
 
-<script>
-  function goStep(n){
-    document.querySelectorAll('.screen').forEach(function(s){ s.classList.toggle('active', s.getAttribute('data-step')==String(n)); });
-    window.scrollTo(0,0);
-  }
-  // loader auto-advances to Step 2
-  setTimeout(function(){ goStep(2); }, 2600);
-</script>
+    <!-- Steps 3-10 placeholders -->
+    <div class="step-card"><div class="step-label"><span>Step 3</span> &middot; Device setup</div><div class="phone"><div class="phone-inner"><div class="screen placeholder"><div class="ph-t">Device setup</div><div class="ph-s">Microphone / Video / Speaker / Background</div></div></div></div></div>
+    <div class="step-card"><div class="step-label"><span>Step 4</span> &middot; Video test</div><div class="phone"><div class="phone-inner"><div class="screen placeholder"><div class="ph-t">Video test</div><div class="ph-s">Live camera preview</div></div></div></div></div>
+    <div class="step-card"><div class="step-label"><span>Step 5</span> &middot; Pre-join</div><div class="phone"><div class="phone-inner"><div class="screen placeholder"><div class="ph-t">Pre-join</div><div class="ph-s">&ldquo;You can now join the interview room&rdquo;</div></div></div></div></div>
+    <div class="step-card"><div class="step-label"><span>Step 6</span> &middot; Waiting room</div><div class="phone"><div class="phone-inner"><div class="screen placeholder"><div class="ph-t">Waiting room</div><div class="ph-s">&ldquo;You&rsquo;re the only one here&rdquo;</div></div></div></div></div>
+    <div class="step-card"><div class="step-label"><span>Step 7</span> &middot; In interview</div><div class="phone"><div class="phone-inner"><div class="screen placeholder"><div class="ph-t">In interview</div><div class="ph-s">Call + controls (Zoom/Meet/FaceTime style)</div></div></div></div></div>
+    <div class="step-card"><div class="step-label"><span>Step 8</span> &middot; End confirm</div><div class="phone"><div class="phone-inner"><div class="screen placeholder"><div class="ph-t">End confirm</div><div class="ph-s">&ldquo;Are you sure you want to end?&rdquo;</div></div></div></div></div>
+    <div class="step-card"><div class="step-label"><span>Step 9</span> &middot; Rating survey</div><div class="phone"><div class="phone-inner"><div class="screen placeholder"><div class="ph-t">Rating survey</div><div class="ph-s">Thumbs up/down + what could improve</div></div></div></div></div>
+    <div class="step-card"><div class="step-label"><span>Step 10</span> &middot; Done &rarr; Dashboard</div><div class="phone"><div class="phone-inner"><div class="screen placeholder"><div class="ph-t">Done</div><div class="ph-s">Loader &rarr; their dashboard</div></div></div></div></div>
+
+  </div>
 </body>
 </html>
