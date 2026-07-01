@@ -58,12 +58,12 @@
   .jax-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.55); z-index: 300; align-items: center; justify-content: center; padding: 24px; }
   .jax-modal-overlay.visible { display: flex; }
   .jax-modal { background: #fff; border-radius: 18px; width: 100%; max-width: 480px; box-shadow: 0 30px 60px rgba(0,0,0,0.25); padding: 32px 32px 24px; position: relative; }
-  .jax-modal-close { position: absolute; top: 14px; right: 14px; background: transparent; border: 0; color: #6b6862; padding: 6px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+  .jax-modal-close { background: transparent; border: 0; color: #6b6862; padding: 6px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
   .jax-modal-close:hover { background: #f5f5f4; color: #2d2d2d; }
   .jax-modal-close svg { width: 20px; height: 20px; }
   .jax-modal-controls { position: absolute; top: 14px; right: 14px; display: flex; gap: 2px; align-items: center; }
-  .jax-modal-controls .jax-modal-close { position: static; }
-  .jax-modal-kebab { position: relative; background: transparent; border: 0; color: #6b6862; padding: 6px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+  .jax-kebab-wrap { position: relative; display: inline-flex; }
+  .jax-modal-kebab { background: transparent; border: 0; color: #6b6862; padding: 6px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
   .jax-modal-kebab:hover { background: #f5f5f4; color: #2d2d2d; }
   .jax-modal-kebab svg { width: 18px; height: 18px; }
   .jax-modal-menu { display: none; position: absolute; top: calc(100% + 4px); right: 0; background: #fff; border-radius: 10px; box-shadow: 0 12px 28px rgba(0,0,0,0.18); min-width: 200px; overflow: hidden; border: 1px solid rgba(15, 23, 42, 0.08); z-index: 10; }
@@ -161,15 +161,17 @@
 <div class="jax-modal-overlay" id="jaxModal">
   <div class="jax-modal">
     <div class="jax-modal-controls">
-      <button class="jax-modal-kebab" onclick="toggleModalMenu(event)" aria-label="More options">
-        <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="6" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="18" cy="12" r="2"/></svg>
+      <div class="jax-kebab-wrap">
+        <button class="jax-modal-kebab" onclick="toggleModalMenu(event)" aria-label="More options">
+          <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="6" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="18" cy="12" r="2"/></svg>
+        </button>
         <div class="jax-modal-menu" id="jaxModalMenu">
           <button class="jax-modal-menu-item destructive" onclick="handleHide('modal', event)">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
             Don't show me again
           </button>
         </div>
-      </button>
+      </div>
       <button class="jax-modal-close" onclick="handleRemind('modal')" aria-label="Close">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
       </button>
@@ -245,7 +247,7 @@ function toggleBannerMenu(e) { e.stopPropagation(); document.getElementById('jax
 function toggleModalMenu(e) { e.stopPropagation(); document.getElementById('jaxModalMenu').classList.toggle('open'); }
 document.addEventListener('click', function(e){
   if (!e.target.closest('.jax-banner-kebab')) { document.getElementById('jaxBannerMenu').classList.remove('open'); }
-  if (!e.target.closest('.jax-modal-kebab')) { document.getElementById('jaxModalMenu').classList.remove('open'); }
+  if (!e.target.closest('.jax-kebab-wrap')) { document.getElementById('jaxModalMenu').classList.remove('open'); }
 });
 document.querySelectorAll('.toggle-btn').forEach(function(b){ b.addEventListener('click', function(){ showTreatment(b.dataset.treatment); }); });
 showTreatment('marketing-modal');
