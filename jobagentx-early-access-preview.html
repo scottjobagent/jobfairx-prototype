@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>JobAgentX early access — preview 3 treatments</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body { font-family: 'Inter', -apple-system, sans-serif; color: #0a0e1a; background: #f5f5f4; min-height: 100vh; }
+
+  .toggle-bar { position: sticky; top: 0; z-index: 200; background: #0a0e1a; color: #fff; padding: 14px 24px; display: flex; align-items: center; gap: 18px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+  .toggle-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px; color: rgba(255,255,255,0.55); margin-right: 6px; }
+  .toggle-btns { display: flex; gap: 6px; }
+  .toggle-btn { padding: 8px 14px; background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.75); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+  .toggle-btn:hover { background: rgba(255,255,255,0.16); color: #fff; }
+  .toggle-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
+  .toggle-spacer { flex: 1; }
+  .toggle-reset { padding: 8px 14px; background: transparent; color: rgba(255,255,255,0.75); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; font-family: inherit; font-size: 13px; font-weight: 500; cursor: pointer; }
+  .toggle-reset:hover { background: rgba(255,255,255,0.08); color: #fff; }
+
+  .mock-app { padding: 32px 40px; max-width: 1200px; margin: 0 auto; }
+  .mock-nav { background: #fff; border-radius: 12px; padding: 14px 22px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; border: 1px solid rgba(15, 23, 42, 0.06); }
+  .mock-nav-brand { font-size: 18px; font-weight: 800; color: #2563eb; letter-spacing: -0.02em; }
+  .mock-nav-right { display: flex; align-items: center; gap: 16px; font-size: 13px; color: #4a4a4a; }
+  .mock-nav-avatar { width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, #2563eb, #1d4ed8); color: #fff; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; }
+  .mock-card { background: #fff; border-radius: 12px; padding: 28px; border: 1px solid rgba(15, 23, 42, 0.06); margin-bottom: 16px; }
+  .mock-h1 { font-size: 22px; font-weight: 700; margin: 0 0 8px; color: #0a0e1a; letter-spacing: -0.01em; }
+  .mock-sub { font-size: 14px; color: #6b6862; margin: 0; }
+  .mock-row { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid #f0efec; }
+  .mock-row:last-child { border: 0; }
+  .mock-row-title { font-size: 14px; font-weight: 600; color: #2d2d2d; }
+  .mock-row-sub { font-size: 12px; color: #767676; margin-top: 2px; }
+  .mock-btn { padding: 8px 16px; background: #eff6ff; color: #2563eb; border-radius: 8px; font-size: 13px; font-weight: 600; text-decoration: none; }
+
+  .jax-banner { display: none; background: linear-gradient(90deg, #1e3a8a 0%, #2563eb 100%); color: #fff; padding: 12px 20px; align-items: center; gap: 16px; position: relative; }
+  .jax-banner.visible { display: flex; }
+  .jax-banner-icon { width: 36px; height: 36px; border-radius: 8px; background: rgba(255,255,255,0.14); display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .jax-banner-icon svg { width: 20px; height: 20px; color: #fff; }
+  .jax-banner-text { flex: 1; min-width: 0; }
+  .jax-banner-title { font-size: 14px; font-weight: 700; margin: 0 0 2px; letter-spacing: -0.005em; }
+  .jax-banner-sub { font-size: 13px; color: rgba(255,255,255,0.82); margin: 0; }
+  .jax-banner-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+  .jax-banner-cta { padding: 8px 16px; background: #fff; color: #2563eb; border-radius: 8px; font-size: 13px; font-weight: 700; font-family: inherit; border: 0; cursor: pointer; transition: transform 0.1s; }
+  .jax-banner-cta:hover { transform: translateY(-1px); }
+  .jax-banner-kebab { background: transparent; color: rgba(255,255,255,0.75); border: 0; padding: 6px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; position: relative; }
+  .jax-banner-kebab:hover { color: #fff; background: rgba(255,255,255,0.12); }
+  .jax-banner-kebab svg { width: 20px; height: 20px; }
+  .jax-banner-menu { display: none; position: absolute; top: calc(100% + 4px); right: 0; background: #fff; border-radius: 10px; box-shadow: 0 12px 28px rgba(0,0,0,0.18); min-width: 220px; overflow: hidden; border: 1px solid rgba(15, 23, 42, 0.08); z-index: 5; }
+  .jax-banner-menu.open { display: block; }
+  .jax-banner-menu-item { padding: 10px 14px; font-size: 13px; font-weight: 500; color: #2d2d2d; cursor: pointer; background: transparent; border: 0; width: 100%; text-align: left; font-family: inherit; display: flex; align-items: center; gap: 8px; }
+  .jax-banner-menu-item:hover { background: #f5f7fb; color: #2563eb; }
+  .jax-banner-menu-item svg { width: 14px; height: 14px; }
+  .jax-banner-menu-item.destructive { color: #6b6862; }
+  .jax-banner-menu-item.destructive:hover { background: #fef2f2; color: #991b1b; }
+
+  .jax-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.55); z-index: 300; align-items: center; justify-content: center; padding: 24px; }
+  .jax-modal-overlay.visible { display: flex; }
+  .jax-modal { background: #fff; border-radius: 18px; width: 100%; max-width: 480px; box-shadow: 0 30px 60px rgba(0,0,0,0.25); padding: 32px 32px 24px; position: relative; }
+  .jax-modal-close { position: absolute; top: 14px; right: 14px; background: transparent; border: 0; color: #6b6862; padding: 6px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+  .jax-modal-close:hover { background: #f5f5f4; color: #2d2d2d; }
+  .jax-modal-close svg { width: 20px; height: 20px; }
+  .jax-modal-title { font-size: 22px; font-weight: 800; color: #0a0e1a; letter-spacing: -0.015em; line-height: 1.25; margin: 6px 0 10px; padding-right: 24px; }
+  .jax-modal-desc { font-size: 14px; color: #4a4a4a; line-height: 1.55; margin: 0 0 18px; }
+  .jax-modal-bullets { list-style: none; padding: 0; margin: 0 0 22px; }
+  .jax-modal-bullets li { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; font-size: 14px; color: #2d2d2d; font-weight: 500; }
+  .jax-modal-bullets .check { flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%; background: #dcfce7; display: inline-flex; align-items: center; justify-content: center; color: #16a34a; margin-top: 1px; }
+  .jax-modal-bullets .check svg { width: 12px; height: 12px; }
+  .jax-field { margin-bottom: 10px; position: relative; }
+  .jax-field input { width: 100%; padding: 12px 14px 12px 40px; font-size: 14px; font-family: inherit; border: 1.5px solid #d4d2d0; border-radius: 10px; background: #fff; color: #2d2d2d; outline: none; transition: border-color 0.15s, box-shadow 0.15s; }
+  .jax-field input:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+  .jax-field .field-icon { position: absolute; top: 50%; left: 14px; transform: translateY(-50%); color: #767676; display: inline-flex; }
+  .jax-field .field-icon svg { width: 16px; height: 16px; }
+  .jax-modal-cta { display: block; width: 100%; padding: 13px 20px; background: #2563eb; color: #fff; border: 0; border-radius: 10px; font-family: inherit; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 12px; transition: background 0.15s; }
+  .jax-modal-cta:hover { background: #1d4ed8; }
+  .jax-modal-remind { display: block; width: 100%; padding: 11px 20px; background: transparent; color: #4a4a4a; border: 0; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 4px; }
+  .jax-modal-remind:hover { color: #0a0e1a; }
+  .jax-modal-hide { display: block; margin: 8px auto 0; background: transparent; border: 0; color: #a0a0a0; font-family: inherit; font-size: 12px; font-weight: 500; cursor: pointer; padding: 4px 8px; }
+  .jax-modal-hide:hover { color: #6b6862; text-decoration: underline; }
+
+  .demo-toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #0a0e1a; color: #fff; padding: 12px 18px; border-radius: 10px; font-size: 13px; font-weight: 500; box-shadow: 0 12px 28px rgba(0,0,0,0.25); z-index: 400; display: none; }
+  .demo-toast.show { display: block; }
+  .preview-hint { max-width: 800px; margin: 20px auto 0; background: #fef3c7; border: 1px solid #fde68a; border-radius: 10px; padding: 14px 18px; font-size: 13px; color: #92400e; line-height: 1.5; }
+  .preview-hint strong { color: #78350f; }
+</style>
+</head>
+<body>
+
+<div class="toggle-bar">
+  <span class="toggle-label">Preview</span>
+  <div class="toggle-btns">
+    <button class="toggle-btn active" data-treatment="marketing-modal">Marketing modal</button>
+    <button class="toggle-btn" data-treatment="app-modal">App modal</button>
+    <button class="toggle-btn" data-treatment="app-banner">App banner</button>
+  </div>
+  <div class="toggle-spacer"></div>
+  <button class="toggle-reset" onclick="resetPreview()">&#x21bb; Re-trigger</button>
+</div>
+
+<div class="jax-banner" id="jaxBanner">
+  <div class="jax-banner-icon">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 5.4 5.6.4-4.2 3.9 1.3 5.6L12 14.9l-5.1 2.4 1.3-5.6L4 7.8l5.6-.4z"/></svg>
+  </div>
+  <div class="jax-banner-text">
+    <p class="jax-banner-title">JobAgentX is launching &mdash; your AI recruiter for scheduled interviews</p>
+    <p class="jax-banner-sub">Book qualified interviews on your calendar without sourcing or screening. First 30 days on us at launch.</p>
+  </div>
+  <div class="jax-banner-actions">
+    <button class="jax-banner-cta" onclick="handleCta('banner')">Get early access &rarr;</button>
+    <button class="jax-banner-kebab" onclick="toggleBannerMenu(event)" aria-label="More options">
+      <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="6" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="18" cy="12" r="2"/></svg>
+      <div class="jax-banner-menu" id="jaxBannerMenu">
+        <button class="jax-banner-menu-item" onclick="handleRemind('banner', event)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+          Remind me next login
+        </button>
+        <button class="jax-banner-menu-item destructive" onclick="handleHide('banner', event)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          Don't show this again
+        </button>
+      </div>
+    </button>
+  </div>
+</div>
+
+<div class="mock-app">
+  <div class="mock-nav">
+    <span class="mock-nav-brand">JobFairX</span>
+    <div class="mock-nav-right">
+      <span>Dashboard</span>
+      <span>Interviews</span>
+      <span>Messaging</span>
+      <span class="mock-nav-avatar">SL</span>
+    </div>
+  </div>
+  <div class="mock-card">
+    <h2 class="mock-h1">Northwind Co &middot; Dashboard</h2>
+    <p class="mock-sub">Your recent events and pipeline</p>
+    <div style="margin-top: 20px;">
+      <div class="mock-row"><div><div class="mock-row-title">Dallas Hiring Event &middot; Apr 22, 2026</div><div class="mock-row-sub">3 pending &middot; 16 confirmed interviews</div></div><a class="mock-btn" href="#">Manage</a></div>
+      <div class="mock-row"><div><div class="mock-row-title">Houston Healthcare Event &middot; Mar 18, 2026</div><div class="mock-row-sub">36 interviewed &middot; view report</div></div><a class="mock-btn" href="#">View report</a></div>
+      <div class="mock-row"><div><div class="mock-row-title">Register for a new hiring event</div><div class="mock-row-sub">Reserve your spot at an upcoming event</div></div><a class="mock-btn" href="#">Browse events</a></div>
+    </div>
+  </div>
+  <div class="preview-hint"><strong>Tip:</strong> Toggle between the 3 treatments up top. Try clicking the primary CTA, "Remind me next login," or the "Don't show again" link on each to see how the dismissal paths feel. The mock dashboard behind is just for context.</div>
+</div>
+
+<div class="jax-modal-overlay" id="jaxModal">
+  <div class="jax-modal">
+    <button class="jax-modal-close" onclick="handleRemind('modal')" aria-label="Close">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    </button>
+    <h3 class="jax-modal-title">Your AI recruiter that books interviews for you</h3>
+    <p class="jax-modal-desc">JobAgentX is an AI hiring agent that continuously sources and screens qualified candidates and schedules interviews directly on your calendar.</p>
+    <ul class="jax-modal-bullets">
+      <li><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>Interviews scheduled automatically</li>
+      <li><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>No sourcing or resume screening</li>
+      <li><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>First 30 days free at launch</li>
+    </ul>
+    <div id="jaxFields">
+      <div class="jax-field">
+        <span class="field-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></span>
+        <input type="email" placeholder="Work email" autocomplete="email">
+      </div>
+      <div class="jax-field">
+        <span class="field-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+        <input type="text" placeholder="First name" autocomplete="given-name">
+      </div>
+    </div>
+    <button class="jax-modal-cta" onclick="handleCta('modal')">Get early access</button>
+    <button class="jax-modal-remind" onclick="handleRemind('modal')">Remind me next login</button>
+    <button class="jax-modal-hide" onclick="handleHide('modal')">Don't show me this again</button>
+  </div>
+</div>
+
+<div class="demo-toast" id="demoToast"></div>
+
+<script>
+var current = 'marketing-modal';
+var toastTimer = null;
+function toast(msg) {
+  var t = document.getElementById('demoToast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ t.classList.remove('show'); }, 3000);
+}
+function showTreatment(name) {
+  current = name;
+  document.querySelectorAll('.toggle-btn').forEach(function(b){ b.classList.toggle('active', b.dataset.treatment === name); });
+  document.getElementById('jaxBanner').classList.remove('visible');
+  document.getElementById('jaxModal').classList.remove('visible');
+  document.getElementById('jaxBannerMenu').classList.remove('open');
+  if (name === 'marketing-modal') { document.getElementById('jaxFields').style.display = ''; document.getElementById('jaxModal').classList.add('visible'); }
+  else if (name === 'app-modal') { document.getElementById('jaxFields').style.display = 'none'; document.getElementById('jaxModal').classList.add('visible'); }
+  else if (name === 'app-banner') { document.getElementById('jaxBanner').classList.add('visible'); }
+}
+function resetPreview() { showTreatment(current); }
+function handleCta(source) {
+  toast('✓ Get early access clicked (' + source + ')');
+  if (source === 'modal') document.getElementById('jaxModal').classList.remove('visible');
+  if (source === 'banner') document.getElementById('jaxBanner').classList.remove('visible');
+  document.getElementById('jaxBannerMenu').classList.remove('open');
+}
+function handleRemind(source, e) {
+  if (e) e.stopPropagation();
+  toast('↻ Remind me next login (' + source + ')');
+  if (source === 'modal') document.getElementById('jaxModal').classList.remove('visible');
+  if (source === 'banner') document.getElementById('jaxBanner').classList.remove('visible');
+  document.getElementById('jaxBannerMenu').classList.remove('open');
+}
+function handleHide(source, e) {
+  if (e) e.stopPropagation();
+  toast('✗ Don\'t show again (' + source + ')');
+  if (source === 'modal') document.getElementById('jaxModal').classList.remove('visible');
+  if (source === 'banner') document.getElementById('jaxBanner').classList.remove('visible');
+  document.getElementById('jaxBannerMenu').classList.remove('open');
+}
+function toggleBannerMenu(e) { e.stopPropagation(); document.getElementById('jaxBannerMenu').classList.toggle('open'); }
+document.addEventListener('click', function(e){ if (!e.target.closest('.jax-banner-kebab')) { document.getElementById('jaxBannerMenu').classList.remove('open'); } });
+document.querySelectorAll('.toggle-btn').forEach(function(b){ b.addEventListener('click', function(){ showTreatment(b.dataset.treatment); }); });
+showTreatment('marketing-modal');
+</script>
+
+</body>
+</html>
