@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Reschedule email — current vs redesigned</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body { font-family: 'Inter', -apple-system, sans-serif; color: #0a0e1a; background: #e5e7eb; min-height: 100vh; }
+  .toggle-bar { position: sticky; top: 0; z-index: 200; background: #0a0e1a; color: #fff; padding: 14px 24px; display: flex; align-items: center; gap: 18px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+  .toggle-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px; color: rgba(255,255,255,0.55); margin-right: 6px; }
+  .toggle-btns { display: flex; gap: 6px; }
+  .toggle-btn { padding: 8px 14px; background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.75); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .toggle-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
+  .stage { padding: 30px 24px 60px; max-width: 780px; margin: 0 auto; }
+  .stage-label { font-size: 11px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: #6b6862; margin-bottom: 10px; }
+
+  /* Inbox strip */
+  .inbox { background: #fff; border-radius: 10px; padding: 14px 18px; margin-bottom: 20px; border: 1px solid #e5e7eb; display: flex; gap: 14px; align-items: flex-start; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+  .inbox-icon { flex-shrink: 0; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 15px; background: #2563eb; }
+  .inbox-body { flex: 1; min-width: 0; }
+  .inbox-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px; }
+  .inbox-sender { font-size: 14px; font-weight: 700; color: #0a0e1a; }
+  .inbox-time { font-size: 12px; color: #6b6862; }
+  .inbox-subject { font-size: 14px; font-weight: 500; color: #0a0e1a; margin-bottom: 2px; }
+  .inbox-preview { font-size: 13px; color: #6b6862; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* CURRENT (dark) */
+  .email-current { background: #0a0e1a; color: #d1d5db; max-width: 640px; margin: 0 auto; padding: 40px 40px 34px; border-radius: 4px; font-family: Arial, Helvetica, sans-serif; }
+  .email-current .greeting { font-size: 14px; color: #f3f4f6; margin-bottom: 16px; }
+  .email-current .body { font-size: 14px; line-height: 1.6; color: #d1d5db; margin-bottom: 16px; }
+  .email-current ul { padding-left: 22px; margin: 0 0 24px; }
+  .email-current li { font-size: 14px; color: #d1d5db; line-height: 2; }
+  .email-current .btn { display: inline-block; padding: 12px 28px; background: #4a5cf7; color: #fff; text-decoration: none; font-weight: 700; border-radius: 4px; font-size: 14px; }
+  .email-current .footer { margin-top: 34px; padding-top: 18px; font-size: 12px; color: #9ca3af; line-height: 1.6; }
+
+  /* REDESIGNED */
+  .email-new { background: #f5f5f4; max-width: 640px; margin: 0 auto; padding: 20px 20px 40px; border-radius: 8px; color: #2d2d2d; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+  .email-new-inner { background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.04); border: 1px solid #ececec; }
+  .email-new-brand-strip { background: #fff; padding: 20px 32px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #f0efec; }
+  .email-new-brand { font-size: 20px; font-weight: 800; color: #2563eb; letter-spacing: -0.02em; }
+  .email-new-brand-meta { font-size: 12px; color: #6b6862; }
+  .email-new-body { padding: 28px 32px 34px; }
+  .email-new-greeting { font-size: 15px; color: #2d2d2d; margin: 0 0 20px; }
+
+  .reschedule-callout {
+    background: #fff7ed;
+    border: 1px solid #fed7aa;
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-bottom: 22px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+  .reschedule-icon {
+    flex-shrink: 0;
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    background: #ffedd5;
+    color: #c2410c;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .reschedule-icon svg { width: 20px; height: 20px; }
+  .reschedule-title { font-size: 15px; font-weight: 700; color: #7c2d12; margin: 0 0 3px; letter-spacing: -0.01em; }
+  .reschedule-meta { font-size: 13px; color: #9a3412; line-height: 1.5; margin: 0; }
+
+  .reschedule-old-time {
+    background: #fafafa;
+    border: 1px solid #ececec;
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 22px;
+    display: flex; align-items: center; gap: 10px;
+    font-size: 13px; color: #6b6862;
+  }
+  .reschedule-old-time strong { text-decoration: line-through; color: #9ca3af; font-weight: 500; }
+  .reschedule-old-time .was-pill { display: inline-block; padding: 2px 8px; background: #f0efec; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: #6b6862; }
+
+  .times-label { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #6b6862; margin: 0 0 10px; }
+  .times-list { list-style: none; padding: 0; margin: 0 0 24px; }
+  .times-item {
+    padding: 14px 16px;
+    border: 1px solid #ececec;
+    border-radius: 10px;
+    margin-bottom: 8px;
+    display: flex; align-items: center; gap: 14px;
+  }
+  .times-item .cal {
+    flex-shrink: 0;
+    width: 40px; height: 44px;
+    background: #eff6ff;
+    border-radius: 8px;
+    display: inline-flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center;
+  }
+  .times-item .cal-month { font-size: 9px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: #2563eb; }
+  .times-item .cal-day { font-size: 18px; font-weight: 800; color: #0a0e1a; letter-spacing: -0.02em; line-height: 1; }
+  .times-item .details { flex: 1; }
+  .times-item .day-of-week { font-size: 12px; font-weight: 600; color: #6b6862; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 2px; }
+  .times-item .time { font-size: 15px; font-weight: 700; color: #0a0e1a; margin: 0; letter-spacing: -0.01em; }
+
+  .email-new-cta { display: block; padding: 14px 20px; background: #2563eb; color: #fff; text-align: center; text-decoration: none; font-size: 15px; font-weight: 700; border-radius: 10px; margin-bottom: 12px; }
+  .email-new-secondary { display: block; text-align: center; font-size: 13px; font-weight: 600; color: #2563eb; text-decoration: none; padding: 8px; }
+
+  .reassurance { margin: 24px 0 0; padding: 14px 16px; background: #eff6ff; border-radius: 10px; font-size: 13px; color: #1e3a8a; line-height: 1.5; }
+  .reassurance strong { color: #1e3a8a; }
+
+  .email-new-footer { padding: 24px 32px 28px; background: #fafafa; border-top: 1px solid #f0efec; font-size: 12px; color: #6b6862; line-height: 1.6; }
+  .email-new-footer-links a { color: #2563eb; text-decoration: none; margin-right: 14px; font-weight: 500; }
+  .email-new-footer-address { color: #9ca3af; margin-top: 12px; }
+
+  .notes { max-width: 640px; margin: 20px auto 0; background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 18px 22px; font-size: 13px; color: #4a4a4a; line-height: 1.55; }
+  .notes h4 { margin: 0 0 8px; font-size: 12px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: #6b6862; }
+  .notes ul { margin: 0; padding-left: 18px; }
+  .notes li { margin-bottom: 4px; }
+  .notes strong { color: #0a0e1a; }
+</style>
+</head>
+<body>
+
+<div class="toggle-bar">
+  <span class="toggle-label">Preview</span>
+  <div class="toggle-btns">
+    <button class="toggle-btn active" data-view="new">Redesigned</button>
+    <button class="toggle-btn" data-view="current">Current</button>
+  </div>
+</div>
+
+<div class="stage">
+
+  <div id="view-new">
+    <div class="stage-label">How it looks in the inbox</div>
+    <div class="inbox">
+      <div class="inbox-icon">N</div>
+      <div class="inbox-body">
+        <div class="inbox-top">
+          <span class="inbox-sender">Nike via JobFairX</span>
+          <span class="inbox-time">1h ago</span>
+        </div>
+        <div class="inbox-subject">Nike proposed new times for your Sales Associate interview</div>
+        <div class="inbox-preview">Hi Brandon — a scheduling conflict came up. Pick a new time that works...</div>
+      </div>
+    </div>
+
+    <div class="stage-label">Redesigned email</div>
+    <div class="email-new">
+      <div class="email-new-inner">
+        <div class="email-new-brand-strip">
+          <span class="email-new-brand">JobFairX</span>
+          <span class="email-new-brand-meta">Sent 1 hour ago</span>
+        </div>
+        <div class="email-new-body">
+          <p class="email-new-greeting">Hi Brandon,</p>
+
+          <div class="reschedule-callout">
+            <div class="reschedule-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>
+                <path d="M8 14l2 2 4-4" stroke-width="0"/>
+              </svg>
+            </div>
+            <div>
+              <p class="reschedule-title">Nike proposed new interview times</p>
+              <p class="reschedule-meta">A scheduling conflict came up. Pick a time below that works for you &mdash; your spot is still held.</p>
+            </div>
+          </div>
+
+          <div class="reschedule-old-time">
+            <span class="was-pill">Was</span>
+            <strong>Sept 22, 2023 &middot; 10:00 AM PDT</strong>
+          </div>
+
+          <p class="times-label">Pick a new time</p>
+          <ul class="times-list">
+            <li class="times-item">
+              <div class="cal"><span class="cal-month">Sep</span><span class="cal-day">23</span></div>
+              <div class="details">
+                <p class="day-of-week">Saturday</p>
+                <p class="time">11:30 AM PDT</p>
+              </div>
+            </li>
+            <li class="times-item">
+              <div class="cal"><span class="cal-month">Sep</span><span class="cal-day">24</span></div>
+              <div class="details">
+                <p class="day-of-week">Sunday</p>
+                <p class="time">2:00 PM PDT</p>
+              </div>
+            </li>
+            <li class="times-item">
+              <div class="cal"><span class="cal-month">Sep</span><span class="cal-day">25</span></div>
+              <div class="details">
+                <p class="day-of-week">Monday</p>
+                <p class="time">9:00 AM PDT</p>
+              </div>
+            </li>
+          </ul>
+
+          <a href="#" class="email-new-cta">Choose a new time</a>
+          <a href="#" class="email-new-secondary">None of these work? Suggest another time &rarr;</a>
+
+          <div class="reassurance">
+            <strong>Good news:</strong> Nike is still interested in interviewing you. This is just a time change, not a cancellation.
+          </div>
+        </div>
+        <div class="email-new-footer">
+          <div class="email-new-footer-links">
+            <a href="#">Unsubscribe</a>
+            <a href="#">Email preferences</a>
+            <a href="#">Why am I getting this?</a>
+          </div>
+          <div class="email-new-footer-address">
+            JobFairX &middot; 209 S Stephanie St. STE B #144, Henderson, NV 89012 &middot; 702-269-1414 &middot; info@jobfairx.com
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="notes">
+      <h4>What changed and why</h4>
+      <ul>
+        <li><strong>Reschedule framing instead of invitation.</strong> The subject and headline now say Nike <em>proposed new times</em> &mdash; not <em>invited you to interview</em>. The candidate already knew they had an interview.</li>
+        <li><strong>"Was" reference.</strong> Shows the original time crossed out so they immediately understand what's changing.</li>
+        <li><strong>Amber reschedule callout.</strong> Signals "attention needed but not urgent" &mdash; distinct from a first invite (green/blue) or a cancellation (red).</li>
+        <li><strong>Reassurance line.</strong> "Your spot is still held" and "This is just a time change, not a cancellation" &mdash; addresses the anxiety the candidate feels when they see a reschedule email.</li>
+        <li><strong>Deduped time list with day of week.</strong> Current email showed "Sept 23 2023, 11:30 AM PDT" twice + one date with no time. Day-of-week + calendar tile makes the times scannable.</li>
+        <li><strong>"Choose a new time" CTA.</strong> Accurate to what they're doing. "Schedule Interview" implies they had nothing before &mdash; they did.</li>
+        <li><strong>Escape hatch: "Suggest another time."</strong> If none of the proposed times work, they still have a path forward &mdash; instead of ghosting the employer.</li>
+        <li><strong>Legal footer.</strong> Unsubscribe + preferences links, CAN-SPAM compliant.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div id="view-current" style="display:none;">
+    <div class="stage-label">How it looks in the inbox</div>
+    <div class="inbox">
+      <div class="inbox-icon" style="background:#4a90e2;">J</div>
+      <div class="inbox-body">
+        <div class="inbox-top">
+          <span class="inbox-sender">JobFairX</span>
+          <span class="inbox-time">1h ago</span>
+        </div>
+        <div class="inbox-subject">Nike has invited you to interview for Sales Associate</div>
+        <div class="inbox-preview">Hi Brandon, Nike has invited you to interview for Sales Associate at the following...</div>
+      </div>
+    </div>
+
+    <div class="stage-label">Current email</div>
+    <div class="email-current">
+      <div class="greeting">Hi Brandon,</div>
+      <div class="body">Nike has invited you to interview for Sales Associate at the following times. To accept an interview, view the message and select the time that works best for you.</div>
+      <ul>
+        <li>Sept 23 2023, 11:30 AM PDT</li>
+        <li>Sept 23 2023, 11:30 AM PDT</li>
+        <li>Sept 23 2023</li>
+      </ul>
+      <a href="#" class="btn">Schedule Interview</a>
+      <div class="footer">
+        Mailing address: 209 S Stephanie St. STE B #144 Henderson, NV 89012<br>
+        702-269-1414 &nbsp; info@jobfairx.com
+      </div>
+    </div>
+
+    <div class="notes">
+      <h4>Notes on the current version</h4>
+      <ul>
+        <li><strong>Wrong framing.</strong> "Nike has invited you to interview" implies this is a first invite &mdash; the candidate had a slot already. Confusing.</li>
+        <li><strong>Duplicate times.</strong> "Sept 23 2023, 11:30 AM PDT" appears twice, and one entry is missing the time entirely. Data/template bug.</li>
+        <li><strong>No day of week.</strong> "Sept 23 2023" alone is hard to scan &mdash; is that a Saturday? A Tuesday?</li>
+        <li><strong>No "was" reference.</strong> Nothing tells the candidate what time is being changed from.</li>
+        <li><strong>"Schedule Interview" CTA.</strong> Should be "Choose a new time." They aren't scheduling &mdash; they're picking from proposed options.</li>
+        <li><strong>No reassurance.</strong> A reschedule email can feel like rejection. There's nothing here saying "you're still in the running."</li>
+        <li><strong>No escape hatch.</strong> If none of these times work, what does the candidate do?</li>
+        <li><strong>Legal footer missing.</strong> No unsubscribe or preferences link.</li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  document.querySelectorAll('.toggle-btn').forEach(function(b){
+    b.addEventListener('click', function(){
+      var view = b.dataset.view;
+      document.querySelectorAll('.toggle-btn').forEach(function(x){ x.classList.toggle('active', x === b); });
+      document.getElementById('view-new').style.display = (view === 'new') ? '' : 'none';
+      document.getElementById('view-current').style.display = (view === 'current') ? '' : 'none';
+    });
+  });
+</script>
+
+</body>
+</html>
