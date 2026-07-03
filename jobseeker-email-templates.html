@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Job seeker email templates — JobFairX</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body { font-family: 'Inter', -apple-system, sans-serif; color: #0a0e1a; background: #f5f5f4; min-height: 100vh; }
+  a { color: inherit; text-decoration: none; }
+
+  .hero { background: #0a0e1a; color: #fff; padding: 40px 32px 28px; }
+  .hero-inner { max-width: 900px; margin: 0 auto; display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+  .hero h1 { margin: 0 0 6px; font-size: 28px; font-weight: 800; letter-spacing: -0.02em; }
+  .hero p { margin: 0; font-size: 14px; color: rgba(255,255,255,0.65); }
+  .dev-toggle { display: inline-flex; align-items: center; gap: 10px; padding: 8px 14px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.14); border-radius: 999px; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.85); cursor: pointer; }
+  .dev-toggle:hover { background: rgba(255,255,255,0.14); color: #fff; }
+  .dev-toggle input { accent-color: #2563eb; width: 14px; height: 14px; margin: 0; cursor: pointer; }
+
+  .stage { padding: 32px 24px 80px; max-width: 900px; margin: 0 auto; }
+
+  .row { background: #fff; border: 1px solid #ececec; border-radius: 14px; margin-bottom: 14px; overflow: hidden; }
+  .row-head { display: flex; align-items: center; gap: 20px; padding: 20px 24px; }
+  .row-num { flex-shrink: 0; width: 32px; height: 32px; border-radius: 8px; background: #eff6ff; color: #2563eb; font-weight: 800; font-size: 14px; display: inline-flex; align-items: center; justify-content: center; }
+  .row-body { flex: 1; min-width: 0; }
+  .row-name { font-size: 16px; font-weight: 700; color: #0a0e1a; margin: 0 0 4px; letter-spacing: -0.01em; }
+  .row-trigger { font-size: 13px; color: #6b6862; margin: 0; line-height: 1.45; }
+  .row-actions { display: flex; gap: 8px; flex-shrink: 0; }
+  .btn-view { padding: 8px 14px; background: #2563eb; color: #fff; border-radius: 8px; font-size: 13px; font-weight: 600; }
+  .btn-view:hover { background: #1d4ed8; }
+  .btn-view-current { padding: 8px 14px; background: #fff; color: #6b6862; border: 1px solid #d4d2d0; border-radius: 8px; font-size: 13px; font-weight: 600; }
+  .btn-view-current:hover { background: #f5f5f4; color: #2d2d2d; }
+
+  .row-notes { display: none; padding: 0 24px 20px; }
+  body.dev-on .row-notes { display: block; }
+  .row-notes-head { display: flex; align-items: center; gap: 10px; margin-top: 4px; margin-bottom: 12px; padding-top: 16px; border-top: 1px solid #f0efec; }
+  .row-notes-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #6b6862; }
+  .row-notes-pill { font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 999px; background: #eff6ff; color: #2563eb; letter-spacing: 0.4px; text-transform: uppercase; }
+  .row-notes-list { margin: 0; padding-left: 18px; font-size: 13px; color: #4a4a4a; line-height: 1.55; }
+  .row-notes-list li { margin-bottom: 4px; }
+  .row-notes-list strong { color: #0a0e1a; }
+
+  .foot { text-align: center; margin-top: 30px; font-size: 12px; color: #9ca3af; }
+  .foot code { background: #ececec; padding: 2px 6px; border-radius: 4px; font-size: 11px; color: #4a4a4a; }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-inner">
+    <div>
+      <h1>Job seeker email templates</h1>
+      <p>6 automated emails candidates receive through their journey on JobFairX.</p>
+    </div>
+    <label class="dev-toggle"><input type="checkbox" id="devToggle"> Show developer notes</label>
+  </div>
+</div>
+
+<div class="stage" id="rows"></div>
+
+<script>
+  var EMAILS_LIST = [
+    { id: 'match', num: 1, name: 'Job match', trigger: 'When a company\'s open role matches a candidate\'s profile. Invites them to request an interview.' },
+    { id: 'message', num: 2, name: 'Message received', trigger: 'When an employer sends a direct message to a candidate.' },
+    { id: 'submitted', num: 3, name: 'Interview request submitted', trigger: 'When the candidate requests an interview time. Confirms it\'s been sent to the employer.' },
+    { id: 'reschedule', num: 4, name: 'Reschedule request', trigger: 'When an employer proposes new interview times after the original was scheduled.' },
+    { id: 'accepted', num: 5, name: 'Interview accepted', trigger: 'When the employer accepts the candidate\'s interview request. Confirmation + prep details.' },
+    { id: 'joinnow', num: 6, name: 'Interview starting now', trigger: 'Real-time notification when the employer joins the interview room. Time to click and join.' },
+  ];
+
+  var NOTES = {
+    match: {
+      new: [
+        '<strong>"Request an interview" not "Schedule."</strong> The candidate isn\'t picking a time yet — they\'re asking to be considered.',
+        '<strong>"You matched with Nike" framing.</strong> This is a job-alert-style match notification, not an invitation.',
+        '<strong>Structured job details card.</strong> Company, role, location, event window — scannable at a glance.',
+        '<strong>Urgency line grounded in reality.</strong> "First-come, first-served" beats "act now" pressure.',
+        '<strong>Timeline expectation.</strong> "Nike will confirm within 24 hours" sets what happens next.',
+      ],
+      current: [
+        '<strong>"Schedule Your Interview" is wrong.</strong> They can\'t schedule — they haven\'t been accepted.',
+        '<strong>No structured details.</strong> Everything is in one run-on paragraph.',
+        '<strong>"Don\'t miss out."</strong> Reads as sales pressure.',
+        '<strong>Missing timeline.</strong> What happens after they click?',
+      ],
+    },
+    message: {
+      new: [
+        '<strong>Light background.</strong> Renders reliably across every email client.',
+        '<strong>Sender identity block.</strong> Nike + recruiter name adds legitimacy. In prod, swap the "N" pill for the real company logo.',
+        '<strong>Personalized greeting.</strong> Feels like a real message, not a system notification.',
+        '<strong>Reply on JobFairX button.</strong> Deep-linked back to the thread — keeps conversation on your platform.',
+        '<strong>Better subject line.</strong> "Nike wants to interview you" outperforms "Message from Nike."',
+      ],
+      current: [
+        '<strong>Dark background.</strong> Inconsistent across clients.',
+        '<strong>No sender treatment.</strong> Nike gets no visual identity.',
+        '<strong>Header does too much in one line.</strong>',
+        '<strong>No greeting.</strong> Doesn\'t address the candidate by name.',
+        '<strong>Missing legal footer.</strong>',
+      ],
+    },
+    submitted: {
+      new: [
+        '<strong>Subject makes status clear.</strong> "Your request to Nike is in" beats "Your interview with Nike."',
+        '<strong>Callout confirms what happened.</strong> "Request sent" + 24-hour expectation.',
+        '<strong>Requested time card.</strong> Reinforces what they asked for.',
+        '<strong>Platform note.</strong> "Interview will happen right here on JobFairX" answers "how does this work?"',
+        '<strong>No big CTA.</strong> Nothing for them to do yet — a secondary "View status" link is enough.',
+      ],
+      current: [
+        '<strong>Subject too vague.</strong> Sounds like it\'s already scheduled.',
+        '<strong>Buried status.</strong> "has been submitted" easy to miss in a paragraph.',
+        '<strong>No clear next step or timeline.</strong>',
+        '<strong>Doesn\'t mention interview happens on JobFairX.</strong>',
+      ],
+    },
+    reschedule: {
+      new: [
+        '<strong>Reschedule framing.</strong> "Nike proposed new times" not "invited you to interview."',
+        '<strong>"Was" reference.</strong> Original time crossed out so change is obvious.',
+        '<strong>Amber callout.</strong> Attention needed, not warning red — distinct from a first invite.',
+        '<strong>Reassurance line.</strong> "Your spot is still held" addresses reschedule anxiety.',
+        '<strong>Deduped time list with day of week.</strong> Current showed duplicates + missing times.',
+        '<strong>"Choose a new time" CTA.</strong> Accurate action.',
+        '<strong>Escape hatch.</strong> "Suggest another time" if none work.',
+      ],
+      current: [
+        '<strong>Wrong framing.</strong> "Invited you to interview" implies first invite.',
+        '<strong>Duplicate times shown.</strong>',
+        '<strong>No day of week.</strong> Hard to scan.',
+        '<strong>No reassurance.</strong> Reads like a cancellation.',
+        '<strong>Missing legal footer.</strong>',
+      ],
+    },
+    accepted: {
+      new: [
+        '<strong>Primary + related action grouped.</strong> "View interview details" + "Send Nike a note" together.',
+        '<strong>"Change time" and "Cancel" bucketed separately.</strong> Utility actions, not competing with primary CTA.',
+        '<strong>Duration added.</strong> "15 minutes" sets expectation, reduces no-shows.',
+        '<strong>Datetime card leads.</strong> Friday, 11 AM EST — the thing they need to remember.',
+        '<strong>"Virtual, on JobFairX" as a detail row.</strong> Platform note at bottom for anxious candidates.',
+      ],
+      current: [
+        '<strong>Buried "stand out" link inside a run-on sentence.</strong>',
+        '<strong>Button and links visually competing.</strong> Which is primary?',
+        '<strong>No duration.</strong> Should they block 15 min or 2 hours?',
+        '<strong>Salary line reappears.</strong> Unnecessary in a confirmation.',
+        '<strong>No "how does this work?" hint.</strong>',
+      ],
+    },
+    joinnow: {
+      new: [
+        '<strong>Nike named up top.</strong> "Nike is ready to interview you now" — specific and personal.',
+        '<strong>Live dot + pulse animation.</strong> Real-time signal without a scary red banner.',
+        '<strong>Compact info line.</strong> Role and time on one line — they know it\'s starting now.',
+        '<strong>Bright green CTA.</strong> Signals "Go" more than "info."',
+        '<strong>Minimal scroll below the fold.</strong> This is a "get in NOW" email.',
+        '<strong>Better subject.</strong> "Your Nike interview is starting — join now."',
+      ],
+      current: [
+        '<strong>Doesn\'t mention Nike.</strong> Which interviewer?',
+        '<strong>Emoji icons render inconsistently across clients.</strong>',
+        '<strong>Repeats info they already know.</strong> Full date breakdown unnecessary.',
+        '<strong>No visual urgency.</strong> Nothing signals "happening now."</strong>',
+        '<strong>Long paragraph at bottom.</strong>',
+      ],
+    },
+  };
+
+  var PREVIEW = 'jobseeker-emails-preview.html';
+
+  function makeRow(email) {
+    var newLink = PREVIEW + '?email=' + email.id + '&view=new&clean=1';
+    var curLink = PREVIEW + '?email=' + email.id + '&view=current&clean=1';
+    var notesNew = NOTES[email.id] && NOTES[email.id].new ? NOTES[email.id].new : [];
+    var notesCur = NOTES[email.id] && NOTES[email.id].current ? NOTES[email.id].current : [];
+    return `
+      <div class="row">
+        <div class="row-head">
+          <div class="row-num">${email.num}</div>
+          <div class="row-body">
+            <p class="row-name">${email.name}</p>
+            <p class="row-trigger">${email.trigger}</p>
+          </div>
+          <div class="row-actions">
+            <a class="btn-view" href="${newLink}" target="_blank" rel="noopener">View as user →</a>
+            <a class="btn-view-current" href="${curLink}" target="_blank" rel="noopener">View current</a>
+          </div>
+        </div>
+        <div class="row-notes">
+          <div class="row-notes-head"><span class="row-notes-eyebrow">Developer notes</span><span class="row-notes-pill">Redesigned</span></div>
+          <ul class="row-notes-list">${notesNew.map(function(n){ return '<li>' + n + '</li>'; }).join('')}</ul>
+          <div class="row-notes-head"><span class="row-notes-eyebrow">What was wrong with the current version</span><span class="row-notes-pill" style="background:#f5f5f4;color:#6b6862;">Current</span></div>
+          <ul class="row-notes-list">${notesCur.map(function(n){ return '<li>' + n + '</li>'; }).join('')}</ul>
+        </div>
+      </div>
+    `;
+  }
+
+  document.getElementById('rows').innerHTML =
+    EMAILS_LIST.map(makeRow).join('') +
+    '<div class="foot">All previews use <code>?clean=1</code> to open a distraction-free view suitable for demos.</div>';
+
+  document.getElementById('devToggle').addEventListener('change', function(e){
+    document.body.classList.toggle('dev-on', e.target.checked);
+  });
+</script>
+
+</body>
+</html>

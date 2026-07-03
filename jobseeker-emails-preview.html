@@ -124,6 +124,9 @@
   .notes ul { margin: 0; padding-left: 18px; }
   .notes li { margin-bottom: 4px; }
   .notes strong { color: #0a0e1a; }
+  body.clean-mode .notes { display: none; }
+  body.clean-mode .stage-label { display: none; }
+  body.clean-mode .stage { padding-top: 24px; }
 </style>
 </head>
 <body>
@@ -133,7 +136,9 @@
     <span class="toggle-label">Email</span>
     <div class="toggle-btns">
       <button class="toggle-btn active" data-email="match">Job match</button>
+      <button class="toggle-btn" data-email="message">Message received</button>
       <button class="toggle-btn" data-email="submitted">Request submitted</button>
+      <button class="toggle-btn" data-email="reschedule">Reschedule request</button>
       <button class="toggle-btn" data-email="accepted">Accepted / confirmed</button>
       <button class="toggle-btn" data-email="joinnow">Starting now</button>
     </div>
@@ -223,6 +228,159 @@
           '<strong>No structured job details.</strong> Everything is in one run-on paragraph.',
           '<strong>"Don\'t miss out on this chance."</strong> Reads as sales pressure.',
           '<strong>Missing timeline.</strong> What happens after they click? No expectation set.',
+        ],
+      },
+    },
+    message: {
+      current: {
+        inboxSender: 'JobFairX',
+        inboxIcon: 'J',
+        inboxIconBg: '#4a90e2',
+        inboxSubject: 'Message from Nike regarding Retail Sales Associate',
+        inboxPreview: 'I wanted to reach out and let you know that we have reviewed your resume...',
+        html: `
+          <div class="brand">JobFairX</div>
+          <div style="font-size:14px;color:#f3f4f6;margin-bottom:18px;font-weight:600;">Message from Nike regarding Retail Sales Associate</div>
+          <div class="body">I wanted to reach out and let you know that we have reviewed your resume, and we are impressed with your qualifications and experience. We would like to invite you for an interview to discuss further how your skills align with the role we have available. Please let us know your availability for next week so we can schedule a suitable time.</div>
+          <a href="#" class="btn" style="margin-top:16px;">Reply</a>
+          <div class="footer">
+            Mailing address: 209 S Stephanie St. STE B #144 Henderson, NV 89012<br>
+            702-269-1414 &nbsp; info@jobfairx.com
+          </div>
+        `,
+      },
+      new: {
+        inboxSender: 'Nike via JobFairX',
+        inboxIcon: 'N',
+        inboxIconBg: '#0a0e1a',
+        inboxSubject: 'Nike wants to interview you for Retail Sales Associate',
+        inboxPreview: 'Hi Alex — we reviewed your resume and would like to schedule an interview...',
+        html: `
+          <div class="email-new-brand-strip">
+            <span class="email-new-brand">JobFairX</span>
+            <span class="email-new-brand-meta">Sent 2 hours ago</span>
+          </div>
+          <div class="email-new-body">
+            <p class="email-new-greeting">Hi Alex,</p>
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px 20px; margin-bottom: 24px; display: flex; gap: 14px; align-items: flex-start;">
+              <div style="flex-shrink: 0; width: 48px; height: 48px; border-radius: 12px; background: #0a0e1a; color: #fff; display: inline-flex; align-items: center; justify-content: center; font-weight: 800; font-size: 20px; letter-spacing: -0.02em;">N</div>
+              <div>
+                <p style="font-size: 16px; font-weight: 700; color: #0a0e1a; margin: 0 0 4px; letter-spacing: -0.01em;">Nike sent you a message</p>
+                <p style="font-size: 13px; color: #6b6862; line-height: 1.45; margin: 0;"><strong style="color:#2d2d2d;font-weight:600;">Retail Sales Associate</strong> &middot; Denver, CO<br>From Jamie Chen, Talent Acquisition</p>
+              </div>
+            </div>
+            <p style="font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #6b6862; margin: 0 0 10px;">Message</p>
+            <p style="font-size: 15px; line-height: 1.6; color: #2d2d2d; margin: 0 0 26px;">I wanted to reach out and let you know that we have reviewed your resume, and we are impressed with your qualifications and experience. We would like to invite you for an interview to discuss further how your skills align with the role we have available. Please let us know your availability for next week so we can schedule a suitable time.</p>
+            <a href="#" class="cta">Reply on JobFairX</a>
+            <a href="#" class="cta-secondary">View job details &rarr;</a>
+          </div>
+        `,
+      },
+      notes: {
+        new: [
+          '<strong>Light background.</strong> Renders reliably across every email client. Dark backgrounds break in Gmail\'s light mode and Outlook.',
+          '<strong>Sender identity block.</strong> Nike\'s brand pill + recruiter\'s name adds legitimacy. In production, swap the "N" pill for the real company logo.',
+          '<strong>Personalized greeting.</strong> "Hi Alex" &mdash; feels like a real message, not a system notification.',
+          '<strong>Two-line header hierarchy.</strong> Big: "Nike sent you a message." Small: job + city + recruiter name.',
+          '<strong>Reply on JobFairX button.</strong> Deep-linked back into the message thread &mdash; you keep the conversation, the data, and the response-rate metrics on your platform.',
+          '<strong>Timestamp.</strong> "Sent 2 hours ago" up top gives context.',
+          '<strong>Subject line.</strong> "Nike wants to interview you for Retail Sales Associate" is outcome-focused. Way better open rate than "Message from Nike."',
+        ],
+        current: [
+          '<strong>Dark background.</strong> Inconsistent rendering across clients.',
+          '<strong>No sender identity beyond a name.</strong> Nike gets no visual treatment.',
+          '<strong>Header does too much.</strong> "Message from Nike regarding Retail Sales Associate" is a run-on sentence.',
+          '<strong>No greeting.</strong> Doesn\'t address the candidate by name.',
+          '<strong>Reply button unclear.</strong> Where does it go?',
+          '<strong>Footer missing legal.</strong> No unsubscribe.',
+        ],
+      },
+    },
+    reschedule: {
+      current: {
+        inboxSender: 'JobFairX',
+        inboxIcon: 'J',
+        inboxIconBg: '#4a90e2',
+        inboxSubject: 'Nike has invited you to interview for Sales Associate',
+        inboxPreview: 'Hi Brandon, Nike has invited you to interview for Sales Associate at the following...',
+        html: `
+          <div class="greeting">Hi Brandon,</div>
+          <div class="body">Nike has invited you to interview for Sales Associate at the following times. To accept an interview, view the message and select the time that works best for you.</div>
+          <ul style="padding-left:22px;margin:0 0 24px;color:#d1d5db;">
+            <li style="line-height:2;">Sept 23 2023, 11:30 AM PDT</li>
+            <li style="line-height:2;">Sept 23 2023, 11:30 AM PDT</li>
+            <li style="line-height:2;">Sept 23 2023</li>
+          </ul>
+          <a href="#" class="btn">Schedule Interview</a>
+          <div class="footer">
+            Mailing address: 209 S Stephanie St. STE B #144 Henderson, NV 89012<br>
+            702-269-1414 &nbsp; info@jobfairx.com
+          </div>
+        `,
+      },
+      new: {
+        inboxSender: 'Nike via JobFairX',
+        inboxIcon: 'N',
+        inboxIconBg: '#0a0e1a',
+        inboxSubject: 'Nike proposed new times for your Sales Associate interview',
+        inboxPreview: 'Hi Brandon — a scheduling conflict came up. Pick a new time that works...',
+        html: `
+          <div class="email-new-brand-strip">
+            <span class="email-new-brand">JobFairX</span>
+            <span class="email-new-brand-meta">Sent 1 hour ago</span>
+          </div>
+          <div class="email-new-body">
+            <p class="email-new-greeting">Hi Brandon,</p>
+            <div class="callout amber">
+              <div class="callout-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div>
+              <div>
+                <p class="callout-title">Nike proposed new interview times</p>
+                <p class="callout-meta">A scheduling conflict came up. Pick a time below that works for you &mdash; your spot is still held.</p>
+              </div>
+            </div>
+            <div style="background: #fafafa; border: 1px solid #ececec; border-radius: 10px; padding: 12px 16px; margin-bottom: 22px; display: flex; align-items: center; gap: 10px; font-size: 13px; color: #6b6862;">
+              <span style="display:inline-block;padding:2px 8px;background:#f0efec;border-radius:6px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:#6b6862;">Was</span>
+              <strong style="text-decoration:line-through;color:#9ca3af;font-weight:500;">Sept 22, 2023 &middot; 10:00 AM PDT</strong>
+            </div>
+            <p style="font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #6b6862; margin: 0 0 10px;">Pick a new time</p>
+            <ul style="list-style: none; padding: 0; margin: 0 0 24px;">
+              <li style="padding: 14px 16px; border: 1px solid #ececec; border-radius: 10px; margin-bottom: 8px; display: flex; align-items: center; gap: 14px;">
+                <div class="dt-cal"><span class="m">Sep</span><span class="d">23</span></div>
+                <div><p style="font-size: 12px; font-weight: 600; color: #6b6862; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 2px;">Saturday</p><p style="font-size: 15px; font-weight: 700; color: #0a0e1a; margin: 0; letter-spacing: -0.01em;">11:30 AM PDT</p></div>
+              </li>
+              <li style="padding: 14px 16px; border: 1px solid #ececec; border-radius: 10px; margin-bottom: 8px; display: flex; align-items: center; gap: 14px;">
+                <div class="dt-cal"><span class="m">Sep</span><span class="d">24</span></div>
+                <div><p style="font-size: 12px; font-weight: 600; color: #6b6862; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 2px;">Sunday</p><p style="font-size: 15px; font-weight: 700; color: #0a0e1a; margin: 0; letter-spacing: -0.01em;">2:00 PM PDT</p></div>
+              </li>
+              <li style="padding: 14px 16px; border: 1px solid #ececec; border-radius: 10px; margin-bottom: 8px; display: flex; align-items: center; gap: 14px;">
+                <div class="dt-cal"><span class="m">Sep</span><span class="d">25</span></div>
+                <div><p style="font-size: 12px; font-weight: 600; color: #6b6862; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 2px;">Monday</p><p style="font-size: 15px; font-weight: 700; color: #0a0e1a; margin: 0; letter-spacing: -0.01em;">9:00 AM PDT</p></div>
+              </li>
+            </ul>
+            <a href="#" class="cta">Choose a new time</a>
+            <a href="#" class="cta-secondary">None of these work? Suggest another time &rarr;</a>
+            <div style="margin: 24px 0 0; padding: 14px 16px; background: #eff6ff; border-radius: 10px; font-size: 13px; color: #1e3a8a; line-height: 1.5;"><strong>Good news:</strong> Nike is still interested in interviewing you. This is just a time change, not a cancellation.</div>
+          </div>
+        `,
+      },
+      notes: {
+        new: [
+          '<strong>Reschedule framing instead of invitation.</strong> Subject now says Nike proposed new times, not "invited you."',
+          '<strong>"Was" reference.</strong> Original time crossed out so they immediately understand what\'s changing.',
+          '<strong>Amber callout.</strong> Signals "attention needed but not urgent" &mdash; distinct from a first invite.',
+          '<strong>Reassurance line.</strong> "Your spot is still held" and "just a time change" &mdash; addresses reschedule anxiety.',
+          '<strong>Deduped time list.</strong> Current showed the same time twice + one date with no time. Now clean cards with day of week.',
+          '<strong>"Choose a new time" CTA.</strong> Accurate to the action. "Schedule Interview" implied first-time.',
+          '<strong>Escape hatch.</strong> "Suggest another time" if none work.',
+        ],
+        current: [
+          '<strong>Wrong framing.</strong> "Nike has invited you to interview" implies first invite &mdash; the candidate already had a slot.',
+          '<strong>Duplicate times.</strong> Same time appears twice + one entry missing the time.',
+          '<strong>No day of week.</strong> Hard to scan.',
+          '<strong>No "was" reference.</strong> Nothing tells the candidate what\'s being changed.',
+          '<strong>"Schedule Interview" CTA.</strong> Wrong action verb.',
+          '<strong>No reassurance.</strong> Reads like a cancellation.',
+          '<strong>Legal footer missing.</strong>',
         ],
       },
     },
@@ -502,16 +660,58 @@
     b.addEventListener('click', function(){
       currentEmail = b.dataset.email;
       document.querySelectorAll('.toggle-btn[data-email]').forEach(function(x){ x.classList.toggle('active', x === b); });
-      render();
+      // URL param support
+  var params = new URLSearchParams(window.location.search);
+  var pEmail = params.get('email');
+  var pView = params.get('view');
+  var isClean = params.get('clean') === '1';
+  if (pEmail && EMAILS[pEmail]) currentEmail = pEmail;
+  if (pView && (pView === 'new' || pView === 'current')) currentView = pView;
+  document.querySelectorAll('.toggle-btn[data-email]').forEach(function(b){ b.classList.toggle('active', b.dataset.email === currentEmail); });
+  document.querySelectorAll('.toggle-btn[data-view]').forEach(function(b){ b.classList.toggle('active', b.dataset.view === currentView); });
+  if (isClean) {
+    var bar = document.querySelector('.toggle-bar');
+    if (bar) bar.style.display = 'none';
+    document.body.classList.add('clean-mode');
+  }
+  render();
     });
   });
   document.querySelectorAll('.toggle-btn[data-view]').forEach(function(b){
     b.addEventListener('click', function(){
       currentView = b.dataset.view;
       document.querySelectorAll('.toggle-btn[data-view]').forEach(function(x){ x.classList.toggle('active', x === b); });
-      render();
+      // URL param support
+  var params = new URLSearchParams(window.location.search);
+  var pEmail = params.get('email');
+  var pView = params.get('view');
+  var isClean = params.get('clean') === '1';
+  if (pEmail && EMAILS[pEmail]) currentEmail = pEmail;
+  if (pView && (pView === 'new' || pView === 'current')) currentView = pView;
+  document.querySelectorAll('.toggle-btn[data-email]').forEach(function(b){ b.classList.toggle('active', b.dataset.email === currentEmail); });
+  document.querySelectorAll('.toggle-btn[data-view]').forEach(function(b){ b.classList.toggle('active', b.dataset.view === currentView); });
+  if (isClean) {
+    var bar = document.querySelector('.toggle-bar');
+    if (bar) bar.style.display = 'none';
+    document.body.classList.add('clean-mode');
+  }
+  render();
     });
   });
+  // URL param support
+  var params = new URLSearchParams(window.location.search);
+  var pEmail = params.get('email');
+  var pView = params.get('view');
+  var isClean = params.get('clean') === '1';
+  if (pEmail && EMAILS[pEmail]) currentEmail = pEmail;
+  if (pView && (pView === 'new' || pView === 'current')) currentView = pView;
+  document.querySelectorAll('.toggle-btn[data-email]').forEach(function(b){ b.classList.toggle('active', b.dataset.email === currentEmail); });
+  document.querySelectorAll('.toggle-btn[data-view]').forEach(function(b){ b.classList.toggle('active', b.dataset.view === currentView); });
+  if (isClean) {
+    var bar = document.querySelector('.toggle-bar');
+    if (bar) bar.style.display = 'none';
+    document.body.classList.add('clean-mode');
+  }
   render();
 </script>
 
