@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Job seeker message email — current vs redesigned</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body { font-family: 'Inter', -apple-system, sans-serif; color: #0a0e1a; background: #e5e7eb; min-height: 100vh; }
+
+  /* Toggle bar */
+  .toggle-bar { position: sticky; top: 0; z-index: 200; background: #0a0e1a; color: #fff; padding: 14px 24px; display: flex; align-items: center; gap: 18px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+  .toggle-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px; color: rgba(255,255,255,0.55); margin-right: 6px; }
+  .toggle-btns { display: flex; gap: 6px; }
+  .toggle-btn { padding: 8px 14px; background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.75); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+  .toggle-btn:hover { background: rgba(255,255,255,0.16); color: #fff; }
+  .toggle-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
+
+  /* Stage */
+  .stage { padding: 30px 24px 60px; max-width: 780px; margin: 0 auto; }
+
+  /* Inbox preview strip */
+  .inbox { background: #fff; border-radius: 10px; padding: 14px 18px; margin-bottom: 20px; border: 1px solid #e5e7eb; display: flex; gap: 14px; align-items: flex-start; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+  .inbox-icon { flex-shrink: 0; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 15px; background: #2563eb; }
+  .inbox-body { flex: 1; min-width: 0; }
+  .inbox-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px; }
+  .inbox-sender { font-size: 14px; font-weight: 700; color: #0a0e1a; }
+  .inbox-time { font-size: 12px; color: #6b6862; }
+  .inbox-subject { font-size: 14px; font-weight: 500; color: #0a0e1a; margin-bottom: 2px; }
+  .inbox-preview { font-size: 13px; color: #6b6862; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  .stage-label { font-size: 11px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: #6b6862; margin-bottom: 10px; }
+
+  /* === CURRENT (dark) === */
+  .email-current {
+    background: #0a0e1a;
+    color: #d1d5db;
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 40px 40px 34px;
+    border-radius: 4px;
+    font-family: Arial, Helvetica, sans-serif;
+  }
+  .email-current .brand { font-size: 22px; font-weight: 800; color: #4a90e2; margin-bottom: 24px; }
+  .email-current .head { font-size: 14px; color: #f3f4f6; margin-bottom: 18px; font-weight: 600; }
+  .email-current .body { font-size: 14px; line-height: 1.6; color: #d1d5db; margin-bottom: 24px; }
+  .email-current .reply-btn { display: inline-block; padding: 12px 32px; background: #4a5cf7; color: #fff; text-decoration: none; font-weight: 700; border-radius: 4px; font-size: 14px; }
+  .email-current .footer { margin-top: 34px; padding-top: 18px; font-size: 12px; color: #9ca3af; line-height: 1.6; }
+
+  /* === REDESIGNED (light) === */
+  .email-new {
+    background: #f5f5f4;
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 20px 20px 40px;
+    border-radius: 8px;
+    color: #2d2d2d;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+  .email-new-inner { background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.04); border: 1px solid #ececec; }
+  .email-new-brand-strip { background: #fff; padding: 20px 32px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #f0efec; }
+  .email-new-brand { font-size: 20px; font-weight: 800; color: #2563eb; letter-spacing: -0.02em; }
+  .email-new-brand-meta { font-size: 12px; color: #6b6862; }
+  .email-new-body { padding: 30px 32px 34px; }
+  .email-new-greeting { font-size: 15px; color: #2d2d2d; margin: 0 0 22px; }
+
+  .email-new-sender-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-bottom: 24px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+  .email-new-sender-avatar {
+    flex-shrink: 0;
+    width: 48px; height: 48px;
+    border-radius: 12px;
+    background: #0a0e1a;
+    color: #fff;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 20px;
+    letter-spacing: -0.02em;
+  }
+  .email-new-sender-name { font-size: 16px; font-weight: 700; color: #0a0e1a; margin: 0 0 4px; letter-spacing: -0.01em; }
+  .email-new-sender-meta { font-size: 13px; color: #6b6862; line-height: 1.45; }
+  .email-new-sender-meta strong { color: #2d2d2d; font-weight: 600; }
+
+  .email-new-msg-label { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #6b6862; margin: 0 0 10px; }
+  .email-new-msg {
+    font-size: 15px; line-height: 1.6; color: #2d2d2d;
+    margin: 0 0 26px;
+  }
+
+  .email-new-cta {
+    display: block; width: 100%;
+    padding: 14px 20px;
+    background: #2563eb; color: #fff;
+    text-align: center;
+    text-decoration: none;
+    font-size: 15px; font-weight: 700;
+    border-radius: 10px;
+    margin-bottom: 12px;
+  }
+  .email-new-secondary {
+    display: block; text-align: center;
+    font-size: 13px; font-weight: 600;
+    color: #2563eb; text-decoration: none;
+    padding: 8px;
+  }
+
+  .email-new-explainer {
+    margin: 26px 0 0;
+    padding: 16px 18px;
+    background: #fef3c7;
+    border: 1px solid #fde68a;
+    border-radius: 10px;
+    font-size: 12px; color: #78350f; line-height: 1.5;
+  }
+
+  .email-new-footer { padding: 24px 32px 28px; background: #fafafa; border-top: 1px solid #f0efec; font-size: 12px; color: #6b6862; line-height: 1.6; }
+  .email-new-footer-links { margin-bottom: 12px; }
+  .email-new-footer-links a { color: #2563eb; text-decoration: none; margin-right: 14px; font-weight: 500; }
+  .email-new-footer-address { color: #9ca3af; }
+
+  /* Notes callout */
+  .notes {
+    max-width: 640px; margin: 20px auto 0;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 18px 22px;
+    font-size: 13px; color: #4a4a4a; line-height: 1.55;
+  }
+  .notes h4 { margin: 0 0 8px; font-size: 12px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: #6b6862; }
+  .notes ul { margin: 0; padding-left: 18px; }
+  .notes li { margin-bottom: 4px; }
+  .notes strong { color: #0a0e1a; }
+</style>
+</head>
+<body>
+
+<div class="toggle-bar">
+  <span class="toggle-label">Preview</span>
+  <div class="toggle-btns">
+    <button class="toggle-btn active" data-view="new">Redesigned</button>
+    <button class="toggle-btn" data-view="current">Current</button>
+  </div>
+</div>
+
+<div class="stage">
+
+  <!-- REDESIGNED VIEW -->
+  <div id="view-new">
+    <div class="stage-label">How it looks in the inbox</div>
+    <div class="inbox">
+      <div class="inbox-icon">N</div>
+      <div class="inbox-body">
+        <div class="inbox-top">
+          <span class="inbox-sender">Nike via JobFairX</span>
+          <span class="inbox-time">2h ago</span>
+        </div>
+        <div class="inbox-subject">Nike wants to interview you for Retail Sales Associate</div>
+        <div class="inbox-preview">Hi Alex — we reviewed your resume and would like to schedule an interview...</div>
+      </div>
+    </div>
+
+    <div class="stage-label">Redesigned email</div>
+    <div class="email-new">
+      <div class="email-new-inner">
+        <div class="email-new-brand-strip">
+          <span class="email-new-brand">JobFairX</span>
+          <span class="email-new-brand-meta">Sent 2 hours ago</span>
+        </div>
+        <div class="email-new-body">
+          <p class="email-new-greeting">Hi Alex,</p>
+
+          <div class="email-new-sender-card">
+            <div class="email-new-sender-avatar">N</div>
+            <div>
+              <p class="email-new-sender-name">Nike sent you a message</p>
+              <p class="email-new-sender-meta"><strong>Retail Sales Associate</strong> &middot; Denver, CO<br>From Jamie Chen, Talent Acquisition</p>
+            </div>
+          </div>
+
+          <p class="email-new-msg-label">Message</p>
+          <p class="email-new-msg">I wanted to reach out and let you know that we have reviewed your resume, and we are impressed with your qualifications and experience. We would like to invite you for an interview to discuss further how your skills align with the role we have available. Please let us know your availability for next week so we can schedule a suitable time.</p>
+
+          <a href="#" class="email-new-cta">Reply on JobFairX</a>
+          <a href="#" class="email-new-secondary">View job details &rarr;</a>
+        </div>
+        <div class="email-new-footer">
+          <div class="email-new-footer-links">
+            <a href="#">Unsubscribe</a>
+            <a href="#">Email preferences</a>
+            <a href="#">Why am I getting this?</a>
+          </div>
+          <div class="email-new-footer-address">
+            JobFairX &middot; 209 S Stephanie St. STE B #144, Henderson, NV 89012 &middot; 702-269-1414 &middot; info@jobfairx.com
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="notes">
+      <h4>What changed and why</h4>
+      <ul>
+        <li><strong>Light background.</strong> Renders reliably across every email client. Dark backgrounds break in Gmail's light mode and Outlook.</li>
+        <li><strong>Sender identity block.</strong> Nike's brand pill + recruiter's name adds legitimacy. In production, swap the "N" pill for the real company logo.</li>
+        <li><strong>Personalized greeting.</strong> "Hi Alex" &mdash; feels like a real message, not a system notification.</li>
+        <li><strong>Two-line header hierarchy.</strong> Big: "Nike sent you a message." Small: job + city + recruiter name.</li>
+        <li><strong>Reply on JobFairX button.</strong> Deep-linked back into the message thread &mdash; you keep the conversation, the data, and the response-rate metrics on your platform.</li>
+        <li><strong>Timestamp.</strong> "Sent 2 hours ago" up top gives context.</li>
+        <li><strong>Legal footer.</strong> Unsubscribe + preferences + "why am I getting this" &mdash; required by CAN-SPAM. Current email is technically non-compliant.</li>
+        <li><strong>Subject line + preview text.</strong> "Nike wants to interview you for Retail Sales Associate" is outcome-focused. Way better open rate than a generic "New message" line.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- CURRENT VIEW -->
+  <div id="view-current" style="display:none;">
+    <div class="stage-label">How it looks in the inbox</div>
+    <div class="inbox">
+      <div class="inbox-icon" style="background:#4a90e2;">J</div>
+      <div class="inbox-body">
+        <div class="inbox-top">
+          <span class="inbox-sender">JobFairX</span>
+          <span class="inbox-time">2h ago</span>
+        </div>
+        <div class="inbox-subject">Message from Nike regarding Retail Sales Associate</div>
+        <div class="inbox-preview">I wanted to reach out and let you know that we have reviewed your resume...</div>
+      </div>
+    </div>
+
+    <div class="stage-label">Current email</div>
+    <div class="email-current">
+      <div class="brand">JobFairX</div>
+      <div class="head">Message from Nike regarding Retail Sales Associate</div>
+      <div class="body">I wanted to reach out and let you know that we have reviewed your resume, and we are impressed with your qualifications and experience. We would like to invite you for an interview to discuss further how your skills align with the role we have available. Please let us know your availability for next week so we can schedule a suitable time.</div>
+      <a href="#" class="reply-btn">Reply</a>
+      <div class="footer">
+        Mailing address: 209 S Stephanie St. STE B #144 Henderson, NV 89012<br>
+        702-269-1414 &nbsp; info@jobfairx.com
+      </div>
+    </div>
+
+    <div class="notes">
+      <h4>Notes on the current version</h4>
+      <ul>
+        <li><strong>Dark background.</strong> Inconsistent rendering across clients.</li>
+        <li><strong>No sender identity beyond a name.</strong> Nike gets no visual treatment. Feels like it could be spam.</li>
+        <li><strong>Header does too much.</strong> "Message from Nike regarding Retail Sales Associate" is a run-on sentence.</li>
+        <li><strong>No greeting.</strong> Doesn't address the candidate by name.</li>
+        <li><strong>No timestamp inside the email.</strong></li>
+        <li><strong>Reply button unclear.</strong> Where does it go? Deep link back to platform? mailto:?</li>
+        <li><strong>Footer missing legal.</strong> No unsubscribe, no preferences link &mdash; CAN-SPAM violation.</li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  document.querySelectorAll('.toggle-btn').forEach(function(b){
+    b.addEventListener('click', function(){
+      var view = b.dataset.view;
+      document.querySelectorAll('.toggle-btn').forEach(function(x){ x.classList.toggle('active', x === b); });
+      document.getElementById('view-new').style.display = (view === 'new') ? '' : 'none';
+      document.getElementById('view-current').style.display = (view === 'current') ? '' : 'none';
+    });
+  });
+</script>
+
+</body>
+</html>
