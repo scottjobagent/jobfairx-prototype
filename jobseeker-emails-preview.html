@@ -1,0 +1,519 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Job seeker emails — 4 states, current vs redesigned</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body { font-family: 'Inter', -apple-system, sans-serif; color: #0a0e1a; background: #e5e7eb; min-height: 100vh; }
+
+  .toggle-bar { position: sticky; top: 0; z-index: 200; background: #0a0e1a; color: #fff; padding: 12px 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+  .tb-row { display: flex; align-items: center; gap: 14px; }
+  .tb-row + .tb-row { margin-top: 8px; }
+  .toggle-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px; color: rgba(255,255,255,0.55); min-width: 52px; }
+  .toggle-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+  .toggle-btn { padding: 7px 12px; background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.75); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer; }
+  .toggle-btn:hover { background: rgba(255,255,255,0.16); color: #fff; }
+  .toggle-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
+
+  .stage { padding: 30px 24px 60px; max-width: 780px; margin: 0 auto; }
+  .stage-label { font-size: 11px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: #6b6862; margin-bottom: 10px; }
+
+  /* Inbox strip */
+  .inbox { background: #fff; border-radius: 10px; padding: 14px 18px; margin-bottom: 20px; border: 1px solid #e5e7eb; display: flex; gap: 14px; align-items: flex-start; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+  .inbox-icon { flex-shrink: 0; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 15px; background: #2563eb; }
+  .inbox-body { flex: 1; min-width: 0; }
+  .inbox-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px; }
+  .inbox-sender { font-size: 14px; font-weight: 700; color: #0a0e1a; }
+  .inbox-time { font-size: 12px; color: #6b6862; }
+  .inbox-subject { font-size: 14px; font-weight: 500; color: #0a0e1a; margin-bottom: 2px; }
+  .inbox-preview { font-size: 13px; color: #6b6862; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* CURRENT (dark) */
+  .email-current { background: #0a0e1a; color: #d1d5db; max-width: 640px; margin: 0 auto; padding: 40px 40px 34px; border-radius: 4px; font-family: Arial, Helvetica, sans-serif; }
+  .email-current .brand { font-size: 22px; font-weight: 800; color: #4a90e2; margin-bottom: 24px; }
+  .email-current .greeting { font-size: 14px; color: #f3f4f6; margin-bottom: 16px; }
+  .email-current .body { font-size: 14px; line-height: 1.6; color: #d1d5db; margin-bottom: 16px; }
+  .email-current .details { font-size: 14px; line-height: 1.6; color: #d1d5db; margin-bottom: 22px; }
+  .email-current .details strong { color: #f3f4f6; }
+  .email-current .links a { display: block; color: #d1d5db; text-decoration: underline; margin-bottom: 8px; font-size: 14px; }
+  .email-current .btn { display: inline-block; padding: 12px 24px; background: #4a5cf7; color: #fff; text-decoration: none; font-weight: 700; border-radius: 4px; font-size: 14px; margin-top: 10px; }
+  .email-current .footer { margin-top: 34px; padding-top: 18px; font-size: 12px; color: #9ca3af; line-height: 1.6; }
+  .email-current .icon-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; color: #d1d5db; font-size: 14px; }
+  .email-current .icon-row .em { font-size: 15px; }
+
+  /* REDESIGNED */
+  .email-new { background: #f5f5f4; max-width: 640px; margin: 0 auto; padding: 20px 20px 40px; border-radius: 8px; color: #2d2d2d; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+  .email-new-inner { background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.04); border: 1px solid #ececec; }
+  .email-new-brand-strip { background: #fff; padding: 20px 32px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #f0efec; }
+  .email-new-brand { font-size: 20px; font-weight: 800; color: #2563eb; letter-spacing: -0.02em; }
+  .email-new-brand-meta { font-size: 12px; color: #6b6862; }
+  .email-new-body { padding: 28px 32px 34px; }
+  .email-new-greeting { font-size: 15px; color: #2d2d2d; margin: 0 0 20px; }
+
+  /* Callouts */
+  .callout { border-radius: 12px; padding: 18px 20px; margin-bottom: 22px; display: flex; gap: 14px; align-items: flex-start; }
+  .callout-icon { flex-shrink: 0; width: 40px; height: 40px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; }
+  .callout-icon svg { width: 20px; height: 20px; }
+  .callout-title { font-size: 15px; font-weight: 700; margin: 0 0 3px; letter-spacing: -0.01em; }
+  .callout-meta { font-size: 13px; line-height: 1.5; margin: 0; }
+  /* Green (match / confirmed) */
+  .callout.green { background: #ecfdf5; border: 1px solid #a7f3d0; }
+  .callout.green .callout-icon { background: #d1fae5; color: #059669; }
+  .callout.green .callout-title { color: #064e3b; }
+  .callout.green .callout-meta { color: #065f46; }
+  /* Blue (info / pending) */
+  .callout.blue { background: #eff6ff; border: 1px solid #bfdbfe; }
+  .callout.blue .callout-icon { background: #dbeafe; color: #2563eb; }
+  .callout.blue .callout-title { color: #1e3a8a; }
+  .callout.blue .callout-meta { color: #1e40af; }
+  /* Amber (change / attention) */
+  .callout.amber { background: #fff7ed; border: 1px solid #fed7aa; }
+  .callout.amber .callout-icon { background: #ffedd5; color: #c2410c; }
+  .callout.amber .callout-title { color: #7c2d12; }
+  .callout.amber .callout-meta { color: #9a3412; }
+  /* Emerald pulse (starting now) */
+  .callout.pulse { background: #ecfdf5; border: 2px solid #10b981; position: relative; }
+  .callout.pulse .callout-icon { background: #10b981; color: #fff; }
+  .callout.pulse .callout-title { color: #064e3b; }
+  .callout.pulse .callout-meta { color: #065f46; }
+  .live-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #ef4444; margin-right: 6px; box-shadow: 0 0 0 rgba(239, 68, 68, 0.7); animation: pulse 2s infinite; vertical-align: middle; }
+  @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } 70% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
+
+  /* Info card (job details) */
+  .info-card { background: #fafafa; border: 1px solid #ececec; border-radius: 12px; padding: 16px 18px; margin-bottom: 22px; }
+  .info-card-row { display: flex; align-items: center; gap: 12px; padding: 8px 0; font-size: 14px; color: #2d2d2d; }
+  .info-card-row + .info-card-row { border-top: 1px solid #f0efec; }
+  .info-card-row .k { color: #6b6862; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; min-width: 78px; }
+  .info-card-row .v { flex: 1; font-weight: 600; color: #0a0e1a; }
+  .info-card-row .v.big { font-size: 15px; }
+
+  /* Datetime card (accepted / join now) */
+  .dt-card { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 12px; padding: 16px 18px; margin-bottom: 22px; display: flex; align-items: center; gap: 14px; }
+  .dt-cal { flex-shrink: 0; width: 52px; height: 58px; background: #fff; border: 1px solid #bfdbfe; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .dt-cal .m { font-size: 10px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: #2563eb; }
+  .dt-cal .d { font-size: 22px; font-weight: 800; color: #0a0e1a; letter-spacing: -0.02em; line-height: 1; }
+  .dt-info .dt-day { font-size: 12px; font-weight: 600; color: #1e40af; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 3px; }
+  .dt-info .dt-time { font-size: 15px; font-weight: 700; color: #0a0e1a; margin: 0; }
+
+  /* Buttons + links */
+  .cta { display: block; padding: 14px 20px; background: #2563eb; color: #fff; text-align: center; text-decoration: none; font-size: 15px; font-weight: 700; border-radius: 10px; margin-bottom: 12px; }
+  .cta.emerald { background: #10b981; }
+  .cta.emerald:hover { background: #059669; }
+  .cta-secondary { display: block; text-align: center; font-size: 13px; font-weight: 600; color: #2563eb; text-decoration: none; padding: 8px; }
+
+  .action-group { background: #fafafa; border: 1px solid #ececec; border-radius: 12px; padding: 14px 16px; margin-top: 18px; }
+  .action-group-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: #6b6862; margin: 0 0 8px; }
+  .action-group-row { display: flex; gap: 14px; }
+  .action-group-row a { flex: 1; font-size: 13px; color: #2563eb; text-decoration: none; font-weight: 600; padding: 6px 0; }
+  .action-group-row a.destructive { color: #9a3412; }
+
+  .body-copy { font-size: 14px; line-height: 1.55; color: #2d2d2d; margin: 0 0 18px; }
+  .platform-note { padding: 12px 14px; background: #f5f7fb; border-radius: 10px; font-size: 12px; color: #4a4a4a; line-height: 1.5; margin-top: 14px; display: flex; align-items: center; gap: 8px; }
+  .platform-note svg { width: 14px; height: 14px; flex-shrink: 0; color: #2563eb; }
+
+  .email-new-footer { padding: 24px 32px 28px; background: #fafafa; border-top: 1px solid #f0efec; font-size: 12px; color: #6b6862; line-height: 1.6; }
+  .email-new-footer-links a { color: #2563eb; text-decoration: none; margin-right: 14px; font-weight: 500; }
+  .email-new-footer-address { color: #9ca3af; margin-top: 12px; }
+
+  .notes { max-width: 640px; margin: 20px auto 0; background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 18px 22px; font-size: 13px; color: #4a4a4a; line-height: 1.55; }
+  .notes h4 { margin: 0 0 8px; font-size: 12px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: #6b6862; }
+  .notes ul { margin: 0; padding-left: 18px; }
+  .notes li { margin-bottom: 4px; }
+  .notes strong { color: #0a0e1a; }
+</style>
+</head>
+<body>
+
+<div class="toggle-bar">
+  <div class="tb-row">
+    <span class="toggle-label">Email</span>
+    <div class="toggle-btns">
+      <button class="toggle-btn active" data-email="match">Job match</button>
+      <button class="toggle-btn" data-email="submitted">Request submitted</button>
+      <button class="toggle-btn" data-email="accepted">Accepted / confirmed</button>
+      <button class="toggle-btn" data-email="joinnow">Starting now</button>
+    </div>
+  </div>
+  <div class="tb-row">
+    <span class="toggle-label">View</span>
+    <div class="toggle-btns">
+      <button class="toggle-btn active" data-view="new">Redesigned</button>
+      <button class="toggle-btn" data-view="current">Current</button>
+    </div>
+  </div>
+</div>
+
+<div class="stage" id="stage"></div>
+
+<script>
+  var currentEmail = 'match';
+  var currentView = 'new';
+
+  var EMAILS = {
+    match: {
+      current: {
+        inboxSender: 'JobFairX',
+        inboxIcon: 'J',
+        inboxIconBg: '#4a90e2',
+        inboxSubject: 'Job Match Found! Schedule Your Interview, Scott',
+        inboxPreview: 'We have exciting news for you! FSY Fitness is interested in interviewing...',
+        html: `
+          <div class="brand">JobFairX</div>
+          <div class="greeting">Hi Scott,</div>
+          <div class="body">We have exciting news for you! FSY Fitness is interested in interviewing you for the Team Lead position on Friday, July 16, 2023 between 11:00 AM - 2:00 PM EST.</div>
+          <div class="body">This is a fantastic opportunity to showcase your skills and qualifications.</div>
+          <a href="#" class="btn">Schedule Interview</a>
+          <div class="body" style="margin-top:22px;font-weight:700;color:#f3f4f6;">Don't miss out on this chance to interview with FSY Fitness. Act now to secure your preferred interview time.</div>
+          <div class="footer">
+            Mailing address: 209 S Stephanie St. STE B #144 Henderson, NV 89012<br>
+            702-269-1414 &nbsp; info@jobfairx.com<br><br>
+            Resource Center &nbsp; Terms and Conditions &nbsp; Privacy Policy &nbsp; Unsubscribe
+          </div>
+        `,
+      },
+      new: {
+        inboxSender: 'Nike via JobFairX',
+        inboxIcon: 'N',
+        inboxIconBg: '#0a0e1a',
+        inboxSubject: 'It\\'s a match — Nike is looking for a Retail Sales Associate',
+        inboxPreview: 'Nike just posted a role that fits your profile. Request an interview...',
+        html: `
+          <div class="email-new-brand-strip">
+            <span class="email-new-brand">JobFairX</span>
+            <span class="email-new-brand-meta">Just now</span>
+          </div>
+          <div class="email-new-body">
+            <p class="email-new-greeting">Hi Scott,</p>
+            <div class="callout green">
+              <div class="callout-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+              </div>
+              <div>
+                <p class="callout-title">You matched with Nike</p>
+                <p class="callout-meta">Nike just posted a Retail Sales Associate role and your profile is a fit. Request an interview to lock in a time.</p>
+              </div>
+            </div>
+            <div class="info-card">
+              <div class="info-card-row"><span class="k">Company</span><span class="v big">Nike</span></div>
+              <div class="info-card-row"><span class="k">Role</span><span class="v">Retail Sales Associate</span></div>
+              <div class="info-card-row"><span class="k">Location</span><span class="v">Denver, CO</span></div>
+              <div class="info-card-row"><span class="k">Event</span><span class="v">Fri, Jul 16 &middot; 11:00 AM – 2:00 PM EST</span></div>
+            </div>
+            <p class="body-copy">Interviews get filled first-come, first-served. Request an interview to hold a spot &mdash; Nike will confirm within 24 hours.</p>
+            <a href="#" class="cta">Request an interview</a>
+            <a href="#" class="cta-secondary">View job details &rarr;</a>
+          </div>
+        `,
+      },
+      notes: {
+        new: [
+          '<strong>"Request an interview" not "Schedule."</strong> The candidate isn\\'t picking a time yet &mdash; they\\'re asking Nike to be considered.',
+          '<strong>"You matched with Nike" framing.</strong> This is a job-alert-style match notification, not an invitation. Feels like Indeed / LinkedIn Jobs.',
+          '<strong>Info card with structured details.</strong> Company, role, location, event window &mdash; scannable at a glance.',
+          '<strong>Urgency line grounded in reality.</strong> "First-come, first-served" is honest &mdash; better than "act now" pressure that reads as spam.',
+          '<strong>Timeline expectation.</strong> "Nike will confirm within 24 hours" sets what happens next.',
+        ],
+        current: [
+          '<strong>"Schedule Your Interview" is wrong.</strong> They can\\'t schedule &mdash; they haven\\'t been accepted yet. They can only request.',
+          '<strong>"Job Match Found!" in subject line is fine, but the exclamation feels spammy.</strong>',
+          '<strong>No structured job details.</strong> Everything is in one run-on paragraph.',
+          '<strong>"Don\\'t miss out on this chance."</strong> Reads as sales pressure.',
+          '<strong>Missing timeline.</strong> What happens after they click? No expectation set.',
+        ],
+      },
+    },
+    submitted: {
+      current: {
+        inboxSender: 'JobFairX',
+        inboxIcon: 'J',
+        inboxIconBg: '#4a90e2',
+        inboxSubject: 'Your interview with Nike',
+        inboxPreview: 'Your interview request on Friday, July 13, 2022 at 11:00 AM EST has been submitted...',
+        html: `
+          <div class="greeting">Hi Brandon,</div>
+          <div class="body">Your interview request on Friday, July 13, 2022 at 11:00 AM EST has been submitted. You will receive an email once the employer has confirmed or rejected your request.</div>
+          <div class="details">
+            <strong>Job Details:</strong><br><br>
+            Job Title: Sales Associate<br>
+            Location: Las Vegas, NV<br>
+            Salary: $20,000<br>
+            Job type: Remote
+          </div>
+          <div class="footer">
+            Mailing address: 209 S Stephanie St. STE B #144 Henderson, NV 89012<br>
+            702-269-1414 &nbsp; info@jobfairx.com
+          </div>
+        `,
+      },
+      new: {
+        inboxSender: 'Nike via JobFairX',
+        inboxIcon: 'N',
+        inboxIconBg: '#0a0e1a',
+        inboxSubject: 'Your interview request to Nike is in',
+        inboxPreview: 'We\\'ll let you know as soon as Nike confirms — most respond within 24 hours...',
+        html: `
+          <div class="email-new-brand-strip">
+            <span class="email-new-brand">JobFairX</span>
+            <span class="email-new-brand-meta">Just now</span>
+          </div>
+          <div class="email-new-body">
+            <p class="email-new-greeting">Hi Brandon,</p>
+            <div class="callout blue">
+              <div class="callout-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              </div>
+              <div>
+                <p class="callout-title">Request sent to Nike</p>
+                <p class="callout-meta">We\\'ll email you as soon as Nike confirms &mdash; most employers respond within 24 hours.</p>
+              </div>
+            </div>
+            <div class="dt-card">
+              <div class="dt-cal"><span class="m">Jul</span><span class="d">13</span></div>
+              <div class="dt-info">
+                <p class="dt-day">Requested for Friday</p>
+                <p class="dt-time">11:00 AM EST</p>
+              </div>
+            </div>
+            <div class="info-card">
+              <div class="info-card-row"><span class="k">Company</span><span class="v big">Nike</span></div>
+              <div class="info-card-row"><span class="k">Role</span><span class="v">Sales Associate</span></div>
+              <div class="info-card-row"><span class="k">Location</span><span class="v">Las Vegas, NV</span></div>
+              <div class="info-card-row"><span class="k">Type</span><span class="v">Remote</span></div>
+            </div>
+            <p class="body-copy">Your interview will happen right here on JobFairX &mdash; no software to download. Once Nike accepts, we\\'ll send a link to join.</p>
+            <a href="#" class="cta-secondary">View request status &rarr;</a>
+          </div>
+        `,
+      },
+      notes: {
+        new: [
+          '<strong>Subject makes the status clear.</strong> "Your interview request to Nike is in" &mdash; not just "Your interview with Nike" which sounds already scheduled.',
+          '<strong>Callout confirms what happened.</strong> "Request sent" + timeline expectation.',
+          '<strong>Requested time card.</strong> Reinforces what they asked for so they can double-check.',
+          '<strong>Explicit platform note.</strong> "Interview will happen right here on JobFairX" answers the "how does this work?" question.',
+          '<strong>Removed the salary line.</strong> Fine to keep, but for entry-level roles a low number ($20K) can dampen enthusiasm right after they hit request. Consider hiding if optional or ranges only.',
+          '<strong>No big CTA.</strong> There\\'s no immediate action for the candidate to take &mdash; they wait for the employer. A secondary "View status" link is enough.',
+        ],
+        current: [
+          '<strong>Subject too vague.</strong> "Your interview with Nike" implies it\\'s already scheduled.',
+          '<strong>Buried status.</strong> "has been submitted" is easy to miss in a paragraph.',
+          '<strong>No clear next step.</strong> The candidate doesn\\'t know what to do or when to expect a response.',
+          '<strong>Doesn\\'t mention the interview happens on JobFairX.</strong> Confusion later when they get the join link.',
+        ],
+      },
+    },
+    accepted: {
+      current: {
+        inboxSender: 'JobFairX',
+        inboxIcon: 'J',
+        inboxIconBg: '#4a90e2',
+        inboxSubject: 'Your interview with Nike is confirmed',
+        inboxPreview: 'Your virtual interview with Nike is confirmed on Friday, July 13, 2022...',
+        html: `
+          <div class="greeting">Hi Brandon,</div>
+          <div class="body">Your virtual interview with Nike is confirmed on Friday, July 13, 2022 at 11:00 AM EST, you can stand out if you <a style="color:#93c5fd;text-decoration:underline;" href="#">send a message to confirm your interest.</a></div>
+          <div class="details">
+            <strong>Job Details:</strong><br><br>
+            Job Title: Sales Associate<br>
+            Location: Las Vegas, NV<br>
+            Salary: $20,000<br>
+            Job type: Remote
+          </div>
+          <div class="links">
+            <a href="#">Change interview time</a>
+            <a href="#">Cancel interview</a>
+          </div>
+          <a href="#" class="btn">View Interview Details</a>
+          <div class="footer">
+            Mailing address: 209 S Stephanie St. STE B #144 Henderson, NV 89012<br>
+            702-269-1414 &nbsp; info@jobfairx.com
+          </div>
+        `,
+      },
+      new: {
+        inboxSender: 'Nike via JobFairX',
+        inboxIcon: 'N',
+        inboxIconBg: '#0a0e1a',
+        inboxSubject: 'You\\'re set — your interview with Nike is confirmed',
+        inboxPreview: 'Fri, Jul 13 at 11:00 AM EST. Send Nike a note to stand out beforehand...',
+        html: `
+          <div class="email-new-brand-strip">
+            <span class="email-new-brand">JobFairX</span>
+            <span class="email-new-brand-meta">Just now</span>
+          </div>
+          <div class="email-new-body">
+            <p class="email-new-greeting">Hi Brandon,</p>
+            <div class="callout green">
+              <div class="callout-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
+              <div>
+                <p class="callout-title">You\\'re set &mdash; Nike confirmed your interview</p>
+                <p class="callout-meta">Get ready to meet the team. Here\\'s everything you need.</p>
+              </div>
+            </div>
+            <div class="dt-card">
+              <div class="dt-cal"><span class="m">Jul</span><span class="d">13</span></div>
+              <div class="dt-info">
+                <p class="dt-day">Friday &middot; 11:00 AM EST</p>
+                <p class="dt-time">Nike &middot; Sales Associate</p>
+              </div>
+            </div>
+            <div class="info-card">
+              <div class="info-card-row"><span class="k">Location</span><span class="v">Las Vegas, NV</span></div>
+              <div class="info-card-row"><span class="k">Type</span><span class="v">Virtual, on JobFairX</span></div>
+              <div class="info-card-row"><span class="k">Duration</span><span class="v">15 minutes</span></div>
+            </div>
+            <a href="#" class="cta">View interview details</a>
+            <a href="#" class="cta-secondary">Send Nike a note to stand out &rarr;</a>
+
+            <div class="action-group">
+              <p class="action-group-label">Need to change it?</p>
+              <div class="action-group-row">
+                <a href="#">Change interview time</a>
+                <a href="#" class="destructive">Cancel interview</a>
+              </div>
+            </div>
+
+            <div class="platform-note">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="12" rx="2"/><path d="M10 12h4M12 10v4"/></svg>
+              Interview opens in your browser. No download needed.
+            </div>
+          </div>
+        `,
+      },
+      notes: {
+        new: [
+          '<strong>Grouped primary + related action.</strong> "View interview details" is primary. "Send Nike a note" is right below since they\\'re both about engaging with the confirmed interview. Per your ask.',
+          '<strong>"Change time" and "Cancel" grouped separately.</strong> These are utility actions &mdash; put in a "Need to change it?" bucket so they don\\'t compete with the primary CTA.',
+          '<strong>Duration added.</strong> "15 minutes" sets expectation and reduces no-shows from candidates who thought it was an hour.',
+          '<strong>Datetime card leads.</strong> Friday, 11 AM EST &mdash; the thing they need to remember is upfront.',
+          '<strong>"Virtual, on JobFairX" as a details row.</strong> No download needed hint is at the bottom for the anxious candidate.',
+          '<strong>Success framing.</strong> Green callout with a check &mdash; different from the "request submitted" (blue) state.',
+        ],
+        current: [
+          '<strong>Buried "stand out" link.</strong> The most helpful thing they can do is send a note &mdash; but it\\'s inside a run-on sentence.',
+          '<strong>"View Interview Details" button and "Change/Cancel" links are visually competing.</strong> Which is the primary action?',
+          '<strong>No duration.</strong> Candidate doesn\\'t know if to block 15 min or 2 hours.',
+          '<strong>Salary line reappears.</strong> They already know the role &mdash; keeping salary in a confirmation email adds nothing.',
+          '<strong>No mention of "how does this work?"</strong> First-time candidates may wonder if they need to install anything.',
+        ],
+      },
+    },
+    joinnow: {
+      current: {
+        inboxSender: 'JobFairX',
+        inboxIcon: 'J',
+        inboxIconBg: '#4a90e2',
+        inboxSubject: 'Your interviewer is ready',
+        inboxPreview: 'Your interviewer is ready. Join the interview now.',
+        html: `
+          <div class="brand">JobFairX</div>
+          <div class="greeting">Hello Adrian,</div>
+          <div class="body" style="font-size:16px;font-weight:700;color:#f3f4f6;">Your interviewer is ready. Join the interview now.</div>
+          <div style="margin-top:16px;">
+            <div class="icon-row"><span class="em">💼</span> School Bus Driver</div>
+            <div class="icon-row"><span class="em">🕒</span> Friday, July 13, 2022, 11:00 AM to 11:15 AM EST</div>
+          </div>
+          <a href="#" class="btn" style="margin-top:16px;">Join My Interview</a>
+          <div class="body" style="margin-top:20px;">JobFairX offers an in-browser interview experience. There is no need to download extra software.</div>
+          <div class="footer">
+            Mailing address: 209 S Stephanie St. STE B #144 Henderson, NV 89012<br>
+            702-269-1414 &nbsp; info@jobfairx.com
+          </div>
+        `,
+      },
+      new: {
+        inboxSender: 'Nike via JobFairX',
+        inboxIcon: 'N',
+        inboxIconBg: '#0a0e1a',
+        inboxSubject: 'Your Nike interview is starting — join now',
+        inboxPreview: 'School Bus Driver · 11:00 AM. Nike is in the room. Click below to join...',
+        html: `
+          <div class="email-new-brand-strip">
+            <span class="email-new-brand">JobFairX</span>
+            <span class="email-new-brand-meta">Just now</span>
+          </div>
+          <div class="email-new-body">
+            <p class="email-new-greeting">Hi Adrian,</p>
+            <div class="callout pulse">
+              <div class="callout-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              </div>
+              <div>
+                <p class="callout-title"><span class="live-dot"></span>Nike is ready to interview you now</p>
+                <p class="callout-meta"><strong>School Bus Driver</strong> &middot; 11:00 – 11:15 AM EST</p>
+              </div>
+            </div>
+            <a href="#" class="cta emerald">Join interview &rarr;</a>
+            <div class="platform-note">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="12" rx="2"/><path d="M10 12h4M12 10v4"/></svg>
+              Opens in your browser. No download needed.
+            </div>
+          </div>
+        `,
+      },
+      notes: {
+        new: [
+          '<strong>Nike is named up top.</strong> "Nike is ready to interview you now" &mdash; specific and personal, per your ask.',
+          '<strong>Live dot + pulse animation.</strong> This is a real-time action email &mdash; visually signals urgency without a scary red banner.',
+          '<strong>Compact info line.</strong> Role and time on one line in the callout, not two big rows below it. You said they know it\\'s starting now, they don\\'t need it broken out.',
+          '<strong>Bright green CTA.</strong> Emerald instead of blue &mdash; signals "Go" more than "info."',
+          '<strong>No footer clutter.</strong> Kept legal footer available but this is a "get in NOW" email &mdash; minimal scroll below the fold.',
+          '<strong>Subject line.</strong> "Your Nike interview is starting — join now" &mdash; way more scannable than "Your interviewer is ready."',
+        ],
+        current: [
+          '<strong>Doesn\\'t mention Nike.</strong> "Your interviewer is ready" &mdash; who? The candidate has probably requested several interviews.',
+          '<strong>Emoji icons render inconsistently.</strong> 💼 and 🕒 look different across Gmail, Outlook, Apple Mail.',
+          '<strong>Repeats info the candidate already knows.</strong> They just scheduled this &mdash; full date breakdown is unnecessary. Time and role are enough.',
+          '<strong>No visual urgency.</strong> Nothing about the email signals "this is happening now" vs a reminder or confirmation.',
+          '<strong>Long paragraph at the bottom.</strong> "JobFairX offers an in-browser interview experience..." &mdash; can be a small note.',
+        ],
+      },
+    },
+  };
+
+  function render() {
+    var stage = document.getElementById('stage');
+    var data = EMAILS[currentEmail][currentView];
+    var otherView = currentView === 'new' ? 'current' : 'new';
+    var notes = EMAILS[currentEmail].notes[currentView];
+    var iconStyle = 'background:' + data.inboxIconBg + ';';
+    var emailHtml;
+    if (currentView === 'new') {
+      emailHtml = '<div class="stage-label">Redesigned email</div><div class="email-new"><div class="email-new-inner">' + data.html + '<div class="email-new-footer"><div class="email-new-footer-links"><a href="#">Unsubscribe</a><a href="#">Email preferences</a><a href="#">Why am I getting this?</a></div><div class="email-new-footer-address">JobFairX &middot; 209 S Stephanie St. STE B #144, Henderson, NV 89012 &middot; 702-269-1414 &middot; info@jobfairx.com</div></div></div></div>';
+    } else {
+      emailHtml = '<div class="stage-label">Current email</div><div class="email-current">' + data.html + '</div>';
+    }
+    var notesTitle = currentView === 'new' ? 'What changed and why' : 'Notes on the current version';
+    var notesHtml = '<div class="notes"><h4>' + notesTitle + '</h4><ul>' + notes.map(function(n){ return '<li>' + n + '</li>'; }).join('') + '</ul></div>';
+    stage.innerHTML =
+      '<div class="stage-label">How it looks in the inbox</div>' +
+      '<div class="inbox"><div class="inbox-icon" style="' + iconStyle + '">' + data.inboxIcon + '</div><div class="inbox-body"><div class="inbox-top"><span class="inbox-sender">' + data.inboxSender + '</span><span class="inbox-time">Just now</span></div><div class="inbox-subject">' + data.inboxSubject + '</div><div class="inbox-preview">' + data.inboxPreview + '</div></div></div>' +
+      emailHtml +
+      notesHtml;
+  }
+
+  document.querySelectorAll('.toggle-btn[data-email]').forEach(function(b){
+    b.addEventListener('click', function(){
+      currentEmail = b.dataset.email;
+      document.querySelectorAll('.toggle-btn[data-email]').forEach(function(x){ x.classList.toggle('active', x === b); });
+      render();
+    });
+  });
+  document.querySelectorAll('.toggle-btn[data-view]').forEach(function(b){
+    b.addEventListener('click', function(){
+      currentView = b.dataset.view;
+      document.querySelectorAll('.toggle-btn[data-view]').forEach(function(x){ x.classList.toggle('active', x === b); });
+      render();
+    });
+  });
+  render();
+</script>
+
+</body>
+</html>
