@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JobFairX: How it works + dashboard (proposed)</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+  :root{
+    --blue:#2563eb; --ink:#0f172a; --slate:#475569; --slate2:#64748b;
+    --line:#e6e8ee; --bg:#f4f5f8; --badge:#eaf0fe;
+    --green:#16a34a; --greenbg:#e7f6ec; --amber:#9A6700; --amberbg:#fbf3e2; --greybg:#eef1f5;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:Inter,sans-serif;background:var(--bg);color:var(--ink);padding:34px 26px 70px;}
+  h1{font-size:20px;font-weight:800;margin:0 0 4px;}
+  .lead{color:var(--slate2);font-size:14px;margin:0 0 34px;}
+  .wrap{max-width:1080px;margin:0 auto;}
+  .tag{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#1c8a53;margin:0 0 14px;}
+  .dot{width:8px;height:8px;border-radius:50%;background:currentColor;}
+  .panel{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:0 8px 26px rgba(15,23,42,.05);padding:40px 40px 44px;margin:0 0 30px;}
+  /* how it works */
+  .kicker{text-align:center;color:var(--blue);font-weight:700;font-size:13px;letter-spacing:.06em;text-transform:uppercase;margin:0 0 6px;}
+  .sec-h{text-align:center;font-size:28px;font-weight:800;letter-spacing:-.02em;margin:0 0 34px;}
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;}
+  .step{border:1px solid var(--line);border-radius:14px;padding:24px 22px;}
+  .num{width:38px;height:38px;border-radius:10px;background:var(--badge);color:var(--blue);font-weight:800;display:flex;align-items:center;justify-content:center;font-size:16px;margin:0 0 16px;}
+  .step h3{font-size:18px;font-weight:700;margin:0 0 8px;line-height:1.25;}
+  .step p{color:var(--slate);font-size:14.5px;line-height:1.55;margin:0;}
+  .step b{color:var(--ink);}
+  /* home base */
+  .home{display:grid;grid-template-columns:0.9fr 1.1fr;gap:40px;align-items:center;}
+  .home .kick{color:var(--blue);font-weight:700;font-size:13px;letter-spacing:.06em;text-transform:uppercase;margin:0 0 8px;}
+  .home h2{font-size:26px;font-weight:800;letter-spacing:-.02em;margin:0 0 12px;line-height:1.15;}
+  .home p{color:var(--slate);font-size:15px;line-height:1.6;margin:0 0 18px;}
+  .checks{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px;}
+  .checks li{display:flex;align-items:flex-start;gap:10px;font-size:14.5px;color:var(--ink);font-weight:500;}
+  .checks .ck{width:20px;height:20px;border-radius:50%;background:var(--greenbg);color:var(--green);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0;margin-top:1px;}
+  /* dashboard peek */
+  .win{border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:0 14px 40px rgba(15,23,42,.12);background:#fff;}
+  .winbar{display:flex;align-items:center;gap:7px;padding:11px 14px;background:#f7f8fa;border-bottom:1px solid var(--line);}
+  .winbar i{width:11px;height:11px;border-radius:50%;background:#d7dbe2;display:block;}
+  .winbar .u{margin-left:12px;color:#9aa2b1;font-size:12px;}
+  .app{display:flex;min-height:250px;}
+  .side{width:150px;background:#171a1f;color:#cdd2da;padding:16px 12px;flex-shrink:0;}
+  .side .brand{color:#fff;font-weight:800;font-size:14px;margin:0 0 16px;padding-left:6px;}
+  .side .item{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;padding:8px 8px;border-radius:8px;color:#aab2bf;}
+  .side .item.on{background:#2b313b;color:#fff;}
+  .side .item .b{margin-left:auto;background:#2563eb;color:#fff;border-radius:9px;font-size:10px;padding:1px 6px;font-weight:700;}
+  .main{flex:1;padding:16px 16px;background:#fff;}
+  .tabs{display:flex;gap:6px;margin:0 0 14px;}
+  .tabs .t{font-size:12px;font-weight:700;padding:6px 12px;border-radius:8px;color:#64748b;}
+  .tabs .t.on{background:#1f242c;color:#fff;}
+  .row{display:grid;grid-template-columns:1.15fr 1.15fr 1fr;gap:10px;align-items:center;border:1px solid #eef0f4;border-radius:10px;padding:12px 12px;margin:0 0 9px;}
+  .row .ev{font-size:12.5px;font-weight:700;color:#0f172a;}
+  .row .ev span{display:block;color:#94a3b8;font-weight:500;font-size:11px;margin-top:2px;}
+  .row .job{font-size:12.5px;color:#2563eb;font-weight:700;}
+  .row .job span{display:block;color:#64748b;font-weight:500;font-size:11px;margin-top:2px;}
+  .pill{justify-self:start;font-size:11px;font-weight:700;padding:4px 10px;border-radius:9999px;}
+  .pill.g{background:var(--greenbg);color:var(--green);}
+  .pill.a{background:var(--amberbg);color:var(--amber);}
+  .pill.b{background:#e8eefc;color:#2563eb;}
+  .colhead{display:grid;grid-template-columns:1.15fr 1.15fr 1fr;gap:10px;font-size:10.5px;font-weight:700;letter-spacing:.04em;color:#9aa2b1;text-transform:uppercase;padding:0 12px 8px;}
+  .note{font-size:13.5px;color:var(--slate);line-height:1.55;margin:10px 2px 0;}
+  .note b{color:var(--ink);}
+  .flag{display:inline-block;background:#e7f6ec;color:#1c8a53;border-radius:5px;padding:1px 7px;font-size:11.5px;font-weight:700;margin-right:6px;}
+  /* calendar strip */
+  .calstrip{display:flex;align-items:center;justify-content:space-between;gap:20px;background:#f2f6ff;border:1px solid #dfe8ff;border-radius:12px;padding:16px 22px;}
+  .calstrip .c-h{font-size:15px;font-weight:700;color:var(--ink);}
+  .calstrip .c-s{font-size:13.5px;color:var(--slate);margin-top:2px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>JobFairX: How it works + dashboard (proposed)</h1>
+  <p class="lead">Styled to match jobfairx.com (Inter, blue #2563eb). Leads with invite-only and gives the dashboard its own spotlight. Comparison mockup, nothing is wired up.</p>
+
+  <!-- HOW IT WORKS -->
+  <div class="panel">
+    <div class="tag"><span class="dot"></span>Proposed: How it works</div>
+    <div class="kicker">How JobFairX Works</div>
+    <div class="sec-h">Invite-only interviews, three steps</div>
+    <div class="steps">
+      <div class="step">
+        <div class="num">1</div>
+        <h3>Register and build your resume</h3>
+        <p>Create a free account and build your resume in minutes. That is all it takes to be seen.</p>
+      </div>
+      <div class="step">
+        <div class="num">2</div>
+        <h3>Get matched and invited</h3>
+        <p>Employers post roles and our system matches your resume, then emails you an invite to request an interview. No applications, no black hole.</p>
+      </div>
+      <div class="step">
+        <div class="num">3</div>
+        <h3>Employer accepts, you interview</h3>
+        <p>When the employer accepts, you get a confirmed time and interview by video right on JobFairX. No Zoom, no downloads.</p>
+      </div>
+    </div>
+    <div class="note"><span class="flag">Change</span>Leads with <b>invite-only</b> and makes it explicit: employers post, the system matches and invites you. Step 2 now names the automatic invite instead of burying it.</div>
+  </div>
+
+  <!-- DASHBOARD HOME BASE -->
+  <div class="panel">
+    <div class="tag"><span class="dot"></span>Proposed: New "home base" section</div>
+    <div class="home">
+      <div>
+        <div class="kick">Your dashboard</div>
+        <h2>Track everything in one place</h2>
+        <p>From the moment you register, your dashboard is home base. Watch matches and invites roll in, request interviews, message employers, and jump into your interview, all without chasing anything.</p>
+        <ul class="checks">
+          <li><span class="ck">&#10003;</span> Matches and interview invites as they happen</li>
+          <li><span class="ck">&#10003;</span> Interview status and confirmed times</li>
+          <li><span class="ck">&#10003;</span> Messages with employers</li>
+          <li><span class="ck">&#10003;</span> Your join link on event day</li>
+        </ul>
+      </div>
+      <div class="win">
+        <div class="winbar"><i></i><i></i><i></i><span class="u">app.jobfairx.com/dashboard</span></div>
+        <div class="app">
+          <div class="side">
+            <div class="brand">JobFairX</div>
+            <div class="item on">Dashboard</div>
+            <div class="item">Messages <span class="b">2</span></div>
+            <div class="item">Job fairs</div>
+            <div class="item">Profile</div>
+          </div>
+          <div class="main">
+            <div class="tabs"><span class="t on">Upcoming 2</span><span class="t">Past 3</span></div>
+            <div class="colhead"><span>Event</span><span>Job</span><span>Status</span></div>
+            <div class="row">
+              <div class="ev">Dallas Healthcare Hiring Event<span>Apr 22, 2026</span></div>
+              <div class="job">Registered Nurse<span>Baylor Scott &amp; White</span></div>
+              <span class="pill a">Invited to interview</span>
+            </div>
+            <div class="row">
+              <div class="ev">Houston Diversity Hiring Event<span>May 10, 2026</span></div>
+              <div class="job">Medical Assistant<span>HCA Healthcare</span></div>
+              <span class="pill g">Confirmed 2:00 PM</span>
+            </div>
+            <div class="row">
+              <div class="ev">Austin Tech Hiring Event<span>May 24, 2026</span></div>
+              <div class="job">IT Support Specialist<span>Dell</span></div>
+              <span class="pill b">Matched</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="note"><span class="flag">New</span>The dashboard is currently sold nowhere on the marketing pages. This section gives it a spotlight with a real peek, and the status pills (Matched, Invited, Confirmed) show at a glance that they can monitor it all.</div>
+  </div>
+
+  <!-- CALENDAR STRIP -->
+  <div class="panel">
+    <div class="tag"><span class="dot"></span>Proposed: Calendar page explainer strip</div>
+    <div class="calstrip">
+      <div>
+        <div class="c-h">Invite-only virtual hiring events</div>
+        <div class="c-s">Register free, get matched, and get invited to interview. Always 100% free for job seekers.</div>
+      </div>
+    </div>
+    <div class="note"><span class="flag">New</span>The calendar page currently has no explanation at all. This one strip at the top gives cold SEO visitors the model in a sentence.</div>
+  </div>
+
+</div>
+</body>
+</html>

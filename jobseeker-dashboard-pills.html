@@ -1,0 +1,1857 @@
+<!DOCTYPE html>
+<!-- build: redeploy gate copy -->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JobFairX - Job Seeker</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Noto Sans', -apple-system, system-ui, sans-serif; background:#f3f2ef; color:#2d2d2d; min-height:100vh; font-size:14px; line-height:1.5; -webkit-font-smoothing:antialiased; }
+
+/* ═══ SIDEBAR ═══ */
+.sidebar { position:fixed; left:0; top:0; bottom:0; width:220px; background:#2d2d2d; display:flex; flex-direction:column; z-index:300; transition:width .2s ease; overflow:hidden; }
+body.collapsed .sidebar { width:60px; }
+body.collapsed .nav-text, body.collapsed .collapse-text { display:none; }
+body.collapsed .nav-item { justify-content:center; padding:14px 0; }
+.sidebar-collapse { padding:18px 16px 12px; }
+.collapse-btn { display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:6px; border:none; background:transparent; cursor:pointer; font-size:15px; font-weight:600; color:rgba(255,255,255,.9); font-family:inherit; transition:all .15s; width:100%; }
+.collapse-btn:hover { background:rgba(255,255,255,.1); color:#fff; }
+.collapse-btn svg { width:20px; height:20px; flex-shrink:0; color:rgba(255,255,255,.9); }
+.sidebar-nav { flex:1; padding:8px 12px; }
+.nav-item { display:flex; align-items:center; gap:14px; padding:16px 18px; border-radius:10px; font-size:17px; font-weight:500; color:rgba(255,255,255,.85); cursor:pointer; transition:all .15s; text-decoration:none; letter-spacing:-.1px; margin-bottom:4px; }
+.nav-item:hover { background:rgba(255,255,255,.1); color:#fff; }
+.nav-item.active { background:rgba(255,255,255,.18); color:#fff; font-weight:700; }
+.nav-item svg { width:24px; height:24px; flex-shrink:0; color:rgba(255,255,255,.7); stroke:currentColor; fill:none; stroke-width:1.8; }
+.nav-item.active svg { color:#fff; }
+.nav-divider { height:1px; background:rgba(255,255,255,.12); margin:10px 14px; }
+.nav-item.external { color:rgba(255,255,255,.6); font-weight:500; }
+.nav-item.external:hover { color:#fff; }
+.nav-item.external svg { color:rgba(255,255,255,.55); }
+.nav-item .ext-icon { width:15px; height:15px; margin-left:auto; color:rgba(255,255,255,.5); flex-shrink:0; }
+.nav-item .badge { margin-left:auto; background:#0044B3; color:#fff; font-size:12px; font-weight:700; padding:2px 9px; border-radius:10px; min-width:24px; text-align:center; }
+body.collapsed .nav-item .badge { display:none; }
+
+/* ═══ TOPBAR ═══ */
+.topbar { position:fixed; top:0; left:220px; right:0; height:56px; background:#fff; border-bottom:1px solid #d4d2d0; display:flex; align-items:center; justify-content:flex-end; padding:0 24px; z-index:200; transition:left .2s ease; }
+body.collapsed .topbar { left:60px; }
+.user-trigger { display:flex; align-items:center; gap:6px; cursor:pointer; padding:6px 12px; border-radius:8px; position:relative; transition:background .15s; }
+.user-trigger:hover { background:#f3f2ef; }
+.user-menu { position:absolute; top:42px; right:0; background:#fff; border-radius:10px; box-shadow:0 4px 20px rgba(0,0,0,0.12); border:1px solid #d4d2d0; min-width:220px; z-index:500; display:none; padding:6px 0; }
+.user-menu.open { display:block; }
+.user-menu-item { display:flex; align-items:center; width:100%; padding:12px 18px; font-size:14px; font-weight:500; color:#2d2d2d; background:none; border:none; text-align:left; cursor:pointer; font-family:inherit; transition:background .1s; text-decoration:none; }
+.user-menu-item:hover { background:#f3f2ef; }
+.user-menu-item.muted { color:#767676; }
+.user-menu-divider { height:1px; background:#ebebeb; margin:4px 0; }
+.pw-field { position:relative; }
+.pw-input { width:100%; padding:11px 42px 11px 12px; border:1px solid #d4d2d0; border-radius:8px; font-size:14px; font-family:inherit; box-sizing:border-box; color:#2d2d2d; }
+.pw-eye { position:absolute; right:8px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; color:#767676; display:flex; align-items:center; padding:4px; }
+.pw-eye:hover { color:#2d2d2d; }
+.pw-eye svg { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width:2; }
+.pw-input:focus { outline:none; border-color:#0044B3; box-shadow:0 0 0 2px rgba(0,68,179,.15); }
+.fb-textarea { width:100%; min-height:120px; border:1px solid #d4d2d0; border-radius:8px; padding:12px; font-family:inherit; font-size:14px; resize:vertical; box-sizing:border-box; color:#2d2d2d; }
+.fb-textarea:focus { outline:none; border-color:#0044B3; box-shadow:0 0 0 2px rgba(0,68,179,.15); }
+.user-trigger .u-avatar { width:22px; height:22px; border-radius:50%; background:#eef2f9; display:flex; align-items:center; justify-content:center; }
+.user-trigger .u-avatar svg { width:13px; height:13px; color:#767676; stroke:currentColor; fill:none; stroke-width:2; }
+.user-trigger span { font-size:14px; font-weight:400; color:#2d2d2d; }
+.user-trigger .caret { width:14px; height:14px; color:#767676; stroke:currentColor; fill:none; stroke-width:2; }
+
+/* ═══ MAIN ═══ */
+.main { margin-left:220px; margin-top:56px; min-height:calc(100vh - 56px); padding:24px 28px 40px; transition:margin-left .2s ease; }
+body.collapsed .main { margin-left:60px; }
+
+.header-card { background:#fff; border-radius:12px; border:1px solid #d4d2d0; padding:16px 24px; margin-bottom:20px; }
+.content-header { display:flex; align-items:center; justify-content:flex-end; gap:16px; }
+.account-name { font-size:24px; font-weight:700; color:#2d2d2d; }
+.btn { display:inline-flex; align-items:center; gap:8px; padding:12px 24px; border-radius:8px; font-size:16px; font-weight:700; cursor:pointer; border:none; font-family:inherit; transition:all .15s; text-decoration:none; }
+.btn-primary { background:#0044B3; color:#fff; }
+.btn-primary:hover { background:#003399; }
+.btn-primary svg { width:16px; height:16px; stroke:currentColor; fill:none; stroke-width:2.2; }
+
+.filter-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+.tab-pills { display:flex; gap:8px; }
+.tab-pill { padding:12px 24px; font-size:14px; font-weight:700; color:#595959; cursor:pointer; border-radius:8px; transition:all .15s; background:transparent; border:1px solid transparent; font-family:inherit; white-space:nowrap; }
+.tab-pill:hover { background:#e8e6e3; }
+.tab-pill.active { background:#2d2d2d; color:#fff; }
+.tab-pill .count { font-weight:400; margin-left:2px; }
+.tab-pill.active .count { color:rgba(255,255,255,.6); }
+
+.table-card { background:#fff; border-radius:12px; border:1px solid #d4d2d0; overflow:visible; }
+table { width:100%; border-collapse:collapse; }
+thead th { padding:16px 22px; text-align:left; font-size:12px; font-weight:700; color:#595959; text-transform:uppercase; letter-spacing:.5px; border-bottom:1px solid #d4d2d0; background:#fafaf8; }
+tbody td { padding:20px 22px; border-bottom:1px solid #ebebeb; font-size:14px; color:#2d2d2d; font-weight:400; vertical-align:middle; }
+tbody tr { transition:background .1s; }
+tbody tr:hover { background:#f6f5f3; }
+tbody tr:last-child td { border-bottom:none; }
+.action-btn { width:38px; height:34px; border:1px solid #d4d2d0; border-radius:8px; background:#fff; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; color:#595959; font-size:18px; font-weight:700; }
+.action-btn:hover { background:#f3f2ef; }
+.cell-event-name { font-weight:400; color:#2d2d2d; font-size:14px; }
+.cell-event-date { margin-top:4px; }
+.cell-event-date .date-part { font-size:14px; color:#2d2d2d; }
+.cell-event-date .time-part { font-size:14px; color:#767676; }
+.cell-location { font-size:14px; color:#2d2d2d; }
+.cell-lobby { display:inline-flex; align-items:center; gap:4px; font-size:12px; color:#0044B3; font-weight:400; text-decoration:underline; margin-top:4px; cursor:pointer; }
+.cell-lobby svg { width:14px; height:14px; stroke:currentColor; fill:none; stroke-width:2; }
+.cell-locked { display:inline-flex; align-items:center; gap:5px; font-size:12px; color:#9a9794; font-weight:400; margin-top:4px; }
+.cell-locked svg { width:12px; height:12px; stroke:currentColor; fill:none; stroke-width:2; }
+.cell-job { color:#2d2d2d; font-weight:400; font-size:14px; display:block; }
+.cell-col-count { font-size:12px; font-weight:400; color:#767676; margin-top:4px; }
+.status { display:inline-flex; align-items:center; gap:7px; font-size:13px; font-weight:600; }
+.status .dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.status.matched { color:#16a34a; } .status.matched .dot { background:#16a34a; }
+.status.pending { color:#9A6700; } .status.pending .dot { background:#d9a200; }
+.status.done { color:#595959; } .status.done .dot { background:#9a9794; }
+.status-sub { font-size:12px; color:#767676; font-weight:400; margin-top:4px; }
+.status-sub.lock { color:#9a9794; }
+.link-blue { color:#0044B3; text-decoration:none; font-size:13px; font-weight:400; cursor:pointer; }
+.link-blue:hover { text-decoration:underline; }
+.dash-empty-card { background:#fff; border-radius:12px; border:1px solid #d4d2d0; padding:80px 40px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; }
+.dash-empty-card .ic { width:56px; height:56px; border-radius:50%; background:#eef2f9; display:flex; align-items:center; justify-content:center; margin-bottom:20px; }
+.dash-empty-card .ic svg { width:26px; height:26px; color:#0044B3; stroke:currentColor; fill:none; stroke-width:1.8; }
+.dash-empty-card h2 { font-size:22px; font-weight:700; color:#2d2d2d; margin-bottom:10px; }
+.dash-empty-card p { font-size:15px; color:#767676; margin-bottom:24px; max-width:440px; line-height:1.6; }
+
+/* ═══ MESSAGES ═══ */
+.msg-layout { display:flex; height:calc(100vh - 56px); margin:-24px -28px -40px; background:#fff; }
+.msg-list-panel { width:420px; min-width:420px; border-right:1px solid #e0e0e0; display:flex; flex-direction:column; background:#fff; }
+.msg-list-header { padding:20px 20px 0; }
+.msg-list-header-top { display:flex; align-items:center; gap:10px; margin-bottom:16px; }
+.msg-list-header-top h2 { font-size:20px; font-weight:700; color:#2d2d2d; }
+.msg-status-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+.msg-status-dot.active { background:#16a34a; }
+.msg-status-dot.inactive { background:#dc2626; }
+.msg-inbox-tabs { display:flex; gap:0; margin-bottom:16px; background:#f3f2ef; border-radius:8px; padding:3px; }
+.msg-inbox-tab { flex:1; display:flex; align-items:center; justify-content:center; gap:8px; padding:10px 14px; font-size:14px; font-weight:600; color:#595959; border:none; background:transparent; border-radius:6px; cursor:pointer; font-family:inherit; transition:all .15s; }
+.msg-inbox-tab.active { background:#fff; color:#2d2d2d; box-shadow:0 1px 3px rgba(0,0,0,.06); }
+.msg-inbox-tab svg { width:16px; height:16px; stroke:currentColor; fill:none; stroke-width:2; }
+.msg-inbox-tab .msg-badge { background:#0044B3; color:#fff; font-size:11px; font-weight:700; padding:1px 7px; border-radius:10px; margin-left:2px; }
+.msg-filters { display:flex; gap:10px; margin-bottom:16px; }
+.msg-filter-btn { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:8px 14px; font-size:13px; font-weight:500; color:#595959; background:#fff; border:1px solid #d4d2d0; border-radius:8px; cursor:pointer; font-family:inherit; flex:1; }
+.msg-filter-btn svg { width:14px; height:14px; color:#767676; stroke:currentColor; fill:none; stroke-width:2; }
+.msg-filter-btn:hover { border-color:#0044B3; color:#2d2d2d; }
+.msg-search { display:flex; align-items:center; gap:10px; padding:10px 14px; border:1px solid #d4d2d0; border-radius:8px; margin:0 20px 12px; }
+.msg-search svg { width:16px; height:16px; color:#b0b0b0; flex-shrink:0; stroke:currentColor; fill:none; stroke-width:2; }
+.msg-search span { font-size:14px; color:#b0b0b0; }
+.msg-thread-list { flex:1; overflow-y:auto; }
+.msg-thread { display:flex; flex-direction:column; padding:16px 20px; border-bottom:1px solid #f0f0f0; cursor:pointer; transition:background .1s; }
+.msg-thread:hover { background:#f8f8f6; }
+.msg-thread.active { background:#eef3fc; border-left:4px solid #0044B3; padding-left:16px; }
+.msg-thread-top { display:flex; align-items:center; justify-content:space-between; }
+.msg-thread-name { font-size:15px; font-weight:700; color:#2d2d2d; }
+.msg-thread-date { font-size:12px; color:#767676; }
+.msg-thread-job { font-size:13px; color:#0044B3; margin-top:2px; }
+.msg-thread-preview { font-size:13px; color:#767676; margin-top:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+.msg-chat-panel { flex:1; display:flex; flex-direction:column; background:#fff; }
+.msg-chat-header { padding:16px 24px; border-bottom:1px solid #e0e0e0; display:flex; align-items:flex-start; justify-content:space-between; }
+.msg-chat-header-info h3 { font-size:17px; font-weight:700; color:#2d2d2d; }
+.msg-chat-header-meta { display:flex; align-items:center; gap:6px; font-size:13px; color:#767676; margin-top:3px; flex-wrap:wrap; }
+.msg-chat-header-meta svg { width:14px; height:14px; stroke:currentColor; fill:none; stroke-width:2; }
+.msg-dots-wrap { position:relative; flex-shrink:0; }
+.msg-chat-dots { background:none; border:none; cursor:pointer; padding:4px 8px; color:#1a1a1a; font-size:26px; font-weight:900; line-height:1; }
+.msg-dots-menu { display:none; position:absolute; top:calc(100% + 4px); right:0; background:#fff; border:1px solid #e0e0e0; border-radius:10px; box-shadow:0 4px 16px rgba(0,0,0,.12); min-width:210px; z-index:20; overflow:hidden; }
+.msg-dots-menu.open { display:block; }
+.msg-dots-menu-item { display:flex; align-items:center; gap:10px; width:100%; padding:12px 16px; font-size:14px; font-weight:500; color:#2d2d2d; background:none; border:none; cursor:pointer; font-family:inherit; text-align:left; }
+.msg-dots-menu-item:hover { background:#f3f2ef; }
+.msg-dots-menu-item svg { width:18px; height:18px; color:#595959; flex-shrink:0; stroke:currentColor; fill:none; stroke-width:2; }
+.msg-dots-menu-item.danger { color:#991b1b; }
+.msg-dots-menu-item.danger svg { color:#991b1b; }
+.msg-chat-body { flex:1; overflow-y:auto; padding:24px; }
+.msg-chat-divider { text-align:center; font-size:12px; color:#767676; margin:16px 0; position:relative; }
+.msg-chat-divider::before, .msg-chat-divider::after { content:''; position:absolute; top:50%; width:calc(50% - 30px); height:1px; background:#e0e0e0; }
+.msg-chat-divider::before { left:0; } .msg-chat-divider::after { right:0; }
+.msg-bubble { max-width:75%; padding:16px 20px; border-radius:16px; margin-bottom:4px; font-size:14px; line-height:1.6; }
+.msg-bubble.sent { background:#3B82F6; color:#fff; margin-left:auto; border-bottom-right-radius:4px; }
+.msg-bubble.received { background:#f0f0f0; color:#2d2d2d; margin-right:auto; border-bottom-left-radius:4px; }
+.msg-bubble-time { font-size:11px; color:#767676; margin-bottom:12px; }
+.msg-bubble-time.sent { text-align:right; } .msg-bubble-time.received { text-align:left; }
+.msg-bubble.system-msg { background:#f5f5f4; border:1px solid #e0dfdd; color:#595959; margin:0 auto 8px; max-width:90%; border-radius:10px; padding:12px 16px; text-align:center; }
+.msg-bubble.system-msg .system-label { font-weight:700; font-size:13px; color:#2d2d2d; display:block; }
+.msg-bubble.system-msg .system-detail { font-size:12px; color:#767676; }
+.msg-chat-input { padding:16px 24px; border-top:1px solid #e0e0e0; display:flex; align-items:center; gap:12px; }
+.msg-chat-input-field { flex:1; padding:14px 18px; font-size:14px; border:1px solid #d4d2d0; border-radius:10px; font-family:inherit; outline:none; background:#fff; color:#2d2d2d; }
+.msg-chat-input-field:focus { border-color:#0044B3; box-shadow:0 0 0 2px rgba(0,68,179,.15); }
+.msg-chat-input-btn { width:40px; height:40px; border-radius:50%; border:none; background:none; cursor:pointer; display:flex; align-items:center; justify-content:center; color:#0044B3; transition:background .15s; }
+.msg-chat-input-btn:hover { background:#f0f5ff; }
+.msg-chat-input-btn svg { width:20px; height:20px; stroke:currentColor; fill:none; stroke-width:2; }
+
+/* messages empty */
+.msg-empty-list-body { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:40px 20px; text-align:center; }
+.msg-empty-list-icon { width:48px; height:48px; color:#d4d2d0; margin-bottom:16px; stroke:currentColor; fill:none; stroke-width:1.8; }
+.msg-empty-list-title { font-size:16px; font-weight:600; color:#767676; margin-bottom:6px; }
+.msg-empty-list-sub { font-size:13px; color:#b0b0b0; max-width:260px; line-height:1.5; }
+.msg-welcome-panel { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; background:#fafaf8; padding:40px; text-align:center; }
+.msg-welcome-panel .ic { width:60px; height:60px; border-radius:50%; background:#eef2f9; display:flex; align-items:center; justify-content:center; margin-bottom:18px; }
+.msg-welcome-panel .ic svg { width:28px; height:28px; color:#0044B3; stroke:currentColor; fill:none; stroke-width:1.8; }
+.msg-welcome-panel h2 { font-size:22px; font-weight:700; color:#2d2d2d; margin-bottom:12px; }
+.msg-welcome-panel p { font-size:15px; color:#767676; max-width:420px; line-height:1.6; }
+
+/* ═══ PROFILE ═══ */
+.profile-wrap { max-width:820px; margin:0 auto; }
+.profile-card { background:#fff; border:1px solid #e0e0e0; border-radius:16px; padding:40px 44px; }
+.profile-name { font-size:30px; font-weight:700; color:#2d2d2d; margin-bottom:22px; letter-spacing:-.3px; }
+.profile-contact { display:flex; align-items:center; justify-content:space-between; gap:16px; background:#f3f2ef; border-radius:10px; padding:20px 24px; cursor:pointer; transition:background .1s; }
+.profile-contact:hover { background:#ecebe8; }
+.profile-contact .lines { font-size:16px; color:#2d2d2d; line-height:1.7; }
+.profile-contact .chev { width:22px; height:22px; color:#595959; stroke:currentColor; fill:none; stroke-width:2; flex-shrink:0; }
+.profile-section-title { font-size:18px; font-weight:700; color:#2d2d2d; margin-top:30px; }
+.profile-extlink { display:none; align-items:center; gap:10px; padding:16px 0 4px; border-top:1px solid #ebebeb; margin-top:14px; color:#0044B3; font-size:15px; font-weight:600; text-decoration:none; }
+.profile-extlink .lead { width:20px; height:20px; stroke:currentColor; fill:none; stroke-width:1.8; }
+.profile-extlink .ext { width:15px; height:15px; margin-left:auto; color:#767676; stroke:currentColor; fill:none; stroke-width:2; }
+@media (max-width:768px){ .profile-extlink { display:flex; } }
+.form-row3 { display:flex; gap:14px; }
+.form-row3 .form-group { flex:1; min-width:0; }
+@media (max-width:768px){ .form-row3 { flex-direction:column; gap:0; } }
+.resume-build-card { display:flex; align-items:center; gap:14px; border:1px solid #d4d2d0; border-radius:12px; padding:18px 20px; max-width:520px; cursor:pointer; transition:border-color .15s, box-shadow .15s; }
+.resume-build-card:hover { border-color:#0044B3; box-shadow:0 2px 8px rgba(0,0,0,.06); }
+.rb-icon { width:40px; height:40px; border-radius:8px; background:#eef2f9; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.rb-icon svg { width:22px; height:22px; color:#0044B3; stroke:currentColor; fill:none; stroke-width:1.8; }
+.rb-text { flex:1; }
+.rb-title { font-size:16px; font-weight:700; color:#0044B3; }
+.rb-sub { font-size:13px; color:#767676; margin-top:2px; }
+.rb-check { width:26px; height:26px; border-radius:50%; background:#f3f2ef; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.rb-check svg { width:14px; height:14px; color:#9a9794; stroke:currentColor; fill:none; stroke-width:2; }
+.jt-chips { display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
+.jt-chip { background:#eef2f9; color:#0044B3; font-size:13px; font-weight:600; padding:5px 12px; border-radius:16px; }
+.resume-build-box { display:flex; align-items:center; justify-content:center; text-align:center; border:1px solid #d4d2d0; border-radius:12px; padding:24px; margin-top:4px; max-width:520px; cursor:pointer; font-size:18px; font-weight:700; color:#0044B3; transition:border-color .15s, box-shadow .15s; }
+.resume-build-box:hover { border-color:#0044B3; box-shadow:0 2px 8px rgba(0,0,0,.06); }
+.resume-hint { font-size:14px; color:#767676; line-height:1.55; margin-top:12px; max-width:620px; }
+.profile-divider { height:1px; background:#e6e5e2; margin:14px 0; }
+.profile-row { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; }
+.profile-row .row-title { font-size:18px; font-weight:700; color:#2d2d2d; margin-bottom:6px; }
+.profile-row .row-sub { font-size:15px; color:#767676; }
+.profile-edit { background:none; border:none; cursor:pointer; color:#2d2d2d; padding:4px; flex-shrink:0; }
+.profile-edit svg { width:20px; height:20px; stroke:currentColor; fill:none; stroke-width:2; }
+.profile-resume-box { display:flex; align-items:center; justify-content:space-between; gap:16px; border:1px solid #d4d2d0; border-radius:12px; padding:22px 24px; cursor:pointer; margin-top:4px; transition:border-color .15s; }
+.profile-resume-box:hover { border-color:#0044B3; }
+.profile-resume-box .rlink { font-size:17px; font-weight:500; color:#0044B3; }
+.profile-resume-box .chev { width:22px; height:22px; color:#595959; stroke:currentColor; fill:none; stroke-width:2; }
+.profile-danger { display:block; margin-left:auto; width:max-content; background:none; border:none; cursor:pointer; font-family:inherit; font-size:15px; color:#595959; padding:0; margin-top:14px; }
+.profile-danger:hover { color:#991b1b; text-decoration:underline; }
+.profile-danger.account { margin-top:40px; }
+
+/* ═══ PROFILE SUB-SCREENS ═══ */
+.back-link { display:inline-flex; align-items:center; gap:10px; font-size:16px; font-weight:700; color:#0044B3; cursor:pointer; margin-bottom:16px; }
+.back-link:hover { text-decoration:underline; }
+.back-link svg { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width:2.2; }
+.icon-btn { background:none; border:none; cursor:pointer; color:#595959; padding:4px; display:inline-flex; }
+.icon-btn:hover { color:#2d2d2d; }
+.icon-btn svg { width:17px; height:17px; stroke:currentColor; fill:none; stroke-width:2; }
+/* edit form */
+.form-title { font-size:26px; font-weight:700; color:#2d2d2d; margin-bottom:22px; letter-spacing:-.3px; }
+.form-group { margin-bottom:18px; }
+.form-label { font-size:14px; font-weight:700; color:#2d2d2d; margin-bottom:7px; display:block; }
+.form-label .req { color:#dc2626; } .form-label .opt { color:#767676; font-weight:400; }
+.form-input { width:100%; padding:13px 16px; font-size:15px; border:1px solid #e0e0e0; border-radius:10px; background:#f9f9f8; font-family:inherit; color:#2d2d2d; outline:none; transition:border-color .15s; }
+.form-input:focus { border-color:#0044B3; background:#fff; }
+.form-static { font-size:15px; color:#2d2d2d; }
+.form-help { font-size:14px; color:#595959; margin-top:6px; }
+.form-help a { color:#0044B3; font-weight:700; cursor:pointer; text-decoration:none; }
+.form-help a:hover { text-decoration:underline; }
+.form-actions { display:flex; gap:12px; margin-top:26px; }
+.btn-cancel { background:#fff; border:1px solid #d4d2d0; color:#2d2d2d; padding:11px 26px; border-radius:8px; font-weight:700; cursor:pointer; font-family:inherit; font-size:15px; }
+.btn-cancel:hover { background:#f3f2ef; }
+.btn-save { background:#0044B3; border:none; color:#fff; padding:11px 28px; border-radius:8px; font-weight:700; cursor:pointer; font-family:inherit; font-size:15px; }
+.btn-save:hover { background:#003399; }
+.resched-day { font-size:15px; font-weight:700; color:#2d2d2d; margin:18px 0 12px; }
+.resched-slots { border:1px solid #d4d2d0; border-radius:10px; overflow:hidden; max-height:264px; overflow-y:auto; }
+.resched-slot { display:flex; align-items:center; gap:12px; padding:15px 16px; border-bottom:1px solid #ebebeb; cursor:pointer; }
+.resched-slot:last-child { border-bottom:none; }
+.resched-slot:hover { background:#fafaf8; }
+.resched-slot input { accent-color:#0044B3; width:17px; height:17px; margin:0; cursor:pointer; }
+.rs-time { font-size:15px; font-weight:600; color:#2d2d2d; }
+.rs-spots { font-size:13px; color:#9a9794; }
+/* resume doc */
+.resume-doc { background:#fff; border:1px solid #e0e0e0; border-radius:12px; padding:34px 40px; }
+.resume-head { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
+.resume-name { font-size:22px; font-weight:700; color:#2d2d2d; }
+.resume-contact { font-size:13px; color:#767676; margin-top:6px; line-height:1.6; }
+.resume-section { display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid #e6e5e2; padding-bottom:9px; margin:28px 0 16px; }
+.resume-section h3 { font-size:15px; font-weight:700; color:#2d2d2d; }
+.resume-loc { font-size:14px; color:#2d2d2d; line-height:1.6; }
+.resume-entry { padding:4px 0 18px; }
+.resume-entry + .resume-entry { border-top:1px solid #f0f0f0; padding-top:18px; }
+.resume-entry-head { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; }
+.resume-entry-title { font-size:14px; font-weight:700; color:#2d2d2d; }
+.resume-entry-actions { display:flex; gap:4px; flex-shrink:0; }
+.resume-entry-company { font-size:13px; color:#2d2d2d; margin-top:3px; }
+.resume-entry-dates { font-size:12px; color:#767676; margin-top:2px; }
+.resume-entry-desc { font-size:13px; color:#4b5563; line-height:1.6; margin-top:10px; }
+.resume-entry-desc p { margin-bottom:7px; }
+/* modal */
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.5); display:none; align-items:flex-start; justify-content:center; z-index:1000; padding:56px 20px; overflow-y:auto; }
+.modal-overlay.open { display:flex; }
+.modal { background:#fff; border-radius:16px; width:100%; max-width:560px; padding:26px 30px 28px; }
+.modal-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
+.modal-head h2 { font-size:24px; font-weight:700; color:#2d2d2d; }
+.modal-close { background:none; border:none; cursor:pointer; font-size:26px; color:#2d2d2d; line-height:1; padding:0 4px; }
+.modal-sub-q { font-size:16px; font-weight:700; color:#2d2d2d; margin-bottom:4px; }
+.modal-sub { font-size:14px; color:#767676; margin-bottom:18px; }
+.jt-row { display:flex; align-items:center; gap:12px; margin-bottom:10px; }
+.jt-input { flex:1; padding:13px 16px; font-size:15px; border:1px solid #d4d2d0; border-radius:10px; font-family:inherit; color:#2d2d2d; outline:none; }
+.jt-input:focus { border-color:#0044B3; }
+.jt-remove { background:none; border:none; cursor:pointer; font-size:20px; color:#2d2d2d; padding:4px 6px; line-height:1; }
+.jt-add { display:inline-flex; align-items:center; gap:8px; color:#0044B3; font-weight:700; font-size:15px; cursor:pointer; background:none; border:none; font-family:inherit; margin:6px 0 4px; }
+.jt-add span { font-size:18px; line-height:1; }
+.modal-actions { display:flex; justify-content:flex-end; gap:12px; margin-top:24px; }
+
+/* ═══ EVENT CARDS (dashboard) ═══ */
+.evt-card { background:#fff; border:1px solid #d4d2d0; border-radius:12px; margin-bottom:16px; overflow:hidden; }
+.evt-head { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; padding:20px 24px; }
+.evt-title { font-size:17px; font-weight:700; color:#2d2d2d; }
+.evt-meta { font-size:13px; color:#767676; margin-top:4px; }
+.evt-pill { display:inline-flex; align-items:center; gap:7px; font-size:12px; font-weight:700; padding:6px 12px; border-radius:20px; white-space:nowrap; }
+.evt-pill .dot { width:7px; height:7px; border-radius:50%; background:currentColor; }
+.evt-pill.matched { background:#E9F7EF; color:#1B7A43; }
+.evt-pill.pending { background:#FEF6E7; color:#9A6700; }
+.evt-pill.done { background:#f0f0ee; color:#595959; }
+.evt-body { border-top:1px solid #ebebeb; }
+.iv-block { display:flex; justify-content:space-between; align-items:stretch; gap:20px; padding:18px 24px; }
+.iv-block + .iv-block { border-top:1px solid #f0f0f0; }
+.iv-job { font-size:15px; font-weight:700; color:#2d2d2d; cursor:pointer; display:inline-block; }
+.iv-job:hover { color:#0044B3; text-decoration:underline; }
+.iv-company { font-size:13px; color:#2d2d2d; margin-top:2px; }
+.iv-conf { display:inline-flex; align-items:center; gap:7px; font-size:13px; color:#1B7A43; font-weight:600; margin-top:9px; }
+.iv-conf .dot { width:7px; height:7px; border-radius:50%; background:#16a34a; }
+.iv-when { font-size:13px; color:#4b5563; margin-top:4px; }
+.iv-done { font-size:13px; color:#767676; margin-top:9px; }
+.iv-right { display:flex; flex-direction:column; align-items:flex-end; gap:10px; flex-shrink:0; }
+.iv-join-before { display:inline-flex; align-items:center; gap:6px; font-size:12px; color:#9a9794; font-weight:600; }
+.iv-join-before svg { width:13px; height:13px; stroke:currentColor; fill:none; stroke-width:2; }
+.iv-join-live { display:none; align-items:center; gap:8px; background:#0044B3; color:#fff; border:none; border-radius:8px; padding:10px 22px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; }
+.iv-join-live:hover { background:#003399; }
+.iv-join-live svg { width:15px; height:15px; stroke:currentColor; fill:none; stroke-width:2; }
+body.join-live .iv-join-before { display:none; }
+body.join-live .iv-join-live { display:inline-flex; }
+.iv-cancel { background:none; border:none; color:#595959; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; padding:0; }
+.iv-cancel:hover { color:#991b1b; text-decoration:underline; }
+.iv-summary { color:#0044B3; font-size:14px; font-weight:600; text-decoration:none; cursor:pointer; }
+.iv-summary:hover { text-decoration:underline; }
+.evt-gate { padding:18px 24px; border-top:1px solid #ebebeb; display:flex; gap:11px; align-items:flex-start; }
+.evt-gate svg { width:18px; height:18px; color:#9A6700; stroke:currentColor; fill:none; stroke-width:2; flex-shrink:0; margin-top:1px; }
+.evt-gate p { font-size:13.5px; color:#767676; line-height:1.55; }
+.evt-gate p strong { color:#2d2d2d; font-weight:700; }
+.dev-group { display:flex; gap:4px; align-items:center; }
+.dev-sep { width:1px; height:18px; background:#4a4a4a; margin:0 6px; }
+
+.iv-where { display:inline-flex; align-items:center; gap:0; font-size:12px; color:#767676; margin-top:0; }
+.iv-where svg { display:none; }
+.iv-where svg { width:14px; height:14px; color:#0044B3; stroke:currentColor; fill:none; stroke-width:2; flex-shrink:0; }
+.iv-where strong { color:#2d2d2d; font-weight:600; }
+.iv-join { display:inline-flex; align-items:center; justify-content:center; gap:8px; background:#ebeae7; color:#9a9794; border:1px solid #e0e0e0; border-radius:8px; padding:10px 22px; font-size:14px; font-weight:700; cursor:not-allowed; font-family:inherit; position:relative; box-sizing:border-box; min-width:200px; }
+.iv-join svg { width:15px; height:15px; stroke:currentColor; fill:none; stroke-width:2; }
+body.join-live .iv-join { background:#0044B3; color:#fff; border-color:#0044B3; cursor:pointer; }
+body.join-live .iv-join:hover { background:#003399; }
+.iv-tip { display:none; position:absolute; bottom:calc(100% + 9px); right:0; background:#2d2d2d; color:#fff; font-size:12px; font-weight:500; padding:7px 11px; border-radius:6px; white-space:nowrap; z-index:10; pointer-events:none; max-width:280px; white-space:normal; text-align:left; }
+.iv-tip::after { content:''; position:absolute; top:100%; right:26px; border:5px solid transparent; border-top-color:#2d2d2d; }
+.iv-join:hover .iv-tip { display:block; }
+body.join-live .iv-tip { display:none !important; }
+.evt-foot { border-top:1px solid #ebebeb; padding:14px 24px; display:flex; flex-wrap:wrap; gap:20px; }
+.evt-cancel { background:none; border:none; color:#767676; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; padding:0; }
+.evt-cancel:hover { color:#991b1b; text-decoration:underline; }
+.btn-danger { background:#dc2626; border:none; color:#fff; padding:11px 24px; border-radius:8px; font-weight:700; cursor:pointer; font-family:inherit; font-size:15px; }
+.btn-danger:hover { background:#b91c1c; }
+.dev-note { background:#FFF8E6; border:1px solid #F2E2B3; border-radius:10px; padding:16px 18px; }
+.dev-note-label { font-size:11px; font-weight:700; letter-spacing:.5px; text-transform:uppercase; color:#9A6700; margin-bottom:8px; }
+.dev-note p { font-size:14px; color:#4b5563; line-height:1.6; margin:0; }
+.dev-note-link { display:inline-block; margin-top:12px; font-size:13px; color:#0044B3; font-weight:600; word-break:break-all; text-decoration:none; }
+.dev-note-link:hover { text-decoration:underline; }
+.iv-conf.iv-matched { color:#0044B3; }
+.iv-conf.iv-matched .dot { background:#0044B3; }
+.iv-conf.iv-requested { color:#9A6700; }
+.iv-conf.iv-requested .dot { background:#d9a200; }
+.iv-msub { font-size:12.5px; color:#767676; margin-top:6px; line-height:1.5; max-width:420px; }
+.iv-request { display:inline-flex; align-items:center; justify-content:center; gap:8px; background:#0044B3; color:#fff; border:1px solid transparent; border-radius:8px; padding:10px 22px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; box-sizing:border-box; min-width:200px; }
+.iv-request:hover { background:#003399; }
+.iv-request svg { width:15px; height:15px; stroke:currentColor; fill:none; stroke-width:2; }
+.req-slot { display:flex; align-items:center; gap:11px; padding:13px 15px; border:1px solid #d4d2d0; border-radius:10px; margin-bottom:10px; font-size:14px; color:#2d2d2d; cursor:pointer; }
+.req-slot:hover { border-color:#0044B3; }
+.req-slot input { accent-color:#0044B3; width:16px; height:16px; }
+.iv-jobname { font-size:15px; font-weight:700; color:#2d2d2d; }
+.iv-links { display:flex; gap:18px; margin-top:10px; flex-wrap:wrap; }
+.iv-link { background:none; border:none; padding:0; font-family:inherit; font-size:12.5px; font-weight:600; color:#0044B3; cursor:pointer; }
+.msg-locked { color:#b0b0b0 !important; cursor:not-allowed; position:relative; display:inline-block; }
+.msg-locked:hover .iv-tip { display:block; }
+.iv-link:hover { text-decoration:underline; }
+.iv-deadline { font-size:12px; color:#9a9794; margin-top:8px; }
+.iv-detail { font-size:13px; color:#4b5563; margin-top:7px; line-height:1.55; max-width:440px; }
+.iv-detail strong { color:#2d2d2d; font-weight:700; }
+.iv-now { display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight:700; color:#dc2626; margin-left:8px; }
+.iv-join-now { display:inline-flex; align-items:center; justify-content:center; gap:8px; background:#0044B3; color:#fff; border:1px solid transparent; border-radius:8px; padding:10px 22px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; animation:jfxpulse 2s infinite; box-sizing:border-box; min-width:200px; }
+.iv-join-now:hover { background:#003399; }
+.iv-join-now svg { width:15px; height:15px; stroke:currentColor; fill:none; stroke-width:2; }
+@keyframes jfxpulse { 0%{box-shadow:0 0 0 0 rgba(0,68,179,.45);} 70%{box-shadow:0 0 0 8px rgba(0,68,179,0);} 100%{box-shadow:0 0 0 0 rgba(0,68,179,0);} }
+.iv-secondary { display:inline-flex; align-items:center; gap:8px; background:#fff; color:#0044B3; border:1px solid #0044B3; border-radius:8px; padding:9px 20px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; }
+.iv-secondary:hover { background:#f0f5ff; }
+.iv-conf.iv-proposed { color:#9A6700; } .iv-conf.iv-proposed .dot { background:#d9a200; }
+.iv-conf.iv-injoined { color:#0044B3; } .iv-conf.iv-injoined .dot { background:#0044B3; }
+.iv-conf.iv-missed { color:#767676; } .iv-conf.iv-missed .dot { background:#9a9794; }
+.test-preview { background:#2d2d2d; border-radius:10px; height:160px; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#9a9794; gap:8px; margin-bottom:16px; font-size:13px; }
+.test-preview svg { width:34px; height:34px; stroke:currentColor; fill:none; stroke-width:1.8; }
+.test-row { display:flex; justify-content:space-between; align-items:center; padding:11px 0; border-top:1px solid #ebebeb; font-size:14px; color:#2d2d2d; }
+.test-ok { color:#16a34a; font-weight:600; font-size:13px; }
+.up-empty { background:#fff; border:1px solid #d4d2d0; border-radius:12px; padding:60px 40px; text-align:center; }
+.up-empty h3 { font-size:18px; font-weight:700; color:#2d2d2d; margin-bottom:8px; }
+.up-empty p { font-size:14px; color:#767676; margin-bottom:20px; max-width:420px; margin-left:auto; margin-right:auto; }
+.dev-label { color:#b0afad; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; padding:0 4px 0 6px; }
+.dev-sep { width:1px; height:18px; background:#555; margin:0 6px; }
+.dev-body { display:flex; flex-wrap:wrap; gap:4px; row-gap:4px; align-items:center; justify-content:center; }
+.dev-toggle-btn { background:none; border:none; color:#b0afad; cursor:pointer; display:flex; align-items:center; gap:5px; font-family:inherit; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; padding:4px 6px; }
+.dev-toggle-btn:hover { color:#fff; }
+.dev-toggle-btn svg { width:14px; height:14px; stroke:currentColor; fill:none; stroke-width:2.5; transition:transform .2s; }
+.dev-launcher-label { display:none; }
+.dev.collapsed .dev-body { display:none; }
+.dev.collapsed .dev-toggle-btn svg { transform:rotate(180deg); }
+.dev.collapsed .dev-launcher-label { display:inline; }
+.dev select { font-family:inherit; font-size:12.5px; font-weight:700; color:#fff; background:#0044B3; border:none; border-radius:6px; padding:7px 12px; cursor:pointer; }
+.prop-times { margin-top:10px; display:flex; flex-direction:column; gap:9px; }
+.prop-time { display:inline-flex; align-items:center; gap:10px; font-size:13.5px; font-weight:600; color:#2d2d2d; cursor:pointer; }
+.prop-time input { accent-color:#0044B3; width:15px; height:15px; }
+.time-opts { display:flex; flex-direction:column; gap:10px; margin-top:12px; align-items:flex-start; }
+.time-opt { display:inline-flex; align-items:center; gap:10px; min-width:250px; padding:12px 18px; border:1px solid #d4d2d0; border-radius:10px; background:#fff; font-family:inherit; font-size:14px; font-weight:600; color:#2d2d2d; cursor:pointer; transition:all .15s; }
+.time-opt:hover { border-color:#0044B3; background:#f0f5ff; color:#0044B3; }
+.time-opt svg { width:16px; height:16px; color:#0044B3; stroke:currentColor; fill:none; stroke-width:2; flex-shrink:0; }
+.time-opt:hover svg { color:#0044B3; }
+.time-btn { display:inline-flex; align-items:center; gap:8px; background:#fff; color:#0044B3; border:1px solid #0044B3; border-radius:8px; padding:9px 18px; font-size:14px; font-weight:600; cursor:pointer; font-family:inherit; white-space:nowrap; transition:background .12s, color .12s; }
+.time-btn:hover { background:#0044B3; color:#fff; }
+.time-btn svg { width:15px; height:15px; stroke:currentColor; fill:none; stroke-width:2; }
+.iv-table { width:100%; border-collapse:collapse; }
+.iv-table thead th { text-align:left; font-size:12px; font-weight:700; color:#595959; text-transform:uppercase; letter-spacing:.5px; padding:16px 22px; background:#fafaf8; border-bottom:1px solid #d4d2d0; }
+.iv-table th:first-child, .iv-table td:first-child { padding-left:24px; }
+.iv-table th:last-child, .iv-table td:last-child { padding-right:24px; }
+.iv-table .th-job { width:30%; }
+.iv-table .th-act { width:26%; }
+.iv-table tbody td { padding:20px 22px; border-bottom:1px solid #ebebeb; font-size:14px; color:#2d2d2d; vertical-align:top; }
+.iv-table tbody tr:last-child td { border-bottom:none; }
+.td-job { font-weight:400; font-size:14px; color:#0044B3; cursor:pointer; display:inline-block; }
+.td-job:hover { text-decoration:underline; }
+.td-jobname { font-weight:400; font-size:14px; color:#2d2d2d; }
+.td-co { font-size:13px; color:#767676; margin-top:3px; }
+.td-status { display:inline-flex; align-items:center; gap:7px; font-size:13px; font-weight:600; }
+.td-status .dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.td-status.confirmed { color:#16a34a; } .td-status.confirmed .dot { background:#16a34a; }
+.td-status.matched { color:#0044B3; } .td-status.matched .dot { background:#0044B3; }
+.td-status.proposed { color:#9A6700; } .td-status.proposed .dot { background:#d9a200; }
+.td-status.declined { color:#767676; } .td-status.declined .dot { background:#9a9794; }
+.td-status.injoined { color:#0044B3; } .td-status.injoined .dot { background:#0044B3; }
+.td-status.interviewed { color:#595959; } .td-status.interviewed .dot { background:#9a9794; }
+.td-sub { font-size:12px; color:#767676; margin-top:5px; max-width:230px; line-height:1.45; }
+.td-time { font-size:14px; color:#2d2d2d; font-weight:500; }
+.td-time.none { color:#9a9794; font-weight:400; }
+.td-actions { display:flex; flex-direction:column; gap:9px; align-items:flex-start; }
+.td-times { display:flex; flex-direction:column; gap:8px; align-items:flex-start; }
+.td-links { display:flex; flex-direction:column; gap:7px; align-items:flex-start; }
+.evt-note { font-size:12px; color:#767676; padding:13px 24px; border-top:1px solid #f0f0f0; }
+.evt-gate .gate-text p + p { margin-top:9px; }
+.evt-gate .gate-lead { font-weight:700; color:#2d2d2d; font-size:14px; }
+.iv-table .c-evt { width:27%; } .iv-table .c-int { width:31%; } .iv-table .c-stat { width:18%; } .iv-table .c-act { width:24%; }
+.td-evt-name { font-weight:400; font-size:14px; color:#2d2d2d; }
+.td-evt-meta { font-size:13px; color:#767676; margin-top:3px; line-height:1.5; }
+.td-itime { font-size:13px; color:#2d2d2d; margin-top:7px; font-weight:500; }
+.td-itime.td-muted { color:#9a9794; font-weight:400; }
+.td-muted { font-size:14px; color:#9a9794; }
+.td-jfx { font-size:12px; color:#767676; margin-top:6px; }
+.td-dash { color:#9a9794; font-size:14px; }
+.link-why { background:none; border:none; padding:0; margin-top:7px; display:inline-block; font-family:inherit; font-size:12.5px; font-weight:600; color:#0044B3; cursor:pointer; }
+.link-why:hover { text-decoration:underline; }
+.why-row td { background:#faf9f7; padding:0 !important; }
+.why-box { padding:18px 24px; }
+.why-box .gate-lead { font-weight:700; color:#2d2d2d; font-size:14px; }
+.why-box p { font-size:13.5px; color:#767676; line-height:1.55; }
+.why-box p + p { margin-top:9px; }
+.td-status.pending { color:#9A6700; } .td-status.pending .dot { background:#d9a200; }
+.iv-table .c-evt { width:26%; } .iv-table .c-job { width:25%; } .iv-table .c-int { width:27%; } .iv-table .c-act { width:22%; }
+.td-state { font-size:11.5px; font-weight:700; display:inline-block; padding:4px 12px; border-radius:9999px; }
+.td-state.confirmed { color:#16a34a; background:#e9f7ef; }
+.td-state.awaiting { color:#9A6700; background:#fbf3e2; }
+.td-state.pending { color:#9A6700; background:#fbf3e2; }
+.td-state.injoined { color:#0044B3; background:#eef2fb; }
+.td-state.done { color:#595959; background:#f0f0ee; }
+.td-state.none { color:#767676; background:#f0f0ee; font-weight:700; }
+.td-itime { font-size:14px; color:#2d2d2d; font-weight:500; }
+.td-itime + .td-state { margin-top:4px; }
+.td-substate { font-size:12px; color:#767676; margin-top:5px; }
+.td-actions-label { font-size:12px; font-weight:700; color:#595959; margin-bottom:2px; }
+.td-more-btn { display:none; }
+.td-more { display:contents; }
+.td-state.livestate { color:#16a34a; background:#e9f7ef; }
+.td-jfx { font-size:12px; color:#767676; margin-top:6px; }
+/* Dev toggle */
+.dev { display:none !important; position:fixed; bottom:14px; left:50%; transform:translateX(-50%); background:#2d2d2d; border-radius:8px; padding:6px; display:flex; flex-wrap:wrap; gap:4px; row-gap:4px; max-width:94vw; justify-content:center; align-items:center; z-index:600; box-shadow:0 6px 20px rgba(0,0,0,.25); }
+.dev span { color:#767676; font-size:10px; font-weight:700; padding:6px 6px 6px 8px; text-transform:uppercase; letter-spacing:.5px; }
+.dev button { font-family:inherit; font-size:11px; font-weight:700; color:#b0afad; background:transparent; border:none; border-radius:5px; padding:6px 12px; cursor:pointer; }
+.dev button.active { background:#0044B3; color:#fff; }
+.hidden { display:none !important; }
+
+/* ─── Message employer widget (matches employer msg-widget) ─── */
+.msg-widget { display:none; position:fixed; bottom:20px; right:20px; width:380px; height:480px; background:#fff; border-radius:12px 12px 0 0; box-shadow:0 4px 24px rgba(0,0,0,0.18), 0 0 0 1px rgba(0,0,0,0.06); z-index:9999; flex-direction:column; overflow:hidden; transition:height 0.2s ease; }
+.msg-widget.open { display:flex; }
+.msg-widget.minimized { height:52px; cursor:pointer; }
+.msg-widget.minimized .msg-widget-body, .msg-widget.minimized .msg-compose { display:none; }
+.msg-widget-header { padding:12px 16px; background:#2d2d2d; color:#fff; display:flex; justify-content:space-between; align-items:center; min-height:52px; cursor:pointer; user-select:none; border-radius:12px 12px 0 0; }
+.msg-widget-header-text { flex:1; min-width:0; }
+.msg-widget-name { font-size:15px; font-weight:700; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.msg-widget-sub { font-size:12px; font-weight:400; color:rgba(255,255,255,0.7); margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.msg-widget-controls { display:flex; align-items:center; gap:4px; margin-left:12px; flex-shrink:0; }
+.msg-widget-ctrl-btn { width:28px; height:28px; border:none; background:none; color:rgba(255,255,255,0.8); cursor:pointer; display:flex; align-items:center; justify-content:center; border-radius:4px; transition:all 0.15s; font-size:18px; font-family:inherit; }
+.msg-widget-ctrl-btn:hover { background:rgba(255,255,255,0.15); color:#fff; }
+.msg-widget-body { flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:12px; }
+.msg-widget .msg-bubble { max-width:85%; padding:10px 14px; border-radius:12px; font-size:13px; font-weight:400; line-height:1.5; }
+.msg-widget .msg-bubble.outgoing { align-self:flex-end; background:#3B82F6; color:#fff; border-bottom-right-radius:4px; }
+.msg-widget .msg-bubble.incoming { align-self:flex-start; background:#f3f2ef; color:#2d2d2d; border-bottom-left-radius:4px; }
+.msg-widget .msg-meta { font-size:11px; font-weight:400; color:#767676; margin-top:3px; }
+.msg-widget .msg-meta.outgoing { text-align:right; }
+.msg-widget .msg-meta.incoming { text-align:left; }
+.msg-widget .msg-meta .msg-sender { font-weight:600; color:#2d2d2d; }
+.msg-widget .msg-compose { border-top:1px solid #ebebeb; padding:12px 16px; }
+.msg-widget .msg-textarea { width:100%; height:60px; border:1px solid #d4d2d0; border-radius:8px; padding:10px 12px; font-size:13px; font-family:inherit; resize:none; color:#2d2d2d; line-height:1.5; box-sizing:border-box; }
+.msg-widget .msg-textarea:focus { outline:none; border-color:#0044B3; box-shadow:0 0 0 2px rgba(0,68,179,0.15); }
+.msg-widget .msg-textarea::placeholder { color:#b0b0b0; }
+.msg-widget .msg-compose-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:8px; }
+.msg-widget .msg-btn-send { background:#0044B3; border:none; color:#fff; padding:6px 16px; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; transition:all 0.15s; }
+.msg-widget .msg-btn-send:hover { background:#003399; }
+
+/* Messages list delete + header delete */
+.msg-thread { position:relative; }
+.msg-thread-del { position:absolute; right:14px; bottom:14px; width:30px; height:30px; border:none; background:#fff; border-radius:6px; color:#767676; cursor:pointer; display:none; align-items:center; justify-content:center; }
+.msg-thread:hover .msg-thread-del { display:flex; }
+.msg-thread-del:hover { background:#fdecec; color:#991b1b; }
+.msg-thread-del svg { width:16px; height:16px; stroke:currentColor; fill:none; stroke-width:2; }
+.msg-chat-del-btn { display:inline-flex; align-items:center; gap:6px; background:#fff; border:1px solid #d4d2d0; color:#595959; font-size:13px; font-weight:600; padding:7px 12px; border-radius:8px; cursor:pointer; font-family:inherit; transition:all .15s; }
+.msg-chat-del-btn:hover { border-color:#991b1b; color:#991b1b; background:#fdecec; }
+.msg-chat-del-btn svg { width:15px; height:15px; stroke:currentColor; fill:none; stroke-width:2; }
+
+/* Job Fairs (events) view */
+.evt-h2 { font-size:28px; font-weight:700; color:#2d2d2d; margin:14px 0 18px; }
+.evt-toolbar { display:flex; gap:14px; margin-bottom:22px; flex-wrap:wrap; }
+.evt-search { flex:1; min-width:240px; position:relative; }
+.evt-search input { width:100%; padding:14px 16px 14px 44px; border:1px solid #d4d2d0; border-radius:10px; font-size:15px; font-family:inherit; box-sizing:border-box; color:#2d2d2d; }
+.evt-search input:focus { outline:none; border-color:#0044B3; box-shadow:0 0 0 2px rgba(0,68,179,.15); }
+.evt-search svg { position:absolute; left:16px; top:50%; transform:translateY(-50%); width:18px; height:18px; color:#767676; stroke:currentColor; fill:none; stroke-width:2; }
+.evt-type { padding:14px 16px; border:1px solid #d4d2d0; border-radius:10px; font-size:15px; font-family:inherit; min-width:170px; cursor:pointer; background:#fff; color:#2d2d2d; }
+.evt-head { display:flex; align-items:center; gap:16px; padding:0 22px 10px; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:#595959; }
+.evt-row { display:flex; align-items:center; gap:16px; background:#fff; border:1px solid #ebebeb; border-radius:12px; padding:20px 22px; margin-bottom:12px; }
+.evt-date { width:120px; flex-shrink:0; font-size:14px; color:#767676; }
+.evt-city { flex:1; font-size:15px; font-weight:600; color:#2d2d2d; }
+.evt-type-col { width:150px; flex-shrink:0; }
+.evt-pill { display:inline-block; font-size:12px; font-weight:700; padding:5px 12px; border-radius:14px; border:1px solid transparent; }
+.evt-pill.green { background:#e9f7ef; color:#16a34a; border-color:#bfe8cf; }
+.evt-pill.blue { background:#eef2fb; color:#0044B3; border-color:#cfdcf5; }
+.evt-pill.orange { background:#fdf1e3; color:#b76e00; border-color:#f3d8ad; }
+.evt-action { width:130px; flex-shrink:0; text-align:right; }
+.evt-reg-btn { background:#0044B3; color:#fff; border:none; border-radius:8px; padding:10px 22px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; }
+.evt-reg-btn:hover { background:#003399; }
+.evt-empty { padding:40px 22px; text-align:center; color:#767676; font-size:15px; }
+
+/* ============ MOBILE BOTTOM NAV (base hidden) ============ */
+.mobile-nav { display:none; position:fixed; bottom:0; left:0; right:0; height:64px; background:#fff; border-top:1px solid #d4d2d0; z-index:400; }
+.mnav-item { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; text-decoration:none; color:#767676; font-size:11px; font-weight:600; position:relative; cursor:pointer; }
+.mnav-item.active { color:#0044B3; }
+.mnav-item svg { width:23px; height:23px; stroke:currentColor; fill:none; stroke-width:2; }
+.mnav-badge { position:absolute; top:7px; left:calc(50% + 5px); background:#0044B3; color:#fff; font-size:10px; font-weight:700; padding:0 5px; border-radius:8px; min-width:16px; height:16px; line-height:16px; text-align:center; }
+.msg-back-mobile { display:none; background:none; border:none; cursor:pointer; color:#2d2d2d; padding:2px 8px 2px 0; margin-right:2px; align-items:center; }
+.msg-back-mobile svg { width:24px; height:24px; stroke:currentColor; fill:none; stroke-width:2; }
+
+/* ============ RESPONSIVE: phones ============ */
+@media (max-width:768px) {
+  .sidebar { display:none; }
+  .topbar { left:0; padding:0 14px; }
+  body.collapsed .topbar { left:0; }
+  .main { margin-left:0; padding:16px 14px 84px; }
+  body.collapsed .main { margin-left:0; }
+  .mobile-nav { display:flex; }
+  .dev { display:none !important; }
+
+  .header-card { background:transparent; border:none; padding:0; margin-bottom:14px; }
+  .tab-pill { padding:10px 14px; font-size:13px; }
+  .dash-empty-card { padding:30px 22px; }
+  .dash-empty-card .ic { display:none; }
+  .dash-empty-card h2 { font-size:20px; }
+  .dash-empty-card p { margin-bottom:18px; }
+  .dash-empty-card .btn-primary { width:100%; justify-content:center; }
+  .content-header { flex-direction:column; align-items:flex-start; gap:10px; }
+  .account-name { font-size:22px; }
+  .content-header .btn-primary { width:auto; min-width:220px; justify-content:center; align-self:flex-start; padding:11px 16px; font-size:14px; background:#fff; color:#0044B3; border:1px solid #0044B3; }
+  .content-header .btn-primary:hover { background:#eef2fb; }
+  body.acct-empty .content-header .btn-primary { display:none; }
+
+  /* interview + past tables -> stacked cards */
+  .table-card { border:none; background:transparent; }
+  .iv-table, .iv-table tbody, .iv-table tr, .iv-table td { display:block; width:100%; }
+  .iv-table thead { display:none; }
+  .iv-table tr { border:1px solid #ebebeb; border-radius:12px; margin:0 0 12px; padding:14px 6px; background:#fff; }
+  .iv-table td { border:none !important; padding:3px 16px; }
+  .iv-table tbody td { padding:3px 16px; }
+  .iv-table td:first-child, .iv-table td:last-child { padding-left:16px; padding-right:16px; }
+  /* event + date condensed to one muted line */
+  .td-evt-name { display:block; font-size:13px; font-weight:400; color:#767676; }
+  .td-evt-meta { display:none; }
+  /* drop "Not scheduled yet" on the schedule state (CTA implies it) */
+  #scn-schedule .td-state { display:none; }
+  .td-co { margin-top:1px; }
+  .td-itime { display:inline; font-size:14px; margin-top:2px; }
+  .td-itime + .td-state.confirmed, .td-itime + .td-state.injoined, .td-itime + .td-state.done, .td-itime + .td-state.none, .td-itime + .td-state.pending { display:inline-block; margin-left:8px; margin-top:0; padding:2px 9px; border-radius:10px; font-size:11.5px; font-weight:700; vertical-align:middle; }
+  .td-itime + .td-state.confirmed { background:#e9f7ef; color:#16a34a; }
+  .td-itime + .td-state.pending { background:#fdf1e3; color:#9A6700; }
+  .td-itime + .td-state.injoined { background:#eef2fb; color:#0044B3; }
+  .td-itime + .td-state.done { background:#f0f0ee; color:#595959; }
+  .td-itime + .td-state.none { background:#f0f0ee; color:#767676; }
+  .td-jfx { margin-top:4px; }
+  .td-more-btn { display:flex !important; }
+  .td-more { display:none; }
+  .td-more.open { display:flex; flex-direction:column; align-items:flex-start; gap:7px; }
+  .iv-request, .iv-join, .iv-join-now, .time-btn { width:100%; box-sizing:border-box; justify-content:center; }
+  .td-actions { align-items:stretch; }
+  .why-row td { padding:0 16px 12px !important; }
+
+  /* messages: list then full-screen chat */
+  .msg-layout { margin:-16px -14px 0; height:calc(100vh - 56px - 64px); }
+  .msg-list-panel { width:100%; min-width:0; border-right:none; }
+  .msg-welcome-panel { display:none !important; }
+  .msg-chat-panel { position:fixed; top:0; left:0; right:0; bottom:0; z-index:1500; }
+  .msg-back-mobile { display:flex; }
+
+  /* message employer widget -> bottom sheet */
+  .msg-widget { left:0; right:0; bottom:0; width:100%; height:82vh; border-radius:14px 14px 0 0; }
+
+  /* job fairs list -> stacked */
+  .evt-toolbar { flex-direction:column; }
+  .evt-type { width:100%; }
+  .evt-head { display:none; }
+  .evt-row { flex-direction:column; align-items:flex-start; gap:10px; }
+  .evt-date, .evt-type-col, .evt-action { width:auto; }
+  .evt-action { width:100%; }
+  .evt-reg-btn { width:100%; }
+  .evt-h2 { font-size:22px; }
+
+  /* profile */
+  .profile-card { padding:22px 18px; }
+  .resume-build-box { max-width:none; }
+
+  /* modals full width */
+  .modal-overlay { padding:24px 14px; }
+}
+
+/* Device preview */
+.device-overlay { position:fixed; inset:0; background:rgba(20,20,20,.6); z-index:2000; display:none; flex-direction:column; align-items:center; justify-content:center; gap:14px; }
+.device-overlay.open { display:flex; }
+.device-bar { display:flex; align-items:center; gap:14px; }
+.device-label { color:#fff; font-size:13px; font-weight:600; }
+.device-close { background:rgba(255,255,255,.15); color:#fff; border:none; border-radius:8px; padding:7px 14px; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; }
+.device-close:hover { background:rgba(255,255,255,.28); }
+.device-frame { background:#fff; border:11px solid #111; border-radius:40px; overflow:hidden; box-shadow:0 24px 70px rgba(0,0,0,.5); }
+.device-frame iframe { display:block; border:none; width:100%; height:100%; background:#f3f2ef; }
+
+/* Compact demo state selector */
+.devsel { position:fixed; bottom:14px; left:14px; z-index:1800; display:flex; flex-direction:column; align-items:flex-start; gap:8px; }
+.devsel-launch { background:#2d2d2d; color:#fff; border:none; border-radius:9px; padding:10px 14px; font-size:13px; font-weight:700; font-family:inherit; cursor:pointer; box-shadow:0 6px 20px rgba(0,0,0,.28); }
+.devsel-panel { display:none; background:#2d2d2d; border-radius:12px; box-shadow:0 12px 34px rgba(0,0,0,.38); padding:10px; width:230px; max-height:72vh; overflow-y:auto; }
+.devsel.open .devsel-panel { display:block; }
+.devsel-head { display:flex; align-items:center; justify-content:space-between; padding:2px 4px 6px; color:#fff; font-size:13px; font-weight:700; }
+.devsel-x { background:none; border:none; color:#b0afad; cursor:pointer; font-size:13px; font-family:inherit; padding:2px 6px; }
+.devsel-x:hover { color:#fff; }
+.devsel-glabel { color:#7e8a99; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; margin:9px 4px 3px; }
+.devsel-item { display:block; width:100%; text-align:left; background:none; border:none; color:rgba(255,255,255,.85); font-size:13px; font-weight:500; font-family:inherit; padding:7px 10px; border-radius:7px; cursor:pointer; }
+.devsel-item:hover { background:rgba(255,255,255,.1); color:#fff; }
+.devsel-item.active { background:#0044B3; color:#fff; font-weight:700; }
+@media (max-width:768px){ .devsel { bottom:78px; left:10px; } .devsel-panel { width:210px; max-height:60vh; } }
+
+/* Toast (matches employer v3) */
+.jfx-toast { position:fixed; top:24px; right:24px; min-width:320px; max-width:420px; border-radius:10px; box-shadow:0 4px 24px rgba(0,0,0,0.14); border:1px solid #d4d2d0; z-index:10001; display:flex; align-items:flex-start; gap:12px; padding:16px 18px; opacity:0; transform:translateX(40px); transition:opacity 0.3s, transform 0.3s; pointer-events:none; }
+.jfx-toast.toast-success { background:#dcfce7; border-color:#bbf7d0; }
+.jfx-toast.show { opacity:1; transform:translateX(0); pointer-events:auto; }
+.jfx-toast-icon { flex-shrink:0; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin-top:1px; }
+.jfx-toast-icon.success { background:#bbf7d0; color:#16a34a; }
+.jfx-toast-icon svg { width:16px; height:16px; }
+.jfx-toast-body { flex:1; min-width:0; }
+.jfx-toast-title { font-size:14px; font-weight:700; color:#2d2d2d; line-height:1.4; }
+.jfx-toast-msg { font-size:14px; font-weight:400; color:#595959; line-height:1.4; margin-top:2px; }
+.jfx-toast-close { flex-shrink:0; width:28px; height:28px; display:flex; align-items:center; justify-content:center; background:none; border:none; cursor:pointer; color:#767676; font-size:18px; border-radius:6px; transition:background 0.15s; margin:-4px -4px 0 0; }
+.jfx-toast-close:hover { background:rgba(0,0,0,.06); color:#2d2d2d; }
+@media (max-width:768px){ .jfx-toast { left:12px; right:12px; top:12px; min-width:0; max-width:none; } }
+</style>
+</head>
+<body>
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-collapse">
+      <button class="collapse-btn" onclick="document.body.classList.toggle('collapsed')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        <span class="collapse-text">Collapse</span>
+      </button>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="nav-item active" id="nav-dashboard" onclick="setView('dashboard')">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg>
+        <span class="nav-text">Dashboard</span>
+      </a>
+      <a class="nav-item" id="nav-messages" onclick="setView('messages')">
+        <svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.5 8.5 8.5 0 0 1-3.6-.8L3 21l1.9-5.4A8.38 8.38 0 0 1 4 11.5 8.5 8.5 0 0 1 12.5 3 8.38 8.38 0 0 1 21 11.5z"/></svg>
+        <span class="nav-text">Messages</span>
+        <span class="badge" id="navMsgBadge">2</span>
+      </a>
+      <a class="nav-item" id="nav-events" onclick="openEvents()">
+        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        <span class="nav-text">Job fairs</span>
+      </a>
+      <a class="nav-item" id="nav-profile" onclick="setView('profile')">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        <span class="nav-text">Profile</span>
+      </a>
+      <div class="nav-divider"></div>
+      <a class="nav-item external" href="https://jobagentx.com" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24"><path d="M13 3h8v8M21 3l-9 9M19 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h5"/></svg>
+        <span class="nav-text">JobAgentX</span>
+        <svg class="ext-icon" viewBox="0 0 24 24"><path d="M7 17L17 7M9 7h8v8"/></svg>
+      </a>
+    </nav>
+  </aside>
+
+  <!-- MOBILE BOTTOM NAV -->
+  <nav class="mobile-nav">
+    <a class="mnav-item active" id="mnav-dashboard" onclick="setView('dashboard')"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg><span>Dashboard</span></a>
+    <a class="mnav-item" id="mnav-messages" onclick="setView('messages')"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.5 8.5 8.5 0 0 1-3.6-.8L3 21l1.9-5.4A8.38 8.38 0 0 1 4 11.5 8.5 8.5 0 0 1 12.5 3 8.38 8.38 0 0 1 21 11.5z"/></svg><span class="mnav-badge" id="mnavMsgBadge">2</span><span>Messages</span></a>
+    <a class="mnav-item" id="mnav-events" onclick="openEvents()"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg><span>Job fairs</span></a>
+    <a class="mnav-item" id="mnav-profile" onclick="setView('profile')"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg><span>Profile</span></a>
+  </nav>
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="user-trigger" onclick="toggleUserMenu(event)">
+      <span class="u-avatar"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg></span>
+      <span>demo@jobfairx.com</span>
+      <svg class="caret" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+      <div class="user-menu" id="userMenu">
+        <button class="user-menu-item">Communication Settings</button>
+        <button class="user-menu-item" onclick="openFeedback()">Feedback</button>
+        <button class="user-menu-item" onclick="openChangePw()">Change Password</button>
+        <div class="user-menu-divider"></div>
+        <button class="user-menu-item muted">Sign Out</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- ============ DASHBOARD VIEW ============ -->
+    <div id="view-dashboard">
+      <div class="filter-row" id="dashFilter">
+        <div class="tab-pills">
+          <div class="tab-pill active" onclick="setTab('upcoming',this)">Upcoming events <span class="count" id="cUp">3</span></div>
+          <div class="tab-pill" onclick="setTab('past',this)">Past events <span class="count" id="cPast">2</span></div>
+        </div>
+      </div>
+
+      <!-- UPCOMING -->
+      <div id="tab-upcoming">
+        <div class="table-card">
+          <table class="iv-table">
+            <thead><tr><th class="c-evt">Event details</th><th class="c-job">Job details</th><th class="c-int">Interview details</th><th class="c-act">Actions</th></tr></thead>
+
+            <tbody class="scn" id="scn-schedule">
+              <tr data-iv="rn" data-evt="Dallas Healthcare Hiring Event" data-evtmeta="Apr 22, 2026" data-job="Registered Nurse" data-co="Baylor Scott &amp; White">
+                <td><div class="td-evt-name">Dallas Healthcare Hiring Event</div><div class="td-evt-meta">Apr 22, 2026</div></td>
+                <td><div class="td-job" onclick="openJob('rn')">Registered Nurse</div><div class="td-co">Baylor Scott &amp; White</div></td>
+                <td><div class="td-state none">Not scheduled yet</div></td>
+                <td><div class="td-actions"><button class="iv-request" onclick="requestInterview('rn')"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Schedule interview</button><div class="td-links"><span class="iv-link msg-locked">Message employer<span class="iv-tip">You'll be able to message the employer once your interview is confirmed.</span></span><button class="iv-cancel" onclick="openUnregister('Dallas Healthcare Hiring Event',false)">Unregister</button></div></div></td>
+              </tr>
+            </tbody>
+
+            <tbody class="scn hidden" id="scn-pending">
+              <tr data-iv="rnp" data-evt="Dallas Healthcare Hiring Event" data-evtmeta="Apr 22, 2026" data-job="Registered Nurse" data-co="Baylor Scott &amp; White" data-time="Apr 22, 2026 · 11:15 AM CT">
+                <td><div class="td-evt-name">Dallas Healthcare Hiring Event</div><div class="td-evt-meta">Apr 22, 2026</div></td>
+                <td><div class="td-job" onclick="openJob('rnp')">Registered Nurse</div><div class="td-co">Baylor Scott &amp; White</div></td>
+                <td><div class="td-itime">Requested · Apr 22, 2026 · 11:15 AM CT</div><div class="td-state pending">Pending</div><div class="td-substate">Waiting for the employer to confirm.</div></td>
+                <td><div class="td-actions"><div class="td-links"><button class="iv-cancel" onclick="askCancel('rnp')">Cancel request</button><span class="iv-link msg-locked">Message employer<span class="iv-tip">You'll be able to message the employer once your interview is confirmed.</span></span><button class="iv-cancel" onclick="openUnregister('Dallas Healthcare Hiring Event',false)">Unregister</button></div></div></td>
+              </tr>
+            </tbody>
+
+            <tbody class="scn hidden" id="scn-confirmed">
+              <tr class="iv-confirmed" data-iv="pct" data-evt="Dallas Healthcare Hiring Event" data-evtmeta="Apr 22, 2026" data-job="Patient Care Tech" data-co="Texas Health" data-loc="Dallas, TX" data-time="Apr 22, 2026 · 12:30 PM CT"></tr>
+            </tbody>
+
+            <tbody class="scn hidden" id="scn-proposed">
+              <tr data-iv="se" data-evt="Austin Technology Hiring Event" data-evtmeta="Apr 24, 2026" data-job="Software Engineer" data-co="Vertex Labs">
+                <td><div class="td-evt-name">Austin Technology Hiring Event</div><div class="td-evt-meta">Apr 24, 2026</div></td>
+                <td><div class="td-job" onclick="openJob('se')">Software Engineer</div><div class="td-co">Vertex Labs</div></td>
+                <td><div class="td-state awaiting">Employer proposed new times</div><div class="td-substate">The employer needs to reschedule. Pick a time to confirm your interview.</div></td>
+                <td><div class="td-actions"><div class="td-actions-label">Choose a time to confirm</div><button class="time-btn" onclick="askAcceptTime('se','Apr 24, 2026 · 1:00 PM CT')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/></svg>Apr 24, 2026 · 1:00 PM CT</button><button class="time-btn" onclick="askAcceptTime('se','Apr 24, 2026 · 2:30 PM CT')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/></svg>Apr 24, 2026 · 2:30 PM CT</button><button class="time-btn" onclick="askAcceptTime('se','Apr 25, 2026 · 10:00 AM CT')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/></svg>Apr 25, 2026 · 10:00 AM CT</button><div class="td-links"><button class="iv-cancel" onclick="askCancel('se')">Decline</button><span class="iv-link msg-locked">Message employer<span class="iv-tip">You'll be able to message the employer once your interview is confirmed.</span></span><button class="iv-cancel" onclick="openUnregister('Austin Technology Hiring Event',false)">Unregister</button></div></div></td>
+              </tr>
+            </tbody>
+
+            <tbody class="scn hidden" id="scn-declined">
+              <tr data-iv="da" data-evt="Austin Technology Hiring Event" data-evtmeta="Apr 24, 2026" data-job="Data Analyst" data-co="Vertex Labs">
+                <td><div class="td-evt-name">Austin Technology Hiring Event</div><div class="td-evt-meta">Apr 24, 2026</div></td>
+                <td><div class="td-jobname">Data Analyst</div><div class="td-co">Vertex Labs</div></td>
+                <td><div class="td-state none">Request not accepted</div></td>
+                <td><div class="td-actions" style="align-items:flex-start;"><button class="link-why" style="margin-top:0;" onclick="toggleWhy(this)">What this means ↓</button><button class="iv-cancel" onclick="openUnregister('Austin Technology Hiring Event',false)">Unregister</button></div></td>
+              </tr>
+              <tr class="why-row hidden"><td colspan="4"><div class="why-box"><p class="gate-lead">The employer did not accept your interview request for this role.</p><p>Employers do not always provide a reason when declining interview requests.</p><p>You may still be matched to other jobs at this or future events. If you're matched, we'll notify you by email and the opportunity will appear on your dashboard.</p></div></td></tr>
+            </tbody>
+
+            <tbody class="scn hidden" id="scn-notmatched">
+              <tr>
+                <td><div class="td-evt-name">Chicago Technology Hiring Event</div><div class="td-evt-meta">May 6, 2026</div></td>
+                <td><div class="td-muted">Not matched to a job yet</div></td>
+                <td><div class="td-muted">No interview yet</div></td>
+                <td><div class="td-actions" style="align-items:flex-start;"><button class="link-why" style="margin-top:0;" onclick="toggleWhy(this)">What this means ↓</button><button class="iv-cancel" onclick="openUnregister('Chicago Technology Hiring Event',false)">Unregister</button></div></td>
+              </tr>
+              <tr class="why-row hidden"><td colspan="4"><div class="why-box"><p class="gate-lead">You're registered for the event.</p><p>This is a private, invite-only hiring event. To participate, you must be matched to an employer's job. Once you're matched, we'll email you an invitation to schedule an interview.</p><p>If you're not matched, you won't be able to schedule an interview or access the event.</p><p>There's nothing you need to do right now. If you're matched, you'll receive an email and the interview invitation will also appear on your dashboard.</p></div></td></tr>
+            </tbody>
+
+            <tbody class="scn hidden" id="scn-multi">
+              <tr>
+                <td><div class="td-evt-name">Dallas Healthcare Hiring Event</div><div class="td-evt-meta">Apr 22, 2026</div></td>
+                <td><div class="td-job" onclick="openJob('rnm')">Registered Nurse</div><div class="td-co">Baylor Scott &amp; White</div></td>
+                <td><div class="td-itime">Apr 22, 2026 · 11:15 AM CT</div><div class="td-state confirmed">Confirmed</div></td>
+                <td><div class="td-actions"><button class="iv-join"><svg viewBox="0 0 24 24"><rect x="2" y="6" width="13" height="12" rx="2"/><path d="M22 8.5l-7 4 7 4v-8z"/></svg>Join interview<span class="iv-tip">You can join when your interview starts · 11:15 AM CT</span></button><div class="td-jfx">Interviews are on JobFairX</div><div class="td-links"><button class="iv-link" onclick="openTest()">Test camera &amp; mic</button><button class="iv-link td-more-btn" onclick="toggleMore(this)">More ▾</button><div class="td-more"><button class="iv-link" onclick="openMsgEmployer('Baylor Scott &amp; White','Registered Nurse · Dallas, TX')">Message employer</button><button class="iv-cancel" onclick="askCancel('rnm')">Cancel interview</button><button class="iv-cancel" onclick="openUnregister('Dallas Healthcare Hiring Event',true)">Unregister</button></div></div></div></td>
+              </tr>
+              <tr>
+                <td><div class="td-evt-name">Dallas Healthcare Hiring Event</div><div class="td-evt-meta">Apr 22, 2026</div></td>
+                <td><div class="td-job" onclick="openJob('pctm')">Patient Care Tech</div><div class="td-co">Texas Health</div></td>
+                <td><div class="td-itime">Apr 22, 2026 · 12:30 PM CT</div><div class="td-state confirmed">Confirmed</div></td>
+                <td><div class="td-actions"><button class="iv-join"><svg viewBox="0 0 24 24"><rect x="2" y="6" width="13" height="12" rx="2"/><path d="M22 8.5l-7 4 7 4v-8z"/></svg>Join interview<span class="iv-tip">You can join when your interview starts · 12:30 PM CT</span></button><div class="td-jfx">Interviews are on JobFairX</div><div class="td-links"><button class="iv-link" onclick="openTest()">Test camera &amp; mic</button><button class="iv-link td-more-btn" onclick="toggleMore(this)">More ▾</button><div class="td-more"><button class="iv-link" onclick="openMsgEmployer('Texas Health','Patient Care Tech · Dallas, TX')">Message employer</button><button class="iv-cancel" onclick="askCancel('pctm')">Cancel interview</button><button class="iv-cancel" onclick="openUnregister('Dallas Healthcare Hiring Event',true)">Unregister</button></div></div></div></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div id="tab-upcoming-empty" class="up-empty hidden">
+          <h3>No upcoming events</h3>
+          <p>When you register for a job fair and an employer matches you, your interviews show up here.</p>
+          <a class="btn btn-primary" onclick="openEvents()" style="cursor:pointer;">Find a job fair</a>
+        </div>
+      </div>
+
+      <!-- PAST -->
+      <div id="tab-past" class="hidden">
+        <div class="table-card">
+          <table class="iv-table">
+            <thead><tr><th class="c-evt">Event details</th><th class="c-job">Job details</th><th class="c-int">Interview details</th><th class="c-act">Actions</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><div class="td-evt-name">Houston Veteran Hiring Event</div><div class="td-evt-meta">Mar 18, 2026</div></td>
+                <td><div class="td-jobname">Operations Coordinator</div><div class="td-co">Northwind Co</div><div class="td-co">Houston, TX</div></td>
+                <td><div class="td-itime">Mar 18, 2026 · 1:00 PM CT</div><div class="td-state done">Interviewed</div></td>
+                <td><div class="td-actions"><button class="iv-link" onclick="openMsgEmployer('Northwind Co','Operations Coordinator \u00b7 Houston, TX')">Send message</button></div></td>
+              </tr>
+              <tr>
+                <td><div class="td-evt-name">Phoenix Manufacturing Hiring Event</div><div class="td-evt-meta">Feb 25, 2026</div></td>
+                <td><div class="td-jobname">Quality Inspector</div><div class="td-co">Cactus Components</div><div class="td-co">Phoenix, AZ</div></td>
+                <td><div class="td-itime">Feb 25, 2026 · 1:00 PM CT</div><div class="td-state none">Missed</div></td>
+                <td><div class="td-actions"><button class="iv-link" onclick="openMsgEmployer('Cactus Components','Quality Inspector \u00b7 Phoenix, AZ')">Send message</button></div></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- DASH EMPTY -->
+      <div id="dash-empty" class="hidden">
+        <div class="dash-empty-card">
+          <div class="ic"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></div>
+          <h2>You're not registered for any upcoming events.</h2>
+          <p>Register for a virtual job fair to get matched and invited to interview.</p>
+          <a class="btn btn-primary" onclick="openEvents()" style="cursor:pointer;">Find a job fair</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ MESSAGES VIEW ============ -->
+    <div id="view-messages" class="hidden">
+      <!-- POPULATED -->
+      <div class="msg-layout" id="msg-populated">
+        <div class="msg-list-panel">
+          <div class="msg-list-header">
+            <div class="msg-list-header-top">
+              <h2>Messages</h2>
+            </div>
+            <div class="msg-inbox-tabs">
+              <button class="msg-inbox-tab active" id="tabInbox" onclick="msgTab('inbox',this)"><svg viewBox="0 0 24 24"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5h13l3.5 7v6a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1v-6z"/></svg>Inbox <span class="msg-badge">2</span></button>
+              <button class="msg-inbox-tab" id="tabArchived" onclick="msgTab('archived',this)"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="4" rx="1"/><path d="M5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8M10 12h4"/></svg>Archived</button>
+            </div>
+          </div>
+          <div class="msg-thread-list" id="msgInboxList">
+            <div class="msg-thread" onclick="openThread(this,'maria')">
+              <div class="msg-thread-top"><span class="msg-thread-name">Baylor Scott &amp; White</span><span class="msg-thread-date">Today</span></div>
+              <div class="msg-thread-job">Registered Nurse · Dallas, TX</div>
+              <div class="msg-thread-preview">Congrats on matching, Brad! Looking forward to our interview on the 22nd.</div>
+              <button class="msg-thread-del" title="Archive conversation" onclick="event.stopPropagation();archiveThread(this)"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="4" rx="1"/><path d="M5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8M10 12h4"/></svg></button>
+            </div>
+            <div class="msg-thread" onclick="openThread(this,'david')">
+              <div class="msg-thread-top"><span class="msg-thread-name">Texas Health</span><span class="msg-thread-date">Today</span></div>
+              <div class="msg-thread-job">Patient Care Tech · Dallas, TX</div>
+              <div class="msg-thread-preview">Hi Brad — we'd love to set up a time to talk during the event.</div>
+              <button class="msg-thread-del" title="Archive conversation" onclick="event.stopPropagation();archiveThread(this)"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="4" rx="1"/><path d="M5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8M10 12h4"/></svg></button>
+            </div>
+            <div class="msg-thread" onclick="openThread(this,'northwind')">
+              <div class="msg-thread-top"><span class="msg-thread-name">Northwind Co</span><span class="msg-thread-date">Mar 18</span></div>
+              <div class="msg-thread-job">Operations Coordinator · Houston, TX</div>
+              <div class="msg-thread-preview">Thanks for interviewing with us — we'll be in touch on next steps.</div>
+              <button class="msg-thread-del" title="Archive conversation" onclick="event.stopPropagation();archiveThread(this)"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="4" rx="1"/><path d="M5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8M10 12h4"/></svg></button>
+            </div>
+            <div class="msg-empty-list-body hidden" id="msgInboxEmpty">
+              <svg class="msg-empty-list-icon" viewBox="0 0 24 24"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5h13l3.5 7v6a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1v-6z"/></svg>
+              <div class="msg-empty-list-title">No conversations</div>
+              <div class="msg-empty-list-sub">Messages from employers show up here.</div>
+            </div>
+          </div>
+          <div class="msg-thread-list hidden" id="msgArchivedList">
+            <div class="msg-empty-list-body" id="msgArchivedEmpty">
+              <svg class="msg-empty-list-icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="4" rx="1"/><path d="M5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8M10 12h4"/></svg>
+              <div class="msg-empty-list-title">No archived conversations</div>
+              <div class="msg-empty-list-sub">Conversations you archive show up here.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="msg-welcome-panel" id="msgSelect">
+          <div class="ic"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.5 8.5 8.5 0 0 1-3.6-.8L3 21l1.9-5.4A8.38 8.38 0 0 1 4 11.5 8.5 8.5 0 0 1 12.5 3 8.38 8.38 0 0 1 21 11.5z"/></svg></div>
+          <h2>Select a conversation</h2>
+          <p>Choose a conversation to view and respond to an employer.</p>
+        </div>
+        <div class="msg-chat-panel hidden" id="msgChatPanel">
+          <div class="msg-chat-header">
+            <button class="msg-back-mobile" onclick="closeChatMobile()"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
+            <div class="msg-chat-header-info">
+              <h3 id="chatName">Baylor Scott &amp; White</h3>
+              <div class="msg-chat-header-meta" id="chatMeta">
+                <svg viewBox="0 0 24 24"><path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-3"/></svg>
+                Registered Nurse · Dallas, TX <span>|</span> Apr 22, 2026
+              </div>
+            </div>
+            <button class="msg-chat-del-btn" title="Archive conversation" onclick="archiveActiveThread()"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="4" rx="1"/><path d="M5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8M10 12h4"/></svg> Archive</button>
+          </div>
+          <div class="msg-chat-body" id="chatBody">
+            <div class="msg-chat-divider">Today</div>
+            <div class="msg-bubble system-msg">
+              <span class="system-label">Interview confirmed</span>
+              <span class="system-detail">Registered Nurse · Apr 22, 2026 · 11:15 AM CT</span>
+            </div>
+            <div class="msg-bubble received">Congrats on matching, Brad! I'm Maria, a recruiter on the nursing team at Baylor Scott &amp; White. Looking forward to our interview on the 22nd.</div>
+            <div class="msg-bubble-time received">9:42 AM</div>
+            <div class="msg-bubble sent">Thanks Maria! Really excited. Is there anything I should prepare or bring?</div>
+            <div class="msg-bubble-time sent">9:48 AM</div>
+            <div class="msg-bubble received">Just come as you are — we'll cover your experience and answer any questions. Talk soon!</div>
+            <div class="msg-bubble-time received">9:51 AM</div>
+          </div>
+          <div class="msg-chat-input">
+            <input class="msg-chat-input-field" placeholder="Write a message...">
+            <button class="msg-chat-input-btn"><svg viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- EMPTY (new / unmatched user) -->
+      <div class="msg-layout hidden" id="msg-empty">
+        <div class="msg-list-panel">
+          <div class="msg-list-header">
+            <div class="msg-list-header-top">
+              <h2>Messages</h2>
+            </div>
+            <div class="msg-inbox-tabs">
+              <button class="msg-inbox-tab active"><svg viewBox="0 0 24 24"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5h13l3.5 7v6a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1v-6z"/></svg>Inbox</button>
+              <button class="msg-inbox-tab"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="4" rx="1"/><path d="M5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8M10 12h4"/></svg>Archived</button>
+            </div>
+          </div>
+          <div class="msg-empty-list-body">
+            <svg class="msg-empty-list-icon" viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.5 8.5 8.5 0 0 1-3.6-.8L3 21l1.9-5.4A8.38 8.38 0 0 1 4 11.5 8.5 8.5 0 0 1 12.5 3 8.38 8.38 0 0 1 21 11.5z"/></svg>
+            <div class="msg-empty-list-title">No conversations yet</div>
+            <div class="msg-empty-list-sub">Employer messages will appear here.</div>
+          </div>
+        </div>
+        <div class="msg-welcome-panel">
+          <div class="ic"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.5 8.5 8.5 0 0 1-3.6-.8L3 21l1.9-5.4A8.38 8.38 0 0 1 4 11.5 8.5 8.5 0 0 1 12.5 3 8.38 8.38 0 0 1 21 11.5z"/></svg></div>
+          <h2>Welcome to Messages</h2>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ PROFILE VIEW ============ -->
+    <div id="view-profile" class="hidden">
+      <div class="profile-wrap" id="profile-main">
+        <div class="profile-card">
+          <div class="profile-name">Brad Feuerbacher</div>
+
+          <div class="profile-contact" onclick="showProfileSub('edit')">
+            <div class="lines">
+              demo@jobfairx.com<br>
+              (555) 010-2026<br>
+              Dallas, TX 75201<br>
+              United States
+            </div>
+            <svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>
+          </div>
+
+          <div class="profile-section-title">Get matched with jobs</div>
+          <div class="profile-divider"></div>
+          <div class="profile-row">
+            <div class="row-main">
+              <div class="row-title">Job titles</div>
+              <div class="row-sub">Specify your desired job titles for personalized job matches.</div>
+            </div>
+            <button class="profile-edit" onclick="openJT()"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg></button>
+          </div>
+          <div class="profile-divider"></div>
+
+          <div class="profile-section-title">Resume</div>
+          <div class="profile-divider"></div>
+          <div id="resumeNone">
+            <div class="resume-build-box" onclick="showProfileSub('resume')">Build a Free Resume in Minutes</div>
+            <p class="resume-hint">Uploads aren't allowed — build a clean, consistent resume right in JobFairX.</p>
+          </div>
+          <div id="resumeHas" class="hidden">
+            <div class="profile-resume-box" onclick="showProfileSub('resume')">
+              <span class="rlink">View your JobFairX Resume</span>
+              <svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>
+            </div>
+            <button class="profile-danger">Delete resume</button>
+          </div>
+
+          <button class="profile-danger account">Delete account</button>
+          <a class="profile-extlink" href="https://jobagentx.com" target="_blank" rel="noopener"><svg class="lead" viewBox="0 0 24 24"><path d="M13 2L3 14h7l-1 8 10-12h-7z"/></svg><span>JobAgentX</span><svg class="ext" viewBox="0 0 24 24"><path d="M7 17L17 7M9 7h8v8"/></svg></a>
+        </div>
+      </div>
+
+      <!-- EDIT INFORMATION -->
+      <div class="profile-wrap hidden" id="profile-edit">
+        <div class="back-link" onclick="showProfileSub('main')"><svg viewBox="0 0 24 24"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>Back to profile</div>
+        <div class="profile-card">
+          <div class="form-title">Edit your information</div>
+          <div class="form-group">
+            <label class="form-label">First name <span class="req">*</span></label>
+            <input class="form-input" value="Brad">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Last name <span class="req">*</span></label>
+            <input class="form-input" value="Feuerbacher">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Phone number <span class="req">*</span></label>
+            <input class="form-input" value="(555) 010-2026">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <div class="form-static">demo@jobfairx.com</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Address <span class="opt">(optional)</span></label>
+            <input class="form-input" value="">
+          </div>
+          <div class="form-row3">
+            <div class="form-group">
+              <label class="form-label">City <span class="req">*</span></label>
+              <input class="form-input" id="cityInput" value="Dallas">
+            </div>
+            <div class="form-group">
+              <label class="form-label" id="stateLabel">State <span class="req">*</span></label>
+              <select class="form-input" id="stateInput"></select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" id="zipLabel">ZIP Code <span class="req">*</span></label>
+              <input class="form-input" id="zipInput" value="75201">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Country <span class="req">*</span></label>
+            <select class="form-input" id="countrySelect" onchange="onCountryChange()">
+              <option value="us">United States</option>
+              <option value="ca">Canada</option>
+            </select>
+          </div>
+          <div class="form-actions">
+            <button class="btn-cancel" onclick="showProfileSub('main')">Cancel</button>
+            <button class="btn-save" onclick="showProfileSub('main')">Save</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- RESUME DOCUMENT -->
+      <div class="profile-wrap hidden" id="profile-resume">
+        <div class="back-link" onclick="showProfileSub('main')"><svg viewBox="0 0 24 24"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>Back to profile</div>
+        <div class="resume-doc">
+          <div class="resume-head">
+            <div>
+              <div class="resume-name">Brad Feuerbacher</div>
+              <div class="resume-contact">demo@jobfairx.com<br>(555) 010-2026</div>
+            </div>
+            <button class="icon-btn"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg></button>
+          </div>
+
+          <div class="resume-section"><h3>Location</h3><button class="icon-btn"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg></button></div>
+          <div class="resume-loc">75201<br>Dallas, TX</div>
+
+          <div class="resume-section"><h3>Work Experience</h3><button class="icon-btn"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg></button></div>
+
+          <div class="resume-entry">
+            <div class="resume-entry-head">
+              <div class="resume-entry-title">Operations Start-Up Lead</div>
+              <div class="resume-entry-actions"><button class="icon-btn"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg></button><button class="icon-btn"><svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg></button></div>
+            </div>
+            <div class="resume-entry-company">The Empanada Spot</div>
+            <div class="resume-entry-dates">2024 - Present</div>
+            <div class="resume-entry-desc">
+              <p>&bull; Directed startup operations for a mobile food business, establishing workflows that improved speed of service and operational consistency.</p>
+              <p>&bull; Built opening, closing, and safety SOPs to support standardization and daily readiness.</p>
+              <p>&bull; Managed inventory, supply chain logistics, staffing, and event execution to support customer demand and cost control.</p>
+              <p>&bull; Used POS reporting to monitor sales trends, forecast demand, and adjust operating hours.</p>
+              <p>&bull; Led onboarding and training efforts to build safe, efficient, and customer-focused execution.</p>
+            </div>
+          </div>
+
+          <div class="resume-entry">
+            <div class="resume-entry-head">
+              <div class="resume-entry-title">Continuous Improvement Analyst</div>
+              <div class="resume-entry-actions"><button class="icon-btn"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg></button><button class="icon-btn"><svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg></button></div>
+            </div>
+            <div class="resume-entry-company">McLane</div>
+            <div class="resume-entry-dates">2023 - 2024</div>
+            <div class="resume-entry-desc">
+              <p>&bull; Led productivity and cost-reduction initiatives across distribution centers, reducing operating costs by 10% and increasing throughput by 15%.</p>
+              <p>&bull; Managed a major WMS transition from Blue Yonder to Manhattan Associates with zero operational downtime.</p>
+              <p>&bull; Supported 8 capital and process improvement projects that contributed to more than $500,000 in annual savings.</p>
+              <p>&bull; Trained 200 employees across 3 facilities during implementation rollout, reducing system-related support tickets by 20%.</p>
+            </div>
+          </div>
+
+          <div class="resume-entry">
+            <div class="resume-entry-head">
+              <div class="resume-entry-title">Operations Manager</div>
+              <div class="resume-entry-actions"><button class="icon-btn"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg></button><button class="icon-btn"><svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg></button></div>
+            </div>
+            <div class="resume-entry-company">Amazon</div>
+            <div class="resume-entry-dates">2019 - 2022</div>
+            <div class="resume-entry-desc">
+              <p>&bull; Managed 4 managers and 150+ hourly associates in a high-volume facility, supporting the daily delivery of more than 400,000 units.</p>
+              <p>&bull; Led training and implementation of Directed Palletization, reducing departmental labor costs by 14%.</p>
+              <p>&bull; Partnered with process engineering teams to drive continuous improvement and elevate outbound throughput.</p>
+              <p>&bull; Built a cross-training matrix to improve staffing flexibility and seasonal readiness.</p>
+            </div>
+          </div>
+
+          <div class="resume-section"><h3>Education</h3><button class="icon-btn"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg></button></div>
+          <div class="resume-entry">
+            <div class="resume-entry-head">
+              <div class="resume-entry-title">Bachelor of Science</div>
+              <div class="resume-entry-actions"><button class="icon-btn"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg></button><button class="icon-btn"><svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg></button></div>
+            </div>
+            <div class="resume-entry-company">Applied economics &middot; East Carolina University</div>
+            <div class="resume-entry-dates">2014 - 2018</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ JOB FAIRS (EVENTS) VIEW ============ -->
+    <div id="view-events" class="hidden">
+      <div class="back-link" onclick="setView('dashboard')"><svg viewBox="0 0 24 24"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>Back to dashboard</div>
+      <h2 class="evt-h2">Job Fairs in 2026</h2>
+      <div class="evt-toolbar">
+        <div class="evt-search">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+          <input id="evtSearch" oninput="filterEvents()" placeholder="Search by city (e.g. Dallas, TX)">
+        </div>
+        <select id="evtType" class="evt-type" onchange="filterEvents()">
+          <option value="all">All Types</option>
+          <option value="Healthcare">Healthcare</option>
+          <option value="Technology">Technology</option>
+          <option value="Entry-Level">Entry-Level</option>
+          <option value="Diversity">Diversity</option>
+        </select>
+      </div>
+      <div class="evt-head"><div class="evt-date">Date</div><div class="evt-city">City</div><div class="evt-type-col">Event type</div><div class="evt-action"></div></div>
+      <div id="evtList"><div class="evt-row" data-title="Hartford, CT Diversity Virtual Job Fair" data-city="Hartford, CT" data-type="Diversity"><div class="evt-date">Jul 1, 2026</div><div class="evt-city">Hartford, CT Diversity Virtual Job Fair</div><div class="evt-type-col"><span class="evt-pill orange">Diversity</span></div><div class="evt-action"><button class="evt-reg-btn" onclick="registerEvent(this)">Register</button></div></div><div class="evt-row" data-title="Columbus, GA Healthcare Virtual Job Fair" data-city="Columbus, GA" data-type="Healthcare"><div class="evt-date">Jul 7, 2026</div><div class="evt-city">Columbus, GA Healthcare Virtual Job Fair</div><div class="evt-type-col"><span class="evt-pill green">Healthcare</span></div><div class="evt-action"><button class="evt-reg-btn" onclick="registerEvent(this)">Register</button></div></div><div class="evt-row" data-title="Independence, MO Technology Virtual Job Fair" data-city="Independence, MO" data-type="Technology"><div class="evt-date">Jul 9, 2026</div><div class="evt-city">Independence, MO Technology Virtual Job Fair</div><div class="evt-type-col"><span class="evt-pill blue">Technology</span></div><div class="evt-action"><button class="evt-reg-btn" onclick="registerEvent(this)">Register</button></div></div><div class="evt-row" data-title="Dallas, TX Healthcare Virtual Job Fair" data-city="Dallas, TX" data-type="Healthcare"><div class="evt-date">Jul 14, 2026</div><div class="evt-city">Dallas, TX Healthcare Virtual Job Fair</div><div class="evt-type-col"><span class="evt-pill green">Healthcare</span></div><div class="evt-action"><button class="evt-reg-btn" onclick="registerEvent(this)">Register</button></div></div><div class="evt-row" data-title="Lubbock, TX Entry-Level Virtual Job Fair" data-city="Lubbock, TX" data-type="Entry-Level"><div class="evt-date">Jul 17, 2026</div><div class="evt-city">Lubbock, TX Entry-Level Virtual Job Fair</div><div class="evt-type-col"><span class="evt-pill blue">Entry-Level</span></div><div class="evt-action"><button class="evt-reg-btn" onclick="registerEvent(this)">Register</button></div></div><div class="evt-row" data-title="Phoenix, AZ Technology Virtual Job Fair" data-city="Phoenix, AZ" data-type="Technology"><div class="evt-date">Jul 21, 2026</div><div class="evt-city">Phoenix, AZ Technology Virtual Job Fair</div><div class="evt-type-col"><span class="evt-pill blue">Technology</span></div><div class="evt-action"><button class="evt-reg-btn" onclick="registerEvent(this)">Register</button></div></div><div class="evt-row" data-title="Atlanta, GA Diversity Virtual Job Fair" data-city="Atlanta, GA" data-type="Diversity"><div class="evt-date">Jul 28, 2026</div><div class="evt-city">Atlanta, GA Diversity Virtual Job Fair</div><div class="evt-type-col"><span class="evt-pill orange">Diversity</span></div><div class="evt-action"><button class="evt-reg-btn" onclick="registerEvent(this)">Register</button></div></div></div>
+      <div id="evtNone" class="evt-empty hidden">No job fairs match your search.</div>
+    </div>
+
+  </div>
+
+  <!-- DEV STATE TOGGLE -->
+  <div class="dev" id="devBar">
+    <button class="dev-toggle-btn" onclick="toggleDevBar()" title="Hide/show demo toggles"><span class="dev-launcher-label">Demo</span><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
+    <div class="dev-body">
+    <span class="dev-label">Demo state</span>
+    <button onclick="setDemo('newuser',this)">New user</button>
+    <button onclick="setDemo('notmatched',this)">Not matched</button>
+    <button class="active" onclick="setDemo('schedule',this)">Job Alert</button>
+    <button onclick="setDemo('confirmed',this)">Interview confirmed</button>
+    <button onclick="setDemo('joinnow',this)">Join now</button>
+    <button onclick="setDemo('injoined',this)">In interview</button>
+    <button onclick="setDemo('proposed',this)">Proposed time</button>
+    <button onclick="setDemo('declined',this)">Not accepted</button>
+    <button onclick="setDemo('multi',this)">Two interviews</button>
+    <span class="dev-sep"></span>
+    <span class="dev-label">Messages</span>
+    <button class="dev-msg-btn" onclick="msgState('empty',this)">Empty</button>
+    <button class="dev-msg-btn active" onclick="msgState('active',this)">Active</button>
+    <span class="dev-sep"></span>
+    <span class="dev-label">Profile</span>
+    <button class="dev-prof-btn" onclick="profileState('empty',this)">Empty</button>
+    <button class="dev-prof-btn active" onclick="profileState('noresume',this)">No resume</button>
+    <button class="dev-prof-btn" onclick="profileState('hasresume',this)">With resume</button>
+    <span class="dev-sep"></span>
+    <span class="dev-label">Device</span>
+    <button class="dev-dev-btn active" onclick="setDevice('desktop',this)">Desktop</button>
+    <button class="dev-dev-btn" onclick="setDevice('se',this)">iPhone SE</button>
+    <button class="dev-dev-btn" onclick="setDevice('std',this)">iPhone 14</button>
+    <button class="dev-dev-btn" onclick="setDevice('max',this)">Pro Max</button>
+    </div>
+  </div>
+
+  <!-- DEMO STATE PANEL (lockable) -->
+  <div class="devsel" id="devSel">
+    <div class="devsel-panel" id="devselPanel">
+      <div class="devsel-head"><span>Demo states</span><button class="devsel-x" onclick="document.getElementById('devSel').classList.remove('open')">✕</button></div>
+      <div class="devsel-glabel">Dashboard</div>
+        <button class="devsel-item" data-v="d:newuser" onclick="devPick(this)">New user</button>
+        <button class="devsel-item" data-v="d:notmatched" onclick="devPick(this)">Not matched</button>
+        <button class="devsel-item active" data-v="d:schedule" onclick="devPick(this)">Job Alert</button>
+        <button class="devsel-item" data-v="d:pending" onclick="devPick(this)">Pending</button>
+        <button class="devsel-item" data-v="d:confirmed" onclick="devPick(this)">Interview confirmed</button>
+        <button class="devsel-item" data-v="d:joinnow" onclick="devPick(this)">Join now</button>
+        <button class="devsel-item" data-v="d:injoined" onclick="devPick(this)">In interview</button>
+        <button class="devsel-item" data-v="d:proposed" onclick="devPick(this)">Proposed time</button>
+        <button class="devsel-item" data-v="d:declined" onclick="devPick(this)">Not accepted</button>
+        <button class="devsel-item" data-v="d:multi" onclick="devPick(this)">Two interviews</button>
+      <div class="devsel-glabel">Messages</div>
+        <button class="devsel-item" data-v="m:empty" onclick="devPick(this)">Empty</button>
+        <button class="devsel-item" data-v="m:active" onclick="devPick(this)">Active</button>
+      <div class="devsel-glabel">Profile</div>
+        <button class="devsel-item" data-v="p:empty" onclick="devPick(this)">Empty</button>
+        <button class="devsel-item" data-v="p:noresume" onclick="devPick(this)">No resume</button>
+        <button class="devsel-item" data-v="p:hasresume" onclick="devPick(this)">With resume</button>
+      <div class="devsel-glabel">Device</div>
+        <button class="devsel-item" data-v="v:desktop" onclick="devPick(this)">Desktop</button>
+        <button class="devsel-item" data-v="v:se" onclick="devPick(this)">iPhone SE</button>
+        <button class="devsel-item" data-v="v:std" onclick="devPick(this)">iPhone 14</button>
+        <button class="devsel-item" data-v="v:max" onclick="devPick(this)">Pro Max</button>
+    </div>
+    <button class="devsel-launch" onclick="toggleDevPanel()">Demo states</button>
+  </div>
+
+  <!-- ADD JOB TITLES MODAL -->
+  <div class="modal-overlay" id="jtModal">
+    <div class="modal">
+      <div class="modal-head"><h2>Add job titles</h2><button class="modal-close" onclick="closeJT()">&times;</button></div>
+      <div class="modal-sub-q">What are your desired job titles?</div>
+      <div class="modal-sub">Add up to ten job titles</div>
+      <div id="jtList">
+        <div class="jt-row"><input class="jt-input" value="Operations Manager"><button class="jt-remove" onclick="this.closest('.jt-row').remove()">&times;</button></div>
+        <div class="jt-row"><input class="jt-input" value="Operations Supervisor"><button class="jt-remove" onclick="this.closest('.jt-row').remove()">&times;</button></div>
+        <div class="jt-row"><input class="jt-input" value="Continuous Improvement Analyst"><button class="jt-remove" onclick="this.closest('.jt-row').remove()">&times;</button></div>
+        <div class="jt-row"><input class="jt-input" value="Industrial Engineer"><button class="jt-remove" onclick="this.closest('.jt-row').remove()">&times;</button></div>
+        <div class="jt-row"><input class="jt-input" value="Manufacturing Engineer"><button class="jt-remove" onclick="this.closest('.jt-row').remove()">&times;</button></div>
+        <div class="jt-row"><input class="jt-input" value="Operations Start-Up Lead"><button class="jt-remove" onclick="this.closest('.jt-row').remove()">&times;</button></div>
+      </div>
+      <button class="jt-add" onclick="addJT()"><span>+</span> Add Job Title</button>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="closeJT()">Cancel</button>
+        <button class="btn-save" onclick="closeJT()">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CANCEL INTERVIEW MODAL -->
+  <div class="modal-overlay" id="cancelModal">
+    <div class="modal" style="max-width:440px;">
+      <div class="modal-head"><h2 style="font-size:20px;">Cancel this interview?</h2><button class="modal-close" onclick="closeCancel()">&times;</button></div>
+      <p id="cancelBody" style="font-size:14px;color:#4b5563;line-height:1.6;"></p>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="closeCancel()">Keep interview</button>
+        <button class="btn-danger" onclick="confirmCancel()">Cancel interview</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESCHEDULE INTERVIEW MODAL -->
+  <div class="modal-overlay" id="reschedModal">
+    <div class="modal" style="max-width:560px;">
+      <div class="modal-head"><h2 style="font-size:24px;">Reschedule your interview</h2><button class="modal-close" onclick="closeResched()">&times;</button></div>
+      <p style="font-size:14px;color:#4b5563;line-height:1.6;margin-bottom:4px;">Note that interviews can start within a 30-minute window. So if you select an 11:00 AM interview time, it can start anywhere between 11:00 AM and 11:30 AM.</p>
+      <div class="resched-day">Wednesday, Apr 22</div>
+      <div id="reschedSlots" class="resched-slots">
+        <label class="resched-slot"><input type="radio" name="reschedslot" value="Apr 22, 2026 &middot; 11:00 AM CT" checked><span class="rs-time">11:00 AM CT</span><span class="rs-spots">2 spots left</span></label>
+        <label class="resched-slot"><input type="radio" name="reschedslot" value="Apr 22, 2026 &middot; 11:30 AM CT"><span class="rs-time">11:30 AM CT</span><span class="rs-spots">3 spots left</span></label>
+        <label class="resched-slot"><input type="radio" name="reschedslot" value="Apr 22, 2026 &middot; 12:00 PM CT"><span class="rs-time">12:00 PM CT</span><span class="rs-spots">3 spots left</span></label>
+        <label class="resched-slot"><input type="radio" name="reschedslot" value="Apr 22, 2026 &middot; 1:30 PM CT"><span class="rs-time">1:30 PM CT</span><span class="rs-spots">2 spots left</span></label>
+        <label class="resched-slot"><input type="radio" name="reschedslot" value="Apr 22, 2026 &middot; 2:00 PM CT"><span class="rs-time">2:00 PM CT</span><span class="rs-spots">4 spots left</span></label>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="closeResched()">Cancel</button>
+        <button class="btn-save" onclick="confirmResched()">Reschedule interview</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JOB POSTING MODAL (dev stub) -->
+  <div class="modal-overlay" id="jobModal">
+    <div class="modal" style="max-width:480px;">
+      <div class="modal-head"><h2 id="jobModalTitle" style="font-size:20px;">Registered Nurse</h2><button class="modal-close" onclick="closeJob()">&times;</button></div>
+      <div id="jobModalCo" style="font-size:14px;color:#767676;margin:-12px 0 18px;">Baylor Scott &amp; White</div>
+      <div class="dev-note">
+        <div class="dev-note-label">Developer note</div>
+        <p>Below is a link to where the job should go (example for the developer). It points to the public job posting, where the candidate can view the full job and schedule / request an interview again.</p>
+        <a id="jobModalLink" class="dev-note-link" target="_blank" rel="noopener"></a>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-save" onclick="closeJob()">Got it</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- REQUEST INTERVIEW MODAL -->
+  <div class="modal-overlay" id="reqModal">
+    <div class="modal" style="max-width:460px;">
+      <div class="modal-head"><h2 style="font-size:20px;">Schedule your interview</h2><button class="modal-close" onclick="closeReq()">&times;</button></div>
+      <p style="font-size:14px;color:#4b5563;line-height:1.6;margin-bottom:16px;">Pick a time that works for you. The employer confirms your interview, and it happens right here on JobFairX — no app or external links.</p>
+      <div id="reqSlots">
+        <label class="req-slot"><input type="radio" name="reqslot" value="Apr 22, 2026 &middot; 11:15 AM CT" checked> Apr 22, 2026 &middot; 11:15 AM CT</label>
+        <label class="req-slot"><input type="radio" name="reqslot" value="Apr 22, 2026 &middot; 11:45 AM CT"> Apr 22, 2026 &middot; 11:45 AM CT</label>
+        <label class="req-slot"><input type="radio" name="reqslot" value="Apr 22, 2026 &middot; 1:30 PM CT"> Apr 22, 2026 &middot; 1:30 PM CT</label>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="closeReq()">Cancel</button>
+        <button class="btn-save" onclick="confirmRequest()">Schedule interview</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TEST CAMERA / MIC MODAL -->
+  <div class="modal-overlay" id="testModal">
+    <div class="modal" style="max-width:460px;">
+      <div class="modal-head"><h2 style="font-size:20px;">Test your camera &amp; mic</h2><button class="modal-close" onclick="closeTest()">&times;</button></div>
+      <p style="font-size:14px;color:#4b5563;line-height:1.6;margin-bottom:14px;">Get set for event day. Your interview runs right here on JobFairX — no app or download.</p>
+      <div class="test-preview"><svg viewBox="0 0 24 24"><rect x="2" y="6" width="13" height="12" rx="2"/><path d="M22 8.5l-7 4 7 4v-8z"/></svg>Camera preview</div>
+      <div class="test-row"><span>Camera</span><span class="test-ok">● Ready</span></div>
+      <div class="test-row"><span>Microphone</span><span class="test-ok">● Ready</span></div>
+      <div class="modal-actions"><button class="btn-save" onclick="closeTest()">Looks good</button></div>
+    </div>
+  </div>
+
+  <!-- ACCEPT PROPOSED TIME MODAL -->
+  <div class="modal-overlay" id="acceptModal">
+    <div class="modal" style="max-width:420px;">
+      <div class="modal-head"><h2 style="font-size:20px;">Accept this interview time?</h2><button class="modal-close" onclick="closeAccept()">&times;</button></div>
+      <p id="acceptBody" style="font-size:14px;color:#4b5563;line-height:1.6;"></p>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="closeAccept()">Cancel</button>
+        <button class="btn-save" onclick="confirmAccept()">Accept time</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MESSAGE EMPLOYER WIDGET (bottom-right, matches employer) -->
+  <div class="msg-widget" id="msgWidget">
+    <div class="msg-widget-header" onclick="toggleMsgWidget()">
+      <div class="msg-widget-header-text">
+        <div class="msg-widget-name" id="msgWidgetName">Vertex Labs</div>
+        <div class="msg-widget-sub" id="msgWidgetSub">Software Engineer · Austin, TX</div>
+      </div>
+      <div class="msg-widget-controls">
+        <button class="msg-widget-ctrl-btn" onclick="event.stopPropagation();toggleMsgWidget()">−</button>
+        <button class="msg-widget-ctrl-btn" onclick="event.stopPropagation();closeMsgWidget()">×</button>
+      </div>
+    </div>
+    <div class="msg-widget-body" id="msgWidgetBody">
+      <div class="msg-bubble incoming">Hi Brad — thanks for your interest in the Software Engineer role. We had to move some interview times around for the event.</div>
+      <div class="msg-meta incoming"><span class="msg-sender">Vertex Labs</span> · Apr 20 at 9:14 AM</div>
+      <div class="msg-bubble outgoing">No problem — happy to pick a new time. Is the interview still over JobFairX on event day?</div>
+      <div class="msg-meta outgoing">You · Apr 20 at 9:21 AM</div>
+      <div class="msg-bubble incoming">Yes, all interviews happen right here on JobFairX. Just confirm one of the times we proposed and you’re set.</div>
+      <div class="msg-meta incoming"><span class="msg-sender">Vertex Labs</span> · Apr 20 at 9:23 AM</div>
+    </div>
+    <div class="msg-compose">
+      <textarea class="msg-textarea" id="msgWidgetInput" placeholder="Write a message..."></textarea>
+      <div class="msg-compose-actions">
+        <button class="msg-btn-send" onclick="sendMsgWidget()">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FEEDBACK MODAL -->
+  <div class="modal-overlay" id="feedbackModal">
+    <div class="modal" style="max-width:480px;">
+      <div class="modal-head"><h2 style="font-size:20px;">Send us feedback</h2><button class="modal-close" onclick="closeFeedback()">&times;</button></div>
+      <div id="feedbackForm">
+        <p style="font-size:14px;color:#4b5563;line-height:1.6;margin-bottom:14px;">Found a bug or have an idea? Tell us what's working and what could be better.</p>
+        <textarea id="feedbackText" class="fb-textarea" placeholder="Your feedback..."></textarea>
+        <div class="modal-actions">
+          <button class="btn-cancel" onclick="closeFeedback()">Cancel</button>
+          <button class="btn-save" onclick="sendFeedback()">Send feedback</button>
+        </div>
+      </div>
+      <div id="feedbackThanks" class="hidden" style="text-align:center;padding:24px 0 8px;">
+        <h3 style="font-size:18px;font-weight:700;color:#2d2d2d;margin-bottom:8px;">Thanks — we got it.</h3>
+        <p style="font-size:14px;color:#767676;line-height:1.5;">We read every note. Appreciate you helping us improve.</p>
+        <div class="modal-actions" style="justify-content:center;"><button class="btn-save" onclick="closeFeedback()">Done</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHANGE PASSWORD MODAL -->
+  <div class="modal-overlay" id="pwModal">
+    <div class="modal" style="max-width:440px;">
+      <div class="modal-head"><h2 style="font-size:20px;">Change password</h2><button class="modal-close" onclick="closePw()">&times;</button></div>
+      <label style="display:block;font-size:13px;font-weight:600;color:#2d2d2d;margin-bottom:6px;">New password</label>
+      <div class="pw-field"><input id="pwNew" type="password" class="pw-input" placeholder="Enter new password"><button type="button" class="pw-eye" onclick="togglePw('pwNew',this)"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
+      <label style="display:block;font-size:13px;font-weight:600;color:#2d2d2d;margin:14px 0 6px;">Confirm password</label>
+      <div class="pw-field"><input id="pwConfirm" type="password" class="pw-input" placeholder="Re-enter new password"><button type="button" class="pw-eye" onclick="togglePw('pwConfirm',this)"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
+      <div id="pwError" class="hidden" style="color:#991b1b;font-size:13px;margin-top:10px;"></div>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="closePw()">Cancel</button>
+        <button class="btn-save" onclick="savePw()">Save password</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JOB FAIR REGISTER MODAL -->
+  <div class="modal-overlay" id="evtRegModal">
+    <div class="modal" style="max-width:440px;">
+      <div class="modal-head"><span></span><button class="modal-close" onclick="closeEvtReg()">&times;</button></div>
+      <p id="evtRegBody" style="font-size:16px;color:#2d2d2d;line-height:1.5;margin:2px 0 22px;"></p>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="closeEvtReg()">Cancel</button>
+        <button class="btn-save" onclick="confirmEvtReg()">Register</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST (matches employer v3) -->
+  <div class="jfx-toast toast-success" id="jfxToast">
+    <div class="jfx-toast-icon success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+    <div class="jfx-toast-body"><div class="jfx-toast-title" id="jfxToastTitle">Registered</div><div class="jfx-toast-msg" id="jfxToastMsg"></div></div>
+    <button class="jfx-toast-close" onclick="hideToast()">&times;</button>
+  </div>
+
+  <!-- UNREGISTER MODAL -->
+  <div class="modal-overlay" id="unregModal">
+    <div class="modal" style="max-width:440px;">
+      <div class="modal-head"><h2 style="font-size:20px;">Unregister from this job fair?</h2><button class="modal-close" onclick="closeUnregister()">&times;</button></div>
+      <p id="unregBody" style="font-size:14px;color:#4b5563;line-height:1.6;"></p>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="closeUnregister()">Keep registration</button>
+        <button class="btn-danger" onclick="confirmUnregister()">Unregister</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DEVICE PREVIEW (mobile frame) -->
+  <div class="device-overlay" id="deviceOverlay">
+    <div class="device-bar">
+      <span class="device-label" id="deviceLabel">iPhone 14 · 390×844</span>
+      <button class="device-close" onclick="setDevice('desktop')">✕ Close</button>
+    </div>
+    <div class="device-frame" id="deviceFrame"><iframe id="deviceIframe" title="Mobile preview"></iframe></div>
+  </div>
+
+<script>
+  var STATE='has', VIEW='dashboard';
+  function toggleUserMenu(e){ e.stopPropagation(); document.getElementById('userMenu').classList.toggle('open'); }
+  function openFeedback(){ document.getElementById('feedbackForm').classList.remove('hidden'); document.getElementById('feedbackThanks').classList.add('hidden'); document.getElementById('feedbackText').value=''; document.getElementById('feedbackModal').classList.add('open'); }
+  function closeFeedback(){ var m=document.getElementById('feedbackModal'); if(m) m.classList.remove('open'); }
+  function sendFeedback(){ document.getElementById('feedbackForm').classList.add('hidden'); document.getElementById('feedbackThanks').classList.remove('hidden'); }
+  function openChangePw(){ document.getElementById('pwNew').value=''; document.getElementById('pwConfirm').value=''; document.getElementById('pwError').classList.add('hidden'); document.getElementById('pwModal').classList.add('open'); }
+  function closePw(){ var m=document.getElementById('pwModal'); if(m) m.classList.remove('open'); }
+  function savePw(){
+    var n=document.getElementById('pwNew').value, c=document.getElementById('pwConfirm').value, err=document.getElementById('pwError');
+    if(!n||!c){ err.textContent='Enter and confirm your new password.'; err.classList.remove('hidden'); return; }
+    if(n!==c){ err.textContent='Passwords do not match.'; err.classList.remove('hidden'); return; }
+    err.classList.add('hidden'); closePw();
+  }
+  var EYE_SVG='<svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+  var EYEOFF_SVG='<svg viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><path d="M1 1l22 22"/></svg>';
+  function togglePw(id, btn){
+    var inp=document.getElementById(id);
+    if(inp.type==='password'){ inp.type='text'; btn.innerHTML=EYEOFF_SVG; }
+    else { inp.type='password'; btn.innerHTML=EYE_SVG; }
+  }
+  document.addEventListener('click', function(){ var m=document.getElementById('userMenu'); if(m) m.classList.remove('open'); });
+  function openEvents(){
+    ['view-dashboard','view-messages','view-profile'].forEach(function(id){document.getElementById(id).classList.add('hidden');});
+    document.getElementById('view-events').classList.remove('hidden');
+    ['nav-dashboard','nav-messages','nav-profile','nav-events'].forEach(function(id){var e=document.getElementById(id); if(e) e.classList.toggle('active', id==='nav-events');});
+    ['mnav-dashboard','mnav-messages','mnav-profile','mnav-events'].forEach(function(id){var e=document.getElementById(id); if(e) e.classList.toggle('active', id==='mnav-events');});
+    window.scrollTo(0,0); closeMsgWidget();
+  }
+  function filterEvents(){
+    var q=(document.getElementById('evtSearch').value||'').toLowerCase();
+    var t=document.getElementById('evtType').value, n=0;
+    document.querySelectorAll('#evtList .evt-row').forEach(function(r){
+      var city=(r.getAttribute('data-city')||'').toLowerCase(), typ=r.getAttribute('data-type');
+      var show=(!q||city.indexOf(q)>-1)&&(t==='all'||typ===t);
+      r.classList.toggle('hidden', !show); if(show) n++;
+    });
+    document.getElementById('evtNone').classList.toggle('hidden', n>0);
+  }
+  var EVT_TITLE='';
+  function registerEvent(btn){ var r=btn.closest('.evt-row'); EVT_TITLE=r.getAttribute('data-title'); document.getElementById('evtRegBody').textContent='Register for the '+EVT_TITLE+'?'; document.getElementById('evtRegModal').classList.add('open'); }
+  function closeEvtReg(){ var m=document.getElementById('evtRegModal'); if(m) m.classList.remove('open'); }
+  function confirmEvtReg(){ closeEvtReg(); showToast("You're registered", "If you're matched, we'll email you and it'll show on your dashboard."); }
+  var TOAST_T=null;
+  function showToast(title, msg){ var t=document.getElementById('jfxToast'); document.getElementById('jfxToastTitle').textContent=title; document.getElementById('jfxToastMsg').textContent=msg||''; t.classList.add('show'); clearTimeout(TOAST_T); TOAST_T=setTimeout(hideToast, 4200); }
+  function hideToast(){ var t=document.getElementById('jfxToast'); if(t) t.classList.remove('show'); }
+  var UNREG_EVT='';
+  function openUnregister(evt, hasInterview){
+    UNREG_EVT=evt;
+    document.getElementById('unregBody').textContent = hasInterview
+      ? 'Unregister from the '+evt+'? This will also cancel your scheduled interview.'
+      : 'Unregister from the '+evt+"? You'll be removed from this job fair.";
+    document.getElementById('unregModal').classList.add('open');
+  }
+  function closeUnregister(){ var m=document.getElementById('unregModal'); if(m) m.classList.remove('open'); }
+  function confirmUnregister(){
+    var card=document.querySelector('#tab-upcoming .table-card'); if(card) card.classList.add('hidden');
+    var empty=document.getElementById('tab-upcoming-empty'); if(empty) empty.classList.remove('hidden');
+    var c=document.getElementById('cUp'); if(c) c.textContent='0';
+    closeUnregister();
+    showToast("You've unregistered", "You're no longer registered for "+UNREG_EVT+".");
+  }
+  function setView(v){
+    VIEW=v;
+    document.getElementById('view-events').classList.add('hidden');
+    document.getElementById('view-dashboard').classList.toggle('hidden', v!=='dashboard');
+    document.getElementById('view-messages').classList.toggle('hidden', v!=='messages');
+    document.getElementById('view-profile').classList.toggle('hidden', v!=='profile');
+    document.getElementById('nav-dashboard').classList.toggle('active', v==='dashboard');
+    document.getElementById('nav-messages').classList.toggle('active', v==='messages');
+    document.getElementById('nav-profile').classList.toggle('active', v==='profile');
+    var mn={dashboard:'mnav-dashboard',messages:'mnav-messages',profile:'mnav-profile'};
+    ['mnav-dashboard','mnav-messages','mnav-profile'].forEach(function(id){var e=document.getElementById(id); if(e) e.classList.toggle('active', mn[v]===id);});
+    var _ne=document.getElementById('nav-events'); if(_ne) _ne.classList.remove('active');
+    var _mne=document.getElementById('mnav-events'); if(_mne) _mne.classList.remove('active');
+    if(v==='profile'){ showProfileSub('main'); }
+    if(v==='messages'){
+      document.querySelectorAll('.msg-thread').forEach(t=>t.classList.remove('active'));
+      var cp=document.getElementById('msgChatPanel'), ms=document.getElementById('msgSelect');
+      if(cp) cp.classList.add('hidden'); if(ms) ms.classList.remove('hidden');
+    }
+    closeJT(); closeCancel(); closeJob(); closeReq(); closeTest(); closeAccept(); closeFeedback(); closePw(); closeEvtReg(); closeMsgWidget(); closeUnregister();
+  }
+  var US_STATES='AL AK AZ AR CA CO CT DE FL GA HI ID IL IN IA KS KY LA ME MD MA MI MN MS MO MT NE NV NH NJ NM NY NC ND OH OK OR PA RI SC SD TN TX UT VT VA WA WV WI WY'.split(' ');
+  var CA_PROV='AB BC MB NB NL NS NT NU ON PE QC SK YT'.split(' ');
+  function populateStates(country, selected){
+    var list = country==='ca' ? CA_PROV : US_STATES;
+    var sel=document.getElementById('stateInput'); if(!sel) return;
+    sel.innerHTML = list.map(function(x){ return '<option value="'+x+'"'+(x===selected?' selected':'')+'>'+x+'</option>'; }).join('');
+  }
+  function onCountryChange(){
+    var ca = document.getElementById('countrySelect').value==='ca';
+    document.getElementById('zipLabel').innerHTML = (ca?'Postal Code':'ZIP Code')+' <span class="req">*</span>';
+    document.getElementById('stateLabel').innerHTML = (ca?'Province':'State')+' <span class="req">*</span>';
+    populateStates(ca?'ca':'us', ca?'ON':'TX');
+    var city=document.getElementById('cityInput');
+    if(ca && city.value==='Dallas') city.value='Toronto';
+    if(!ca && city.value==='Toronto') city.value='Dallas';
+  }
+  populateStates('us','TX');
+  function showProfileSub(sub){
+    document.getElementById('profile-main').classList.toggle('hidden', sub!=='main');
+    document.getElementById('profile-edit').classList.toggle('hidden', sub!=='edit');
+    document.getElementById('profile-resume').classList.toggle('hidden', sub!=='resume');
+    window.scrollTo(0,0);
+  }
+  function openJT(){ document.getElementById('jtModal').classList.add('open'); }
+  function closeJT(){ var m=document.getElementById('jtModal'); if(m) m.classList.remove('open'); }
+  function addJT(){
+    var l=document.getElementById('jtList');
+    var row=document.createElement('div'); row.className='jt-row';
+    var inp=document.createElement('input'); inp.className='jt-input';
+    var btn=document.createElement('button'); btn.className='jt-remove'; btn.innerHTML='&times;';
+    btn.onclick=function(){ row.remove(); };
+    row.appendChild(inp); row.appendChild(btn); l.appendChild(row);
+  }
+  function setTab(t, el){
+    document.getElementById('tab-upcoming').classList.toggle('hidden', t!=='upcoming');
+    document.getElementById('tab-past').classList.toggle('hidden', t!=='past');
+    document.querySelectorAll('#dashFilter .tab-pill').forEach(p=>p.classList.remove('active'));
+    el.classList.add('active');
+  }
+  function openThread(el, who){
+    document.querySelectorAll('.msg-thread').forEach(t=>t.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('msgSelect').classList.add('hidden');
+    document.getElementById('msgChatPanel').classList.remove('hidden');
+    var data={
+      maria:{n:'Baylor Scott &amp; White', m:'Registered Nurse · Dallas, TX <span>|</span> Apr 22, 2026'},
+      david:{n:'Texas Health', m:'Patient Care Tech · Dallas, TX <span>|</span> Apr 22, 2026'},
+      northwind:{n:'Northwind Co', m:'Operations Coordinator · Houston, TX <span>|</span> Mar 18, 2026'}
+    }[who];
+    document.getElementById('chatName').textContent=data.n;
+    document.getElementById('chatMeta').innerHTML='<svg viewBox="0 0 24 24"><path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-3"/></svg> '+data.m;
+  }
+  var ARCH_SVG='<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="4" rx="1"/><path d="M5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8M10 12h4"/></svg>';
+  var UNARCH_SVG='<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="4" rx="1"/><path d="M5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8M12 18v-6M9 15l3-3 3 3"/></svg>';
+  function refreshMsgLists(){
+    var inboxN=document.querySelectorAll('#msgInboxList .msg-thread').length;
+    var archN=document.querySelectorAll('#msgArchivedList .msg-thread').length;
+    var ie=document.getElementById('msgInboxEmpty'); if(ie) ie.classList.toggle('hidden', inboxN>0);
+    var ae=document.getElementById('msgArchivedEmpty'); if(ae) ae.classList.toggle('hidden', archN>0);
+    var badge=document.querySelector('#tabInbox .msg-badge');
+    if(badge){ badge.textContent=inboxN; badge.style.display=inboxN>0?'':'none'; }
+  }
+  function showSelectPlaceholder(){
+    document.querySelectorAll('.msg-thread').forEach(function(t){t.classList.remove('active');});
+    var cp=document.getElementById('msgChatPanel'), ms=document.getElementById('msgSelect');
+    if(cp) cp.classList.add('hidden'); if(ms) ms.classList.remove('hidden');
+  }
+  function msgTab(which, el){
+    document.getElementById('tabInbox').classList.toggle('active', which==='inbox');
+    document.getElementById('tabArchived').classList.toggle('active', which==='archived');
+    document.getElementById('msgInboxList').classList.toggle('hidden', which!=='inbox');
+    document.getElementById('msgArchivedList').classList.toggle('hidden', which!=='archived');
+    showSelectPlaceholder();
+  }
+  function archiveThread(btn){
+    var row=btn.closest('.msg-thread'); if(!row) return;
+    var wasActive=row.classList.contains('active');
+    btn.outerHTML='<button class="msg-thread-del" title="Unarchive conversation" onclick="event.stopPropagation();unarchiveThread(this)">'+UNARCH_SVG+'</button>';
+    document.getElementById('msgArchivedList').appendChild(row);
+    refreshMsgLists();
+    if(wasActive) showSelectPlaceholder();
+  }
+  function unarchiveThread(btn){
+    var row=btn.closest('.msg-thread'); if(!row) return;
+    var wasActive=row.classList.contains('active');
+    btn.outerHTML='<button class="msg-thread-del" title="Archive conversation" onclick="event.stopPropagation();archiveThread(this)">'+ARCH_SVG+'</button>';
+    document.getElementById('msgInboxList').appendChild(row);
+    refreshMsgLists();
+    if(wasActive) showSelectPlaceholder();
+  }
+  function closeChatMobile(){ document.getElementById('msgChatPanel').classList.add('hidden'); document.querySelectorAll('.msg-thread').forEach(function(t){t.classList.remove('active');}); }
+  function archiveActiveThread(){ var a=document.querySelector('.msg-thread.active'); if(a){ var b=a.querySelector('.msg-thread-del'); if(b) archiveThread(b); } }
+  refreshMsgLists();
+  function setState(s, el){
+    STATE=s; var empty = s==='empty';
+    // dashboard
+    document.getElementById('dashFilter').classList.toggle('hidden', empty);
+    document.getElementById('tab-upcoming').classList.toggle('hidden', empty);
+    document.getElementById('tab-past').classList.add('hidden');
+    document.getElementById('dash-empty').classList.toggle('hidden', !empty);
+    document.body.classList.toggle('acct-empty', empty);
+    document.getElementById('cUp').textContent = empty?'0':'2';
+    document.getElementById('cPast').textContent = empty?'0':'1';
+    if(!empty){ setTab('upcoming', document.querySelector('#dashFilter .tab-pill')); }
+    // messages
+    document.getElementById('msg-populated').classList.toggle('hidden', empty);
+    document.getElementById('msg-empty').classList.toggle('hidden', !empty);
+    document.getElementById('navMsgBadge').style.display = empty?'none':''; var _mb=document.getElementById('mnavMsgBadge'); if(_mb) _mb.style.display = empty?'none':'';
+    // dev buttons
+    el.closest('.dev-group').querySelectorAll('button').forEach(b=>b.classList.remove('active'));
+    el.classList.add('active');
+  }
+  function setJoin(j, el){
+    document.body.classList.toggle('join-live', j==='live');
+    el.closest('.dev-group').querySelectorAll('button').forEach(b=>b.classList.remove('active'));
+    el.classList.add('active');
+  }
+  var JOBMETA = {
+    rn:{t:'Registered Nurse', c:'Baylor Scott & White', ev:'dallas', job:'rn'},
+    pct:{t:'Patient Care Tech', c:'Texas Health', ev:'dallas', job:'pct'},
+    ops:{t:'Operations Coordinator', c:'Northwind Co', ev:'houston', job:'ops'},
+    se:{t:'Software Engineer', c:'Vertex Labs', ev:'austin', job:'se'},
+    da:{t:'Data Analyst', c:'Vertex Labs', ev:'austin', job:'da'},
+    rnm:{t:'Registered Nurse', c:'Baylor Scott & White', ev:'dallas', job:'rn'},
+    pctm:{t:'Patient Care Tech', c:'Texas Health', ev:'dallas', job:'pct'}
+  };
+  function openJob(k){
+    var j=JOBMETA[k]||{t:'',c:'',ev:'',job:''};
+    document.getElementById('jobModalTitle').textContent=j.t;
+    document.getElementById('jobModalCo').textContent=j.c;
+    var url='https://scottjobagent.github.io/jobfairx-prototype/share-preview.html?event='+j.ev+'&job='+j.job;
+    var a=document.getElementById('jobModalLink'); a.href=url; a.textContent=url;
+    document.getElementById('jobModal').classList.add('open');
+  }
+  function closeJob(){ var m=document.getElementById('jobModal'); if(m) m.classList.remove('open'); }
+  var REQ_KEY=null;
+  var MON='<rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/>';
+  function requestInterview(key){ REQ_KEY=key; document.getElementById('reqModal').classList.add('open'); }
+  function closeReq(){ var m=document.getElementById('reqModal'); if(m) m.classList.remove('open'); }
+  function confirmRequest(){
+    var key=REQ_KEY; if(!key){ closeReq(); return; }
+    var sel=document.querySelector('input[name="reqslot"]:checked');
+    var time=sel?sel.value:'';
+    var tr=document.querySelector('[data-iv="'+key+'"]'); if(!tr){ closeReq(); return; }
+    var job=tr.getAttribute('data-job')||'', co=tr.getAttribute('data-co')||'', evt=tr.getAttribute('data-evt')||'', evtmeta=tr.getAttribute('data-evtmeta')||'';
+    tr.innerHTML='<td><div class="td-evt-name">'+evt+'</div><div class="td-evt-meta">'+evtmeta+'</div></td>'
+      +'<td><div class="td-job" onclick="openJob(\''+key+'\')">'+job+'</div><div class="td-co">'+co+'</div></td>'
+      +'<td><div class="td-itime">'+time+'</div><div class="td-state awaiting">Awaiting confirmation</div></td>'
+      +'<td><div class="td-actions"><div class="td-links"><button class="iv-cancel" onclick="askCancel(\''+key+'\')">Cancel request</button></div></div></td>';
+    closeReq();
+  }
+  var PHASE='before';
+  var CAM='<rect x="2" y="6" width="13" height="12" rx="2"/><path d="M22 8.5l-7 4 7 4v-8z"/>';
+  function setPhase(p, el){
+    PHASE=p;
+    document.querySelectorAll('.iv-confirmed').forEach(renderConfirmed);
+    if(el){ el.closest('.dev-group').querySelectorAll('button').forEach(function(b){b.classList.remove('active');}); el.classList.add('active'); }
+  }
+  function renderConfirmed(tr){
+    var key=tr.getAttribute('data-iv'), job=tr.getAttribute('data-job'), co=tr.getAttribute('data-co'), time=tr.getAttribute('data-time'), evt=tr.getAttribute('data-evt'), evtmeta=tr.getAttribute('data-evtmeta'), loc=tr.getAttribute('data-loc')||'';
+    var short=time.split('· ').pop();
+    var msg='<button class="iv-link" onclick="openMsgEmployer(\''+co+'\',\''+job+' · '+loc+'\')">Message employer</button>';
+    var cam='<svg viewBox="0 0 24 24">'+CAM+'</svg>';
+    var c1='<td><div class="td-evt-name">'+evt+'</div><div class="td-evt-meta">'+evtmeta+'</div></td>';
+    var c2='<td><div class="td-job" onclick="openJob(\''+key+'\')">'+job+'</div><div class="td-co">'+co+'</div></td>';
+    var testBtn='<button class="iv-link" onclick="openTest()">Test camera &amp; mic</button>';
+    var cancelBtn='<button class="iv-cancel" onclick="askCancel(\''+key+'\')">Cancel interview</button>';
+    var reschedBtn='<button class="iv-link" onclick="openReschedule(\''+key+'\')">Reschedule interview</button>';
+    var moreBtn='<button class="iv-link td-more-btn" onclick="toggleMore(this)">More \u25be</button>';
+    var jfx='<div class="td-jfx">Interviews are on JobFairX</div>';
+    var unreg='<button class="iv-cancel" onclick="openUnregister(\''+evt+'\',true)">Unregister</button>';
+    var linksLive='<div class="td-links">'+testBtn+moreBtn+'<div class="td-more">'+msg+cancelBtn+unreg+'</div></div>';
+    var linksBefore='<div class="td-links">'+testBtn+moreBtn+'<div class="td-more">'+reschedBtn+msg+cancelBtn+unreg+'</div></div>';
+    var c3, c4;
+    if(PHASE==='before'){
+      c3='<td><div class="td-itime">'+time+'</div><div class="td-state confirmed">Confirmed</div></td>';
+      c4='<td><div class="td-actions"><button class="iv-join">'+cam+'Join interview<span class="iv-tip">You can join when your interview starts · '+short+'</span></button>'+jfx+linksBefore+'</div></td>';
+    } else if(PHASE==='live'){
+      c3='<td><div class="td-itime">'+time+'</div><div class="td-state livestate">It\'s time for your interview</div></td>';
+      c4='<td><div class="td-actions"><button class="iv-join-now">'+cam+'Join interview now</button>'+jfx+linksLive+'</div></td>';
+    } else {
+      c3='<td><div class="td-itime">'+time+'</div><div class="td-state injoined">In interview</div></td>';
+      c4='<td><div class="td-actions"><button class="iv-join-now">'+cam+'Return to interview</button><div class="td-links">'+msg+unreg+'</div></div></td>';
+    }
+    tr.innerHTML=c1+c2+c3+c4;
+  }
+  function toggleMore(btn){ var m=btn.nextElementSibling; if(!m) return; var open=m.classList.toggle('open'); btn.innerHTML = open ? 'Less \u25b4' : 'More \u25be'; }
+  function openTest(){ document.getElementById('testModal').classList.add('open'); }
+  function closeTest(){ var m=document.getElementById('testModal'); if(m) m.classList.remove('open'); }
+  var RESCHED_KEY=null;
+  function openReschedule(key){ RESCHED_KEY=key; document.getElementById('reschedModal').classList.add('open'); }
+  function closeResched(){ var m=document.getElementById('reschedModal'); if(m) m.classList.remove('open'); RESCHED_KEY=null; }
+  function confirmResched(){
+    var sel=document.querySelector('input[name="reschedslot"]:checked');
+    var tr=document.querySelector('[data-iv="'+RESCHED_KEY+'"]');
+    if(sel && tr){ tr.setAttribute('data-time', sel.value); renderConfirmed(tr); }
+    closeResched();
+  }
+  function acceptProposed(key, time){
+    var tr=document.querySelector('[data-iv="'+key+'"]'); if(!tr) return;
+    tr.setAttribute('data-time', time||'');
+    tr.classList.add('iv-confirmed');
+    renderConfirmed(tr);
+  }
+  var ACCEPT_KEY=null, ACCEPT_TIME=null;
+  function askAcceptTime(key, time){
+    ACCEPT_KEY=key; ACCEPT_TIME=time;
+    document.getElementById('acceptBody').innerHTML='Confirm your interview for <strong>'+time+'</strong>. It\'ll be booked right here on JobFairX — no app or external links.';
+    document.getElementById('acceptModal').classList.add('open');
+  }
+  function closeAccept(){ var m=document.getElementById('acceptModal'); if(m) m.classList.remove('open'); }
+  function confirmAccept(){ var k=ACCEPT_KEY, t=ACCEPT_TIME; closeAccept(); if(k) acceptProposed(k, t); }
+  function checkUpcomingEmpty(){
+    var t=document.getElementById('tab-upcoming'); if(!t) return;
+    var anyRow=t.querySelectorAll('tbody.scn:not(.hidden) tr').length>0;
+    var e=document.getElementById('tab-upcoming-empty'); if(e) e.classList.toggle('hidden', anyRow);
+    var card=t.querySelector('.table-card'); if(card) card.classList.toggle('hidden', !anyRow);
+  }
+  function applyAccount(empty){
+    document.getElementById('dashFilter').classList.toggle('hidden', empty);
+    document.getElementById('tab-upcoming').classList.toggle('hidden', empty);
+    document.getElementById('tab-past').classList.add('hidden');
+    document.getElementById('dash-empty').classList.toggle('hidden', !empty);
+    document.body.classList.toggle('acct-empty', empty);
+    document.getElementById('cUp').textContent = empty?'0':'1';
+    document.getElementById('cPast').textContent = empty?'0':'2';
+    if(!empty){ setTab('upcoming', document.querySelector('#dashFilter .tab-pill')); }
+    document.getElementById('msg-populated').classList.toggle('hidden', empty);
+    document.getElementById('msg-empty').classList.toggle('hidden', !empty);
+    document.getElementById('navMsgBadge').style.display = empty?'none':''; var _mb=document.getElementById('mnavMsgBadge'); if(_mb) _mb.style.display = empty?'none':'';
+  }
+  function openMsgEmployer(co, sub){
+    document.getElementById('msgWidgetName').textContent = co || 'Employer';
+    document.getElementById('msgWidgetSub').textContent = sub || '';
+    var w=document.getElementById('msgWidget'); w.classList.remove('minimized'); w.classList.add('open');
+    var b=document.getElementById('msgWidgetBody'); if(b) b.scrollTop=b.scrollHeight;
+  }
+  function toggleMsgWidget(){ document.getElementById('msgWidget').classList.toggle('minimized'); }
+  function closeMsgWidget(){ var w=document.getElementById('msgWidget'); w.classList.remove('open','minimized'); }
+  function sendMsgWidget(){
+    var inp=document.getElementById('msgWidgetInput'); var txt=(inp.value||'').trim(); if(!txt) return;
+    var body=document.getElementById('msgWidgetBody');
+    var b=document.createElement('div'); b.className='msg-bubble outgoing'; b.textContent=txt; body.appendChild(b);
+    var m=document.createElement('div'); m.className='msg-meta outgoing'; m.textContent='You \u00b7 Just now'; body.appendChild(m);
+    inp.value=''; body.scrollTop=body.scrollHeight;
+  }
+  function toggleWhy(btn){ var tb=btn.closest('tbody'); var w=tb?tb.querySelector('.why-row'):null; if(w){ var open=w.classList.toggle('hidden')===false; btn.textContent=open?'What this means \u2191':'What this means \u2193'; } }
+  var SCN_MAP={notmatched:'scn-notmatched',schedule:'scn-schedule',pending:'scn-pending',confirmed:'scn-confirmed',joinnow:'scn-confirmed',injoined:'scn-confirmed',proposed:'scn-proposed',declined:'scn-declined',multi:'scn-multi'};
+  var DEVICES={ se:{w:375,h:760,n:'iPhone SE \u00b7 375\u00d7667'}, std:{w:390,h:800,n:'iPhone 14 \u00b7 390\u00d7844'}, max:{w:430,h:820,n:'iPhone 15 Pro Max \u00b7 430\u00d7932'} };
+  function setDevice(size, el){
+    var ov=document.getElementById('deviceOverlay');
+    if(size==='desktop'){ ov.classList.remove('open'); }
+    else {
+      var d=DEVICES[size]; var fr=document.getElementById('deviceFrame'), ifr=document.getElementById('deviceIframe');
+      // fit height to viewport
+      var maxH=window.innerHeight-120; var h=Math.min(d.h, maxH);
+      fr.style.width=d.w+'px'; fr.style.height=h+'px';
+      if(!ifr.src){ ifr.src='jobseeker-dashboard-v2.html'; }
+      document.getElementById('deviceLabel').textContent=d.n;
+      ov.classList.add('open');
+    }
+    if(el){ el.closest('.dev').querySelectorAll('.dev-dev-btn').forEach(function(b){b.classList.remove('active');}); el.classList.add('active'); }
+    else { var btns=document.querySelectorAll('.dev-dev-btn'); btns.forEach(function(b){b.classList.remove('active');}); if(btns[0]) btns[0].classList.add('active'); }
+  }
+  function toggleDevPanel(){ document.getElementById('devSel').classList.toggle('open'); }
+  function devPick(btn){ document.querySelectorAll('.devsel-item').forEach(function(b){b.classList.remove('active');}); btn.classList.add('active'); devSelect(btn.getAttribute('data-v')); }
+  function devSelect(val){
+    var p=val.split(':'), k=p[0], v=p[1];
+    if(k==='d'){ setView('dashboard'); setDemo(v); }
+    else if(k==='m'){ msgState(v); }
+    else if(k==='p'){ profileState(v); }
+    else if(k==='v'){ setDevice(v); }
+  }
+  function toggleDevBar(){ document.getElementById('devBar').classList.toggle('collapsed'); }
+  function profileState(state, el){
+    setView('profile'); showProfileSub('main');
+    var has = state==='hasresume';
+    document.getElementById('resumeNone').classList.toggle('hidden', has);
+    document.getElementById('resumeHas').classList.toggle('hidden', !has);
+    if(el){ el.closest('.dev').querySelectorAll('.dev-prof-btn').forEach(function(b){b.classList.remove('active');}); el.classList.add('active'); }
+  }
+  function msgState(state, el){
+    setView('messages');
+    var empty = state==='empty';
+    document.getElementById('msg-populated').classList.toggle('hidden', empty);
+    document.getElementById('msg-empty').classList.toggle('hidden', !empty);
+    if(el){ el.closest('.dev').querySelectorAll('.dev-msg-btn').forEach(function(b){b.classList.remove('active');}); el.classList.add('active'); }
+  }
+  function setDemo(val, el){
+    var empty=(val==='newuser');
+    applyAccount(empty);
+    if(!empty){
+      var showId=SCN_MAP[val]||'scn-schedule';
+      document.querySelectorAll('#tab-upcoming .scn').forEach(function(d){ d.classList.toggle('hidden', d.id!==showId); });
+      PHASE = (val==='joinnow')?'live':(val==='injoined')?'joined':'before';
+      document.querySelectorAll('.iv-confirmed').forEach(renderConfirmed);
+      setTab('upcoming', document.querySelector('#dashFilter .tab-pill'));
+    }
+    if(el){ el.closest('.dev').querySelectorAll('button:not(.dev-msg-btn):not(.dev-prof-btn):not(.dev-dev-btn)').forEach(function(b){b.classList.remove('active');}); el.classList.add('active'); }
+  }
+  setDemo('schedule');
+  var CANCEL_KEY=null;
+  function askCancel(key){
+    CANCEL_KEY=key;
+    var tr=document.querySelector('[data-iv="'+key+'"]'); if(!tr) return;
+    var role=tr.getAttribute('data-job')||'';
+    var co=tr.getAttribute('data-co')||'';
+    var tEl=tr.querySelector('.td-itime'); var when=(tEl&&!tEl.classList.contains('td-muted'))?tEl.textContent:'';
+    var wtxt=when?(' ('+when+')'):'';
+    document.getElementById('cancelBody').innerHTML='You\'re about to cancel your <strong>'+role+'</strong> interview with '+co+wtxt+'. This releases your interview time and lets the employer know. It can\'t be undone — you\'d need to be matched again to get another time.';
+    document.getElementById('cancelModal').classList.add('open');
+  }
+  function closeCancel(){ var m=document.getElementById('cancelModal'); if(m) m.classList.remove('open'); CANCEL_KEY=null; }
+  function confirmCancel(){
+    var key=CANCEL_KEY; if(!key){ closeCancel(); return; }
+    var tr=document.querySelector('[data-iv="'+key+'"]');
+    var tb=tr?tr.closest('tbody'):null;
+    if(tr) tr.remove();
+    if(tb && tb.querySelectorAll('tr').length===0){
+      var c=document.getElementById('cUp'); if(c){ c.textContent=Math.max(0,(parseInt(c.textContent,10)||0)-1); }
+    }
+    checkUpcomingEmpty();
+    closeCancel();
+  }
+</script>
+</body>
+</html>
