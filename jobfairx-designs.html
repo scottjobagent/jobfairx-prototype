@@ -7,34 +7,62 @@
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
   *{box-sizing:border-box;}
-  html,body{margin:0;height:100%;font-family:Inter,sans-serif;background:#0f172a;}
-  .hubbar{position:fixed;top:0;left:0;right:0;height:56px;background:#0f172a;display:flex;align-items:center;gap:20px;padding:0 20px;z-index:10;border-bottom:1px solid #1e293b;}
-  .hublogo{color:#fff;font-weight:800;font-size:15px;letter-spacing:-.01em;}
+  html,body{margin:0;height:100vh;font-family:Inter,sans-serif;}
+  body{display:flex;flex-direction:column;background:#0f172a;}
+  .hdr{flex-shrink:0;}
+  .bar{display:flex;align-items:center;gap:20px;padding:0 20px;height:56px;background:#0f172a;border-bottom:1px solid #1e293b;}
+  .logo{color:#fff;font-weight:800;font-size:15px;}
   .segs{display:flex;gap:6px;background:#1e293b;padding:4px;border-radius:10px;}
   .segs button{border:none;background:transparent;color:#94a3b8;font-family:inherit;font-size:13.5px;font-weight:700;padding:8px 16px;border-radius:7px;cursor:pointer;}
   .segs button.on{background:#2563eb;color:#fff;}
   .segs button:hover:not(.on){color:#e2e8f0;}
-  .hint{margin-left:auto;color:#64748b;font-size:12px;}
-  iframe{position:fixed;top:56px;left:0;right:0;bottom:0;width:100%;height:calc(100% - 56px);border:none;background:#fff;}
+  /* state bar (dashboard only) */
+  .statebar{display:none;align-items:center;gap:8px;padding:10px 20px;background:#141c2b;border-bottom:1px solid #1e293b;flex-wrap:wrap;}
+  .statebar .lbl{color:#64748b;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;margin-right:4px;}
+  .statebar button{border:1px solid #2b3648;background:transparent;color:#cbd5e1;font-family:inherit;font-size:12.5px;font-weight:600;padding:6px 13px;border-radius:9999px;cursor:pointer;}
+  .statebar button.on{background:#2563eb;border-color:#2563eb;color:#fff;}
+  .statebar button:hover:not(.on){border-color:#3b4a63;color:#fff;}
+  iframe{flex:1;width:100%;border:none;background:#fff;}
 </style>
 </head>
 <body>
-  <div class="hubbar">
-    <span class="hublogo">JobFairX Designs</span>
-    <div class="segs">
-      <button data-src="nav-mockup.html">Header</button>
-      <button data-src="howitworks-mockup.html" class="on">How it works</button>
-      <button data-src="jobseeker-dashboard-pills.html">Dashboard</button>
-      <button data-src="interview-flow.html">Interview flow</button>
+  <div class="hdr">
+    <div class="bar">
+      <span class="logo">JobFairX Designs</span>
+      <div class="segs">
+        <button data-src="nav-mockup.html">Header</button>
+        <button data-src="howitworks-mockup.html" class="on">How it works</button>
+        <button data-src="jobseeker-dashboard-pills.html" data-dash="1">Dashboard</button>
+        <button data-src="calendar-mockup.html">Calendar</button>
+      </div>
     </div>
-    <span class="hint">On the Dashboard, use the "Demo states" button (bottom-left) to flip through every status.</span>
+    <div class="statebar" id="statebar">
+      <span class="lbl">Dashboard state</span>
+      <button data-st="notmatched" class="on">Waiting to be matched</button>
+      <button data-st="schedule">Matched</button>
+      <button data-st="pending">Interview requested</button>
+      <button data-st="confirmed">Interview confirmed</button>
+      <button data-st="proposed">New times proposed</button>
+      <button data-st="declined">Not selected</button>
+      <button data-st="joinnow">Join now</button>
+      <button data-st="injoined">In interview</button>
+    </div>
   </div>
   <iframe id="stage" src="howitworks-mockup.html" title="design"></iframe>
   <script>
-    var segs=document.querySelectorAll('.segs button');
+    var stage=document.getElementById('stage'), statebar=document.getElementById('statebar');
+    var segs=document.querySelectorAll('.segs button'), stbtns=document.querySelectorAll('.statebar button');
+    function resetState(){ stbtns.forEach(function(x,i){ x.classList.toggle('on', i===0); }); }
     segs.forEach(function(b){ b.onclick=function(){
       segs.forEach(function(x){ x.classList.toggle('on', x===b); });
-      document.getElementById('stage').src=b.getAttribute('data-src');
+      var dash=b.getAttribute('data-dash');
+      statebar.style.display = dash ? 'flex' : 'none';
+      if(dash){ resetState(); stage.src='jobseeker-dashboard-pills.html?state=notmatched'; }
+      else { stage.src=b.getAttribute('data-src'); }
+    };});
+    stbtns.forEach(function(b){ b.onclick=function(){
+      stbtns.forEach(function(x){ x.classList.toggle('on', x===b); });
+      stage.src='jobseeker-dashboard-pills.html?state='+b.getAttribute('data-st');
     };});
   </script>
 </body>
