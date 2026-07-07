@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Search Jobs — Mobile</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --blue:#2563eb; --blue-dark:#1d4ed8; --blue-soft:#eff4ff;
+    --ink:#0f172a; --slate:#475569; --muted:#64748b; --line:#e6e9ef;
+    --bg:#f6f8fc; --white:#fff; --green:#0f9d58; --green-soft:#e9f7ef;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Inter',system-ui,sans-serif;color:var(--ink);background:#e9edf5;-webkit-font-smoothing:antialiased;
+       min-height:100vh;display:flex;align-items:center;justify-content:center;padding:32px 16px}
+
+  /* phone frame */
+  .phone{width:390px;height:800px;background:#000;border-radius:46px;padding:11px;box-shadow:0 30px 70px rgba(15,23,42,.28);flex:0 0 auto}
+  .screen{position:relative;width:100%;height:100%;background:var(--bg);border-radius:36px;overflow:hidden;display:flex;flex-direction:column}
+  .notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:150px;height:26px;background:#000;border-radius:0 0 16px 16px;z-index:40}
+
+  /* header */
+  .hdr{background:var(--white);border-bottom:1px solid var(--line);padding:34px 18px 12px;display:flex;align-items:center;gap:12px;flex:0 0 auto;z-index:20}
+  .hdr .logo{font-weight:800;font-size:19px;color:var(--blue);letter-spacing:-.02em}
+  .hdr .menu{margin-left:auto;color:var(--slate)}
+  .hdr .signin{font-size:14px;font-weight:600;color:var(--blue)}
+
+  /* search */
+  .msearch{background:var(--white);padding:4px 16px 14px;flex:0 0 auto;border-bottom:1px solid var(--line)}
+  .mfield{display:flex;align-items:center;gap:9px;background:var(--bg);border:1px solid var(--line);border-radius:11px;padding:0 13px;height:46px;margin-top:9px}
+  .mfield svg{flex:0 0 auto;color:var(--muted)}
+  .mfield input{border:0;background:transparent;outline:none;font-size:15px;font-family:inherit;width:100%;color:var(--ink)}
+  .mbtn-search{width:100%;background:var(--blue);color:#fff;border:0;font-family:inherit;font-weight:600;font-size:15px;height:46px;border-radius:11px;margin-top:9px;cursor:pointer}
+  .mchips{display:flex;gap:8px;overflow-x:auto;padding:12px 16px 12px;background:var(--white);flex:0 0 auto;scrollbar-width:none}
+  .mchips::-webkit-scrollbar{display:none}
+  .mchip{white-space:nowrap;display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--white);color:var(--slate);font-size:13px;font-weight:500;padding:7px 13px;border-radius:9999px;flex:0 0 auto}
+
+  /* list scroll */
+  .mscroll{flex:1;overflow-y:auto;padding:14px 16px 24px}
+  .mcount{font-size:13px;color:var(--muted);margin-bottom:12px}
+  .mcount b{color:var(--ink);font-weight:600}
+  .mcard{background:var(--white);border:1px solid var(--line);border-radius:15px;padding:16px;margin-bottom:11px;cursor:pointer}
+  .mcard:active{border-color:var(--blue)}
+  .mc-title{font-size:16px;font-weight:700;letter-spacing:-.01em;line-height:1.3}
+  .mc-co{font-size:13.5px;color:var(--slate);margin-top:4px}
+  .mc-loc{font-size:13px;color:var(--muted);margin-top:3px;display:flex;align-items:center;gap:5px}
+  .mpay{display:inline-flex;align-items:center;background:var(--green-soft);color:var(--green);font-weight:700;font-size:13px;padding:5px 10px;border-radius:8px;margin-top:12px}
+  .mtags{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+  .mtag{font-size:12px;font-weight:500;color:var(--slate);background:var(--bg);border:1px solid var(--line);padding:4px 9px;border-radius:7px}
+  .mclamp{font-size:13px;color:var(--muted);line-height:1.5;margin-top:10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .mposted{font-size:12px;color:var(--muted);margin-top:11px;text-align:right}
+
+  /* detail screen */
+  .dscreen{position:absolute;inset:0;background:var(--bg);border-radius:36px;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .26s ease;z-index:30}
+  .dscreen.show{transform:translateX(0)}
+  .dbar{background:var(--white);border-bottom:1px solid var(--line);padding:36px 14px 12px;display:flex;align-items:center;gap:10px;flex:0 0 auto}
+  .dback{background:none;border:0;color:var(--ink);display:flex;align-items:center;gap:5px;font-family:inherit;font-size:15px;font-weight:600;cursor:pointer}
+  .dbody{flex:1;overflow-y:auto;padding:20px 18px 110px}
+  .dt-title{font-size:22px;font-weight:800;letter-spacing:-.02em;line-height:1.22}
+  .dt-co{font-size:15px;color:var(--slate);margin-top:6px;font-weight:600}
+  .dt-loc{font-size:13.5px;color:var(--muted);margin-top:3px}
+  .dfacts{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-top:20px}
+  .dfact{background:var(--white);padding:13px 14px}
+  .dfact .fl{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:600}
+  .dfact .fv{font-size:14px;color:var(--ink);font-weight:600;margin-top:3px}
+  .dsec{font-size:15.5px;font-weight:700;margin:24px 0 9px}
+  .dtext{font-size:14px;color:var(--slate);line-height:1.62}
+  .dtext p{margin-bottom:11px}
+  .dtext ul{margin:0 0 11px 17px}
+  .dtext li{margin-bottom:6px}
+  /* sticky apply */
+  .applybar{position:absolute;left:0;right:0;bottom:0;background:var(--white);border-top:1px solid var(--line);padding:14px 18px calc(14px + env(safe-area-inset-bottom));z-index:35}
+  .applybar .mpay-line{font-size:13px;color:var(--muted);margin-bottom:10px;text-align:center}
+  .applybar .mpay-line b{color:var(--ink)}
+  .btn-apply{width:100%;background:var(--blue);color:#fff;border:0;font-family:inherit;font-weight:600;font-size:16px;height:52px;border-radius:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}
+  .btn-apply:active{background:var(--blue-dark)}
+  .apply-note{font-size:11.5px;color:var(--muted);text-align:center;margin-top:8px}
+
+  .caption{margin-left:28px;max-width:300px;color:var(--slate);font-size:14px;line-height:1.6}
+  .caption h3{font-size:16px;color:var(--ink);margin-bottom:10px}
+  @media(max-width:760px){.caption{display:none}}
+</style>
+</head>
+<body>
+
+<div class="phone">
+  <div class="screen">
+    <div class="notch"></div>
+
+    <!-- LIST SCREEN -->
+    <div class="hdr">
+      <div class="logo">JobFairX</div>
+      <a class="signin" style="margin-left:auto">Sign In</a>
+    </div>
+    <div class="msearch">
+      <div class="mfield">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        <input value="Registered Nurse" aria-label="Job title">
+      </div>
+      <div class="mfield">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.3-7-11a7 7 0 1114 0c0 4.7-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
+        <input value="Rochester, NY" aria-label="City">
+      </div>
+      <button class="mbtn-search">Search</button>
+    </div>
+    <div class="mscroll">
+      <div class="mcount"><b id="mcount">6 jobs</b> in Rochester, NY</div>
+      <div id="mlist"></div>
+    </div>
+
+    <!-- DETAIL SCREEN -->
+    <div class="dscreen" id="dscreen">
+      <div class="dbar">
+        <button class="dback" onclick="closeDetail()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg>
+          Back
+        </button>
+      </div>
+      <div class="dbody" id="dbody"></div>
+      <div class="applybar">
+        <div class="mpay-line" id="applyPay"></div>
+        <button class="btn-apply">Apply now
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H8M17 7v9"/></svg>
+        </button>
+        <div class="apply-note">Opens the employer's application in a new tab.</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="caption">
+  <h3>Mobile — Search Jobs</h3>
+  Tap any job to open the full detail screen. Back returns to the list. Pay and shift lead each card, Apply is pinned to the bottom of the detail so it's always in reach. No logos, no save — just search and apply.
+</div>
+
+<script>
+const JOBS = [
+  {title:"Registered Nurse — Cardiac ICU", co:"Rochester Regional Health", loc:"Rochester, NY", site:"Rochester General Hospital", pay:"$39.75 – $52.99 / hr", type:"Full-time", schedule:"Nights · 36 hrs/wk", dept:"Cardiac CICU", posted:"2 days ago",
+   summary:"You're the engine and the heart of patient care at Rochester Regional. You make a positive difference every day for patients and their families.",
+   tags:["Full-time","Nights","36 hrs/wk"],
+   about:"As a Registered Nurse (RN) in our Cardiac ICU, you're the engine and the heart of patient care at Rochester Regional Health. You make a positive difference every day for patients and their families, going above and beyond with courtesy, kindness, respect and compassion.",
+   does:["Assess, plan and deliver care for critically ill cardiac patients","Partner with physicians on treatment plans","Monitor and respond to changes in condition","Educate patients and families throughout their stay"],
+   brings:["Current NYS RN license (or eligible)","BLS; ACLS within 6 months of hire","Critical care experience preferred, new grads considered"]},
+  {title:"Registered Nurse — Surgical Step Down", co:"Rochester Regional Health", loc:"Rochester, NY", site:"Rochester General Hospital", pay:"$39.75 – $52.99 / hr", type:"Full-time", schedule:"Days · 36 hrs/wk", dept:"Surgical Step Down", posted:"4 days ago",
+   summary:"Deliver hands-on care in our Critical Care Surgical Step Down unit. Every other weekend, every other holiday rotation.",
+   tags:["Full-time","Days","36 hrs/wk"],
+   about:"Join our Surgical Step Down team caring for patients transitioning from intensive care. Hands-on nursing in a fast-paced environment with strong team support and clear advancement paths.",
+   does:["Provide direct care for post-surgical and step-down patients","Coordinate with the surgical and critical care teams","Document and monitor recovery progress","Support patient and family education"],
+   brings:["Current NYS RN license (or eligible)","BLS certification required","1+ year acute care experience preferred"]},
+  {title:"RN — Emergency Department", co:"UR Medicine · Strong Memorial", loc:"Rochester, NY", site:"Strong Memorial Hospital", pay:"$41.00 – $58.20 / hr", type:"Full-time", schedule:"Rotating shifts", dept:"Emergency Department", posted:"1 day ago",
+   summary:"Join a Level 1 trauma center ED team. New grads welcome with our 12-week residency and dedicated preceptor support.",
+   tags:["Full-time","Rotating","Sign-on bonus"],
+   about:"Our Emergency Department is a Level 1 trauma center seeing a full range of acute and critical cases. New graduates welcome through our 12-week nurse residency program with dedicated preceptor support.",
+   does:["Triage and stabilize patients across all acuity levels","Work alongside physicians in a high-volume trauma setting","Deliver rapid, compassionate emergency care","Mentor and support newer team members"],
+   brings:["Current NYS RN license (or eligible)","BLS and ACLS certification","ED or trauma experience a plus; new grads considered"]},
+  {title:"Travel RN — Med/Surg", co:"Trinity Health", loc:"Rochester, NY", site:"Contract assignment", pay:"$2,400 – $2,900 / wk", type:"Contract", schedule:"13 weeks · Days", dept:"Med/Surg", posted:"6 days ago",
+   summary:"13-week travel contract on a fast-paced Med/Surg floor. Weekly stipend plus housing and travel reimbursement.",
+   tags:["Contract","13 weeks","Housing stipend"],
+   about:"A 13-week travel assignment on a busy Med/Surg unit. Competitive weekly pay with housing and travel reimbursement, plus the chance to extend based on unit needs.",
+   does:["Provide general medical-surgical nursing care","Manage a full patient assignment each shift","Adapt quickly to unit protocols and systems","Collaborate with permanent staff and charge nurses"],
+   brings:["Current RN license, NY or compact","BLS certification required","2+ years recent Med/Surg experience","Prior travel experience preferred"]},
+  {title:"Registered Nurse — Home Health", co:"BAYADA Home Health Care", loc:"Rochester, NY", site:"Field-based", pay:"$35.00 – $45.00 / hr", type:"Full-time", schedule:"Day shift · Mon–Fri", dept:"Home Health", posted:"3 days ago",
+   summary:"Care for patients one-on-one in their homes across Rochester. Autonomy, a manageable caseload, and no weekend requirement.",
+   tags:["Full-time","Day shift","No weekends"],
+   about:"Deliver one-on-one skilled nursing care to patients in their homes across greater Rochester. Real autonomy, a manageable caseload, and a Monday–Friday schedule with no weekend requirement.",
+   does:["Perform in-home assessments and skilled nursing visits","Develop and follow individualized care plans","Coordinate with physicians and family caregivers","Document visits and outcomes accurately"],
+   brings:["Current NYS RN license","BLS certification required","1+ year clinical experience","Valid driver's license and reliable transportation"]},
+  {title:"RN — Post-Anesthesia Care (PACU)", co:"Highland Hospital", loc:"Rochester, NY", site:"Highland Hospital", pay:"$38.00 – $50.00 / hr", type:"Full-time", schedule:"Days · No nights", dept:"PACU", posted:"5 days ago",
+   summary:"Recover surgical patients in our PACU. Predictable weekday schedule with no overnight shifts and a collaborative team.",
+   tags:["Full-time","Days","No nights"],
+   about:"Care for patients recovering from surgery in our Post-Anesthesia Care Unit. Predictable weekday schedule with no overnight shifts, working closely with anesthesia and surgical teams.",
+   does:["Monitor patients emerging from anesthesia","Manage pain and post-op complications","Communicate handoffs with surgical teams","Prepare patients for discharge or admission"],
+   brings:["Current NYS RN license","BLS and ACLS certification","PACU, ICU or ED experience preferred"]}
+];
+
+function mcard(j,i){
+  return `<div class="mcard" onclick="openDetail(${i})">
+    <div class="mc-title">${j.title}</div>
+    <div class="mc-co">${j.co}</div>
+    <div class="mc-loc"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.3-7-11a7 7 0 1114 0c0 4.7-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>${j.loc}</div>
+    <div class="mpay">${j.pay}</div>
+    <div class="mtags">${j.tags.map(t=>`<span class="mtag">${t}</span>`).join('')}</div>
+    <div class="mclamp">${j.summary}</div>
+    <div class="mposted">${j.posted}</div>
+  </div>`;
+}
+function dbodyHTML(j){
+  return `
+    <div class="dt-title">${j.title}</div>
+    <div class="dt-co">${j.co}</div>
+    <div class="dt-loc">${j.site} · ${j.loc}</div>
+    <div class="dfacts">
+      <div class="dfact"><div class="fl">Pay</div><div class="fv">${j.pay}</div></div>
+      <div class="dfact"><div class="fl">Job type</div><div class="fv">${j.type}</div></div>
+      <div class="dfact"><div class="fl">Schedule</div><div class="fv">${j.schedule}</div></div>
+      <div class="dfact"><div class="fl">Department</div><div class="fv">${j.dept}</div></div>
+    </div>
+    <div class="dsec">About the role</div>
+    <div class="dtext">
+      <p>${j.about}</p>
+      <p><b>What you'll do</b></p>
+      <ul>${j.does.map(d=>`<li>${d}</li>`).join('')}</ul>
+      <p><b>What you'll bring</b></p>
+      <ul>${j.brings.map(b=>`<li>${b}</li>`).join('')}</ul>
+    </div>`;
+}
+document.getElementById('mlist').innerHTML = JOBS.map((j,i)=>mcard(j,i)).join('');
+document.getElementById('mcount').textContent = JOBS.length + ' jobs';
+
+function openDetail(i){
+  const j = JOBS[i];
+  document.getElementById('dbody').innerHTML = dbodyHTML(j);
+  document.getElementById('applyPay').innerHTML = '<b>'+j.pay+'</b> · '+j.type;
+  document.getElementById('dbody').scrollTop = 0;
+  document.getElementById('dscreen').classList.add('show');
+}
+function closeDetail(){ document.getElementById('dscreen').classList.remove('show'); }
+</script>
+</body>
+</html>
