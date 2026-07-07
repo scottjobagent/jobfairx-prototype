@@ -746,6 +746,22 @@
 .how-step-link .arrow { display: inline-block; margin-left: 4px; transition: transform 0.2s ease; }
 .how-step-link:hover .arrow { transform: translateX(3px); }
 
+
+/* Inline "How it works" video section */
+.video-section { padding: 80px 0; background: #f7f5f0; border-bottom: 1px solid #f0eeea; }
+.video-section-inner { display: grid; grid-template-columns: 1fr 1.35fr; gap: 56px; align-items: center; }
+.video-section-copy { max-width: 420px; }
+.video-section-eyebrow { font-size: 11px; font-weight: 700; color: #2f55a0; text-transform: uppercase; letter-spacing: 0.18em; margin-bottom: 16px; }
+.video-section-title { font-size: 34px; font-weight: 700; color: #0f172a; letter-spacing: -0.02em; line-height: 1.15; margin: 0 0 16px; }
+.video-section-sub { font-size: 16px; color: #4a4a4a; line-height: 1.55; margin: 0; }
+.video-section-player { position: relative; aspect-ratio: 16 / 9; width: 100%; border-radius: 14px; overflow: hidden; background: #0f172a; box-shadow: 0 24px 60px -20px rgba(15,23,42,0.28), 0 4px 12px rgba(0,0,0,0.06); }
+.video-section-player iframe { width: 100%; height: 100%; border: 0; display: block; }
+@media (max-width: 900px) {
+  .video-section { padding: 56px 0; }
+  .video-section-inner { grid-template-columns: 1fr; gap: 28px; }
+  .video-section-title { font-size: 26px; }
+}
+
 /* "See how it works" video modal */
 .video-modal { position: fixed; inset: 0; z-index: 10000; display: none; align-items: center; justify-content: center; padding: 20px; }
 .video-modal.open { display: flex; }
@@ -1477,7 +1493,7 @@
         <p class="ev-hero-sub">Candidates range from recent graduates to early-career professionals with one to three years of experience, already matched to your open roles.</p>
         <div class="ev-hero-cta">
           <a href="#pricing" class="btn btn-primary btn-lg">Reserve My Spot</a>
-          <a href="#pricing" class="btn btn-secondary btn-lg">View Packages</a>
+          <a href="#how-it-works-video" class="btn btn-secondary btn-lg" onclick="event.preventDefault(); openHowItWorksModal();">See How It Works</a>
         </div>
       </div>
       <div class="ev-hero-image">
@@ -1530,6 +1546,28 @@
         <span class="trust-logo">COCA-COLA</span>
         <span class="trust-logo">Costco Wholesale</span>
         <span class="trust-logo">FedEx</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<section class="video-section" id="how-it-works-video">
+  <div class="container">
+    <div class="video-section-inner">
+      <div class="video-section-copy">
+        <div class="video-section-eyebrow">How it works</div>
+        <h2 class="video-section-title">See how JobFairX works in 2 minutes</h2>
+        <p class="video-section-sub">Get a quick walkthrough of the platform — from matched candidates to interviews on event day to your post-event report.</p>
+      </div>
+      <div class="video-section-player">
+        <iframe
+          src="https://www.youtube.com/embed/QuRalPnpPLA?rel=0"
+          title="How JobFairX works"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowfullscreen
+          loading="lazy">
+        </iframe>
       </div>
     </div>
   </div>
@@ -2870,23 +2908,28 @@
           <video src="/path/to/video.mp4" controls autoplay></video>
         Keep this container (.video-modal-player) — iframe/video styles are pre-set to fill it.
       -->
-      <div class="video-modal-placeholder">
-        <div class="play-circle">
-          <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-        </div>
-        <div class="placeholder-label">Product Overview</div>
-      </div>
+      <iframe
+        id="how-it-works-iframe"
+        src=""
+        data-src="https://www.youtube.com/embed/QuRalPnpPLA?autoplay=1&rel=0"
+        title="How JobFairX works"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen></iframe>
     </div>
   </div>
 </div>
 <script>
 function openHowItWorksModal() {
+  var iframe = document.getElementById('how-it-works-iframe');
+  if (iframe && !iframe.src) iframe.src = iframe.dataset.src;
   document.getElementById('how-it-works-modal').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
 function closeHowItWorksModal() {
   document.getElementById('how-it-works-modal').classList.remove('open');
   document.body.style.overflow = '';
+  var iframe = document.getElementById('how-it-works-iframe');
+  if (iframe) iframe.src = '';
 }
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') closeHowItWorksModal();
