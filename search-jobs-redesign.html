@@ -68,9 +68,9 @@
   .d-co{font-size:16px;color:var(--slate);margin-top:6px;font-weight:600}
   .d-loc{font-size:14px;color:var(--muted);margin-top:4px}
   .d-cta{margin:22px 0 6px}
-  .btn-primary{background:var(--blue);color:#fff;border:0;font-family:inherit;font-weight:600;font-size:15px;padding:14px 26px;border-radius:11px;cursor:pointer;width:100%;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+  .btn-primary{background:var(--blue);color:#fff;border:0;font-family:inherit;font-weight:600;font-size:14.5px;padding:11px 22px;border-radius:10px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:7px}
   .btn-primary:hover{background:var(--blue-dark)}
-  .apply-hint{font-size:12px;color:var(--muted);margin-top:8px;text-align:center}
+  .apply-hint{font-size:12px;color:var(--muted);margin-top:8px;text-align:left}
   .d-foot{border-top:1px solid var(--line);background:var(--white);padding:14px 30px calc(14px);flex:0 0 auto}
   .d-foot .fpay{font-size:13px;color:var(--muted);margin-bottom:9px;text-align:center}
   .d-foot .fpay b{color:var(--ink)}
@@ -130,7 +130,7 @@
   <div class="count"><b id="jcount">6 jobs</b> in Rochester, NY</div>
   <div class="split">
     <div class="list" id="list"></div>
-    <div class="detail"><div class="d-scroll" id="detail"></div><div class="d-foot" id="dfoot"></div></div>
+    <div class="detail"><div class="d-scroll" id="detail"></div></div>
   </div>
 </div>
 
@@ -181,8 +181,6 @@ function cardHTML(j, i){
     <div class="c-title">${j.title}</div>
     <div class="c-co">${j.co}</div>
     <div class="c-loc"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.3-7-11a7 7 0 1114 0c0 4.7-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>${j.loc}</div>
-    <div class="pay">${j.pay}</div>
-    <div class="tags">${j.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
     <div class="clamp">${j.summary}</div>
     <div class="card-foot"><span class="posted">${j.posted}</span></div>
   </div>`;
@@ -198,12 +196,6 @@ function detailHTML(j, i){
       </button>
       <div class="apply-hint">Opens the employer's application in a new tab.</div>
     </div>
-    <div class="facts">
-      <div class="fact"><div class="fl">Pay</div><div class="fv">${j.pay}</div></div>
-      <div class="fact"><div class="fl">Job type</div><div class="fv">${j.type}</div></div>
-      <div class="fact"><div class="fl">Schedule</div><div class="fv">${j.schedule}</div></div>
-      <div class="fact"><div class="fl">Department</div><div class="fv">${j.dept}</div></div>
-    </div>
     <div class="sec-h">About the role</div>
     <div class="d-body">
       <p>${j.about}</p>
@@ -213,18 +205,10 @@ function detailHTML(j, i){
       <ul>${j.brings.map(b=>`<li>${b}</li>`).join('')}</ul>
     </div>`;
 }
-function footHTML(j){
-  return `<div class="fpay"><b>${j.pay}</b> · ${j.type}</div>
-    <button class="btn-primary" onclick="applyJob()">Apply now
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H8M17 7v9"/></svg>
-    </button>`;
-}
-function applyJob(){ /* demo: opens the employer's application in a new tab */ }
 let current = 0;
 function render(){
   document.getElementById('list').innerHTML = JOBS.map((j,i)=>cardHTML(j,i)).join('');
   document.getElementById('detail').innerHTML = detailHTML(JOBS[current], current);
-  document.getElementById('dfoot').innerHTML = footHTML(JOBS[current]);
   document.getElementById('jcount').textContent = JOBS.length + ' jobs';
 }
 function selectJob(i){
@@ -232,7 +216,6 @@ function selectJob(i){
   document.querySelectorAll('.card').forEach(c=>c.classList.toggle('sel', +c.dataset.i===i));
   const d = document.getElementById('detail');
   d.innerHTML = detailHTML(JOBS[i], i);
-  document.getElementById('dfoot').innerHTML = footHTML(JOBS[i]);
   d.scrollTop = 0;
 }
 render();
