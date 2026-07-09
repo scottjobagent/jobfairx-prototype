@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Notetaker for interviews — JobFairX</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; color: #0f172a; background: #fff; -webkit-font-smoothing: antialiased; }
+  a { color: inherit; text-decoration: none; }
+  img { max-width: 100%; display: block; }
+  .container { max-width: 1160px; margin: 0 auto; padding: 0 24px; }
+  .top-strip { background: #1a2942; color: #fff; padding: 10px 24px; text-align: center; font-size: 14px; font-weight: 500; }
+  .site-header { background: #fff; border-bottom: 1px solid #f0eeea; position: sticky; top: 0; z-index: 500; }
+  .header-inner { max-width: 1160px; margin: 0 auto; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; }
+  .brand-mark { font-size: 22px; font-weight: 800; color: #2563eb; letter-spacing: -0.02em; }
+  .nav-links { display: flex; gap: 28px; }
+  .nav-links a { font-size: 14px; color: #4a4a4a; font-weight: 500; }
+  .nav-actions { display: flex; gap: 12px; align-items: center; }
+  .nav-actions .sign-in { font-size: 14px; color: #4a4a4a; font-weight: 500; }
+  .nav-actions .btn-nav { background: #2563eb; color: #fff; padding: 9px 16px; border-radius: 8px; font-size: 14px; font-weight: 600; }
+  .hero { padding: 88px 0 72px; background: linear-gradient(180deg, #f7f5f0 0%, #fff 100%); }
+  .hero-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 64px; align-items: center; }
+  .hero-eyebrow { display: inline-flex; align-items: center; gap: 10px; font-size: 12px; font-weight: 700; color: #2563eb; text-transform: uppercase; letter-spacing: 0.14em; margin-bottom: 20px; }
+  .date-pill { display: inline-block; background: #dbeafe; color: #1e3a8a; padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; }
+  .hero-title { font-size: 52px; font-weight: 800; letter-spacing: -0.03em; line-height: 1.05; color: #0f172a; margin-bottom: 20px; }
+  .hero-sub { font-size: 18px; line-height: 1.55; color: #4a4a4a; max-width: 520px; margin-bottom: 32px; }
+  .waitlist { background: #fff; border: 1px solid #e8e6e3; border-radius: 14px; padding: 28px; box-shadow: 0 24px 60px -20px rgba(15,23,42,0.14), 0 4px 12px rgba(0,0,0,0.04); }
+  .waitlist-title { font-size: 16px; font-weight: 700; color: #0f172a; margin-bottom: 4px; }
+  .waitlist-sub { font-size: 13px; color: #6b6862; margin-bottom: 20px; }
+  .form-row { display: flex; flex-direction: column; gap: 12px; }
+  .form-field { display: flex; flex-direction: column; gap: 6px; }
+  .form-field label { font-size: 12px; font-weight: 600; color: #4a4a4a; letter-spacing: 0.02em; }
+  .form-field input { padding: 12px 14px; font-size: 15px; border: 1px solid #e2e2e2; border-radius: 8px; font-family: inherit; color: #0f172a; }
+  .form-field input:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.12); }
+  .btn-submit { padding: 13px 18px; background: #2563eb; color: #fff; border: 0; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; font-family: inherit; margin-top: 4px; }
+  .btn-submit:hover { background: #1d4ed8; }
+  .waitlist-note { font-size: 12px; color: #6b6862; margin-top: 12px; }
+  .features { padding: 96px 0; }
+  .features-eyebrow { text-align: center; font-size: 13px; font-weight: 700; color: #2563eb; text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 14px; }
+  .features-title { text-align: center; font-size: 36px; font-weight: 700; color: #0f172a; letter-spacing: -0.02em; max-width: 720px; margin: 0 auto 56px; line-height: 1.15; }
+  .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .feature-card { background: #f7f5f0; border: 1px solid #ececec; border-radius: 14px; padding: 32px 28px; }
+  .feature-card-num { font-size: 13px; font-weight: 700; color: #2563eb; letter-spacing: 0.08em; margin-bottom: 14px; }
+  .feature-card h3 { font-size: 20px; font-weight: 700; color: #0f172a; letter-spacing: -0.01em; margin-bottom: 10px; }
+  .feature-card p { font-size: 15px; line-height: 1.55; color: #4a4a4a; }
+  .free-callout { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 14px; padding: 32px 40px; margin: 0 auto 96px; max-width: 720px; text-align: center; }
+  .free-callout .eyebrow { font-size: 12px; font-weight: 700; color: #1e3a8a; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 10px; }
+  .free-callout .headline { font-size: 22px; font-weight: 700; color: #0f172a; letter-spacing: -0.01em; margin-bottom: 8px; }
+  .free-callout p { font-size: 15px; color: #4a4a4a; }
+  .why { background: #f7f5f0; padding: 88px 0; }
+  .why-inner { max-width: 800px; margin: 0 auto; text-align: center; }
+  .why-eyebrow { font-size: 13px; font-weight: 700; color: #2563eb; text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 14px; }
+  .why-title { font-size: 32px; font-weight: 700; color: #0f172a; letter-spacing: -0.02em; margin-bottom: 20px; line-height: 1.2; }
+  .why-body { font-size: 17px; line-height: 1.65; color: #4a4a4a; }
+  .capture { padding: 96px 0; background: #fff; }
+  .capture-inner { max-width: 640px; margin: 0 auto; text-align: center; }
+  .capture-title { font-size: 32px; font-weight: 700; color: #0f172a; letter-spacing: -0.02em; margin-bottom: 12px; }
+  .capture-sub { font-size: 16px; color: #4a4a4a; margin-bottom: 32px; }
+  .capture-form { display: flex; gap: 10px; max-width: 480px; margin: 0 auto; }
+  .capture-form input { flex: 1; padding: 14px 16px; font-size: 15px; border: 1px solid #e2e2e2; border-radius: 10px; font-family: inherit; }
+  .capture-form input:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.12); }
+  .capture-form button { padding: 14px 24px; background: #2563eb; color: #fff; border: 0; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; white-space: nowrap; font-family: inherit; }
+  .capture-form button:hover { background: #1d4ed8; }
+  .site-footer { background: #0f172a; color: #cbd5e1; padding: 48px 0 32px; }
+  .footer-inner { max-width: 1160px; margin: 0 auto; padding: 0 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
+  .footer-brand { font-size: 18px; font-weight: 700; color: #fff; }
+  .footer-links { display: flex; gap: 24px; font-size: 14px; }
+  .footer-links a { color: #cbd5e1; }
+  .footer-copy { font-size: 12px; color: #64748b; margin-top: 20px; text-align: center; width: 100%; }
+  @media (max-width: 900px) {
+    .hero { padding: 56px 0 48px; }
+    .hero-grid { grid-template-columns: 1fr; gap: 40px; }
+    .hero-title { font-size: 36px; }
+    .features { padding: 64px 0; }
+    .features-title { font-size: 26px; }
+    .features-grid { grid-template-columns: 1fr; }
+    .free-callout { padding: 24px; margin-bottom: 64px; }
+    .why { padding: 56px 0; }
+    .why-title { font-size: 24px; }
+    .capture { padding: 64px 0; }
+    .capture-title { font-size: 24px; }
+    .capture-form { flex-direction: column; }
+    .capture-form button { width: 100%; }
+    .nav-links { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="top-strip">Coming August 10 · AI Notetaker · Free with every JobFairX plan</div>
+<header class="site-header">
+  <div class="header-inner">
+    <a href="employer-homepage-v2.html" class="brand-mark">JobFairX</a>
+    <nav class="nav-links">
+      <a href="#">Upcoming Hiring Events</a>
+      <a href="#">Pricing</a>
+      <a href="#">Resources</a>
+      <a href="#">Contact Us</a>
+    </nav>
+    <div class="nav-actions">
+      <a href="#" class="sign-in">Sign In</a>
+      <a href="#" class="btn-nav">Register for an Event</a>
+    </div>
+  </div>
+</header>
+<section class="hero">
+  <div class="container">
+    <div class="hero-grid">
+      <div>
+        <div class="hero-eyebrow"><span class="date-pill">New · Aug 10</span> AI Notetaker</div>
+        <h1 class="hero-title">Focus on the candidate. Let AI take the interview notes.</h1>
+        <p class="hero-sub">Every interview on JobFairX gets an automatic transcript, summary, candidate quotes, and interview highlights — delivered to your inbox the moment the call ends. No plugin. No copy-paste. Free with every plan.</p>
+      </div>
+      <div>
+        <div class="waitlist">
+          <p class="waitlist-title">Get early access</p>
+          <p class="waitlist-sub">We'll email you the moment it goes live on August 10.</p>
+          <form class="form-row" onsubmit="event.preventDefault(); document.getElementById('waitlistThanks').style.display='block'; this.style.display='none';">
+            <div class="form-field"><label>Full name</label><input type="text" placeholder="Jordan Reyes" required></div>
+            <div class="form-field"><label>Work email</label><input type="email" placeholder="jordan@company.com" required></div>
+            <div class="form-field"><label>Company</label><input type="text" placeholder="Acme Health" required></div>
+            <button type="submit" class="btn-submit">Notify me on launch day</button>
+            <p class="waitlist-note">We'll only email you about the launch. No newsletters, no sales sequences.</p>
+          </form>
+          <div id="waitlistThanks" style="display:none; padding: 24px 0; text-align: center;">
+            <p style="font-size: 18px; font-weight: 700; color: #0f172a; margin-bottom: 8px;">You're on the list.</p>
+            <p style="font-size: 14px; color: #6b6862;">We'll email you the moment AI Notetaker goes live.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="features">
+  <div class="container">
+    <div class="features-eyebrow">What it does</div>
+    <h2 class="features-title">Three things happen automatically after every interview</h2>
+    <div class="features-grid">
+      <div class="feature-card"><div class="feature-card-num">01</div><h3>Full transcript</h3><p>Every interview is transcribed word-for-word and stored on the candidate's profile. Searchable, timestamped, and speaker-labeled.</p></div>
+      <div class="feature-card"><div class="feature-card-num">02</div><h3>Summary + highlights</h3><p>Get a one-paragraph summary of the interview plus the moments that matter — key candidate quotes, red flags, and standout answers.</p></div>
+      <div class="feature-card"><div class="feature-card-num">03</div><h3>Delivered instantly</h3><p>Everything shows up in your inbox and on the candidate profile the moment the interview ends. No processing wait, no clicking around.</p></div>
+    </div>
+  </div>
+</section>
+<div class="container">
+  <div class="free-callout">
+    <div class="eyebrow">Included</div>
+    <p class="headline">Free with every JobFairX plan.</p>
+    <p>Starter, Growth, Pro — every plan includes unlimited AI Notetaker on every interview. No add-on fee, no per-seat charge, no usage limits.</p>
+  </div>
+</div>
+<section class="why">
+  <div class="container">
+    <div class="why-inner">
+      <div class="why-eyebrow">Why we built it</div>
+      <h2 class="why-title">You can't build rapport and type notes at the same time.</h2>
+      <p class="why-body">Every recruiter knows the tradeoff. Take good notes and lose eye contact. Focus on the candidate and forget half of what they said. AI Notetaker removes the choice — you show up present, ask the follow-up question, and get a better summary than you would have written yourself. On JobFairX, this is just how interviews work now.</p>
+    </div>
+  </div>
+</section>
+<section class="capture">
+  <div class="container">
+    <div class="capture-inner">
+      <h2 class="capture-title">Ready when you are</h2>
+      <p class="capture-sub">Drop your work email and we'll notify you the moment AI Notetaker goes live.</p>
+      <form class="capture-form" onsubmit="event.preventDefault(); this.querySelector('input').value=''; this.querySelector('button').textContent='You are on the list';">
+        <input type="email" placeholder="Your work email" required>
+        <button type="submit">Notify me</button>
+      </form>
+    </div>
+  </div>
+</section>
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand">JobFairX</div>
+    <div class="footer-links">
+      <a href="#">For Employers</a>
+      <a href="#">Pricing</a>
+      <a href="#">Resources</a>
+      <a href="#">Contact</a>
+    </div>
+    <div class="footer-copy">Copyright 2026 JobFairX. All rights reserved.</div>
+  </div>
+</footer>
+</body>
+</html>
