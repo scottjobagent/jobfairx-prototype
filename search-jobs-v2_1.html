@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JobFairX — Search Jobs Redesign</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --blue:#2563eb; --blue-dark:#1d4ed8; --blue-soft:#eff4ff;
+  --ink:#0f172a; --slate:#475569; --muted:#64748b; --line:#e6e9ef;
+  --bg:#f6f8fc; --white:#fff;
+  --amber:#8a5a00; --amber-soft:#fdf3e0;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:Inter,system-ui,-apple-system,sans-serif;
+  font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+a{color:var(--blue);text-decoration:none}
+a:hover{text-decoration:underline}
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px;border-radius:4px}
+.shell{max-width:1240px;margin:0 auto;padding:0 24px}
+
+.hero{background:var(--white);border-bottom:1px solid var(--line);padding:32px 0 0}
+.brand{font-weight:800;font-size:21px;color:var(--blue);letter-spacing:-.02em;margin-bottom:16px}
+h1{margin:0 0 8px;font-size:29px;font-weight:800;letter-spacing:-.025em;line-height:1.15}
+.sub{margin:0 0 22px;font-size:16px;color:var(--slate);max-width:66ch}
+.tabs{display:flex;gap:2px}
+.tab{font:inherit;font-size:14.5px;font-weight:600;color:var(--slate);
+  background:none;border:none;border-bottom:2px solid transparent;
+  padding:11px 16px;cursor:pointer;white-space:nowrap}
+.tab:hover{color:var(--ink)}
+.tab[aria-selected="true"]{color:var(--blue);border-bottom-color:var(--blue)}
+
+.panel{display:none;padding:26px 0 70px}
+.panel.on{display:block}
+
+.bar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+.devs{display:flex;gap:5px;flex-wrap:wrap}
+.dev{font:inherit;font-family:"Roboto Mono",monospace;font-size:11.5px;
+  background:var(--white);color:var(--slate);border:1px solid var(--line);
+  border-radius:8px;padding:7px 11px;cursor:pointer;white-space:nowrap}
+.dev:hover{border-color:#c9d3e6;color:var(--ink)}
+.dev[aria-pressed="true"]{background:var(--blue);color:#fff;border-color:var(--blue);font-weight:600}
+.vw{font-family:"Roboto Mono",monospace;font-size:12px;color:var(--muted)}
+
+.stage{display:flex;justify-content:center;background:#e8ecf5;
+  border:1px solid var(--line);border-radius:16px;padding:24px 16px}
+#frame{border:1px solid #cdd5e6;border-radius:20px;background:var(--bg);
+  box-shadow:0 8px 30px rgba(15,23,42,.13);
+  width:393px;height:780px;transition:width .18s ease;display:block}
+#frame.desk{width:100%;max-width:1200px;height:840px;border-radius:12px}
+
+.doc{background:var(--white);border:1px solid var(--line);border-radius:16px;
+  padding:34px 38px;max-width:880px}
+.doc h1{font-size:25px;margin:0 0 8px}
+.doc h2{font-size:19px;font-weight:700;letter-spacing:-.015em;
+  margin:32px 0 10px;padding-top:20px;border-top:1px solid var(--line)}
+.doc h2:first-of-type{border-top:none;padding-top:0;margin-top:22px}
+.doc h3{font-size:15.5px;font-weight:700;margin:22px 0 7px}
+.doc p{margin:0 0 13px;color:var(--slate);line-height:1.65}
+.doc ul,.doc ol{margin:0 0 14px;padding-left:22px;color:var(--slate);line-height:1.65}
+.doc li{margin-bottom:5px}
+.doc strong{color:var(--ink);font-weight:600}
+.doc code{font-family:"Roboto Mono",monospace;font-size:12.5px;
+  background:var(--bg);padding:2px 6px;border-radius:4px;color:var(--ink);
+  border:1px solid var(--line)}
+.doc pre{background:#0f172a;color:#e2e8f0;border-radius:12px;padding:16px 18px;
+  overflow-x:auto;font-size:12.5px;line-height:1.6;margin:0 0 16px}
+.doc pre code{background:none;padding:0;color:inherit;border:none}
+.doc table{border-collapse:collapse;width:100%;margin:0 0 16px;font-size:13.5px}
+.doc th,.doc td{border:1px solid var(--line);padding:9px 12px;text-align:left;vertical-align:top}
+.doc th{background:var(--bg);font-weight:600;font-size:12.5px}
+.doc td{color:var(--slate)}
+.doc hr{border:none;border-top:1px solid var(--line);margin:26px 0}
+.doc blockquote{border-left:3px solid var(--amber);background:var(--amber-soft);
+  color:var(--amber);margin:0 0 16px;padding:12px 16px;border-radius:0 8px 8px 0}
+.doc blockquote p{color:inherit;margin:0}
+
+.note{background:var(--amber-soft);border-left:3px solid var(--amber);
+  color:var(--amber);font-size:13.5px;padding:12px 15px;border-radius:0 8px 8px 0;
+  margin:0 0 16px;line-height:1.55}
+.note code{font-family:"Roboto Mono",monospace;font-size:12.5px;
+  background:rgba(138,90,0,.1);padding:1px 5px;border-radius:3px;border:none}
+
+footer{border-top:1px solid var(--line);background:var(--white);
+  padding:24px 0 46px;color:var(--muted);font-size:13px}
+@media(max-width:640px){
+  h1{font-size:23px}
+  .doc{padding:22px 18px}
+  .tab{padding:10px 12px;font-size:13.5px}
+  #frame{width:100%!important}
+}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="shell">
+    <div class="brand">JobFairX</div>
+    <h1>Search Jobs — page redesign</h1>
+    <p class="sub">Redesign of <code>/jobs</code> to increase outbound clicks on the Appcast &amp; WhatJobs feed. Desktop, mobile, and the developer spec &mdash; all on this page.</p>
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" aria-selected="true" data-p="mock">Design</button>
+      <button class="tab" role="tab" aria-selected="false" data-p="spec">Mobile Card Spec</button>
+      <button class="tab" role="tab" aria-selected="false" data-p="over">Overview</button>
+    </div>
+  </div>
+</div>
+
+<div class="shell">
+
+  <div class="panel on" id="p-mock">
+    <div class="bar">
+      <div class="devs">
+        <button class="dev" data-w="0" aria-pressed="true">Desktop</button>
+        <button class="dev" data-w="440">Pro Max 440</button>
+        <button class="dev" data-w="412">Android 412</button>
+        <button class="dev" data-w="393">iPhone 393</button>
+        <button class="dev" data-w="360">Small 360</button>
+        <button class="dev" data-w="320">SE 320</button>
+      </div>
+      <span class="vw" id="vwlabel">Desktop</span>
+    </div>
+    <div class="note">
+      <strong>Desktop</strong> is the split-pane view &mdash; job list left, detail panel right. <strong>Below 640px</strong> the detail panel drops away and the whole card becomes the tap target (no button), matching Indeed. This is a real iframe, so the breakpoints fire correctly.
+    </div>
+    <div class="stage">
+      <iframe id="frame" class="desk" title="Search jobs mockup"></iframe>
+    </div>
+  </div>
+
+  <div class="panel" id="p-spec"><div class="doc" id="specdoc"></div></div>
+  <div class="panel" id="p-over"><div class="doc" id="overdoc"></div></div>
+
+</div>
+
+<footer><div class="shell">Cloud Hire, LLC &middot; Henderson, NV</div></footer>
+
+<script id="mocksrc" type="text/plain">PCFET0NUWVBFIGh0bWw+CjxodG1sIGxhbmc9ImVuIj4KPGhlYWQ+CjxtZXRhIGNoYXJzZXQ9IlVURi04Ij4KPG1ldGEgbmFtZT0idmlld3BvcnQiIGNvbnRlbnQ9IndpZHRoPWRldmljZS13aWR0aCwgaW5pdGlhbC1zY2FsZT0xLjAiPgo8dGl0bGU+U2VhcmNoIEpvYnMg4oCUIFJlZGVzaWduPC90aXRsZT4KPGxpbmsgcmVsPSJwcmVjb25uZWN0IiBocmVmPSJodHRwczovL2ZvbnRzLmdvb2dsZWFwaXMuY29tIj4KPGxpbmsgcmVsPSJwcmVjb25uZWN0IiBocmVmPSJodHRwczovL2ZvbnRzLmdzdGF0aWMuY29tIiBjcm9zc29yaWdpbj4KPGxpbmsgaHJlZj0iaHR0cHM6Ly9mb250cy5nb29nbGVhcGlzLmNvbS9jc3MyP2ZhbWlseT1JbnRlcjp3Z2h0QDQwMDs1MDA7NjAwOzcwMDs4MDAmZGlzcGxheT1zd2FwIiByZWw9InN0eWxlc2hlZXQiPgo8c3R5bGU+CiAgOnJvb3R7CiAgICAtLWJsdWU6IzI1NjNlYjsgLS1ibHVlLWRhcms6IzFkNGVkODsgLS1ibHVlLXNvZnQ6I2VmZjRmZjsKICAgIC0taW5rOiMwZjE3MmE7IC0tc2xhdGU6IzQ3NTU2OTsgLS1tdXRlZDojNjQ3NDhiOyAtLWxpbmU6I2U2ZTllZjsKICAgIC0tYmc6I2Y2ZjhmYzsgLS13aGl0ZTojZmZmOyAtLWdyZWVuOiMwZjlkNTg7IC0tZ3JlZW4tc29mdDojZTlmN2VmOwogIH0KICAqe2JveC1zaXppbmc6Ym9yZGVyLWJveDttYXJnaW46MDtwYWRkaW5nOjB9CiAgYm9keXtmb250LWZhbWlseTonSW50ZXInLHN5c3RlbS11aSxzYW5zLXNlcmlmO2NvbG9yOnZhcigtLWluayk7YmFja2dyb3VuZDp2YXIoLS1iZyk7LXdlYmtpdC1mb250LXNtb290aGluZzphbnRpYWxpYXNlZH0KICBhe3RleHQtZGVjb3JhdGlvbjpub25lO2NvbG9yOmluaGVyaXR9CiAgLndyYXB7bWF4LXdpZHRoOjEyNDBweDttYXJnaW46MCBhdXRvO3BhZGRpbmc6MCAyNHB4fQoKICAubmF2e2JhY2tncm91bmQ6dmFyKC0td2hpdGUpO2JvcmRlci1ib3R0b206MXB4IHNvbGlkIHZhcigtLWxpbmUpO3Bvc2l0aW9uOnN0aWNreTt0b3A6MDt6LWluZGV4OjMwfQogIC5uYXYtaW57ZGlzcGxheTpmbGV4O2FsaWduLWl0ZW1zOmNlbnRlcjtnYXA6MzZweDtoZWlnaHQ6NjZweH0KICAubG9nb3tmb250LXdlaWdodDo4MDA7Zm9udC1zaXplOjIxcHg7Y29sb3I6dmFyKC0tYmx1ZSk7bGV0dGVyLXNwYWNpbmc6LS4wMmVtfQogIC5uYXYtbGlua3N7ZGlzcGxheTpmbGV4O2dhcDoyNnB4O2ZvbnQtc2l6ZToxNXB4O2ZvbnQtd2VpZ2h0OjUwMDtjb2xvcjp2YXIoLS1zbGF0ZSl9CiAgLm5hdi1saW5rcyBhLmFjdGl2ZXtjb2xvcjp2YXIoLS1pbmspO2ZvbnQtd2VpZ2h0OjYwMH0KICAubmF2LXJpZ2h0e21hcmdpbi1sZWZ0OmF1dG87ZGlzcGxheTpmbGV4O2FsaWduLWl0ZW1zOmNlbnRlcjtnYXA6MjBweH0KICAubmF2LXJpZ2h0IC5zaWduaW57Zm9udC1zaXplOjE1cHg7Zm9udC13ZWlnaHQ6NTAwO2NvbG9yOnZhcigtLXNsYXRlKX0KICAuYnRuLW91dGxpbmV7Ym9yZGVyOjEuNXB4IHNvbGlkIHZhcigtLWJsdWUpO2NvbG9yOnZhcigtLWJsdWUpO3BhZGRpbmc6OXB4IDE4cHg7Ym9yZGVyLXJhZGl1czo5OTk5cHg7Zm9udC13ZWlnaHQ6NjAwO2ZvbnQtc2l6ZToxNC41cHh9CgogIC5zZWFyY2hiYXJ7YmFja2dyb3VuZDp2YXIoLS13aGl0ZSk7Ym9yZGVyLWJvdHRvbToxcHggc29saWQgdmFyKC0tbGluZSk7cGFkZGluZzoxOHB4IDB9CiAgLnNlYXJjaC1yb3d7ZGlzcGxheTpmbGV4O2dhcDoxMnB4O2FsaWduLWl0ZW1zOmNlbnRlcn0KICAuZmllbGR7ZmxleDoxO2Rpc3BsYXk6ZmxleDthbGlnbi1pdGVtczpjZW50ZXI7Z2FwOjEwcHg7YmFja2dyb3VuZDp2YXIoLS1iZyk7Ym9yZGVyOjFweCBzb2xpZCB2YXIoLS1saW5lKTtib3JkZXItcmFkaXVzOjEycHg7cGFkZGluZzowIDE2cHg7aGVpZ2h0OjUycHh9CiAgLmZpZWxkIHN2Z3tmbGV4OjAgMCBhdXRvO2NvbG9yOnZhcigtLW11dGVkKX0KICAuZmllbGQgaW5wdXR7Ym9yZGVyOjA7YmFja2dyb3VuZDp0cmFuc3BhcmVudDtvdXRsaW5lOm5vbmU7Zm9udC1zaXplOjE1LjVweDtmb250LWZhbWlseTppbmhlcml0O3dpZHRoOjEwMCU7Y29sb3I6dmFyKC0taW5rKX0KICAuZmllbGQgaW5wdXQ6OnBsYWNlaG9sZGVye2NvbG9yOnZhcigtLW11dGVkKX0KICAuYnRuLXNlYXJjaHtiYWNrZ3JvdW5kOnZhcigtLWJsdWUpO2NvbG9yOiNmZmY7Ym9yZGVyOjA7Zm9udC1mYW1pbHk6aW5oZXJpdDtmb250LXdlaWdodDo2MDA7Zm9udC1zaXplOjE1LjVweDtoZWlnaHQ6NTJweDtwYWRkaW5nOjAgMzBweDtib3JkZXItcmFkaXVzOjEycHg7Y3Vyc29yOnBvaW50ZXJ9CiAgLmJ0bi1zZWFyY2g6aG92ZXJ7YmFja2dyb3VuZDp2YXIoLS1ibHVlLWRhcmspfQoKICAuZmlsdGVyc3tkaXNwbGF5OmZsZXg7Z2FwOjEwcHg7YWxpZ24taXRlbXM6Y2VudGVyO21hcmdpbi10b3A6MTRweDtmbGV4LXdyYXA6d3JhcH0KICAuY2hpcHtkaXNwbGF5OmlubGluZS1mbGV4O2FsaWduLWl0ZW1zOmNlbnRlcjtnYXA6N3B4O2JvcmRlcjoxcHggc29saWQgdmFyKC0tbGluZSk7YmFja2dyb3VuZDp2YXIoLS13aGl0ZSk7Y29sb3I6dmFyKC0tc2xhdGUpO2ZvbnQtc2l6ZToxMy41cHg7Zm9udC13ZWlnaHQ6NTAwO3BhZGRpbmc6OHB4IDE0cHg7Ym9yZGVyLXJhZGl1czo5OTk5cHg7Y3Vyc29yOnBvaW50ZXJ9CiAgLmNoaXA6aG92ZXJ7Ym9yZGVyLWNvbG9yOiNjOWQzZTZ9CiAgLmNoaXAgc3Zne2NvbG9yOnZhcigtLW11dGVkKX0KICAuZmlsdGVycyAuc3BhY2Vye21hcmdpbi1sZWZ0OmF1dG99CiAgLnNvcnRsYmx7Zm9udC1zaXplOjEzLjVweDtjb2xvcjp2YXIoLS1tdXRlZCl9CgogIC5ib2R5LXdyYXB7cGFkZGluZzoyMnB4IDAgNjBweH0KICAuY291bnR7Zm9udC1zaXplOjE0cHg7Y29sb3I6dmFyKC0tbXV0ZWQpO21hcmdpbi1ib3R0b206MTRweH0KICAuY291bnQgYntjb2xvcjp2YXIoLS1pbmspO2ZvbnQtd2VpZ2h0OjYwMH0KICAuc3BsaXR7ZGlzcGxheTpncmlkO2dyaWQtdGVtcGxhdGUtY29sdW1uczptaW5tYXgoMCw0MzBweCkgbWlubWF4KDAsMWZyKTtnYXA6MjJweDthbGlnbi1pdGVtczpzdGFydH0KCiAgLmxpc3R7ZGlzcGxheTpmbGV4O2ZsZXgtZGlyZWN0aW9uOmNvbHVtbjtnYXA6MTJweH0KICAuY2FyZHtiYWNrZ3JvdW5kOnZhcigtLXdoaXRlKTtib3JkZXI6MXB4IHNvbGlkIHZhcigtLWxpbmUpO2JvcmRlci1yYWRpdXM6MTZweDtwYWRkaW5nOjE4cHg7Y3Vyc29yOnBvaW50ZXI7dHJhbnNpdGlvbjpib3JkZXItY29sb3IgLjEycywgYm94LXNoYWRvdyAuMTJzfQogIC5jYXJkOmhvdmVye2JvcmRlci1jb2xvcjojYzlkM2U2O2JveC1zaGFkb3c6MCA2cHggMjBweCByZ2JhKDE1LDIzLDQyLC4wNil9CiAgLmNhcmQuc2Vse2JvcmRlci1jb2xvcjp2YXIoLS1ibHVlKTtib3gtc2hhZG93OjAgMCAwIDEuNXB4IHZhcigtLWJsdWUpIGluc2V0fQogIC5jLXRpdGxle2ZvbnQtc2l6ZToxNi41cHg7Zm9udC13ZWlnaHQ6NzAwO2xldHRlci1zcGFjaW5nOi0uMDFlbTtsaW5lLWhlaWdodDoxLjN9CiAgLmMtY297Zm9udC1zaXplOjE0cHg7Y29sb3I6dmFyKC0tc2xhdGUpO21hcmdpbi10b3A6NHB4fQogIC5jLWxvY3tmb250LXNpemU6MTMuNXB4O2NvbG9yOnZhcigtLW11dGVkKTttYXJnaW4tdG9wOjNweDtkaXNwbGF5OmZsZXg7YWxpZ24taXRlbXM6Y2VudGVyO2dhcDo1cHh9CiAgLnBheXtkaXNwbGF5OmlubGluZS1mbGV4O2FsaWduLWl0ZW1zOmNlbnRlcjtnYXA6NnB4O2JhY2tncm91bmQ6dmFyKC0tZ3JlZW4tc29mdCk7Y29sb3I6dmFyKC0tZ3JlZW4pO2ZvbnQtd2VpZ2h0OjcwMDtmb250LXNpemU6MTMuNXB4O3BhZGRpbmc6NXB4IDExcHg7Ym9yZGVyLXJhZGl1czo4cHg7bWFyZ2luLXRvcDoxM3B4fQogIC50YWdze2Rpc3BsYXk6ZmxleDtnYXA6N3B4O2ZsZXgtd3JhcDp3cmFwO21hcmdpbi10b3A6MTFweH0KICAudGFne2ZvbnQtc2l6ZToxMi41cHg7Zm9udC13ZWlnaHQ6NTAwO2NvbG9yOnZhcigtLXNsYXRlKTtiYWNrZ3JvdW5kOnZhcigtLWJnKTtib3JkZXI6MXB4IHNvbGlkIHZhcigtLWxpbmUpO3BhZGRpbmc6NHB4IDEwcHg7Ym9yZGVyLXJhZGl1czo3cHh9CiAgLmNsYW1we2ZvbnQtc2l6ZToxMy41cHg7Y29sb3I6dmFyKC0tbXV0ZWQpO2xpbmUtaGVpZ2h0OjEuNTttYXJnaW4tdG9wOjExcHg7ZGlzcGxheTotd2Via2l0LWJveDstd2Via2l0LWxpbmUtY2xhbXA6Mjstd2Via2l0LWJveC1vcmllbnQ6dmVydGljYWw7b3ZlcmZsb3c6aGlkZGVufQogIC5jYXJkLWZvb3R7ZGlzcGxheTpmbGV4O2FsaWduLWl0ZW1zOmNlbnRlcjtqdXN0aWZ5LWNvbnRlbnQ6ZmxleC1lbmQ7bWFyZ2luLXRvcDoxM3B4fQogIC5wb3N0ZWR7Zm9udC1zaXplOjEyLjVweDtjb2xvcjp2YXIoLS1tdXRlZCl9CgogIC5kZXRhaWx7cG9zaXRpb246c3RpY2t5O3RvcDo4OHB4O2JhY2tncm91bmQ6dmFyKC0td2hpdGUpO2JvcmRlcjoxcHggc29saWQgdmFyKC0tbGluZSk7Ym9yZGVyLXJhZGl1czoxOHB4O292ZXJmbG93OmhpZGRlbjttYXgtaGVpZ2h0OmNhbGMoMTAwdmggLSAxMTBweCk7ZGlzcGxheTpmbGV4O2ZsZXgtZGlyZWN0aW9uOmNvbHVtbn0KICAuZC1zY3JvbGx7ZmxleDoxO292ZXJmbG93LXk6YXV0bztwYWRkaW5nOjI4cHggMzBweCAyNnB4fQogIC5kLXRpdGxle2ZvbnQtc2l6ZToyNHB4O2ZvbnQtd2VpZ2h0OjgwMDtsZXR0ZXItc3BhY2luZzotLjAyZW07bGluZS1oZWlnaHQ6MS4yfQogIC5kLWNve2ZvbnQtc2l6ZToxNnB4O2NvbG9yOnZhcigtLXNsYXRlKTttYXJnaW4tdG9wOjZweDtmb250LXdlaWdodDo2MDB9CiAgLmQtbG9je2ZvbnQtc2l6ZToxNHB4O2NvbG9yOnZhcigtLW11dGVkKTttYXJnaW4tdG9wOjRweH0KICAuZC1jdGF7bWFyZ2luOjIycHggMCA2cHh9CiAgLmJ0bi1wcmltYXJ5e2JhY2tncm91bmQ6dmFyKC0tYmx1ZSk7Y29sb3I6I2ZmZjtib3JkZXI6MDtmb250LWZhbWlseTppbmhlcml0O2ZvbnQtd2VpZ2h0OjYwMDtmb250LXNpemU6MTQuNXB4O3BhZGRpbmc6MTFweCAyMnB4O2JvcmRlci1yYWRpdXM6MTBweDtjdXJzb3I6cG9pbnRlcjtkaXNwbGF5OmlubGluZS1mbGV4O2FsaWduLWl0ZW1zOmNlbnRlcjtqdXN0aWZ5LWNvbnRlbnQ6Y2VudGVyO2dhcDo3cHh9CiAgLmJ0bi1wcmltYXJ5OmhvdmVye2JhY2tncm91bmQ6dmFyKC0tYmx1ZS1kYXJrKX0KICAuYXBwbHktaGludHtmb250LXNpemU6MTJweDtjb2xvcjp2YXIoLS1tdXRlZCk7bWFyZ2luLXRvcDo4cHg7dGV4dC1hbGlnbjpsZWZ0fQogIC5kLWZvb3R7Ym9yZGVyLXRvcDoxcHggc29saWQgdmFyKC0tbGluZSk7YmFja2dyb3VuZDp2YXIoLS13aGl0ZSk7cGFkZGluZzoxNHB4IDMwcHggY2FsYygxNHB4KTtmbGV4OjAgMCBhdXRvfQogIC5kLWZvb3QgLmZwYXl7Zm9udC1zaXplOjEzcHg7Y29sb3I6dmFyKC0tbXV0ZWQpO21hcmdpbi1ib3R0b206OXB4O3RleHQtYWxpZ246Y2VudGVyfQogIC5kLWZvb3QgLmZwYXkgYntjb2xvcjp2YXIoLS1pbmspfQogIC5mYWN0c3tkaXNwbGF5OmdyaWQ7Z3JpZC10ZW1wbGF0ZS1jb2x1bW5zOjFmciAxZnI7Z2FwOjFweDtiYWNrZ3JvdW5kOnZhcigtLWxpbmUpO2JvcmRlcjoxcHggc29saWQgdmFyKC0tbGluZSk7Ym9yZGVyLXJhZGl1czoxM3B4O292ZXJmbG93OmhpZGRlbjttYXJnaW4tdG9wOjIycHh9CiAgLmZhY3R7YmFja2dyb3VuZDp2YXIoLS13aGl0ZSk7cGFkZGluZzoxNHB4IDE2cHh9CiAgLmZhY3QgLmZse2ZvbnQtc2l6ZToxMS41cHg7dGV4dC10cmFuc2Zvcm06dXBwZXJjYXNlO2xldHRlci1zcGFjaW5nOi4wNGVtO2NvbG9yOnZhcigtLW11dGVkKTtmb250LXdlaWdodDo2MDB9CiAgLmZhY3QgLmZ2e2ZvbnQtc2l6ZToxNC41cHg7Y29sb3I6dmFyKC0taW5rKTtmb250LXdlaWdodDo2MDA7bWFyZ2luLXRvcDo0cHh9CiAgLnNlYy1oe2ZvbnQtc2l6ZToxNnB4O2ZvbnQtd2VpZ2h0OjcwMDttYXJnaW46MjZweCAwIDEwcHg7bGV0dGVyLXNwYWNpbmc6LS4wMWVtfQogIC5kLWJvZHl7Zm9udC1zaXplOjE0LjVweDtjb2xvcjp2YXIoLS1zbGF0ZSk7bGluZS1oZWlnaHQ6MS42NX0KICAuZC1ib2R5IHB7bWFyZ2luLWJvdHRvbToxMnB4fQogIC5kLWJvZHkgdWx7bWFyZ2luOjAgMCAxMnB4IDE4cHh9CiAgLmQtYm9keSBsaXttYXJnaW4tYm90dG9tOjZweH0KCiAgLm5vdGV7bWF4LXdpZHRoOjEyNDBweDttYXJnaW46MCBhdXRvO3BhZGRpbmc6MTRweCAyNHB4IDQwcHg7Zm9udC1zaXplOjEyLjVweDtjb2xvcjp2YXIoLS1tdXRlZCl9CgoKICAvKiAtLS0tLS0tLS0tIE1PQklMRSAoPD02NDBweCkg4oCUIEluZGVlZC1zdHlsZSBjYXJkIC0tLS0tLS0tLS0gKi8KICBAbWVkaWEobWF4LXdpZHRoOjY0MHB4KXsKICAgIC53cmFwe3BhZGRpbmc6MCAxNnB4fQogICAgLm5hdi1pbntoZWlnaHQ6NTZweDtnYXA6MH0KICAgIC5zZWFyY2gtcm93e2ZsZXgtZGlyZWN0aW9uOmNvbHVtbjtnYXA6MTBweH0KICAgIC5maWVsZHt3aWR0aDoxMDAlO2hlaWdodDo1MnB4fQogICAgLmZpZWxkIGlucHV0e2ZvbnQtc2l6ZToxNnB4fSAgICAgICAgICAvKiAxNnB4ID0gbm8gaU9TIHpvb20tb24tZm9jdXMgKi8KICAgIC5idG4tc2VhcmNoe3dpZHRoOjEwMCU7aGVpZ2h0OjQ0cHh9ICAgLyogSW5kZWVkIHNoaXBzIDQ0cHggKi8KICAgIC5zcGxpdHtncmlkLXRlbXBsYXRlLWNvbHVtbnM6MWZyfQogICAgLmRldGFpbHtkaXNwbGF5Om5vbmV9CiAgICAubGlzdHtnYXA6MTJweH0KCiAgICAvKiB0aGUgY2FyZCBpdHNlbGYgaXMgdGhlIHRhcCB0YXJnZXQgKi8KICAgIC5jYXJke3Bvc2l0aW9uOnJlbGF0aXZlO3BhZGRpbmc6MTZweCAxN3B4O2JvcmRlci1yYWRpdXM6MTJweH0KICAgIC5jLXRpdGxle2ZvbnQtc2l6ZToxOHB4O2ZvbnQtd2VpZ2h0OjcwMDtsaW5lLWhlaWdodDoyNHB4O2NvbG9yOiMyZDJkMmR9CiAgICAuYy10aXRsZSBhe2NvbG9yOmluaGVyaXQ7dGV4dC1kZWNvcmF0aW9uOm5vbmV9CiAgICAuYy10aXRsZSBhOjphZnRlcntjb250ZW50OiIiO3Bvc2l0aW9uOmFic29sdXRlO3RvcDowO3JpZ2h0OjA7Ym90dG9tOjA7bGVmdDowOwogICAgICBiYWNrZ3JvdW5kOnRyYW5zcGFyZW50fQogICAgLmMtY297Zm9udC1zaXplOjE0cHg7bWFyZ2luLXRvcDo2cHh9CiAgICAuYy1sb2N7Zm9udC1zaXplOjE0cHg7bWFyZ2luLXRvcDozcHh9CiAgICAuY2xhbXB7Zm9udC1zaXplOjEzLjVweDstd2Via2l0LWxpbmUtY2xhbXA6MjttYXJnaW4tdG9wOjEwcHh9CiAgICAuY2FyZC1mb290e2p1c3RpZnktY29udGVudDpmbGV4LXN0YXJ0O21hcmdpbi10b3A6MTJweH0KICAgIC5wb3N0ZWR7Zm9udC1zaXplOjEyLjVweH0KICAgIC8qIGFueXRoaW5nIGludGVyYWN0aXZlIGFkZGVkIGxhdGVyIG11c3QgY2xlYXIgdGhlIG92ZXJsYXkgKi8KICAgIC5jYXJkIC5hYm92ZS1vdmVybGF5e3Bvc2l0aW9uOnJlbGF0aXZlO3otaW5kZXg6MX0KICB9CgogIEBtZWRpYShtYXgtd2lkdGg6OTAwcHgpewogICAgLnNwbGl0e2dyaWQtdGVtcGxhdGUtY29sdW1uczoxZnJ9CiAgICAuZGV0YWlse2Rpc3BsYXk6bm9uZX0KICAgIC5uYXYtbGlua3N7ZGlzcGxheTpub25lfQogIH0KPC9zdHlsZT4KPC9oZWFkPgo8Ym9keT4KCjxuYXYgY2xhc3M9Im5hdiI+CiAgPGRpdiBjbGFzcz0id3JhcCBuYXYtaW4iPgogICAgPGRpdiBjbGFzcz0ibG9nbyI+Sm9iRmFpclg8L2Rpdj4KICAgIDxkaXYgY2xhc3M9Im5hdi1saW5rcyI+CiAgICAgIDxhIGhyZWY9IiMiPlVwY29taW5nIEpvYiBGYWlyczwvYT4KICAgICAgPGEgaHJlZj0iIyIgY2xhc3M9ImFjdGl2ZSI+U2VhcmNoIEpvYnM8L2E+CiAgICAgIDxhIGhyZWY9IiMiPkZBUSdzPC9hPgogICAgPC9kaXY+CiAgICA8ZGl2IGNsYXNzPSJuYXYtcmlnaHQiPgogICAgICA8YSBocmVmPSIjIiBjbGFzcz0ic2lnbmluIj5TaWduIEluPC9hPgogICAgICA8YSBocmVmPSIjIiBjbGFzcz0iYnRuLW91dGxpbmUiPkZvciBFbXBsb3llcnM8L2E+CiAgICA8L2Rpdj4KICA8L2Rpdj4KPC9uYXY+Cgo8ZGl2IGNsYXNzPSJzZWFyY2hiYXIiPgogIDxkaXYgY2xhc3M9IndyYXAiPgogICAgPGRpdiBjbGFzcz0ic2VhcmNoLXJvdyI+CiAgICAgIDxkaXYgY2xhc3M9ImZpZWxkIj4KICAgICAgICA8c3ZnIHdpZHRoPSIxOCIgaGVpZ2h0PSIxOCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIj48Y2lyY2xlIGN4PSIxMSIgY3k9IjExIiByPSI3Ii8+PHBhdGggZD0iTTIxIDIxbC00LjMtNC4zIi8+PC9zdmc+CiAgICAgICAgPGlucHV0IHZhbHVlPSJSZWdpc3RlcmVkIE51cnNlIiBhcmlhLWxhYmVsPSJKb2IgdGl0bGUiPgogICAgICA8L2Rpdj4KICAgICAgPGRpdiBjbGFzcz0iZmllbGQiPgogICAgICAgIDxzdmcgd2lkdGg9IjE4IiBoZWlnaHQ9IjE4IiB2aWV3Qm94PSIwIDAgMjQgMjQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iY3VycmVudENvbG9yIiBzdHJva2Utd2lkdGg9IjIiPjxwYXRoIGQ9Ik0xMiAyMXMtNy02LjMtNy0xMWE3IDcgMCAxMTE0IDBjMCA0LjctNyAxMS03IDExeiIvPjxjaXJjbGUgY3g9IjEyIiBjeT0iMTAiIHI9IjIuNSIvPjwvc3ZnPgogICAgICAgIDxpbnB1dCB2YWx1ZT0iUm9jaGVzdGVyLCBOWSIgYXJpYS1sYWJlbD0iQ2l0eSI+CiAgICAgIDwvZGl2PgogICAgICA8YnV0dG9uIGNsYXNzPSJidG4tc2VhcmNoIj5TZWFyY2g8L2J1dHRvbj4KICAgIDwvZGl2PgogIDwvZGl2Pgo8L2Rpdj4KCjxkaXYgY2xhc3M9IndyYXAgYm9keS13cmFwIj4KICA8ZGl2IGNsYXNzPSJjb3VudCI+PGIgaWQ9Impjb3VudCI+NiBqb2JzPC9iPiBpbiBSb2NoZXN0ZXIsIE5ZPC9kaXY+CiAgPGRpdiBjbGFzcz0ic3BsaXQiPgogICAgPGRpdiBjbGFzcz0ibGlzdCIgaWQ9Imxpc3QiPjwvZGl2PgogICAgPGRpdiBjbGFzcz0iZGV0YWlsIj48ZGl2IGNsYXNzPSJkLXNjcm9sbCIgaWQ9ImRldGFpbCI+PC9kaXY+PC9kaXY+CiAgPC9kaXY+CjwvZGl2PgoKPGRpdiBjbGFzcz0ibm90ZSI+TW9ja3VwIOKAlCBzYW1wbGUgZGF0YSwgY2xpY2thYmxlLiBDbGljayBhbnkgam9iIG9uIHRoZSBsZWZ0IHRvIGxvYWQgaXQgb24gdGhlIHJpZ2h0LiBSZWd1bGFyIGFnZ3JlZ2F0ZWQgbGlzdGluZ3MsIG5vIGxvZ29zLCBvbmUgY2xlYXIgQXBwbHkgYWN0aW9uLjwvZGl2PgoKPHNjcmlwdD4KY29uc3QgSk9CUyA9IFsKICB7dGl0bGU6IlJlZ2lzdGVyZWQgTnVyc2Ug4oCUIENhcmRpYWMgSUNVIiwgY286IlJvY2hlc3RlciBSZWdpb25hbCBIZWFsdGgiLCBsb2M6IlJvY2hlc3RlciwgTlkiLCBzaXRlOiJSb2NoZXN0ZXIgR2VuZXJhbCBIb3NwaXRhbCIsIHBheToiJDM5Ljc1IOKAkyAkNTIuOTkgLyBociIsIHR5cGU6IkZ1bGwtdGltZSIsIHNjaGVkdWxlOiJOaWdodHMgwrcgMzYgaHJzL3drIiwgZGVwdDoiQ2FyZGlhYyBDSUNVIiwgcG9zdGVkOiIyIGRheXMgYWdvIiwKICAgc3VtbWFyeToiQXMgYSBSZWdpc3RlcmVkIE51cnNlIChSTikgeW91J3JlIHRoZSBlbmdpbmUgYW5kIHRoZSBoZWFydCBvZiBwYXRpZW50IGNhcmUgYXQgUm9jaGVzdGVyIFJlZ2lvbmFsLiBZb3UgbWFrZSBhIHBvc2l0aXZlIGRpZmZlcmVuY2UgZXZlcnkgZGF5IGZvciBwYXRpZW50cyBhbmQgdGhlaXIgZmFtaWxpZXMuIiwKICAgdGFnczpbIkZ1bGwtdGltZSIsIk5pZ2h0cyIsIjM2IGhycy93ayJdLAogICBhYm91dDoiQXMgYSBSZWdpc3RlcmVkIE51cnNlIChSTikgaW4gb3VyIENhcmRpYWMgSUNVLCB5b3UncmUgdGhlIGVuZ2luZSBhbmQgdGhlIGhlYXJ0IG9mIHBhdGllbnQgY2FyZSBhdCBSb2NoZXN0ZXIgUmVnaW9uYWwgSGVhbHRoLiBZb3UgbWFrZSBhIHBvc2l0aXZlIGRpZmZlcmVuY2UgZXZlcnkgZGF5IGZvciBwYXRpZW50cywgdGhlaXIgZmFtaWx5IG1lbWJlcnMgYW5kIHZpc2l0b3JzLCBnb2luZyBhYm92ZSBhbmQgYmV5b25kIHRvIG1lZXQgdGhlaXIgbmVlZHMgd2l0aCBjb3VydGVzeSwga2luZG5lc3MsIHJlc3BlY3QgYW5kIGNvbXBhc3Npb24uIiwKICAgZG9lczpbIkFzc2VzcywgcGxhbiBhbmQgZGVsaXZlciBjYXJlIGZvciBjcml0aWNhbGx5IGlsbCBjYXJkaWFjIHBhdGllbnRzIiwiUGFydG5lciB3aXRoIHBoeXNpY2lhbnMgYW5kIHRoZSBjYXJlIHRlYW0gb24gdHJlYXRtZW50IHBsYW5zIiwiTW9uaXRvciBhbmQgcmVzcG9uZCB0byBjaGFuZ2VzIGluIHBhdGllbnQgY29uZGl0aW9uIiwiRWR1Y2F0ZSBwYXRpZW50cyBhbmQgZmFtaWxpZXMgdGhyb3VnaG91dCB0aGVpciBzdGF5Il0sCiAgIGJyaW5nczpbIkN1cnJlbnQgTllTIFJOIGxpY2Vuc2UgKG9yIGVsaWdpYmxlKSIsIkJMUyBjZXJ0aWZpY2F0aW9uOyBBQ0xTIHdpdGhpbiA2IG1vbnRocyBvZiBoaXJlIiwiQ3JpdGljYWwgY2FyZSBleHBlcmllbmNlIHByZWZlcnJlZCwgbmV3IGdyYWRzIGNvbnNpZGVyZWQiXX0sCiAge3RpdGxlOiJSZWdpc3RlcmVkIE51cnNlIOKAlCBTdXJnaWNhbCBTdGVwIERvd24iLCBjbzoiUm9jaGVzdGVyIFJlZ2lvbmFsIEhlYWx0aCIsIGxvYzoiUm9jaGVzdGVyLCBOWSIsIHNpdGU6IlJvY2hlc3RlciBHZW5lcmFsIEhvc3BpdGFsIiwgcGF5OiIkMzkuNzUg4oCTICQ1Mi45OSAvIGhyIiwgdHlwZToiRnVsbC10aW1lIiwgc2NoZWR1bGU6IkRheXMgwrcgMzYgaHJzL3drIiwgZGVwdDoiU3VyZ2ljYWwgU3RlcCBEb3duIiwgcG9zdGVkOiI0IGRheXMgYWdvIiwKICAgc3VtbWFyeToiRGVsaXZlciBoYW5kcy1vbiBwYXRpZW50IGNhcmUgaW4gb3VyIENyaXRpY2FsIENhcmUgU3VyZ2ljYWwgU3RlcCBEb3duIHVuaXQuIEV2ZXJ5IG90aGVyIHdlZWtlbmQsIGV2ZXJ5IG90aGVyIGhvbGlkYXkgcm90YXRpb24uIiwKICAgdGFnczpbIkZ1bGwtdGltZSIsIkRheXMiLCIzNiBocnMvd2siXSwKICAgYWJvdXQ6IkpvaW4gb3VyIFN1cmdpY2FsIFN0ZXAgRG93biB0ZWFtIGNhcmluZyBmb3IgcGF0aWVudHMgdHJhbnNpdGlvbmluZyBmcm9tIGludGVuc2l2ZSBjYXJlLiBZb3UnbGwgZGVsaXZlciBoYW5kcy1vbiBudXJzaW5nIGNhcmUgaW4gYSBmYXN0LXBhY2VkIGVudmlyb25tZW50IHdpdGggc3Ryb25nIHRlYW0gc3VwcG9ydCBhbmQgY2xlYXIgYWR2YW5jZW1lbnQgcGF0aHMuIiwKICAgZG9lczpbIlByb3ZpZGUgZGlyZWN0IGNhcmUgZm9yIHBvc3Qtc3VyZ2ljYWwgYW5kIHN0ZXAtZG93biBwYXRpZW50cyIsIkNvb3JkaW5hdGUgd2l0aCB0aGUgc3VyZ2ljYWwgYW5kIGNyaXRpY2FsIGNhcmUgdGVhbXMiLCJEb2N1bWVudCBhbmQgbW9uaXRvciByZWNvdmVyeSBwcm9ncmVzcyIsIlN1cHBvcnQgcGF0aWVudCBhbmQgZmFtaWx5IGVkdWNhdGlvbiJdLAogICBicmluZ3M6WyJDdXJyZW50IE5ZUyBSTiBsaWNlbnNlIChvciBlbGlnaWJsZSkiLCJCTFMgY2VydGlmaWNhdGlvbiByZXF1aXJlZCIsIjErIHllYXIgYWN1dGUgY2FyZSBleHBlcmllbmNlIHByZWZlcnJlZCJdfSwKICB7dGl0bGU6IlJOIOKAlCBFbWVyZ2VuY3kgRGVwYXJ0bWVudCIsIGNvOiJVUiBNZWRpY2luZSDCtyBTdHJvbmcgTWVtb3JpYWwiLCBsb2M6IlJvY2hlc3RlciwgTlkiLCBzaXRlOiJTdHJvbmcgTWVtb3JpYWwgSG9zcGl0YWwiLCBwYXk6IiQ0MS4wMCDigJMgJDU4LjIwIC8gaHIiLCB0eXBlOiJGdWxsLXRpbWUiLCBzY2hlZHVsZToiUm90YXRpbmcgc2hpZnRzIiwgZGVwdDoiRW1lcmdlbmN5IERlcGFydG1lbnQiLCBwb3N0ZWQ6IjEgZGF5IGFnbyIsCiAgIHN1bW1hcnk6IkpvaW4gYSBMZXZlbCAxIHRyYXVtYSBjZW50ZXIgRUQgdGVhbS4gTmV3IGdyYWRzIHdlbGNvbWUgd2l0aCBvdXIgMTItd2VlayByZXNpZGVuY3kgcHJvZ3JhbSBhbmQgZGVkaWNhdGVkIHByZWNlcHRvciBzdXBwb3J0LiIsCiAgIHRhZ3M6WyJGdWxsLXRpbWUiLCJSb3RhdGluZyIsIlNpZ24tb24gYm9udXMiXSwKICAgYWJvdXQ6Ik91ciBFbWVyZ2VuY3kgRGVwYXJ0bWVudCBpcyBhIExldmVsIDEgdHJhdW1hIGNlbnRlciBzZWVpbmcgYSBmdWxsIHJhbmdlIG9mIGFjdXRlIGFuZCBjcml0aWNhbCBjYXNlcy4gTmV3IGdyYWR1YXRlcyBhcmUgd2VsY29tZSB0aHJvdWdoIG91ciAxMi13ZWVrIG51cnNlIHJlc2lkZW5jeSBwcm9ncmFtIHdpdGggZGVkaWNhdGVkIHByZWNlcHRvciBzdXBwb3J0LiIsCiAgIGRvZXM6WyJUcmlhZ2UgYW5kIHN0YWJpbGl6ZSBwYXRpZW50cyBhY3Jvc3MgYWxsIGFjdWl0eSBsZXZlbHMiLCJXb3JrIGFsb25nc2lkZSBwaHlzaWNpYW5zIGluIGEgaGlnaC12b2x1bWUgdHJhdW1hIHNldHRpbmciLCJEZWxpdmVyIHJhcGlkLCBjb21wYXNzaW9uYXRlIGVtZXJnZW5jeSBjYXJlIiwiTWVudG9yIGFuZCBzdXBwb3J0IG5ld2VyIHRlYW0gbWVtYmVycyJdLAogICBicmluZ3M6WyJDdXJyZW50IE5ZUyBSTiBsaWNlbnNlIChvciBlbGlnaWJsZSkiLCJCTFMgYW5kIEFDTFMgY2VydGlmaWNhdGlvbiIsIkVEIG9yIHRyYXVtYSBleHBlcmllbmNlIGEgcGx1czsgbmV3IGdyYWRzIGNvbnNpZGVyZWQiXX0sCiAge3RpdGxlOiJUcmF2ZWwgUk4g4oCUIE1lZC9TdXJnIiwgY286IlRyaW5pdHkgSGVhbHRoIiwgbG9jOiJSb2NoZXN0ZXIsIE5ZIiwgc2l0ZToiQ29udHJhY3QgYXNzaWdubWVudCIsIHBheToiJDIsNDAwIOKAkyAkMiw5MDAgLyB3ayIsIHR5cGU6IkNvbnRyYWN0Iiwgc2NoZWR1bGU6IjEzIHdlZWtzIMK3IERheXMiLCBkZXB0OiJNZWQvU3VyZyIsIHBvc3RlZDoiNiBkYXlzIGFnbyIsCiAgIHN1bW1hcnk6IjEzLXdlZWsgdHJhdmVsIGNvbnRyYWN0IG9uIGEgZmFzdC1wYWNlZCBNZWQvU3VyZyBmbG9vci4gV2Vla2x5IHN0aXBlbmQgcGx1cyBob3VzaW5nIGFuZCB0cmF2ZWwgcmVpbWJ1cnNlbWVudCBpbmNsdWRlZC4iLAogICB0YWdzOlsiQ29udHJhY3QiLCIxMyB3ZWVrcyIsIkhvdXNpbmcgc3RpcGVuZCJdLAogICBhYm91dDoiQSAxMy13ZWVrIHRyYXZlbCBhc3NpZ25tZW50IG9uIGEgYnVzeSBNZWQvU3VyZyB1bml0LiBDb21wZXRpdGl2ZSB3ZWVrbHkgcGF5IHdpdGggaG91c2luZyBhbmQgdHJhdmVsIHJlaW1idXJzZW1lbnQsIHBsdXMgdGhlIGNoYW5jZSB0byBleHRlbmQgYmFzZWQgb24gdW5pdCBuZWVkcy4iLAogICBkb2VzOlsiUHJvdmlkZSBnZW5lcmFsIG1lZGljYWwtc3VyZ2ljYWwgbnVyc2luZyBjYXJlIiwiTWFuYWdlIGEgZnVsbCBwYXRpZW50IGFzc2lnbm1lbnQgZWFjaCBzaGlmdCIsIkFkYXB0IHF1aWNrbHkgdG8gdW5pdCBwcm90b2NvbHMgYW5kIHN5c3RlbXMiLCJDb2xsYWJvcmF0ZSB3aXRoIHBlcm1hbmVudCBzdGFmZiBhbmQgY2hhcmdlIG51cnNlcyJdLAogICBicmluZ3M6WyJDdXJyZW50IFJOIGxpY2Vuc2UsIE5ZIG9yIGNvbXBhY3QiLCJCTFMgY2VydGlmaWNhdGlvbiByZXF1aXJlZCIsIjIrIHllYXJzIHJlY2VudCBNZWQvU3VyZyBleHBlcmllbmNlIiwiUHJpb3IgdHJhdmVsIGV4cGVyaWVuY2UgcHJlZmVycmVkIl19LAogIHt0aXRsZToiUmVnaXN0ZXJlZCBOdXJzZSDigJQgSG9tZSBIZWFsdGgiLCBjbzoiQkFZQURBIEhvbWUgSGVhbHRoIENhcmUiLCBsb2M6IlJvY2hlc3RlciwgTlkiLCBzaXRlOiJGaWVsZC1iYXNlZCIsIHBheToiJDM1LjAwIOKAkyAkNDUuMDAgLyBociIsIHR5cGU6IkZ1bGwtdGltZSIsIHNjaGVkdWxlOiJEYXkgc2hpZnQgwrcgTW9u4oCTRnJpIiwgZGVwdDoiSG9tZSBIZWFsdGgiLCBwb3N0ZWQ6IjMgZGF5cyBhZ28iLAogICBzdW1tYXJ5OiJDYXJlIGZvciBwYXRpZW50cyBvbmUtb24tb25lIGluIHRoZWlyIGhvbWVzIGFjcm9zcyB0aGUgUm9jaGVzdGVyIGFyZWEuIEF1dG9ub215LCBhIG1hbmFnZWFibGUgY2FzZWxvYWQsIGFuZCBubyB3ZWVrZW5kIHJlcXVpcmVtZW50LiIsCiAgIHRhZ3M6WyJGdWxsLXRpbWUiLCJEYXkgc2hpZnQiLCJObyB3ZWVrZW5kcyJdLAogICBhYm91dDoiRGVsaXZlciBvbmUtb24tb25lIHNraWxsZWQgbnVyc2luZyBjYXJlIHRvIHBhdGllbnRzIGluIHRoZWlyIGhvbWVzIGFjcm9zcyB0aGUgZ3JlYXRlciBSb2NoZXN0ZXIgYXJlYS4gRW5qb3kgcmVhbCBhdXRvbm9teSwgYSBtYW5hZ2VhYmxlIGNhc2Vsb2FkLCBhbmQgYSBNb25kYXnigJNGcmlkYXkgc2NoZWR1bGUgd2l0aCBubyB3ZWVrZW5kIHJlcXVpcmVtZW50LiIsCiAgIGRvZXM6WyJQZXJmb3JtIGluLWhvbWUgYXNzZXNzbWVudHMgYW5kIHNraWxsZWQgbnVyc2luZyB2aXNpdHMiLCJEZXZlbG9wIGFuZCBmb2xsb3cgaW5kaXZpZHVhbGl6ZWQgY2FyZSBwbGFucyIsIkNvb3JkaW5hdGUgd2l0aCBwaHlzaWNpYW5zIGFuZCBmYW1pbHkgY2FyZWdpdmVycyIsIkRvY3VtZW50IHZpc2l0cyBhbmQgb3V0Y29tZXMgYWNjdXJhdGVseSJdLAogICBicmluZ3M6WyJDdXJyZW50IE5ZUyBSTiBsaWNlbnNlIiwiQkxTIGNlcnRpZmljYXRpb24gcmVxdWlyZWQiLCIxKyB5ZWFyIGNsaW5pY2FsIGV4cGVyaWVuY2UiLCJWYWxpZCBkcml2ZXIncyBsaWNlbnNlIGFuZCByZWxpYWJsZSB0cmFuc3BvcnRhdGlvbiJdfSwKICB7dGl0bGU6IlJOIOKAlCBQb3N0LUFuZXN0aGVzaWEgQ2FyZSAoUEFDVSkiLCBjbzoiSGlnaGxhbmQgSG9zcGl0YWwiLCBsb2M6IlJvY2hlc3RlciwgTlkiLCBzaXRlOiJIaWdobGFuZCBIb3NwaXRhbCIsIHBheToiJDM4LjAwIOKAkyAkNTAuMDAgLyBociIsIHR5cGU6IkZ1bGwtdGltZSIsIHNjaGVkdWxlOiJEYXlzIMK3IE5vIG5pZ2h0cyIsIGRlcHQ6IlBBQ1UiLCBwb3N0ZWQ6IjUgZGF5cyBhZ28iLAogICBzdW1tYXJ5OiJSZWNvdmVyIHN1cmdpY2FsIHBhdGllbnRzIGluIG91ciBQQUNVLiBQcmVkaWN0YWJsZSB3ZWVrZGF5IHNjaGVkdWxlIHdpdGggbm8gb3Zlcm5pZ2h0IHNoaWZ0cyBhbmQgYSBjb2xsYWJvcmF0aXZlIHN1cmdpY2FsIHRlYW0uIiwKICAgdGFnczpbIkZ1bGwtdGltZSIsIkRheXMiLCJObyBuaWdodHMiXSwKICAgYWJvdXQ6IkNhcmUgZm9yIHBhdGllbnRzIHJlY292ZXJpbmcgZnJvbSBzdXJnZXJ5IGluIG91ciBQb3N0LUFuZXN0aGVzaWEgQ2FyZSBVbml0LiBUaGlzIHJvbGUgb2ZmZXJzIGEgcHJlZGljdGFibGUgd2Vla2RheSBzY2hlZHVsZSB3aXRoIG5vIG92ZXJuaWdodCBzaGlmdHMsIHdvcmtpbmcgY2xvc2VseSB3aXRoIGFuZXN0aGVzaWEgYW5kIHN1cmdpY2FsIHRlYW1zLiIsCiAgIGRvZXM6WyJNb25pdG9yIHBhdGllbnRzIGVtZXJnaW5nIGZyb20gYW5lc3RoZXNpYSIsIk1hbmFnZSBwYWluIGFuZCBwb3N0LW9wIGNvbXBsaWNhdGlvbnMiLCJDb21tdW5pY2F0ZSBoYW5kb2ZmcyB3aXRoIHN1cmdpY2FsIHRlYW1zIiwiUHJlcGFyZSBwYXRpZW50cyBmb3IgZGlzY2hhcmdlIG9yIGFkbWlzc2lvbiJdLAogICBicmluZ3M6WyJDdXJyZW50IE5ZUyBSTiBsaWNlbnNlIiwiQkxTIGFuZCBBQ0xTIGNlcnRpZmljYXRpb24iLCJQQUNVLCBJQ1Ugb3IgRUQgZXhwZXJpZW5jZSBwcmVmZXJyZWQiXX0KXTsKCmZ1bmN0aW9uIGNhcmRIVE1MKGosIGkpewogIHJldHVybiBgPGRpdiBjbGFzcz0iY2FyZCR7aT09PTA/JyBzZWwnOicnfSIgZGF0YS1pPSIke2l9IiBvbmNsaWNrPSJzZWxlY3RKb2IoJHtpfSkiPgogICAgPGRpdiBjbGFzcz0iYy10aXRsZSI+PGEgaHJlZj0iJHtqLnVybHx8JyMnfSIgdGFyZ2V0PSJfYmxhbmsiIHJlbD0ibm9vcGVuZXIiPiR7ai50aXRsZX08L2E+PC9kaXY+CiAgICA8ZGl2IGNsYXNzPSJjLWNvIj4ke2ouY299PC9kaXY+CiAgICA8ZGl2IGNsYXNzPSJjLWxvYyI+PHN2ZyB3aWR0aD0iMTMiIGhlaWdodD0iMTMiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJjdXJyZW50Q29sb3IiIHN0cm9rZS13aWR0aD0iMiI+PHBhdGggZD0iTTEyIDIxcy03LTYuMy03LTExYTcgNyAwIDExMTQgMGMwIDQuNy03IDExLTcgMTF6Ii8+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMCIgcj0iMi41Ii8+PC9zdmc+JHtqLmxvY308L2Rpdj4KICAgIDxkaXYgY2xhc3M9ImNsYW1wIj4ke2ouc3VtbWFyeX08L2Rpdj4KICAgIDxkaXYgY2xhc3M9ImNhcmQtZm9vdCI+PHNwYW4gY2xhc3M9InBvc3RlZCI+JHtqLnBvc3RlZH08L3NwYW4+PC9kaXY+CiAgPC9kaXY+YDsKfQpmdW5jdGlvbiBkZXRhaWxIVE1MKGosIGkpewogIHJldHVybiBgCiAgICA8ZGl2IGNsYXNzPSJkLXRpdGxlIj4ke2oudGl0bGV9PC9kaXY+CiAgICA8ZGl2IGNsYXNzPSJkLWNvIj4ke2ouY299PC9kaXY+CiAgICA8ZGl2IGNsYXNzPSJkLWxvYyI+JHtqLnNpdGV9IMK3ICR7ai5sb2N9PC9kaXY+CiAgICA8ZGl2IGNsYXNzPSJkLWN0YSI+CiAgICAgIDxidXR0b24gY2xhc3M9ImJ0bi1wcmltYXJ5Ij5BcHBseSBub3cKICAgICAgICA8c3ZnIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIj48cGF0aCBkPSJNNyAxN0wxNyA3TTE3IDdIOE0xNyA3djkiLz48L3N2Zz4KICAgICAgPC9idXR0b24+CiAgICAgIDxkaXYgY2xhc3M9ImFwcGx5LWhpbnQiPk9wZW5zIHRoZSBlbXBsb3llcidzIGFwcGxpY2F0aW9uIGluIGEgbmV3IHRhYi48L2Rpdj4KICAgIDwvZGl2PgogICAgPGRpdiBjbGFzcz0ic2VjLWgiPkFib3V0IHRoZSByb2xlPC9kaXY+CiAgICA8ZGl2IGNsYXNzPSJkLWJvZHkiPgogICAgICA8cD4ke2ouYWJvdXR9PC9wPgogICAgICA8cD48Yj5XaGF0IHlvdSdsbCBkbzwvYj48L3A+CiAgICAgIDx1bD4ke2ouZG9lcy5tYXAoZD0+YDxsaT4ke2R9PC9saT5gKS5qb2luKCcnKX08L3VsPgogICAgICA8cD48Yj5XaGF0IHlvdSdsbCBicmluZzwvYj48L3A+CiAgICAgIDx1bD4ke2ouYnJpbmdzLm1hcChiPT5gPGxpPiR7Yn08L2xpPmApLmpvaW4oJycpfTwvdWw+CiAgICA8L2Rpdj5gOwp9CmxldCBjdXJyZW50ID0gMDsKZnVuY3Rpb24gcmVuZGVyKCl7CiAgZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ2xpc3QnKS5pbm5lckhUTUwgPSBKT0JTLm1hcCgoaixpKT0+Y2FyZEhUTUwoaixpKSkuam9pbignJyk7CiAgZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ2RldGFpbCcpLmlubmVySFRNTCA9IGRldGFpbEhUTUwoSk9CU1tjdXJyZW50XSwgY3VycmVudCk7CiAgZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ2pjb3VudCcpLnRleHRDb250ZW50ID0gSk9CUy5sZW5ndGggKyAnIGpvYnMnOwp9CmZ1bmN0aW9uIHNlbGVjdEpvYihpKXsKICBjdXJyZW50ID0gaTsKICBkb2N1bWVudC5xdWVyeVNlbGVjdG9yQWxsKCcuY2FyZCcpLmZvckVhY2goYz0+Yy5jbGFzc0xpc3QudG9nZ2xlKCdzZWwnLCArYy5kYXRhc2V0Lmk9PT1pKSk7CiAgY29uc3QgZCA9IGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdkZXRhaWwnKTsKICBkLmlubmVySFRNTCA9IGRldGFpbEhUTUwoSk9CU1tpXSwgaSk7CiAgZC5zY3JvbGxUb3AgPSAwOwp9CnJlbmRlcigpOwo8L3NjcmlwdD4KPC9ib2R5Pgo8L2h0bWw+Cg==</script>
+<script id="specsrc" type="text/plain"># Mobile Job Card — Click Behavior Spec
+
+How the mobile job card works on the JobFairX `/jobs` page, and exactly how the
+full-card click is implemented.
+
+All Indeed values in this document were measured directly off their live mobile
+page (`indeed.com/jobs`, ~500px viewport, July 2026) using computed styles and
+hit-testing — not estimated from screenshots.
+
+---
+
+## 1. The short version
+
+On mobile, **the entire job card is a single tap target** that opens the job's
+outbound URL. There is no visible button.
+
+This is done with one transparent pseudo-element stretched over the card,
+anchored to the job title link. It is the same mechanism Indeed uses.
+
+Desktop is unchanged: two-column card with a visible blue "View job ↗" button.
+
+---
+
+## 2. How Indeed actually does it
+
+This was non-obvious and worth stating, because reading the DOM gives the wrong
+answer.
+
+Indeed's card contains exactly **one** anchor — the job title. Its bounding box
+is small (311×47 at a 452px card width) and it sits near the top of the card.
+Nothing else in the card is a link. Company, location, pay pills, and the
+description are all inert text.
+
+But hit-testing the card at 10%, 25%, 40%, 50%, 60%, 75%, and 90% of its height
+**all return the title anchor**. A dense 12×14 grid probe found 90% of the card
+surface resolves to that anchor.
+
+The reason: the title anchor carries an `::after` pseudo-element, absolutely
+positioned and stretched to all four edges of the card. Pseudo-elements do not
+appear in `getClientRects()` and are not DOM nodes, so they are invisible to
+element queries — but they **do** receive hit-testing.
+
+Measured on Indeed's title anchor:
+
+```
+a.jcs-JobTitle::after {
+  content: "";
+  position: absolute;
+  top: 0; right: 0; bottom: 0; left: 0;
+  background: rgba(0, 0, 0, 0);   /* transparent */
+}
+```
+
+Rendered size: **450×201** — the full card.
+
+The containing block is the card wrapper (`.slider_item`), which is
+`position: relative`. That is what constrains the overlay to the card rather
+than the page.
+
+**Takeaway for implementation:** you do not wrap the card in an anchor, and you
+do not put a click handler on the card. You stretch one pseudo-element from the
+title link.
+
+---
+
+## 3. Our implementation
+
+### CSS (mobile breakpoint only)
+
+```css
+@media (max-width: 640px) {
+  .card { position: relative; }
+
+  .c-title a::after {
+    content: "";
+    position: absolute;
+    top: 0; right: 0; bottom: 0; left: 0;
+    background: transparent;
+  }
+
+}
+```
+
+Three rules. That is the whole feature.
+
+- `.card { position: relative }` makes the card the containing block, so the
+  overlay stretches to the card's edges and not to the viewport.
+- `.c-title a::after` is the overlay. Transparent, so it is invisible.
+- (no CTA button in this design) removes the blue CTA, since the whole card is now
+  the target.
+
+### Why the overlay hangs off the title link
+
+The click must fire *some* anchor's href. Attaching the overlay to the title
+anchor means:
+
+- One href to maintain — the same one the title already points at.
+- Keyboard and screen-reader behavior is unchanged. The title is still a normal
+  focusable link with real text. A `<div onclick>` would break both.
+- No JavaScript.
+
+### Stacking order
+
+The overlay sits above the card's inert text (company, location, pay, snippet,
+posted date). That is intentional — those should not be separately clickable.
+
+If a genuinely interactive element is ever added to the card (a save button, a
+dismiss control, a second link), it must be lifted above the overlay:
+
+```css
+.card .some-interactive-control {
+  position: relative;
+  z-index: 1;
+}
+```
+
+Indeed does exactly this for their Save and Not Interested buttons. Without it,
+the overlay swallows the click.
+
+---
+
+## 4. Desktop — unchanged
+
+Desktop keeps its existing behavior and must not be modified:
+
+- Two-column grid card: content left, CTA right.
+- Visible blue "View job ↗" button.
+- Title is a link; the rest of the card is not.
+- **No overlay.** The `::after` rule lives inside the mobile media query only.
+
+---
+
+## 5. Card anatomy (mobile)
+
+Top to bottom:
+
+| Element      | Notes                                                |
+|--------------|------------------------------------------------------|
+| Title        | 18px / 700 / 24px line-height / `#2d2d2d`. The link. |
+| Company • Location | One line, separated by a bullet                |
+| Pay badge    | Only when a rate is confidently parsed. Often absent. |
+| Snippet      | 2-line clamp. Inert text.                            |
+| Posted date  | Left-aligned in the card footer                      |
+
+### Type values
+
+Ours (mobile title): 18px, weight 700, 24px line-height, `#2d2d2d`, no
+underline until `:active`.
+
+These match Indeed's measured mobile title exactly.
+
+Indeed's other measured values, for reference if you want to align further:
+
+| Element           | Indeed value                          |
+|-------------------|---------------------------------------|
+| Company           | 14px / 400 / `rgb(89, 89, 89)`        |
+| Location          | 14px / 400 / `rgb(89, 89, 89)`        |
+| Pay pill          | 12px / 700 / bg `rgb(243, 242, 241)`  |
+| Gap between cards | 14px                                  |
+
+---
+
+## 6. Non-negotiables
+
+These are correctness requirements, not preferences.
+
+**Input font-size must be ≥16px on mobile.** Below 16px, iOS Safari zooms the
+viewport when an input is focused and does not zoom back out on blur. The fix is
+font-size. Do **not** use `user-scalable=no` — that is a WCAG violation.
+Indeed also ships 16px inputs.
+
+**Touch targets: 44px minimum.** Apple HIG specifies 44×44pt; Material specifies
+48×48dp. The search button is 44px (matching Indeed's measured 44px). Clear
+buttons render at 22px but carry a 44px hit area via a pseudo-element.
+
+**External links need `rel="noopener"`.** Every job link is
+`target="_blank"`. Without `rel="noopener"` the destination page gets a handle
+back to ours via `window.opener`. All 10 links in the mockup are paired
+correctly.
+
+**Only the title and CTA are clickable — the snippet is not.** On the current
+live site the entire description is inside the link, so mobile scroll-reading
+fires accidental clicks. Appcast flags those as invalid traffic and does not
+pay for them. The snippet must stay inert. (The full-card overlay is a
+deliberate, standard pattern; an accidentally-clickable description is a bug.
+These are different things.)
+
+---
+
+## 7. Breakpoints
+
+The mockup uses `@media` queries only. Mobile rules live in
+`@media (max-width: 640px)`.
+
+The device toggle on the preview page renders the mockup inside a real iframe,
+so the media queries measure the iframe's own viewport and fire correctly. What
+you see in the toggle is what a device at that width will show.
+
+If you extract the mockup to a standalone file and want to preview mobile, just
+narrow the browser window below 640px.
+
+## 8. Data caveats
+
+The feed API returns: title, company, location string, description text,
+tracking URL. That is all.
+
+Not available, and therefore not built:
+
+- Radius / distance filtering
+- Job type, shift, experience level
+- Posted date (the dates in the mockup are **placeholders**)
+- Company logos
+
+**Pay** is not a structured field either. It is parsed out of description prose
+where possible — e.g. Alaska Airlines includes `Starting Rate: USD $22.58/Hr.`
+in a consistent format. Render the badge whenever a rate parses. Most jobs will
+have no badge; that is expected.
+
+The one guard: WhatJobs returns a malformed compensation value
+(`130.000 - 150.000`, and `413.280 - 413.280` for what is actually a flat $300
+study payment). European decimal separators where thousands separators belong.
+Do not render these. A wrong salary is worse than no salary.
+
+Formatting rules:
+- Annual: thousands separators, no decimals, `/yr` suffix
+- Hourly: decimals, no separators, `/hr` suffix
+- The suffix is required — `$90,000–$140,000` alone is ambiguous
+
+Also strip scraper junk before render: WhatJobs listings carry a visible
+`#J-18808-Ljbffr` token on nearly every record.
+
+**Worth asking Appcast:** their API commonly supports job type, salary min/max,
+and posted date as discrete fields. If those are available on this integration
+and simply unmapped, filters and real posted dates become cheap. Same question
+for WhatJobs.
+
+---
+
+## 9. Before shipping
+
+Capture current CTR, clicks per session, and scroll depth **first**.
+
+Three changes are landing together — description truncation, the CTA
+restructure, and the full-card click. All three push CTR the same direction, so
+attribution will not be possible after the fact. If Appcast ever questions
+traffic quality, a clean pre-change baseline is the thing that makes the
+conversation short.
+
+The full-card overlay in particular increases tap surface substantially. Watch
+invalid-click rate in Appcast reporting after launch.
+</script>
+<script id="oversrc" type="text/plain"># JobFairX — Search Jobs Redesign
+
+Redesign of the `/jobs` search results page on jobfairx.com. Goal is increasing
+outbound clicks on the Appcast / WhatJobs feed.
+
+## Files
+
+| File | What it is |
+|------|-----------|
+| `search-jobs-mockup.html` | Working mockup. Open in a browser. |
+| `MOBILE-CARD-SPEC.md` | Implementation spec for the mobile card and full-card click |
+
+## Viewing the mockup
+
+Open `search-jobs-mockup.html` directly.
+
+The device toggle at the top is **not a reliable mobile preview** — media
+queries measure the browser window, not the simulated frame. To see the real
+mobile layout, narrow your browser window below 640px or open the file on a
+phone.
+
+## What changed and why
+
+The page currently prints the **entire job description** on every card —
+responsibilities, qualifications, benefits, EEO boilerplate, DOT drug testing
+policy. One card runs ~1,200 words.
+
+That is the main reason clicks are low. A paid click happens when the seeker
+needs to leave the page to learn more. If the card already contains everything,
+there is no reason to click.
+
+### Changes, in priority order
+
+1. **Truncate descriptions to 2 lines.** Biggest lever, smallest change.
+2. **De-link the description body.** Only the title and CTA fire the tracking
+   pixel. A fully-clickable description generates accidental mobile clicks that
+   Appcast flags as invalid — those are not paid.
+3. **Real search.** The live page has a "Search" label with no inputs. Keyword +
+   location, matched against title, company, and the location string.
+4. **Result count + infinite scroll.** Currently one bare "Next" link with no
+   sense of depth.
+5. **Full-card click on mobile.** See `MOBILE-CARD-SPEC.md`.
+6. **Pay badge** when a rate parses out of the description.
+7. **Job alerts.** Turns one visit into recurring click traffic.
+8. **Hiring-event promo**, once per 20 results, city-matched.
+
+### Not built — no data for it
+
+Radius filtering, job type, shift, experience level, posted date, company logos.
+The feed API does not return these fields. Dead filter controls are worse than
+no controls.
+
+`MOBILE-CARD-SPEC.md` §8 covers what to ask Appcast about — several of these
+are standard fields and may just be unmapped.
+
+## Desktop
+
+Unchanged. Two-column card, visible blue "View job ↗" button. The full-card
+click and the 18px title are mobile-only, inside `@media (max-width: 640px)`.
+
+## Before shipping
+
+Baseline CTR, clicks per session, and scroll depth first. Several changes land
+together and all push the same direction — without a baseline there is no
+attribution.
+</script>
+
+<script>
+var frame=document.getElementById('frame');
+// the payload has its closing script tags escaped so they don't terminate the
+// host <script> — restore them before handing the document to the iframe
+frame.srcdoc = decodeURIComponent(escape(atob(document.getElementById('mocksrc').textContent.trim())));
+
+document.querySelectorAll('.dev').forEach(function(b){
+  b.addEventListener('click',function(){
+    document.querySelectorAll('.dev').forEach(function(o){o.setAttribute('aria-pressed','false');});
+    b.setAttribute('aria-pressed','true');
+    var w=parseInt(b.dataset.w,10), lbl=document.getElementById('vwlabel');
+    if(!w){ frame.classList.add('desk'); frame.style.width=''; lbl.textContent='Desktop'; }
+    else { frame.classList.remove('desk'); frame.style.width=w+'px';
+      lbl.textContent=w+'px \u2014 '+(w<=640?'mobile':'tablet'); }
+  });
+});
+
+document.querySelectorAll('.tab').forEach(function(t){
+  t.addEventListener('click',function(){
+    document.querySelectorAll('.tab').forEach(function(o){o.setAttribute('aria-selected','false');});
+    t.setAttribute('aria-selected','true');
+    document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('on');});
+    document.getElementById('p-'+t.dataset.p).classList.add('on');
+    window.scrollTo({top:0,behavior:'smooth'});
+  });
+});
+
+function md(src){
+  var lines=src.split('\n'), out=[], i=0;
+  function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+  function inline(s){
+    s=esc(s);
+    s=s.replace(/`([^`]+)`/g,'<code>$1</code>');
+    s=s.replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>');
+    s=s.replace(/\[([^\]]+)\]\(([^)]+)\)/g,'<a href="$2">$1</a>');
+    return s;
+  }
+  while(i<lines.length){
+    var L=lines[i];
+    if(/^```/.test(L)){ var buf=[]; i++;
+      while(i<lines.length && !/^```/.test(lines[i])){buf.push(lines[i]);i++;} i++;
+      out.push('<pre><code>'+esc(buf.join('\n'))+'</code></pre>'); continue; }
+    if(/^\|/.test(L) && i+1<lines.length && /^\|[\s:|-]+\|/.test(lines[i+1])){
+      var head=L.split('|').slice(1,-1).map(function(c){return c.trim();});
+      i+=2; var rows=[];
+      while(i<lines.length && /^\|/.test(lines[i])){
+        rows.push(lines[i].split('|').slice(1,-1).map(function(c){return c.trim();})); i++; }
+      var t='<table><thead><tr>'+head.map(function(h){return '<th>'+inline(h)+'</th>';}).join('')+'</tr></thead><tbody>';
+      rows.forEach(function(r){t+='<tr>'+r.map(function(c){return '<td>'+inline(c)+'</td>';}).join('')+'</tr>';});
+      out.push(t+'</tbody></table>'); continue; }
+    var h=L.match(/^(#{1,4})\s+(.*)$/);
+    if(h){ out.push('<h'+h[1].length+'>'+inline(h[2])+'</h'+h[1].length+'>'); i++; continue; }
+    if(/^---+$/.test(L)){ out.push('<hr>'); i++; continue; }
+    if(/^>\s?/.test(L)){ var q=[];
+      while(i<lines.length && /^>\s?/.test(lines[i])){q.push(lines[i].replace(/^>\s?/,''));i++;}
+      out.push('<blockquote><p>'+inline(q.join(' '))+'</p></blockquote>'); continue; }
+    if(/^[-*]\s+/.test(L)){ var items=[];
+      while(i<lines.length && /^[-*]\s+/.test(lines[i])){
+        var it=lines[i].replace(/^[-*]\s+/,''); i++;
+        while(i<lines.length && /^\s{2,}\S/.test(lines[i])){it+=' '+lines[i].trim();i++;}
+        items.push('<li>'+inline(it)+'</li>'); }
+      out.push('<ul>'+items.join('')+'</ul>'); continue; }
+    if(/^\d+\.\s+/.test(L)){ var oi=[];
+      while(i<lines.length && /^\d+\.\s+/.test(lines[i])){
+        var o2=lines[i].replace(/^\d+\.\s+/,''); i++;
+        while(i<lines.length && /^\s{2,}\S/.test(lines[i])){o2+=' '+lines[i].trim();i++;}
+        oi.push('<li>'+inline(o2)+'</li>'); }
+      out.push('<ol>'+oi.join('')+'</ol>'); continue; }
+    if(L.trim()===''){ i++; continue; }
+    var para=[];
+    while(i<lines.length && lines[i].trim()!=='' &&
+      !/^(#{1,4}\s|```|\||[-*]\s|\d+\.\s|>|---+$)/.test(lines[i])){ para.push(lines[i]); i++; }
+    out.push('<p>'+inline(para.join(' '))+'</p>');
+  }
+  return out.join('\n');
+}
+document.getElementById('specdoc').innerHTML=md(document.getElementById('specsrc').textContent);
+document.getElementById('overdoc').innerHTML=md(document.getElementById('oversrc').textContent);
+</script>
+</body>
+</html>
