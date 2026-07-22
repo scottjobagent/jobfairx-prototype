@@ -290,49 +290,6 @@ tbody tr:last-child td { border-bottom: none; }
 .cell-lobby svg { width: 14px; height: 14px; }
 .cell-live-indicator { display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 13px; font-weight: 600; color: #16a34a; }
 .cell-live-indicator .live-dot { width: 8px; height: 8px; border-radius: 50%; background: #16a34a; animation: dashLivePulse 2s ease-in-out infinite; }
-
-/* === LIVE EVENT BANNER (Google Calendar style) — shows only in Live dev mode === */
-.live-event-banner {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  background: #1a1a1a;
-  border-radius: 10px;
-  padding: 14px 18px;
-  margin-bottom: 16px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
-}
-.live-event-banner .leb-dot {
-  width: 9px; height: 9px; border-radius: 50%;
-  background: #ef4444; flex-shrink: 0;
-  animation: lebPulse 1.8s ease-in-out infinite;
-}
-@keyframes lebPulse {
-  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(239,68,68,0.55); }
-  70%      { opacity: 0.85; box-shadow: 0 0 0 7px rgba(239,68,68,0); }
-}
-.live-event-banner .leb-text {
-  flex: 1; min-width: 0;
-  font-size: 14px; color: #fff; line-height: 1.4;
-}
-.live-event-banner .leb-name { font-weight: 700; }
-.live-event-banner .leb-sep { color: #6b6b6b; margin: 0 8px; }
-.live-event-banner .leb-countdown { color: #d4d4d4; font-weight: 500; }
-.live-event-banner .leb-cta {
-  flex-shrink: 0;
-  background: #0044B3; color: #fff;
-  font-size: 14px; font-weight: 600;
-  padding: 9px 18px; border-radius: 8px;
-  border: none; cursor: pointer; font-family: inherit;
-  white-space: nowrap;
-}
-.live-event-banner .leb-cta:hover { background: #003491; }
-@media (max-width: 760px) {
-  .live-event-banner { flex-wrap: wrap; gap: 10px; }
-  .live-event-banner .leb-text { flex-basis: 100%; }
-  .live-event-banner .leb-sep { display: block; height: 0; margin: 0; visibility: hidden; }
-  .live-event-banner .leb-cta { width: 100%; }
-}
 @keyframes dashLivePulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
 .cell-setup-complete { display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 11px; font-weight: 600; color: #16a34a; white-space: nowrap; }
 .setup-complete-dot { width: 8px; height: 8px; border-radius: 50%; background: #16a34a; flex-shrink: 0; }
@@ -3977,7 +3934,6 @@ function setDevMode(mode, btn) {
 
   // Remove any existing live indicators
   document.querySelectorAll('.cell-live-indicator').forEach(function(el) { el.remove(); });
-  removeLiveEventBanner();
 
   var noUpcomingState = document.getElementById('noUpcomingState');
   var tabPills = document.querySelectorAll('.tab-pills .tab-pill');
@@ -4042,69 +3998,25 @@ function setDevMode(mode, btn) {
       r.style.display = r.classList.contains('upcoming') ? '' : 'none';
     });
 
-    // Toggle setup complete + sticky live banner
+    // Toggle setup complete vs live indicator
     var setupCompleteDot = document.querySelector('#upcomingTable .cell-setup-complete');
     if (mode === 'live') {
+      // Hide setup complete, show live indicator
       if (setupCompleteDot) setupCompleteDot.style.display = 'none';
-      showLiveEventBanner();
+      var dallasLobby = document.querySelector('#upcomingTable .ev-row.upcoming .cell-lobby');
+      if (dallasLobby) {
+        var liveEl = document.createElement('div');
+        liveEl.className = 'cell-live-indicator';
+        liveEl.innerHTML = '<span class="live-dot"></span> This event is live';
+        dallasLobby.parentNode.appendChild(liveEl);
+      }
     } else {
       if (setupCompleteDot) setupCompleteDot.style.display = '';
-      removeLiveEventBanner();
     }
 
     // Toggle disabled state on Dallas row actions (edit + share) when live
     applyLiveActionState(mode === 'live');
   }
-}
-
-/* === LIVE EVENT BANNER =========================================
-   Google Calendar style strip above the events table. Shows only in
-   Live dev mode. Countdown ticks against the event end time.
-   DEV NOTE: in production, derive endTime from the event record and
-   render server-side when now() is between start and end.
-   ============================================================== */
-var _lebTimer = null;
-
-function showLiveEventBanner() {
-  removeLiveEventBanner();
-  var table = document.getElementById('upcomingTable');
-  if (!table) return;
-
-  // Demo: event ends 2h 15m from page load so the countdown always reads live.
-  var endTime = new Date(Date.now() + (2 * 60 * 60 * 1000) + (15 * 60 * 1000));
-
-  var banner = document.createElement('div');
-  banner.className = 'live-event-banner';
-  banner.id = 'liveEventBanner';
-  banner.innerHTML =
-    '<span class="leb-dot"></span>' +
-    '<div class="leb-text">' +
-      '<span class="leb-name">Dallas Hiring Event is live now</span>' +
-      '<span class="leb-sep">·</span>' +
-      '<span class="leb-countdown" id="lebCountdown">Ends in 2h 15m</span>' +
-    '</div>' +
-    '<button class="leb-cta" onclick="window.location.href=\'lobby-v3-healthcare.html\'">Join lobby →</button>';
-
-  table.parentNode.insertBefore(banner, table);
-
-  function tick() {
-    var el = document.getElementById('lebCountdown');
-    if (!el) return;
-    var diff = endTime - new Date();
-    if (diff <= 0) { el.textContent = 'Ending now'; return; }
-    var totalMin = Math.floor(diff / 60000);
-    var h = Math.floor(totalMin / 60);
-    var m = totalMin % 60;
-    el.textContent = h > 0 ? ('Ends in ' + h + 'h ' + m + 'm') : ('Ends in ' + m + 'm');
-  }
-  tick();
-  _lebTimer = setInterval(tick, 30000);
-}
-
-function removeLiveEventBanner() {
-  if (_lebTimer) { clearInterval(_lebTimer); _lebTimer = null; }
-  var existing = document.getElementById('liveEventBanner');
-  if (existing) existing.remove();
 }
 
 function resetTabPills() {
