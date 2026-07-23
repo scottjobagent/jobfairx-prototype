@@ -978,7 +978,14 @@ tbody tr:last-child td { border-bottom: none; }
     <a class="topbar-logo">JobFairX</a>
     <div class="dev-toggle">
       <span class="dev-toggle-label">Dashboard view:</span>
-      <div class="dev-toggle-switch">
+      <div class="dev-toggle-switch" id="ovToggle">
+        <button class="dev-toggle-btn active" onclick="setOverviewMode('active', this)">Active</button>
+        <button class="dev-toggle-btn" onclick="setOverviewMode('empty', this)">Empty</button>
+      </div>
+    </div>
+    <div class="dev-toggle">
+      <span class="dev-toggle-label">Agent view:</span>
+      <div class="dev-toggle-switch" id="agentToggle">
         <button class="dev-toggle-btn active" onclick="setDevMode('active', this)">Active</button>
         <button class="dev-toggle-btn" onclick="setDevMode('empty', this)">Empty</button>
         <button class="dev-toggle-btn" onclick="setDevMode('live', this)">Live</button>
@@ -1062,6 +1069,7 @@ tbody tr:last-child td { border-bottom: none; }
       </div>
     </div>
 
+    <div id="ovActive">
     <!-- KPI cards -->
     <div class="ov-kpis">
       <div class="ov-card" onclick="showView('events')">
@@ -1123,6 +1131,16 @@ tbody tr:last-child td { border-bottom: none; }
         <div class="ov-msg"><div class="ov-dot"></div><div><div style="font-size:13px;font-weight:600;">Loren Carver</div><div style="font-size:12px;color:#767676;">Thanks! What time works for the&hellip;</div></div></div>
         <div class="ov-msg"><div class="ov-dot"></div><div><div style="font-size:13px;font-weight:600;">Priya Nair</div><div style="font-size:12px;color:#767676;">Is the role fully remote or&hellip;</div></div></div>
         <div class="ov-msg"><div class="ov-dot read"></div><div><div style="font-size:13px;font-weight:600;color:#6b6b6b;">Devon Miles</div><div style="font-size:12px;color:#9a9a9a;">Appreciate the update &mdash; see you&hellip;</div></div></div>
+      </div>
+    </div>
+    </div><!-- /ovActive -->
+
+    <div id="ovEmpty" style="display:none;">
+      <div class="dash-empty-card">
+        <svg class="iv-agent" width="200" height="200" viewBox="0 0 220 220" fill="none" aria-hidden="true"><g class="iv-rays"><g id="ovSpike"><path d="M110 16 L112.6 48 L110 55 L107.4 48 Z" fill="#0044B3" opacity="0.45"/></g><use href="#ovSpike" transform="rotate(32.7 110 106)"/><use href="#ovSpike" transform="rotate(65.5 110 106)"/><use href="#ovSpike" transform="rotate(98.2 110 106)"/><use href="#ovSpike" transform="rotate(130.9 110 106)"/><use href="#ovSpike" transform="rotate(163.6 110 106)"/><use href="#ovSpike" transform="rotate(196.4 110 106)"/><use href="#ovSpike" transform="rotate(229.1 110 106)"/><use href="#ovSpike" transform="rotate(261.8 110 106)"/><use href="#ovSpike" transform="rotate(294.5 110 106)"/><use href="#ovSpike" transform="rotate(327.3 110 106)"/></g><ellipse cx="110" cy="164" rx="30" ry="6" fill="#18181B" opacity="0.10"/><g class="iv-body"><path d="M110 66 C87.9 66 70 83.9 70 106 C70 126 90 140 106.5 151 C108.6 152.4 111.4 152.4 113.5 151 C130 140 150 126 150 106 C150 83.9 132.1 66 110 66 Z" fill="#2d2d2d"/><circle cx="110" cy="104" r="27" fill="#fff"/><circle cx="101" cy="100" r="3.6" fill="#2d2d2d"/><circle cx="119" cy="100" r="3.6" fill="#2d2d2d"/><path d="M100 109 Q110 119 120 109" stroke="#2d2d2d" stroke-width="3.6" fill="none" stroke-linecap="round"/></g></svg>
+        <h2>Your dashboard is empty</h2>
+        <p>Create your first agent and start interviewing candidates. Your activity will show up here.</p>
+        <button class="btn btn-primary" onclick="showView('events'); showRegView();" style="justify-content:center;">Create an agent</button>
       </div>
     </div>
   </div>
@@ -3537,8 +3555,17 @@ function toggleAllCheckboxes(master) {
 }
 
 /* ═══ DEV TOGGLE ═══ */
+function setOverviewMode(mode, btn) {
+  document.querySelectorAll('#ovToggle .dev-toggle-btn').forEach(function(b) { b.classList.remove('active'); });
+  if (btn) btn.classList.add('active');
+  var empty = (mode === 'empty');
+  var a = document.getElementById('ovActive'); var e = document.getElementById('ovEmpty');
+  if (a) a.style.display = empty ? 'none' : '';
+  if (e) e.style.display = empty ? '' : 'none';
+}
+
 function setDevMode(mode, btn) {
-  document.querySelectorAll('.dev-toggle-btn').forEach(function(b) { b.classList.remove('active'); });
+  document.querySelectorAll('#agentToggle .dev-toggle-btn').forEach(function(b) { b.classList.remove('active'); });
   btn.classList.add('active');
 
   // Reset event filter
