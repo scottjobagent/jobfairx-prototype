@@ -3573,13 +3573,19 @@ function setDevMode(mode, btn) {
   resetTabPills();
 
   if (mode === 'empty') {
-    activeHeader.style.display = 'none';
-    filterRow.style.display = 'none';
-    upcomingTable.style.display = 'none';
-    noUpcomingState.style.display = 'none';
-    completedSection.classList.remove('active');
+    emptyState.classList.remove('active');
+    activeHeader.style.display = '';
+    filterRow.style.display = '';
     reportView.classList.remove('active');
-    emptyState.classList.add('active');
+    document.querySelectorAll('.tab-pill').forEach(function(t) { t.classList.remove('active'); });
+    tabPills[0].classList.add('active');
+    tabPills[0].querySelector('.count').textContent = '0';
+    upcomingTable.style.display = 'none';
+    noUpcomingState.style.display = '';
+    completedSection.classList.remove('active');
+    disableTabPill(tabPills[1], 'You have no past agents');
+    disableTabPill(tabPills[2], 'You have no drafts');
+    applyLiveActionState(false);
   } else if (mode === 'no-upcoming') {
     // Has past events but no upcoming
     emptyState.classList.remove('active');
@@ -3649,18 +3655,33 @@ function setDevMode(mode, btn) {
   }
 }
 
+function resetTabPill(pill, count, filterType) {
+  if (!pill) return;
+  var wrapper = pill.closest('.tab-pill-wrap');
+  if (wrapper) { wrapper.parentNode.insertBefore(pill, wrapper); wrapper.remove(); }
+  pill.classList.remove('disabled');
+  pill.onclick = function() { filterEvents(filterType, this); };
+  pill.querySelector('.count').textContent = count;
+}
+function disableTabPill(pill, text) {
+  if (!pill) return;
+  if (pill.closest('.tab-pill-wrap')) return;
+  pill.classList.add('disabled');
+  pill.onclick = null;
+  pill.querySelector('.count').textContent = '0';
+  var wrapper = document.createElement('div');
+  wrapper.className = 'tab-pill-wrap';
+  var tooltip = document.createElement('div');
+  tooltip.className = 'tab-pill-tooltip';
+  tooltip.textContent = text;
+  pill.parentNode.insertBefore(wrapper, pill);
+  wrapper.appendChild(pill);
+  wrapper.appendChild(tooltip);
+}
 function resetTabPills() {
-  var pastPill = document.querySelectorAll('.tab-pills .tab-pill')[1];
-  if (!pastPill) return;
-  // Unwrap from tooltip wrapper if needed
-  var wrapper = pastPill.closest('.tab-pill-wrap');
-  if (wrapper) {
-    wrapper.parentNode.insertBefore(pastPill, wrapper);
-    wrapper.remove();
-  }
-  pastPill.classList.remove('disabled');
-  pastPill.onclick = function() { filterEvents('complete', this); };
-  pastPill.querySelector('.count').textContent = '1';
+  var pills = document.querySelectorAll('.tab-pills .tab-pill');
+  resetTabPill(pills[1], '1', 'complete');
+  resetTabPill(pills[2], '2', 'drafts');
 }
 
 function disablePastPill() {
