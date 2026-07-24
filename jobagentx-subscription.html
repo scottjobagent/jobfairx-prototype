@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JobAgentX — Subscription &amp; Trial Flow</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; background: #f3f2ef; color: #2d2d2d; font-size: 14px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+  .devbar { position: sticky; top: 0; z-index: 50; background: #fff; border-bottom: 1px solid #d4d2d0; display: flex; align-items: center; gap: 14px; padding: 10px 20px; flex-wrap: wrap; }
+  .devbar .wordmark { font-weight: 800; font-size: 16px; color: #0044B3; letter-spacing: -0.02em; }
+  .devbar .devlabel { font-size: 9px; font-weight: 700; color: #767676; text-transform: uppercase; letter-spacing: 0.5px; }
+  .devswitch { display: inline-flex; background: #f3f2ef; border-radius: 8px; padding: 3px; gap: 2px; flex-wrap: wrap; }
+  .devbtn { padding: 6px 11px; font-size: 12px; font-weight: 700; border: none; background: transparent; color: #595959; border-radius: 6px; cursor: pointer; font-family: inherit; transition: all .15s; }
+  .devbtn.active { background: #0044B3; color: #fff; }
+  .canvas { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
+  .screen { display: none; }
+  .screen.active { display: block; }
+  .card { background: #fff; border: 1px solid #d4d2d0; border-radius: 12px; }
+  .muted { color: #767676; }
+  .btn-primary { background: #0044B3; color: #fff; border: none; border-radius: 8px; padding: 10px 18px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; }
+  .btn-outline { background: #fff; color: #0044B3; border: 1px solid #0044B3; border-radius: 8px; padding: 10px 18px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; }
+  .btn-ghost { background: #fff; color: #2d2d2d; border: 1px solid #d4d2d0; border-radius: 8px; padding: 10px 18px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; }
+  .screen-title { font-size: 22px; font-weight: 800; color: #2d2d2d; }
+  .screen-sub { font-size: 14px; color: #767676; margin-top: 5px; }
+  .plan-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 22px; align-items: stretch; }
+  .plan { background: #fff; border: 1px solid #d4d2d0; border-radius: 12px; padding: 18px 16px; display: flex; flex-direction: column; }
+  .plan.popular { border: 2px solid #0044B3; position: relative; }
+  .plan .pbadge { position: absolute; top: -11px; left: 16px; background: #e6f1fb; color: #0c447c; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; }
+  .plan .pname { font-size: 15px; font-weight: 700; }
+  .plan .pprice { margin: 8px 0 2px; }
+  .plan .pprice b { font-size: 26px; font-weight: 800; }
+  .plan .pprice span { font-size: 12px; color: #767676; }
+  .plan ul { list-style: none; font-size: 13px; color: #595959; line-height: 1.9; margin: 10px 0 16px; flex: 1; }
+  .plan ul li b { color: #2d2d2d; font-weight: 700; }
+  .trust { margin-top: 20px; display: flex; align-items: center; justify-content: center; gap: 22px; font-size: 12.5px; color: #767676; }
+  .trust svg { width: 15px; height: 15px; vertical-align: -2px; margin-right: 4px; stroke: #0044B3; fill: none; }
+  .checkout { display: grid; grid-template-columns: 0.85fr 1.15fr; gap: 26px; margin-top: 22px; align-items: start; }
+  .field-label { font-size: 12.5px; color: #767676; font-weight: 600; margin-bottom: 5px; }
+  .field { background: #fff; border: 1px solid #d4d2d0; border-radius: 8px; padding: 10px 12px; font-size: 14px; color: #2d2d2d; margin-bottom: 14px; }
+  .field.ph { color: #a8a6a2; }
+  .sumrow { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 9px; }
+  .sumtotal { display: flex; justify-content: space-between; font-size: 15px; font-weight: 800; border-top: 1px solid #e6e4e0; margin: 12px 0; padding-top: 12px; }
+  .callout { background: #f7f9fc; border: 1px solid #d9e6f5; border-radius: 8px; padding: 11px 13px; font-size: 12.5px; color: #4a6178; line-height: 1.6; }
+  .row-between { display: flex; justify-content: space-between; align-items: center; }
+  .pill-trial { display: inline-flex; align-items: center; gap: 7px; background: #faeeda; color: #854f0b; font-size: 12.5px; font-weight: 700; padding: 6px 12px; border-radius: 20px; }
+  .pill-trial svg { width: 14px; height: 14px; fill: none; }
+  .agent-block { padding: 18px 20px; margin-top: 14px; }
+  .working { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; color: #0f6e56; margin-top: 4px; }
+  .working .dot { width: 8px; height: 8px; border-radius: 50%; background: #1d9e75; display: inline-block; }
+  .meter { background: #e6f1fb; border-radius: 20px; height: 9px; overflow: hidden; }
+  .meter > div { background: #0044B3; height: 100%; }
+  .meter.red { background: #fcebeb; } .meter.red > div { background: #cc2b2b; }
+  .keep-card { background: #eaf1fb; border: 1px solid #b5d4f4; border-radius: 12px; padding: 18px 20px; margin-top: 14px; }
+  .banner-amber { background: #faeeda; border: 1px solid #fac775; border-radius: 12px; padding: 15px 18px; }
+  .banner-red { background: #fcebeb; border: 1px solid #f2b6b6; border-radius: 12px; padding: 15px 18px; }
+  .banner-ico { width: 22px; height: 22px; fill: none; }
+  .usage-head { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 7px; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 14px; }
+  .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: flex; align-items: flex-start; justify-content: center; padding: 40px 20px; z-index: 40; overflow: auto; }
+  .modal { background: #fff; border-radius: 14px; width: 860px; max-width: 100%; box-shadow: 0 8px 40px rgba(0,0,0,0.25); padding: 24px 26px; }
+  table.matrix { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 12.5px; }
+  table.matrix col.feat { width: 34%; } table.matrix col.tier { width: 16.5%; }
+  table.matrix th, table.matrix td { padding: 7px 6px; }
+  table.matrix thead th { vertical-align: bottom; text-align: center; }
+  table.matrix tbody td { border-top: 1px solid #f0eeea; }
+  table.matrix .feat { text-align: left; }
+  table.matrix .center { text-align: center; }
+  table.matrix .pop { background: #f5f9fe; }
+  .sec-row td { font-size: 10.5px; font-weight: 700; color: #767676; text-transform: uppercase; letter-spacing: .04em; padding-top: 11px; border-top: none !important; }
+  .chk { color: #0044B3; font-weight: 800; }
+  .dash-c { color: #b8b6b2; }
+  @media (max-width: 860px) { .plan-grid { grid-template-columns: repeat(2,1fr); } .checkout { grid-template-columns: 1fr; } .two-col { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<div class="devbar">
+  <span class="wordmark">JobAgentX</span>
+  <span class="devlabel">State</span>
+  <div class="devswitch" id="devswitch">
+    <button class="devbtn active" data-s="gate" onclick="showScreen('gate', this)">Launch gate</button>
+    <button class="devbtn" data-s="checkout" onclick="showScreen('checkout', this)">Checkout</button>
+    <button class="devbtn" data-s="trial" onclick="showScreen('trial', this)">Trial dashboard</button>
+    <button class="devbtn" data-s="ending" onclick="showScreen('ending', this)">Trial ending</button>
+    <button class="devbtn" data-s="billing" onclick="showScreen('billing', this)">Billing &amp; plans</button>
+    <button class="devbtn" data-s="cap" onclick="showScreen('cap', this)">Cap reached</button>
+    <button class="devbtn" data-s="upgrade" onclick="showScreen('upgrade', this)">Upgrade modal</button>
+  </div>
+</div>
+
+<div class="canvas">
+
+  <section class="screen active" id="s-gate">
+    <div class="muted" style="font-size:12.5px; display:flex; align-items:center; gap:7px; margin-bottom:6px;">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0044B3" stroke-width="2"><rect x="4" y="7" width="16" height="13" rx="2"/><path d="M9 7V5a3 3 0 016 0v2"/><circle cx="9" cy="13" r="1"/><circle cx="15" cy="13" r="1"/></svg>
+      Registered Nurse &middot; Dallas, TX &middot; ready to launch
+    </div>
+    <div class="screen-title">Choose a plan to launch your agent</div>
+    <div class="screen-sub">Start with a 14-day free trial. You won't be charged until Aug 6. Cancel anytime.</div>
+    <div class="plan-grid">
+      <div class="plan">
+        <div class="pname">Core</div>
+        <div class="pprice"><b>$199</b><span>/mo</span></div>
+        <ul><li><b>15</b> interviews/mo</li><li><b>1</b> seat</li><li>Email outreach</li><li>AI note taker</li></ul>
+        <button class="btn-outline" style="width:100%;">Start free trial</button>
+      </div>
+      <div class="plan popular">
+        <div class="pbadge">Most popular</div>
+        <div class="pname">Team</div>
+        <div class="pprice"><b>$349</b><span>/mo</span></div>
+        <ul><li><b>30</b> interviews/mo</li><li><b>3</b> seats</li><li>SMS + email</li><li>AI note taker</li></ul>
+        <button class="btn-primary" style="width:100%;">Start free trial</button>
+      </div>
+      <div class="plan">
+        <div class="pname">Business</div>
+        <div class="pprice"><b>$549</b><span>/mo</span></div>
+        <ul><li><b>50</b> interviews/mo</li><li><b>10</b> seats</li><li>Branded experience</li><li>AI note taker</li></ul>
+        <button class="btn-outline" style="width:100%;">Start free trial</button>
+      </div>
+      <div class="plan">
+        <div class="pname">Enterprise</div>
+        <div class="pprice"><b>Custom</b></div>
+        <ul><li>Custom volume</li><li>Unlimited seats</li><li>SSO, CSM, API</li><li>AI note taker</li></ul>
+        <button class="btn-ghost" style="width:100%;">Contact sales</button>
+      </div>
+    </div>
+    <div class="trust">
+      <span><svg viewBox="0 0 24 24" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>14 days free</span>
+      <span><svg viewBox="0 0 24 24" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>Cancel anytime</span>
+      <span><svg viewBox="0 0 24 24" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>Card required</span>
+    </div>
+  </section>
+
+  <section class="screen" id="s-checkout">
+    <div class="screen-title">Start your free trial</div>
+    <div class="screen-sub">Team plan &middot; 14 days free, then $349/month.</div>
+    <div class="checkout">
+      <div class="card" style="padding:18px 20px;">
+        <div class="muted" style="font-size:12.5px;">Subscribe to JobAgentX</div>
+        <div style="font-size:16px; font-weight:700; margin-bottom:14px;">Team plan</div>
+        <div class="sumrow"><span class="muted">Team plan</span><span>$349.00 / mo</span></div>
+        <div class="sumrow"><span class="muted">14-day free trial</span><span style="color:#0f6e56;">&minus;$349.00</span></div>
+        <div class="sumtotal"><span>Due today</span><span>$0.00</span></div>
+        <div class="callout">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0044B3" stroke-width="2" style="vertical-align:-2px;"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+          Free until <b>Aug 6</b>. Then $349.00/month. Cancel anytime before Aug 6 and you won't be charged.
+        </div>
+      </div>
+      <div>
+        <div class="field-label">Email</div>
+        <div class="field">scott@jobagentx.com</div>
+        <div class="field-label">Card information</div>
+        <div style="border:1px solid #d4d2d0; border-radius:8px; overflow:hidden; margin-bottom:14px;">
+          <div style="padding:10px 12px; font-size:14px; color:#a8a6a2; display:flex; justify-content:space-between; border-bottom:1px solid #d4d2d0;">
+            <span>1234 1234 1234 1234</span>
+            <span style="color:#767676; font-size:12px; letter-spacing:1px;">VISA &middot; MC &middot; AMEX</span>
+          </div>
+          <div style="display:flex;">
+            <div style="flex:1; padding:10px 12px; font-size:14px; color:#a8a6a2; border-right:1px solid #d4d2d0;">MM / YY</div>
+            <div style="flex:1; padding:10px 12px; font-size:14px; color:#a8a6a2;">CVC</div>
+          </div>
+        </div>
+        <div class="field-label">Cardholder name</div>
+        <div class="field ph">Full name on card</div>
+        <div style="display:flex; gap:12px;">
+          <div style="flex:1;"><div class="field-label">Country</div><div class="field">United States</div></div>
+          <div style="flex:1;"><div class="field-label">ZIP</div><div class="field ph">ZIP</div></div>
+        </div>
+        <button class="btn-primary" style="width:100%; padding:12px;">Start free trial</button>
+        <div class="muted" style="text-align:center; font-size:11.5px; margin-top:10px;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#767676" stroke-width="2" style="vertical-align:-1px;"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>
+          Secured by Stripe &middot; You won't be charged today
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen" id="s-trial">
+    <div class="row-between">
+      <div class="screen-title" style="font-size:19px;">Your agents</div>
+      <span class="pill-trial"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> Free trial &middot; 9 days left</span>
+    </div>
+    <div class="card agent-block">
+      <div class="row-between">
+        <div>
+          <div style="font-size:15px; font-weight:700;">Registered Nurse &middot; Dallas, TX</div>
+          <div class="working"><span class="dot"></span> Agent working &mdash; sourcing candidates now</div>
+        </div>
+        <div class="muted" style="font-size:12.5px;">1 active agent</div>
+      </div>
+      <div style="border-top:1px solid #f0eeea; margin-top:14px; padding-top:14px;">
+        <div class="usage-head"><span class="muted">Trial candidates delivered</span><span style="font-weight:700;">5 of 7</span></div>
+        <div class="meter"><div style="width:71%;"></div></div>
+        <div class="muted" style="font-size:11.5px; margin-top:6px;">Fully yours &mdash; schedule, message, or export them anytime</div>
+      </div>
+    </div>
+    <div class="keep-card row-between" style="gap:16px;">
+      <div>
+        <div style="font-size:15px; font-weight:700; color:#042c53;">Keep your agent working</div>
+        <div style="font-size:13px; color:#185fa5; margin-top:2px; line-height:1.5;">Subscribe to keep candidates flowing and get the volume it takes to hire. Your 7 trial candidates stay yours.</div>
+      </div>
+      <button class="btn-primary" style="white-space:nowrap;">Keep your agent working</button>
+    </div>
+  </section>
+
+  <section class="screen" id="s-ending">
+    <div class="banner-amber row-between" style="gap:16px; margin-bottom:18px;">
+      <div style="display:flex; align-items:center; gap:13px;">
+        <svg class="banner-ico" viewBox="0 0 24 24" stroke="#854f0b" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+        <div>
+          <div style="font-size:14px; font-weight:700; color:#633806;">Your trial ends Aug 6</div>
+          <div style="font-size:13px; color:#854f0b; margin-top:1px;">You'll be charged $349/mo for the Team plan. Cancel anytime before then.</div>
+        </div>
+      </div>
+      <button class="btn-primary" style="white-space:nowrap;">Keep your agent working</button>
+    </div>
+    <div class="card agent-block" style="margin-top:0;">
+      <div class="row-between">
+        <div>
+          <div style="font-size:15px; font-weight:700;">Registered Nurse &middot; Dallas, TX</div>
+          <div class="working"><span class="dot"></span> Agent working &mdash; sourcing candidates now</div>
+        </div>
+        <span class="pill-trial"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> Trial &middot; 2 days left</span>
+      </div>
+      <div style="border-top:1px solid #f0eeea; margin-top:14px; padding-top:14px;">
+        <div class="usage-head"><span class="muted">Trial candidates delivered</span><span style="font-weight:700;">7 of 7</span></div>
+        <div class="meter"><div style="width:100%;"></div></div>
+        <div class="muted" style="font-size:11.5px; margin-top:6px;">Subscribe to keep candidates coming for this role.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen" id="s-billing">
+    <div class="screen-title" style="font-size:19px; margin-bottom:16px;">Billing &amp; plans</div>
+    <div class="card" style="padding:16px 18px;">
+      <div class="row-between" style="align-items:flex-start;">
+        <div>
+          <div style="font-size:15px; font-weight:700;">Team plan</div>
+          <div class="muted" style="font-size:12.5px; margin-top:3px;">$349/mo &middot; renews Aug 6</div>
+        </div>
+        <button class="btn-primary" onclick="showScreen('upgrade')">Upgrade plan</button>
+      </div>
+      <div style="border-top:1px solid #f0eeea; margin-top:14px; padding-top:14px;">
+        <div class="usage-head"><span class="muted">Interviews scheduled this month</span><span style="font-weight:700;">18 / 30</span></div>
+        <div class="meter"><div style="width:60%;"></div></div>
+        <div class="muted" style="font-size:11.5px; margin-top:6px;">Resets Aug 6 &middot; 12 interviews remaining</div>
+      </div>
+    </div>
+    <div class="two-col">
+      <div class="card" style="padding:14px 16px;">
+        <div class="muted" style="font-size:12px; margin-bottom:8px;">Payment method</div>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#2d2d2d" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+          <div style="font-size:13px;">Visa ending 4242<div class="muted" style="font-size:11.5px;">Expires 08/28</div></div>
+        </div>
+        <button class="btn-ghost" style="margin-top:12px; padding:7px 14px; font-size:13px;">Update</button>
+      </div>
+      <div class="card" style="padding:14px 16px;">
+        <div class="muted" style="font-size:12px; margin-bottom:8px;">Billing history</div>
+        <div style="display:flex; justify-content:space-between; font-size:13px; padding:5px 0;"><span>Jul 6, 2026 &middot; Team plan</span><span>$349.00</span></div>
+        <div style="display:flex; justify-content:space-between; font-size:13px; padding:5px 0; border-top:1px solid #f0eeea;"><span>Jun 6, 2026 &middot; Team plan</span><span>$349.00</span></div>
+        <button class="btn-ghost" style="margin-top:12px; padding:7px 14px; font-size:13px;">View invoices</button>
+      </div>
+    </div>
+    <div style="margin-top:14px; text-align:center;">
+      <a class="muted" style="font-size:12.5px; text-decoration:underline; cursor:pointer;">Cancel plan</a>
+    </div>
+  </section>
+
+  <section class="screen" id="s-cap">
+    <div class="banner-red row-between" style="gap:16px; margin-bottom:18px;">
+      <div style="display:flex; align-items:center; gap:13px;">
+        <svg class="banner-ico" viewBox="0 0 24 24" stroke="#a32d2d" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg>
+        <div>
+          <div style="font-size:14px; font-weight:700; color:#791f1f;">You've used all 30 interviews this month</div>
+          <div style="font-size:13px; color:#a32d2d; margin-top:1px;">Your agent has paused booking new interviews. Upgrade to keep going, or wait until your plan resets Aug 6.</div>
+        </div>
+      </div>
+      <button class="btn-primary" style="white-space:nowrap;" onclick="showScreen('upgrade')">Upgrade plan</button>
+    </div>
+    <div class="card agent-block" style="margin-top:0;">
+      <div class="row-between">
+        <div>
+          <div style="font-size:15px; font-weight:700;">Registered Nurse &middot; Dallas, TX</div>
+          <div class="muted" style="font-size:12.5px; margin-top:4px;">Booking paused &middot; candidates still visible and fully usable</div>
+        </div>
+        <div class="muted" style="font-size:12.5px;">1 active agent</div>
+      </div>
+      <div style="border-top:1px solid #f0eeea; margin-top:14px; padding-top:14px;">
+        <div class="usage-head"><span class="muted">Interviews scheduled this month</span><span style="font-weight:700; color:#a32d2d;">30 / 30</span></div>
+        <div class="meter red"><div style="width:100%;"></div></div>
+        <div class="muted" style="font-size:11.5px; margin-top:6px;">Nothing is locked &mdash; your candidates and their details stay open. Only new bookings are paused.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen" id="s-upgrade">
+    <div class="muted" style="font-size:13px; margin-bottom:10px;">The Upgrade buttons open this over the current page:</div>
+    <div style="position:relative; min-height:560px; background:#f3f2ef; border:1px solid #e6e4e0; border-radius:12px;">
+      <div class="overlay" style="position:absolute;">
+        <div class="modal">
+          <div class="row-between" style="margin-bottom:14px;">
+            <div style="font-size:17px; font-weight:800;">Change your plan</div>
+            <div class="muted" style="font-size:12.5px;">Current plan: <b style="color:#2d2d2d;">Team</b></div>
+          </div>
+          <table class="matrix">
+            <colgroup><col class="feat"><col class="tier"><col class="tier"><col class="tier"><col class="tier"></colgroup>
+            <thead>
+              <tr>
+                <th></th>
+                <th><div style="font-weight:700;">Core</div><div class="muted" style="font-size:11px;">$199/mo</div></th>
+                <th class="pop" style="border-radius:8px 8px 0 0;"><div style="color:#0c447c; font-size:10px; font-weight:700;">Current</div><div style="font-weight:700;">Team</div><div style="color:#185fa5; font-size:11px;">$349/mo</div></th>
+                <th><div style="font-weight:700;">Business</div><div class="muted" style="font-size:11px;">$549/mo</div></th>
+                <th><div style="font-weight:700;">Enterprise</div><div class="muted" style="font-size:11px;">Custom</div></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="sec-row"><td colspan="5">The agent</td></tr>
+              <tr><td class="feat">Unlimited job postings</td><td class="center"><span class="chk">&#10003;</span></td><td class="center pop"><span class="chk">&#10003;</span></td><td class="center"><span class="chk">&#10003;</span></td><td class="center"><span class="chk">&#10003;</span></td></tr>
+              <tr><td class="feat">AI sourcing + screening</td><td class="center"><span class="chk">&#10003;</span></td><td class="center pop"><span class="chk">&#10003;</span></td><td class="center"><span class="chk">&#10003;</span></td><td class="center"><span class="chk">&#10003;</span></td></tr>
+              <tr><td class="feat">Automated messaging</td><td class="center"><span class="chk">&#10003;</span></td><td class="center pop"><span class="chk">&#10003;</span></td><td class="center"><span class="chk">&#10003;</span></td><td class="center"><span class="chk">&#10003;</span></td></tr>
+              <tr><td class="feat">Scheduling + reminders</td><td class="center"><span class="chk">&#10003;</span></td><td class="center pop"><span class="chk">&#10003;</span></td><td class="center"><span class="chk">&#10003;</span></td><td class="center"><span class="chk">&#10003;</span></td></tr>
+              <tr><td class="feat">AI note taker</td><td class="center"><span class="chk">&#10003;</span></td><td class="center pop"><span class="chk">&#10003;</span></td><td class="center"><span class="chk">&#10003;</span></td><td class="center"><span class="chk">&#10003;</span></td></tr>
+              <tr class="sec-row"><td colspan="5">Volume + seats</td></tr>
+              <tr><td class="feat">Interviews / mo</td><td class="center">15</td><td class="center pop">30</td><td class="center">50</td><td class="center">Custom</td></tr>
+              <tr><td class="feat">Team seats</td><td class="center">1</td><td class="center pop">3</td><td class="center">10</td><td class="center">Unlimited</td></tr>
+              <tr class="sec-row"><td colspan="5">Channels + insights</td></tr>
+              <tr><td class="feat">SMS messaging + reminders</td><td class="center"><span class="dash-c">&mdash;</span></td><td class="center pop"><span class="chk">&#10003;</span></td><td class="center"><span class="chk">&#10003;</span></td><td class="center"><span class="chk">&#10003;</span></td></tr>
+              <tr><td class="feat">Custom screening questions</td><td class="center"><span class="dash-c">&mdash;</span></td><td class="center pop"><span class="chk">&#10003;</span></td><td class="center"><span class="chk">&#10003;</span></td><td class="center"><span class="chk">&#10003;</span></td></tr>
+              <tr><td class="feat">Pipeline analytics</td><td class="center"><span class="dash-c">&mdash;</span></td><td class="center pop"><span class="chk">&#10003;</span></td><td class="center"><span class="chk">&#10003;</span></td><td class="center"><span class="chk">&#10003;</span></td></tr>
+              <tr><td class="feat">Branded candidate experience</td><td class="center"><span class="dash-c">&mdash;</span></td><td class="center pop"><span class="dash-c">&mdash;</span></td><td class="center"><span class="chk">&#10003;</span></td><td class="center"><span class="chk">&#10003;</span></td></tr>
+            </tbody>
+          </table>
+          <div class="row-between" style="margin-top:18px;">
+            <button class="btn-ghost" onclick="showScreen('billing')">Cancel</button>
+            <div style="display:flex; gap:10px;">
+              <button class="btn-outline">Downgrade to Core</button>
+              <button class="btn-primary">Upgrade to Business</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+function showScreen(s, btn) {
+  document.querySelectorAll('.screen').forEach(function(el){ el.classList.remove('active'); });
+  document.getElementById('s-' + s).classList.add('active');
+  document.querySelectorAll('#devswitch .devbtn').forEach(function(b){ b.classList.remove('active'); });
+  var target = btn || document.querySelector('#devswitch .devbtn[data-s="' + s + '"]');
+  if (target) target.classList.add('active');
+  window.scrollTo(0, 0);
+}
+(function(){
+  var m = (location.search.match(/[?&]state=([a-z]+)/) || [])[1];
+  var valid = ['gate','checkout','trial','ending','billing','cap','upgrade'];
+  if (m && valid.indexOf(m) !== -1) showScreen(m);
+})();
+</script>
+</body>
+</html>
