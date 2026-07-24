@@ -1159,9 +1159,9 @@ tbody tr:last-child td { border-bottom: none; }
     <!-- Filter row: sits on gray bg -->
     <div class="filter-row">
       <div class="tab-pills">
-        <button class="tab-pill active" onclick="filterEvents('active', this)">Active agents <span class="count">1</span></button>
-        <button class="tab-pill" onclick="filterEvents('complete', this)">Past agents <span class="count">1</span></button>
+        <button class="tab-pill active" onclick="filterEvents('active', this)">Active <span class="count">1</span></button>
         <button class="tab-pill" onclick="filterEvents('drafts', this)">Drafts <span class="count">2</span></button>
+        <button class="tab-pill" onclick="filterEvents('complete', this)">Closed <span class="count">1</span></button>
       </div>
       <div class="filter-right" style="position:relative;">
         <button class="search-events-btn" id="dashFilterBtn" onclick="toggleDropdown('search-events-menu')">
@@ -3583,8 +3583,8 @@ function setDevMode(mode, btn) {
     upcomingTable.style.display = 'none';
     noUpcomingState.style.display = '';
     completedSection.classList.remove('active');
-    disableTabPill(tabPills[1], 'You have no past agents');
-    disableTabPill(tabPills[2], 'You have no drafts');
+    disableTabPill(tabPills[1], 'You have no drafts');
+    disableTabPill(tabPills[2], 'You have no closed agents');
     applyLiveActionState(false);
   } else if (mode === 'no-upcoming') {
     // Has past events but no upcoming
@@ -3680,12 +3680,12 @@ function disableTabPill(pill, text) {
 }
 function resetTabPills() {
   var pills = document.querySelectorAll('.tab-pills .tab-pill');
-  resetTabPill(pills[1], '1', 'complete');
-  resetTabPill(pills[2], '2', 'drafts');
+  resetTabPill(pills[1], '2', 'drafts');
+  resetTabPill(pills[2], '1', 'complete');
 }
 
 function disablePastPill() {
-  var pastPill = document.querySelectorAll('.tab-pills .tab-pill')[1];
+  var pastPill = document.querySelectorAll('.tab-pills .tab-pill')[2];
   if (!pastPill) return;
   pastPill.classList.add('disabled');
   pastPill.onclick = null;
@@ -3695,7 +3695,7 @@ function disablePastPill() {
   wrapper.className = 'tab-pill-wrap';
   var tooltip = document.createElement('div');
   tooltip.className = 'tab-pill-tooltip';
-  tooltip.textContent = 'You have no past agents';
+  tooltip.textContent = 'You have no closed agents';
   pastPill.parentNode.insertBefore(wrapper, pastPill);
   wrapper.appendChild(pastPill);
   wrapper.appendChild(tooltip);
