@@ -936,6 +936,15 @@ tbody tr:last-child td { border-bottom: none; }
   .topbar { left: 64px; }
   .main { margin-left: 64px; }
 }
+
+/* ── Audio/video test reminder banner ── */
+.av-banner { position: sticky; top: 56px; z-index: 150; display: flex; align-items: center; justify-content: space-between; gap: 12px; background: #eaf1fb; border: 1px solid #b5d4f4; border-radius: 8px; padding: 9px 14px; margin-bottom: 16px; }
+.av-banner[hidden] { display: none; }
+.av-banner-msg { display: flex; align-items: center; gap: 9px; font-size: 13px; color: #0c447c; }
+.av-banner-msg b { font-weight: 700; }
+.av-ico { width: 17px; height: 17px; flex-shrink: 0; color: #0044B3; }
+.av-banner-link { font-size: 13px; font-weight: 700; color: #0044B3; text-decoration: underline; white-space: nowrap; display: inline-flex; align-items: center; gap: 5px; cursor: pointer; }
+.av-ext { width: 13px; height: 13px; }
 </style>
 </head>
 <body>
@@ -1026,6 +1035,23 @@ tbody tr:last-child td { border-bottom: none; }
 
   <!-- ── MY EVENTS ── -->
   <div class="view active" id="view-events">
+
+    <!-- Audio/video test reminder — stays until the employer completes the test -->
+    <div class="av-banner" id="avBanner">
+      <div class="av-banner-msg">
+        <svg class="av-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="14" height="14" rx="2"/><path d="M16 10l6-3v10l-6-3"/></svg>
+        <span><b>Test your audio and video</b> before your hiring event.</span>
+      </div>
+      <a class="av-banner-link" href="lobby-v3.html?avtest=1" target="_blank" rel="noopener" title="Opens in a new window" aria-label="Start test (opens in a new window)">Start test<svg class="av-ext" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14 21 3"/></svg></a>
+    </div>
+    <script>
+    /* Banner stays until the employer completes the audio/video test.
+       Wire markAvTested() to the completion step of the lobby A/V modal (openAvModal). */
+    function markAvTested(){ var b=document.getElementById('avBanner'); if(b) b.hidden=true; try{ localStorage.setItem('jfxAvTested','1'); }catch(e){} }
+    function resetAvTest(){ var b=document.getElementById('avBanner'); if(b) b.hidden=false; try{ localStorage.removeItem('jfxAvTested'); }catch(e){} }
+    (function(){ try{ if(localStorage.getItem('jfxAvTested')==='1'){ var b=document.getElementById('avBanner'); if(b) b.hidden=true; } }catch(e){} })();
+    </script>
+
 
     <!-- Header card: company name + CTA -->
     <div class="header-card">
