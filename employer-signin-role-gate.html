@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>For Employers: Sign In — Role Confirmation</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Noto Sans',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;background:#f4f5f7;color:#1a1a1a;font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased;}
+
+  /* Dev bar (prototype only — not part of the live page) */
+  .devbar{position:sticky;top:0;z-index:50;background:#fff;border-bottom:1px solid #d4d2d0;display:flex;align-items:center;gap:12px;padding:9px 18px;flex-wrap:wrap;}
+  .devbar .wm{font-weight:800;font-size:14px;color:#0044B3;}
+  .devlabel{font-size:9px;font-weight:700;color:#767676;text-transform:uppercase;letter-spacing:.5px;}
+  .devswitch{display:inline-flex;background:#f3f2ef;border-radius:7px;padding:3px;gap:2px;flex-wrap:wrap;}
+  .devbtn{padding:6px 11px;font-size:12px;font-weight:700;border:none;background:transparent;color:#595959;border-radius:5px;cursor:pointer;font-family:inherit;}
+  .devbtn.active{background:#0044B3;color:#fff;}
+  .devnote{font-size:11px;color:#767676;}
+
+  .page{padding:40px 20px 60px;}
+  .wordmark{text-align:center;font-size:22px;font-weight:800;color:#0044B3;margin-bottom:18px;}
+  .card{background:#fff;border-radius:16px;padding:28px 32px;width:540px;max-width:100%;margin:0 auto;box-shadow:0 1px 3px rgba(0,0,0,.06);}
+  .back{font-size:13px;color:#0044B3;font-weight:700;margin-bottom:16px;display:inline-block;cursor:pointer;text-decoration:none;}
+  h1{font-size:26px;font-weight:700;color:#1a1a1a;line-height:1.25;}
+  .sub{font-size:13.5px;color:#6b7280;margin-top:7px;margin-bottom:20px;}
+
+  .choice{width:100%;background:#fff;border:1px solid #d4d2d0;border-radius:8px;padding:13px 15px;text-align:left;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:12px;transition:all .15s;margin-bottom:10px;}
+  .choice:hover{border-color:#0044B3;background:#f7faff;}
+  .choice:last-child{margin-bottom:0;}
+  .choice svg{width:21px;height:21px;flex-shrink:0;}
+  .choice .t{display:block;font-size:15px;font-weight:700;color:#1a1a1a;}
+  .choice .d{display:block;font-size:12.5px;color:#6b7280;font-weight:400;}
+
+  .oauth{width:100%;background:#fff;border:1px solid #d4d2d0;border-radius:8px;height:47px;display:flex;align-items:center;justify-content:center;gap:10px;font-size:15px;font-weight:700;color:#1a1a1a;cursor:pointer;font-family:inherit;margin-bottom:10px;}
+  .oauth:hover{background:#fafafa;}
+  .divider{display:flex;align-items:center;gap:12px;color:#9ca3af;font-size:13px;margin:16px 0;}
+  .divider::before,.divider::after{content:"";flex:1;height:1px;background:#e5e7eb;}
+  .flabel{font-size:14px;font-weight:700;color:#1a1a1a;}
+  .fhelp{font-size:12px;color:#9ca3af;margin-bottom:6px;}
+  .finput{width:100%;border:1px solid #d4d2d0;border-radius:8px;padding:12px 14px;font-size:14px;font-family:inherit;color:#1a1a1a;}
+  .finput::placeholder{color:#9ca3af;}
+  .rule{height:1px;background:#e5e7eb;margin:20px 0 16px;}
+  .primary{background:#0044B3;color:#fff;border:none;border-radius:6px;height:47px;padding:0 26px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;float:right;}
+  .foot{text-align:center;font-size:12px;color:#6b7280;margin-top:18px;}
+  .foot a{color:#6b7280;text-decoration:none;}
+
+  .redirecting{text-align:center;padding:12px 0 4px;}
+  .redirecting .sp{width:30px;height:30px;border:3px solid #e5e7eb;border-top-color:#0044B3;border-radius:50%;margin:0 auto 14px;animation:spin .8s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  .remembered{background:#eaf1fb;border:1px solid #b5d4f4;border-radius:8px;padding:10px 13px;font-size:12.5px;color:#0c447c;margin-bottom:18px;display:flex;align-items:center;gap:9px;}
+
+  .spec{width:540px;max-width:100%;margin:26px auto 0;background:#fff;border:1px solid #d4d2d0;border-radius:12px;padding:18px 22px;}
+  .spec h2{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:#767676;margin-bottom:10px;}
+  .spec li{font-size:13px;color:#3d3d3a;margin-bottom:7px;line-height:1.6;margin-left:18px;}
+  .spec code{background:#f3f2ef;padding:1px 5px;border-radius:4px;font-size:12px;}
+  .step{display:none;}
+  .step.active{display:block;}
+</style>
+</head>
+<body>
+
+<div class="devbar">
+  <span class="wm">JobFairX</span>
+  <span class="devlabel">State</span>
+  <div class="devswitch" id="devswitch">
+    <button class="devbtn active" data-s="gate" onclick="showStep('gate',this)">1 · Who's signing in</button>
+    <button class="devbtn" data-s="signin" onclick="showStep('signin',this)">2 · Employer sign in</button>
+    <button class="devbtn" data-s="seeker" onclick="showStep('seeker',this)">Job seeker redirect</button>
+    <button class="devbtn" data-s="returning" onclick="showStep('returning',this)">Returning employer</button>
+  </div>
+  <span class="devnote" id="memState"></span>
+  <button class="devbtn" style="background:#f3f2ef;" onclick="clearMemory()">Clear memory</button>
+</div>
+
+<div class="page">
+  <div class="wordmark">JobFairX</div>
+
+  <!-- STEP 1 — role confirmation -->
+  <div class="step active" id="s-gate">
+    <div class="card">
+      <a class="back">&larr; Back to JobFairX</a>
+      <h1>Who's signing in?</h1>
+      <div class="sub">JobFairX has separate accounts for employers and job seekers.</div>
+      <button class="choice" onclick="chooseEmployer()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#0044B3" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14"/><path d="M9 9h.01M15 9h.01M9 13h.01M15 13h.01M9 17h.01M15 17h.01"/></svg>
+        <span><span class="t">I'm an employer</span><span class="d">I'm hiring and want to interview candidates</span></span>
+      </button>
+      <button class="choice" onclick="showStep('seeker')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        <span><span class="t">I'm a job seeker</span><span class="d">I'm looking for a job</span></span>
+      </button>
+    </div>
+  </div>
+
+  <!-- STEP 2 — employer sign in (existing page, unchanged) -->
+  <div class="step" id="s-signin">
+    <div class="card">
+      <a class="back" onclick="showStep('gate')">&larr; Back</a>
+      <h1>Sign in to your employer account</h1>
+      <div style="height:18px;"></div>
+      <button class="oauth"><svg viewBox="0 0 24 24" width="18" height="18"><path fill="#4285F4" d="M23 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.2a5.3 5.3 0 01-2.3 3.5v2.9h3.7c2.2-2 3.4-5 3.4-8.6z"/><path fill="#34A853" d="M12 24c3.1 0 5.7-1 7.6-2.8l-3.7-2.9c-1 .7-2.3 1.1-3.9 1.1-3 0-5.6-2-6.5-4.8H1.7v3C3.6 21.3 7.5 24 12 24z"/><path fill="#FBBC05" d="M5.5 14.6a7.2 7.2 0 010-4.6v-3H1.7a12 12 0 000 10.6l3.8-3z"/><path fill="#EA4335" d="M12 4.8c1.7 0 3.2.6 4.4 1.7l3.3-3.3C17.7 1.2 15.1 0 12 0 7.5 0 3.6 2.7 1.7 6.6l3.8 3C6.4 6.8 9 4.8 12 4.8z"/></svg>Continue with Google</button>
+      <button class="oauth"><svg viewBox="0 0 23 23" width="17" height="17"><path fill="#F25022" d="M1 1h10v10H1z"/><path fill="#7FBA00" d="M12 1h10v10H12z"/><path fill="#00A4EF" d="M1 12h10v10H1z"/><path fill="#FFB900" d="M12 12h10v10H12z"/></svg>Continue with Microsoft</button>
+      <div class="divider">or</div>
+      <div class="flabel">Email address <span style="color:#dc2626;">*</span></div>
+      <div class="fhelp">Use your company email</div>
+      <input class="finput" type="email" placeholder="you@company.com">
+      <div class="rule"></div>
+      <button class="primary">Continue</button>
+      <div style="clear:both;"></div>
+    </div>
+  </div>
+
+  <!-- Job seeker redirect -->
+  <div class="step" id="s-seeker">
+    <div class="card">
+      <div class="redirecting">
+        <div class="sp"></div>
+        <h1 style="font-size:22px;">Taking you to job seeker sign in</h1>
+        <div class="sub" style="margin-bottom:0;">Job seekers sign in on a different page. One moment&hellip;</div>
+        <div style="margin-top:18px;"><a class="back" onclick="showStep('gate')">&larr; Back</a></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Returning employer — gate skipped -->
+  <div class="step" id="s-returning">
+    <div class="card">
+      <div class="remembered">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0044B3" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
+        Recognised on this browser &mdash; the role question is skipped.
+      </div>
+      <h1>Sign in to your employer account</h1>
+      <div style="height:18px;"></div>
+      <button class="oauth"><svg viewBox="0 0 24 24" width="18" height="18"><path fill="#4285F4" d="M23 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.2a5.3 5.3 0 01-2.3 3.5v2.9h3.7c2.2-2 3.4-5 3.4-8.6z"/><path fill="#34A853" d="M12 24c3.1 0 5.7-1 7.6-2.8l-3.7-2.9c-1 .7-2.3 1.1-3.9 1.1-3 0-5.6-2-6.5-4.8H1.7v3C3.6 21.3 7.5 24 12 24z"/><path fill="#FBBC05" d="M5.5 14.6a7.2 7.2 0 010-4.6v-3H1.7a12 12 0 000 10.6l3.8-3z"/><path fill="#EA4335" d="M12 4.8c1.7 0 3.2.6 4.4 1.7l3.3-3.3C17.7 1.2 15.1 0 12 0 7.5 0 3.6 2.7 1.7 6.6l3.8 3C6.4 6.8 9 4.8 12 4.8z"/></svg>Continue with Google</button>
+      <button class="oauth"><svg viewBox="0 0 23 23" width="17" height="17"><path fill="#F25022" d="M1 1h10v10H1z"/><path fill="#7FBA00" d="M12 1h10v10H12z"/><path fill="#00A4EF" d="M1 12h10v10H1z"/><path fill="#FFB900" d="M12 12h10v10H12z"/></svg>Continue with Microsoft</button>
+      <div class="divider">or</div>
+      <div class="flabel">Email address <span style="color:#dc2626;">*</span></div>
+      <div class="fhelp">Use your company email</div>
+      <input class="finput" type="email" placeholder="you@company.com">
+      <div class="rule"></div>
+      <button class="primary">Continue</button>
+      <div style="clear:both;"></div>
+    </div>
+  </div>
+
+  <div class="foot"><a>Privacy Policy</a> &nbsp;·&nbsp; <a>Terms and Conditions</a></div>
+
+  <div class="spec">
+    <h2>Developer notes</h2>
+    <ul>
+      <li>The role question appears <b>before</b> all three sign-in methods &mdash; Google, Microsoft and email &mdash; not just Google.</li>
+      <li>"I'm an employer" sets <code>localStorage.jfxRole = 'employer'</code> and shows the sign-in card. On later visits from that browser the question is skipped.</li>
+      <li>"I'm a job seeker" redirects to the job seeker sign-in page. <b>Set the real URL in</b> <code>JOBSEEKER_SIGNIN_URL</code>.</li>
+      <li><b>Backstop (recommended):</b> a device flag can't recognise an employer on a new device or in incognito. After the provider returns, if the account already exists, sign in with no question. Only ask "employer or job seeker?" when a <b>new</b> employer account is about to be created.</li>
+      <li>Styling matches the live page: Noto Sans, 540px card, 16px radius, buttons 47px with <code>#d4d2d0</code> border, primary <code>#0044B3</code>.</li>
+    </ul>
+  </div>
+</div>
+
+<script>
+var JOBSEEKER_SIGNIN_URL = '#';
+
+function showStep(s, btn){
+  var ids=['gate','signin','seeker','returning'];
+  ids.forEach(function(i){ document.getElementById('s-'+i).classList.remove('active'); });
+  document.getElementById('s-'+s).classList.add('active');
+  document.querySelectorAll('#devswitch .devbtn').forEach(function(b){ b.classList.remove('active'); });
+  var t = btn || document.querySelector('#devswitch .devbtn[data-s="'+s+'"]');
+  if(t) t.classList.add('active');
+  if(s==='seeker'){ setTimeout(function(){ if(JOBSEEKER_SIGNIN_URL !== '#') window.location.href = JOBSEEKER_SIGNIN_URL; }, 1200); }
+  paintMem();
+}
+function chooseEmployer(){
+  try{ localStorage.setItem('jfxRole','employer'); }catch(e){}
+  showStep('signin');
+}
+function clearMemory(){
+  try{ localStorage.removeItem('jfxRole'); }catch(e){}
+  showStep('gate');
+}
+function paintMem(){
+  var v='not set';
+  try{ v = localStorage.getItem('jfxRole') || 'not set'; }catch(e){}
+  document.getElementById('memState').textContent = 'jfxRole: ' + v;
+}
+(function(){
+  var remembered=false;
+  try{ remembered = localStorage.getItem('jfxRole')==='employer'; }catch(e){}
+  showStep(remembered ? 'returning' : 'gate');
+})();
+</script>
+</body>
+</html>
