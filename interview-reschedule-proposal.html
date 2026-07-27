@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Interview Reschedule Proposal — Template &amp; Developer Spec</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Noto Sans',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;background:#f3f2ef;color:#2d2d2d;font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1080px;margin:0 auto;padding:28px 24px 70px;}
+  .masthead{display:flex;align-items:baseline;gap:12px;margin-bottom:6px;}
+  .masthead .wm{font-size:20px;font-weight:800;color:#0044B3;}
+  h1{font-size:24px;font-weight:800;color:#1a1a1a;}
+  .lede{font-size:14px;color:#6b7280;margin-top:6px;max-width:760px;}
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:24px;align-items:start;}
+  @media(max-width:940px){.cols{grid-template-columns:1fr;}}
+  .panel{background:#fff;border:1px solid #d4d2d0;border-radius:12px;padding:20px 22px;}
+  .panel h2{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#767676;margin-bottom:14px;}
+  h3{font-size:14px;font-weight:700;color:#1a1a1a;margin:18px 0 8px;}
+  h3:first-of-type{margin-top:0;}
+  .thread{background:#fafafa;border:1px solid #e5e7eb;border-radius:10px;padding:16px;margin-bottom:16px;}
+  .stamp{font-size:11px;color:#9ca3af;margin-top:5px;}
+  .bubble{max-width:460px;}
+
+  /* Proposal card — the loudest element in the thread */
+  .prop{background:#fff;border:2px solid #0044B3;border-radius:10px;overflow:hidden;box-shadow:0 2px 8px rgba(0,68,179,.10);}
+  .prop-head{background:#0044B3;color:#fff;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:8px 15px;display:flex;align-items:center;gap:7px;}
+  .prop-body{padding:14px 16px;}
+  .who{font-size:14px;font-weight:700;color:#111827;}
+  .why{font-size:13px;color:#374151;margin-top:6px;line-height:1.55;}
+  .slots{margin-top:12px;display:flex;flex-direction:column;gap:8px;}
+  .slot{display:flex;align-items:center;gap:9px;font-size:13px;color:#111827;background:#fff;border:1px solid #d1d5db;border-radius:7px;padding:9px 11px;cursor:pointer;}
+  .slot:hover{border-color:#0044B3;background:#f7faff;}
+  .slot input{width:15px;height:15px;accent-color:#0044B3;}
+  .acts{display:flex;align-items:center;gap:15px;margin-top:14px;}
+  .btn{background:#0044B3;color:#fff;border:none;border-radius:7px;padding:10px 16px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;}
+  .btn[disabled]{background:#a9bede;cursor:not-allowed;}
+  .lnk{font-size:12.5px;font-weight:700;color:#0044B3;text-decoration:underline;cursor:pointer;background:none;border:none;font-family:inherit;padding:0;}
+
+  /* Confirmation */
+  .confirm{background:#f0f7f2;border:1px solid #c3e0cd;border-radius:10px;padding:14px 16px;}
+  .confirm .ttl{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;color:#166534;}
+  .confirm .meta{font-size:13px;color:#111827;margin-top:9px;line-height:1.7;}
+  .confirm .foot{margin-top:12px;padding-top:11px;border-top:1px solid #d7e8de;}
+
+  /* composer */
+  .composer{border:2px solid #0044B3;border-radius:9px;padding:11px 13px;display:flex;align-items:center;justify-content:space-between;gap:12px;background:#fff;}
+  .composer span{font-size:13px;color:#111827;}
+  .note{font-size:11.5px;color:#6b7280;margin-top:8px;}
+
+  ul{margin:0 0 4px 18px;}
+  li{font-size:13px;color:#3d3d3a;margin-bottom:7px;line-height:1.6;}
+  code{background:#f3f2ef;padding:1px 6px;border-radius:4px;font-size:12px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;}
+  table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:4px;}
+  th,td{text-align:left;padding:7px 8px;border-bottom:1px solid #f0eeea;vertical-align:top;}
+  th{font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:#767676;}
+  .flag{background:#fef8e7;border:1px solid #f5d78e;border-radius:8px;padding:11px 13px;font-size:12.5px;color:#6b4f0a;line-height:1.6;margin-top:12px;}
+  .flag b{color:#5a4208;}
+  .open{background:#eaf1fb;border:1px solid #b5d4f4;border-radius:8px;padding:11px 13px;font-size:12.5px;color:#0c447c;line-height:1.6;margin-top:12px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="masthead"><span class="wm">JobFairX</span></div>
+  <h1>Interview reschedule proposal</h1>
+  <div class="lede">Job seeker messaging. What a candidate sees when an employer can't make the time the candidate requested and offers alternatives instead. Template on the left, build logic on the right.</div>
+
+  <div class="cols">
+
+    <!-- ══ TEMPLATE ══ -->
+    <div class="panel">
+      <h2>Template</h2>
+
+      <h3>1 · Reschedule proposal</h3>
+      <div class="thread">
+        <div class="bubble">
+          <div class="prop">
+            <div class="prop-head">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+              Interview reschedule proposal
+            </div>
+            <div class="prop-body">
+              <div class="who">Baylor Scott &amp; White &middot; Registered Nurse</div>
+              <div class="why">John Miller can't make the time you requested (<b>Tue, Jul 28, 10:00 AM CDT</b>). He offered these times instead:</div>
+              <div class="slots">
+                <label class="slot"><input type="radio" name="slot" onchange="document.getElementById('schedBtn').disabled=false"> Thu, Jul 30 &middot; 12:00 PM CDT</label>
+                <label class="slot"><input type="radio" name="slot" onchange="document.getElementById('schedBtn').disabled=false"> Thu, Jul 30 &middot; 3:30 PM CDT</label>
+              </div>
+              <div class="acts">
+                <button class="btn" id="schedBtn" disabled>Schedule interview</button>
+                <button class="lnk" onclick="document.getElementById('reply').scrollIntoView({behavior:'smooth',block:'center'})">None of these work</button>
+              </div>
+            </div>
+          </div>
+          <div class="stamp">John Miller &middot; 1:33 PM</div>
+        </div>
+      </div>
+
+      <h3>2 &middot; "None of these work" &rarr; pre-filled reply</h3>
+      <div class="thread" id="reply">
+        <div class="composer">
+          <span>Thank you for the options. Unfortunately, neither of these times works for me. Could you share any other availability?</span>
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#0044B3" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4z"/></svg>
+        </div>
+        <div class="note">Pre-filled, not sent. The candidate can edit it &mdash; e.g. add "I'm free mornings that week" &mdash; then send.</div>
+      </div>
+
+      <h3>3 &middot; Confirmation</h3>
+      <div class="thread">
+        <div class="bubble">
+          <div class="confirm">
+            <div class="ttl">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M8 12l3 3 5-6"/></svg>
+              Interview scheduled
+            </div>
+            <div class="meta"><b>Registered Nurse</b> at <b>Baylor Scott &amp; White</b><br>Thu, Jul 30, 2026 &middot; 12:00 PM CDT<br>With John Miller, Recruiter</div>
+            <div class="foot"><a class="lnk">Send a message</a></div>
+          </div>
+          <div class="stamp">12:52 PM</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ DEV SPEC ══ -->
+    <div class="panel">
+      <h2>Developer logic</h2>
+
+      <h3>When it appears</h3>
+      <ul>
+        <li>The candidate requests an interview time.</li>
+        <li>The employer declines that time and proposes one or more alternatives.</li>
+        <li>The proposal renders in the candidate's message thread for that job.</li>
+      </ul>
+
+      <h3>Fields to populate</h3>
+      <table>
+        <tr><th>Field</th><th>Example</th><th>Source</th></tr>
+        <tr><td><code>company_name</code></td><td>Baylor Scott &amp; White</td><td>Employer record</td></tr>
+        <tr><td><code>job_title</code></td><td>Registered Nurse</td><td>Job record</td></tr>
+        <tr><td><code>interviewer_name</code></td><td>John Miller</td><td>Interviewer record</td></tr>
+        <tr><td><code>interviewer_title</code></td><td>Recruiter</td><td>Interviewer record</td></tr>
+        <tr><td><code>requested_time</code></td><td>Tue, Jul 28, 10:00 AM CDT</td><td>Candidate's original request</td></tr>
+        <tr><td><code>proposed_times[]</code></td><td>2 slots</td><td>Employer proposal</td></tr>
+      </table>
+
+      <h3>Behaviour</h3>
+      <ul>
+        <li><b>Schedule interview</b> is disabled until a time is selected.</li>
+        <li>Selecting a time and submitting books the interview and posts the confirmation into the same thread.</li>
+        <li>Once booked, the proposal card becomes read-only &mdash; radios and the button are disabled so the candidate can't double-book.</li>
+        <li><b>None of these work</b> pre-fills the message composer with the reply text. It does <b>not</b> auto-send and does <b>not</b> book anything.</li>
+        <li>The candidate cannot propose a specific time in this mode. They can only reply in free text.</li>
+        <li><b>Send a message</b> on the confirmation focuses the composer in the same thread.</li>
+      </ul>
+
+      <h3>Why the copy reads this way</h3>
+      <ul>
+        <li>Naming the <b>original requested time</b> is what stops the candidate thinking "why are they sending me times when I already picked one?"</li>
+        <li>Company and job title appear because a candidate may have several conversations open at once.</li>
+        <li>The card is the loudest element in the thread &mdash; it is the only message that needs an action.</li>
+      </ul>
+
+      <div class="flag">
+        <b>Bug found in the current build.</b> The proposed times render in <b>CDT</b> but the confirmation renders in <b>MDT</b>. A candidate can't tell what time to show up. Times must come from one source and one timezone rule.
+      </div>
+
+      <div class="open">
+        <b>Decisions still needed.</b><br>
+        1 &middot; Timezone &mdash; recommend displaying every time in the candidate's local timezone with the zone spelled out, and showing the employer's zone only if it differs.<br>
+        2 &middot; Interviewer name &mdash; template shows "John Miller, Recruiter". If only a first name is stored, fall back to "John" and drop the title.<br>
+        3 &middot; Expiry &mdash; decide what the card shows if the proposed times pass without a response.
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>
