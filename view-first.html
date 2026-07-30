@@ -4753,6 +4753,113 @@ document.addEventListener('keydown', function(e) {
   </div>
 </div>
 
+
+<!-- VIEW-FIRST v4: Indeed table toggle -->
+<style>
+#agxIndeed{display:none}
+#agxIndeed .agx-filters{display:flex;align-items:center;gap:10px;margin:0 0 14px;flex-wrap:wrap}
+.agx-chip{position:relative;border:1px solid #d9d7d2;border-radius:999px;background:#fff;padding:8px 16px;font-size:13.5px;font-weight:600;color:#2d2d2d;cursor:pointer;font-family:inherit}
+.agx-chip .cnt{color:#0044B3}
+.agx-chip.on{border-color:#0044B3;color:#0044B3}
+.agx-pop{position:absolute;top:calc(100% + 6px);left:0;background:#fff;border:1px solid #e6e4e0;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.12);padding:8px;min-width:190px;z-index:600;display:none;text-align:left}
+.agx-pop label{display:flex;gap:8px;align-items:center;font-size:13px;font-weight:400;padding:7px 8px;border-radius:6px;cursor:pointer;white-space:nowrap}
+.agx-pop label:hover{background:#f5f4f1}
+.agx-results{font-size:13.5px;font-weight:600;color:#2d2d2d;margin-left:4px}
+#agxIndeed table{width:100%;border-collapse:collapse;table-layout:fixed}
+#agxIndeed th{text-align:left;font-size:13.5px;font-weight:700;color:#2d2d2d;padding:12px 10px;background:#faf9f7;border-bottom:1px solid #ececea}
+#agxIndeed td{padding:14px 10px;border-bottom:1px solid #f1f0ed;vertical-align:middle;font-size:13.5px}
+#agxIndeed tr:last-child td{border-bottom:none}
+#agxIndeed input[type=checkbox]{width:16px;height:16px;accent-color:#0044B3;cursor:pointer}
+.agx-name{color:#0044B3;font-weight:700;font-size:14.5px;text-decoration:none}
+.agx-name:hover{text-decoration:underline}
+.agx-loc{color:#5f5e5a;font-size:12.5px;margin-top:2px}
+.agx-sort{cursor:pointer;user-select:none}
+.agx-sort .arr{font-size:11px;color:#767676;margin-left:4px}
+.agx-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:7px}
+.agx-st{border-bottom:1px dashed #b5b3ae;padding-bottom:2px;white-space:nowrap}
+.agx-kebab{width:34px;height:34px;border:1px solid #d9d7d2;border-radius:8px;background:#fff;cursor:pointer;font-size:16px;color:#2d2d2d}
+.agx-kcell{position:relative}
+.agx-menu{position:absolute;right:10px;top:70%;background:#fff;border:1px solid #e6e4e0;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.12);min-width:170px;z-index:600;display:none;padding:6px}
+.agx-menu button{display:block;width:100%;text-align:left;background:none;border:none;font-size:13.5px;padding:9px 10px;border-radius:6px;cursor:pointer;font-family:inherit}
+.agx-menu button:hover{background:#f5f4f1}
+.agx-pend{display:inline-block;background:#FAEEDA;color:#854F0B;font-weight:600;font-size:12px;padding:1px 8px;border-radius:999px}
+.agx-mut{color:#5f5e5a;font-size:12.5px}
+.agx-link{color:#0044B3;font-size:12.5px}
+</style>
+<script>
+(function(){
+var AGX=[
+{n:"Registered Nurse",l:"Dallas, TX",st:"Live",setup:"2 interviewers",pend:3,up:16},
+{n:"Certified Nursing Assistant",l:"Pittsburgh, PA",st:"Live",setup:"1 interviewer",pend:1,up:4},
+{n:"Warehouse Associate",l:"Austin, TX",st:"Live",setup:"1 interviewer",pend:0,up:6},
+{n:"RN Care Manager",l:"Houston, TX",st:"Live",setup:"2 interviewers",pend:2,up:9},
+{n:"Software Engineer",l:"Chicago, IL",st:"Draft",setup:"Incomplete",pend:0,up:0},
+{n:"Frontend Developer",l:"Atlanta, GA",st:"Draft",setup:"Incomplete",pend:0,up:0},
+{n:"Registered Behavior Technician",l:"Houston, TX",st:"Closed",setup:"1 interviewer",pend:0,up:0,done:12}
+];
+var DOTC={Live:"#16a34a",Draft:"#BA7517",Closed:"#9b9994"};
+var F={st:{},ti:{},lo:{}};var SORT=0;
+function uniq(k){var m={};AGX.forEach(function(a){m[a[k]]=1});return Object.keys(m)}
+function selCount(o){return Object.keys(o).filter(function(k){return o[k]}).length}
+function pass(a){var s=selCount(F.st),t=selCount(F.ti),l=selCount(F.lo);
+if(s&&!F.st[a.st])return false;if(t&&!F.ti[a.n])return false;if(l&&!F.lo[a.l])return false;return true}
+function candCell(a){if(a.st==="Draft")return "<span class=agx-mut>&mdash;</span>";
+if(a.st==="Closed")return "<span class=agx-mut>"+a.done+" interviewed</span>";
+var p=a.pend?"<span class=agx-pend>"+a.pend+" pending</span> ":"";
+return p+"<span class=agx-mut>"+a.up+" upcoming</span> &nbsp;&middot;&nbsp; <a href=# class=agx-link onclick=\"return false\">Manage candidates</a>"}
+function roomCell(a){return a.st==="Live"?"<a class=agx-link style=font-size:13.5px href=lobby-loader.html>Join room</a>":"<span class=agx-mut>&mdash;</span>"}
+function render(){var rows=AGX.filter(pass);
+if(SORT)rows=rows.slice().sort(function(a,b){return SORT*a.n.localeCompare(b.n)});
+var h="";rows.forEach(function(a,i){
+h+="<tr><td><input type=checkbox class=agx-cb></td>";
+h+="<td><a href=# class=agx-name onclick=\"return false\">"+a.n+"</a><div class=agx-loc>"+a.l+"</div></td>";
+h+="<td>"+roomCell(a)+"</td>";
+h+="<td class=agx-mut style=font-size:13.5px>"+a.setup+"</td>";
+h+="<td>"+candCell(a)+"</td>";
+h+="<td><span class=agx-st><span class=agx-dot style=background:"+DOTC[a.st]+"></span>"+a.st+"</span></td>";
+h+="<td class=agx-kcell><button class=agx-kebab data-i="+i+">&#8943;</button><div class=agx-menu><button>Edit</button><button>Share</button><button>Join room</button></div></td></tr>"});
+document.getElementById("agxRows").innerHTML=h;
+document.getElementById("agxCount").textContent=rows.length+(rows.length===1?" result":" results");
+var all=document.getElementById("agxAll");if(all)all.checked=false;
+["st","ti","lo"].forEach(function(k){var el=document.getElementById("agxN_"+k);var c=selCount(F[k]);
+el.innerHTML=(c?"<span class=cnt>("+c+")</span> ":"")+({st:"Status",ti:"Title",lo:"Location"})[k]+" &#9662;";
+el.classList.toggle("on",!!c)});
+document.querySelectorAll(".agx-kebab").forEach(function(b){b.onclick=function(e){e.stopPropagation();var m=b.nextElementSibling;var was=m.style.display==="block";closeAll();m.style.display=was?"none":"block"}});
+document.querySelectorAll(".agx-menu button").forEach(function(b){b.onclick=function(e){e.stopPropagation();closeAll();
+if(b.textContent==="Edit")window.open("edit-post-v3.html?event=dallas","_blank");
+if(b.textContent==="Join room")window.location.href="lobby-loader.html"}})}
+function closeAll(){document.querySelectorAll(".agx-menu,.agx-pop").forEach(function(m){m.style.display="none"})}
+function pop(key,vals){var h="<div class=agx-pop>";vals.forEach(function(v){h+="<label><input type=checkbox data-k="+key+" data-v=\""+v+"\">"+v+"</label>"});return h+"</div>"}
+function build(){var w=document.createElement("div");w.id="agxIndeed";
+var chips="<div class=agx-filters>";
+chips+="<button class=agx-chip id=agxN_st>Status &#9662;"+pop("st",uniq("st"))+"</button>";
+chips+="<button class=agx-chip id=agxN_ti>Title &#9662;"+pop("ti",uniq("n"))+"</button>";
+chips+="<button class=agx-chip id=agxN_lo>Location &#9662;"+pop("lo",uniq("l"))+"</button>";
+chips+="<span class=agx-results id=agxCount></span></div>";
+var tbl="<div class=table-card style=padding:0;overflow:visible><table><colgroup><col style=width:4.5%><col style=width:23%><col style=width:11%><col style=width:13%><col style=width:31%><col style=width:11%><col style=width:6.5%></colgroup>";
+tbl+="<thead><tr><th><input type=checkbox id=agxAll></th><th class=agx-sort id=agxSortBtn>Agent<span class=arr id=agxArr>&#8597;</span></th><th>Interview room</th><th>Interview setup</th><th>Candidates</th><th>Status</th><th></th></tr></thead><tbody id=agxRows></tbody></table></div>";
+w.innerHTML=chips+tbl;
+var fr=document.querySelector("#view-events .filter-row");fr.insertAdjacentElement("afterend",w);
+w.addEventListener("change",function(e){var t=e.target;if(t.dataset&&t.dataset.k){F[t.dataset.k][t.dataset.v]=t.checked;render()}});
+["st","ti","lo"].forEach(function(k){var ch=document.getElementById("agxN_"+k);ch.addEventListener("click",function(e){if(e.target.tagName==="INPUT"||e.target.tagName==="LABEL")return;e.stopPropagation();var p=ch.querySelector(".agx-pop");var was=p.style.display==="block";closeAll();p.style.display=was?"none":"block"})});
+document.getElementById("agxSortBtn").addEventListener("click",function(){SORT=SORT===1?-1:1;document.getElementById("agxArr").innerHTML=SORT===1?"&#8593;":"&#8595;";render()});
+document.addEventListener("click",function(e){if(!e.target.closest("#agxIndeed"))closeAll()});
+w.addEventListener("change",function(e){if(e.target.id==="agxAll"){document.querySelectorAll(".agx-cb").forEach(function(c){c.checked=e.target.checked})}});
+render()}
+var HID=["#view-events .filter-row","#upcomingTable","#noUpcomingState","#completedEvents"];var SAVED={};
+window.agxMode=function(m){var w=document.getElementById("agxIndeed");
+if(m==="indeed"){HID.forEach(function(s){var el=document.querySelector(s);if(el){if(!(s in SAVED))SAVED[s]=el.style.display;el.style.display="none"}});w.style.display="block"}
+else{HID.forEach(function(s){var el=document.querySelector(s);if(el&&(s in SAVED))el.style.display=SAVED[s]});w.style.display="none"}
+document.querySelectorAll("#agxDevT .dev-toggle-btn").forEach(function(b){b.classList.toggle("active",b.dataset.m===m)})};
+function devbar(){var ex=document.querySelector(".topbar-left .dev-toggle");if(!ex)return;
+var g=ex.cloneNode(false);g.id="agxDevT";
+var lb=ex.querySelector(".dev-toggle-label").cloneNode(false);lb.textContent="Table:";g.appendChild(lb);
+var proto=ex.querySelector("button");
+[["Current","current"],["Indeed","indeed"]].forEach(function(p,i){var b=proto.cloneNode(false);b.textContent=p[0];b.dataset.m=p[1];b.className="dev-toggle-btn"+(i===0?" active":"");b.onclick=function(){window.agxMode(p[1])};g.appendChild(b)});
+ex.parentElement.appendChild(g)}
+build();devbar();window.agxMode("current");
+})();
+</script>
 </body>
 </html>
 
