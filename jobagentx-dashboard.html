@@ -4984,5 +4984,26 @@ ex.parentElement.appendChild(g)})();
 #view-interviews .agv-tabs .iv-live-lobby-btn{margin-left:auto}
 </style>
 <script>(function(){var v=document.getElementById("view-interviews");if(!v)return;var hc=v.querySelector(".header-card");var tabs=v.querySelector(".agv-tabs");if(!hc||!tabs)return;var h1=hc.querySelector("h1");var lb=hc.querySelector(".iv-live-lobby-btn");if(h1){h1.id="agvIvTitle";tabs.insertBefore(h1,tabs.firstChild);var d=document.createElement("span");d.id="agvIvDiv";tabs.insertBefore(d,h1.nextSibling)}if(lb)tabs.appendChild(lb)})();</script>
+<!-- AGX filter fixed width + title-only label -->
+<style>
+#agvAgentFilterRow .iv-event-filter-btn{width:220px !important;justify-content:space-between !important;gap:8px !important}
+#agvFilterLabel{display:block;flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left}
+#agvAgentFilterRow .iv-event-filter-btn svg{flex:0 0 auto}
+</style>
+<script>(function(){
+var v=document.getElementById("view-interviews");if(!v)return;
+var btn=v.querySelector(".iv-event-filter-btn");if(!btn)return;var mo;
+function norm(){var span=btn.querySelector("#agvFilterLabel");var raw="",nodes=[];
+for(var i=0;i<btn.childNodes.length;i++){var n=btn.childNodes[i];if(n.nodeType===3&&n.textContent.trim()){raw+=n.textContent.trim();nodes.push(n)}}
+if(!span){span=document.createElement("span");span.id="agvFilterLabel";btn.insertBefore(span,btn.firstChild)}
+if(raw){nodes.forEach(function(n){n.textContent=""});span.setAttribute("data-full",raw)}
+var full=span.getAttribute("data-full")||span.textContent||"All agents";
+var shortT=full.split(/\s[\u2013\u2014-]\s/)[0].trim()||full;
+if(span.textContent!==shortT)span.textContent=shortT;
+if(btn.getAttribute("title")!==full)btn.setAttribute("title",full)}
+function watch(){mo=new MutationObserver(function(){mo.disconnect();norm();mo.observe(btn,{childList:true,characterData:true,subtree:true})});mo.observe(btn,{childList:true,characterData:true,subtree:true})}
+norm();watch();
+if(typeof window.setIvCurrentTabMode==="function"){var _f=window.setIvCurrentTabMode;window.setIvCurrentTabMode=function(m,b){_f(m,b);if(m==="empty"){var first=v.querySelector(".iv-event-dropdown-item");if(first&&!/selected/.test(first.className)){first.click()}}setTimeout(norm,0)}}
+})();</script>
 </body>
 </html>
