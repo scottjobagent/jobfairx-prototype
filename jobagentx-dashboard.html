@@ -4734,5 +4734,207 @@ build();sync();
 window.__agxDev="active";var up=document.getElementById("upcomingTable");if(up){new MutationObserver(sync).observe(up,{attributes:true,attributeFilter:["style"]})}if(window.setDevMode){var _sdm=window.setDevMode;window.setDevMode=function(m,b){_sdm(m,b);window.__agxDev=m;sync()}}
 })();
 </script>
+
+<!-- AGX-AVAIL: Interviews tabs + Indeed-style availability + sidebar flyout -->
+<style>
+.agv-tabs{display:flex;align-items:center;gap:8px;margin:0 0 18px}
+.agv-tab{padding:9px 18px;border-radius:8px;font-size:14.5px;font-weight:700;color:#2d2d2d;cursor:pointer;background:none;border:none;font-family:inherit}
+.agv-tab:hover{background:#eceae6}
+.agv-tab.on{background:#595959;color:#fff}
+#agvWrap{display:none}
+.agv-cols{display:flex;gap:22px;align-items:flex-start}
+.agv-left{flex:0 0 44%;background:#fff;border:1px solid #e4e2de;border-radius:12px;padding:22px 24px}
+.agv-right{flex:1;background:#fff;border:1px solid #e4e2de;border-radius:12px;padding:18px 20px;min-width:0}
+.agv-h{font-size:16px;font-weight:700;color:#2d2d2d;margin:0 0 4px}
+.agv-sub{font-size:13.5px;color:#595959;margin:0 0 12px;line-height:1.5}
+.agv-connect-btn{background:#0044B3;color:#fff;border:none;border-radius:10px;padding:10px 16px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit}
+.agv-learn{border:1px solid #d4d2d0;background:#fff;color:#0044B3;border-radius:10px;padding:10px 16px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;margin-left:8px}
+.agv-div{border-top:1px solid #eceae6;margin:18px 0}
+.agv-dayrow{display:flex;align-items:flex-start;gap:10px;margin-bottom:14px;min-height:36px}
+.agv-daylab{font-size:15px;font-weight:700;color:#2d2d2d;width:44px;padding-top:7px}
+.agv-unavail{font-size:14.5px;color:#595959;padding-top:7px;flex:1}
+.agv-ranges{flex:1;display:flex;flex-direction:column;gap:8px}
+.agv-range{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.agv-sel{font-size:14px;color:#2d2d2d;border:1px solid #949494;border-radius:10px;padding:6px 8px;background:#fff;font-family:inherit;cursor:pointer}
+.agv-plus{width:30px;height:30px;border-radius:50%;background:#0044B3;color:#fff;border:none;font-size:19px;line-height:1;cursor:pointer;flex:0 0 auto}
+.agv-x{width:30px;height:30px;background:none;border:none;font-size:17px;color:#2d2d2d;cursor:pointer;flex:0 0 auto}
+.agv-exrow{margin-bottom:10px}
+.agv-exhead{display:flex;align-items:center;gap:9px;margin-bottom:7px}
+.agv-trash{background:none;border:none;cursor:pointer;color:#2d2d2d;padding:2px}
+.agv-trash svg{width:16px;height:16px;stroke:#2d2d2d;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.agv-exdate{font-size:14.5px;font-weight:700;color:#2d2d2d}
+.agv-exbody{margin-left:27px}
+.agv-selectdate{border:1px solid #d4d2d0;background:#fff;color:#0044B3;border-radius:10px;padding:9px 16px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:4px}
+.agv-pop{position:absolute;background:#fff;border:1px solid #e4e2de;border-radius:12px;box-shadow:0 10px 28px rgba(0,0,0,.16);padding:14px;z-index:700;width:300px}
+.agv-pop-selrow{display:flex;gap:10px;margin-bottom:10px}
+.agv-pop-selrow label{font-size:12.5px;font-weight:700;color:#2d2d2d;display:block;margin-bottom:3px}
+.agv-cal7{width:100%;border-collapse:collapse;font-size:13px;text-align:center}
+.agv-cal7 th{color:#595959;font-weight:600;padding:4px 0;font-size:12px}
+.agv-cal7 td{padding:5px 0;cursor:pointer;border-radius:8px;color:#2d2d2d}
+.agv-cal7 td.dis{color:#b5b3ae;cursor:default}
+.agv-cal7 td:not(.dis):hover{background:#f0f5ff}
+.agv-collapse-head{display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+.agv-chev{background:none;border:1px solid transparent;font-size:15px;color:#2d2d2d;cursor:pointer}
+.agv-q{font-size:14.5px;font-weight:700;color:#2d2d2d;margin:12px 0 2px}
+.agv-qsub{font-size:13px;color:#595959;margin:0 0 7px}
+.agv-weekbar{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.agv-wbtn{border:1px solid #d4d2d0;background:#fff;border-radius:9px;width:34px;height:34px;font-size:15px;color:#0044B3;cursor:pointer}
+.agv-wtitle{font-size:15px;font-weight:700;color:#2d2d2d}
+.agv-grid{width:100%;border-collapse:collapse;table-layout:fixed}
+.agv-grid th{font-size:11.5px;color:#595959;font-weight:600;padding:4px 0;text-align:center}
+.agv-grid th b{display:block;font-size:15px;color:#2d2d2d;font-weight:700;margin-top:2px}
+.agv-grid th.today{color:#9d2235}
+.agv-grid th.today b{background:#9d2235;color:#fff;border-radius:50%;width:26px;height:26px;line-height:26px;margin:2px auto 0}
+.agv-grid td{border:1px solid #eceae6;height:34px;padding:0;position:relative}
+.agv-grid td.hr{border:none;font-size:11px;color:#595959;text-align:right;padding-right:6px;vertical-align:top;width:44px}
+.agv-daycol{position:absolute;inset:0}
+.agv-block{position:absolute;left:2px;right:2px;background:#eef3fe;border:1.5px solid #9db8e8;border-radius:6px}
+.agv-block.ex{border:2px solid #0044B3}
+.agv-legend{display:flex;gap:18px;margin-top:12px;font-size:13px;color:#2d2d2d;flex-wrap:wrap}
+.agv-leg{display:inline-block;width:22px;height:14px;border-radius:6px;vertical-align:-2px;margin-right:6px}
+.agv-fly{position:fixed;background:#3a3a3a;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.35);padding:8px;min-width:215px;z-index:950;display:none}
+.agv-fly button{display:block;width:100%;text-align:left;background:none;border:none;color:#e8e6e2;font-size:14px;font-weight:600;padding:11px 14px;border-radius:7px;cursor:pointer;font-family:inherit}
+.agv-fly button:hover,.agv-fly button.on{background:#525252;color:#fff}
+</style>
+<script>
+(function(){
+var DN=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+var AV={0:[],1:[],2:[],3:[],4:[],5:[],6:[]};var EX=[];
+var WIN=7;var NOTICE="24 hours (recommended)";var SWOPEN=false;
+var today=new Date();today.setHours(0,0,0,0);
+var WK=new Date(today);WK.setDate(WK.getDate()-WK.getDay());
+function t2s(i){if(i>=48)i=i-48;var h=Math.floor(i/2),m=(i%2?"30":"00");var ap=h<12?"AM":"PM";var hh=h%12;if(hh===0)hh=12;return hh+":"+m+" "+ap}
+function opts(from,to,sel){var h="";for(var i=from;i<=to;i++){h+="<option value="+i+(i===sel?" selected":"")+">"+t2s(i)+"</option>"}return h}
+function rangeHTML(list,li,ri,kind){var r=list[ri];var minS=ri>0?list[ri-1][1]:0;
+var h="<div class=agv-range data-k="+kind+" data-li="+li+" data-ri="+ri+">";
+h+="<select class=agv-sel data-t=s>"+opts(minS,46,r[0])+"</select><span style=color:#595959>&ndash;</span>";
+h+="<select class=agv-sel data-t=e>"+opts(r[0]+1,48,r[1])+"</select>";
+if(ri===list.length-1)h+="<button class=agv-plus data-add=1>+</button>";
+h+="<button class=agv-x>&#10005;</button></div>";return h}
+function fmtD(d){return DN[d.getDay()].slice(0,3)+", "+["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][d.getMonth()]+" "+d.getDate()+", "+d.getFullYear()}
+function fmtD2(d){return ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][d.getMonth()]+" "+d.getDate()+", "+d.getFullYear()}
+function renderDays(){var h="";for(var d=0;d<7;d++){
+h+="<div class=agv-dayrow><div class=agv-daylab>"+DN[d]+"</div>";
+if(!AV[d].length){h+="<div class=agv-unavail>Unavailable</div><button class=agv-plus data-day="+d+">+</button>"}
+else{h+="<div class=agv-ranges>";for(var i=0;i<AV[d].length;i++){h+=rangeHTML(AV[d],d,i,"d")}h+="</div>"}
+h+="</div>"}
+document.getElementById("agvDays").innerHTML=h}
+function renderEx(){var h="";EX.sort(function(a,b){return a.date-b.date});
+for(var x=0;x<EX.length;x++){var e=EX[x];
+h+="<div class=agv-exrow data-xi="+x+"><div class=agv-exhead><button class=agv-trash data-xi="+x+"><svg viewBox=\"0 0 24 24\"><path d=\"M3 6h18M8 6V4h8v2m1 0v14H7V6\"/></svg></button><span class=agv-exdate>"+fmtD2(e.date)+"</span></div><div class=agv-exbody>";
+if(!e.ranges.length){h+="<div class=agv-range><span class=agv-unavail style=padding-top:0>Unavailable</span> <button class=agv-plus data-ex="+x+">+</button></div>"}
+else{for(var i=0;i<e.ranges.length;i++){h+=rangeHTML(e.ranges,x,i,"x")}}
+h+="</div></div>"}
+document.getElementById("agvExList").innerHTML=h}
+function effRanges(date){for(var x=0;x<EX.length;x++){if(EX[x].date.getTime()===date.getTime())return {r:EX[x].ranges,ex:true}}return {r:AV[date.getDay()],ex:false}}
+function renderCal(){var end=new Date(WK);end.setDate(end.getDate()+6);
+document.getElementById("agvWkTitle").textContent=(WK.getMonth()+1)+"/"+WK.getDate()+"/"+WK.getFullYear()+" - "+(end.getMonth()+1)+"/"+end.getDate()+"/"+end.getFullYear();
+var head="<tr><th></th>";var days=[];
+for(var d=0;d<7;d++){var dt=new Date(WK);dt.setDate(dt.getDate()+d);days.push(dt);
+head+="<th"+(dt.getTime()===today.getTime()?" class=today":"")+">"+DN[d].toUpperCase()+"<b>"+dt.getDate()+"</b></th>"}head+="</tr>";
+var H0=16,H1=36;var body="";
+for(var s=H0;s<H1;s+=2){body+="<tr><td class=hr>"+t2s(s)+"</td>";
+for(var d=0;d<7;d++){body+="<td>"+(s===H0?"<div class=agv-daycol data-d="+d+"></div>":"")+"</td>"}body+="</tr>"}
+document.getElementById("agvGrid").innerHTML=head+body;
+var rowH=35;
+document.querySelectorAll("#agvGrid .agv-daycol").forEach(function(col){var d=+col.dataset.d;var dt=days[d];var eff=effRanges(dt);col.style.height=((H1-H0)/2*rowH)+"px";col.style.pointerEvents="none";
+eff.r.forEach(function(r){var a=Math.max(r[0],H0),b=Math.min(r[1],H1);if(b<=a)return;var top=(a-H0)/2*rowH,ht=(b-a)/2*rowH;
+col.innerHTML+="<div class=\"agv-block"+(eff.ex?" ex":"")+"\" style=\"top:"+top+"px;height:"+(ht-3)+"px\"></div>"})})}
+function summary(){document.getElementById("agvSwSum").textContent="Candidates can schedule interviews up to "+WIN+" days in advance and at least "+NOTICE.replace(" (recommended)","")+" ahead of time."}
+function renderAll(){renderDays();renderEx();renderCal();summary()}
+window.agvGo=function(tab){var w=document.getElementById("agvWrap");var v=document.getElementById("view-interviews");
+var others=v.querySelectorAll(".iv-tabs-wrapper,.iv-panel-wrapper");
+if(tab==="avail"){others.forEach(function(o){o.style.display="none"});w.style.display="block";renderAll()}
+else{others.forEach(function(o){o.style.display=""});w.style.display="none"}
+document.querySelectorAll(".agv-tab").forEach(function(b){b.classList.toggle("on",b.dataset.tab===tab)});
+var f=document.getElementById("agvFly");if(f){f.querySelectorAll("button").forEach(function(b){b.classList.toggle("on",b.dataset.tab===tab)})}};
+window.__cssA_done=1;
+function build(){var v=document.getElementById("view-interviews");if(!v)return;
+var hc=v.querySelector(".header-card");
+var tabs=document.createElement("div");tabs.className="agv-tabs";
+tabs.innerHTML="<button class=\"agv-tab on\" data-tab=all>All interviews</button><button class=agv-tab data-tab=avail>Interview availability</button>";
+hc.insertAdjacentElement("afterend",tabs);
+tabs.addEventListener("click",function(e){var b=e.target.closest(".agv-tab");if(b)window.agvGo(b.dataset.tab)});
+var w=document.createElement("div");w.id="agvWrap";
+var lh="";
+lh+="<div class=agv-h>Connect your calendar</div><div class=agv-sub>Automatically prevent double bookings and get new events added as they\u0027re scheduled.</div>";
+lh+="<div><button class=agv-connect-btn>Connect your calendar</button><button class=agv-learn>Learn more</button></div>";
+lh+="<div class=agv-div></div>";
+lh+="<div class=agv-h>Regular Availability</div><div class=agv-sub>Add times when you are typically available.</div><div id=agvDays></div>";
+lh+="<div class=agv-div></div>";
+lh+="<div class=agv-h>Availability exceptions</div><div class=agv-sub>Add or remove availability for specific dates. This will replace any regular availability for those dates.</div>";
+lh+="<div style=font-size:14.5px;font-weight:700;color:#2d2d2d;margin-bottom:8px>What hours are you available?</div><div id=agvExList></div>";
+lh+="<div style=position:relative;display:inline-block><button class=agv-selectdate id=agvSelDate>Select date</button><div class=agv-pop id=agvPop style=display:none></div></div>";
+lh+="<div class=agv-div></div>";
+lh+="<div class=agv-collapse-head id=agvSwHead><span class=agv-h style=margin:0>Scheduling window</span><button class=agv-chev id=agvChev>&#9662;</button></div>";
+lh+="<div id=agvSwSum class=agv-sub style=margin-top:8px></div>";
+lh+="<div id=agvSwBody style=display:none>";
+lh+="<div class=agv-q>How far out can candidates schedule?</div><div class=agv-qsub>Select the period you would like to share with candidates.</div>";
+lh+="<select class=agv-sel id=agvWin><option value=7>Next 7 days</option><option value=14>Next 14 days</option><option value=30>Next 30 days</option></select>";
+lh+="<div class=agv-q>Minimum scheduling notice</div><div class=agv-qsub>This prevents candidates from scheduling calls or interviews too close to when they begin.</div>";
+lh+="<select class=agv-sel id=agvNotice>"+["1 hour","2 hours","4 hours","8 hours","24 hours (recommended)","36 hours","2 days (48 hours)","3 days (72 hours)","4 days (96 hours)"].map(function(o){return "<option"+(o.indexOf("24")===0?" selected":"")+">"+o+"</option>"}).join("")+"</select>";
+lh+="</div>";
+lh+="<div class=agv-div></div>";
+lh+="<div class=agv-h style=font-size:15px>Time zone:</div>";
+lh+="<select class=agv-sel style=min-width:220px id=agvTz>"+["America/New_York","America/Chicago","America/Denver","America/Phoenix","America/Los_Angeles","America/Anchorage","Pacific/Honolulu"].map(function(z){return "<option"+(z==="America/Chicago"?" selected":"")+">"+z+"</option>"}).join("")+"</select>";
+var rh="<div class=agv-weekbar><button class=agv-wbtn id=agvPrev>&#8249;</button><button class=agv-wbtn id=agvNext>&#8250;</button><span class=agv-wtitle id=agvWkTitle></span></div>";
+rh+="<table class=agv-grid id=agvGrid></table>";
+rh+="<div class=agv-legend><span><span class=agv-leg style=\"background:#eef3fe;border:1.5px solid #9db8e8\"></span>Available</span><span><span class=agv-leg style=background:#0044B3></span>Booked</span><span><span class=agv-leg style=background:#595959></span>Busy on your connected calendar</span></div>";
+w.innerHTML="<div class=agv-cols><div class=agv-left>"+lh+"</div><div class=agv-right>"+rh+"</div></div>";
+v.appendChild(w);
+w.addEventListener("click",function(e){
+var p=e.target.closest(".agv-plus");
+if(p){if(p.dataset.day!==undefined&&p.dataset.add===undefined&&p.dataset.ex===undefined){AV[+p.dataset.day]=[[18,34]]}
+else if(p.dataset.ex!==undefined){EX[+p.dataset.ex].ranges=[[18,34]]}
+else{var row=p.closest(".agv-range");var k=row.dataset.k,li=+row.dataset.li;var list=k==="d"?AV[li]:EX[li].ranges;var last=list[list.length-1];var s=Math.min(last[1],46);list.push([s,Math.min(s+1,48)])}
+renderAll();return}
+var x=e.target.closest(".agv-x");
+if(x){var row=x.closest(".agv-range");var k=row.dataset.k,li=+row.dataset.li,ri=+row.dataset.ri;var list=k==="d"?AV[li]:EX[li].ranges;list.splice(ri,1);renderAll();return}
+var tr=e.target.closest(".agv-trash");
+if(tr){EX.splice(+tr.dataset.xi,1);renderAll();return}
+});
+w.addEventListener("change",function(e){var s=e.target;
+if(s.id==="agvWin"){WIN=+s.value;summary();return}
+if(s.id==="agvNotice"){NOTICE=s.value||s.options[s.selectedIndex].text;summary();return}
+if(s.id==="agvTz")return;
+var row=s.closest(".agv-range");if(!row)return;var k=row.dataset.k,li=+row.dataset.li,ri=+row.dataset.ri;var list=k==="d"?AV[li]:EX[li].ranges;
+if(s.dataset.t==="s"){list[ri][0]=+s.value;if(list[ri][1]<=list[ri][0])list[ri][1]=list[ri][0]+1}else{list[ri][1]=+s.value}
+renderAll()});
+var PM=new Date(today.getFullYear(),today.getMonth(),1);
+function renderPop(){var pop=document.getElementById("agvPop");
+var mn=["January","February","March","April","May","June","July","August","September","October","November","December"];
+var h="<div class=agv-pop-selrow><div style=flex:1><label>Month</label><select class=agv-sel style=width:100% id=agvPm>"+mn.map(function(m,i){return "<option value="+i+(i===PM.getMonth()?" selected":"")+">"+m+"</option>"}).join("")+"</select></div>";
+h+="<div style=width:92px><label>Year</label><select class=agv-sel style=width:100% id=agvPy>"+[0,1].map(function(y){var yr=today.getFullYear()+y;return "<option value="+yr+(yr===PM.getFullYear()?" selected":"")+">"+yr+"</option>"}).join("")+"</select></div></div>";
+h+="<table class=agv-cal7><tr>"+["Su","Mo","Tu","We","Th","Fr","Sa"].map(function(d){return "<th>"+d+"</th>"}).join("")+"</tr>";
+var first=new Date(PM.getFullYear(),PM.getMonth(),1);var start=new Date(first);start.setDate(start.getDate()-start.getDay());
+for(var wk=0;wk<6;wk++){h+="<tr>";for(var d=0;d<7;d++){var dt=new Date(start);dt.setDate(dt.getDate()+wk*7+d);
+var dis=dt<today||dt.getMonth()!==PM.getMonth();
+h+="<td class=\""+(dis?"dis":"")+"\" data-ts="+dt.getTime()+">"+dt.getDate()+"</td>"}h+="</tr>"}
+h+="</table>";pop.innerHTML=h}
+document.getElementById("agvSelDate").addEventListener("click",function(e){e.stopPropagation();var pop=document.getElementById("agvPop");if(pop.style.display==="none"){renderPop();pop.style.display="block";pop.style.left="0";pop.style.top="44px"}else{pop.style.display="none"}});
+document.getElementById("agvPop").addEventListener("click",function(e){e.stopPropagation();
+if(e.target.id==="agvPm"||e.target.id==="agvPy")return;
+var td=e.target.closest("td");if(td&&!td.classList.contains("dis")){var dt=new Date(+td.dataset.ts);
+if(!EX.some(function(x){return x.date.getTime()===dt.getTime()})){EX.push({date:dt,ranges:[]})}
+document.getElementById("agvPop").style.display="none";renderAll()}});
+document.getElementById("agvPop").addEventListener("change",function(e){e.stopPropagation();var m=+document.getElementById("agvPm").value,y=+document.getElementById("agvPy").value;PM=new Date(y,m,1);renderPop()});
+document.addEventListener("click",function(e){var pop=document.getElementById("agvPop");if(pop&&!e.target.closest("#agvPop")&&e.target.id!=="agvSelDate")pop.style.display="none"});
+document.getElementById("agvSwHead").addEventListener("click",function(){SWOPEN=!SWOPEN;document.getElementById("agvSwBody").style.display=SWOPEN?"block":"none";document.getElementById("agvSwSum").style.display=SWOPEN?"none":"block";document.getElementById("agvChev").innerHTML=SWOPEN?"&#9652;":"&#9662;"});
+document.getElementById("agvPrev").addEventListener("click",function(){WK.setDate(WK.getDate()-7);renderCal()});
+document.getElementById("agvNext").addEventListener("click",function(){WK.setDate(WK.getDate()+7);renderCal()});
+renderAll()}
+function flyout(){var nav=null;document.querySelectorAll("a.nav-item").forEach(function(a){if(!nav&&a.textContent.trim()==="Interviews")nav=a});if(!nav)return;
+var f=document.createElement("div");f.id="agvFly";f.className="agv-fly";
+f.innerHTML="<button data-tab=all>All interviews</button><button data-tab=avail>Interview availability</button>";
+document.body.appendChild(f);var hideT=null;
+function show(){clearTimeout(hideT);var r=nav.getBoundingClientRect();f.style.left=(r.right+6)+"px";f.style.top=r.top+"px";f.style.display="block"}
+function hide(){hideT=setTimeout(function(){f.style.display="none"},180)}
+nav.addEventListener("mouseenter",show);nav.addEventListener("mouseleave",hide);
+f.addEventListener("mouseenter",function(){clearTimeout(hideT)});f.addEventListener("mouseleave",hide);
+f.addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;f.style.display="none";
+if(typeof showView==="function")showView("interviews",nav);window.agvGo(b.dataset.tab)});}
+build();flyout();window.agvGo("all");
+})();
+</script>
 </body>
 </html>
