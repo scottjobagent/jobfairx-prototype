@@ -4626,5 +4626,111 @@ document.addEventListener('keydown', function(e) {
   </div>
 </div>
 
+
+<!-- AGX Indeed agents table (ported from view-first v6) -->
+<style>
+#agxIndeed{display:none}
+body.agx-on #upcomingTable,body.agx-on #completedEvents,body.agx-on #view-events .filter-row{display:none !important}
+#agxIndeed .agx-filters{display:flex;align-items:center;gap:12px;margin:0 0 16px;flex-wrap:wrap}
+.agx-chip{position:relative;border:1px solid #949494;border-radius:8px;background:#fff;padding:12px 18px;font-size:15px;font-weight:700;color:#2d2d2d;cursor:pointer;font-family:inherit}
+.agx-chip .cnt{color:#0044B3}
+.agx-chip.on{border-color:#0044B3;color:#0044B3;box-shadow:inset 0 0 0 1px #0044B3}
+.agx-pop{position:absolute;top:calc(100% + 8px);left:0;background:#fff;border:1px solid #e6e4e0;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.12);padding:8px;min-width:200px;z-index:600;display:none;text-align:left}
+.agx-pop label{display:flex;gap:10px;align-items:center;font-size:14px;font-weight:400;padding:8px 10px;border-radius:6px;cursor:pointer;white-space:nowrap;color:#2d2d2d}
+.agx-pop label:hover{background:#f5f4f1}
+.agx-results{font-size:15px;font-weight:700;color:#2d2d2d;margin-left:6px}
+#agxIndeed table{width:100%;border-collapse:collapse;table-layout:fixed}
+#agxIndeed th{text-align:left;font-size:14px;font-weight:700;color:#2d2d2d;padding:14px 10px;background:#f5f4f2;border-bottom:1px solid #e4e2de;text-transform:none;letter-spacing:0}
+#agxIndeed td{padding:16px 10px;border-bottom:1px solid #eceae6;vertical-align:middle;font-size:14px}
+#agxIndeed tr:last-child td{border-bottom:none}
+#agxIndeed input[type=checkbox]{-webkit-appearance:none;appearance:none;width:18px;height:18px;border:2px solid #767674;border-radius:4px;background:#fff;cursor:pointer;vertical-align:middle}
+#agxIndeed input[type=checkbox]:checked{border-color:#0044B3;background:#0044B3 url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27white%27 stroke-width=%274%27%3E%3Cpath d=%27M4 12l5 5L20 7%27/%3E%3C/svg%3E") center/12px 12px no-repeat}
+.agx-name{color:#0044B3;font-weight:700;font-size:15px;text-decoration:underline;text-underline-offset:2px}
+.agx-loc{color:#2d2d2d;font-size:13px;margin-top:4px}
+.agx-sort{cursor:pointer;user-select:none;white-space:nowrap}
+.agx-sort .arr{font-size:12px;color:#595959;margin-left:5px}
+.agx-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:7px}
+.agx-st{border-bottom:1px dashed #b5b3ae;padding-bottom:2px;white-space:nowrap;font-size:14px}
+.agx-kebab{width:36px;height:36px;border:none;border-radius:50%;background:transparent;cursor:pointer;font-size:20px;color:#2d2d2d;line-height:1}
+.agx-kebab:hover{background:#f0efec}
+.agx-kcell{position:relative}
+.agx-menu{position:absolute;right:12px;top:68%;background:#fff;border:1px solid #e6e4e0;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.12);min-width:190px;z-index:600;display:none;padding:6px}
+.agx-menu button{display:block;width:100%;text-align:left;background:none;border:none;font-size:14px;padding:10px 12px;border-radius:6px;cursor:pointer;font-family:inherit;color:#2d2d2d}
+.agx-menu button:hover{background:#f5f4f1}
+.agx-stats{display:inline-flex;align-items:center;gap:24px;background:#f3f2f1;border-radius:10px;padding:9px 18px}
+.agx-stat{display:inline-flex;flex-direction:column;align-items:center;gap:3px;text-decoration:none}
+.agx-srow{display:inline-flex;align-items:center;gap:6px;color:#2d2d2d;font-size:15px}
+.agx-srow svg{width:16px;height:16px;stroke:#595959;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.agx-sl{color:#0044B3;font-size:12.5px;font-weight:600;white-space:nowrap}
+.agx-stat:hover .agx-sl{text-decoration:underline}
+.agx-room{color:#0044B3;font-size:14px;text-decoration:underline;text-underline-offset:2px}
+.agx-setup-link{color:#0044B3;font-size:13.5px;text-decoration:underline;text-underline-offset:2px;cursor:pointer}
+.agx-mut{color:#5f5e5a;font-size:13px}
+</style>
+<script>
+(function(){
+var ICO={doc:'<svg viewBox="0 0 24 24"><path d="M7 3h7l4 4v14H7z"/><path d="M13 3v5h5"/></svg>',clock:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',people:'<svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.5 3-5.5 6.5-5.5s6.5 2 6.5 5.5"/><circle cx="17" cy="9" r="2.5"/><path d="M21.5 20c0-2.6-1.8-4.3-4.2-5"/></svg>'};
+var AGX=[
+{n:"Registered Nurse",l:"Dallas, TX",st:"Live",pend:3,up:16,setup:"2 interviewers",ago:"2 days ago",date:"July 28, 2026",ts:20260728},
+{n:"Certified Nursing Assistant",l:"Pittsburgh, PA",st:"Live",pend:1,up:4,setup:"1 interviewer",ago:"5 days ago",date:"July 25, 2026",ts:20260725},
+{n:"Warehouse Associate",l:"Austin, TX",st:"Live",pend:0,up:6,setup:"1 interviewer",ago:"1 week ago",date:"July 23, 2026",ts:20260723},
+{n:"RN Care Manager",l:"Houston, TX",st:"Live",pend:2,up:9,setup:"2 interviewers",ago:"2 weeks ago",date:"July 16, 2026",ts:20260716},
+{n:"Software Engineer",l:"Chicago, IL",st:"Draft",pend:0,up:0,setup:"Incomplete",ago:"3 days ago",date:"July 27, 2026",ts:20260727},
+{n:"Frontend Developer",l:"Atlanta, GA",st:"Draft",pend:0,up:0,setup:"Incomplete",ago:"Yesterday",date:"July 29, 2026",ts:20260729},
+{n:"Registered Behavior Technician",l:"Houston, TX",st:"Closed",pend:0,up:0,setup:"1 interviewer",ago:"7 weeks ago",date:"June 12, 2026",ts:20260612}
+];
+var DOTC={Live:"#16a34a",Draft:"#BA7517",Closed:"#9b9994"};
+var F={st:{},ti:{},lo:{}};var SORTK=null;var DIR=1;
+function uniq(k){var m={};AGX.forEach(function(a){m[a[k]]=1});return Object.keys(m)}
+function selCount(o){return Object.keys(o).filter(function(k){return o[k]}).length}
+function pass(a){var s=selCount(F.st),t=selCount(F.ti),l=selCount(F.lo);
+if(s&&!F.st[a.st])return false;if(t&&!F.ti[a.n])return false;if(l&&!F.lo[a.l])return false;return true}
+function stat(n,l,ic){return "<a href=# class=agx-stat onclick=\"return false\"><span class=agx-srow>"+ic+"<b>"+n+"</b></span><span class=agx-sl>"+l+"</span></a>"}
+function candCell(a){return "<div class=agx-stats>"+stat(a.pend,"Need review",ICO.doc)+stat(a.up,"Upcoming",ICO.clock)+stat(a.pend+a.up,"All",ICO.people)+"</div>"}
+function render(){var rows=AGX.filter(pass);
+if(SORTK){rows=rows.slice().sort(function(a,b){var r;if(SORTK==="date")r=a.ts-b.ts;else if(SORTK==="status")r=a.st.localeCompare(b.st);else r=a.n.localeCompare(b.n);return r*DIR})}
+var h="";rows.forEach(function(a,i){
+h+="<tr><td><input type=checkbox class=agx-cb></td>";
+h+="<td><a href=# class=agx-name onclick=\"return false\">"+a.n+"</a><div class=agx-loc>"+a.l+"</div></td>";
+h+="<td>"+candCell(a)+"</td>";
+h+="<td><a class=agx-room href=# onclick=\"window.open('lobby-loader.html','_blank');return false\">Join room</a></td>";
+h+="<td><a href=# class=agx-setup-link onclick=\"openInterviewSettings();return false\">"+a.setup+"</a></td>";
+h+="<td><div>"+a.ago+"</div><div class=agx-mut style=margin-top:2px>"+a.date+"</div></td>";
+h+="<td><span class=agx-st><span class=agx-dot style=background:"+DOTC[a.st]+"></span>"+a.st+"</span></td>";
+h+="<td class=agx-kcell><button class=agx-kebab>&#8943;</button><div class=agx-menu><button>Edit</button><button>Share</button><button>Go to interview room</button></div></td></tr>"});
+document.getElementById("agxRows").innerHTML=h;
+document.getElementById("agxCount").textContent=rows.length+(rows.length===1?" result":" results");
+var all=document.getElementById("agxAll");if(all)all.checked=false;
+["st","ti","lo"].forEach(function(k){var el=document.getElementById("agxN_"+k);var c=selCount(F[k]);
+el.querySelector(".agx-lab").innerHTML=(c?"<span class=cnt>("+c+")</span> ":"")+({st:"Status",ti:"Title",lo:"Location"})[k]+" &#9662;";
+el.classList.toggle("on",!!c)});
+["name","date","status"].forEach(function(k){var a=document.getElementById("agxArr_"+k);if(a)a.innerHTML=(SORTK===k?(DIR===1?"&#8593;":"&#8595;"):"&#8597;")});
+document.querySelectorAll(".agx-kebab").forEach(function(b){b.onclick=function(e){e.stopPropagation();var m=b.nextElementSibling;var was=m.style.display==="block";closeAll();m.style.display=was?"none":"block"}});
+document.querySelectorAll(".agx-menu button").forEach(function(b){b.onclick=function(e){e.stopPropagation();closeAll();
+if(b.textContent==="Edit")window.open("edit-post-v3.html?event=dallas","_blank");
+if(b.textContent==="Go to interview room")window.open("lobby-loader.html","_blank")}})}
+function closeAll(){document.querySelectorAll(".agx-menu,.agx-pop").forEach(function(m){m.style.display="none"})}
+function pop(key,vals){var h="<div class=agx-pop>";vals.forEach(function(v){h+="<label><input type=checkbox data-k="+key+" data-v=\""+v+"\">"+v+"</label>"});return h+"</div>"}
+function build(){var w=document.createElement("div");w.id="agxIndeed";
+var chips="<div class=agx-filters>";
+chips+="<div class=agx-chip id=agxN_st><span class=agx-lab>Status &#9662;</span>"+pop("st",uniq("st"))+"</div>";
+chips+="<div class=agx-chip id=agxN_ti><span class=agx-lab>Title &#9662;</span>"+pop("ti",uniq("n"))+"</div>";
+chips+="<div class=agx-chip id=agxN_lo><span class=agx-lab>Location &#9662;</span>"+pop("lo",uniq("l"))+"</div>";
+chips+="<span class=agx-results id=agxCount></span></div>";
+var tbl="<div class=table-card style=padding:0;overflow:visible><table><colgroup><col style=width:4%><col style=width:19%><col style=width:27%><col style=width:9%><col style=width:11%><col style=width:11%><col style=width:10%><col style=width:9%></colgroup>";
+tbl+="<thead><tr><th><input type=checkbox id=agxAll></th><th class=agx-sort data-k=name>Agent<span class=arr id=agxArr_name>&#8597;</span></th><th>Candidates</th><th>Interview room</th><th>Interview setup</th><th class=agx-sort data-k=date>Date posted<span class=arr id=agxArr_date>&#8597;</span></th><th class=agx-sort data-k=status>Agent status<span class=arr id=agxArr_status>&#8597;</span></th><th></th></tr></thead><tbody id=agxRows></tbody></table></div>";
+w.innerHTML=chips+tbl;
+var fr=document.querySelector("#view-events .filter-row");fr.insertAdjacentElement("afterend",w);
+w.addEventListener("change",function(e){var t=e.target;if(t.dataset&&t.dataset.k){F[t.dataset.k][t.dataset.v]=t.checked;render()}});
+["st","ti","lo"].forEach(function(k){var ch=document.getElementById("agxN_"+k);ch.addEventListener("click",function(e){if(e.target.tagName==="INPUT"||e.target.tagName==="LABEL")return;e.stopPropagation();var p=ch.querySelector(".agx-pop");var was=p.style.display==="block";closeAll();p.style.display=was?"none":"block"})});
+document.querySelectorAll("#agxIndeed .agx-sort").forEach(function(th){th.addEventListener("click",function(){var k=th.dataset.k;if(SORTK===k)DIR=-DIR;else{SORTK=k;DIR=1}render()})});
+document.addEventListener("click",function(e){if(!e.target.closest("#agxIndeed"))closeAll()});
+w.addEventListener("change",function(e){if(e.target.id==="agxAll"){document.querySelectorAll(".agx-cb").forEach(function(c){c.checked=e.target.checked})}});
+render()}
+function sync(){var up=document.getElementById("upcomingTable");var on=!!up&&up.style.display!=="none";document.body.classList.toggle("agx-on",on);var w=document.getElementById("agxIndeed");if(w)w.style.display=on?"block":"none"}
+build();sync();
+var up=document.getElementById("upcomingTable");if(up){new MutationObserver(sync).observe(up,{attributes:true,attributeFilter:["style"]})}
+})();
+</script>
 </body>
 </html>
