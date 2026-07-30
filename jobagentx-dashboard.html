@@ -4630,7 +4630,7 @@ document.addEventListener('keydown', function(e) {
 <!-- AGX Indeed agents table (ported from view-first v6) -->
 <style>
 #agxIndeed{display:none}
-body.agx-on #upcomingTable,body.agx-on #completedEvents,body.agx-on #view-events .filter-row{display:none !important}
+body.agx-on #upcomingTable,body.agx-on #completedEvents,body.agx-on #noUpcomingState,body.agx-on #view-events .filter-row{display:none !important}
 #agxIndeed .agx-filters{display:flex;align-items:center;gap:12px;margin:0 0 16px;flex-wrap:wrap}
 .agx-chip{position:relative;border:1px solid #949494;border-radius:8px;background:#fff;padding:12px 18px;font-size:15px;font-weight:700;color:#2d2d2d;cursor:pointer;font-family:inherit}
 .agx-chip .cnt{color:#0044B3}
@@ -4687,7 +4687,7 @@ function pass(a){var s=selCount(F.st),t=selCount(F.ti),l=selCount(F.lo);
 if(s&&!F.st[a.st])return false;if(t&&!F.ti[a.n])return false;if(l&&!F.lo[a.l])return false;return true}
 function stat(n,l,ic){return "<a href=# class=agx-stat onclick=\"return false\"><span class=agx-srow>"+ic+"<b>"+n+"</b></span><span class=agx-sl>"+l+"</span></a>"}
 function candCell(a){return "<div class=agx-stats>"+stat(a.pend,"Need review",ICO.doc)+stat(a.up,"Upcoming",ICO.clock)+stat(a.pend+a.up,"All",ICO.people)+"</div>"}
-function render(){var rows=AGX.filter(pass);
+function render(){var base=(window.__agxDev==="no-upcoming")?AGX.filter(function(a){return a.st!=="Live"}):AGX;var rows=base.filter(pass);
 if(SORTK){rows=rows.slice().sort(function(a,b){var r;if(SORTK==="date")r=a.ts-b.ts;else if(SORTK==="status")r=a.st.localeCompare(b.st);else r=a.n.localeCompare(b.n);return r*DIR})}
 var h="";rows.forEach(function(a,i){
 h+="<tr><td><input type=checkbox class=agx-cb></td>";
@@ -4727,9 +4727,9 @@ document.querySelectorAll("#agxIndeed .agx-sort").forEach(function(th){th.addEve
 document.addEventListener("click",function(e){if(!e.target.closest("#agxIndeed"))closeAll()});
 w.addEventListener("change",function(e){if(e.target.id==="agxAll"){document.querySelectorAll(".agx-cb").forEach(function(c){c.checked=e.target.checked})}});
 render()}
-function sync(){var up=document.getElementById("upcomingTable");var on=!!up&&up.style.display!=="none";document.body.classList.toggle("agx-on",on);var w=document.getElementById("agxIndeed");if(w)w.style.display=on?"block":"none"}
+function sync(){var up=document.getElementById("upcomingTable");var on=(window.__agxDev==="no-upcoming")||(!!up&&up.style.display!=="none");document.body.classList.toggle("agx-on",on);var w=document.getElementById("agxIndeed");if(w)w.style.display=on?"block":"none";if(on)render()}
 build();sync();
-var up=document.getElementById("upcomingTable");if(up){new MutationObserver(sync).observe(up,{attributes:true,attributeFilter:["style"]})}
+window.__agxDev="active";var up=document.getElementById("upcomingTable");if(up){new MutationObserver(sync).observe(up,{attributes:true,attributeFilter:["style"]})}if(window.setDevMode){var _sdm=window.setDevMode;window.setDevMode=function(m,b){_sdm(m,b);window.__agxDev=m;sync()}}
 })();
 </script>
 </body>
