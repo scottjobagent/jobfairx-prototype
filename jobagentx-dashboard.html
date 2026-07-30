@@ -4997,9 +4997,9 @@ function norm(){var span=btn.querySelector("#agvFilterLabel");var raw="",nodes=[
 for(var i=0;i<btn.childNodes.length;i++){var n=btn.childNodes[i];if(n.nodeType===3&&n.textContent.trim()){raw+=n.textContent.trim();nodes.push(n)}}
 if(!span){span=document.createElement("span");span.id="agvFilterLabel";btn.insertBefore(span,btn.firstChild)}
 if(raw){nodes.forEach(function(n){n.textContent=""});span.setAttribute("data-full",raw)}
-var full=span.getAttribute("data-full")||span.textContent||"All agents";
+var cur=(span.textContent||"").trim();var full=raw?raw:((cur&&cur!==(span.getAttribute("data-short")||""))?cur:(span.getAttribute("data-full")||cur||"All agents"));span.setAttribute("data-full",full);
 var shortT=full.split(/\s[\u2013\u2014-]\s/)[0].trim()||full;
-if(span.textContent!==shortT)span.textContent=shortT;
+span.setAttribute("data-short",shortT);if(span.textContent!==shortT)span.textContent=shortT;
 if(btn.getAttribute("title")!==full)btn.setAttribute("title",full)}
 function watch(){mo=new MutationObserver(function(){mo.disconnect();norm();mo.observe(btn,{childList:true,characterData:true,subtree:true})});mo.observe(btn,{childList:true,characterData:true,subtree:true})}
 norm();watch();
