@@ -4795,6 +4795,14 @@ window.__agxDev="active";var up=document.getElementById("upcomingTable");if(up){
 .agv-fly{position:fixed;background:#3a3a3a;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.35);padding:8px;min-width:215px;z-index:950;display:none}
 .agv-fly button{display:block;width:100%;text-align:left;background:none;border:none;color:#e8e6e2;font-size:14px;font-weight:600;padding:11px 14px;border-radius:7px;cursor:pointer;font-family:inherit}
 .agv-fly button:hover,.agv-fly button.on{background:#525252;color:#fff}
+.agv-pills{display:flex;gap:8px;flex-wrap:wrap}
+.agv-pill{display:inline-flex;align-items:center;gap:8px;border:1px solid #e4e2de;border-radius:12px;background:#fff;padding:6px 15px;font-size:14.5px;font-weight:700;color:#004fcb;cursor:pointer;font-family:inherit}
+.agv-pill:hover{background:#f0f5ff}
+.agv-pill svg{width:20px;height:20px}
+.agv-provicon svg{width:20px;height:20px;vertical-align:middle}
+.agv-disc{display:block;width:100%;border:1px solid #e4e2de;border-radius:12px;background:#fff;color:#004fcb;font-size:14px;font-weight:700;padding:10px;cursor:pointer;font-family:inherit;margin-top:4px}
+.agv-disc:hover{background:#f0f5ff}
+.agv-busy{position:absolute;left:2px;right:2px;background:#595959;border-radius:8px;color:#fff;font-size:13px;padding:2px 7px;box-sizing:border-box;overflow:hidden;text-align:left}
 </style>
 <script>
 (function(){
@@ -4839,9 +4847,10 @@ document.getElementById("agvGrid").innerHTML=head+body;
 var rowH=35;
 document.querySelectorAll("#agvGrid .agv-daycol").forEach(function(col){var d=+col.dataset.d;var dt=days[d];var eff=effRanges(dt);col.style.height=((H1-H0)/2*rowH)+"px";col.style.pointerEvents="none";
 eff.r.forEach(function(r){var a=Math.max(r[0],H0),b=Math.min(r[1],H1);if(b<=a)return;var top=(a-H0)/2*rowH,ht=(b-a)/2*rowH;
-col.innerHTML+="<div class=\"agv-block"+(eff.ex?" ex":"")+"\" style=\"top:"+top+"px;height:"+(ht-3)+"px\"></div>"})})}
+col.innerHTML+="<div class=\"agv-block"+(eff.ex?" ex":"")+"\" style=\"top:"+top+"px;height:"+(ht-3)+"px\"></div>"});
+if(CAL==="on"){busyFor(d).forEach(function(r){var a=Math.max(r[0],H0),b=Math.min(r[1],H1);if(b<=a)return;var top=(a-H0)/2*rowH,ht=(b-a)/2*rowH;col.innerHTML+="<div class=\"agv-busy\" style=\"top:"+top+"px;height:"+(ht-3)+"px\">busy</div>"})}})}
 function summary(){document.getElementById("agvSwSum").textContent="Candidates can schedule interviews up to "+WIN+" days in advance and at least "+NOTICE.replace(" (recommended)","")+" ahead of time."}
-function renderAll(){renderDays();renderEx();renderCal();summary()}
+function renderAll(){renderDays();renderEx();renderCal();summary();renderConn()}
 window.agvGo=function(tab){var w=document.getElementById("agvWrap");var v=document.getElementById("view-interviews");
 var others=v.querySelectorAll(".iv-tabs-wrapper,.iv-panel-wrapper");
 if(tab==="avail"){others.forEach(function(o){o.style.display="none"});w.style.display="block";renderAll()}
@@ -4857,8 +4866,7 @@ hc.insertAdjacentElement("afterend",tabs);
 tabs.addEventListener("click",function(e){var b=e.target.closest(".agv-tab");if(b)window.agvGo(b.dataset.tab)});
 var w=document.createElement("div");w.id="agvWrap";
 var lh="";
-lh+="<div class=agv-h>Connect your calendar</div><div class=agv-sub>Automatically prevent double bookings and get new events added as they\u0027re scheduled.</div>";
-lh+="<div><button class=agv-connect-btn>Connect your calendar</button><button class=agv-learn>Learn more</button></div>";
+lh+="<div id=agvConn></div>";
 lh+="<div class=agv-div></div>";
 lh+="<div class=agv-h>Regular Availability</div><div class=agv-sub>Add times when you are typically available.</div><div id=agvDays></div>";
 lh+="<div class=agv-div></div>";
@@ -4933,7 +4941,29 @@ nav.addEventListener("mouseenter",show);nav.addEventListener("mouseleave",hide);
 f.addEventListener("mouseenter",function(){clearTimeout(hideT)});f.addEventListener("mouseleave",hide);
 f.addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;f.style.display="none";
 if(typeof showView==="function")showView("interviews",nav);window.agvGo(b.dataset.tab)});}
+var CALSVG={"Apple":"<svg width=\"20\" height=\"20\" xmlns=\"http://www.w3.org/2000/svg\" fill=\"currentColor\" viewBox=\"0 0 24 24\"><path d=\"M17.5498 12.534C17.5409 10.9007 18.2796 9.66794 19.775 8.76006C18.9383 7.56291 17.6744 6.90426 16.0055 6.77519C14.4256 6.65058 12.6989 7.69642 12.0669 7.69642C11.3994 7.69642 9.86842 6.8197 8.66682 6.8197C6.18351 6.85975 3.54443 8.80012 3.54443 12.7476C3.54443 13.9136 3.75805 15.1182 4.18529 16.3613C4.75494 17.9946 6.81101 21.9999 8.95609 21.9332C10.0776 21.9065 10.8698 21.1366 12.3295 21.1366C13.7447 21.1366 14.479 21.9332 15.7296 21.9332C17.8925 21.902 19.7527 18.2616 20.2957 16.6239C17.394 15.2576 17.5498 12.6185 17.5498 12.534ZM15.0309 5.22646C16.2458 3.78454 16.1346 2.47168 16.099 1.99994C15.0264 2.06224 13.7848 2.7298 13.0771 3.55312C12.2983 4.4343 11.8399 5.52464 11.9378 6.75294C13.0994 6.84195 14.1586 6.2456 15.0309 5.22646Z\" fill=\"black\"></path></svg>","Google":"<svg width=\"20\" height=\"20\" xmlns=\"http://www.w3.org/2000/svg\" fill=\"currentColor\" viewBox=\"0 0 48 48\" width=\"24px\" height=\"24px\"><rect width=\"22\" height=\"22\" x=\"13\" y=\"13\" fill=\"#fff\"></rect><polygon fill=\"#1e88e5\" points=\"25.68,20.92 26.688,22.36 28.272,21.208 28.272,29.56 30,29.56 30,18.616 28.56,18.616\"></polygon><path fill=\"#1e88e5\" d=\"M22.943,23.745c0.625-0.574,1.013-1.37,1.013-2.249c0-1.747-1.533-3.168-3.417-3.168 c-1.602,0-2.972,1.009-3.33,2.453l1.657,0.421c0.165-0.664,0.868-1.146,1.673-1.146c0.942,0,1.709,0.646,1.709,1.44 c0,0.794-0.767,1.44-1.709,1.44h-0.997v1.728h0.997c1.081,0,1.993,0.751,1.993,1.64c0,0.904-0.866,1.64-1.931,1.64 c-0.962,0-1.784-0.61-1.914-1.418L17,26.802c0.262,1.636,1.81,2.87,3.6,2.87c2.007,0,3.64-1.511,3.64-3.368 C24.24,25.281,23.736,24.363,22.943,23.745z\"></path><polygon fill=\"#fbc02d\" points=\"34,42 14,42 13,38 14,34 34,34 35,38\"></polygon><polygon fill=\"#4caf50\" points=\"38,35 42,34 42,14 38,13 34,14 34,34\"></polygon><path fill=\"#1e88e5\" d=\"M34,14l1-4l-1-4H9C7.343,6,6,7.343,6,9v25l4,1l4-1V14H34z\"></path><polygon fill=\"#e53935\" points=\"34,34 34,42 42,34\"></polygon><path fill=\"#1565c0\" d=\"M39,6h-5v8h8V9C42,7.343,40.657,6,39,6z\"></path><path fill=\"#1565c0\" d=\"M9,42h5v-8H6v5C6,40.657,7.343,42,9,42z\"></path></svg>","Outlook":"<svg width=\"20\" height=\"20\" xmlns=\"http://www.w3.org/2000/svg\" fill=\"currentColor\" viewBox=\"0 0 48 48\" width=\"24px\" height=\"24px\"><path fill=\"#1976d2\" d=\"M28,13h14.533C43.343,13,44,13.657,44,14.467v19.066C44,34.343,43.343,35,42.533,35H28V13z\"></path><rect width=\"14\" height=\"15.542\" x=\"28\" y=\"17.958\" fill=\"#fff\"></rect><polygon fill=\"#1976d2\" points=\"27,44 4,39.5 4,8.5 27,4\"></polygon><path fill=\"#fff\" d=\"M15.25,16.5c-3.176,0-5.75,3.358-5.75,7.5s2.574,7.5,5.75,7.5S21,28.142,21,24\tS18.426,16.5,15.25,16.5z M15,28.5c-1.657,0-3-2.015-3-4.5s1.343-4.5,3-4.5s3,2.015,3,4.5S16.657,28.5,15,28.5z\"></path><rect width=\"2.7\" height=\"2.9\" x=\"28.047\" y=\"29.737\" fill=\"#1976d2\"></rect><rect width=\"2.7\" height=\"2.9\" x=\"31.448\" y=\"29.737\" fill=\"#1976d2\"></rect><rect width=\"2.7\" height=\"2.9\" x=\"34.849\" y=\"29.737\" fill=\"#1976d2\"></rect><rect width=\"2.7\" height=\"2.9\" x=\"28.047\" y=\"26.159\" fill=\"#1976d2\"></rect><rect width=\"2.7\" height=\"2.9\" x=\"31.448\" y=\"26.159\" fill=\"#1976d2\"></rect><rect width=\"2.7\" height=\"2.9\" x=\"34.849\" y=\"26.159\" fill=\"#1976d2\"></rect><rect width=\"2.7\" height=\"2.9\" x=\"38.25\" y=\"26.159\" fill=\"#1976d2\"></rect><rect width=\"2.7\" height=\"2.9\" x=\"28.047\" y=\"22.706\" fill=\"#1976d2\"></rect><rect width=\"2.7\" height=\"2.9\" x=\"31.448\" y=\"22.706\" fill=\"#1976d2\"></rect><rect width=\"2.7\" height=\"2.9\" x=\"34.849\" y=\"22.706\" fill=\"#1976d2\"></rect><rect width=\"2.7\" height=\"2.9\" x=\"38.25\" y=\"22.706\" fill=\"#1976d2\"></rect><rect width=\"2.7\" height=\"2.9\" x=\"31.448\" y=\"19.112\" fill=\"#1976d2\"></rect><rect width=\"2.7\" height=\"2.9\" x=\"34.849\" y=\"19.112\" fill=\"#1976d2\"></rect><rect width=\"2.7\" height=\"2.9\" x=\"38.25\" y=\"19.112\" fill=\"#1976d2\"></rect></svg>","Exchange":"<svg width=\"20\" height=\"20\" xmlns=\"http://www.w3.org/2000/svg\" fill=\"currentColor\" viewBox=\"0 0 24 24\"><path d=\"M13.6217 2L2 4.16213V19.4324L13.6217 22V2ZM9.88059 7.14678V8.81246L7.18074 9.05154V10.4996H9.71964V12.1653H7.18074V14.0274L9.97126 14.3141V15.98L5.59161 15.4429V7.65586L9.88059 7.14678Z\" fill=\"#0071C5\"></path><path d=\"M14.6299 6.0379V7.63147C14.7633 7.63436 14.8931 7.63695 15.0396 7.64114C15.4546 7.65302 16.0004 8.22394 16.2577 8.66851C16.3612 8.84731 15.9711 9.21799 15.9711 9.21799L15.2306 8.76414C15.0432 8.73315 14.8386 8.71009 14.6299 8.70587V11.354L15.7322 12.443C16.1681 13.1153 15.5979 12.9225 14.6299 12.2251V15.313C14.8651 15.2878 15.0914 15.2089 15.2572 15.041L17.2163 13.0581C18.2632 12.3794 17.2189 14.1348 15.4244 16.0443C15.2485 16.2316 14.9839 16.3245 14.6299 16.367V18.0776H21.4144C22.1026 18.0776 22.6565 17.5842 22.6565 16.9708V7.14496C22.6565 6.53162 22.1026 6.0379 21.4144 6.0379H14.6299ZM19.6029 7.61867C20.0314 7.62044 20.5416 7.64657 21.1361 7.66231C21.1361 7.66231 21.1874 8.47527 21.1361 10.2663C21.1242 10.6813 20.5533 11.2271 20.1088 11.4844C19.93 11.5878 19.5593 11.1977 19.5593 11.1977L20.0131 10.4573C20.0948 9.96356 20.1213 9.35034 19.8937 8.85664C19.5445 8.69618 18.7195 8.54469 18.2933 8.97604L16.3342 10.9589C15.2874 11.6376 16.3317 9.88221 18.1261 7.97271C18.4011 7.68016 18.8887 7.61571 19.6029 7.61867ZM17.7726 11.1572C18.1392 11.1739 19.4321 12.0761 20.8046 13.3659C21.2726 13.8058 21.1569 14.7905 21.115 16.3759C21.115 16.3759 20.3023 16.4271 18.5113 16.3759C18.0962 16.364 17.5502 15.7931 17.2929 15.3485C17.1894 15.1697 17.5795 14.7993 17.5795 14.7993L18.32 15.2531C18.8137 15.3348 19.4269 15.361 19.9206 15.1335C20.0811 14.7843 20.2326 13.9593 19.8012 13.5331L17.8183 11.5743C17.6274 11.2798 17.6291 11.1507 17.7726 11.1572H17.7726Z\" fill=\"#0071C5\"></path></svg>","Office 365":"<svg width=\"20\" height=\"20\" xmlns=\"http://www.w3.org/2000/svg\" fill=\"currentColor\" viewBox=\"0 0 24 24\"><rect x=\"0\" y=\"0\" width=\"100%\" height=\"100%\" fill=\"none\"></rect><path fill=\"#EB3C00\" d=\"m4 16-4 1V5L11.5.5l6 2V20l-6 1.5-11.5-4L11.5 19V4L4 6v10Z\"></path></svg>"};
+var CAL="off";
+function busyFor(d){var r=[[16,18]];if(d===3)r.push([26,29]);if(d===5)r.push([30,32]);return r}
+function renderConn(){var c=document.getElementById("agvConn");if(!c)return;
+if(CAL==="on"){c.innerHTML="<div class=agv-h>Your connected calendar</div><div style=\"display:flex;align-items:center;gap:9px;margin:10px 0 12px\"><span class=agv-provicon>"+CALSVG["Google"]+"</span><span style=\"font-size:14.5px;color:#2d2d2d\">scott@jobfairx.com</span></div><button class=agv-disc id=agvDisc>Disconnect</button>";return}
+var h="<div class=agv-h>Connect your calendar</div><div class=agv-sub>Automatically prevent double bookings and get new events added as they\u0027re scheduled.</div>";
+if(CAL==="off"){h+="<div><button class=agv-connect-btn id=agvConnBtn>Connect your calendar</button><button class=agv-learn>Learn more</button></div>"}
+else{h+="<div class=agv-pills>"+["Apple","Google","Outlook","Exchange","Office 365"].map(function(n){return "<button class=agv-pill data-p=\""+n+"\">"+CALSVG[n]+"<span>"+n+"</span></button>"}).join("")+"</div>"}
+c.innerHTML=h}
 build();flyout();window.agvGo("all");
+var wrapEl=document.getElementById("agvWrap");
+if(wrapEl){wrapEl.addEventListener("click",function(e){
+if(e.target.closest("#agvConnBtn")){CAL="pick";renderConn();return}
+var p=e.target.closest(".agv-pill");if(p){CAL="on";renderConn();renderCal();syncCalT();return}
+if(e.target.closest("#agvDisc")){CAL="off";renderConn();renderCal();syncCalT();return}})}
+function syncCalT(){document.querySelectorAll("#agvCalT .dev-toggle-btn").forEach(function(b){b.classList.toggle("active",(b.dataset.m==="on")===(CAL==="on"))})}
+window.agvCal=function(on){CAL=on?"on":"off";renderConn();renderCal();syncCalT()};
+(function(){var ex=document.querySelector(".topbar-left .dev-toggle");if(!ex)return;
+var g=ex.cloneNode(false);g.id="agvCalT";
+var lb=ex.querySelector(".dev-toggle-label").cloneNode(false);lb.textContent="Calendar:";g.appendChild(lb);
+var proto=ex.querySelector("button");
+[["Not connected",false],["Connected",true]].forEach(function(p,i){var b=proto.cloneNode(false);b.textContent=p[0];b.dataset.m=p[1]?"on":"off";b.className="dev-toggle-btn"+(i===0?" active":"");b.onclick=function(){window.agvCal(p[1])};g.appendChild(b)});
+ex.parentElement.appendChild(g)})();
 })();
 </script>
 </body>
