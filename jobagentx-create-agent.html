@@ -551,11 +551,13 @@ else if(w==="ben")mchips(L.BEN,"many","ben");
 else if(w==="shift")mchips(L.SHIFT,"many","shift");
 else if(w==="sched")mchips(L.SCHED,"many","sched");
 else if(w==="pay")mpay();
-else if(w==="skills"){EDIT=-2;mB.innerHTML="";var host=document.getElementById("skIn").closest(".card-sec");mB.appendChild(host);mB.setAttribute("data-skills","1")}
+else if(w==="skills"){mB.innerHTML="";var host=document.getElementById("skIn").closest(".card-sec");mB.appendChild(host);mB.setAttribute("data-skills","1")}
 else if(w==="desc"){var d=document.getElementById("jobDesc");mB.innerHTML="<textarea class=\"mdl-ta\" id=\"mDesc\"></textarea>";document.getElementById("mDesc").value=d?(d.innerText||"").replace(/\s+$/,""):"";}
 ov.classList.add("on");}
-function close(){ov.classList.remove("on");CUR=null;}
-function save(){if(CUR==="pay"){D.min=document.getElementById("mMin").value;D.max=document.getElementById("mMax").value;if(minI)minI.value=D.min;if(maxI)maxI.value=D.max;S.payBy=D.payBy;S.rate=D.rate;}
+function restoreSkills(){if(mB.getAttribute("data-skills")){var host=mB.querySelector(".card-sec");if(host){var d=document.getElementById("jobDesc");if(d){var ds=d.closest(".card-sec");ds.parentNode.insertBefore(host,ds)}}mB.removeAttribute("data-skills")}}
+function close(){restoreSkills();ov.classList.remove("on");CUR=null;}
+function save(){if(CUR==="skills"){rv();close();return}
+if(CUR==="pay"){D.min=document.getElementById("mMin").value;D.max=document.getElementById("mMax").value;if(minI)minI.value=D.min;if(maxI)maxI.value=D.max;S.payBy=D.payBy;S.rate=D.rate;}
 else if(CUR==="desc"){var d=document.getElementById("jobDesc");if(d)d.innerText=document.getElementById("mDesc").value;}
 else if(CUR==="type")S.type=D.type;
 else if(CUR==="ben")S.ben=D.ben;
@@ -641,12 +643,10 @@ var q=(i>=0)?QS[i]:{text:"",type:"",must:"",min:"",resp:""};
 qText.value=q.text;qType.value=q.type;qMust.value=q.must;qMin.value=q.min;qResp.value=q.resp;conds();
 DRAFT=fromRow?"row":"sum";if(DRAFT==="sum")closeSum();
 qOv.classList.add("on");}
-function restoreSkills(){if(mB.getAttribute("data-skills")){var host=mB.querySelector(".card-sec");if(host){var d=document.getElementById("jobDesc");if(d){var ds=d.closest(".card-sec");ds.parentNode.insertBefore(host,ds)}}mB.removeAttribute("data-skills")}}
-function closeQ(){restoreSkills();qOv.classList.remove("on");if(DRAFT==="sum")openSum()}
+function closeQ(){qOv.classList.remove("on");if(DRAFT==="sum")openSum()}
 document.getElementById("qCancel").addEventListener("click",closeQ);
 document.getElementById("qX").addEventListener("click",closeQ);
 document.getElementById("qSave").addEventListener("click",function(){
-if(EDIT===-2){restoreSkills();qOv.classList.remove("on");rv();return}
 var txt=(qText.value||"").trim();if(!txt||!qType.value||!qMust.value)return;
 var q={text:txt,type:qType.value,must:qMust.value,min:qMin.value,resp:qResp.value};
 if(EDIT>=0)QS[EDIT]=q;else QS.push(q);
