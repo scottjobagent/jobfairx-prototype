@@ -5085,6 +5085,26 @@ body.agx-dark .topbar-left::-webkit-scrollbar-thumb{background:rgba(255,255,255,
 
 <!-- AGX-IV2 -->
 <style>
+.iv2 th.xb,.iv2 td.xb{width:42px;padding-left:16px;padding-right:0}
+.iv2-cb{width:17px;height:17px;accent-color:#0044b3;cursor:pointer;margin:0;vertical-align:middle}
+.iv2 tr.selrow td{background:#f6faff}
+.iv2-bulk{display:none;align-items:center;gap:12px;background:#e6f1fb;border:1px solid #b5d4f4;border-radius:10px;padding:11px 16px;margin-bottom:14px}
+.iv2-bulk.on{display:flex}
+.iv2-bulk .bn{font-size:14px;font-weight:700;color:#0c447c}
+.iv2-bulk .sp{flex:1}
+.iv2-bs{background:#fff;color:#2d2d2d;border:1px solid #d4d2d0;border-radius:8px;padding:8px 15px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer}
+.iv2-bs:hover{background:#f0efed}
+.iv2-bd{background:#fff;color:#a32d2d;border:1px solid #f7c1c1;border-radius:8px;padding:8px 15px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer}
+.iv2-bd:hover{background:#fcebeb}
+.iv2-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9000;align-items:center;justify-content:center;padding:24px}
+.iv2-ov.on{display:flex}
+.iv2-mdl{background:#fff;border-radius:12px;max-width:480px;width:100%;box-shadow:0 10px 40px rgba(0,0,0,.22);font-family:"Noto Sans",-apple-system,sans-serif}
+.iv2-mdl .hd{padding:24px 26px 0}
+.iv2-mdl h3{font-size:20px;font-weight:700;margin:0 0 8px;color:#2d2d2d}
+.iv2-mdl p{font-size:15px;color:#595959;line-height:1.55;margin:0}
+.iv2-mdl .ft{display:flex;justify-content:flex-end;gap:12px;padding:22px 26px 24px}
+.iv2-mdl .go{background:#a32d2d;color:#fff;border:1px solid #a32d2d;border-radius:8px;padding:9px 16px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer}
+.iv2-mdl .go:hover{background:#8c2626}
 .iv-tabs-wrapper{border-bottom:1px solid #e5e4e1 !important}
 .iv-tabs{padding:0 32px !important}
 .iv-tab{flex:0 0 auto !important;padding:13px 2px 15px !important;text-align:left !important;font-size:15px !important;font-weight:400 !important;margin-right:30px !important;border-bottom:3px solid transparent !important;margin-bottom:-1px !important}
@@ -5197,11 +5217,12 @@ var ph=(r&&r.ty==="Phone");
 var lab=ph?"Start call":"Join interview room";
 var cls=live?"iv2-p":"iv2-o";
 return '<button class="'+cls+'">'+lab+'</button>'+keb(live?[["cal","Reschedule",0],["dl","Download resume",0],["lnk","Copy interview link",0],["usr","Change interviewer",0],["x","End interview",1]]:null);}
-function rowHtml(r,past,live){
+function rowHtml(r,past,live,pi,ri){
+var K=pi+":"+ri;
 var p=P[r.p];
 var a=r.a,extra="";
 if(live&&r.act===1){a=["Starting soon","Confirmed "+r.a[1],1];}
-var h='<tr><td><div class="iv2-nm">'+p.n+'</div><div class="iv2-loc">'+p.l+'</div><div class="iv2-ag">'+r.ag+'</div>'
+var h='<tr class="'+(SEL[K]?"selrow":"")+'"><td class="xb"><input type="checkbox" class="iv2-cb" data-row="'+K+'"'+(SEL[K]?' checked':'')+'></td><td><div class="iv2-nm">'+p.n+'</div><div class="iv2-loc">'+p.l+'</div><div class="iv2-ag">'+r.ag+'</div>'
 +'<div class="iv2-links"><a>View resume</a><a>Message</a></div></td>'
 +'<td><div class="iv2-wt">'+p.w[0][0]+'</div><div class="iv2-wc">'+p.w[0][1]+'</div><div class="iv2-wt">'+p.w[1][0]+'</div><div class="iv2-wc" style="margin-bottom:0">'+p.w[1][1]+'</div></td>'
 +'<td><div class="iv2-act'+(a[2]?" alert":"")+'">'+a[0]+'</div><div class="iv2-acts">'+a[1]+'</div></td>'
@@ -5210,6 +5231,52 @@ var h='<tr><td><div class="iv2-nm">'+p.n+'</div><div class="iv2-loc">'+p.l+'</di
 if(past)h+='<td><span class="iv2-pill" style="background:'+r.fb[1]+';color:'+r.fb[2]+'">'+r.fb[0]+'</span></td><td><a class="iv2-notes">'+r.nt+'</a></td>';
 h+='<td class="c">'+actHtml(r.act,live,r)+'</td></tr>';return h;}
 function chip(x){return '<div class="iv2-chip">'+x+'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#767676" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></div>'}
+var SEL={};
+var BULKQ={0:["Cancel {n} interview{s}?","These candidates will be told their interview was cancelled. This can't be undone.","Cancel interviews"],1:["Cancel {n} request{s}?","These candidates will be told the interview request was withdrawn. This can't be undone.","Cancel requests"],2:["Decline {n} request{s}?","These candidates will be told you can't take their requested interview time. This can't be undone.","Decline requests"],3:null};
+function selN(i){var n=0;for(var k in SEL){if(SEL[k]&&k.split(":")[0]==i)n++}return n}
+function allSel(i){var d=DEF[i];if(!d.rows.length)return false;for(var r=0;r<d.rows.length;r++){if(!SEL[i+":"+r])return false}return true}
+function bulkHtml(i){var n=selN(i);var q=BULKQ[i];
+return '<div class="iv2-bulk'+(n?" on":"")+'"><span class="bn">'+n+' selected</span><span class="sp"></span>'
++(i==2?'<button type="button" class="iv2-bs" data-bulk="accept:'+i+'">Accept</button>':"")
++'<button type="button" class="iv2-bs" data-bulk="msg:'+i+'">Send a message</button>'
++(q?'<button type="button" class="iv2-bd" data-bulk="'+(i==2?"decline":"cancel")+':'+i+'">'+q[2]+'</button>':"")
++'<button type="button" class="iv2-bs" data-bulk="clear:'+i+'">Clear</button></div>'}
+function closeMdl(){var o=document.getElementById("iv2Ov");if(o)o.classList.remove("on")}
+function ensureMdl(){if(document.getElementById("iv2Ov"))return;
+var o=document.createElement("div");o.className="iv2-ov";o.id="iv2Ov";
+o.innerHTML='<div class="iv2-mdl"><div class="hd"><h3 id="iv2MT"></h3><p id="iv2MB"></p></div><div class="ft"><button type="button" class="iv2-bs" id="iv2MN"></button><button type="button" class="go" id="iv2MY"></button></div></div>';
+document.body.appendChild(o);
+o.addEventListener("click",function(e){if(e.target===o)closeMdl()});
+document.getElementById("iv2MN").addEventListener("click",closeMdl);
+document.getElementById("iv2MY").addEventListener("click",closeMdl)}
+function askMdl(t,b,yes,no){ensureMdl();
+document.getElementById("iv2MT").textContent=t;
+document.getElementById("iv2MB").textContent=b;
+document.getElementById("iv2MY").textContent=yes;
+document.getElementById("iv2MN").textContent=no;
+Array.prototype.forEach.call(document.querySelectorAll(".iv2-menu"),function(x){x.classList.remove("on")});
+document.getElementById("iv2Ov").classList.add("on")}
+function whoOf(K){if(!K)return {n:"This candidate",t:["",""]};var a=K.split(":");var r=DEF[a[0]].rows[a[1]];return {n:P[r.p].n,t:r.t}}
+function wire(wrap){
+Array.prototype.forEach.call(wrap.querySelectorAll(".iv2-cb"),function(c){c.addEventListener("change",function(){
+if(c.hasAttribute("data-all")){var i=c.getAttribute("data-all");DEF[i].rows.forEach(function(x,ri){SEL[i+":"+ri]=c.checked})}
+else{SEL[c.getAttribute("data-row")]=c.checked}
+paint()})});
+Array.prototype.forEach.call(wrap.querySelectorAll("[data-bulk]"),function(b){b.addEventListener("click",function(){
+var a=b.getAttribute("data-bulk").split(":");var k=a[0],i=a[1];var n=selN(i);var s=(n===1?"":"s");
+if(k==="clear"){DEF[i].rows.forEach(function(x,ri){SEL[i+":"+ri]=false});paint();return}
+if(k==="msg"){askMdl("Send a message to "+n+" candidate"+s+"?","They'll each get it in their JobAgentX inbox and by email.","Write message","Not now");return}
+if(k==="accept"){askMdl("Accept "+n+" interview request"+s+"?","Each requested time will be confirmed and added to the assigned interviewer's calendar.","Accept all","Go back");return}
+var q=BULKQ[i];askMdl(q[0].replace("{n}",n).replace("{s}",s),q[1],q[2],"Go back")})});
+Array.prototype.forEach.call(wrap.querySelectorAll(".iv2-mi.danger, .iv2-grp .no"),function(b){b.addEventListener("click",function(e){
+e.stopPropagation();
+var tr=b.closest("tr");var cb=tr?tr.querySelector("[data-row]"):null;
+var w=whoOf(cb?cb.getAttribute("data-row"):null);
+var lab=b.classList.contains("no")?"Decline":(b.textContent||"").trim();
+if(lab==="End interview"){askMdl("End this interview?","The interview with "+w.n+" will end for both of you. This can't be undone.","End interview","Keep going");return}
+if(lab==="Cancel request"){askMdl("Cancel this request?",w.n+" will be told the interview request was withdrawn. This can't be undone.","Cancel request","Keep request");return}
+if(lab==="Decline"){askMdl("Decline this request?",w.n+" will be told you can't take the interview on "+w.t[0]+" at "+w.t[1]+". This can't be undone.","Decline request","Go back");return}
+askMdl("Cancel this interview?",w.n+"'s interview on "+w.t[0]+" at "+w.t[1]+" will be cancelled and they'll be notified. This can't be undone.","Cancel interview","Keep interview")})})}
 function panelHtml(i,mode){
 var d=DEF[i];
 if(mode==="empty")return '<div class="iv-empty-state" style="text-align:center;padding:80px 20px"><h2 style="font-size:26px;font-weight:700;color:#2d2d2d;margin-bottom:10px">'+d.empty[0]+'</h2><p style="font-size:16px;color:#595959">'+d.empty[1]+'</p></div>';
@@ -5218,8 +5285,8 @@ var cols=["Candidate","Work experience","Activity","Interviewer",d.tl].concat(d.
 return '<div class="iv2-card"><div class="iv2-h">'+(d.alert?'<span class="dot"></span>':"")+d.title+' ('+d.rows.length+')</div>'
 +'<div class="iv2-filters">'+chip("All agents")+chip("All interviewers")+chip("Sort: Newest")
 +'<div class="iv2-search"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#767676" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>Search candidates</div></div>'
-+'<table class="iv2"><tr>'+cols.map(function(c){return '<th'+(c==="Actions"?' class="c"':"")+'>'+c+'</th>'}).join("")+'</tr>'
-+d.rows.map(function(r){return rowHtml(r,d.past,live)}).join("")+'</table></div>';}
++bulkHtml(i)+'<table class="iv2"><tr><th class="xb"><input type="checkbox" class="iv2-cb" data-all="'+i+'"'+(allSel(i)?' checked':'')+'></th>'+cols.map(function(c){return '<th'+(c==="Actions"?' class="c"':"")+'>'+c+'</th>'}).join("")+'</tr>'
++d.rows.map(function(r,ri){return rowHtml(r,d.past,live,i,ri)}).join("")+'</table></div>';}
 var MODES={0:"empty",1:"empty",2:"empty",3:"empty"};
 var ACTIVE=0;
 function paint(){
@@ -5234,6 +5301,7 @@ wrap.innerHTML=[0,1,2,3].map(function(i){
 return '<div class="iv-tab-panel'+(i===ACTIVE?" active":"")+'" id="iv-panel-'+i+'">'+panelHtml(i,MODES[i])+'</div>';}).join("");
 Array.prototype.forEach.call(tabs.querySelectorAll("[data-iv2]"),function(b){b.addEventListener("click",function(){ACTIVE=+b.getAttribute("data-iv2");paint();syncBtns()})});
 Array.prototype.forEach.call(wrap.querySelectorAll("[data-menu]"),function(b){b.addEventListener("click",function(e){e.stopPropagation();var m=document.getElementById(b.getAttribute("data-menu"));var was=m.classList.contains("on");Array.prototype.forEach.call(document.querySelectorAll(".iv2-menu"),function(x){x.classList.remove("on")});if(!was)m.classList.add("on")})});
+wire(wrap);
 }
 function syncBtns(){var m=MODES[ACTIVE];Array.prototype.forEach.call(document.querySelectorAll("#ivHeaderToggle .dev-toggle-btn"),function(b){b.classList.toggle("active",b.textContent.trim().toLowerCase()===m)})}
 function boot(){
