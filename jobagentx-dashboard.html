@@ -5085,6 +5085,8 @@ body.agx-dark .topbar-left::-webkit-scrollbar-thumb{background:rgba(255,255,255,
 
 <!-- AGX-IV2 -->
 <style>
+.iv2-tel{display:inline-flex;align-items:center;gap:7px;text-decoration:none}
+.iv2-tel svg{width:14px;height:14px;flex:0 0 14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .iv2 th.xb,.iv2 td.xb{width:42px;padding-left:16px;padding-right:0}
 .iv2-cb{width:17px;height:17px;accent-color:#0044b3;cursor:pointer;margin:0;vertical-align:middle}
 .iv2 tr.selrow td{background:#f6faff}
@@ -5197,7 +5199,7 @@ var DEF={
  {p:"priya",ag:"Frontend Developer \u00b7 Remote",a:["Confirmed","Yesterday",0],iv:"David Park",t:["Fri, Aug 8","11:30 AM CT"],ty:"Phone",tel:"(415) 555-0172",act:1},
  {p:"keisha",ag:"Full Stack Developer \u00b7 Remote",a:["Confirmed","2 days ago",0],iv:"Maria Lopez",t:["Mon, Aug 11","9:00 AM CT"],ty:"Video",act:1}]},
 1:{title:"Waiting on candidates",alert:0,tl:"Proposed time",empty:["You don\u2019t have pending interviews","Times you\u2019ve proposed will show up here."],rows:[
- {p:"marcus",ag:"Registered Nurse \u00b7 Dallas, TX",a:["Reschedule proposed","Sent 2 days ago",1],iv:"Emily Chen",t:["Fri, Aug 8","2:00 PM CT"],act:2},
+ {p:"marcus",ag:"Registered Nurse \u00b7 Dallas, TX",a:["Reschedule proposed","Sent 2 days ago",1],iv:"Emily Chen",t:["Fri, Aug 8","2:00 PM CT"],ty:"Phone",act:2},
  {p:"sofia",ag:"Warehouse Associate \u00b7 Austin, TX",a:["Invited \u00b7 hasn\u2019t booked","Sent 6 hours ago",0],iv:"David Park",t:["\u2014","Any open slot"],act:2}]},
 2:{title:"Candidates awaiting your response",alert:1,tl:"Requested time",empty:["Nothing needs your attention","Interview requests that need a decision will show up here."],rows:[
  {p:"aisha",ag:"Registered Nurse \u00b7 Dallas, TX",a:["Requested interview","2 days ago",1],iv:"Emily Chen",ivn:"Auto-assigned \u00b7 free then",t:["Tue, Aug 5","10:15 AM CT"],act:0},
@@ -5214,9 +5216,10 @@ if(k===2)return '<button class="iv2-s">Send a message</button>'+keb([["cal","Pro
 if(k===3)return '<button class="iv2-p">Schedule follow-up interview</button>'+keb([["msg","Send a message",0],["cal","Update feedback",0],["dl","Download resume",0]]);
 if(k===4)return '<button class="iv2-p">Rebook</button>'+keb([["msg","Send a message",0],["dl","Download resume",0]]);
 var ph=(r&&r.ty==="Phone");
-var lab=ph?"Start call":"Join interview room";
 var cls=live?"iv2-p":"iv2-o";
-return '<button class="'+cls+'">'+lab+'</button>'+keb(live?[["cal","Reschedule",0],["dl","Download resume",0],["lnk","Copy interview link",0],["usr","Change interviewer",0],["x","End interview",1]]:null);}
+if(ph){var num=r.tel||"";
+return '<a class="'+cls+' iv2-tel" href="tel:'+num.replace(/[^0-9+]/g,"")+'">'+mi("ph")+"Call "+num+'</a>'+keb([["cal","Reschedule",0],["dl","Download resume",0],["usr","Change interviewer",0],["x",live?"End interview":"Cancel interview",1]]);}
+return '<button class="'+cls+'">Join interview room</button>'+keb(live?[["cal","Reschedule",0],["dl","Download resume",0],["lnk","Copy interview link",0],["usr","Change interviewer",0],["x","End interview",1]]:null);}
 function rowHtml(r,past,live,pi,ri){
 var K=pi+":"+ri;
 var p=P[r.p];
@@ -5227,7 +5230,7 @@ var h='<tr class="'+(SEL[K]?"selrow":"")+'"><td class="xb"><input type="checkbox
 +'<td><div class="iv2-wt">'+p.w[0][0]+'</div><div class="iv2-wc">'+p.w[0][1]+'</div><div class="iv2-wt">'+p.w[1][0]+'</div><div class="iv2-wc" style="margin-bottom:0">'+p.w[1][1]+'</div></td>'
 +'<td><div class="iv2-act'+(a[2]?" alert":"")+'">'+a[0]+'</div><div class="iv2-acts">'+a[1]+'</div></td>'
 +'<td>'+ivc(r.iv,r.ivn)+'</td>'
-+'<td><div class="iv2-t1">'+r.t[0]+'</div><div class="iv2-t2">'+r.t[1]+'</div>'+(r.ty?'<div class="iv2-ty">'+mi(r.ty==="Phone"?"ph":"cam")+r.ty+(r.tel?" &middot; "+r.tel:"")+'</div>':"")+'</td>';
++'<td><div class="iv2-t1">'+r.t[0]+'</div><div class="iv2-t2">'+r.t[1]+'</div>'+(r.ty?'<div class="iv2-ty">'+mi(r.ty==="Phone"?"ph":"cam")+r.ty+'</div>':"")+'</td>';
 if(past)h+='<td><span class="iv2-pill" style="background:'+r.fb[1]+';color:'+r.fb[2]+'">'+r.fb[0]+'</span></td><td><a class="iv2-notes">'+r.nt+'</a></td>';
 h+='<td class="c">'+actHtml(r.act,live,r)+'</td></tr>';return h;}
 function chip(x){return '<div class="iv2-chip">'+x+'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#767676" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></div>'}
