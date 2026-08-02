@@ -4710,7 +4710,7 @@ function selCount(o){return Object.keys(o).filter(function(k){return o[k]}).leng
 function pass(a){var s=selCount(F.st),t=selCount(F.ti),l=selCount(F.lo);
 if(s&&!F.st[a.st])return false;if(t&&!F.ti[a.n])return false;if(l&&!F.lo[a.l])return false;return true}
 function stat(n,l,ic){return "<a href=# class=agx-stat onclick=\"return false\"><span class=agx-srow>"+ic+"<b>"+n+"</b></span><span class=agx-sl>"+l+"</span></a>"}
-function candCell(a){return "<div class=agx-stats>"+stat(a.pend,"Need review",ICO.doc)+stat(a.up,"Upcoming",ICO.clock)+stat(a.pend+a.up,"All",ICO.people)+"</div>"}
+function candCell(a){return "<div class=agx-stats>"+stat(a.pend,"Action needed",ICO.doc)+stat(a.up,"Upcoming",ICO.clock)+stat(a.pend+a.up,"All",ICO.people)+"</div>"}
 var SSTATES=["Live","Paused","Closed"];
 var AGXP=null,AGXKEEP=true;
 function sck(){return '<svg class="agx-ck" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>'}
@@ -4774,11 +4774,10 @@ var h="";rows.forEach(function(a,i){
 h+="<tr><td><input type=checkbox class=agx-cb></td>";
 h+="<td><a href=\"jobagentx-edit-agent.html?event=dallas\" class=agx-name>"+a.n+"</a><div class=agx-loc>"+a.l+"</div></td>";
 h+="<td>"+candCell(a)+"</td>";
-h+="<td><a class=agx-room href=# onclick=\"window.open('lobby-loader.html?agent="+a.slug+"','_blank');return false\">Join room</a></td>";
 h+="<td><a href=# class=agx-setup-link onclick=\"openInterviewSettings();return false\">"+a.setup+"</a></td>";
 h+="<td><div>"+a.ago+"</div><div class=agx-mut style=margin-top:2px>"+a.date+"</div></td>";
 h+="<td>"+stCell(a)+"</td>";
-h+="<td class=agx-kcell><button class=agx-kebab>&#8943;</button><div class=agx-menu data-slug="+a.slug+"><button>Edit</button><button>Share</button><button>Go to interview room</button></div></td></tr>"});
+h+="<td class=agx-kcell><button class=agx-kebab>&#8943;</button><div class=agx-menu data-slug="+a.slug+"><button>Edit</button><button>Share</button></div></td></tr>"});
 document.getElementById("agxRows").innerHTML=h;
 document.getElementById("agxCount").textContent=rows.length+(rows.length===1?" result":" results");
 var all=document.getElementById("agxAll");if(all)all.checked=false;
@@ -4795,8 +4794,7 @@ if(to==="Live"){a.st="Live";render();return}
 agxAsk(a,to);}});
 
 document.querySelectorAll(".agx-menu button").forEach(function(b){b.onclick=function(e){e.stopPropagation();closeAll();
-if(b.textContent==="Edit")window.location.href="jobagentx-edit-agent.html?event=dallas";
-if(b.textContent==="Go to interview room")window.open("lobby-loader.html?agent="+((b.closest(".agx-menu")||{dataset:{}}).dataset.slug||"rn-dallas"),"_blank")}})}
+if(b.textContent==="Edit")window.location.href="jobagentx-edit-agent.html?event=dallas";}})}
 function closeAll(){document.querySelectorAll(".agx-menu,.agx-pop,.agx-smenu").forEach(function(m){m.style.display="none"});document.querySelectorAll(".agx-cap.on").forEach(function(b){b.classList.remove("on")})}
 function pop(key,vals){var h="<div class=agx-pop>";vals.forEach(function(v){h+="<label><input type=checkbox data-k="+key+" data-v=\""+v+"\">"+v+"</label>"});return h+"</div>"}
 function build(){var w=document.createElement("div");w.id="agxIndeed";
@@ -4806,7 +4804,7 @@ chips+="<div class=agx-chip id=agxN_ti><span class=agx-lab>Title &#9662;</span>"
 chips+="<div class=agx-chip id=agxN_lo><span class=agx-lab>Location &#9662;</span>"+pop("lo",uniq("l"))+"</div>";
 chips+="<span class=agx-results id=agxCount></span></div>";
 var tbl="<div class=table-card style=padding:0;overflow:visible><table><colgroup><col style=width:3.5%><col style=width:18.5%><col style=width:25%><col style=width:11%><col style=width:12%><col style=width:11.5%><col style=width:10%><col style=width:8.5%></colgroup>";
-tbl+="<thead><tr><th><input type=checkbox id=agxAll></th><th class=agx-sort data-k=name>Agent<span class=arr id=agxArr_name>&#8597;</span></th><th>Interviews</th><th>Interview room</th><th>Interview setup</th><th class=agx-sort data-k=date>Date created<span class=arr id=agxArr_date>&#8597;</span></th><th class=agx-sort data-k=status>Agent status<span class=arr id=agxArr_status>&#8597;</span></th><th></th></tr></thead><tbody id=agxRows></tbody></table></div>";
+tbl+="<thead><tr><th><input type=checkbox id=agxAll></th><th class=agx-sort data-k=name>Agent<span class=arr id=agxArr_name>&#8597;</span></th><th>Interviews</th><th>Interview setup</th><th class=agx-sort data-k=date>Date created<span class=arr id=agxArr_date>&#8597;</span></th><th class=agx-sort data-k=status>Agent status<span class=arr id=agxArr_status>&#8597;</span></th><th></th></tr></thead><tbody id=agxRows></tbody></table></div>";
 w.innerHTML=chips+tbl;
 var fr=document.querySelector("#view-events .filter-row");fr.insertAdjacentElement("afterend",w);
 w.addEventListener("change",function(e){var t=e.target;if(t.dataset&&t.dataset.k){F[t.dataset.k][t.dataset.v]=t.checked;render()}});
