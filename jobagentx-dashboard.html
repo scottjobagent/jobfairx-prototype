@@ -3057,6 +3057,38 @@ function ivChangeDisposition(option, value) {
 // ── Notes modal (Past interviews tab) ──
 var ivNotesCurrentBtn = null;
 function ivOpenNotesModal(candidateName, btn) {
+  if (window.agxOpenEval) {
+    var row = btn.closest('tr');
+    var wrap = row ? row.querySelector('.iv-disposition-wrapper') : null;
+    var cur = '';
+    if (wrap) {
+      var sb = wrap.querySelector('.iv-disposition-btn.status');
+      if (sb) {
+        var t = (sb.textContent || '').trim().toLowerCase();
+        if (t.indexOf('yes') === 0) cur = 'yes';
+        else if (t.indexOf('maybe') === 0) cur = 'maybe';
+        else if (t.indexOf('no-show') === 0) cur = '';
+        else if (t.indexOf('no') === 0) cur = 'no';
+      }
+    }
+    window.agxOpenEval(null, candidateName, function (v) {
+      if (!wrap) return;
+      var opts = wrap.querySelectorAll('.iv-disposition-option');
+      for (var i = 0; i < opts.length; i++) {
+        var oc = opts[i].getAttribute('onclick') || '';
+        if (oc.indexOf("'" + v + "'") !== -1) {
+          if (typeof ivChangeDisposition === 'function') ivChangeDisposition(opts[i], v);
+          break;
+        }
+      }
+    });
+    if (cur) {
+      var ov = document.getElementById('agevOv');
+      var b = ov && ov.querySelector('.agev-o.' + cur);
+      if (b) b.click();
+    }
+    return;
+  }
   ivNotesCurrentBtn = btn;
   document.getElementById('ivNotesModalName').textContent = candidateName;
   var existing = btn.getAttribute('data-notes') || '';
@@ -5659,6 +5691,50 @@ table.iv2 td:nth-child(4){overflow:visible}
 .agsch-dpg .dy:hover{background:#f3f2f1}
 .agsch-dpg .dy.sel{background:#004fcb;color:#fff}
 .agsch-dpg .dy.out{color:#c4c2c0}
+/* AGX-SCH sizing fix — cap to viewport, scroll the panes (matches Indeed) */
+.agsch-p{display:flex;flex-direction:column;max-height:calc(100vh - 32px);overflow:hidden}
+.agsch-body{flex:1 1 auto;min-height:0}
+.agsch-l{overflow-y:auto;padding:24px 24px 0}
+.agsch-r{overflow-y:auto;padding:24px 24px 16px}
+.agsch-f{flex:0 0 auto}
+/* AGX-EVAL — Evaluation modal */
+.agev-ov{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:8600;display:none;overflow-y:auto;padding:16px}
+.agev-ov.on{display:flex;align-items:flex-start;justify-content:center}
+.agev-p{display:flex;flex-direction:column;width:600px;max-width:100%;max-height:calc(100vh - 32px);overflow:hidden;background:#fff;border:1px solid #e4e2e0;border-radius:20px}
+.agev-h{flex:0 0 auto;display:flex;align-items:flex-start;justify-content:space-between;gap:8px;padding:10px 10px 10px 24px}
+.agev-ht{display:flex;align-items:flex-start;gap:10px;font-size:20px;font-weight:700;color:#2d2d2d;line-height:1.3}
+.agev-ht svg{width:24px;height:24px;flex:0 0 24px;margin-top:4px;stroke:#2d2d2d;fill:none;stroke-width:1.8}
+.agev-sub{font-size:16px;font-weight:400;color:#767676;margin-top:2px;line-height:1.4}
+.agev-x{width:44px;height:44px;flex:0 0 44px;border:none;background:none;border-radius:12px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;color:#2d2d2d}
+.agev-x:hover{background:#f3f2f1}
+.agev-x svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2}
+.agev-b{flex:1 1 auto;min-height:0;overflow-y:auto;padding:0 24px}
+.agev-q{font-size:16px;font-weight:700;color:#2d2d2d;display:block}
+.agev-qs{font-size:14px;font-weight:400;color:#767676;display:block;margin-top:1px}
+.agev-seg{display:inline-flex;align-items:center;margin-top:16px;padding:3px;border:1px solid #e4e2e0;border-radius:12px;background:#fff}
+.agev-o{display:inline-flex;align-items:center;gap:8px;height:36px;padding:6px 16px;border:none;border-radius:8px;background:#fff;color:#2d2d2d;font-family:inherit;font-size:16px;font-weight:700;cursor:pointer}
+.agev-o svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2}
+.agev-o.on.yes{background:#1f662c;color:#fff}
+.agev-o.on.maybe{background:#595959;color:#fff}
+.agev-o.on.no{background:#a9252b;color:#fff}
+.agev-dv{width:1px;height:20px;flex:0 0 1px;background:#e4e2e0;transition:opacity .12s}
+.agev-dv.off{opacity:0}
+.agev-nw{padding:16px 0}
+.agev-nl{font-size:16px;font-weight:700;color:#2d2d2d;display:block;margin-bottom:4px}
+.agev-ed{border:1px solid #595959;border-radius:8px;overflow:hidden;background:#fff}
+.agev-tb{display:flex;align-items:center;gap:0;height:45px;background:#e4e2e0;border-radius:8px 8px 0 0}
+.agev-tb button{width:44px;height:44px;border:none;background:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;color:#2d2d2d;padding:9px}
+.agev-tb button:hover{background:#d4d2d0}
+.agev-tb button.on{background:#c9c7c5}
+.agev-tb svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2}
+.agev-tb .sp{flex:1}
+.agev-rt{min-height:177px;max-height:300px;overflow-y:auto;padding:9px 12px;font-size:16px;color:#2d2d2d;line-height:1.5;outline:none}
+.agev-rt:empty:before{content:attr(data-ph);color:#767676}
+.agev-rt ul{margin:0;padding-left:22px}
+.agev-f{flex:0 0 auto;display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:16px;border-top:1px solid #e4e2e0}
+.agev-as{display:inline-flex;align-items:center;gap:8px;font-size:16px;font-weight:700;color:#1f662c}
+.agev-as svg{width:20px;height:20px;stroke:#fff;fill:none;stroke-width:3}
+.agev-as .ic{width:20px;height:20px;flex:0 0 20px;border-radius:50%;background:#1f662c;display:inline-flex;align-items:center;justify-content:center}
 </style>
 <script>
 (function(){
@@ -5734,7 +5810,7 @@ var h='<tr><td><div class="iv2-nm">'+p.n+'</div><div class="iv2-loc">'+p.l+'</di
 +'<td><div class="iv2-act'+(a[2]?" alert":"")+'">'+a[0]+'</div><div class="iv2-acts">'+a[1]+'</div></td>'
 +'<td>'+ivc(r.iv,r.ivn,pi,r.p,past)+'</td>'
 +'<td><div class="iv2-t1">'+r.t[0]+'</div><div class="iv2-t2">'+r.t[1]+'</div>'+(r.ty?'<div class="iv2-ty">'+mi(r.ty==="Phone"?"ph":"cam")+r.ty+'</div>':"")+'</td>';
-if(past)h+='<td><span class="iv2-pill" style="background:'+r.fb[1]+';color:'+r.fb[2]+'">'+r.fb[0]+'</span></td><td><a class="iv2-notes">'+r.nt+'</a></td>';
+if(past)h+='<td><span class="iv2-pill" style="background:'+r.fb[1]+';color:'+r.fb[2]+'">'+r.fb[0]+'</span></td><td><a class="iv2-notes" data-evrow="'+r.p+'">'+r.nt+'</a></td>';
 h+='<td class="c">'+actHtml(r.act,live,r)+'</td></tr>';return h;}
 var KEEPOPEN=null;
 var CHEV2='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>';
@@ -5881,6 +5957,7 @@ function openRes(pk,i,r){var o=document.getElementById("resOv");
   if(act==="msg"){closeRes();openDock(k);return}
   if(act==="join"){closeRes();askMdlGo("Join this interview now?",who+" will see and hear you the moment you join. There is no waiting room \u2014 you go straight in.","Join interview","Not yet",function(){window.open("interview-loader.html","_blank")});return}
   if(act==="call"){closeRes();showToast("success","Calling "+who+".");return}
+  if(act==="feedback"){closeRes();openEv(k);return}
   closeRes();showToast("success",b.textContent.trim()+" \u2014 "+who+".")}});}
 function closeRes(){var o=document.getElementById("resOv");if(o)o.classList.remove("on")}
 document.addEventListener("keydown",function(e){if(e.key==="Escape")closeRes()});
@@ -6092,6 +6169,87 @@ function schSend(){
  closeSch();
  showToast("success","Interview request sent to "+who+(n>1?" with "+n+" proposed times.":"."))}
 
+/* AGX-EVAL — Evaluation modal (spec: SETUP-INTERVIEW-SPEC.md / Indeed capture Aug 2) */
+var EV=null, EVSTATE={};
+function evIco(n){var m={
+ clip:'<rect x="8" y="3" width="8" height="4" rx="1"/><path d="M16 5h2a1 1 0 011 1v14a1 1 0 01-1 1H6a1 1 0 01-1-1V6a1 1 0 011-1h2"/>',
+ x:'<path d="M6 6l12 12M18 6L6 18"/>',
+ ck:'<path d="M4 12l5 5L20 6"/>',
+ q:'<path d="M9.1 9a3 3 0 015.8 1c0 2-3 3-3 3"/><path d="M12 17h.01"/>',
+ no:'<path d="M6 6l12 12M18 6L6 18"/>',
+ bold:'<path d="M7 5h6a3.5 3.5 0 010 7H7z"/><path d="M7 12h7a3.5 3.5 0 010 7H7z"/>',
+ ital:'<path d="M15 5h-5M14 19H9M14 5l-4 14"/>',
+ list:'<path d="M9 6h11M9 12h11M9 18h11"/><path d="M4.5 6h.01M4.5 12h.01M4.5 18h.01"/>',
+ help:'<circle cx="12" cy="12" r="9"/><path d="M9.2 9.5a2.8 2.8 0 015.4.9c0 1.9-2.6 2.4-2.6 4"/><path d="M12 17.5h.01"/>'};
+ return '<svg viewBox="0 0 24 24">'+(m[n]||"")+'</svg>'}
+function evName(pk,over){if(over)return over;return (typeof P!=="undefined"&&P[pk]&&P[pk].n)||"this candidate"}
+function evKey(pk,over){return pk||("name:"+(over||""))}
+function ensureEv(){var o=document.getElementById("agevOv");if(o)return o;
+ o=document.createElement("div");o.className="agev-ov";o.id="agevOv";document.body.appendChild(o);
+ o.addEventListener("click",function(e){if(e.target===o)closeEv()});
+ return o}
+function openEv(pk,over,hook){
+ var k=evKey(pk,over), who=evName(pk,over);
+ var st=EVSTATE[k]||(EVSTATE[k]={rating:"",notes:""});
+ EV={k:k,who:who,hook:hook||null};
+ var o=ensureEv();
+ o.innerHTML=evShell(who,st);
+ evWire(o,st);
+ evPaint(o,st);
+ o.classList.add("on");
+ var rt=o.querySelector(".agev-rt"); if(rt)rt.innerHTML=st.notes||"";
+}
+function closeEv(){var o=document.getElementById("agevOv");if(o)o.classList.remove("on");EV=null}
+function evShell(who,st){
+ return '<div class="agev-p">'
+ +'<div class="agev-h"><div><div class="agev-ht">'+evIco("clip")+'<span>Evaluation for '+who+'</span></div>'
+ +'<div class="agev-sub">Your evaluation will never be shared with candidates.</div></div>'
+ +'<button type="button" class="agev-x" data-ev="close" aria-label="Close">'+evIco("x")+'</button></div>'
+ +'<div class="agev-b">'
+ +'<span class="agev-q">Would you recommend moving forward with '+who+'?</span>'
+ +'<span class="agev-qs">Your recommendation will not affect a candidate\u2019s status on JobAgentX</span>'
+ +'<div class="agev-seg" role="group" aria-label="candidate rating selector with three button options">'
+ +'<button type="button" class="agev-o yes" data-ev="rate|yes">'+evIco("ck")+'Yes</button>'
+ +'<span class="agev-dv" data-dv="0"></span>'
+ +'<button type="button" class="agev-o maybe" data-ev="rate|maybe">'+evIco("q")+'Maybe</button>'
+ +'<span class="agev-dv" data-dv="1"></span>'
+ +'<button type="button" class="agev-o no" data-ev="rate|no">'+evIco("no")+'No</button>'
+ +'</div>'
+ +'<div class="agev-nw"><span class="agev-nl">Notes</span>'
+ +'<div class="agev-ed"><div class="agev-tb">'
+ +'<button type="button" data-ev="fmt|bold" aria-label="Bold">'+evIco("bold")+'</button>'
+ +'<button type="button" data-ev="fmt|italic" aria-label="Italic">'+evIco("ital")+'</button>'
+ +'<button type="button" data-ev="fmt|insertUnorderedList" aria-label="Insert/Remove Bulleted List">'+evIco("list")+'</button>'
+ +'<span class="sp"></span>'
+ +'<button type="button" data-ev="shortcuts" aria-label="Keyboard shortcuts">'+evIco("help")+'</button>'
+ +'</div><div class="agev-rt" contenteditable="true" data-ph="Add notes about this candidate\u2026"></div></div></div>'
+ +'</div>'
+ +'<div class="agev-f"><span class="agev-as"><span class="ic">'+evIco("ck")+'</span>Auto-saved</span></div>'
+ +'</div>'}
+function evPaint(o,st){
+ ["yes","maybe","no"].forEach(function(v){
+  var b=o.querySelector('.agev-o.'+v); if(b)b.className="agev-o "+v+(st.rating===v?" on":"")});
+ var d0=o.querySelector('[data-dv="0"]'), d1=o.querySelector('[data-dv="1"]');
+ if(d0)d0.className="agev-dv"+((st.rating==="yes"||st.rating==="maybe")?" off":"");
+ if(d1)d1.className="agev-dv"+((st.rating==="maybe"||st.rating==="no")?" off":"")}
+function evWire(o,st){
+ o.addEventListener("click",function(e){
+  var el=e.target.closest("[data-ev]"); if(!el)return;
+  var q=el.getAttribute("data-ev").split("|"),a=q[0];
+  if(a==="close"){closeEv();return}
+  if(a==="rate"){st.rating=q[1];evPaint(o,st);
+   if(EV&&EV.hook)try{EV.hook(q[1])}catch(err){}
+   return}
+  if(a==="fmt"){var rt=o.querySelector(".agev-rt");rt.focus();
+   try{document.execCommand(q[1],false,null)}catch(err){}
+   st.notes=rt.innerHTML;return}
+  if(a==="shortcuts"){showToast("success","Bold \u2318B \u00b7 Italic \u2318I \u00b7 Bulleted list \u2318\u21e78");return}});
+ var rt=o.querySelector(".agev-rt");
+ if(rt)rt.addEventListener("input",function(){st.notes=rt.innerHTML});
+}
+/* expose for the legacy tables, which live outside this closure */
+window.agxOpenEval=function(pk,over,hook){openEv(pk,over,hook)};
+
 function wire(wrap){
 Array.prototype.forEach.call(wrap.querySelectorAll("[data-md]"),function(el){el.onclick=function(e){
  if(e.target.closest("[data-menu],.iv2-menu"))return;
@@ -6102,6 +6260,7 @@ Array.prototype.forEach.call(wrap.querySelectorAll("[data-mdact]"),function(b){b
  var q=b.getAttribute("data-mdact").split("|"),act=q[0],pk=q[1];
  var who=(P[pk]&&P[pk].n)||"the candidate";var x=pxOf(pk);
  if(act==="setup"){openSch(pk);return}
+ if(act==="notes"){openEv(pk);return}
  if(act==="msg"){openDock(pk);return}
  if(act==="join"){window.open("interview-loader.html?who="+encodeURIComponent(who)+"&start="+(q[2]||0)+"&label="+(q[3]||""),"_blank");return}
  if(act==="showphone"){var w=b.parentNode;
@@ -6115,6 +6274,8 @@ Array.prototype.forEach.call(wrap.querySelectorAll("[data-mdact]"),function(b){b
   if(!ta||!(ta.value||"").trim()){showToast("error","Write a note before saving.");return}
   showToast("success","Note saved to "+who+".");return}
  showToast("success",b.textContent.trim()+" \u2014 "+who+".")}});
+Array.prototype.forEach.call(wrap.querySelectorAll("[data-evrow]"),function(a){a.onclick=function(e){e.preventDefault();e.stopPropagation();
+ openEv(a.getAttribute("data-evrow"))}});
 Array.prototype.forEach.call(wrap.querySelectorAll("[data-res]"),function(a){a.onclick=function(e){e.preventDefault();e.stopPropagation();
  var q=a.getAttribute("data-res").split("|"),pk=q[0],i=+q[1];
  var row=null;((DEF[i]&&DEF[i].rows)||[]).forEach(function(x){if(x.p===pk)row=x});
