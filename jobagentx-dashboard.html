@@ -5562,9 +5562,10 @@ table.iv2 td:nth-child(4){overflow:visible}
 .md-hint{font-size:13px;color:#767676;margin-top:9px}
 .md-none{padding:60px 20px;text-align:center;color:#595959;font-size:16px}
 
-.md-phone{display:inline-block;border:1px solid #e4e2e0;border-radius:12px;background:#fff;padding:13px 20px}
-.md-phone .n{font-size:24px;font-weight:700;color:#2d2d2d;letter-spacing:.3px}
-.md-phone .c{font-size:13px;color:#767676;margin-top:4px}
+.md-phwrap{position:relative;display:inline-block}
+.md-phpop{position:absolute;left:0;top:calc(100% + 8px);z-index:900;background:#fff;border-radius:12px;padding:14px 18px;min-width:236px;text-align:left;box-shadow:rgba(45,45,45,.16) 0 0 2px 0,rgba(45,45,45,.12) 0 6px 18px 0}
+.md-phpop .l{font-size:14px;color:#595959}
+.md-phpop .n{font-size:24px;font-weight:700;color:#2d2d2d;margin-top:6px;letter-spacing:.4px;white-space:nowrap}
 </style>
 <script>
 (function(){
@@ -5822,11 +5823,12 @@ Array.prototype.forEach.call(wrap.querySelectorAll("[data-mdact]"),function(b){b
  var who=(P[pk]&&P[pk].n)||"the candidate";var x=pxOf(pk);
  if(act==="msg"){openDock(pk);return}
  if(act==="join"){window.open("interview-loader.html?who="+encodeURIComponent(who)+"&start="+(q[2]||0)+"&label="+(q[3]||""),"_blank");return}
- if(act==="showphone"){var el=document.createElement("div");el.className="md-phone";
-  el.innerHTML='<div class="n"></div><div class="c"></div>';
-  el.querySelector(".n").textContent=x.ph||"No number on file";
-  el.querySelector(".c").textContent="Call "+who+" at the scheduled time.";
-  b.parentNode.replaceChild(el,b);return}
+ if(act==="showphone"){var w=b.parentNode;
+  var old=w.querySelector(".md-phpop");if(old){w.removeChild(old);return}
+  var el=document.createElement("div");el.className="md-phpop";
+  el.innerHTML='<div class="l">You can call this candidate at:</div><div class="n"></div>';
+  el.querySelector(".n").textContent=phFmt(x.ph)||"No number on file";
+  w.appendChild(el);return}
  if(act==="dl"){showToast("success","Downloading "+who+" resume.pdf");return}
  if(act==="savenote"){var ta=document.querySelector("[data-mdnote=\""+pk+"\"]");
   if(!ta||!(ta.value||"").trim()){showToast("error","Write a note before saving.");return}
@@ -5908,6 +5910,8 @@ function mdEpoch(r){var M={Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8
  var hh=t?parseInt(t[1],10):9,mm=t?parseInt(t[2],10):0;
  if(t&&/pm/i.test(t[3])&&hh<12)hh+=12;if(t&&/am/i.test(t[3])&&hh===12)hh=0;
  return new Date(2026,M[d[1]]||0,parseInt(d[2],10),hh,mm).getTime()}
+function phFmt(s){var d=(s||"").replace(/\D/g,"");if(d.length===11&&d.charAt(0)==="1")d=d.slice(1);
+ if(d.length!==10)return s||"";return "+1 "+d.slice(0,3)+" "+d.slice(3,6)+" "+d.slice(6)}
 function mdSel(i){var RS=rowsOf(i);if(!RS.length)return null;var k=MDSEL[i],hit=null;RS.forEach(function(r){if(r.p===k)hit=r});return hit||RS[0]}
 function mdChip(r,i){var lab=(r.a&&r.a[0])||"";var cls=(i===1||i===2)?"wait":"ok";return lab?'<span class="md-chip '+cls+'">'+lab+"</span>":""}
 function mdCard(r,i,on){var p=P[r.p];var ph=(r.ty==="Phone");
@@ -5919,7 +5923,7 @@ function mdCard(r,i,on){var p=P[r.p];var ph=(r.ty==="Phone");
 function mdDetail(i,r){
  var p=P[r.p],x=pxOf(r.p),ph=(r.ty==="Phone");
  var tab=MDTAB[i]||"app";
- var prim=ph?('<button type="button" class="md-b pri" data-mdact="showphone|'+r.p+'">'+mdIco("ph")+"Show phone number</button>")
+ var prim=ph?('<span class="md-phwrap"><button type="button" class="md-b pri" data-mdact="showphone|'+r.p+'">'+mdIco("ph")+"Show phone number</button></span>")
   :('<button type="button" class="md-b pri" data-mdact="join|'+r.p+"|"+mdEpoch(r)+"|"+encodeURIComponent(r.t[0]+", "+r.t[1])+'">'+mdIco("cam")+"Join interview</button>");
  var ivCard='<div class="md-ic"><div style="display:flex;justify-content:space-between;gap:8px"><span style="font-size:16px;font-weight:700;color:#2d2d2d">'+(ph?"Phone":"Video")+" interview</span>"
   +keb([["cal","Reschedule",0],["x",(i===2?"Decline":"Cancel interview"),1]])+"</div>"
@@ -5945,7 +5949,7 @@ function mdDetail(i,r){
  return '<div class="md-det">'
   +'<div class="md-nm">'+p.n+"</div>"
   +'<div class="md-loc">'+mdIco("pin")+p.l+"</div>"
-  +'<div class="md-acts"><button type="button" class="md-b pri" data-mdact="setup|'+r.p+'">'+mdIco("cal")+'Set up interview</button><button type="button" class="md-b" data-mdact="msg|'+r.p+'">'+mdIco("msg")+'Message</button><button type="button" class="md-b" data-mdact="showphone|'+r.p+'">'+mdIco("ph")+"Call</button></div>"
+  +'<div class="md-acts"><button type="button" class="md-b pri" data-mdact="setup|'+r.p+'">'+mdIco("cal")+'Set up interview</button><button type="button" class="md-b" data-mdact="msg|'+r.p+'">'+mdIco("msg")+'Message</button><span class="md-phwrap"><button type="button" class="md-b" data-mdact="showphone|'+r.p+'">'+mdIco("ph")+"Call</button></span></div>"
   +'<div class="md-tabs"><button type="button" class="md-tab'+(tab==="app"?" on":"")+'" data-mdtab="app|'+i+'">Application</button><button type="button" class="md-tab'+(tab==="act"?" on":"")+'" data-mdtab="act|'+i+'">Activity &amp; notes</button></div>'
   +(tab==="app"?app:act)+"</div>"}
 function panelBody(i,mode){
