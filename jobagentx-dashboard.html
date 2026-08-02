@@ -5774,6 +5774,41 @@ table.iv2 td:nth-child(4){overflow:visible}
 .md-cd svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;flex:0 0 18px}
 .md-meta{display:flex;align-items:center;gap:9px;font-size:16px;font-weight:700;color:#2d2d2d;margin-top:10px}
 .md-meta svg{width:20px;height:20px;stroke:#595959;fill:none;stroke-width:1.9;flex:0 0 20px}
+/* AGX-CV — candidate-view controls: disposition capsule, more menu, status, activity feed */
+.md-top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+.md-dispwrap{display:flex;align-items:center;gap:8px;flex:0 0 auto;position:relative}
+.md-disp{display:inline-flex;border:1px solid #e4e2e0;border-radius:12px;background:#fff;overflow:hidden}
+.md-disp button{width:56px;height:44px;border:none;background:#fff;color:#2d2d2d;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:9px 15px;position:relative}
+.md-disp button+button{border-left:1px solid #e4e2e0}
+.md-disp button svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2.2}
+.md-disp button.on.sl{background:#e4f7e6;color:#1f662c}
+.md-disp button.on.un{background:#fdefe9;color:#844b17}
+.md-disp button.on.rj{background:#feeeef;color:#a9252b}
+.md-more{width:44px;height:44px;border:none;background:none;border-radius:12px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;color:#2d2d2d}
+.md-more:hover{background:#f3f2f1}
+.md-more svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2.4}
+.md-mpop{display:none;position:absolute;top:52px;right:0;z-index:70;min-width:222px;background:#fff;border:1px solid #e4e2e0;border-radius:12px;padding:8px;box-shadow:rgba(45,45,45,.16) 0 0 2px 0,rgba(45,45,45,.08) 0 4px 8px 0,rgba(45,45,45,.04) 0 8px 16px 0}
+.md-mpop.on{display:block}
+.md-mpop button{display:block;width:100%;text-align:left;height:44px;padding:0 12px;border:none;background:none;border-radius:8px;font-family:inherit;font-size:16px;color:#2d2d2d;cursor:pointer}
+.md-mpop button:hover{background:#f3f2f1}
+.md-actrow{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.md-stwrap{position:relative;flex:0 0 auto}
+.md-status{display:inline-flex;align-items:center;justify-content:space-between;gap:8px;min-width:204px;height:42px;padding:0 12px;border:1px solid #e4e2e0;border-radius:12px;background:#fff;font-family:inherit;font-size:16px;color:#2d2d2d;cursor:pointer}
+.md-status b{font-weight:400;color:#595959}
+.md-status svg{width:20px;height:20px;stroke:#2d2d2d;fill:none;stroke-width:2}
+.md-stpop{display:none;position:absolute;top:48px;right:0;z-index:70;min-width:204px;background:#fff;border:1px solid #e4e2e0;border-radius:12px;padding:8px;box-shadow:rgba(45,45,45,.16) 0 0 2px 0,rgba(45,45,45,.08) 0 4px 8px 0,rgba(45,45,45,.04) 0 8px 16px 0}
+.md-stpop.on{display:block}
+.md-stpop button{display:flex;align-items:center;gap:8px;width:100%;text-align:left;height:44px;padding:0 12px;border:none;background:none;border-radius:8px;font-family:inherit;font-size:16px;color:#2d2d2d;cursor:pointer}
+.md-stpop button:hover{background:#f3f2f1}
+.md-stpop button .ck{width:20px;flex:0 0 20px;visibility:hidden;display:inline-flex}
+.md-stpop button.cur .ck{visibility:visible}
+.md-stpop button .ck svg{width:20px;height:20px;stroke:#2d2d2d;fill:none;stroke-width:2.4}
+.md-af{margin-top:6px}
+.md-afi{padding:14px 0;border-top:1px solid #e4e2e0}
+.md-afi:first-child{border-top:none}
+.md-afd{font-size:14px;color:#767676}
+.md-afe{font-size:16px;color:#2d2d2d;margin-top:3px}
+.md-afn{font-size:16px;color:#2d2d2d;margin-top:4px;line-height:1.55;white-space:pre-wrap}
 </style>
 <script>
 (function(){
@@ -6312,6 +6347,25 @@ Array.prototype.forEach.call(wrap.querySelectorAll("[data-mdact]"),function(b){b
  var who=(P[pk]&&P[pk].n)||"the candidate";var x=pxOf(pk);
  if(act==="setup"){openSch(pk);return}
  if(act==="notes"){openEv(pk);return}
+ if(act==="disp"){DISP[pk]=(DISP[pk]===q[2])?"":q[2];paint();
+  var L={sl:"Shortlist",un:"Undecided",rj:"Rejected"};
+  showToast("success",DISP[pk]?(who+" moved to "+L[q[2]]+"."):(who+" removed from "+L[q[2]]+"."));return}
+ if(act==="more"){var mp=document.getElementById("mdMore"+pk);
+  var on=mp.classList.contains("on");
+  Array.prototype.forEach.call(document.querySelectorAll(".md-mpop,.md-stpop"),function(x){x.classList.remove("on")});
+  if(!on)mp.classList.add("on");return}
+ if(act==="stpop"){var sp=document.getElementById("mdSt"+pk);
+  var on2=sp.classList.contains("on");
+  Array.prototype.forEach.call(document.querySelectorAll(".md-mpop,.md-stpop"),function(x){x.classList.remove("on")});
+  if(!on2)sp.classList.add("on");return}
+ if(act==="setst"){STAT[pk]=q[2];paint();showToast("success",who+" set to "+q[2]+".");return}
+ if(act==="dlapp"){showToast("success","Downloading "+who+" application data.");return}
+ if(act==="rejcand"){askMdl("Reject candidate","","Reject candidate","Back");
+  document.getElementById("iv2MB").innerHTML="Are you sure you want to reject "+who+"?<br>They\u2019ll be moved to Rejected.";
+  window.__mdlGo=function(){STAT[pk]="Rejected";DISP[pk]="rj";paint();showToast("success",who+" rejected.")};return}
+ if(act==="delcand"){askMdl("Delete candidate","","Delete candidate","Back");
+  document.getElementById("iv2MB").innerHTML="Are you sure you want to delete "+who+"?<br>This can\u2019t be undone.";
+  window.__mdlGo=function(){showToast("success",who+" deleted.")};return}
  if(act==="cancelcall"){askMdl("Cancel call","","Cancel call","Back");
   document.getElementById("iv2MB").innerHTML="Are you sure you want to cancel?<br>We\u2019ll notify "+who+" about the cancellation.";
   window.__mdlGo=function(){showToast("success","Call with "+who+" cancelled.")};return}
@@ -6331,7 +6385,7 @@ Array.prototype.forEach.call(wrap.querySelectorAll("[data-mdact]"),function(b){b
  if(act==="dl"){showToast("success","Downloading "+who+" resume.pdf");return}
  if(act==="savenote"){var ta=document.querySelector("[data-mdnote=\""+pk+"\"]");
   if(!ta||!(ta.value||"").trim()){showToast("error","Write a note before saving.");return}
-  showToast("success","Note saved to "+who+".");return}
+  cvAddNote(pk,ta.value.trim());paint();showToast("success","Note saved to "+who+".");return}
  showToast("success",b.textContent.trim()+" \u2014 "+who+".")}});
 Array.prototype.forEach.call(wrap.querySelectorAll("[data-evrow]"),function(a){a.onclick=function(e){e.preventDefault();e.stopPropagation();
  openEv(a.getAttribute("data-evrow"))}});
@@ -6453,6 +6507,56 @@ function agxCdTick(){
 }
 function agxCdStart(){if(window.__cdT)clearInterval(window.__cdT);
  if(document.querySelector(".md-cd[data-cd]"))window.__cdT=setInterval(agxCdTick,1000)}
+var DISP={},STAT={},NOTES={};
+var STLIST=["New","Reviewing","Contacting","Interviewing","Rejected","Hired"];
+function cvIco(n){var m={
+ ck:'<path d="M4 12l5 5L20 6"/>',
+ q:'<path d="M9.1 9a3 3 0 015.8 1c0 2-3 3-3 3"/><path d="M12 17h.01"/>',
+ x:'<path d="M6 6l12 12M18 6L6 18"/>',
+ dots:'<circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/>',
+ chev:'<path d="M6 9l6 6 6-6"/>'};
+ return '<svg viewBox="0 0 24 24">'+(m[n]||"")+'</svg>'}
+function cvDate(){var d=new Date(),MO=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+ return MO[d.getMonth()]+" "+d.getDate()+", "+d.getFullYear()}
+function cvTopHtml(pk){
+ var dv=DISP[pk]||"";
+ return '<div class="md-dispwrap">'
+ +'<div class="md-disp">'
+ +'<button type="button" class="sl'+(dv==="sl"?" on":"")+'" data-mdact="disp|'+pk+'|sl" title="Add to Shortlist" aria-label="Add to Shortlist" aria-pressed="'+(dv==="sl")+'">'+cvIco("ck")+'</button>'
+ +'<button type="button" class="un'+(dv==="un"?" on":"")+'" data-mdact="disp|'+pk+'|un" title="Add to Undecided" aria-label="Add to Undecided" aria-pressed="'+(dv==="un")+'">'+cvIco("q")+'</button>'
+ +'<button type="button" class="rj'+(dv==="rj"?" on":"")+'" data-mdact="disp|'+pk+'|rj" title="Reject" aria-label="Reject" aria-pressed="'+(dv==="rj")+'">'+cvIco("x")+'</button>'
+ +'</div>'
+ +'<button type="button" class="md-more" data-mdact="more|'+pk+'" aria-label="More actions">'+cvIco("dots")+'</button>'
+ +'<div class="md-mpop" id="mdMore'+pk+'">'
+ +'<button type="button" data-mdact="dl|'+pk+'">Download resume</button>'
+ +'<button type="button" data-mdact="dlapp|'+pk+'">Download application data</button>'
+ +'<button type="button" data-mdact="rejcand|'+pk+'">Reject candidate</button>'
+ +'<button type="button" data-mdact="delcand|'+pk+'">Delete candidate</button>'
+ +'</div></div>'}
+function cvStatusHtml(pk){
+ var cur=STAT[pk]||"Interviewing";
+ return '<div class="md-stwrap"><button type="button" class="md-status" data-mdact="stpop|'+pk+'" aria-label="Select Status"><span><b>Status:</b> '+cur+'</span>'+cvIco("chev")+'</button>'
+ +'<div class="md-stpop" id="mdSt'+pk+'">'+STLIST.map(function(s){
+   return '<button type="button" class="'+(s===cur?"cur":"")+'" data-mdact="setst|'+pk+'|'+s+'"><span class="ck">'+cvIco("ck")+'</span>'+s+'</button>'}).join("")+'</div></div>'}
+function cvFeedHtml(pk,p,r){
+ var out=[];
+ (NOTES[pk]||[]).forEach(function(n){out.push('<div class="md-afi"><div class="md-afd">'+n.d+'</div><div class="md-afe">You left a private note.</div><div class="md-afn">'+n.t.replace(/</g,"&lt;")+'</div></div>')});
+ out.unshift('<div class="md-afi"><div class="md-afd">'+((r.a&&r.a[1])||cvDate())+'</div><div class="md-afe">'+p.n+" applied to "+r.ag+'</div></div>');
+ return '<div class="md-sh">Activity feed</div><div class="md-af">'+out.join("")+'</div>'}
+function cvAddNote(pk,txt){if(!NOTES[pk])NOTES[pk]=[];NOTES[pk].push({d:cvDate(),t:txt})}
+function agxDockSync(){
+ var p=document.querySelector(".iv-tab-panel.active");
+ var det=p&&p.querySelector(".md-det");
+ var d=document.getElementById("msgDock");
+ if(!det){if(d)d.classList.remove("on");return}
+ var pk=det.getAttribute("data-mdpk")||"";
+ if(!pk){if(d)d.classList.remove("on");return}
+ if(d&&d.getAttribute("data-pk")===pk){d.classList.add("on");return}
+ var wasOpen=d&&d.classList.contains("on")&&!d.classList.contains("min");
+ openDock(pk);
+ d=document.getElementById("msgDock");
+ if(d&&!wasOpen)d.classList.add("min");
+}
 function agxGrp(pk){return '<div class="iv2-grp" style="margin-right:8px">'
  +'<button class="ok iv2-tt" data-tip="Accept interview" data-mdact="accept|'+pk+'">'+ico("check")+'</button>'
  +'<button class="re iv2-tt" data-tip="Propose a different time" data-mdact="resched|'+pk+'">'+ico("cal")+'</button>'
@@ -6500,15 +6604,15 @@ function mdDetail(i,r){
   +(edu?'<div style="font-size:16px;font-weight:700;color:#2d2d2d;margin-top:20px">Education</div>'+edu:"")
   +(scr?'<div style="font-size:16px;font-weight:700;color:#2d2d2d;margin-top:20px">Screening answers</div>'+scr:"")
   +"</div></div>";
- var act='<div class="md-sh">Activity feed</div><div class="md-fd">'+((r.a&&r.a[1])||"")+'</div><div class="md-fe">'+p.n+" &mdash; "+((r.a&&r.a[0])||"Applied")+" for "+r.ag+"</div>"
+ var act=cvFeedHtml(r.p,p,r)
   +'<div class="md-sh">Write private note here...</div><textarea class="md-na" placeholder="Write private note here..." data-mdnote="'+r.p+'"></textarea>'
   +'<div class="md-acts"><button type="button" class="md-b pri" data-mdact="savenote|'+r.p+'">Save note</button></div>';
- return '<div class="md-det">'
+ return '<div class="md-det" data-mdpk="'+r.p+'">'
   +agxCdHtml(r)
-  +'<div class="md-nm">'+p.n+"</div>"
-  +'<div class="md-loc">'+mdIco("pin")+p.l+"</div>"
+  +'<div class="md-top" data-mdtop="1"><div><div class="md-nm">'+p.n+"</div>"
+  +'<div class="md-loc">'+mdIco("pin")+p.l+"</div></div>"+cvTopHtml(r.p)+"</div>"
   +'<div class="md-meta">'+mdIco(ph?"ph":"cam")+(ph?"Phone call":"Video call")+" &middot; "+r.t[0]+" &middot; "+r.t[1]+"</div>"
-  +'<div class="md-acts"><button type="button" class="md-b pri" data-mdact="setup|'+r.p+'">'+mdIco("cal")+'Set up interview</button><button type="button" class="md-b" data-mdact="msg|'+r.p+'">'+mdIco("msg")+'Message</button><span class="md-phwrap"><button type="button" class="md-b" data-mdact="showphone|'+r.p+'">'+mdIco("ph")+"Call</button></span></div>"
+  +'<div class="md-actrow"><div class="md-acts"><button type="button" class="md-b pri" data-mdact="setup|'+r.p+'">'+mdIco("cal")+'Set up interview</button><button type="button" class="md-b" data-mdact="msg|'+r.p+'">'+mdIco("msg")+'Message</button><span class="md-phwrap"><button type="button" class="md-b" data-mdact="showphone|'+r.p+'">'+mdIco("ph")+"Call</button></span></div>"+cvStatusHtml(r.p)+"</div>"
   +'<div class="md-tabs"><button type="button" class="md-tab'+(tab==="app"?" on":"")+'" data-mdtab="app|'+i+'">Application</button><button type="button" class="md-tab'+(tab==="act"?" on":"")+'" data-mdtab="act|'+i+'">Activity &amp; notes</button></div>'
   +(tab==="app"?app:act)+"</div>"}
 function fltRowHtml(i){
@@ -6550,6 +6654,7 @@ wrap.innerHTML=[0,1,2,3].map(function(i){
 return '<div class="iv-tab-panel'+(i===ACTIVE?" active":"")+'" id="iv-panel-'+i+'">'+panelHtml(i,MODES[i])+'</div>';}).join("");
 agxRise();
 agxCdStart();
+agxDockSync();
 Array.prototype.forEach.call(tabs.querySelectorAll("[data-iv2]"),function(b){b.addEventListener("click",function(){ACTIVE=+b.getAttribute("data-iv2");resetFlt();paint();syncBtns()})});
 Array.prototype.forEach.call(wrap.querySelectorAll("[data-menu]"),function(b){b.addEventListener("click",function(e){e.stopPropagation();var m=document.getElementById(b.getAttribute("data-menu"));var was=m.classList.contains("on");Array.prototype.forEach.call(document.querySelectorAll(".iv2-menu"),function(x){x.classList.remove("on")});if(!was)m.classList.add("on")})});
 wire(wrap);
