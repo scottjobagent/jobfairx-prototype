@@ -5734,6 +5734,8 @@ table.iv2 td:nth-child(4){overflow:visible}
 .agev-as{display:inline-flex;align-items:center;gap:8px;font-size:16px;font-weight:700;color:#1f662c}
 .agev-as svg{width:20px;height:20px;stroke:#fff;fill:none;stroke-width:3}
 .agev-as .ic{width:20px;height:20px;flex:0 0 20px;border-radius:50%;background:#1f662c;display:inline-flex;align-items:center;justify-content:center}
+.agx-fltrow{display:flex;gap:10px;align-items:center;margin:0 32px 12px;padding:0}
+.agx-fltrow .iv2-chip{height:38px}
 </style>
 <script>
 (function(){
@@ -5815,21 +5817,32 @@ var KEEPOPEN=null;
 var CHEV2='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>';
 var CK2='<svg class="ck2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>';
 var FLT={};
-function flt(i){if(!FLT[i])FLT[i]={ag:{},iv:{},sort:"new",q:""};return FLT[i]}
+function flt(i){if(!FLT[i])FLT[i]={ag:{},iv:{},sort:"new",q:"",dt:30};return FLT[i]}
 function resetFlt(){FLT={}}
 function nSel(o){var n=0;for(var k in o)if(o[k])n++;return n}
 function uniqOf(i,key){var out=[];DEF[i].rows.forEach(function(r){var v=(key==="ag")?r.ag:r.iv;if(v&&out.indexOf(v)<0)out.push(v)});return out.sort()}
 function tsOf(r){var M={Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
  var s=(r.t&&r.t[0])||"";var m=s.match(/([A-Z][a-z]{2})\s+(\d+)/);return m?((M[m[1]]||0)*100+parseInt(m[2],10)):0}
 function fltActive(i){var f=flt(i);return nSel(f.ag)||nSel(f.iv)||f.q}
+function dOf(r){var M={Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
+ var s=(r.t&&r.t[0])||"";var m=s.match(/([A-Z][a-z]{2})\s+(\d+)/);
+ if(!m)return null;var n=new Date();return new Date(n.getFullYear(),M[m[1]]||0,parseInt(m[2],10));}
 function rowsOf(i){
  var f=flt(i),out=DEF[i].rows.slice();
  if(nSel(f.ag))out=out.filter(function(r){return !!f.ag[r.ag]});
  if(nSel(f.iv))out=out.filter(function(r){return !!f.iv[r.iv]});
- if(f.q){var q=f.q.toLowerCase();out=out.filter(function(r){var p=P[r.p]||{};
-  return ((p.n||"")+" "+(p.l||"")+" "+(r.ag||"")+" "+(r.iv||"")).toLowerCase().indexOf(q)>=0})}
+ if(i!==0&&f.dt>0){var cut=Date.now()-f.dt*864e5;
+  out=out.filter(function(r){var x=dOf(r);return !x||x.getTime()>=cut})}
  out.sort(function(a,b){return f.sort==="new"?(tsOf(b)-tsOf(a)):(tsOf(a)-tsOf(b))});
  return out;
+}
+var DTOPTS=[[14,"Last 14 days"],[30,"Last 30 days"],[180,"Last 6 months"],[0,"All interviews"]];
+function dchip(i){var f=flt(i);
+ var cur=(DTOPTS.filter(function(o){return o[0]===f.dt})[0]||DTOPTS[1])[1];
+ var items=DTOPTS.map(function(o){
+  return '<button type="button" class="iv2-fsort'+(f.dt===o[0]?" cur":"")+'" data-dt="'+o[0]+'" data-i="'+i+'">'+CK2+o[1]+'</button>'}).join("");
+ return '<span class="iv2-fwrap"><button type="button" class="iv2-chip" data-fpop="fp'+i+'dt">'+cur+CHEV2+'</button>'
+  +'<div class="iv2-fpop" id="fp'+i+'dt">'+items+'</div></span>';
 }
 function fchip(i,key,label){
  var f=flt(i),vals=uniqOf(i,key),n=nSel(f[key]);
@@ -6393,12 +6406,13 @@ function mdDetail(i,r){
   +'<div class="md-acts"><button type="button" class="md-b pri" data-mdact="setup|'+r.p+'">'+mdIco("cal")+'Set up interview</button><button type="button" class="md-b" data-mdact="msg|'+r.p+'">'+mdIco("msg")+'Message</button><span class="md-phwrap"><button type="button" class="md-b" data-mdact="showphone|'+r.p+'">'+mdIco("ph")+"Call</button></span></div>"
   +'<div class="md-tabs"><button type="button" class="md-tab'+(tab==="app"?" on":"")+'" data-mdtab="app|'+i+'">Application</button><button type="button" class="md-tab'+(tab==="act"?" on":"")+'" data-mdtab="act|'+i+'">Activity &amp; notes</button></div>'
   +(tab==="app"?app:act)+"</div>"}
+function fltRowHtml(i){
+ return '<div class="iv2-filters agx-fltrow">'+fchip(i,"ag","All agents")+(i!==0?dchip(i):"")+'</div>'}
 function panelBody(i,mode){
  var RS=rowsOf(i);
  if(!RS.length)return '<div class="iv2-card"><div class="md-none"><b>No candidates match these filters</b></div></div>';
  var sel=mdSel(i);
- return '<div class="iv2-filters" style="margin:0 32px 16px">'+fchip(i,"ag","All agents")+searchHtml(i)+"</div>"
-  +'<div class="md-wrap"><div class="md-list">'+RS.map(function(r){return mdCard(r,i,sel&&r.p===sel.p)}).join("")+"</div>"
+ return '<div class="md-wrap"><div class="md-list">'+RS.map(function(r){return mdCard(r,i,sel&&r.p===sel.p)}).join("")+"</div>"
   +(sel?mdDetail(i,sel):"")+"</div>"}
 
 var MODES={0:"empty",1:"empty",2:"empty",3:"empty"};
@@ -6407,9 +6421,16 @@ function paint(){
 var tabs=document.querySelector(".iv-tabs");if(!tabs)return;
 var names=["Upcoming","Pending","Action needed","Past"];
 tabs.innerHTML=names.map(function(n,i){
-var c=DEF[i].rows.length;
+var c=rowsOf(i).length;
 var badge=(i===2)?'<span class="iv2-badge">'+c+'</span>':'<span class="iv-count">'+c+'</span>';
 return '<div class="iv-tab'+(i===ACTIVE?" active":"")+'" data-iv2="'+i+'">'+n+badge+'</div>';}).join("");
+var tw=document.querySelector(".iv-tabs-wrapper");
+if(tw){var fr=document.getElementById("agxFltRow");
+ if(!fr){fr=document.createElement("div");fr.id="agxFltRow";tw.parentNode.insertBefore(fr,tw)}
+ fr.innerHTML=fltRowHtml(ACTIVE);
+ Array.prototype.forEach.call(fr.querySelectorAll("[data-dt]"),function(b){b.onclick=function(e){e.stopPropagation();
+  flt(+b.getAttribute("data-i")).dt=+b.getAttribute("data-dt");KEEPOPEN=null;paint()}});
+}
 var wrap=document.querySelector(".iv-panel-wrapper");if(!wrap)return;
 wrap.innerHTML=[0,1,2,3].map(function(i){
 return '<div class="iv-tab-panel'+(i===ACTIVE?" active":"")+'" id="iv-panel-'+i+'">'+panelHtml(i,MODES[i])+'</div>';}).join("");
