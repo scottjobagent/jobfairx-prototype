@@ -5426,6 +5426,27 @@ table.iv2:has(th:nth-child(8)) th:nth-child(8){width:92px}
 .iv2-grp button:first-child{border-radius:11px 0 0 11px}
 .iv2-grp button:last-child{border-radius:0 11px 11px 0}
 .iv2-grp button+button{border-left:1px solid #595959}
+
+/* working filters */
+.iv2-fwrap{position:relative;display:inline-block}
+.iv2-chip.on{border-color:#004fcb;color:#004fcb}
+.iv2-fpop{display:none;position:absolute;left:0;top:calc(100% + 8px);background:#fff;border:1px solid #e4e2e0;border-radius:12px;padding:8px;min-width:240px;max-height:330px;overflow:auto;z-index:700;box-shadow:rgba(45,45,45,.16) 0 0 2px 0,rgba(45,45,45,.08) 0 4px 8px 0,rgba(45,45,45,.04) 0 8px 16px 0}
+.iv2-fpop.on{display:block}
+.iv2-fopt{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;font-size:14px;color:#2d2d2d;cursor:pointer;white-space:nowrap}
+.iv2-fopt:hover{background:#f3f2f1}
+.iv2-fopt input{width:18px;height:18px;flex:0 0 18px;accent-color:#004fcb;cursor:pointer;margin:0}
+.iv2-fsort{display:flex;align-items:center;gap:9px;width:100%;background:none;border:none;border-radius:8px;padding:9px 10px;font-family:inherit;font-size:14px;color:#2d2d2d;text-align:left;cursor:pointer;white-space:nowrap}
+.iv2-fsort:hover{background:#f3f2f1}
+.iv2-fsort.cur{font-weight:700}
+.iv2-fsort .ck2{width:14px;height:14px;flex:0 0 14px;stroke:#2d2d2d;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;visibility:hidden}
+.iv2-fsort.cur .ck2{visibility:visible}
+.iv2-fclear{display:block;width:100%;margin-top:6px;padding:10px;background:none;border:none;border-top:1px solid #f0efec;font-family:inherit;font-size:14px;font-weight:700;color:#004fcb;cursor:pointer;text-align:left}
+.iv2-fnone{padding:10px;font-size:14px;color:#767676}
+.iv2-sinput{border:none;outline:none;background:transparent;font-family:inherit;font-size:14px;color:#2d2d2d;flex:1;min-width:0;padding:0}
+.iv2-nomatch{padding:56px 22px;text-align:center}
+.iv2-nomatch b{display:block;font-size:16px;font-weight:700;color:#2d2d2d;margin-bottom:6px}
+.iv2-nomatch span{font-size:14px;color:#595959}
+.iv2-nomatch button{margin-top:14px;background:#fff;border:1px solid #595959;border-radius:12px;padding:9px 15px;font-family:inherit;font-size:14px;font-weight:700;color:#2d2d2d;cursor:pointer}
 </style>
 <script>
 (function(){
@@ -5489,7 +5510,51 @@ var h='<tr><td><div class="iv2-nm">'+p.n+'</div><div class="iv2-loc">'+p.l+'</di
 +'<td><div class="iv2-t1">'+r.t[0]+'</div><div class="iv2-t2">'+r.t[1]+'</div>'+(r.ty?'<div class="iv2-ty">'+mi(r.ty==="Phone"?"ph":"cam")+r.ty+'</div>':"")+'</td>';
 if(past)h+='<td><span class="iv2-pill" style="background:'+r.fb[1]+';color:'+r.fb[2]+'">'+r.fb[0]+'</span></td><td><a class="iv2-notes">'+r.nt+'</a></td>';
 h+='<td class="c">'+actHtml(r.act,live,r)+'</td></tr>';return h;}
-function chip(x){return '<div class="iv2-chip">'+x+'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#767676" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></div>'}
+var KEEPOPEN=null;
+var CHEV2='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>';
+var CK2='<svg class="ck2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+var FLT={};
+function flt(i){if(!FLT[i])FLT[i]={ag:{},iv:{},sort:"new",q:""};return FLT[i]}
+function resetFlt(){FLT={}}
+function nSel(o){var n=0;for(var k in o)if(o[k])n++;return n}
+function uniqOf(i,key){var out=[];DEF[i].rows.forEach(function(r){var v=(key==="ag")?r.ag:r.iv;if(v&&out.indexOf(v)<0)out.push(v)});return out.sort()}
+function tsOf(r){var M={Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
+ var s=(r.t&&r.t[0])||"";var m=s.match(/([A-Z][a-z]{2})\s+(\d+)/);return m?((M[m[1]]||0)*100+parseInt(m[2],10)):0}
+function fltActive(i){var f=flt(i);return nSel(f.ag)||nSel(f.iv)||f.q}
+function rowsOf(i){
+ var f=flt(i),out=DEF[i].rows.slice();
+ if(nSel(f.ag))out=out.filter(function(r){return !!f.ag[r.ag]});
+ if(nSel(f.iv))out=out.filter(function(r){return !!f.iv[r.iv]});
+ if(f.q){var q=f.q.toLowerCase();out=out.filter(function(r){var p=P[r.p]||{};
+  return ((p.n||"")+" "+(p.l||"")+" "+(r.ag||"")+" "+(r.iv||"")).toLowerCase().indexOf(q)>=0})}
+ out.sort(function(a,b){return f.sort==="new"?(tsOf(b)-tsOf(a)):(tsOf(a)-tsOf(b))});
+ return out;
+}
+function fchip(i,key,label){
+ var f=flt(i),vals=uniqOf(i,key),n=nSel(f[key]);
+ var word=(key==="ag")?"agent":"interviewer";
+ var txt=n?(n+" "+word+(n>1?"s":"")):label;
+ var items=vals.map(function(v){
+  return '<label class="iv2-fopt"><input type="checkbox" data-f="'+key+'" data-i="'+i+'" data-v="'+v.replace(/"/g,"&quot;")+'"'+(f[key][v]?" checked":"")+'><span>'+v+'</span></label>'}).join("");
+ if(!vals.length)items='<div class="iv2-fnone">Nothing to filter</div>';
+ return '<span class="iv2-fwrap"><button type="button" class="iv2-chip'+(n?" on":"")+'" data-fpop="fp'+i+key+'">'+txt+CHEV2+'</button>'
+ +'<div class="iv2-fpop" id="fp'+i+key+'">'+items
+ +(n?'<button type="button" class="iv2-fclear" data-clear="'+key+'" data-i="'+i+'">Clear</button>':"")+'</div></span>';
+}
+function schip(i){
+ var f=flt(i);
+ var items=[["new","Newest first"],["old","Oldest first"]].map(function(o){
+  return '<button type="button" class="iv2-fsort'+(f.sort===o[0]?" cur":"")+'" data-sort="'+o[0]+'" data-i="'+i+'">'+CK2+o[1]+'</button>'}).join("");
+ return '<span class="iv2-fwrap"><button type="button" class="iv2-chip" data-fpop="fp'+i+'sort">Sort: '+(f.sort==="new"?"Newest":"Oldest")+CHEV2+'</button>'
+ +'<div class="iv2-fpop" id="fp'+i+'sort">'+items+'</div></span>';
+}
+function searchHtml(i){
+ var f=flt(i);
+ return '<div class="iv2-search"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#767676" stroke-width="2"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>'
+ +'<input type="text" class="iv2-sinput" data-i="'+i+'" value="'+String(f.q).replace(/"/g,"&quot;")+'" placeholder="Search candidates"></div>';
+}
+var QFOCUS=null;
+
 var SEL={};
 var BULKQ={0:["Cancel {n} interview{s}?","These candidates will be told their interview was cancelled. This can't be undone.","Cancel interviews"],1:["Cancel {n} request{s}?","These candidates will be told the interview request was withdrawn. This can't be undone.","Cancel requests"],2:["Decline {n} request{s}?","These candidates will be told you can't take their requested interview time. This can't be undone.","Decline requests"],3:null};
 function selN(i){var n=0;for(var k in SEL){if(SEL[k]&&k.split(":")[0]==i)n++}return n}
@@ -5517,6 +5582,28 @@ Array.prototype.forEach.call(document.querySelectorAll(".iv2-menu"),function(x){
 document.getElementById("iv2Ov").classList.add("on")}
 function whoOf(K){if(!K)return {n:"This candidate",t:["",""]};var a=K.split(":");var r=DEF[a[0]].rows[a[1]];return {n:P[r.p].n,t:r.t}}
 function wire(wrap){
+Array.prototype.forEach.call(wrap.querySelectorAll("[data-fpop]"),function(b){b.onclick=function(e){e.stopPropagation();
+ var p=document.getElementById(b.getAttribute("data-fpop"));var was=p.classList.contains("on");
+ Array.prototype.forEach.call(document.querySelectorAll(".iv2-fpop"),function(x){x.classList.remove("on")});
+ Array.prototype.forEach.call(document.querySelectorAll(".iv2-menu"),function(x){x.classList.remove("on")});
+ if(!was)p.classList.add("on")}});
+Array.prototype.forEach.call(wrap.querySelectorAll(".iv2-fpop"),function(p){p.onclick=function(e){e.stopPropagation()}});
+Array.prototype.forEach.call(wrap.querySelectorAll("[data-f]"),function(c){c.onchange=function(){
+ var f=flt(+c.getAttribute("data-i")),k=c.getAttribute("data-f"),v=c.getAttribute("data-v");
+ if(c.checked)f[k][v]=true;else delete f[k][v];
+ KEEPOPEN=c.closest(".iv2-fpop").id;paint()}});
+Array.prototype.forEach.call(wrap.querySelectorAll("[data-clear]"),function(b){b.onclick=function(e){e.stopPropagation();
+ var f=flt(+b.getAttribute("data-i"));f[b.getAttribute("data-clear")]={};paint()}});
+Array.prototype.forEach.call(wrap.querySelectorAll("[data-sort]"),function(b){b.onclick=function(e){e.stopPropagation();
+ flt(+b.getAttribute("data-i")).sort=b.getAttribute("data-sort");paint()}});
+Array.prototype.forEach.call(wrap.querySelectorAll(".iv2-sinput"),function(inp){inp.oninput=function(){
+ flt(+inp.getAttribute("data-i")).q=inp.value;QFOCUS=+inp.getAttribute("data-i");paint()}});
+Array.prototype.forEach.call(wrap.querySelectorAll("[data-clearall]"),function(b){b.onclick=function(){
+ FLT[+b.getAttribute("data-clearall")]=null;paint()}});
+if(KEEPOPEN){var kp=document.getElementById(KEEPOPEN);if(kp)kp.classList.add("on");KEEPOPEN=null}
+if(QFOCUS!==null){var si=wrap.querySelector('.iv2-sinput[data-i="'+QFOCUS+'"]');
+ if(si){si.focus();si.setSelectionRange(si.value.length,si.value.length)}QFOCUS=null}
+
 Array.prototype.forEach.call(wrap.querySelectorAll(".iv2-cb"),function(c){c.addEventListener("change",function(){
 if(c.hasAttribute("data-all")){var i=c.getAttribute("data-all");DEF[i].rows.forEach(function(x,ri){SEL[i+":"+ri]=c.checked})}
 else{SEL[c.getAttribute("data-row")]=c.checked}
@@ -5541,11 +5628,11 @@ var d=DEF[i];
 if(mode==="empty")return '<div class="iv-empty-state" style="text-align:center;padding:80px 20px"><h2 style="font-size:26px;font-weight:700;color:#2d2d2d;margin-bottom:10px">'+d.empty[0]+'</h2><p style="font-size:16px;color:#595959">'+d.empty[1]+'</p></div>';
 var live=(mode==="live");
 var cols=["Candidate","Work experience","Activity","Interviewer",d.tl].concat(d.past?["Feedback","Notes"]:[]).concat(["Actions"]);
-return '<div class="iv2-card"><div class="iv2-h">'+(d.alert?'<span class="dot"></span>':"")+d.title+' ('+d.rows.length+')</div>'
-+'<div class="iv2-filters">'+chip("All agents")+chip("All interviewers")+chip("Sort: Newest")
-+'<div class="iv2-search"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#767676" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>Search candidates</div></div>'
+return '<div class="iv2-card"><div class="iv2-h">'+(d.alert?'<span class="dot"></span>':"")+d.title+' ('+rowsOf(i).length+')</div>'
++'<div class="iv2-filters">'+fchip(i,"ag","All agents")+fchip(i,"iv","All interviewers")+schip(i)
++searchHtml(i)+'</div>'
 +'<table class="iv2"><tr>'+cols.map(function(c){return '<th'+(c==="Actions"?' class="c"':"")+'>'+c+'</th>'}).join("")+'</tr>'
-+d.rows.map(function(r,ri){return rowHtml(r,d.past,live,i,ri)}).join("")+'</table></div>';}
++(function(){var RS=rowsOf(i);if(!RS.length)return '<tr><td colspan="9"><div class="iv2-nomatch"><b>No candidates match these filters</b><span>Try widening the agent or interviewer filter, or clearing your search.</span><br><button type="button" data-clearall="'+i+'">Clear filters</button></div></td></tr>';return RS.map(function(r,ri){return rowHtml(r,d.past,live,i,ri)}).join("")})()+'</table></div>';}
 var MODES={0:"empty",1:"empty",2:"empty",3:"empty"};
 var ACTIVE=0;
 function paint(){
@@ -5558,7 +5645,7 @@ return '<div class="iv-tab'+(i===ACTIVE?" active":"")+'" data-iv2="'+i+'">'+n+ba
 var wrap=document.querySelector(".iv-panel-wrapper");if(!wrap)return;
 wrap.innerHTML=[0,1,2,3].map(function(i){
 return '<div class="iv-tab-panel'+(i===ACTIVE?" active":"")+'" id="iv-panel-'+i+'">'+panelHtml(i,MODES[i])+'</div>';}).join("");
-Array.prototype.forEach.call(tabs.querySelectorAll("[data-iv2]"),function(b){b.addEventListener("click",function(){ACTIVE=+b.getAttribute("data-iv2");paint();syncBtns()})});
+Array.prototype.forEach.call(tabs.querySelectorAll("[data-iv2]"),function(b){b.addEventListener("click",function(){ACTIVE=+b.getAttribute("data-iv2");resetFlt();paint();syncBtns()})});
 Array.prototype.forEach.call(wrap.querySelectorAll("[data-menu]"),function(b){b.addEventListener("click",function(e){e.stopPropagation();var m=document.getElementById(b.getAttribute("data-menu"));var was=m.classList.contains("on");Array.prototype.forEach.call(document.querySelectorAll(".iv2-menu"),function(x){x.classList.remove("on")});if(!was)m.classList.add("on")})});
 wire(wrap);
 }
@@ -5571,7 +5658,7 @@ window.syncIvHeaderToggle=syncBtns;
 window.setIvUpcomingDevMode=window.setIvPendingDevMode=window.setIvPastDevMode=function(mode,btn){MODES[0]=MODES[1]=MODES[2]=MODES[3]=mode;paint();syncBtns();if(btn){var g=btn.parentNode;if(g)Array.prototype.forEach.call(g.querySelectorAll(".dev-toggle-btn"),function(x){x.classList.toggle("active",x===btn)})}};
 paint();syncBtns();
 }
-document.addEventListener("click",function(){Array.prototype.forEach.call(document.querySelectorAll(".iv2-menu"),function(x){x.classList.remove("on")})});
+document.addEventListener("click",function(){Array.prototype.forEach.call(document.querySelectorAll(".iv2-menu,.iv2-fpop"),function(x){x.classList.remove("on")})});
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot);else boot();
 })();
 </script>
