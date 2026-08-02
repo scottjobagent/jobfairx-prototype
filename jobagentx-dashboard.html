@@ -5750,6 +5750,24 @@ table.iv2 td:nth-child(4){overflow:visible}
 .md-list{flex:0 0 480px !important}
 .md-wrap{align-items:flex-start !important}
 .md-det{align-self:flex-start}
+/* AGX-STATES — per-tab detail actions + confirm modal restyled to the Cancel call spec */
+.iv2-mdl{border-radius:20px;position:relative;max-width:480px}
+.iv2-mdl h3{padding-right:48px;font-size:20px}
+.iv2-mdl p{font-size:16px}
+.iv2-mdl .ft{justify-content:space-between;align-items:center}
+.iv2-x{position:absolute;top:12px;right:12px;width:44px;height:44px;border:none;background:none;border-radius:12px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;color:#2d2d2d;padding:0}
+.iv2-x:hover{background:#f3f2f1}
+.iv2-x svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2}
+.iv2-mdl .go{background:#a9252b;border-color:#a9252b;border-radius:12px;height:44px;padding:0 16px;font-size:16px;font-weight:700}
+.iv2-mdl .go:hover{background:#8e1f24;border-color:#8e1f24}
+.iv2-mdl .go.safe{background:#004fcb;border-color:#004fcb}
+.iv2-mdl .iv2-bs{background:none;border:none;color:#004fcb;border-radius:12px;height:44px;padding:0 16px;font-size:16px;font-weight:700}
+.iv2-mdl .iv2-bs:hover{background:#f3f2f1}
+.md-ic .iv2-grp{vertical-align:middle}
+.md-fbchip{display:inline-flex;align-items:center;font-size:12px;font-weight:700;padding:3px 9px;border-radius:8px;margin-top:8px}
+.md-fbchip.yes{background:#e4f7e6;color:#1f662c}
+.md-fbchip.maybe{background:#fdefe9;color:#844b17}
+.md-fbchip.no{background:#feeeef;color:#a9252b}
 </style>
 <script>
 (function(){
@@ -5896,10 +5914,11 @@ return '<div class="iv2-bulk'+(n?" on":"")+'"><span class="bn">'+n+' selected</s
 function closeMdl(){var o=document.getElementById("iv2Ov");if(o)o.classList.remove("on")}
 function ensureMdl(){if(document.getElementById("iv2Ov"))return;
 var o=document.createElement("div");o.className="iv2-ov";o.id="iv2Ov";
-o.innerHTML='<div class="iv2-mdl"><div class="hd"><h3 id="iv2MT"></h3><p id="iv2MB"></p></div><div class="ft"><button type="button" class="iv2-bs" id="iv2MN"></button><button type="button" class="go" id="iv2MY"></button></div></div>';
+o.innerHTML='<div class="iv2-mdl"><button type="button" class="iv2-x" id="iv2MX" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button><div class="hd"><h3 id="iv2MT"></h3><p id="iv2MB"></p></div><div class="ft"><button type="button" class="iv2-bs" id="iv2MN"></button><button type="button" class="go" id="iv2MY"></button></div></div>';
 document.body.appendChild(o);
 o.addEventListener("click",function(e){if(e.target===o)closeMdl()});
 document.getElementById("iv2MN").addEventListener("click",closeMdl);
+document.getElementById("iv2MX").addEventListener("click",closeMdl);
 document.getElementById("iv2MY").addEventListener("click",function(){var f=window.__mdlGo;window.__mdlGo=null;closeMdl();if(f)f()})}
 function askMdlGo(t,b,yes,no,fn){askMdl(t,b,yes,no);window.__mdlGo=fn;document.getElementById("iv2MY").classList.add("safe")}
 function askMdl(t,b,yes,no){ensureMdl();window.__mdlGo=null;document.getElementById("iv2MY").classList.remove("safe");
@@ -6287,6 +6306,14 @@ Array.prototype.forEach.call(wrap.querySelectorAll("[data-mdact]"),function(b){b
  var who=(P[pk]&&P[pk].n)||"the candidate";var x=pxOf(pk);
  if(act==="setup"){openSch(pk);return}
  if(act==="notes"){openEv(pk);return}
+ if(act==="cancelcall"){askMdl("Cancel call","","Cancel call","Back");
+  document.getElementById("iv2MB").innerHTML="Are you sure you want to cancel?<br>We\u2019ll notify "+who+" about the cancellation.";
+  window.__mdlGo=function(){showToast("success","Call with "+who+" cancelled.")};return}
+ if(act==="accept"){showToast("success","Interview with "+who+" accepted.");return}
+ if(act==="decline"){askMdl("Decline interview","","Decline interview","Back");
+  document.getElementById("iv2MB").innerHTML="Are you sure you want to decline?<br>We\u2019ll notify "+who+" about the decision.";
+  window.__mdlGo=function(){showToast("success","Interview with "+who+" declined.")};return}
+ if(act==="resched"){openSch(pk);return}
  if(act==="msg"){openDock(pk);return}
  if(act==="join"){window.open("interview-loader.html?who="+encodeURIComponent(who)+"&start="+(q[2]||0)+"&label="+(q[3]||""),"_blank");return}
  if(act==="showphone"){var w=b.parentNode;
@@ -6370,7 +6397,7 @@ if(mode==="empty")return '<div class="iv-empty-state" style="text-align:center;p
 var live=(mode==="live");
 return panelBody(i,mode);}
 var MDSEL={},MDTAB={},MDJOINWIN=15;
-function mdIco(k){var d=(k==="ph")?"<path d=\"M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z\"/>":(k==="cam")?"<polygon points=\"23 7 16 12 23 17 23 7\"/><rect x=\"1\" y=\"5\" width=\"15\" height=\"14\" rx=\"2\"/>":(k==="pin")?"<path d=\"M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z\"/><circle cx=\"12\" cy=\"10\" r=\"3\"/>":(k==="msg")?"<path d=\"M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z\"/>":(k==="clip")?"<rect x=\"5\" y=\"4\" width=\"14\" height=\"17\" rx=\"2\"/><path d=\"M9 4h6v3H9z\"/>":(k==="cal")?"<rect x=\"3\" y=\"5\" width=\"18\" height=\"16\" rx=\"2\"/><path d=\"M3 10h18M8 3v4M16 3v4\"/>":(k==="dl")?"<path d=\"M12 3v12\"/><polyline points=\"7 11 12 16 17 11\"/><path d=\"M4 20h16\"/>":"";
+function mdIco(k){var d=(k==="x")?'<path d="M6 6l12 12M18 6L6 18"/>':(k==="ph")?"<path d=\"M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z\"/>":(k==="cam")?"<polygon points=\"23 7 16 12 23 17 23 7\"/><rect x=\"1\" y=\"5\" width=\"15\" height=\"14\" rx=\"2\"/>":(k==="pin")?"<path d=\"M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z\"/><circle cx=\"12\" cy=\"10\" r=\"3\"/>":(k==="msg")?"<path d=\"M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z\"/>":(k==="clip")?"<rect x=\"5\" y=\"4\" width=\"14\" height=\"17\" rx=\"2\"/><path d=\"M9 4h6v3H9z\"/>":(k==="cal")?"<rect x=\"3\" y=\"5\" width=\"18\" height=\"16\" rx=\"2\"/><path d=\"M3 10h18M8 3v4M16 3v4\"/>":(k==="dl")?"<path d=\"M12 3v12\"/><polyline points=\"7 11 12 16 17 11\"/><path d=\"M4 20h16\"/>":"";
  return '<svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">'+d+"</svg>"}
 function mdEpoch(r){var M={Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
  var d=((r.t&&r.t[0])||"").match(/([A-Z][a-z]{2})\s+(\d+)/);if(!d)return 0;
@@ -6388,17 +6415,41 @@ function mdCard(r,i,on){var p=P[r.p];var ph=(r.ty==="Phone");
   +mdChip(r,i)
   +'<div class="md-it-d">'+r.t[0]+" &middot; "+r.t[1]+"</div>"
   +'<div class="md-it-a">'+r.ag+"</div></div>"}
+function agxGrp(pk){return '<div class="iv2-grp" style="margin-right:8px">'
+ +'<button class="ok iv2-tt" data-tip="Accept interview" data-mdact="accept|'+pk+'">'+ico("check")+'</button>'
+ +'<button class="re iv2-tt" data-tip="Propose a different time" data-mdact="resched|'+pk+'">'+ico("cal")+'</button>'
+ +'<button class="no iv2-tt" data-tip="Decline interview" data-mdact="decline|'+pk+'">'+ico("x")+'</button></div>'}
 function mdDetail(i,r){
  var p=P[r.p],x=pxOf(r.p),ph=(r.ty==="Phone");
  var tab=MDTAB[i]||"app";
  var prim=ph?('<span class="md-phwrap"><button type="button" class="md-b pri" data-mdact="showphone|'+r.p+'">'+mdIco("ph")+"Show phone number</button></span>")
   :('<button type="button" class="md-b pri" data-mdact="join|'+r.p+"|"+mdEpoch(r)+"|"+encodeURIComponent(r.t[0]+", "+r.t[1])+'">'+mdIco("cam")+"Join interview</button>");
+ var noteB='<button type="button" class="md-b" data-mdact="notes|'+r.p+'">'+mdIco("clip")+"Take notes</button>";
+ var fb=(r.fb&&r.fb[0]&&r.fb[0]!=="\u2014")?r.fb[0]:"";
+ var acts,kebI;
+ if(i===1){
+  acts='<button type="button" class="md-b pri" data-mdact="msg|'+r.p+'">'+mdIco("msg")+"Send a message</button>"
+   +'<button type="button" class="md-b" data-mdact="setup|'+r.p+'">'+mdIco("cal")+"Change proposed times</button>"
+   +'<button type="button" class="md-b" data-mdact="cancelcall|'+r.p+'">'+mdIco("x")+"Cancel call</button>";
+  kebI=[["dl","Download resume",0]];
+ } else if(i===2){
+  acts=agxGrp(r.p)+noteB;
+  kebI=[["msg","Send a message",0],["dl","Download resume",0]];
+ } else if(i===3){
+  acts='<button type="button" class="md-b pri" data-mdact="setup|'+r.p+'">'+mdIco("cal")+"Set up interview</button>"
+   +'<button type="button" class="md-b" data-mdact="notes|'+r.p+'">'+mdIco("clip")+(fb?"Update evaluation":"Add evaluation")+"</button>";
+  kebI=[["msg","Send a message",0],["dl","Download resume",0]];
+ } else {
+  acts=prim+noteB;
+  kebI=[["cal","Reschedule",0],["x","Cancel interview",1]];
+ }
  var ivCard='<div class="md-ic"><div style="display:flex;justify-content:space-between;gap:8px"><span style="font-size:16px;font-weight:700;color:#2d2d2d">'+(ph?"Phone":"Video")+" interview</span>"
-  +keb([["cal","Reschedule",0],["x",(i===2?"Decline":"Cancel interview"),1]])+"</div>"
+  +keb(kebI)+"</div>"
   +mdChip(r,i)
   +'<div class="md-lbl">'+r.t[0]+" &middot; "+r.t[1]+"</div>"
   +'<div class="md-lbl"><b>Interviewers:</b> '+(r.iv||"Not assigned")+"</div>"
-  +'<div class="md-acts" style="margin-top:13px">'+prim+'<button type="button" class="md-b" data-mdact="notes|'+r.p+'">'+mdIco("clip")+"Take notes</button></div>"
+  +(fb&&i===3?'<div class="md-fbchip '+fb.toLowerCase()+'">'+fb+"</div>":"")
+  +'<div class="md-acts" style="margin-top:13px">'+acts+"</div>"
   +"</div>";
  var quals=(x.sk||[]).map(function(s){return '<span class="md-q"><i></i>'+s+"</span>"}).join("");
  var work=(p.w||[]).map(function(w,n){return '<div class="md-fd">'+w[0]+'</div><div class="md-fe">'+w[1]+"</div>"+(x.d[n]?'<div class="md-fe" style="color:#3d3d3a;line-height:1.6;margin-top:7px">'+x.d[n]+"</div>":"")}).join("");
