@@ -1,55 +1,82 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Loading your interview · JobFairX</title>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Join your interview · JobAgentX</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  * { margin:0; padding:0; box-sizing:border-box; }
-  html, body { height:100%; }
-  body { font-family:'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; background:#fff; color:#2d2d2d; -webkit-font-smoothing:antialiased; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:24px; }
-
-  .brand { font-size:20px; font-weight:700; color:#0044B3; letter-spacing:-.2px; margin-bottom:44px; }
-
-  .spin-wrap { position:relative; width:76px; height:76px; margin-bottom:26px; }
-  .ring { position:absolute; inset:0; border:4px solid #e8eefb; border-top-color:#0044B3; border-radius:50%; animation:spin .9s linear infinite; }
-  .cam { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:28px; height:28px; stroke:#0044B3; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; animation:pulse 1.6s ease-in-out infinite; }
-  @keyframes spin { to { transform:rotate(360deg); } }
-  @keyframes pulse { 0%,100% { opacity:.55; } 50% { opacity:1; } }
-
-  h1 { font-size:19px; font-weight:700; color:#2d2d2d; }
-  p { font-size:14.5px; color:#767676; line-height:1.55; margin-top:8px; max-width:300px; }
-
-  .dots { display:inline-block; width:1.2em; text-align:left; }
-  .dots::after { content:''; animation:dots 1.4s steps(4,end) infinite; }
-  @keyframes dots { 0%{content:'';} 25%{content:'.';} 50%{content:'..';} 75%{content:'...';} 100%{content:'';} }
-</style>
-</head>
-<body>
-  <div class="brand">JobFairX</div>
-
-  <div class="spin-wrap">
-    <div class="ring"></div>
-    <svg class="cam" viewBox="0 0 24 24"><rect x="2" y="6" width="13" height="12" rx="2"/><path d="M22 8.5l-7 4 7 4v-8z"/></svg>
-  </div>
-
-  <h1>Loading your interview experience<span class="dots"></span></h1>
-  <p>Getting your video and audio ready. This only takes a moment.</p>
-  <p id="ilAgent" style="margin-top:14px;font-size:14px;color:#767676"></p>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{font-family:"Noto Sans",-apple-system,BlinkMacSystemFont,sans-serif;background:#f3f2f1;color:#2d2d2d;-webkit-font-smoothing:antialiased}
+.top{display:flex;align-items:center;justify-content:space-between;padding:18px 28px;background:#fff;border-bottom:1px solid #e4e2e0}
+.brand{font-size:20px;font-weight:700;color:#004fcb;letter-spacing:-.3px}
+.acct{font-size:14px;color:#595959}
+.wrap{display:flex;justify-content:center;padding:44px 20px}
+.card{width:100%;max-width:737px;background:#fff;border:1px solid #e4e2e0;border-radius:20px;padding:48px 40px;text-align:center}
+.art{margin:0 auto 26px;display:block}
+h1{font-size:24px;font-weight:700;color:#2d2d2d;line-height:1.3}
+.sub{font-size:16px;color:#595959;margin-top:8px}
+.lab{font-size:16px;font-weight:700;color:#2d2d2d;margin-top:30px}
+.val{font-size:16px;color:#595959;margin-top:6px}
+.go{display:inline-flex;align-items:center;justify-content:center;height:44px;padding:0 16px;margin-top:34px;border:none;border-radius:12px;background:#004fcb;color:#fff;font-family:inherit;font-size:16px;font-weight:700;cursor:pointer;text-decoration:none}
+.go:hover{background:#0043ad}
+.spin-wrap{position:relative;width:74px;height:74px;margin:0 auto 26px}
+.ring{position:absolute;inset:0;border:3px solid #e4e2e0;border-top-color:#004fcb;border-radius:50%;animation:sp 1s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.cam{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:28px;height:28px;fill:none;stroke:#004fcb;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.dots:after{content:"";animation:dt 1.4s steps(4,end) infinite}
+@keyframes dt{0%{content:""}25%{content:"."}50%{content:".."}75%{content:"..."}}
+</style></head><body>
+<div class="top"><div class="brand">JobAgentX</div><div class="acct" id="ilAcct"></div></div>
+<div class="wrap"><div class="card" id="ilCard"></div></div>
 <script>
 (function(){
  var AG={"rn-dallas":"Registered Nurse \u2013 Dallas, TX","cna-pittsburgh":"Certified Nursing Assistant \u2013 Pittsburgh, PA","wa-austin":"Warehouse Associate \u2013 Austin, TX","rncm-houston":"RN Care Manager \u2013 Houston, TX","se-chicago":"Software Engineer \u2013 Chicago, IL","fe-atlanta":"Frontend Developer \u2013 Atlanta, GA","rbt-houston":"Registered Behavior Technician \u2013 Houston, TX"};
  var q=location.search||"";
+ function P(k){var m=q.match(new RegExp("[?&]"+k+"=([^&]*)"));return m?decodeURIComponent(m[1].replace(/\+/g," ")):""}
+ var WIN=15;
+ var start=parseInt(P("start"),10)||0;
+ var who=P("who")||"your candidate";
+ var label=P("label")||"";
+ var endLabel=P("end")||"";
+ var card=document.getElementById("ilCard");
+ function fmt(d){
+  var M=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  var h=d.getHours(),ap=h<12?"AM":"PM",hh=h%12;if(hh===0)hh=12;
+  var mm=d.getMinutes();mm=(mm<10?"0":"")+mm;
+  return M[d.getMonth()]+" "+d.getDate()+", "+d.getFullYear()+", "+hh+":"+mm+" "+ap}
+ var early=(start>0)&&(Date.now()<start-WIN*60000);
+ if(early){
+  var art='<svg class="art" width="150" height="110" viewBox="0 0 150 110" fill="none" aria-hidden="true">'
+   +'<path d="M18 96 L75 12 L132 96 Z" fill="#fbe3c4"/>'
+   +'<rect x="38" y="40" width="74" height="52" rx="5" fill="#fff" stroke="#0e6b73" stroke-width="4"/>'
+   +'<rect x="30" y="92" width="90" height="7" rx="3.5" fill="#0e6b73"/>'
+   +'<circle cx="75" cy="60" r="13" fill="#f4886b"/>'
+   +'<rect x="73.2" y="53" width="3.6" height="9" rx="1.8" fill="#fff"/>'
+   +'<circle cx="75" cy="66" r="2" fill="#fff"/>'
+   +'<rect x="52" y="78" width="46" height="5" rx="2.5" fill="#d8d5f0"/>'
+   +'<rect x="52" y="78" width="22" height="5" rx="2.5" fill="#4b3fa8"/>'
+   +"</svg>";
+  var sched=label?(label+(endLabel?" to "+endLabel:"")):fmt(new Date(start));
+  card.innerHTML=art
+   +"<h1>The interview you are trying to access hasn\u2019t started yet</h1>"
+   +'<div class="sub">You\u2019ll be able to join your interview '+WIN+' minutes before the start time.</div>'
+   +'<div class="lab">Scheduled interview time</div><div class="val">'+sched+"</div>"
+   +'<div class="lab">Current time</div><div class="val" id="ilNow">'+fmt(new Date())+"</div>"
+   +'<div><a class="go" href="jobagentx-dashboard.html">Go back to JobAgentX</a></div>';
+  setInterval(function(){
+   var n=document.getElementById("ilNow");if(n)n.textContent=fmt(new Date());
+   if(Date.now()>=start-WIN*60000)location.href="jobagentx-interview-room.html"+q;
+  },1000);
+  return}
+ card.innerHTML='<div class="spin-wrap"><div class="ring"></div><svg class="cam" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></div>'
+  +'<h1>Loading your interview<span class="dots"></span></h1>'
+  +'<div class="sub">Getting your video and audio ready. This only takes a moment.</div>'
+  +(who?'<div class="val" style="margin-top:16px">Interview with '+who+"</div>":"");
  var m=q.match(/agent=([a-z0-9-]+)/i);
- var el=document.getElementById("ilAgent");
- if(el&&m&&AG[m[1]])el.textContent=AG[m[1]];
+ if(m&&AG[m[1]]){var e=document.createElement("div");e.className="val";e.textContent=AG[m[1]];card.appendChild(e)}
  setTimeout(function(){
-  document.body.style.transition="opacity .3s";
-  document.body.style.opacity="0";
+  document.body.style.transition="opacity .3s";document.body.style.opacity="0";
   setTimeout(function(){location.href="jobagentx-interview-room.html"+q},300);
  },1800);
 })();
 </script>
-</body>
-</html>
+</body></html>
