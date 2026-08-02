@@ -6555,8 +6555,22 @@ Array.prototype.forEach.call(wrap.querySelectorAll("[data-menu]"),function(b){b.
 wire(wrap);
 }
 function syncBtns(){var m=MODES[ACTIVE];Array.prototype.forEach.call(document.querySelectorAll("#ivHeaderToggle .dev-toggle-btn"),function(b){b.classList.toggle("active",b.textContent.trim().toLowerCase()===m)})}
+function agxDemoCd(){
+ try{
+  var q=(location.search.match(/[?&]cd=(-?\d+)/)||[])[1];
+  var off=(q!==undefined)?(parseInt(q,10)*1000):(3*3600*1000);
+  var d=new Date(Date.now()+off);
+  var DAY=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  var MO=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  var hh=d.getHours(),ap=hh<12?"AM":"PM",h12=(hh%12===0)?12:(hh%12);
+  var mm=(d.getMinutes()<10?"0":"")+d.getMinutes();
+  var r=DEF[0]&&DEF[0].rows&&DEF[0].rows[0];
+  if(r){r.t=[DAY[d.getDay()]+", "+MO[d.getMonth()]+" "+d.getDate(),h12+":"+mm+" "+ap+" CT"];r.__cdDemo=1}
+ }catch(e){}
+}
 function boot(){
 if(!document.querySelector(".iv-tabs"))return setTimeout(boot,150);
+agxDemoCd();
 window.switchIvTab=function(i){ACTIVE=i;paint();syncBtns()};
 window.setIvCurrentTabMode=function(mode,btn){MODES[0]=MODES[1]=MODES[2]=MODES[3]=mode;paint();syncBtns()};
 window.syncIvHeaderToggle=syncBtns;
