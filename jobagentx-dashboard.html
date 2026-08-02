@@ -5768,6 +5768,12 @@ table.iv2 td:nth-child(4){overflow:visible}
 .md-fbchip.yes{background:#e4f7e6;color:#1f662c}
 .md-fbchip.maybe{background:#fdefe9;color:#844b17}
 .md-fbchip.no{background:#feeeef;color:#a9252b}
+/* AGX-CD — countdown chip + call meta line in the detail header */
+.md-cd{display:inline-flex;align-items:center;gap:6px;background:#ecf2ff;color:#004fcb;font-size:12px;font-weight:700;padding:3px 9px;border-radius:8px;margin-bottom:10px}
+.md-cd.live{background:#e4f7e6;color:#1f662c}
+.md-cd svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;flex:0 0 18px}
+.md-meta{display:flex;align-items:center;gap:9px;font-size:16px;font-weight:700;color:#2d2d2d;margin-top:10px}
+.md-meta svg{width:20px;height:20px;stroke:#595959;fill:none;stroke-width:1.9;flex:0 0 20px}
 </style>
 <script>
 (function(){
@@ -6415,6 +6421,38 @@ function mdCard(r,i,on){var p=P[r.p];var ph=(r.ty==="Phone");
   +mdChip(r,i)
   +'<div class="md-it-d">'+r.t[0]+" &middot; "+r.t[1]+"</div>"
   +'<div class="md-it-a">'+r.ag+"</div></div>"}
+function agxCdText(ms){
+ if(ms<1000)return["Interview is live",1];
+ var s=Math.floor(ms/1000);
+ if(s<60)return["Starts in "+s+" second"+(s===1?"":"s"),0];
+ var m=Math.floor(s/60);
+ if(m<60)return["Starts in "+m+" minute"+(m===1?"":"s"),0];
+ var h=Math.floor(m/60);
+ return["Starts in "+h+" hour"+(h===1?"":"s"),0];
+}
+function agxCdHtml(r){
+ var t=mdEpoch(r);if(!t)return"";
+ var ms=t-Date.now();
+ if(ms>864e5)return"";
+ var o=agxCdText(ms);
+ return '<div class="md-cd'+(o[1]?" live":"")+'" data-cd="'+t+'">'
+  +'<svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9 2h6M18.5 5.5l1.5-1.5"/></svg>'
+  +'<span class="t">'+o[0]+'</span></div>';
+}
+function agxCdTick(){
+ var els=document.querySelectorAll(".md-cd[data-cd]");
+ if(!els.length){if(window.__cdT){clearInterval(window.__cdT);window.__cdT=null}return}
+ Array.prototype.forEach.call(els,function(el){
+  var o=agxCdText(+el.getAttribute("data-cd")-Date.now());
+  var sp=el.querySelector(".t");
+  if(sp&&sp.textContent!==o[0])sp.textContent=o[0];
+  var live=el.classList.contains("live");
+  if(o[1]&&!live)el.classList.add("live");
+  if(!o[1]&&live)el.classList.remove("live");
+ });
+}
+function agxCdStart(){if(window.__cdT)clearInterval(window.__cdT);
+ if(document.querySelector(".md-cd[data-cd]"))window.__cdT=setInterval(agxCdTick,1000)}
 function agxGrp(pk){return '<div class="iv2-grp" style="margin-right:8px">'
  +'<button class="ok iv2-tt" data-tip="Accept interview" data-mdact="accept|'+pk+'">'+ico("check")+'</button>'
  +'<button class="re iv2-tt" data-tip="Propose a different time" data-mdact="resched|'+pk+'">'+ico("cal")+'</button>'
@@ -6466,8 +6504,10 @@ function mdDetail(i,r){
   +'<div class="md-sh">Write private note here...</div><textarea class="md-na" placeholder="Write private note here..." data-mdnote="'+r.p+'"></textarea>'
   +'<div class="md-acts"><button type="button" class="md-b pri" data-mdact="savenote|'+r.p+'">Save note</button></div>';
  return '<div class="md-det">'
+  +agxCdHtml(r)
   +'<div class="md-nm">'+p.n+"</div>"
   +'<div class="md-loc">'+mdIco("pin")+p.l+"</div>"
+  +'<div class="md-meta">'+mdIco(ph?"ph":"cam")+(ph?"Phone call":"Video call")+" &middot; "+r.t[0]+" &middot; "+r.t[1]+"</div>"
   +'<div class="md-acts"><button type="button" class="md-b pri" data-mdact="setup|'+r.p+'">'+mdIco("cal")+'Set up interview</button><button type="button" class="md-b" data-mdact="msg|'+r.p+'">'+mdIco("msg")+'Message</button><span class="md-phwrap"><button type="button" class="md-b" data-mdact="showphone|'+r.p+'">'+mdIco("ph")+"Call</button></span></div>"
   +'<div class="md-tabs"><button type="button" class="md-tab'+(tab==="app"?" on":"")+'" data-mdtab="app|'+i+'">Application</button><button type="button" class="md-tab'+(tab==="act"?" on":"")+'" data-mdtab="act|'+i+'">Activity &amp; notes</button></div>'
   +(tab==="app"?app:act)+"</div>"}
@@ -6509,6 +6549,7 @@ var wrap=document.querySelector(".iv-panel-wrapper");if(!wrap)return;
 wrap.innerHTML=[0,1,2,3].map(function(i){
 return '<div class="iv-tab-panel'+(i===ACTIVE?" active":"")+'" id="iv-panel-'+i+'">'+panelHtml(i,MODES[i])+'</div>';}).join("");
 agxRise();
+agxCdStart();
 Array.prototype.forEach.call(tabs.querySelectorAll("[data-iv2]"),function(b){b.addEventListener("click",function(){ACTIVE=+b.getAttribute("data-iv2");resetFlt();paint();syncBtns()})});
 Array.prototype.forEach.call(wrap.querySelectorAll("[data-menu]"),function(b){b.addEventListener("click",function(e){e.stopPropagation();var m=document.getElementById(b.getAttribute("data-menu"));var was=m.classList.contains("on");Array.prototype.forEach.call(document.querySelectorAll(".iv2-menu"),function(x){x.classList.remove("on")});if(!was)m.classList.add("on")})});
 wire(wrap);
