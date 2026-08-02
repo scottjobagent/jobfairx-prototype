@@ -5744,6 +5744,12 @@ table.iv2 td:nth-child(4){overflow:visible}
 .iv-tab.active{border-bottom-color:#2d2d2d !important}
 .md-wrap{margin:0 0 32px !important}
 .md-list{border-radius:0 0 20px 20px !important;border-top:none !important}
+/* AGX-FIT — left column sized to hold all four tabs; detail pane rises to the filter row */
+#agxFltRow .agx-fltrow{width:480px !important}
+.iv-tabs{width:480px !important}
+.md-list{flex:0 0 480px !important}
+.md-wrap{align-items:flex-start !important}
+.md-det{align-self:flex-start}
 </style>
 <script>
 (function(){
@@ -6425,6 +6431,15 @@ function panelBody(i,mode){
 
 var MODES={0:"empty",1:"empty",2:"empty",3:"empty"};
 var ACTIVE=0;
+function agxRise(){
+ var f=document.querySelector(".agx-fltrow");
+ var p=document.querySelector(".iv-tab-panel.active");
+ var det=p&&p.querySelector(".md-det");
+ if(!f||!det)return;
+ det.style.marginTop="0px";
+ var r=Math.round(det.getBoundingClientRect().top-f.getBoundingClientRect().top);
+ if(r>0)det.style.marginTop=(-r)+"px";
+}
 function paint(){
 var tabs=document.querySelector(".iv-tabs");if(!tabs)return;
 var names=["Upcoming","Pending","Action needed","Past"];
@@ -6442,6 +6457,7 @@ if(tw){var fr=document.getElementById("agxFltRow");
 var wrap=document.querySelector(".iv-panel-wrapper");if(!wrap)return;
 wrap.innerHTML=[0,1,2,3].map(function(i){
 return '<div class="iv-tab-panel'+(i===ACTIVE?" active":"")+'" id="iv-panel-'+i+'">'+panelHtml(i,MODES[i])+'</div>';}).join("");
+agxRise();
 Array.prototype.forEach.call(tabs.querySelectorAll("[data-iv2]"),function(b){b.addEventListener("click",function(){ACTIVE=+b.getAttribute("data-iv2");resetFlt();paint();syncBtns()})});
 Array.prototype.forEach.call(wrap.querySelectorAll("[data-menu]"),function(b){b.addEventListener("click",function(e){e.stopPropagation();var m=document.getElementById(b.getAttribute("data-menu"));var was=m.classList.contains("on");Array.prototype.forEach.call(document.querySelectorAll(".iv2-menu"),function(x){x.classList.remove("on")});if(!was)m.classList.add("on")})});
 wire(wrap);
