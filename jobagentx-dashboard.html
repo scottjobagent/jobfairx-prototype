@@ -5447,6 +5447,21 @@ table.iv2:has(th:nth-child(8)) th:nth-child(8){width:92px}
 .iv2-nomatch b{display:block;font-size:16px;font-weight:700;color:#2d2d2d;margin-bottom:6px}
 .iv2-nomatch span{font-size:14px;color:#595959}
 .iv2-nomatch button{margin-top:14px;background:#fff;border:1px solid #595959;border-radius:12px;padding:9px 15px;font-family:inherit;font-size:14px;font-weight:700;color:#2d2d2d;cursor:pointer}
+
+/* AGX-IV3 interviewer picker */
+.iv2-ivwrap{position:relative;display:inline-block}
+.iv2-iv{display:inline-flex;align-items:center;justify-content:space-between;gap:8px;min-width:150px;border:1px solid #595959;border-radius:12px;padding:9px 12px;font-size:14px;background:#fff;color:#2d2d2d;font-family:inherit;white-space:nowrap;cursor:pointer}
+.iv2-iv:hover{background:#f7f6f5}
+.iv2-ivstatic{font-size:14px;color:#2d2d2d;white-space:nowrap}
+.iv2-ivpop{left:0!important;right:auto!important;width:266px!important;overflow:visible!important;border:none!important;border-radius:12px!important;padding:6px!important;box-shadow:rgba(45,45,45,.16) 0 0 2px 0,rgba(45,45,45,.08) 0 4px 8px 0,rgba(45,45,45,.04) 0 8px 16px 0!important;z-index:900!important}
+.iv2-ivhd{font-size:12px;font-weight:700;color:#767676;letter-spacing:.04em;padding:8px 11px 6px}
+.iv2-ivopt{display:flex;align-items:flex-start;gap:9px;width:100%;background:none;border:none;border-radius:8px;padding:9px 11px;font-family:inherit;font-size:14px;color:#2d2d2d;text-align:left;cursor:pointer}
+.iv2-ivopt:hover{background:#f3f2f1}
+.iv2-ivopt[disabled]{color:#a9a9a9;cursor:default}
+.iv2-ivopt[disabled]:hover{background:none}
+.iv2-ivopt .ivck{flex:0 0 16px;width:16px;margin-top:2px}
+.iv2-ivopt .ivck svg{width:16px;height:16px;display:block}
+.iv2-ivsub{display:block;font-size:12px;color:#a9a9a9;margin-top:2px;white-space:normal}
 </style>
 <script>
 (function(){
@@ -5468,7 +5483,21 @@ var html=(items||[["cal","Reschedule",0],["dl","Download resume",0],["lnk","Copy
 return '<button type="button" class="iv2-mi'+(m[2]?" danger":"")+'">'+mi(m[0])+m[1]+'</button>'}).join("");
 return '<span class="iv2-kwrap"><button class="iv2-keb iv2-tt" data-tip="More actions" aria-label="More actions" data-menu="'+id+'">&#8943;</button><div class="iv2-menu" id="'+id+'">'+html+'</div></span>'}
 function grp(){return '<div class="iv2-grp"><button class="ok iv2-tt" data-tip="Accept">'+ico("check")+'</button><button class="re iv2-tt" data-tip="Reschedule">'+ico("cal")+'</button><button class="no iv2-tt" data-tip="Decline">'+ico("x")+'</button></div>'}
-function ivc(n,note){return '<div class="iv2-iv">'+n+'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#767676" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></div>'+(note?'<div class="iv2-ivn">'+note+'</div>':"")}
+var IVROSTER=[{n:'Emily Chen',r:'Nurse Manager'},{n:'David Park',r:'Engineering Lead'},{n:'Maria Lopez',r:'Technical Recruiter'},{n:'James Wu',r:'Director of Nursing'},{n:'Sarah Kim',r:'Talent Partner'}];
+var IVBUSY={aisha:['Maria Lopez','Sarah Kim'],marcus:['David Park'],priya:['Emily Chen','James Wu'],keisha:['James Wu']};
+var IVRACE='Sarah Kim';
+function ivFree(pk,n){var b=IVBUSY[pk]||[];return b.indexOf(n)<0}
+var IVCK='<svg viewBox="0 0 24 24" fill="none" stroke="#004fcb" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+function ivc(n,note,pi,pk,past){
+ var tail=(note?'<div class="iv2-ivn">'+note+'</div>':"");
+ if(past||pi===undefined)return '<div class="iv2-ivstatic">'+n+'</div>'+tail;
+ var id='ivp'+pi+'_'+pk;
+ var items=IVROSTER.map(function(o){var cur=(o.n===n),free=ivFree(pk,o.n);
+  return '<button type="button" class="iv2-ivopt" data-ivset="'+pi+'|'+pk+'|'+o.n+'"'+((!free&&!cur)?" disabled":"")+'>'
+   +'<span class="ivck">'+(cur?IVCK:"")+'</span>'
+   +'<span>'+o.n+'<span class="iv2-ivsub">'+((!free&&!cur)?"Not available at this time":o.r)+'</span></span></button>'}).join("");
+ return '<span class="iv2-ivwrap"><button type="button" class="iv2-iv" data-fpop="'+id+'">'+n+CHEV2+'</button>'
+  +'<div class="iv2-menu iv2-ivpop" id="'+id+'"><div class="iv2-ivhd">CHANGE INTERVIEWER</div>'+items+'</div></span>'+tail}
 var DEF={
 0:{title:"Candidates with upcoming interviews",alert:0,tl:"Interview time",empty:["You don\u2019t have upcoming interviews","All scheduled interviews will show up here."],rows:[
  {p:"aisha",ag:"Registered Nurse \u00b7 Dallas, TX",a:["Confirmed","Jul 30",0],iv:"Emily Chen",t:["Tue, Aug 5","10:15 AM CT"],ty:"Video",act:1},
@@ -5506,7 +5535,7 @@ var h='<tr><td><div class="iv2-nm">'+p.n+'</div><div class="iv2-loc">'+p.l+'</di
 +'<div class="iv2-links"><a>View resume</a><a>Message</a></div></td>'
 +'<td><div class="iv2-wt">'+p.w[0][0]+'</div><div class="iv2-wc">'+p.w[0][1]+'</div><div class="iv2-wt">'+p.w[1][0]+'</div><div class="iv2-wc" style="margin-bottom:0">'+p.w[1][1]+'</div></td>'
 +'<td><div class="iv2-act'+(a[2]?" alert":"")+'">'+a[0]+'</div><div class="iv2-acts">'+a[1]+'</div></td>'
-+'<td>'+ivc(r.iv,r.ivn)+'</td>'
++'<td>'+ivc(r.iv,r.ivn,pi,r.p,past)+'</td>'
 +'<td><div class="iv2-t1">'+r.t[0]+'</div><div class="iv2-t2">'+r.t[1]+'</div>'+(r.ty?'<div class="iv2-ty">'+mi(r.ty==="Phone"?"ph":"cam")+r.ty+'</div>':"")+'</td>';
 if(past)h+='<td><span class="iv2-pill" style="background:'+r.fb[1]+';color:'+r.fb[2]+'">'+r.fb[0]+'</span></td><td><a class="iv2-notes">'+r.nt+'</a></td>';
 h+='<td class="c">'+actHtml(r.act,live,r)+'</td></tr>';return h;}
@@ -5582,6 +5611,17 @@ Array.prototype.forEach.call(document.querySelectorAll(".iv2-menu"),function(x){
 document.getElementById("iv2Ov").classList.add("on")}
 function whoOf(K){if(!K)return {n:"This candidate",t:["",""]};var a=K.split(":");var r=DEF[a[0]].rows[a[1]];return {n:P[r.p].n,t:r.t}}
 function wire(wrap){
+Array.prototype.forEach.call(wrap.querySelectorAll(".iv2-ivpop"),function(p){p.onclick=function(e){e.stopPropagation()}});
+Array.prototype.forEach.call(wrap.querySelectorAll("[data-ivset]"),function(b){b.onclick=function(e){e.stopPropagation();
+ if(b.disabled)return;
+ var q=b.getAttribute('data-ivset').split('|'),pi=+q[0],pk=q[1],nm=q[2];
+ Array.prototype.forEach.call(document.querySelectorAll(".iv2-menu"),function(x){x.classList.remove("on")});
+ var row=null;DEF[pi].rows.forEach(function(r){if(r.p===pk)row=r});
+ if(!row||nm===row.iv)return;
+ var who=(P[pk]&&P[pk].n)||'this candidate';
+ if(nm===IVRACE){showToast('error',nm+' is no longer free at that time. The interview is still with '+row.iv+'.');return}
+ var prev=row.iv;row.iv=nm;paint();
+ showToast('success',nm+' is now interviewing '+who+'. '+prev+' was removed from the invite.')}});
 Array.prototype.forEach.call(wrap.querySelectorAll("[data-fpop]"),function(b){b.onclick=function(e){e.stopPropagation();
  var p=document.getElementById(b.getAttribute("data-fpop"));var was=p.classList.contains("on");
  Array.prototype.forEach.call(document.querySelectorAll(".iv2-fpop"),function(x){x.classList.remove("on")});
