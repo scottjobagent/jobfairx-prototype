@@ -5517,6 +5517,50 @@ table.iv2 td:nth-child(4){overflow:visible}
 .dock-send{float:right;margin-top:10px;height:32px;padding:0 16px;border:none;border-radius:12px;background:#004fcb;color:#fff;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer}
 .dock-send:hover{background:#0043ad}
 .dock.min .dock-m,.dock.min .dock-f{display:none}
+
+/* AGX-MD master detail */
+.md-wrap{display:flex;gap:24px;align-items:flex-start;margin:0 32px 32px}
+.md-list{flex:0 0 400px;background:#fff;border:1px solid #e4e2e0;border-radius:20px;overflow:hidden;padding-bottom:6px}
+.md-it{padding:14px 22px;cursor:pointer;border-top:1px solid #e4e2e0}
+.md-it:first-child{border-top:none}
+.md-it.on{background:#f3f2f1;border-radius:20px;border-top-color:transparent;margin:0 6px;padding:14px 16px}
+.md-it-h{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.md-it-t{font-size:16px;font-weight:700;color:#2d2d2d;line-height:1.3}
+.md-it-h svg{width:18px;height:18px;flex:0 0 18px;stroke:#595959;fill:none;stroke-width:2}
+.md-chip{display:inline-block;font-size:12px;font-weight:700;padding:3px 9px;border-radius:8px;margin-top:7px}
+.md-chip.ok{background:#e4f7e6;color:#1f662c}
+.md-chip.wait{background:#fdefe9;color:#844b17}
+.md-chip.soon{background:#ecf2ff;color:#004fcb}
+.md-it-d{font-size:16px;color:#2d2d2d;margin-top:7px}
+.md-it-a{font-size:16px;color:#595959;margin-top:5px}
+.md-det{flex:1;min-width:0;background:#fff;border:1px solid #e4e2e0;border-radius:20px;padding:24px}
+.md-nm{font-size:36px;font-weight:700;color:#2d2d2d;line-height:1.25}
+.md-loc{display:flex;align-items:center;gap:7px;font-size:16px;color:#595959;margin-top:4px}
+.md-loc svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2}
+.md-acts{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;align-items:center}
+.md-b{display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 15px;border-radius:12px;border:1px solid #e4e2e0;background:#fff;color:#004fcb;font-family:inherit;font-size:16px;font-weight:700;cursor:pointer;white-space:nowrap}
+.md-b:hover{background:#f7f6f5}
+.md-b.pri{background:#004fcb;border-color:#004fcb;color:#fff;padding:0 16px}
+.md-b.pri:hover{background:#0043ad}
+.md-b[aria-disabled='true']{opacity:.4;cursor:default}
+.md-b.pri[aria-disabled='true']:hover{background:#004fcb}
+.md-b svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:2}
+.md-tabs{display:flex;gap:26px;margin-top:18px;border-bottom:1px solid #e4e2e0}
+.md-tab{font-size:13px;font-weight:400;color:#595959;padding:0 0 9px;border:none;border-bottom:2px solid transparent;margin-bottom:-1px;cursor:pointer;background:none;font-family:inherit}
+.md-tab.on{font-weight:700;color:#2d2d2d;border-bottom-color:#2d2d2d}
+.md-sh{display:flex;justify-content:space-between;align-items:center;font-size:16px;font-weight:700;color:#2d2d2d;margin-top:22px}
+.md-ic{border:1px solid #e4e2e0;border-radius:12px;padding:15px 16px;margin-top:12px;position:relative}
+.md-lbl{font-size:16px;color:#2d2d2d;margin-top:7px}
+.md-q{display:inline-flex;align-items:center;gap:7px;border:1px solid #e4e2e0;border-radius:9999px;padding:5px 12px;font-size:14px;color:#2d2d2d;margin:0 7px 7px 0}
+.md-q i{width:7px;height:7px;border-radius:50%;background:#004fcb;display:inline-block}
+.md-rs{border:1px solid #e4e2e0;border-radius:12px;margin-top:12px;overflow:hidden}
+.md-rs-h{display:flex;justify-content:space-between;align-items:center;padding:11px 14px;border-bottom:1px solid #e4e2e0}
+.md-rs-b{padding:18px 20px}
+.md-fd{font-size:16px;font-weight:700;color:#2d2d2d;margin-top:16px}
+.md-fe{font-size:16px;color:#2d2d2d;margin-top:4px}
+.md-na{width:100%;height:150px;border:1px solid #d4d2d0;border-radius:12px;padding:11px 12px;font-family:inherit;font-size:16px;color:#2d2d2d;resize:vertical;margin-top:10px;display:block}
+.md-hint{font-size:13px;color:#767676;margin-top:9px}
+.md-none{padding:60px 20px;text-align:center;color:#595959;font-size:16px}
 </style>
 <script>
 (function(){
@@ -5764,6 +5808,22 @@ function openDock(pk){var p=P[pk];if(!p)return;var d=document.getElementById("ms
   var el=document.createElement("div");el.className="dock-msg";el.textContent=v;m.appendChild(el);m.scrollTop=m.scrollHeight;
   showToast("success","Message sent to "+p.n+".")};}
 function wire(wrap){
+Array.prototype.forEach.call(wrap.querySelectorAll("[data-md]"),function(el){el.onclick=function(e){
+ if(e.target.closest("[data-menu],.iv2-menu"))return;
+ var q=el.getAttribute("data-md").split("|");MDSEL[+q[0]]=q[1];paint()}});
+Array.prototype.forEach.call(wrap.querySelectorAll("[data-mdtab]"),function(b){b.onclick=function(e){e.stopPropagation();
+ var q=b.getAttribute("data-mdtab").split("|");MDTAB[+q[1]]=q[0];paint()}});
+Array.prototype.forEach.call(wrap.querySelectorAll("[data-mdact]"),function(b){b.onclick=function(e){e.stopPropagation();
+ var q=b.getAttribute("data-mdact").split("|"),act=q[0],pk=q[1];
+ var who=(P[pk]&&P[pk].n)||"the candidate";var x=pxOf(pk);
+ if(act==="msg"){openDock(pk);return}
+ if(act==="join"){window.open("interview-loader.html?who="+encodeURIComponent(who),"_blank");return}
+ if(act==="showphone"){b.innerHTML=mdIco("ph")+(x.ph||"No number on file");b.removeAttribute("data-mdact");return}
+ if(act==="dl"){showToast("success","Downloading "+who+" resume.pdf");return}
+ if(act==="savenote"){var ta=document.querySelector("[data-mdnote=\""+pk+"\"]");
+  if(!ta||!(ta.value||"").trim()){showToast("error","Write a note before saving.");return}
+  showToast("success","Note saved to "+who+".");return}
+ showToast("success",b.textContent.trim()+" \u2014 "+who+".")}});
 Array.prototype.forEach.call(wrap.querySelectorAll("[data-res]"),function(a){a.onclick=function(e){e.preventDefault();e.stopPropagation();
  var q=a.getAttribute("data-res").split("|"),pk=q[0],i=+q[1];
  var row=null;((DEF[i]&&DEF[i].rows)||[]).forEach(function(x){if(x.p===pk)row=x});
@@ -5830,12 +5890,58 @@ function panelHtml(i,mode){
 var d=DEF[i];
 if(mode==="empty")return '<div class="iv-empty-state" style="text-align:center;padding:80px 20px"><h2 style="font-size:26px;font-weight:700;color:#2d2d2d;margin-bottom:10px">'+d.empty[0]+'</h2><p style="font-size:16px;color:#595959">'+d.empty[1]+'</p></div>';
 var live=(mode==="live");
-var cols=["Candidate","Work experience","Activity","Interviewer",d.tl].concat(d.past?["Feedback","Notes"]:[]).concat(["Actions"]);
-return '<div class="iv2-card"><div class="iv2-h">'+(d.alert?'<span class="dot"></span>':"")+d.title+' ('+rowsOf(i).length+')</div>'
-+'<div class="iv2-filters">'+fchip(i,"ag","All agents")+fchip(i,"iv","All interviewers")+schip(i)
-+searchHtml(i)+'</div>'
-+'<table class="iv2"><tr>'+cols.map(function(c){return '<th'+(c==="Actions"?' class="c"':"")+'>'+c+'</th>'}).join("")+'</tr>'
-+(function(){var RS=rowsOf(i);if(!RS.length)return '<tr><td colspan="9"><div class="iv2-nomatch"><b>No candidates match these filters</b><span>Try widening the agent or interviewer filter, or clearing your search.</span><br><button type="button" data-clearall="'+i+'">Clear filters</button></div></td></tr>';return RS.map(function(r,ri){return rowHtml(r,d.past,live,i,ri)}).join("")})()+'</table></div>';}
+return panelBody(i,mode);}
+var MDSEL={},MDTAB={},MDJOINWIN=15;
+function mdIco(k){var d=(k==="ph")?"<path d=\"M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z\"/>":(k==="cam")?"<polygon points=\"23 7 16 12 23 17 23 7\"/><rect x=\"1\" y=\"5\" width=\"15\" height=\"14\" rx=\"2\"/>":(k==="pin")?"<path d=\"M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z\"/><circle cx=\"12\" cy=\"10\" r=\"3\"/>":(k==="msg")?"<path d=\"M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z\"/>":(k==="clip")?"<rect x=\"5\" y=\"4\" width=\"14\" height=\"17\" rx=\"2\"/><path d=\"M9 4h6v3H9z\"/>":(k==="cal")?"<rect x=\"3\" y=\"5\" width=\"18\" height=\"16\" rx=\"2\"/><path d=\"M3 10h18M8 3v4M16 3v4\"/>":(k==="dl")?"<path d=\"M12 3v12\"/><polyline points=\"7 11 12 16 17 11\"/><path d=\"M4 20h16\"/>":"";
+ return '<svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">'+d+"</svg>"}
+function mdSel(i){var RS=rowsOf(i);if(!RS.length)return null;var k=MDSEL[i],hit=null;RS.forEach(function(r){if(r.p===k)hit=r});return hit||RS[0]}
+function mdChip(r,i){var lab=(r.a&&r.a[0])||"";var cls=(i===1||i===2)?"wait":"ok";return lab?'<span class="md-chip '+cls+'">'+lab+"</span>":""}
+function mdCard(r,i,on){var p=P[r.p];var ph=(r.ty==="Phone");
+ return '<div class="md-it'+(on?" on":"")+'" data-md="'+i+"|"+r.p+'">'
+  +'<div class="md-it-h"><span class="md-it-t">'+(ph?"Phone":"Video")+" interview &bull; "+p.n+"</span>"+mdIco(ph?"ph":"cam")+"</div>"
+  +mdChip(r,i)
+  +'<div class="md-it-d">'+r.t[0]+" &middot; "+r.t[1]+"</div>"
+  +'<div class="md-it-a">'+r.ag+"</div></div>"}
+function mdDetail(i,r){
+ var p=P[r.p],x=pxOf(r.p),ph=(r.ty==="Phone");
+ var tab=MDTAB[i]||"app";
+ var prim=ph?('<button type="button" class="md-b pri" data-mdact="showphone|'+r.p+'">'+mdIco("ph")+"Show phone number</button>")
+  :('<button type="button" class="md-b pri" data-mdact="join|'+r.p+'">'+mdIco("cam")+"Join interview</button>");
+ var ivCard='<div class="md-ic"><div style="display:flex;justify-content:space-between;gap:8px"><span style="font-size:16px;font-weight:700;color:#2d2d2d">'+(ph?"Phone":"Video")+" interview</span>"
+  +keb([["cal","Reschedule",0],["x",(i===2?"Decline":"Cancel interview"),1]])+"</div>"
+  +mdChip(r,i)
+  +'<div class="md-lbl">'+r.t[0]+" &middot; "+r.t[1]+"</div>"
+  +'<div class="md-lbl"><b>Interviewers:</b> '+(r.iv||"Not assigned")+"</div>"
+  +'<div class="md-acts" style="margin-top:13px">'+prim+'<button type="button" class="md-b" data-mdact="notes|'+r.p+'">'+mdIco("clip")+"Take notes</button></div>"
+  +"</div>";
+ var quals=(x.sk||[]).map(function(s){return '<span class="md-q"><i></i>'+s+"</span>"}).join("");
+ var work=(p.w||[]).map(function(w,n){return '<div class="md-fd">'+w[0]+'</div><div class="md-fe">'+w[1]+"</div>"+(x.d[n]?'<div class="md-fe" style="color:#3d3d3a;line-height:1.6;margin-top:7px">'+x.d[n]+"</div>":"")}).join("");
+ var edu=(x.ed||[]).map(function(e){return '<div class="md-fd">'+e[0]+'</div><div class="md-fe">'+e[1]+'</div><div class="md-fe" style="color:#767676;font-size:14px">'+e[2]+"</div>"}).join("");
+ var scr=(x.sc||[]).map(function(q){return '<div class="md-fd" style="font-weight:400">'+q[0]+'</div><div class="md-fe" style="color:#595959">Answer: '+q[1]+"</div>"}).join("");
+ var app='<div class="md-sh">Interviews</div>'+ivCard
+  +'<div class="md-sh">Qualifications</div><div style="font-size:16px;font-weight:700;color:#2d2d2d;margin-top:12px">Preferred</div><div style="margin-top:9px">'+quals+"</div>"
+  +'<div class="md-sh">Resume</div><div class="md-rs"><div class="md-rs-h"><span style="font-size:14px;color:#595959">'+p.n+'</span><button type="button" class="md-b" style="height:auto;border:none;padding:0" data-mdact="dl|'+r.p+'">'+mdIco("dl")+'Download resume</button></div><div class="md-rs-b">'
+  +'<div style="font-size:16px;font-weight:700;color:#2d2d2d">Work experience</div>'+work
+  +(edu?'<div style="font-size:16px;font-weight:700;color:#2d2d2d;margin-top:20px">Education</div>'+edu:"")
+  +(scr?'<div style="font-size:16px;font-weight:700;color:#2d2d2d;margin-top:20px">Screening answers</div>'+scr:"")
+  +"</div></div>";
+ var act='<div class="md-sh">Activity feed</div><div class="md-fd">'+((r.a&&r.a[1])||"")+'</div><div class="md-fe">'+p.n+" &mdash; "+((r.a&&r.a[0])||"Applied")+" for "+r.ag+"</div>"
+  +'<div class="md-sh">Write private note here...</div><textarea class="md-na" placeholder="Write private note here..." data-mdnote="'+r.p+'"></textarea>'
+  +'<div class="md-acts"><button type="button" class="md-b pri" data-mdact="savenote|'+r.p+'">Save note</button></div>';
+ return '<div class="md-det">'
+  +'<div class="md-nm">'+p.n+"</div>"
+  +'<div class="md-loc">'+mdIco("pin")+p.l+"</div>"
+  +'<div class="md-acts"><button type="button" class="md-b pri" data-mdact="setup|'+r.p+'">'+mdIco("cal")+'Set up interview</button><button type="button" class="md-b" data-mdact="msg|'+r.p+'">'+mdIco("msg")+'Message</button><button type="button" class="md-b" data-mdact="showphone|'+r.p+'">'+mdIco("ph")+"Call</button></div>"
+  +'<div class="md-tabs"><button type="button" class="md-tab'+(tab==="app"?" on":"")+'" data-mdtab="app|'+i+'">Application</button><button type="button" class="md-tab'+(tab==="act"?" on":"")+'" data-mdtab="act|'+i+'">Activity &amp; notes</button></div>'
+  +(tab==="app"?app:act)+"</div>"}
+function panelBody(i,mode){
+ var RS=rowsOf(i);
+ if(!RS.length)return '<div class="iv2-card"><div class="md-none"><b>No candidates match these filters</b></div></div>';
+ var sel=mdSel(i);
+ return '<div class="iv2-filters" style="margin:0 32px 16px">'+fchip(i,"ag","All agents")+searchHtml(i)+"</div>"
+  +'<div class="md-wrap"><div class="md-list">'+RS.map(function(r){return mdCard(r,i,sel&&r.p===sel.p)}).join("")+"</div>"
+  +(sel?mdDetail(i,sel):"")+"</div>"}
+
 var MODES={0:"empty",1:"empty",2:"empty",3:"empty"};
 var ACTIVE=0;
 function paint(){
