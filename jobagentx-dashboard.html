@@ -5561,6 +5561,10 @@ table.iv2 td:nth-child(4){overflow:visible}
 .md-na{width:100%;height:150px;border:1px solid #d4d2d0;border-radius:12px;padding:11px 12px;font-family:inherit;font-size:16px;color:#2d2d2d;resize:vertical;margin-top:10px;display:block}
 .md-hint{font-size:13px;color:#767676;margin-top:9px}
 .md-none{padding:60px 20px;text-align:center;color:#595959;font-size:16px}
+
+.md-phone{display:inline-block;border:1px solid #e4e2e0;border-radius:12px;background:#fff;padding:13px 20px}
+.md-phone .n{font-size:24px;font-weight:700;color:#2d2d2d;letter-spacing:.3px}
+.md-phone .c{font-size:13px;color:#767676;margin-top:4px}
 </style>
 <script>
 (function(){
@@ -5817,8 +5821,12 @@ Array.prototype.forEach.call(wrap.querySelectorAll("[data-mdact]"),function(b){b
  var q=b.getAttribute("data-mdact").split("|"),act=q[0],pk=q[1];
  var who=(P[pk]&&P[pk].n)||"the candidate";var x=pxOf(pk);
  if(act==="msg"){openDock(pk);return}
- if(act==="join"){window.open("interview-loader.html?who="+encodeURIComponent(who),"_blank");return}
- if(act==="showphone"){b.innerHTML=mdIco("ph")+(x.ph||"No number on file");b.removeAttribute("data-mdact");return}
+ if(act==="join"){window.open("interview-loader.html?who="+encodeURIComponent(who)+"&start="+(q[2]||0)+"&label="+(q[3]||""),"_blank");return}
+ if(act==="showphone"){var el=document.createElement("div");el.className="md-phone";
+  el.innerHTML='<div class="n"></div><div class="c"></div>';
+  el.querySelector(".n").textContent=x.ph||"No number on file";
+  el.querySelector(".c").textContent="Call "+who+" at the scheduled time.";
+  b.parentNode.replaceChild(el,b);return}
  if(act==="dl"){showToast("success","Downloading "+who+" resume.pdf");return}
  if(act==="savenote"){var ta=document.querySelector("[data-mdnote=\""+pk+"\"]");
   if(!ta||!(ta.value||"").trim()){showToast("error","Write a note before saving.");return}
@@ -5894,6 +5902,12 @@ return panelBody(i,mode);}
 var MDSEL={},MDTAB={},MDJOINWIN=15;
 function mdIco(k){var d=(k==="ph")?"<path d=\"M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z\"/>":(k==="cam")?"<polygon points=\"23 7 16 12 23 17 23 7\"/><rect x=\"1\" y=\"5\" width=\"15\" height=\"14\" rx=\"2\"/>":(k==="pin")?"<path d=\"M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z\"/><circle cx=\"12\" cy=\"10\" r=\"3\"/>":(k==="msg")?"<path d=\"M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z\"/>":(k==="clip")?"<rect x=\"5\" y=\"4\" width=\"14\" height=\"17\" rx=\"2\"/><path d=\"M9 4h6v3H9z\"/>":(k==="cal")?"<rect x=\"3\" y=\"5\" width=\"18\" height=\"16\" rx=\"2\"/><path d=\"M3 10h18M8 3v4M16 3v4\"/>":(k==="dl")?"<path d=\"M12 3v12\"/><polyline points=\"7 11 12 16 17 11\"/><path d=\"M4 20h16\"/>":"";
  return '<svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">'+d+"</svg>"}
+function mdEpoch(r){var M={Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
+ var d=((r.t&&r.t[0])||"").match(/([A-Z][a-z]{2})\s+(\d+)/);if(!d)return 0;
+ var t=((r.t&&r.t[1])||"").match(/(\d+):(\d+)\s*(AM|PM)/i);
+ var hh=t?parseInt(t[1],10):9,mm=t?parseInt(t[2],10):0;
+ if(t&&/pm/i.test(t[3])&&hh<12)hh+=12;if(t&&/am/i.test(t[3])&&hh===12)hh=0;
+ return new Date(2026,M[d[1]]||0,parseInt(d[2],10),hh,mm).getTime()}
 function mdSel(i){var RS=rowsOf(i);if(!RS.length)return null;var k=MDSEL[i],hit=null;RS.forEach(function(r){if(r.p===k)hit=r});return hit||RS[0]}
 function mdChip(r,i){var lab=(r.a&&r.a[0])||"";var cls=(i===1||i===2)?"wait":"ok";return lab?'<span class="md-chip '+cls+'">'+lab+"</span>":""}
 function mdCard(r,i,on){var p=P[r.p];var ph=(r.ty==="Phone");
@@ -5906,7 +5920,7 @@ function mdDetail(i,r){
  var p=P[r.p],x=pxOf(r.p),ph=(r.ty==="Phone");
  var tab=MDTAB[i]||"app";
  var prim=ph?('<button type="button" class="md-b pri" data-mdact="showphone|'+r.p+'">'+mdIco("ph")+"Show phone number</button>")
-  :('<button type="button" class="md-b pri" data-mdact="join|'+r.p+'">'+mdIco("cam")+"Join interview</button>");
+  :('<button type="button" class="md-b pri" data-mdact="join|'+r.p+"|"+mdEpoch(r)+"|"+encodeURIComponent(r.t[0]+", "+r.t[1])+'">'+mdIco("cam")+"Join interview</button>");
  var ivCard='<div class="md-ic"><div style="display:flex;justify-content:space-between;gap:8px"><span style="font-size:16px;font-weight:700;color:#2d2d2d">'+(ph?"Phone":"Video")+" interview</span>"
   +keb([["cal","Reschedule",0],["x",(i===2?"Decline":"Cancel interview"),1]])+"</div>"
   +mdChip(r,i)
