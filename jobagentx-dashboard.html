@@ -14460,6 +14460,413 @@ MG.stub = function(){};
   else setTimeout(boot, 300);
 })();
 
+/* ═══ CANDIDATES — rebuilt to match employers.indeed.com/candidates ══
+   Measured live 2026-08-03. Full spec: rn/CANDIDATES-EXACT-2.md.
+
+   Candidates is THREE product surfaces behind one tab bar:
+     · Recruiting Assistant  (tab=sourcing-assistant)
+     · Find candidates       (tab=find)
+     · Manage candidates     (tab=manage)   ← default
+   We had a partial version of the third, on the shell's grey. Indeed's
+   page is WHITE edge to edge with no card — that was the mismatch.
+
+   This is a presentation layer over the existing CD module: CD keeps
+   owning state, data, filtering, paging and the profile view. CX only
+   re-renders the list surfaces to Indeed's exact geometry, so the dev
+   toggle, row volume and candidate profile all keep working untouched.
+
+   Namespaced .cx-* / CX. Additive.
+   ==================================================================== */
+var CX = {
+  jobsOpen: false,
+  menu: null,          // 'sort' | 'loc' | 'interest' | 'status' | 'export' | 'row:<id>'
+  selectedAll: false   // "Select all N candidates" was pressed
+};
+
+CX.esc = function(s){ return String(s == null ? '' : s)
+  .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); };
+
+/* Indeed's job list, mirrored from the prototype's own jobs */
+CX.JOBS = [
+  { n:'Web Developer',                 st:'Paused', loc:'Remote', d:'August 2nd, 2026',  ref:'11aa5402-a01b-41a0-9fbf-23f7aa3e0a41' },
+  { n:'Technical Sales Representative',st:'Paused', loc:'Remote', d:'January 16th, 2026',ref:'38580816-cd4f-46a1-a1af-555620f41f42' },
+  { n:'Test Engineer',                 st:'Paused', loc:'Remote', d:'January 9th, 2026', ref:'7c9a41d0-5b22-4a8e-9c31-0b6f2ad8e114' }
+];
+
+CX.IC = {
+  chev:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>',
+  chevUp:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15l-6-6-6 6"/></svg>',
+  tick:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>',
+  q:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3 2.5v1.5"/><path d="M12 17h.01"/></svg>',
+  x:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+  dots:'<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>',
+  search:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>',
+  brief:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>',
+  auto:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>',
+  spark:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.9 5.6L19.5 9l-5.6 1.9L12 16.5l-1.9-5.6L4.5 9l5.6-1.4z"/></svg>',
+  learn:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l1.6 4.6L18 9l-4.4 1.4L12 15l-1.6-4.6L6 9l4.4-1.4z"/></svg>',
+  match:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="10" cy="8" r="3.4"/><path d="M3.5 19c0-3.6 2.9-5.8 6.5-5.8 1.4 0 2.7.3 3.7.9"/><circle cx="17" cy="16" r="4"/><path d="M20 19l2 2"/></svg>',
+  mail:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 7l10 6 10-6"/></svg>',
+  send:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M3 11l18-8-8 18-2-7-8-3z"/></svg>'
+};
+
+/* ── data helpers, all riding on CD ─────────────────────────────── */
+CX.counts = function(){
+  var all = (typeof CD === 'object' && CD.ALL) ? CD.ALL : [];
+  var live = (CD.mode === 'empty' || CD.mode === 'error') ? [] : all;
+  var c = { 'Invited candidates':0, 'All applications':live.length };
+  ['New','Reviewing','Contacting','Interviewing','Rejected','Hired'].forEach(function(s){
+    c[s] = live.filter(function(x){ return x.stage === s; }).length;
+  });
+  return c;
+};
+CX.singleJob = function(){ return CD.scope && CD.scope !== 'All open and paused jobs' ? CD.scope : null; };
+
+/* ── page shell ─────────────────────────────────────────────────── */
+CX.page = function(){
+  var job = CX.singleJob();
+  var tab = CD.tab || 'manage';
+  return '<div class="cx">' +
+    (typeof CD.devbar === 'function' ? CD.devbar() : '') +
+    '<div class="cx-titlerow">' +
+      '<div><div class="cx-title" role="button" tabindex="0" onclick="CX.toggleJobs(event)">' +
+        CX.esc(job || 'All open and paused jobs') +
+        (CX.jobsOpen ? CX.IC.chevUp : CX.IC.chev) +
+        (CX.jobsOpen ? CX.jobPopover() : '') + '</div>' +
+        (job ? '<div class="cx-sub">Remote</div>' : '') +
+      '</div>' +
+      '<div class="cx-titleacts">' +
+        (job ? '<button class="cx-auto" onclick="CX.noop()">' + CX.IC.auto + 'Automations' + CX.IC.chev + '</button>' : '') +
+        '<button class="cx-addlink" onclick="CX.noop()">Add candidate</button>' +
+      '</div>' +
+    '</div>' +
+    '<div class="cx-tabs">' +
+      ['sourcing-assistant|Recruiting Assistant','find|Find candidates','manage|Manage candidates']
+        .map(function(t){ var p = t.split('|');
+          return '<button class="cx-tab' + (tab === p[0] ? ' on' : '') + '" role="tab" aria-selected="' +
+            (tab === p[0]) + '" onclick="CX.go(\'' + p[0] + '\')">' + p[1] + '</button>'; }).join('') +
+    '</div>' +
+    (tab === 'manage' ? CX.manage() : tab === 'find' ? CX.find() : CX.assistant()) +
+  '</div>';
+};
+
+/* ── surface 1: Manage candidates ───────────────────────────────── */
+CX.manage = function(){
+  var c = CX.counts();
+  var pills = ['Invited candidates','All applications','New','Reviewing','Contacting','Interviewing','Rejected','Hired'];
+  var cur = CD.stage === 'All' ? 'All applications' : CD.stage;
+
+  var bar = '<div class="cx-pills">' + pills.map(function(p){
+    return '<button class="cx-pill' + (cur === p ? ' on' : '') + '" role="tab" aria-selected="' + (cur === p) +
+      '" onclick="CX.stage(\'' + p + '\')">' + p + ' &bull; ' + (c[p] || 0) + '</button>';
+  }).join('') + '</div>';
+
+  var tools = '<div class="cx-tools">' +
+    '<div class="cx-ctl" role="button" tabindex="0" onclick="CX.open(event,\'sort\')"><b>Sort by:</b> ' + CX.esc(CD.sort) + CX.IC.chev +
+      (CX.menu === 'sort' ? CX.sortMenu() : '') + '</div>' +
+    '<div class="cx-ctl" role="button" tabindex="0" style="min-width:180px" onclick="CX.open(event,\'loc\')">' +
+      (CD.loc ? CX.esc(CD.loc) : 'Location') + CX.IC.chev +
+      (CX.menu === 'loc' ? CX.locMenu() : '') + '</div>' +
+    '<div class="cx-ctl" role="button" tabindex="0" onclick="CX.open(event,\'interest\')">' +
+      (CD.interest ? CX.esc(CD.interest) : 'Interest marked') + CX.IC.chev +
+      (CX.menu === 'interest' ? CX.interestMenu() : '') + '</div>' +
+    '<span class="cx-search">' + CX.IC.search +
+      '<input placeholder="Search candidates" value="' + CX.esc(CD.q || '') + '" oninput="CX.search(this.value)"></span>' +
+  '</div>';
+
+  if (CD.mode === 'loading') return bar + tools + '<div class="cx-none">Loading candidates&hellip;</div>';
+  if (CD.mode === 'error')   return bar + tools + '<div class="cx-none">We couldn&#39;t load candidates. Try again in a moment.</div>';
+
+  var rows = CD.rows ? CD.rows() : [];
+  var page = rows.slice(0, CD.perPage || 20);
+  if (!page.length) return bar + tools + '<div class="cx-none">No candidates match these filters.</div>';
+
+  return bar + tools + (CD.sel && CD.sel.length ? CX.bulk(rows.length, page.length) : '') +
+    '<table class="cx-tbl"><thead><tr>' +
+      '<th>' + CX.cb(CX.allOn(page), "CX.toggleAll(event)") + '</th>' +
+      '<th>Candidates</th><th class="u">Work experience</th><th>Activity</th><th>Interest</th>' +
+    '</tr></thead><tbody>' +
+    page.map(function(r){ return CX.row(r); }).join('') +
+    '</tbody></table>';
+};
+
+CX.cb = function(on, handler){
+  return '<button class="cx-cb' + (on ? ' on' : '') + '" role="checkbox" aria-checked="' + !!on +
+    '" onclick="' + handler + '">' + CX.IC.tick + '</button>';
+};
+CX.allOn = function(page){ return page.length > 0 && page.every(function(r){ return CD.sel.indexOf(r.id) >= 0; }); };
+
+CX.row = function(r){
+  var on = CD.sel.indexOf(r.id) >= 0;
+  return '<tr>' +
+    '<td>' + CX.cb(on, "CX.toggle(event,'" + r.id + "')") + '</td>' +
+    '<td><button class="cx-name" onclick="CX.openProfile(\'' + r.id + '\')">' + CX.esc(r.n) + '</button>' +
+      (r.loc ? '<div class="cx-meta">' + CX.esc(r.loc) + '</div>' : '') +
+      '<div class="cx-meta"><b>' + CX.esc(r.stage) + '</b> &bull; ' + CX.esc(r.applied) + '</div>' +
+      '<div class="cx-applied">Applied to: <a onclick="CX.noop()">' + CX.esc(r.job) + '</a></div></td>' +
+    '<td>' + (r.roles || []).slice(0,2).map(function(x){
+        return '<div class="cx-exp"><div class="r">' + CX.esc(x[0]) + '</div>' +
+               '<div class="c">' + CX.esc(x[1]) + ' (' + CX.esc(x[2]) + ')</div></div>'; }).join('') + '</td>' +
+    '<td><div class="cx-act">' + CX.esc(r.act || '') + '</div></td>' +
+    '<td><span style="display:inline-flex;align-items:flex-start">' +
+      '<span class="cx-iv">' +
+        ['yes','maybe','no'].map(function(k,i){
+          return '<button class="' + (r.interest === k ? 'on' : '') + '" aria-label="' +
+            (k === 'yes' ? 'Interested' : k === 'maybe' ? 'Maybe' : 'Not interested') +
+            '" onclick="CX.interestSet(\'' + r.id + '\',\'' + k + '\')">' +
+            (i === 0 ? CX.IC.tick : i === 1 ? CX.IC.q : CX.IC.x) + '</button>'; }).join('') +
+      '</span>' +
+      '<div class="cx-more" role="button" tabindex="0" aria-label="More actions" onclick="CX.open(event,\'row:' + r.id + '\')">' +
+        CX.IC.dots + (CX.menu === 'row:' + r.id ? CX.rowMenu() : '') + '</div>' +
+    '</span></td></tr>';
+};
+
+/* ── bulk bar ───────────────────────────────────────────────────── */
+CX.bulk = function(total, onPage){
+  var n = CX.selectedAll ? total : CD.sel.length;
+  return '<div class="cx-bulk">' +
+    '<span class="cx-bulklbl">' + n + ' candidate' + (n === 1 ? '' : 's') + ' ' + (n === 1 ? 'is' : 'are') + ' selected</span>' +
+    (CX.selectedAll || total <= onPage ? '' :
+      '<button class="cx-b out" onclick="CX.selectAll(' + total + ')">Select all ' + total + ' candidates</button>') +
+    '<button class="cx-b out" onclick="CX.clearSel()">Clear selected</button>' +
+    '<div class="cx-b pri" role="button" tabindex="0" onclick="CX.open(event,\'status\')">Change status' + CX.IC.chev +
+      (CX.menu === 'status' ? CX.statusMenu() : '') + '</div>' +
+    '<div class="cx-b dim" role="button" tabindex="0" onclick="CX.open(event,\'export\')">Export candidates' + CX.IC.chev +
+      (CX.menu === 'export' ? CX.exportMenu(n) : '') + '</div>' +
+  '</div>';
+};
+
+/* ── menus — contents read verbatim off Indeed's DOM ────────────── */
+CX.menuWrap = function(html){ return '<span class="cx-menu" onclick="event.stopPropagation()">' + html + '</span>'; };
+
+CX.sortMenu = function(){
+  return CX.menuWrap(['Apply date (newest first)','Apply date (oldest first)','Interest (descending)',
+    'Interest (ascending)','Name (A to Z)','Name (Z to A)'].map(function(o){
+    return '<button onclick="CX.setSort(\'' + o + '\')"><span class="tick">' +
+      (CD.sort === o ? CX.IC.tick : '') + '</span>' + o + '</button>'; }).join(''));
+};
+CX.locMenu = function(){
+  var locs = [];
+  (CD.ALL || []).forEach(function(c){ if (c.loc && locs.indexOf(c.loc) < 0) locs.push(c.loc); });
+  locs.sort();
+  return CX.menuWrap('<button onclick="CX.setLoc(\'\')"><span class="tick">' + (!CD.loc ? CX.IC.tick : '') +
+    '</span>All locations</button>' + locs.map(function(l){
+      return '<button onclick="CX.setLoc(\'' + l.replace(/'/g,"\\'") + '\')"><span class="tick">' +
+        (CD.loc === l ? CX.IC.tick : '') + '</span>' + CX.esc(l) + '</button>'; }).join(''));
+};
+CX.interestMenu = function(){
+  var all = CD.ALL || [];
+  var short = all.filter(function(c){ return c.interest === 'yes'; }).length;
+  var no = all.filter(function(c){ return c.interest === 'no'; }).length;
+  return CX.menuWrap(
+    '<button onclick="CX.setInterest(\'Shortlist\')"><span class="tick">' + (CD.interest === 'Shortlist' ? CX.IC.tick : '') +
+      '</span>Shortlist (' + short + ')</button>' +
+    '<button onclick="CX.setInterest(\'No interest\')"><span class="tick">' + (CD.interest === 'No interest' ? CX.IC.tick : '') +
+      '</span>No interest (' + no + ')</button>');
+};
+CX.statusMenu = function(){
+  return CX.menuWrap(['New','Reviewing','Contacting','Interviewing','Rejected'].map(function(s){
+    return '<button onclick="CX.bulkStatus(\'' + s + '\')">' + s + '</button>'; }).join(''));
+};
+/* Both export items are disabled on the live account — reproduced, not invented. */
+CX.exportMenu = function(n){
+  return CX.menuWrap(
+    '<button disabled>Export selected candidates (' + n + ')</button>' +
+    '<button disabled>Export all candidates</button>');
+};
+CX.rowMenu = function(){
+  return CX.menuWrap(['Message','Call','Set up interview','Delete candidate','Mark as hired'].map(function(a){
+    return '<button onclick="CX.rowAction(\'' + a + '\')">' + a + '</button>'; }).join(''));
+};
+
+/* ── job-scope popover ──────────────────────────────────────────── */
+CX.jobPopover = function(){
+  var cur = CX.singleJob();
+  return '<span class="cx-jobsel" onclick="event.stopPropagation()">' +
+    '<span class="pad" style="display:block">' +
+      '<span style="position:relative;display:block">' +
+        '<span style="position:absolute;left:12px;top:12px;color:#767676;width:20px;height:20px;display:block">' + CX.IC.search + '</span>' +
+        '<input class="cx-jsearch" placeholder="Search by job title or reference number"></span>' +
+      '<span class="cx-jfilters">' +
+        '<span class="cx-jf"><b>(2)</b> Status' + CX.IC.chev + '</span>' +
+        '<span class="cx-jf">Location' + CX.IC.chev + '</span>' +
+      '</span>' +
+      '<span class="cx-jfilters">' +
+        '<span class="cx-jf" style="color:#004fcb;font-weight:700">More filters</span>' +
+        '<span class="cx-jf"><b style="color:#2d2d2d">Sort by:</b> Newest' + CX.IC.chev + '</span>' +
+      '</span>' +
+    '</span>' +
+    '<span class="cx-jcount">' + CX.IC.brief + '3 of 5 jobs</span>' +
+    '<button class="cx-jrow' + (!cur ? ' on' : '') + '" onclick="CX.setScope(null)">' +
+      '<span class="tick">' + (!cur ? CX.IC.tick : '') + '</span>' +
+      '<span class="t">Candidates for all open and paused jobs</span></button>' +
+    CX.JOBS.map(function(j){
+      return '<button class="cx-jrow' + (cur === j.n ? ' on' : '') + '" onclick="CX.setScope(\'' + j.n.replace(/'/g,"\\'") + '\')">' +
+        '<span class="tick">' + (cur === j.n ? CX.IC.tick : '') + '</span><span>' +
+        '<span class="t" style="font-weight:400">' + CX.esc(j.n) + '</span>' +
+        '<span class="m" style="display:block">' + j.st + ' &bull; ' + j.loc + ' &bull; ' + j.d + '</span>' +
+        '<span class="ref" style="display:block">' + j.ref + '</span></span></button>'; }).join('') +
+  '</span>';
+};
+
+/* ── surface 2: Find candidates ─────────────────────────────────── */
+CX.find = function(){
+  var job = CX.singleJob();
+  if (!job) return CX.jobGate('find');
+  var pool = (CD.ALL || []).slice(0, 8);
+  return '<div class="cx-banner">' +
+      '<div><h3>Get access to candidate invites when you Premium sponsor your job</h3>' +
+      '<p>Premium sponsored jobs includes invites and more sourcing conveniences</p></div>' +
+      '<div class="sp"><button class="cx-learn" onclick="CX.noop()">Learn more</button>' +
+      '<button class="cx-gold" onclick="CX.noop()">Upgrade to Premium</button></div></div>' +
+    '<div class="cx-countrow"><span class="cx-count">' + (491) + ' resumes match your criteria</span>' +
+      '<span class="cx-goal"><span>Daily goal</span><span>0/0 invites</span></span></div>' +
+    '<ul class="cx-grid">' + pool.map(function(c){
+      var p = c.p || {};
+      return '<li class="cx-card">' +
+        '<button class="nm" onclick="CX.openProfile(\'' + c.id + '\')">' + CX.esc(c.n) + '</button>' +
+        '<span class="lo"> &bull; ' + CX.esc(c.loc) + '</span>' +
+        '<h4>Relevant Work Experience</h4><ul>' +
+          (c.roles || []).slice(0,2).map(function(r){
+            return '<li><div class="role">' + CX.esc(r[0]) + '</div>' +
+                   '<div class="sub">' + CX.esc(r[1]) + ', ' + CX.esc(r[2]) + '</div></li>'; }).join('') +
+        '</ul>' +
+        '<h4>Education</h4><div class="sub">' + CX.esc(p.edu || '—') + '</div>' +
+        '<h4>Licenses and certifications</h4><div class="cert">' +
+          CX.esc((p.certs && p.certs[0]) || 'Driver&#39;s License') + '</div>' +
+      '</li>'; }).join('') + '</ul>';
+};
+
+/* ── surface 3: Recruiting Assistant ────────────────────────────── */
+CX.assistant = function(){
+  var job = CX.singleJob();
+  if (!job) return CX.jobGate('assistant');
+  var HOW = [['learn','Learns who you want to hire'], ['match','Continuously finds people who match'],
+             ['mail','Sends personalized invitations to apply'], ['send','Auto-invites 30 matches per day']];
+  var MATCHES = [['Jarrod Smith','Lead Data Analyst at Amazon in Austin, TX'],
+    ['Mia Chen','Data Science Manager at MSFT in Austin, TX'],
+    ['Aaron Lundqvist','Principal Data Scientist at Adobe in Austin, TX'],
+    ['Carolyn Harris','Lead Machine Learning Scientist at Tesla in Austin, TX'],
+    ['Camila Sarangi','Senior Quantitative Analyst at Goldman Sachs in Austin, TX']];
+  return '<div class="cx-ra"><div class="cx-racol">' +
+      '<div class="cx-gate">' +
+        '<h3>Sourcing Assistant is off</h3>' +
+        '<div class="s">Get more quality applications when you sponsor your job with Premium <i>Plus</i>.</div>' +
+        '<h4>How Sourcing Assistant works</h4>' +
+        HOW.map(function(h){ return '<div class="cx-how">' + CX.IC[h[0]] + h[1] + '</div>'; }).join('') +
+        '<button class="cx-plus" onclick="CX.noop()">Upgrade to Premium <i>Plus</i></button>' +
+      '</div>' +
+      '<div class="cx-matches">' +
+        '<div class="cx-matchhd">First 5 matches' + CX.IC.chevUp + '</div>' +
+        MATCHES.map(function(m){ return '<div class="cx-matchrow"><span class="n">' + m[0] +
+          '</span><span class="d">' + m[1] + '</span></div>'; }).join('') +
+      '</div>' +
+    '</div>' +
+    '<div class="cx-rail">' +
+      '<div class="cx-railhd">' + CX.IC.spark + 'Assistant activity<span class="cv">' + CX.IC.chev + '</span></div>' +
+      '<div class="cx-tl">' +
+        '<div class="st">Queued</div>' +
+        '<div class="it"><div class="nx">Next: <b>Waiting to be started</b></div>' +
+          '<div class="ds">Assistant waiting in setup mode until you start it</div></div>' +
+        '<div class="st">Completed</div>' +
+        '<div class="it done"><div class="wk">Waking up</div></div>' +
+      '</div>' +
+    '</div></div>';
+};
+
+CX.jobGate = function(which){
+  var t = which === 'find'
+    ? ['Select a job to view matched candidates for that job',
+       'Matches are made specifically for each job. Select your job from the menu to see matched candidates.']
+    : ['Select a job to view Recruiting Assistant for that job',
+       'Recruiting Assistants work specifically for each job. Select your job from the menu to see Recruiting Assistant.'];
+  return '<div class="cx-jobgate">' +
+    '<svg viewBox="0 0 200 130" fill="none" aria-hidden="true">' +
+      '<path d="M18 108 L96 52 L186 84 L112 124 Z" fill="#f5cb9d"/>' +
+      '<rect x="72" y="34" width="72" height="58" rx="6" fill="#fff" stroke="#e4e2e0"/>' +
+      '<rect x="82" y="46" width="52" height="7" rx="3.5" fill="#cfe0f5"/>' +
+      '<rect x="82" y="60" width="40" height="7" rx="3.5" fill="#cfe0f5"/>' +
+      '<circle cx="108" cy="80" r="12" fill="#237ea3"/>' +
+      '<path d="M118 90l10 10" stroke="#1d465c" stroke-width="5" stroke-linecap="round"/>' +
+    '</svg>' +
+    '<h3>' + t[0] + '</h3><p>' + t[1] + '</p></div>';
+};
+
+/* ── behaviour ──────────────────────────────────────────────────── */
+CX.paint = function(){ if (typeof CD === 'object' && CD.render) CD.render(); };
+CX.noop = function(){};
+CX.close = function(){ CX.menu = null; CX.jobsOpen = false; };
+CX.open = function(e, which){
+  if (e) e.stopPropagation();
+  var was = CX.menu; CX.close();
+  if (was !== which) CX.menu = which;
+  CX.paint();
+};
+CX.toggleJobs = function(e){ if (e) e.stopPropagation(); var w = CX.jobsOpen; CX.close(); CX.jobsOpen = !w; CX.paint(); };
+CX.setScope = function(n){ CD.scope = n || 'All open and paused jobs'; CD.sel = []; CX.selectedAll = false; CX.close(); CX.paint(); };
+CX.go = function(tab){ CD.tab = tab; CD.sel = []; CX.selectedAll = false; CX.close(); CX.paint(); };
+CX.stage = function(p){ CD.stage = (p === 'All applications') ? 'All' : p; CD.page = 1; CD.sel = []; CX.selectedAll = false; CX.close(); CX.paint(); };
+CX.setSort = function(s){ CD.sort = s; CX.close(); CX.paint(); };
+CX.setLoc = function(l){ CD.loc = l; CD.page = 1; CX.close(); CX.paint(); };
+CX.setInterest = function(i){ CD.interest = (CD.interest === i) ? '' : i; CD.page = 1; CX.close(); CX.paint(); };
+CX.search = function(v){ CD.q = v; CD.page = 1; CX.paint();
+  var i = document.querySelector('.cx-search input'); if (i){ i.focus(); i.setSelectionRange(v.length, v.length); } };
+CX.toggle = function(e, id){
+  if (e) e.stopPropagation();
+  var i = CD.sel.indexOf(id);
+  if (i >= 0) CD.sel.splice(i, 1); else CD.sel.push(id);
+  CX.selectedAll = false; CX.paint();
+};
+CX.toggleAll = function(e){
+  if (e) e.stopPropagation();
+  var page = (CD.rows ? CD.rows() : []).slice(0, CD.perPage || 20);
+  CD.sel = CX.allOn(page) ? [] : page.map(function(r){ return r.id; });
+  CX.selectedAll = false; CX.paint();
+};
+CX.selectAll = function(total){ CD.sel = (CD.rows ? CD.rows() : []).map(function(r){ return r.id; }); CX.selectedAll = true; CX.paint(); };
+CX.clearSel = function(){ CD.sel = []; CX.selectedAll = false; CX.close(); CX.paint(); };
+CX.bulkStatus = function(s){
+  var ids = CD.sel.slice();
+  (CD.ALL || []).forEach(function(c){ if (ids.indexOf(c.id) >= 0) c.stage = s; });
+  CD.sel = []; CX.selectedAll = false; CX.close(); CX.paint();
+};
+CX.interestSet = function(id, k){
+  (CD.ALL || []).forEach(function(c){ if (c.id === id) c.interest = (c.interest === k) ? null : k; });
+  CX.paint();
+};
+CX.rowAction = function(a){
+  CX.close();
+  if (a === 'Set up interview' && typeof showView === 'function') { showView('interviews'); return; }
+  if (a === 'Message' && typeof showView === 'function') { showView('messaging'); return; }
+  CX.paint();
+};
+CX.openProfile = function(id){
+  var i = (CD.ALL || []).findIndex(function(c){ return c.id === id; });
+  if (i < 0) return;
+  CD.openIdx = i; CD.view = 'profile'; CX.close(); CX.paint();
+};
+
+/* ── take over CD's rendering ───────────────────────────────────── */
+(function(){
+  function boot(){
+    if (typeof CD !== 'object' || !CD.render) return;
+    var orig = CD.render;
+    CD.render = function(){
+      var v = document.getElementById('view-candidates'); if (!v) return;
+      /* the candidate profile stays CD's — it was built from the same crawl */
+      if (CD.view === 'profile') return orig.apply(this, arguments);
+      v.innerHTML = CX.page();
+      if (typeof IA === 'object' && IA.crumbs) { try { IA.crumbs(); } catch(e){} }
+    };
+    document.addEventListener('click', function(){
+      if (CX.menu || CX.jobsOpen){ CX.close(); CX.paint(); }
+    });
+    if (document.getElementById('view-candidates')) CD.render();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else setTimeout(boot, 360);
+})();
+
 (function tlInit(){
   function boot(){ if(!tlEl('view-tools')) return; tlGo('overview'); }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else setTimeout(boot,0);
@@ -15529,6 +15936,211 @@ MG.stub = function(){};
 .mg-empty h2{font-size:20px;line-height:30px;font-weight:700;color:#2d2d2d;margin:24px 0 8px}
 .mg-empty p{font-size:16px;line-height:24px;color:#2d2d2d;margin:0}
 .mg-nolist{padding:48px 24px;text-align:center;color:#595959;font-size:16px;line-height:24px}
+
+</style>
+<style>
+/* ═══ CANDIDATES (.cx-*) ═════════════════════════════════════════════
+   Rebuilt to match employers.indeed.com/candidates exactly.
+   Every value measured — source: rn/CANDIDATES-EXACT-2.md.
+   Three surfaces behind one tab bar: Recruiting Assistant, Find
+   candidates, Manage candidates.
+   ==================================================================== */
+
+/* The page is WHITE, edge to edge, no card — the single biggest
+   mismatch Scott flagged. .main carries the shell's global
+   24px 28px 40px padding, so cancel it here rather than edit the shell. */
+/* NOTE: no display:none sweep here — CX replaces innerHTML outright, and a
+   blanket hide also killed CD's candidate profile view. */
+#view-candidates{background:#fff!important}
+.cx{margin:-24px -28px -40px;background:#fff;min-height:calc(100vh - 56px);
+  padding:24px 28px 40px;font-size:16px;line-height:24px;color:#2d2d2d}
+
+/* ---- title row ------------------------------------------------- */
+.cx-titlerow{display:flex;align-items:flex-start;gap:16px;min-height:54px}
+.cx-title{border:0;background:none;padding:0;cursor:pointer;display:flex;align-items:center;gap:10px;
+  font-size:32px;line-height:40px;font-weight:700;color:#2d2d2d;position:relative}
+.cx-title svg{width:24px;height:24px;color:#2d2d2d}
+.cx-sub{font-size:16px;line-height:24px;color:#2d2d2d;margin-top:2px}
+.cx-titleacts{margin-left:auto;display:flex;align-items:center;gap:16px;padding-top:6px}
+.cx-auto{height:36px;border:1px solid #e4e2e0;background:#fff;border-radius:12px;padding:5px 15px;
+  color:#004fcb;font-size:16px;line-height:24px;font-weight:700;cursor:pointer;display:inline-flex;
+  align-items:center;gap:8px}
+.cx-addlink{border:0;background:none;padding:5px 0;color:#004fcb;font-size:16px;line-height:24px;
+  font-weight:700;cursor:pointer;border-radius:12px}
+
+/* ---- sub-tabs — 20px type, NOT the 13.33px used on Analytics ---- */
+.cx-tabs{display:flex;border-bottom:1px solid #e4e2e0;margin-top:8px}
+.cx-tab{height:56px;padding:16px;border:0;background:none;cursor:pointer;position:relative;
+  font-size:20px;line-height:normal;font-weight:400;color:#767676}
+.cx-tab.on{font-weight:700;color:#2d2d2d}
+.cx-tab.on:after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:3px;background:#2d2d2d}
+
+/* ---- pipeline pills — Manage candidates only -------------------- */
+.cx-pills{display:flex;border-bottom:1px solid #e4e2e0}
+.cx-pill{height:53px;padding:16px;border:0;background:none;cursor:pointer;position:relative;
+  font-size:16px;line-height:normal;font-weight:400;color:#767676;white-space:nowrap}
+.cx-pill.on{font-weight:700;color:#2d2d2d}
+.cx-pill.on:after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:3px;background:#2d2d2d}
+
+/* ---- toolbar ---------------------------------------------------- */
+.cx-tools{display:flex;align-items:center;gap:12px;padding:16px 0}
+.cx-ctl{height:44px;border:1px solid #595959;background:#fff;border-radius:12px;padding:9px 12px;
+  box-sizing:border-box;
+  font-size:16px;line-height:24px;color:#2d2d2d;cursor:pointer;display:inline-flex;align-items:center;
+  gap:8px;position:relative}
+.cx-ctl b{font-weight:700}
+.cx-ctl svg{width:24px;height:24px;flex:0 0 24px;margin-left:auto}
+.cx-search{flex:1;height:44px;border:1px solid #595959;background:#fff;border-radius:12px;
+  padding:9px 12px;display:flex;align-items:center;gap:8px;color:#767676}
+.cx-search svg{width:20px;height:20px;flex:0 0 20px}
+.cx-search input{border:0;outline:none;flex:1;font-family:inherit;font-size:16px;line-height:24px;color:#2d2d2d;background:none}
+
+.cx-menu{position:absolute;top:48px;left:0;min-width:260px;background:#fff;border:1px solid #e4e2e0;
+  border-radius:12px;padding:8px;z-index:40;box-shadow:0 0 2px rgba(45,45,45,.16),0 4px 12px rgba(45,45,45,.08);
+  text-align:left;font-weight:400}
+.cx-menu button{display:flex;align-items:center;gap:10px;width:100%;text-align:left;border:0;background:none;
+  border-radius:8px;padding:10px 12px;font-size:16px;line-height:24px;color:#2d2d2d;cursor:pointer}
+.cx-menu button:hover{background:#f3f2f1}
+.cx-menu button[disabled]{opacity:.4;cursor:default}
+.cx-menu .tick{width:20px;flex:0 0 20px;color:#2d2d2d}
+
+/* ---- bulk bar --------------------------------------------------- */
+.cx-bulk{display:flex;align-items:center;gap:16px;height:36px;margin-bottom:16px;position:relative}
+.cx-bulklbl{font-size:16px;line-height:24px;font-weight:700;color:#2d2d2d}
+.cx-b{height:36px;border-radius:12px;font-size:16px;line-height:24px;font-weight:700;cursor:pointer;
+  display:inline-flex;align-items:center;gap:6px;position:relative}
+.cx-b.out{background:#fff;border:1px solid #e4e2e0;color:#004fcb;padding:5px 15px}
+.cx-b.pri{background:#004fcb;border:0;color:#fff;padding:5px 16px}
+.cx-b.dim{background:rgba(0,79,203,.4);border:0;color:#fff;padding:5px 16px}
+.cx-b svg{width:20px;height:20px}
+
+/* ---- table ------------------------------------------------------ */
+.cx-tbl{width:100%;border-collapse:separate;border-spacing:0}
+.cx-tbl thead tr{background:#f7f6f5;height:46px;border-radius:12px}
+.cx-tbl thead th{font-size:14px;line-height:21px;font-weight:400;color:#595959;text-align:left;
+  padding:1px 12px 1px 16px;white-space:nowrap;text-transform:none;letter-spacing:normal}
+.cx-tbl thead th:first-child{border-radius:12px 0 0 0;width:52px}
+.cx-tbl thead th:last-child{border-radius:0 12px 0 0}
+.cx-tbl thead th.u{text-decoration:underline;text-underline-offset:3px}
+.cx-tbl tbody td{padding:16px 12px 16px 16px;vertical-align:top;background:none}
+.cx-tbl tbody tr{height:132px}
+.cx-tbl tbody tr + tr td{border-top:1px solid #e4e2e0}
+.cx-cb{width:24px;height:24px;border:1px solid #2d2d2d;border-radius:8px;background:#fff;cursor:pointer;
+  display:inline-grid;place-items:center;padding:0;flex:0 0 24px}
+.cx-cb.on{background:#2d2d2d;border-color:#2d2d2d}
+.cx-cb svg{width:16px;height:16px;color:#fff;display:none}
+.cx-cb.on svg{display:block}
+
+.cx-name{font-size:16px;line-height:24px;font-weight:700;color:#2d2d2d;background:none;border:0;padding:0;
+  cursor:pointer;text-align:left}
+.cx-name:hover{text-decoration:underline}
+.cx-meta{font-size:14px;line-height:21px;color:#595959;margin-top:2px}
+.cx-meta b{font-weight:700;color:#2d2d2d}
+.cx-applied{font-size:14px;line-height:21px;color:#595959;margin-top:6px}
+.cx-applied a{color:#004fcb;text-decoration:underline;cursor:pointer}
+.cx-exp{border-left:2px solid #e4e2e0;padding-left:12px;margin-bottom:12px}
+.cx-exp .r{font-size:14px;line-height:21px;font-weight:700;color:#2d2d2d}
+.cx-exp .c{font-size:14px;line-height:21px;color:#595959}
+.cx-act{font-size:14px;line-height:21px;color:#595959}
+
+.cx-iv{display:inline-flex;border:1px solid #e4e2e0;border-radius:12px;overflow:hidden}
+.cx-iv button{width:56px;height:44px;border:0;background:#fff;cursor:pointer;color:#2d2d2d;
+  display:grid;place-items:center;border-right:1px solid #e4e2e0}
+.cx-iv button:last-child{border-right:0}
+.cx-iv button svg{width:20px;height:20px}
+.cx-iv button.on{background:#ecf2ff;color:#004fcb}
+.cx-more{width:44px;height:44px;border:0;background:none;border-radius:12px;cursor:pointer;color:#2d2d2d;
+  display:grid;place-items:center;margin-left:8px;position:relative}
+.cx-more:hover{background:#f3f2f1}
+
+/* ---- Find candidates -------------------------------------------- */
+.cx-banner{background-image:linear-gradient(rgb(249,222,197),rgba(0,0,0,0));border-radius:20px;padding:16px;
+  display:flex;align-items:center;gap:16px;margin:24px 0 0}
+.cx-banner h3{font-size:20px;line-height:30px;font-weight:700;color:#2d2d2d;margin:0}
+.cx-banner p{font-size:16px;line-height:24px;color:#595959;margin:2px 0 0}
+.cx-banner .sp{margin-left:auto;display:flex;align-items:center;gap:8px}
+.cx-learn{height:44px;border:0;background:none;padding:9px 0;color:#2d2d2d;font-size:16px;line-height:24px;
+  font-weight:700;border-radius:12px;cursor:pointer}
+.cx-gold{height:44px;border:0;background:rgb(224,169,97);color:#2d2d2d;font-size:16px;line-height:24px;
+  font-weight:700;border-radius:12px;padding:9px 16px;cursor:pointer}
+.cx-countrow{display:flex;align-items:center;margin:24px 0 16px}
+.cx-count{font-size:16px;line-height:24px;color:#595959}
+.cx-goal{margin-left:auto;color:#004fcb;font-size:16px;line-height:24px;font-weight:700;text-align:right;padding:0 24px}
+.cx-goal span{display:block}
+.cx-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:0 0 24px;list-style:none;margin:0}
+.cx-card{border:1px solid #e4e2e0;border-radius:12px;padding:16px}
+.cx-card .nm{font-size:16px;line-height:24px;font-weight:700;color:#2d2d2d;text-decoration:underline;
+  background:none;border:0;padding:0;cursor:pointer}
+.cx-card .lo{font-size:16px;line-height:24px;color:#767676}
+.cx-card h4{font-size:14px;line-height:21px;font-weight:700;color:#2d2d2d;margin:12px 0 4px}
+.cx-card .role{font-size:14px;line-height:21px;font-weight:700;color:#2d2d2d}
+.cx-card .sub{font-size:12px;line-height:18px;color:#595959}
+.cx-card .cert{font-size:12px;line-height:18px;font-weight:700;color:#595959}
+.cx-card ul{margin:0;padding-left:18px}
+
+/* ---- Recruiting Assistant --------------------------------------- */
+.cx-ra{display:flex;gap:24px;align-items:flex-start;margin-top:24px}
+.cx-racol{flex:1;min-width:0}
+.cx-gate{background-image:linear-gradient(rgb(249,222,197) 0%,rgb(255,255,255) 128px);border-radius:20px;
+  padding:24px 24px 24px 16px}
+.cx-gate h3{font-size:20px;line-height:30px;font-weight:700;color:#2d2d2d;margin:0}
+.cx-gate .s{font-size:14px;line-height:21px;color:#595959;margin:4px 0 24px}
+.cx-gate h4{font-size:16px;line-height:24px;font-weight:700;color:#2d2d2d;margin:0 0 10px}
+.cx-how{display:flex;align-items:center;gap:16px;height:36px;font-size:14px;line-height:21px;color:#595959}
+.cx-how svg{width:20px;height:20px;flex:0 0 20px;color:#2d2d2d}
+.cx-plus{margin-top:8px;height:44px;border:0;background:rgb(245,203,157);color:#2d2d2d;font-size:16px;
+  line-height:24px;font-weight:700;border-radius:12px;padding:9px 16px;cursor:pointer}
+.cx-rail{width:408px;flex:0 0 408px;background:#fff;border:1px solid #e4e2e0;border-radius:12px;padding:16px}
+.cx-railhd{display:flex;align-items:center;gap:8px;font-size:16px;line-height:24px;font-weight:700;color:#2d2d2d}
+.cx-railhd svg{width:18px;height:18px}
+.cx-railhd .cv{margin-left:auto;width:20px;height:20px}
+.cx-tl{margin-top:16px;position:relative;padding-left:24px}
+.cx-tl .st{font-size:14px;line-height:21px;color:#595959}
+.cx-tl .it{position:relative;padding-bottom:16px}
+.cx-tl .it:before{content:"";position:absolute;left:-24px;top:5px;width:10px;height:10px;border-radius:50%;
+  border:2px solid #767676;background:#fff}
+.cx-tl .it.done:before{background:#2d2d2d;border-color:#2d2d2d}
+.cx-tl .nx{font-size:16px;line-height:24px;font-weight:700;color:#595959}
+.cx-tl .nx b{color:#2d2d2d}
+.cx-tl .ds{font-size:12px;line-height:18px;color:#595959}
+.cx-tl .wk{font-size:16px;line-height:24px;color:#2d2d2d}
+.cx-matches{margin-top:24px;border:1px solid #e4e2e0;border-radius:12px;background:#fff}
+.cx-matchhd{display:flex;align-items:center;padding:16px;font-size:14px;line-height:21px;font-weight:700;color:#595959}
+.cx-matchhd svg{margin-left:auto;width:20px;height:20px}
+.cx-matchrow{display:flex;padding:12px 16px;border-top:1px solid #e4e2e0;filter:blur(6px);
+  pointer-events:none;user-select:none;font-size:16px;line-height:24px}
+.cx-matchrow .n{font-weight:700;color:#595959}
+.cx-matchrow .d{margin-left:auto;color:#595959}
+
+/* ---- gates + empty ---------------------------------------------- */
+.cx-jobgate{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
+  padding:80px 24px}
+.cx-jobgate svg{width:200px;height:130px}
+.cx-jobgate h3{font-size:24px;line-height:32px;font-weight:700;color:#2d2d2d;margin:24px 0 8px}
+.cx-jobgate p{font-size:16px;line-height:24px;color:#595959;margin:0}
+.cx-none{padding:64px 24px;text-align:center;color:#595959;font-size:16px;line-height:24px}
+
+/* ---- job scope popover ------------------------------------------ */
+.cx-jobsel{position:absolute;top:56px;left:0;width:540px;background:#fff;border:1px solid #e4e2e0;
+  border-radius:12px;z-index:60;box-shadow:0 0 2px rgba(45,45,45,.16),0 6px 20px rgba(45,45,45,.12);
+  font-size:16px;font-weight:400;text-align:left;overflow:hidden}
+.cx-jobsel .pad{padding:16px}
+.cx-jsearch{width:100%;height:48px;border:1px solid #595959;border-radius:12px;padding:9px 12px 9px 40px;
+  font-family:inherit;font-size:16px;color:#2d2d2d;outline:none}
+.cx-jfilters{display:flex;gap:12px;flex-wrap:wrap;margin-top:12px}
+.cx-jf{height:36px;border:1px solid #595959;background:#fff;border-radius:12px;padding:5px 12px;
+  font-size:16px;line-height:24px;color:#2d2d2d;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.cx-jf b{color:#004fcb;font-weight:700}
+.cx-jcount{display:flex;align-items:center;gap:8px;padding:12px 16px;font-size:16px;line-height:24px;
+  font-weight:700;color:#2d2d2d}
+.cx-jrow{display:flex;gap:12px;width:100%;text-align:left;border:0;background:none;padding:12px 16px;
+  cursor:pointer;font-size:16px;line-height:24px;color:#2d2d2d}
+.cx-jrow:hover{background:#f7f6f5}
+.cx-jrow.on{background:#f3f2f1}
+.cx-jrow .tick{width:20px;flex:0 0 20px}
+.cx-jrow .t{font-weight:400}
+.cx-jrow .m{font-size:14px;line-height:21px;color:#595959}
+.cx-jrow .ref{font-size:14px;line-height:21px;color:#595959;font-style:italic}
 
 </style>
 </body>
