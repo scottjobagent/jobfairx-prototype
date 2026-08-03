@@ -14525,9 +14525,30 @@ CX.INTEREST = [
 CX.AUTOMSG = 'Hi {first}, thanks for applying to our {job} job. We reviewed your application and ' +
   'would like to schedule a time to chat. What days and times are you free? Looking forward to ' +
   'hearing from you. Thanks, the team at Lincoln Dynamic Group';
+/* A queued send only exists when automations are ON — that is the whole
+   reason it appears ("that's because automations are on"). It is also the
+   exception, not the rule: when this page was first captured NO row had
+   one; they appeared later as Scott's automation fired. So gate it on the
+   Automations dev toggle AND keep it to a couple of rows. */
+CX.autoOn = function(){
+  var g = document.querySelector('#autoDevToggles .dev-toggle-btn.active') ||
+          (function(){
+            var f = null;
+            document.querySelectorAll('.topbar .dev-toggle').forEach(function(x){
+              var l = x.querySelector('.dev-toggle-label');
+              if (l && /^Automations:/i.test((l.textContent||'').trim()))
+                f = x.querySelector('.dev-toggle-btn.active');
+            });
+            return f;
+          })();
+  return !g || !/empty/i.test(g.textContent || '');
+};
 CX.queueMins = function(c){
+  if (!CX.autoOn()) return null;
   if (c.interest) return null;                 /* marking supersedes the pending send */
   if (c.stage !== 'New') return null;
+  var idx = (CD.ALL || []).indexOf(c);
+  if (idx !== 0 && idx !== 3) return null;     /* the exception, not the rule */
   var h = 0, n = c.id + c.n;
   for (var i=0;i<n.length;i++) h = (h*31 + n.charCodeAt(i)) >>> 0;
   var base = 45 + (h % 15);                    /* 45–59, stable per candidate */
@@ -14537,7 +14558,7 @@ CX.activity = function(c){
   var mins = CX.queueMins(c);
   if (mins != null){
     return '<div class="cx-act"><div class="aq">You\u2019ll send a scheduled message &middot; in ' +
-      mins + ' minute' + (mins === 1 ? '' : 's') + '</div><div class="body">' +
+      mins + ' minute' + (mins === 1 ? '' : 's') + '</div><div class="body clamp">' +
       CX.esc(CX.AUTOMSG.replace('{first}', CX.first(c.n)).replace('{job}', c.job)) + '</div></div>';
   }
   if (c.interest === 'shortlist')
@@ -16214,6 +16235,11 @@ CX.openProfile = function(id){
 
 .cx-typeahead{border:0;outline:none;background:none;font-family:inherit;font-size:16px;line-height:24px;
   color:#2d2d2d;width:100%;min-width:0}
+
+/* the queued body is secondary text, not the row's headline — keep it from
+   tripling the row height */
+.cx-act .body.clamp{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;
+  overflow:hidden;font-size:14px;line-height:21px}
 
 </style>
 </body>
