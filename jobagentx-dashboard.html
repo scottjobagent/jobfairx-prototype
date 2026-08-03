@@ -963,6 +963,10 @@ tbody tr:last-child td { border-bottom: none; }
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
         <span class="nav-text">Dashboard</span>
       </a>
+      <a class="nav-item" onclick="showView('sourcing')" id="nav-sourcing">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="10" cy="8" r="4"/><path d="M2 21v-2a6 6 0 016-6h3"/><circle cx="17.5" cy="16.5" r="3.5"/><path d="M20 19l2.5 2.5"/></svg>
+        <span class="nav-text">Smart Sourcing</span>
+      </a>
       <a class="nav-item" onclick="showView('events')" id="nav-events">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3l2.1 5.2 5.4 0.4-4.1 3.5 1.3 5.3-4.6-2.9-4.6 2.9 1.3-5.3-4.1-3.5 5.4-0.4z"/></svg>
         <span class="nav-text">Agents</span>
@@ -993,6 +997,13 @@ tbody tr:last-child td { border-bottom: none; }
       <div class="dev-toggle-switch" id="ovToggle">
         <button class="dev-toggle-btn active" onclick="setOverviewMode('active', this)">Active</button>
         <button class="dev-toggle-btn" onclick="setOverviewMode('empty', this)">Empty</button>
+      </div>
+    </div>
+    <div class="dev-toggle">
+      <span class="dev-toggle-label">Sourcing:</span>
+      <div class="dev-toggle-switch" id="ssToggle">
+        <button class="dev-toggle-btn active" onclick="setSourcingMode('active', this)">Active</button>
+        <button class="dev-toggle-btn" onclick="setSourcingMode('empty', this)">Empty</button>
       </div>
     </div>
     <div class="dev-toggle">
@@ -2874,6 +2885,316 @@ tbody tr:last-child td { border-bottom: none; }
     </table>
   </div>
 
+  <!-- ══════════════════ SMART SOURCING ══════════════════ -->
+  <div class="view" id="view-sourcing">
+
+    <!-- title row + sub-nav -->
+    <div class="ss-titlebar">
+      <h1 class="ss-title">Smart Sourcing</h1>
+      <div class="ss-subnav" id="ssSubnav">
+        <button class="ss-tab on" data-ss="home" onclick="ssGo('home',this)">Find candidates</button>
+        <button class="ss-tab" data-ss="plans" onclick="ssGo('plans',this)">Plans and Pricing</button>
+        <button class="ss-tab" data-ss="projects" onclick="ssGo('projects',this)">Projects</button>
+        <button class="ss-tab" data-ss="saved" onclick="ssGo('saved',this)">Saved searches</button>
+        <button class="ss-tab" data-ss="templates" onclick="ssGo('templates',this)">Templates</button>
+      </div>
+      <div class="ss-spacer"></div>
+      <div class="ss-contacts">
+        <b id="ssContacts">5 contacts</b>
+        <span class="ss-acbal">15 <svg viewBox="0 0 24 24" width="13" height="13"><path fill="#1f662c" d="M16.648 12.258a.369.369 0 01.704 0l.763 2.442c.177.565.62 1.008 1.185 1.185l2.442.763a.369.369 0 010 .704l-2.442.763a1.806 1.806 0 00-1.185 1.185l-.763 2.442a.369.369 0 01-.704 0l-.763-2.442a1.806 1.806 0 00-1.185-1.185l-2.442-.763a.369.369 0 010-.704l2.442-.763a1.806 1.806 0 001.185-1.185l.763-2.442zm-8.14-9.897a.516.516 0 01.984 0l1.07 3.42c.247.79.867 1.41 1.658 1.657l3.419 1.07a.516.516 0 010 .984l-3.42 1.07a2.528 2.528 0 00-1.657 1.658l-1.07 3.419a.516.516 0 01-.984 0l-1.07-3.42a2.528 2.528 0 00-1.658-1.657l-3.419-1.07a.516.516 0 010-.984l3.42-1.07A2.528 2.528 0 007.437 5.78l1.07-3.419z"/></svg></span>
+      </div>
+      <span class="ss-dot">&bull;</span>
+      <a class="ss-trial" onclick="ssGo('plans')"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#004fcb" stroke-width="2"><path d="M5 3v4M3 5h4M6 17v4m-2-2h4M13 3l2.5 6.5L22 12l-6.5 2.5L13 21l-2.5-6.5L4 12l6.5-2.5z"/></svg>12 days left in trial</a>
+      <button class="ss-country" style="margin-left:16px"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#2d2d2d" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>United States <span style="font-size:12px">&#9662;</span></button>
+      <button class="ss-postjob" style="margin-left:12px" onclick="ssToast('Post a job','Opens the job posting flow.')">Post a job</button>
+    </div>
+
+    <!-- assistant strip (hidden while inside the wizard) -->
+    <div class="ss-astrip" id="ssStrip">
+      <svg viewBox="0 0 24 24" fill="url(#ssAiGrad)"><path d="M16.648 12.258a.369.369 0 01.704 0l.763 2.442c.177.565.62 1.008 1.185 1.185l2.442.763a.369.369 0 010 .704l-2.442.763a1.806 1.806 0 00-1.185 1.185l-.763 2.442a.369.369 0 01-.704 0l-.763-2.442a1.806 1.806 0 00-1.185-1.185l-2.442-.763a.369.369 0 010-.704l2.442-.763a1.806 1.806 0 001.185-1.185l.763-2.442zm-8.14-9.897a.516.516 0 01.984 0l1.07 3.42c.247.79.867 1.41 1.658 1.657l3.419 1.07a.516.516 0 010 .984l-3.42 1.07a2.528 2.528 0 00-1.657 1.658l-1.07 3.419a.516.516 0 01-.984 0l-1.07-3.42a2.528 2.528 0 00-1.658-1.657l-3.419-1.07a.516.516 0 010-.984l3.42-1.07A2.528 2.528 0 007.437 5.78l1.07-3.419z"/></svg>
+      <span class="lbl" id="ssStripLbl">Sourcing Assistant is <b class="b-setup">waiting for assignments</b></span>
+      <a id="ssStripLink" onclick="ssStripAction()">Select a job <svg viewBox="0 0 24 24" fill="none" stroke="#004fcb" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a>
+    </div>
+
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+      <linearGradient id="ssAiGrad" x1="1.67" y1="1.67" x2="18.33" y2="18.33" gradientUnits="userSpaceOnUse"><stop offset="0.25" stop-color="#003A9B"/><stop offset="0.75" stop-color="#358271"/></linearGradient>
+    </defs></svg>
+
+    <!-- ─────────── HOME ─────────── -->
+    <div class="ss-screen" id="ssScrHome">
+      <div class="ss-hero">
+        <div class="ss-hero-l">
+          <h1>Let your Sourcing Assistant<br>find top talent</h1>
+          <p>Tell it who to look for. It invites top matches to apply.</p>
+        </div>
+        <div class="ss-hero-r">
+          <p class="cap">Assign your Assistant up to 3 jobs at a time</p>
+          <div class="ss-slots" id="ssSlots">
+            <button class="ss-slot" onclick="ssGo('welcome')"><svg viewBox="0 0 24 24" fill="none" stroke="#2d2d2d" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>Select a job</button>
+            <button class="ss-slot" onclick="ssGo('welcome')"><svg viewBox="0 0 24 24" fill="none" stroke="#2d2d2d" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>Select a job</button>
+            <button class="ss-slot" onclick="ssGo('welcome')"><svg viewBox="0 0 24 24" fill="none" stroke="#2d2d2d" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>Select a job</button>
+          </div>
+          <div class="ss-trynote"><svg viewBox="0 0 24 24" width="18" height="18" fill="#1f662c"><path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2z"/></svg>Try with free Assistant-only contacts</div>
+        </div>
+      </div>
+
+      <div class="ss-page">
+        <div class="ss-searchcard">
+          <div class="ss-searchrow">
+            <div class="ss-qwrap">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#2d2d2d" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+              <button class="ss-addjob"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#2d2d2d" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Add your job</button>
+              <input id="ssHomeQ" placeholder="Job title, skills, companies, or search syntax">
+            </div>
+            <div class="ss-lwrap">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#2d2d2d" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              <input id="ssHomeL" placeholder="City, state, or ZIP code">
+            </div>
+            <button class="ss-btn ss-btn-pri" onclick="ssRunSearch()">Find</button>
+            <button class="ss-icobtn" onclick="ssMenu(event,'searchMore')">&#8943;</button>
+          </div>
+        </div>
+
+        <div class="ss-jobs">
+          <h2>Your active jobs</h2>
+          <p class="lead"><b>Want better matches? Start with a job.</b> We'll use information from your job post to find candidates who match the exact skills and experience you need.</p>
+          <div class="ss-jobrow">
+            <button class="ss-arrow"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#2d2d2d" stroke-width="2"><path d="M19 12H5M11 5l-7 7 7 7"/></svg></button>
+            <div class="ss-jobcards">
+              <div class="ss-jobcard">
+                <h3>Web Developer</h3>
+                <p>Open &bull; Remote &bull; Aug 02, 2026 &bull; 11aa5402-a01b-41a0-9fbf-23f7aa3e0a41 &bull; kat@lincolndynamic.org</p>
+                <a onclick="ssRunSearch('web developer','Remote')">View matches</a>
+              </div>
+              <div class="ss-jobcard">
+                <h3>Test Engineer</h3>
+                <p>Open &bull; Remote &bull; Mar 25, 2023 &bull; 65827532-1-1 &bull; kat@lincolndynamic.org</p>
+                <a onclick="ssRunSearch('test engineer','Remote')">View matches</a>
+              </div>
+            </div>
+            <button class="ss-arrow"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#2d2d2d" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─────────── SEARCH RESULTS ─────────── -->
+    <div class="ss-screen ss-hide" id="ssScrSearch">
+      <div class="ss-page" style="padding-top:0">
+        <div class="ss-srow">
+          <div class="ss-qwrap" style="flex:1 1 520px">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#2d2d2d" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+            <button class="ss-addjob"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#2d2d2d" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Add your job</button>
+            <input id="ssQ" value="web developer">
+            <button class="ss-addjob" onclick="document.getElementById('ssQ').value='';ssApply()" title="Clear">&times;</button>
+          </div>
+          <div class="ss-lwrap">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#2d2d2d" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            <input id="ssL" value="Remote">
+            <button class="ss-addjob" onclick="document.getElementById('ssL').value='';ssApply()" title="Clear">&times;</button>
+          </div>
+          <button class="ss-btn ss-btn-pri" onclick="ssApply()">Find</button>
+          <button class="ss-btn ss-btn-out" onclick="ssSaveSearch()"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#004fcb" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>Save search</button>
+          <button class="ss-icobtn" onclick="ssMenu(event,'searchMore')">&#8943;</button>
+        </div>
+
+        <div class="ss-filters">
+          <button class="ss-fbtn" id="ssSortBtn" onclick="ssMenu(event,'sort')">Sort by: <span class="v" id="ssSortV">Relevance</span> <span style="font-size:12px">&#9662;</span></button>
+          <div class="ss-vrule"></div>
+          <button class="ss-fbtn" onclick="ssMenu(event,'dist')">Distance <span style="font-size:12px">&#9662;</span></button>
+          <button class="ss-fbtn" onclick="ssMenu(event,'upd')">Resume last updated <span style="font-size:12px">&#9662;</span></button>
+          <button class="ss-fbtn" onclick="ssOpenFilters()"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#2d2d2d" stroke-width="2"><path d="M4 6h16M7 12h10M10 18h4"/></svg>More filters</button>
+          <span class="ss-count" id="ssCount">7,000 results</span>
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#767676" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>
+          <span class="ss-newpill">New</span>
+        </div>
+
+        <div id="ssBulkBar" class="ss-hide"></div>
+
+        <div class="ss-results">
+          <div class="ss-list" id="ssList"></div>
+          <div class="ss-detail ss-hide" id="ssDetail"></div>
+        </div>
+        <div id="ssPager"></div>
+      </div>
+    </div>
+
+    <!-- ─────────── SELECT A JOB (wizard step 0) ─────────── -->
+    <div class="ss-screen ss-hide" id="ssScrWelcome">
+      <div class="ss-page" style="padding-top:8px;background:linear-gradient(135deg,#eef3ff 0%,#f2f8f3 100%);margin:0 -28px;padding-left:28px;padding-right:28px;padding-bottom:24px">
+        <h1 style="font-size:32px;font-weight:800;margin:24px 0 8px">Welcome to Sourcing Assistant</h1>
+        <p style="font-size:17px;color:#2d2d2d;margin:0 0 20px">Select a job to start. Your Assistant can handle up to <u>3 active jobs</u> at a time.</p>
+        <div class="ss-card" id="ssLearnBar" style="display:flex;align-items:center;padding:16px 20px;margin-bottom:20px;background:#fff">
+          <span style="font-size:16px"><u style="cursor:pointer">Learn more</u> about what Sourcing Assistant has to offer</span>
+          <button style="margin-left:auto;border:0;background:none;font-size:20px;cursor:pointer;color:#2d2d2d" onclick="this.parentNode.style.display='none'">&times;</button>
+        </div>
+        <div class="ss-card" style="padding:24px;background:#fff">
+          <h3 style="font-size:17px;font-weight:700;margin:0 0 16px">Jobs from Lincoln Dynamic Group in United States</h3>
+          <div class="ss-qwrap" style="margin-bottom:16px"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#767676" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input placeholder="Search by job title or reference number"></div>
+          <div style="display:flex;gap:12px;align-items:center;margin-bottom:16px">
+            <button class="ss-fbtn" onclick="ssMenu(event,'jobloc')">Location <span style="font-size:12px">&#9662;</span></button>
+            <button class="ss-fbtn" onclick="ssMenu(event,'jobdate')">Date Posted <span style="font-size:12px">&#9662;</span></button>
+            <div style="flex:1"></div>
+            <button class="ss-fbtn" onclick="ssMenu(event,'jobsort')">Sort by: <span class="v">Newest</span> <span style="font-size:12px">&#9662;</span></button>
+          </div>
+          <div id="ssJobErr" class="ss-err ss-hide"><svg viewBox="0 0 24 24" fill="#a9252b"><circle cx="12" cy="12" r="10"/><path fill="#fff" d="M11 6h2v8h-2zM11 16h2v2h-2z"/></svg>Select a job to continue.</div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:16px;color:#2d2d2d;padding:8px 0 12px;border-bottom:1px solid #e4e2e0">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#767676" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 012-2h2a2 2 0 012 2v2"/></svg>2 jobs
+          </div>
+          <div class="ss-jobpick" data-job="wd" onclick="ssPickJob(this)" style="display:flex;gap:16px;padding:16px 8px;border-bottom:1px solid #e4e2e0;cursor:pointer">
+            <span class="tick" style="width:20px;flex:0 0 20px;color:#2d2d2d;visibility:hidden">&#10003;</span>
+            <div><div style="font-size:16px">Web Developer</div><div style="font-size:15px;color:#595959">Open &bull; Remote &bull; August 2nd, 2026</div><div style="font-size:15px;color:#595959;font-style:italic">11aa5402-a01b-41a0-9fbf-23f7aa3e0a41</div></div>
+          </div>
+          <div class="ss-jobpick" data-job="te" onclick="ssPickJob(this)" style="display:flex;gap:16px;padding:16px 8px;cursor:pointer">
+            <span class="tick" style="width:20px;flex:0 0 20px;color:#2d2d2d;visibility:hidden">&#10003;</span>
+            <div><div style="font-size:16px">Test Engineer</div><div style="font-size:15px;color:#595959">Open &bull; Remote &bull; March 25th, 2023</div><div style="font-size:15px;color:#595959;font-style:italic">65827532-1-1</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="ss-wizfoot">
+        <span class="note">Sourcing Assistant uses AI and may make mistakes. <u style="cursor:pointer">Learn more</u> &#8599;</span>
+        <span class="sp"></span>
+        <button class="ss-btn ss-btn-ghost" onclick="ssGo('home')">Cancel</button>
+        <button class="ss-btn ss-btn-pri" onclick="ssStartSetup()">Next: Train Assistant</button>
+      </div>
+    </div>
+
+    <!-- ─────────── ASSISTANT SETUP / RUNNING ─────────── -->
+    <div class="ss-screen ss-hide" id="ssScrSetup">
+      <div class="ss-astatus">
+        <div>
+          <div class="l1"><span id="ssSetupDot" style="color:#004fcb">&#9679;</span> Sourcing Assistant is <b id="ssSetupState" style="color:#004fcb">in setup</b></div>
+          <div class="l2"><b>Web Developer</b> &bull; Remote &bull; Lincoln Dynamic Group</div>
+        </div>
+        <a id="ssSetupRight" onclick="ssCancelSetup()">Cancel setup</a>
+      </div>
+      <div class="ss-two">
+        <div class="ss-left">
+          <div class="ss-actcard">
+            <h3><svg viewBox="0 0 24 24" width="20" height="20" fill="url(#ssAiGrad)"><path d="M16.648 12.258a.369.369 0 01.704 0l.763 2.442c.177.565.62 1.008 1.185 1.185l2.442.763a.369.369 0 010 .704l-2.442.763a1.806 1.806 0 00-1.185 1.185l-.763 2.442a.369.369 0 01-.704 0l-.763-2.442a1.806 1.806 0 00-1.185-1.185l-2.442-.763a.369.369 0 010-.704l2.442-.763a1.806 1.806 0 001.185-1.185l.763-2.442zm-8.14-9.897a.516.516 0 01.984 0l1.07 3.42c.247.79.867 1.41 1.658 1.657l3.419 1.07a.516.516 0 010 .984l-3.42 1.07a2.528 2.528 0 00-1.657 1.658l-1.07 3.419a.516.516 0 01-.984 0l-1.07-3.42a2.528 2.528 0 00-1.658-1.657l-3.419-1.07a.516.516 0 010-.984l3.42-1.07A2.528 2.528 0 007.437 5.78l1.07-3.419z"/></svg>Assistant activity <span style="margin-left:auto;font-size:13px;color:#767676">&#9652;</span></h3>
+            <div class="ss-tline" id="ssActivity"></div>
+          </div>
+          <div class="ss-instr">
+            <h3><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#2d2d2d" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg>Assistant instructions
+              <button class="ss-btn ss-btn-out" style="margin-left:auto;height:38px;padding:6px 14px" onclick="ssOpen('ssMdInstr')"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#004fcb" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg>Edit</button>
+            </h3>
+            <div class="ss-instrbox" id="ssInstrBox"></div>
+            <div class="ss-fadenote">Sourcing Assistant uses AI and may make mistakes. <u style="cursor:pointer">Learn more</u> &#8599;</div>
+          </div>
+        </div>
+        <div class="ss-right" id="ssSetupRight2"></div>
+      </div>
+      <div class="ss-wizfoot" id="ssSetupFoot"></div>
+    </div>
+
+    <!-- ─────────── ASSISTANT JOBS HUB ─────────── -->
+    <div class="ss-screen ss-hide" id="ssScrHub">
+      <div class="ss-page" style="padding-top:8px">
+        <h1 style="font-size:30px;font-weight:800;margin:16px 0 24px">Sourcing Assistant jobs</h1>
+        <h2 style="font-size:18px;font-weight:700;margin:0;display:flex;gap:8px;align-items:center">Assigned jobs (<span id="ssHubN">1</span>/3) <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#767676" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg></h2>
+        <div class="ss-hubcards" id="ssHubCards"></div>
+      </div>
+    </div>
+
+    <!-- ─────────── PROJECTS ─────────── -->
+    <div class="ss-screen ss-hide" id="ssScrProjects">
+      <div class="ss-page" style="padding-top:0">
+        <div class="ss-split2">
+          <div class="ss-side">
+            <button class="ss-btn ss-btn-pri" style="width:100%" onclick="ssOpen('ssMdNewProject')"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#fff" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>New project</button>
+            <div class="grp">BROWSE</div>
+            <button class="ss-sideitem on" onclick="ssProjTab(this,'all')"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#2d2d2d" stroke-width="2"><path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>All projects</button>
+            <button class="ss-sideitem" onclick="ssProjTab(this,'new')"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#2d2d2d" stroke-width="2"><path d="M4 6h12M4 12h9M4 18h6"/><path d="M16 16l2 2 4-4"/></svg>New responses</button>
+            <button class="ss-sideitem" onclick="ssProjTab(this,'arch')"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#2d2d2d" stroke-width="2"><rect x="3" y="4" width="18" height="4" rx="1"/><path d="M5 8v11a1 1 0 001 1h12a1 1 0 001-1V8M10 12h4"/></svg>Archive</button>
+          </div>
+          <div class="ss-main">
+            <div style="display:flex;align-items:center;margin-bottom:20px">
+              <h2 style="font-size:26px;font-weight:800;margin:0">All projects</h2>
+              <button class="ss-link" style="margin-left:auto;display:inline-flex;gap:8px;align-items:center" onclick="ssMenu(event,'projsort')"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#004fcb" stroke-width="2"><path d="M4 6h16M6 12h12M9 18h6"/></svg>Sort: Date updated</button>
+            </div>
+            <div class="ss-promo" id="ssProjPromo">
+              <div style="flex:1">
+                <span class="ss-nb">New</span>
+                <h3>Start organizing your candidates with projects</h3>
+                <p>Take control of your workflow. Create a project now to track, organize and manage your candidates in one place.</p>
+                <button class="ss-btn ss-btn-pri" onclick="ssOpen('ssMdNewProject')">Create your first project</button>
+                <button class="ss-link" style="margin-left:16px">Learn more</button>
+              </div>
+              <div class="ss-illus" style="background:linear-gradient(135deg,#e6dcff 0%,#ffe6dc 100%)"><svg viewBox="0 0 24 24" width="52" height="52" fill="none" stroke="#8a6fd4" stroke-width="1.5"><rect x="3" y="5" width="18" height="4" rx="1"/><rect x="3" y="12" width="18" height="4" rx="1"/><rect x="3" y="19" width="12" height="2" rx="1"/></svg></div>
+              <button class="x" style="position:absolute;top:14px;right:16px;border:0;background:none;font-size:20px;cursor:pointer" onclick="this.parentNode.style.display='none'">&times;</button>
+            </div>
+            <div id="ssProjList"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─────────── SAVED SEARCHES ─────────── -->
+    <div class="ss-screen ss-hide" id="ssScrSaved">
+      <div class="ss-page" style="padding-top:0">
+        <div class="ss-split2">
+          <div class="ss-side">
+            <div class="grp" style="margin-top:0">Saved searches</div>
+            <button class="ss-sideitem on"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#004fcb" stroke-width="2"><path d="M18 8a6 6 0 10-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9z"/></svg>All saved searches <span class="n" id="ssSavedN1">0</span></button>
+            <button class="ss-sideitem"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#767676" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8 12l3 3 5-6"/></svg>Active Alerts <span class="n" id="ssSavedN2">0</span></button>
+            <button class="ss-sideitem"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#767676" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M10 9v6M14 9v6"/></svg>Inactive Alerts <span class="n">0</span></button>
+          </div>
+          <div class="ss-main">
+            <h2 style="font-size:26px;font-weight:800;margin:0 0 4px">Manage saved searches</h2>
+            <p style="font-size:16px;color:#2d2d2d;margin:0 0 24px">You can rename, edit, or delete your existing searches</p>
+            <div id="ssSavedList"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─────────── TEMPLATES ─────────── -->
+    <div class="ss-screen ss-hide" id="ssScrTemplates">
+      <div class="ss-page" id="ssTplWrap"></div>
+    </div>
+
+    <!-- ─────────── PLANS (links to existing subscriptions view) ─────────── -->
+    <div class="ss-screen ss-hide" id="ssScrPlans">
+      <div class="ss-page" style="padding-top:32px">
+        <div class="ss-emptybox">
+          <div style="flex:1">
+            <h3>Plans and Pricing</h3>
+            <p>Smart Sourcing plans, the comparison matrix, testimonials and FAQ live in the Subscriptions area of this prototype, already built to Indeed's measured spec.</p>
+            <button class="ss-btn ss-btn-pri" onclick="showView('subs')">Go to Subscriptions</button>
+          </div>
+          <div class="ss-illus"><svg viewBox="0 0 24 24" width="52" height="52" fill="none" stroke="#8a93a8" stroke-width="1.5"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M8 4v16"/></svg></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- filters drawer -->
+    <div class="ss-drawer" id="ssFilters">
+      <div class="ss-dr-head"><h3>Filters</h3><button class="ss-mclose" onclick="ssCloseFilters()">&times;</button></div>
+      <div class="ss-dr-body" id="ssFiltersBody"></div>
+      <div class="ss-dr-foot"><button class="ss-btn ss-btn-pri" onclick="ssCloseFilters();ssApply()">View <span id="ssFilterCount">7,000</span> results</button></div>
+    </div>
+
+    <!-- sourcing summary drawer -->
+    <div class="ss-drawer wide" id="ssSummary">
+      <div class="ss-dr-head">
+        <div><h3>Sourcing summary</h3><p class="sb">Web Developer &bull; Remote</p></div>
+        <button class="ss-mclose" onclick="ssCloseDrawer('ssSummary')">&times;</button>
+      </div>
+      <div class="ss-dr-body">
+        <h4 style="font-size:16px;font-weight:700;margin:0 0 12px">Time range</h4>
+        <div class="ss-seg" id="ssSumSeg">
+          <button onclick="ssSumRange(this,'all')">All</button>
+          <button onclick="ssSumRange(this,'30')">30d</button>
+          <button onclick="ssSumRange(this,'14')">14d</button>
+          <button class="on" onclick="ssSumRange(this,'7')">7d</button>
+        </div>
+        <div style="margin-top:24px" id="ssSumMetrics"></div>
+        <div class="ss-legend"><span><i class="ss-swatch" style="background:#3b7fd4"></i>Invited by Assistant</span><span><i class="ss-swatch" style="background:#8c1d4d"></i>Invited by you</span></div>
+      </div>
+    </div>
+  </div>
+  <!-- ══════════════════ /SMART SOURCING ══════════════════ -->
+
 
 </div>
 
@@ -2930,6 +3251,229 @@ tbody tr:last-child td { border-bottom: none; }
     </div>
   </div>
 </div>
+
+
+<!-- ══════════════════ SMART SOURCING MODALS ══════════════════ -->
+<div class="ss-ov" id="ssMdMessage"><div class="ss-modal">
+  <div class="ss-mhead"><h3 id="ssMsgTitle">Message</h3><button class="ss-mclose" onclick="ssClose('ssMdMessage')">&times;</button></div>
+  <div class="ss-mbody">
+    <button class="ss-fbtn" style="width:100%;justify-content:space-between;border-color:#767676;margin-bottom:8px" onclick="ssMenu(event,'tpl')"><span><b>Select a template:</b> <span class="v" id="ssMsgTpl">No template selected</span></span><span style="font-size:12px">&#9662;</span></button>
+    <div class="ss-field" id="ssFldFrom"><span class="lb">From</span><input class="tx" id="ssMsgFrom" placeholder=""><span class="lb" style="flex:0 0 90px;text-align:right">Company</span><span style="flex:0 0 200px">Lincoln Dynamic Group</span></div>
+    <div class="ss-err ss-hide" id="ssErrFrom"><svg viewBox="0 0 24 24" fill="#a9252b"><circle cx="12" cy="12" r="10"/><path fill="#fff" d="M11 6h2v8h-2zM11 16h2v2h-2z"/></svg>This field is required.</div>
+    <div class="ss-field"><span class="lb">Subject</span><input class="tx" id="ssMsgSubj" value="Let {COMPANY} know you are interested"><button class="ss-mclose" style="width:32px;height:32px;font-size:14px" onclick="ssMenu(event,'subj')">&#9662;</button></div>
+    <div class="ss-field" style="border-bottom:0"><span class="lb">Attached Job</span><span id="ssMsgJob"><button class="ss-link" onclick="ssOpen('ssMdSelectJob')">Select jobs on Indeed</button></span>
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="#2d2d2d" style="margin-left:4px"><circle cx="12" cy="12" r="10"/><path fill="#fff" d="M11 10h2v7h-2zM11 7h2v2h-2z"/></svg>
+      <span class="lb" style="flex:0 0 70px;text-align:right">Project</span><span class="ss-chip">Default</span>
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="#2d2d2d"><circle cx="12" cy="12" r="10"/><path fill="#fff" d="M11 10h2v7h-2zM11 7h2v2h-2z"/></svg></div>
+    <div class="ss-err ss-hide" id="ssErrJob"><svg viewBox="0 0 24 24" fill="#a9252b"><circle cx="12" cy="12" r="10"/><path fill="#fff" d="M11 6h2v8h-2zM11 16h2v2h-2z"/></svg>This field is required.</div>
+    <div style="display:flex;align-items:center;gap:10px;margin:16px 0 10px"><b style="font-size:16px">Message with AI-assist</b><span class="ss-beta">Beta <svg viewBox="0 0 24 24" width="13" height="13" fill="#fff"><circle cx="12" cy="12" r="10" fill="none" stroke="#fff" stroke-width="2"/><path d="M11 10h2v7h-2zM11 7h2v2h-2z"/></svg></span></div>
+    <div class="ss-rte">
+      <div class="ss-rte-bar"><button><b>B</b></button><button><i>I</i></button><button>&#9776;</button><button>{ }</button></div>
+      <div class="ss-rte-body" id="ssMsgBody" contenteditable="true">Hi {CANDIDATE_FIRSTNAME},
+
+I work at {COMPANY} and I came across your resume on Indeed. I think you could be a good candidate for our {JOB_TITLE} opportunity. Please let me know if you're interested.
+
+ Regards,
+{RECRUITER_NAME}
+{COMPANY}</div>
+      <div class="ss-rte-foot"><button class="ss-btn ss-btn-out" style="height:38px" onclick="ssGenerate()"><svg viewBox="0 0 24 24" width="18" height="18" fill="#004fcb"><path d="M12 2l2.2 5.6L20 10l-5.8 2.4L12 18l-2.2-5.6L4 10l5.8-2.4z"/></svg>Generate</button><button class="ss-icobtn" style="width:38px;height:38px" onclick="ssMenu(event,'ai')">&#8943;</button></div>
+    </div>
+  </div>
+  <div class="ss-mfoot split"><button class="ss-link" onclick="ssOpen('ssMdReminders')"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#004fcb" stroke-width="2" style="vertical-align:-3px;margin-right:6px"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg>Edit reminders</button>
+    <span><button class="ss-btn ss-btn-ghost" onclick="ssPreviewMsg()">Preview</button> <button class="ss-btn ss-btn-pri" onclick="ssSendMsg()">Send</button></span></div>
+</div></div>
+
+<div class="ss-ov" id="ssMdSelectJob"><div class="ss-modal md">
+  <div class="ss-mhead"><h3>Select from jobs listed on Indeed</h3><button class="ss-mclose" onclick="ssClose('ssMdSelectJob')">&times;</button></div>
+  <div class="ss-mbody">
+    <p style="font-size:16px;font-weight:700;margin:0 0 14px">Jobs from Lincoln Dynamic Group in United States</p>
+    <div class="ss-qwrap" style="margin-bottom:16px"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#767676" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input placeholder="Search by job title or reference number"></div>
+    <div style="display:flex;gap:12px;align-items:center;margin-bottom:16px">
+      <button class="ss-fbtn"><span style="color:#004fcb">(1)</span> Status <span style="font-size:12px">&#9662;</span></button>
+      <button class="ss-fbtn">Location <span style="font-size:12px">&#9662;</span></button>
+      <button class="ss-link">Clear all</button>
+      <div style="flex:1"></div>
+      <button class="ss-fbtn">Sort by: <span class="v">Newest</span> <span style="font-size:12px">&#9662;</span></button>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;font-size:16px;padding:8px 0 12px;border-bottom:1px solid #e4e2e0"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#767676" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 012-2h2a2 2 0 012 2v2"/></svg>2 of 5 jobs</div>
+    <div class="ss-jobpick2" onclick="ssPickAttach(this,'Web Developer')" style="padding:16px 8px;border-bottom:1px solid #e4e2e0;cursor:pointer"><div style="font-size:16px">Web Developer</div><div style="font-size:15px;color:#595959">Open &bull; Remote &bull; August 2nd, 2026</div><div style="font-size:15px;color:#595959;font-style:italic">11aa5402-a01b-41a0-9fbf-23f7aa3e0a41</div></div>
+    <div class="ss-jobpick2" onclick="ssPickAttach(this,'Test Engineer')" style="padding:16px 8px;cursor:pointer"><div style="font-size:16px">Test Engineer</div><div style="font-size:15px;color:#595959">Open &bull; Remote &bull; March 25th, 2023</div><div style="font-size:15px;color:#595959;font-style:italic">65827532-1-1</div></div>
+  </div>
+  <div class="ss-mfoot"><button class="ss-btn ss-btn-ghost">Create custom job</button><button class="ss-btn ss-btn-pri" onclick="ssClose('ssMdSelectJob')">Done</button></div>
+</div></div>
+
+<div class="ss-ov" id="ssMdReminders"><div class="ss-modal">
+  <div class="ss-mhead"><h3>Set reminders</h3><button class="ss-mclose" onclick="ssClose('ssMdReminders')">&times;</button></div>
+  <div class="ss-mbody">
+    <div class="ss-dtabs" style="margin-bottom:20px"><button class="ss-dtab on" onclick="ssRemTab(this)">First reminder</button><button class="ss-dtab" onclick="ssRemTab(this)">Second reminder</button><button class="ss-dtab" onclick="ssRemTab(this)">Third reminder</button></div>
+    <label style="font-size:16px;font-weight:700;display:block;margin-bottom:8px">Subject *</label>
+    <input class="ss-noteinput" style="min-height:0;height:48px" value="Reminder: You have a new opportunity at {COMPANY}">
+    <label style="font-size:16px;font-weight:700;display:block;margin:20px 0 8px">Message *</label>
+    <div class="ss-rte"><div class="ss-rte-bar"><button><b>B</b></button><button><i>I</i></button><button>&#9776;</button><button>{ }</button></div>
+    <div class="ss-rte-body" contenteditable="true">Dear {CANDIDATE_FIRSTNAME},
+
+{RECRUITER_NAME} recently reached out because they thought you were a great fit for an opportunity at {COMPANY}.
+
+Respond now to confirm your interest. Responding to this email also lets other recruiters know you're open to new opportunities.
+
+Thanks!</div></div>
+    <label style="font-size:16px;font-weight:700;display:block;margin:20px 0 4px">Schedule send</label>
+    <p style="font-size:16px;color:#2d2d2d;margin:0 0 12px">If the candidate does not reply, schedule when this reminder will send.</p>
+    <div style="display:flex;align-items:center;gap:14px"><select class="ss-statussel"><option>2</option><option>3</option><option>4</option><option>5</option><option>7</option></select><b style="font-size:16px">calendar days after initial message is sent</b></div>
+  </div>
+  <div class="ss-mfoot"><button class="ss-btn ss-btn-ghost" onclick="ssClose('ssMdReminders')">Cancel</button><button class="ss-btn ss-btn-pri" onclick="ssClose('ssMdReminders');ssToast('Saved','Reminders updated.')">Save</button></div>
+</div></div>
+
+<div class="ss-ov" id="ssMdPreview"><div class="ss-modal">
+  <div class="ss-mhead"><h3>Email Preview</h3><button class="ss-mclose" onclick="ssClose('ssMdPreview')">&times;</button></div>
+  <div class="ss-mbody">
+    <p style="font-size:16px;margin:0 0 14px"><span style="color:#595959">Subject line:</span> &nbsp;<b id="ssPvSubj"></b></p>
+    <div style="background:#f3f2f1;padding:24px;border-radius:8px">
+      <div style="background:#fff;max-width:560px;margin:0 auto;padding:28px">
+        <h2 style="font-size:22px;font-weight:700;line-height:30px;margin:0 0 22px" id="ssPvH"></h2>
+        <div style="display:flex;gap:20px;align-items:flex-start;margin-bottom:14px"><button class="ss-btn ss-btn-pri" style="flex:0 0 210px">Confirm my interest</button><span style="font-size:14px;color:#2d2d2d;line-height:20px">After you confirm your interest, we will share your profile with the employer.</span></div>
+        <div style="display:flex;gap:20px;align-items:flex-start;margin-bottom:14px"><button class="ss-btn ss-btn-out" style="flex:0 0 210px">Decline</button><span style="font-size:14px;color:#2d2d2d;line-height:20px">I would not like my profile shared with the employer.</span></div>
+        <p style="font-size:13px;color:#595959;line-height:19px;margin:0 0 22px">Do not reply to this email. Responding directly to this email will not result in a message to the employer.</p>
+        <div style="font-size:16px;line-height:24px;white-space:pre-line" id="ssPvBody"></div>
+      </div>
+    </div>
+  </div>
+  <div class="ss-mfoot"><button class="ss-btn ss-btn-ghost" onclick="ssClose('ssMdPreview')">Go back</button><button class="ss-btn ss-btn-pri" onclick="ssClose('ssMdPreview');ssSendMsg(true)">Send</button></div>
+</div></div>
+
+<div class="ss-ov" id="ssMdInstr"><div class="ss-modal">
+  <div class="ss-mhead"><h3>Assistant instructions</h3><button class="ss-mclose" onclick="ssClose('ssMdInstr')">&times;</button></div>
+  <div class="ss-mbody">
+    <p style="font-size:16px;line-height:24px;color:#2d2d2d;margin:0 0 16px">These guide your Sourcing Assistant when looking for matches. They're based on everything you've shared about your job so far. You own the instructions you use.</p>
+    <div style="display:flex;align-items:center;font-size:16px;color:#595959;margin-bottom:10px"><span>Edits don't change your job description.</span><span style="margin-left:auto;display:inline-flex;gap:8px;align-items:center"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#595959" stroke-width="2"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>This will be viewable for your team</span></div>
+    <div class="ss-rte">
+      <div class="ss-rte-bar"><button><b>B</b></button><button><i>I</i></button><button>&#9776;</button><span style="flex:1"></span><button class="ss-link" style="width:auto;padding:0 10px;display:inline-flex;gap:8px;align-items:center"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#004fcb" stroke-width="2"><path d="M4 4h9l7 7v9a1 1 0 01-1 1H4a1 1 0 01-1-1V5a1 1 0 011-1z"/><path d="M13 4v7h7"/></svg>Import from another job</button><button style="width:28px">?</button></div>
+      <div class="ss-rte-body" id="ssInstrEdit" contenteditable="true" style="max-height:300px;overflow-y:auto"></div>
+    </div>
+    <div style="font-size:14px;color:#595959;padding:8px 0 0"><span id="ssInstrCount">940</span> / 2500 characters</div>
+  </div>
+  <div class="ss-mfoot"><button class="ss-btn ss-btn-ghost" onclick="ssClose('ssMdInstr')">Cancel</button><button class="ss-btn ss-btn-pri" onclick="ssSaveInstr()">Save</button></div>
+</div></div>
+
+<div class="ss-ov" id="ssMdOutreach"><div class="ss-modal">
+  <div class="ss-mhead"><div><h3>Outreach settings</h3><p class="sb">Web Developer &bull; Remote</p></div><button class="ss-mclose" onclick="ssClose('ssMdOutreach')">&times;</button></div>
+  <div class="ss-mbody">
+    <div class="ss-card" style="padding:20px;margin-bottom:20px">
+      <h4 style="font-size:17px;font-weight:700;margin:0 0 14px">Contact usage</h4>
+      <label class="ss-fopt"><input type="radio" name="ssUsage" checked><span style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">Pause and alert after using <input id="ssPauseN" value="30" style="width:70px;border:1px solid #767676;border-radius:8px 0 0 8px;padding:6px 8px;font-family:inherit;font-size:16px"><button onclick="ssBump()" style="border:1px solid #767676;border-left:0;border-radius:0 8px 8px 0;background:#fff;color:#004fcb;font-weight:700;font-family:inherit;font-size:16px;padding:6px 10px;cursor:pointer">+10</button> contacts</span></label>
+      <label class="ss-fopt"><input type="radio" name="ssUsage">Keep contacting until unassigned</label>
+    </div>
+    <div class="ss-card" style="padding:20px;margin-bottom:20px">
+      <h4 style="font-size:17px;font-weight:700;margin:0 0 4px">Daily contact allocation: <span id="ssDailyN">10</span></h4>
+      <p style="font-size:16px;color:#2d2d2d;margin:0 0 16px">Specify how many contacts your Assistant can use each day.</p>
+      <div style="display:flex;align-items:center;gap:14px"><span style="font-size:16px">5</span><input type="range" min="5" max="30" value="10" oninput="document.getElementById('ssDailyN').textContent=this.value" style="flex:1;accent-color:#2d2d2d"><span style="font-size:16px">30</span></div>
+    </div>
+    <div class="ss-card" style="padding:20px;margin-bottom:20px">
+      <h4 style="font-size:17px;font-weight:700;margin:0 0 14px">Project</h4>
+      <label class="ss-fopt"><input type="radio" name="ssProj" checked><span>Store outreaches in a new <b>Sourcing Assistant designated</b> project<br><span style="color:#595959">Create a new project every time you assign a job to the assistant.</span></span></label>
+      <label class="ss-fopt"><input type="radio" name="ssProj"><span style="display:flex;align-items:center;gap:10px">Store outreaches in your <select class="ss-statussel"><option>Select an existing</option><option>Default project</option></select> project</span></label>
+    </div>
+    <div class="ss-card" style="padding:20px;margin-bottom:20px">
+      <h4 style="font-size:17px;font-weight:700;margin:0 0 4px">Send time</h4>
+      <p style="font-size:16px;color:#2d2d2d;margin:0 0 12px">Select when your Assistant can send outreach.</p>
+      <label class="ss-fopt"><input type="radio" name="ssTime" checked>Business hours only (Weekdays, 6 am to 8 pm CT)</label>
+      <label class="ss-fopt"><input type="radio" name="ssTime">Send 24/7</label>
+    </div>
+    <div class="ss-card" style="padding:20px;margin-bottom:20px">
+      <h4 style="font-size:17px;font-weight:700;margin:0 0 4px">Exclusions</h4>
+      <p style="font-size:16px;color:#2d2d2d;margin:0 0 12px">Select your outreach policies. Your Assistant will do its best to follow them.</p>
+      <label class="ss-fopt"><input type="checkbox" checked><span><b>Previous employees</b><br><span style="color:#595959">Assistant will exclude anyone who lists the company you're sourcing for anywhere in their work history.</span></span></label>
+      <label class="ss-fopt"><input type="checkbox" checked><span><b>Previous applicants</b><br><span style="color:#595959">Assistant will exclude people who applied to any of your recent job openings in the last 90 days.</span></span></label>
+      <label class="ss-fopt" style="opacity:.55"><input type="checkbox" checked disabled><span><b>Current employees</b><br><span style="color:#595959">Assistant will exclude anyone who lists the company you're sourcing for as their current company.</span></span></label>
+      <label class="ss-fopt" style="opacity:.55"><input type="checkbox" checked disabled><span><b>People messaged recently</b><br><span style="color:#595959">Assistant will exclude people your team messaged about any position in the last 90 days.</span></span></label>
+      <p style="font-size:15px;color:#595959;margin:12px 0 20px">Some exclusions rely on the latest info from resumes. If someone's resume is out of date, they may still get a message.</p>
+      <h4 style="font-size:17px;font-weight:700;margin:0 0 12px;border-top:1px solid #e4e2e0;padding-top:20px">Email exclusions</h4>
+      <div class="ss-dtabs" style="margin-bottom:16px"><button class="ss-dtab on" onclick="ssRemTab(this)">Add individually</button><button class="ss-dtab" onclick="ssRemTab(this)">Upload CSV</button></div>
+      <label style="font-size:16px;font-weight:700;display:block;margin-bottom:4px">Enter email addresses</label>
+      <p style="font-size:16px;color:#2d2d2d;margin:0 0 10px">Separate multiple email addresses with commas.</p>
+      <div style="display:flex;gap:12px;align-items:center"><div class="ss-qwrap" style="flex:1"><input placeholder="name@example.com"><span style="background:#d93025;color:#fff;border-radius:4px;padding:1px 6px;font-size:12px">&#8943;</span></div><button class="ss-link" style="color:#a6a4a2">Save</button></div>
+    </div>
+    <div class="ss-card" style="padding:20px">
+      <h4 style="font-size:17px;font-weight:700;margin:0 0 14px">Message content</h4>
+      <div style="display:flex;gap:20px">
+        <label class="ss-mc on" onclick="ssMsgMode(this,'ai')" style="flex:1;border:2px solid #004fcb;border-radius:12px;padding:14px 16px;cursor:pointer"><input type="radio" name="ssMC" checked style="accent-color:#2d2d2d"> <b>Let Indeed's AI write</b><br><span style="color:#595959;font-size:15px;padding-left:26px">We tailor messages to each match</span></label>
+        <label class="ss-mc" onclick="ssMsgMode(this,'custom')" style="flex:1;border:1px solid #e4e2e0;border-radius:12px;padding:15px 17px;cursor:pointer"><input type="radio" name="ssMC" style="accent-color:#2d2d2d"> <b>Create custom template</b><br><span style="color:#595959;font-size:15px;padding-left:26px">You create the message we'll send</span></label>
+      </div>
+      <div id="ssMCai" style="display:flex;gap:12px;align-items:flex-start;margin-top:16px"><span class="ss-chip">Beta</span><span style="font-size:15px;color:#2d2d2d;line-height:22px;flex:1">Indeed's AI generates dynamic content and can make mistakes. By using this, you accept responsibility for message contents. Pause at any time.</span></div>
+      <div id="ssMCcustom" class="ss-hide" style="margin-top:16px"><label style="font-size:16px;font-weight:700;display:block;margin-bottom:8px">Template</label><select class="ss-statussel" style="width:100%"><option>Create a new message template</option></select></div>
+    </div>
+  </div>
+  <div class="ss-mfoot"><button class="ss-btn ss-btn-ghost" onclick="ssClose('ssMdOutreach')">Cancel</button><button class="ss-btn ss-btn-pri" onclick="ssClose('ssMdOutreach');ssToast('Saved','Outreach settings updated.')">Save</button></div>
+</div></div>
+
+<div class="ss-ov" id="ssMdEmailPrev"><div class="ss-modal">
+  <div class="ss-mhead"><h3>Email preview</h3><button class="ss-mclose" onclick="ssClose('ssMdEmailPrev')">&times;</button></div>
+  <div class="ss-mbody">
+    <p style="font-size:16px;margin:0 0 14px"><b>Subject line:</b>&nbsp; You're invited: Lincoln Dynamic Group Recruiting Team wants you to apply to the Web Developer role</p>
+    <div style="background:#f3f2f1;padding:24px;border-radius:8px"><div style="background:#fff;max-width:560px;margin:0 auto">
+      <div style="display:flex;align-items:center;padding:16px 20px;border-bottom:1px solid #e4e2e0"><b style="color:#2557a7;font-size:20px">indeed</b><span style="margin-left:auto;font-size:14px;color:#2557a7">Find Jobs &nbsp; Sign in</span></div>
+      <div style="padding:24px;font-size:16px;line-height:24px;white-space:pre-line">Hello {CANDIDATE_FIRSTNAME},
+
+I was impressed by your extensive full-stack experience with JavaScript, Python, React/Next.js, Node.js, REST APIs, PostgreSQL, AWS, and Azure, which appears to align very well with the Web Developer role at Lincoln Dynamic Group. In this opportunity, you'd develop and optimize scalable, secure web applications, work with modern JavaScript frameworks, design RESTful APIs, and contribute to cloud-based, high-availability systems using Agile practices and GitHub. If this sounds interesting, please apply or view the full job details to learn more.
+
+Thanks,
+Lincoln Dynamic Group Recruiting Team</div>
+      <div style="padding:0 24px 24px"><button class="ss-btn ss-btn-pri" style="width:100%">Apply</button></div>
+    </div></div>
+  </div>
+  <div class="ss-mfoot"><button class="ss-btn ss-btn-pri" onclick="ssClose('ssMdEmailPrev')">Close</button></div>
+</div></div>
+
+<div class="ss-ov" id="ssMdPass"><div class="ss-modal sm">
+  <div class="ss-mhead"><h3 id="ssPassTitle">Why pass?</h3><button class="ss-mclose" onclick="ssClose('ssMdPass')">&times;</button></div>
+  <div class="ss-mbody">
+    <p style="font-size:16px;line-height:24px;margin:0 0 6px">Teach your Assistant why it's not a match. We'll update your instructions.</p>
+    <p style="font-size:15px;color:#595959;margin:0 0 12px">Be descriptive. Specific details help the most.</p>
+    <textarea class="ss-noteinput" id="ssPassWhy" placeholder="Tell us in your own words"></textarea>
+  </div>
+  <div class="ss-mfoot"><button class="ss-btn ss-btn-ghost" onclick="ssClose('ssMdPass')">Cancel</button><button class="ss-btn ss-btn-pri" onclick="ssPassConfirm()">Pass and update</button></div>
+</div></div>
+
+<div class="ss-ov" id="ssMdNewProject"><div class="ss-modal sm">
+  <div class="ss-mhead"><h3>Create a project</h3><button class="ss-mclose" onclick="ssClose('ssMdNewProject')">&times;</button></div>
+  <div class="ss-mbody"><label style="font-size:16px;font-weight:700;display:block;margin-bottom:8px">Project name</label>
+    <input class="ss-noteinput" id="ssNewProjName" style="min-height:0;height:48px" placeholder="e.g. Web Developer - Remote">
+    <p style="font-size:15px;color:#595959;margin:12px 0 0">Projects keep candidates, messages and notes together in one place.</p></div>
+  <div class="ss-mfoot"><button class="ss-btn ss-btn-ghost" onclick="ssClose('ssMdNewProject')">Cancel</button><button class="ss-btn ss-btn-pri" onclick="ssCreateProject()">Create project</button></div>
+</div></div>
+
+<div class="ss-ov" id="ssMdSaveSearch"><div class="ss-modal sm">
+  <div class="ss-mhead"><h3>Save this search</h3><button class="ss-mclose" onclick="ssClose('ssMdSaveSearch')">&times;</button></div>
+  <div class="ss-mbody"><label style="font-size:16px;font-weight:700;display:block;margin-bottom:8px">Search name</label>
+    <input class="ss-noteinput" id="ssSaveName" style="min-height:0;height:48px">
+    <label class="ss-fopt" style="margin-top:16px"><input type="checkbox" id="ssSaveAlert" checked>Email me when new candidates match this search</label></div>
+  <div class="ss-mfoot"><button class="ss-btn ss-btn-ghost" onclick="ssClose('ssMdSaveSearch')">Cancel</button><button class="ss-btn ss-btn-pri" onclick="ssSaveSearchGo()">Save search</button></div>
+</div></div>
+
+<div class="ss-ov" id="ssMdRemove"><div class="ss-modal sm">
+  <div class="ss-mhead"><h3>Remove assignment?</h3><button class="ss-mclose" onclick="ssClose('ssMdRemove')">&times;</button></div>
+  <div class="ss-mbody"><p style="font-size:16px;line-height:24px">Your Sourcing Assistant will stop sourcing and reaching out for <b>Web Developer</b>. Contacts already used are not refunded.</p></div>
+  <div class="ss-mfoot"><button class="ss-btn ss-btn-ghost" onclick="ssClose('ssMdRemove')">Keep assignment</button><button class="ss-btn ss-btn-pri" style="background:#a9252b" onclick="ssRemoveAssign()">Remove assignment</button></div>
+</div></div>
+
+<div class="ss-ov" id="ssMdNewTemplate"><div class="ss-modal md">
+  <div class="ss-mhead"><h3>New message template</h3><button class="ss-mclose" onclick="ssClose('ssMdNewTemplate')">&times;</button></div>
+  <div class="ss-mbody">
+    <label style="font-size:16px;font-weight:700;display:block;margin-bottom:8px">Template name</label>
+    <input class="ss-noteinput" id="ssTplName" style="min-height:0;height:48px" placeholder="e.g. Web Developer outreach">
+    <label style="font-size:16px;font-weight:700;display:block;margin:20px 0 8px">Subject</label>
+    <input class="ss-noteinput" id="ssTplSubj" style="min-height:0;height:48px" value="Let {COMPANY} know you are interested">
+    <label style="font-size:16px;font-weight:700;display:block;margin:20px 0 8px">Message</label>
+    <div class="ss-rte"><div class="ss-rte-bar"><button><b>B</b></button><button><i>I</i></button><button>&#9776;</button><button>{ }</button></div><div class="ss-rte-body" id="ssTplBody" contenteditable="true">Hi {CANDIDATE_FIRSTNAME},
+
+I work at {COMPANY} and I came across your resume on Indeed. I think you could be a good candidate for our {JOB_TITLE} opportunity. Please let me know if you're interested.
+
+Regards,
+{RECRUITER_NAME}</div></div>
+  </div>
+  <div class="ss-mfoot"><button class="ss-btn ss-btn-ghost" onclick="ssClose('ssMdNewTemplate')">Cancel</button><button class="ss-btn ss-btn-pri" onclick="ssCreateTemplate()">Save template</button></div>
+</div></div>
+<!-- ══════════════════ /SMART SOURCING MODALS ══════════════════ -->
 
 <!-- Success Toast -->
 <!-- Toast is created dynamically by showToast() -->
@@ -6283,6 +6827,381 @@ body.agx-on #view-events.view.active .content-header{padding:0 24px 0 28px !impo
 .agx-faq-i.on .agx-faq-chev{transform:rotate(180deg)}
 .agx-faq-a{display:none;font-size:16px;color:#595959;line-height:1.6;padding:0 4px 20px}
 .agx-faq-i.on .agx-faq-a{display:block}
+
+/* ═══════════════════════════════════════════════════════════════
+   SMART SOURCING — self-contained module. All selectors are
+   namespaced .ss-* / #view-sourcing and touch nothing else.
+   Values measured from resumes.indeed.com (Aug 3 2026).
+   ═══════════════════════════════════════════════════════════════ */
+#view-sourcing{background:#fff;margin:-24px -28px -40px;padding:0;font-family:'Noto Sans',-apple-system,BlinkMacSystemFont,sans-serif;color:#2d2d2d}
+#view-sourcing *{box-sizing:border-box}
+
+/* ── title row + sub-nav ─────────────────────────────────────── */
+.ss-titlebar{display:flex;align-items:center;gap:0;padding:14px 28px;border-bottom:1px solid #e4e2e0;flex-wrap:wrap;row-gap:10px}
+.ss-title{font-size:22px;font-weight:700;line-height:32px;color:#2d2d2d;margin:0;padding-right:24px;border-right:1px solid #e4e2e0}
+.ss-subnav{display:flex;align-items:center;gap:4px;margin-left:16px}
+.ss-tab{padding:9px 13px;border-radius:12px;border:0;background:transparent;font-family:inherit;font-size:16px;font-weight:400;line-height:24px;color:#2d2d2d;cursor:pointer;white-space:nowrap}
+.ss-tab:hover{background:#f3f2f1}
+.ss-tab.on{background:#4a4a4a;color:#fff;font-weight:700}
+.ss-spacer{flex:1}
+.ss-pill{display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:700;line-height:21px;color:#1f662c}
+.ss-contacts{display:inline-flex;align-items:center;gap:8px}
+.ss-contacts b{color:#004fcb;font-size:14px;font-weight:700}
+.ss-acbal{display:inline-flex;align-items:center;gap:3px;background:#e4f7e6;color:#1f662c;border-radius:8px;padding:2px 8px;font-size:13px;font-weight:700}
+.ss-dot{color:#767676;padding:0 4px}
+.ss-trial{display:inline-flex;align-items:center;gap:6px;color:#004fcb;font-size:15px;white-space:nowrap;font-weight:400;text-decoration:none;cursor:pointer}
+.ss-country{display:inline-flex;align-items:center;gap:6px;border:1px solid #2d2d2d;border-radius:12px;padding:8px 13px;background:#fff;font-size:15px;white-space:nowrap;font-weight:700;cursor:pointer;font-family:inherit}
+.ss-postjob{background:#004fcb;color:#fff;border:0;border-radius:12px;padding:8px 14px;font-size:15px;white-space:nowrap;font-weight:700;font-family:inherit;cursor:pointer}
+.ss-postjob:hover{background:#0043ad}
+
+/* ── assistant strip ─────────────────────────────────────────── */
+.ss-astrip{display:flex;align-items:center;padding:14px 28px;gap:8px}
+.ss-astrip .lbl{font-size:16px;color:#2d2d2d}
+.ss-astrip .lbl b{font-weight:700}
+.ss-astrip .b-setup{color:#004fcb}
+.ss-astrip .b-pending{color:#8a6116}
+.ss-astrip .b-working{color:#1f662c}
+.ss-astrip a{margin-left:auto;color:#004fcb;font-size:16px;font-weight:700;text-decoration:none;cursor:pointer;display:inline-flex;align-items:center;gap:8px}
+.ss-astrip svg{width:20px;height:20px;flex:0 0 20px}
+
+/* ── generic bits ────────────────────────────────────────────── */
+.ss-page{padding:0 28px 48px}
+.ss-h1{font-size:42px;font-weight:800;line-height:1.12;color:#2d2d2d;margin:0 0 14px}
+.ss-h2{font-size:28px;font-weight:500;line-height:35px;color:#2d2d2d;margin:0 0 8px}
+.ss-h3{font-size:20px;font-weight:700;line-height:30px;color:#2d2d2d;margin:0 0 8px}
+.ss-sub{font-size:18px;font-weight:400;line-height:27px;color:#595959;margin:0 0 8px}
+.ss-muted{color:#767676}
+.ss-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:44px;padding:9px 16px;border:0;border-radius:12px;font-family:inherit;font-size:16px;font-weight:700;cursor:pointer}
+.ss-btn-pri{background:#004fcb;color:#fff}
+.ss-btn-pri:hover{background:#0043ad}
+.ss-btn-out{background:#fff;color:#004fcb;border:1px solid #e4e2e0}
+.ss-btn-out:hover{background:#f7f6f5}
+.ss-btn-ghost{background:#fff;color:#2d2d2d;border:1px solid #2d2d2d}
+.ss-btn-ghost:hover{background:#f7f6f5}
+.ss-link{color:#004fcb;font-weight:700;text-decoration:none;cursor:pointer;background:none;border:0;font-family:inherit;font-size:16px;padding:0}
+.ss-card{background:#fff;border:1px solid #e4e2e0;border-radius:12px}
+.ss-shadow{box-shadow:rgba(45,45,45,.16) 0 0 2px 0,rgba(45,45,45,.08) 0 1px 3px 0,rgba(45,45,45,.04) 0 2px 4px 0}
+.ss-hide{display:none !important}
+.ss-chip{display:inline-flex;align-items:center;background:#f3f2f1;color:#2d2d2d;border-radius:8px;padding:3px 9px;font-size:13px;line-height:20px}
+
+/* ── home ────────────────────────────────────────────────────── */
+.ss-hero{background:linear-gradient(135deg,#eef3ff 0%,#f2f8f3 100%);padding:36px 28px 40px;display:flex;gap:32px;align-items:flex-start;flex-wrap:wrap}
+.ss-hero-l{flex:1 1 480px;min-width:360px}
+.ss-hero-l h1{font-size:44px;font-weight:800;line-height:1.1;margin:0 0 12px;color:#2d2d2d}
+.ss-hero-l p{font-size:18px;line-height:27px;color:#595959;margin:0}
+.ss-hero-r{flex:0 0 540px}
+.ss-hero-r .cap{font-size:16px;color:#2d2d2d;margin:0 0 12px}
+.ss-slots{display:flex;gap:16px}
+.ss-slot{flex:1;border:1px dashed #767676;border-radius:12px;height:66px;display:flex;align-items:center;justify-content:center;gap:8px;color:#2d2d2d;font-size:16px;cursor:pointer;background:transparent}
+.ss-slot:hover{background:rgba(255,255,255,.6)}
+.ss-slot svg{width:20px;height:20px}
+.ss-trynote{display:flex;align-items:center;gap:6px;color:#1f662c;font-size:15px;margin-top:12px}
+.ss-searchcard{background:#fff;border-radius:12px;padding:16px;margin:28px 0 0;box-shadow:rgba(45,45,45,.16) 0 0 2px 0,rgba(45,45,45,.08) 0 1px 3px 0}
+.ss-searchrow{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.ss-qwrap,.ss-lwrap{display:flex;align-items:center;gap:8px;border:1px solid #767676;border-radius:12px;padding:0 12px;height:50px;background:#fff}
+.ss-qwrap{flex:1 1 520px}
+.ss-lwrap{flex:0 1 330px}
+.ss-qwrap input,.ss-lwrap input{border:0;outline:0;font-family:inherit;font-size:16px;flex:1;background:transparent;color:#2d2d2d}
+.ss-addjob{display:inline-flex;align-items:center;gap:4px;color:#2d2d2d;font-size:16px;white-space:nowrap;cursor:pointer;background:none;border:0;font-family:inherit}
+.ss-icobtn{width:44px;height:44px;border-radius:12px;border:1px solid #e4e2e0;background:#fff;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;color:#2d2d2d}
+.ss-icobtn:hover{background:#f7f6f5}
+.ss-jobs h2{font-size:22px;font-weight:700;margin:36px 0 6px}
+.ss-jobs .lead{font-size:16px;color:#2d2d2d;margin:0 0 20px}
+.ss-jobs .lead b{font-weight:700}
+.ss-jobrow{display:flex;align-items:center;gap:16px}
+.ss-arrow{width:44px;height:44px;border-radius:50%;border:0;background:#f3f2f1;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 44px}
+.ss-arrow:hover{background:#e8e6e4}
+.ss-jobcards{display:flex;gap:16px;flex:1;overflow:hidden}
+.ss-jobcard{flex:0 0 380px;border:1px solid #e4e2e0;border-radius:12px;padding:24px}
+.ss-jobcard h3{font-size:18px;font-weight:700;margin:0 0 8px}
+.ss-jobcard p{font-size:15px;color:#595959;line-height:22px;margin:0 0 16px}
+.ss-jobcard a{color:#004fcb;font-weight:700;font-size:16px;text-decoration:none;cursor:pointer}
+
+/* ── search results ──────────────────────────────────────────── */
+.ss-srow{display:flex;gap:12px;align-items:center;padding:16px 0 0;flex-wrap:wrap}
+.ss-filters{display:flex;gap:12px;align-items:center;padding:16px 0;flex-wrap:wrap}
+.ss-fbtn{display:inline-flex;align-items:center;gap:8px;border:1px solid #2d2d2d;border-radius:12px;padding:8px 15px;background:#fff;font-family:inherit;font-size:16px;font-weight:700;cursor:pointer;color:#2d2d2d}
+.ss-fbtn:hover{background:#f7f6f5}
+.ss-fbtn.on{border-color:#004fcb;color:#004fcb;box-shadow:0 0 0 1px #004fcb}
+.ss-fbtn .v{font-weight:400}
+.ss-vrule{width:1px;height:28px;background:#e4e2e0}
+.ss-count{font-size:16px;color:#2d2d2d;margin-left:4px}
+.ss-newpill{background:#fdeef5;color:#8c1d4d;border-radius:10px;padding:2px 10px;font-size:13px;font-weight:700}
+.ss-results{display:flex;gap:24px;align-items:flex-start}
+.ss-list{flex:1;min-width:0;display:flex;flex-direction:column;gap:16px}
+.ss-list.split{flex:0 0 392px}
+.ss-res{border:1px solid #e4e2e0;border-radius:12px;padding:20px 24px;display:flex;gap:24px;background:#fff;cursor:pointer}
+.ss-res:hover{box-shadow:rgba(45,45,45,.16) 0 0 2px 0,rgba(45,45,45,.08) 0 1px 3px 0}
+.ss-res.sel{border:2px solid #004fcb;padding:19px 23px}
+.ss-res .c1{flex:0 0 300px;display:flex;gap:12px}
+.ss-res .c2{flex:1 1 300px}
+.ss-res .c3{flex:1 1 320px}
+.ss-res .c4{flex:0 0 140px;display:flex;gap:12px;align-items:flex-start;justify-content:flex-end}
+.ss-cb{width:20px;height:20px;flex:0 0 20px;border:1px solid #767676;border-radius:4px;background:#fff;cursor:pointer;margin-top:2px;position:relative}
+.ss-cb.on{background:#004fcb;border-color:#004fcb}
+.ss-cb.on:after{content:"";position:absolute;left:6px;top:2px;width:5px;height:10px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}
+.ss-name{font-size:16px;font-weight:700;color:#2d2d2d;margin:0}
+.ss-loc{font-size:16px;color:#2d2d2d;margin:0 0 12px}
+.ss-meta{font-size:14px;color:#767676;line-height:21px}
+.ss-tl{position:relative;padding-left:16px}
+.ss-tl:before{content:"";position:absolute;left:3px;top:8px;bottom:8px;width:1px;background:#d4d2d0}
+.ss-tl .it{position:relative;margin-bottom:12px}
+.ss-tl .it:before{content:"";position:absolute;left:-16px;top:7px;width:7px;height:7px;border-radius:50%;background:#d4d2d0}
+.ss-tl .t{font-size:16px;font-weight:700;color:#2d2d2d;line-height:22px}
+.ss-tl .c{font-size:16px;color:#2d2d2d;line-height:22px}
+.ss-tl .c span{color:#767676}
+.ss-edu{font-size:16px;font-weight:700;color:#2d2d2d;line-height:22px}
+.ss-edu+div{font-size:16px;color:#767676;margin-bottom:10px}
+.ss-skills{display:flex;flex-wrap:wrap;gap:8px}
+.ss-contacted{display:inline-flex;align-items:center;gap:8px;color:#767676;font-size:16px;font-weight:700}
+.ss-thumb{width:44px;height:44px;border-radius:12px;border:1px solid #e4e2e0;background:#fff;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;color:#2d2d2d;flex:0 0 44px}
+.ss-thumb:hover{background:#f7f6f5}
+.ss-msgbtn{background:#004fcb;color:#fff;border:0;border-radius:12px;padding:9px 20px;height:44px;font-family:inherit;font-size:16px;font-weight:700;cursor:pointer}
+.ss-msgbtn:hover{background:#0043ad}
+
+/* compact card in split mode */
+.ss-list.split .ss-res{flex-direction:column;gap:0;padding:16px}
+.ss-list.split .ss-res.sel{padding:15px}
+.ss-list.split .c1,.ss-list.split .c2,.ss-list.split .c3,.ss-list.split .c4{flex:none;width:100%}
+.ss-list.split .c4{justify-content:flex-end;margin-top:12px}
+.ss-list.split .c2,.ss-list.split .c3{margin-top:12px}
+
+/* detail pane */
+.ss-detail{flex:1;min-width:0;border-left:1px solid #e4e2e0;padding-left:24px}
+.ss-dhead{position:sticky;top:0;background:#fff;padding-bottom:12px;z-index:2}
+.ss-dhead h2{font-size:16px;font-weight:700;text-decoration:underline;margin:0 0 4px;color:#2d2d2d}
+.ss-dhead .loc{font-size:16px;color:#2d2d2d;margin:0 0 12px}
+.ss-dactions{display:flex;gap:12px;align-items:center;border-bottom:1px solid #e4e2e0;padding-bottom:16px}
+.ss-dactions .sep{width:1px;height:32px;background:#e4e2e0;margin:0 4px}
+.ss-dmeta{display:flex;gap:24px;font-size:14px;color:#595959;padding:16px 0}
+.ss-insights{border:1px solid #e4e2e0;border-radius:12px;padding:20px 24px;margin-bottom:24px}
+.ss-insights h3{font-size:22px;font-weight:700;margin:0 0 16px}
+.ss-insights h4{font-size:15px;font-weight:400;color:#595959;margin:16px 0 8px}
+.ss-ins-chip{display:inline-flex;background:#f1f5fd;color:#12315b;border-radius:8px;padding:6px 12px;font-size:15px;font-weight:700;margin:0 8px 8px 0}
+.ss-dtabs{display:flex;gap:24px;border-bottom:1px solid #e4e2e0;margin-bottom:20px}
+.ss-dtab{padding:10px 0;border:0;border-bottom:3px solid transparent;background:none;font-family:inherit;font-size:16px;font-weight:700;color:#767676;cursor:pointer}
+.ss-dtab.on{color:#2d2d2d;border-bottom-color:#2d2d2d}
+.ss-sec{border-top:1px solid #e4e2e0;padding:20px 0}
+.ss-sec:first-child{border-top:0}
+.ss-sec h3{font-size:22px;font-weight:700;margin:0 0 12px;display:flex;align-items:center;justify-content:space-between;cursor:pointer}
+.ss-sec p{font-size:16px;line-height:24px;color:#2d2d2d;margin:0 0 8px}
+.ss-hl{background:#e4f7e6;border-bottom:1px solid #1f662c;padding:0 1px}
+.ss-exp{display:flex;gap:16px;margin-bottom:20px}
+.ss-expico{width:44px;height:44px;flex:0 0 44px;border-radius:8px;background:#eef2fb;display:flex;align-items:center;justify-content:center;color:#4a5f8a}
+.ss-exp .t{font-size:16px;font-weight:700}
+.ss-exp .d{font-size:15px;color:#595959}
+.ss-exp .b{font-size:15px;color:#2d2d2d;line-height:23px;margin-top:8px;white-space:pre-line}
+
+/* notes / activity / tags */
+.ss-note{border:1px solid #e4e2e0;border-radius:12px;padding:16px;margin-bottom:12px}
+.ss-note .who{font-size:14px;font-weight:700;color:#2d2d2d}
+.ss-note .when{font-size:13px;color:#767676}
+.ss-note .body{font-size:15px;line-height:23px;margin-top:8px}
+.ss-noteinput{width:100%;min-height:96px;border:1px solid #767676;border-radius:12px;padding:12px;font-family:inherit;font-size:16px;resize:vertical}
+.ss-act{display:flex;gap:14px;padding:14px 0;border-bottom:1px solid #f0efee}
+.ss-actico{width:32px;height:32px;flex:0 0 32px;border-radius:50%;background:#eef2fb;display:flex;align-items:center;justify-content:center;color:#004fcb}
+.ss-act .t{font-size:15px;color:#2d2d2d}
+.ss-act .w{font-size:13px;color:#767676;margin-top:2px}
+.ss-tag{display:inline-flex;align-items:center;gap:6px;background:#eef2fb;color:#12315b;border-radius:16px;padding:5px 12px;font-size:14px;font-weight:700;margin:0 8px 8px 0}
+.ss-tag button{border:0;background:none;color:#12315b;cursor:pointer;font-size:15px;line-height:1;padding:0}
+.ss-statussel{border:1px solid #767676;border-radius:12px;padding:9px 12px;font-family:inherit;font-size:16px;background:#fff;cursor:pointer}
+
+/* ── bulk action bar ─────────────────────────────────────────── */
+.ss-bulk{display:flex;align-items:center;gap:16px;background:#12315b;color:#fff;border-radius:12px;padding:12px 20px;margin-bottom:16px}
+.ss-bulk b{font-size:16px}
+.ss-bulk button{background:transparent;border:1px solid rgba(255,255,255,.6);color:#fff;border-radius:10px;padding:7px 14px;font-family:inherit;font-size:15px;font-weight:700;cursor:pointer}
+.ss-bulk button:hover{background:rgba(255,255,255,.12)}
+.ss-bulk .x{margin-left:auto;border:0;font-size:20px;line-height:1;padding:4px 8px}
+
+/* ── pagination ──────────────────────────────────────────────── */
+.ss-pager{display:flex;gap:8px;align-items:center;justify-content:center;padding:32px 0 8px}
+.ss-pager button{min-width:40px;height:40px;border-radius:8px;border:1px solid #e4e2e0;background:#fff;font-family:inherit;font-size:16px;cursor:pointer;color:#2d2d2d}
+.ss-pager button.on{background:#004fcb;border-color:#004fcb;color:#fff;font-weight:700}
+.ss-pager button:disabled{color:#c8c6c4;cursor:default}
+
+/* ── filters drawer ──────────────────────────────────────────── */
+.ss-drawer{position:fixed;top:0;right:0;bottom:0;width:375px;background:#fff;box-shadow:-4px 0 24px rgba(0,0,0,.14);z-index:9200;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .22s ease}
+.ss-drawer.open{transform:translateX(0)}
+.ss-drawer.wide{width:520px}
+.ss-dr-head{display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid #e4e2e0}
+.ss-dr-head h3{font-size:20px;font-weight:700;margin:0}
+.ss-dr-head .sb{font-size:15px;color:#595959;margin:2px 0 0}
+.ss-dr-body{flex:1;overflow-y:auto;padding:20px 24px 100px}
+.ss-dr-foot{position:absolute;left:0;right:0;bottom:0;padding:16px 24px;background:#fff;border-top:1px solid #e4e2e0;display:flex;justify-content:flex-end;gap:12px}
+.ss-fg{margin-bottom:24px}
+.ss-fg h4{font-size:16px;font-weight:700;margin:0 0 10px;color:#2d2d2d}
+.ss-fg select{width:100%;border:1px solid #767676;border-radius:12px;padding:11px 12px;font-family:inherit;font-size:16px;background:#fff}
+.ss-fopt{display:flex;align-items:flex-start;gap:10px;padding:6px 0;font-size:16px;color:#2d2d2d;cursor:pointer}
+.ss-fopt input{width:18px;height:18px;margin-top:3px;accent-color:#004fcb}
+.ss-lock{border:1px solid #e4e2e0;border-radius:12px;padding:16px;margin-bottom:24px;position:relative}
+.ss-lock h4{display:flex;gap:8px;align-items:center;color:#2d2d2d}
+.ss-lock .ss-fopt{color:#a6a4a2;cursor:not-allowed}
+.ss-lock .up{width:100%;background:#e0b872;color:#2d2d2d;border:0;border-radius:12px;padding:10px;font-family:inherit;font-size:16px;font-weight:700;margin-top:8px;cursor:pointer}
+.ss-seemore{background:none;border:0;color:#004fcb;font-family:inherit;font-size:16px;font-weight:700;cursor:pointer;padding:4px 0}
+.ss-metric{display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid #e4e2e0;padding:16px 0}
+.ss-metric .k{font-size:16px;color:#2d2d2d;text-decoration:underline}
+.ss-metric .v{font-size:16px;color:#2d2d2d}
+.ss-seg{display:inline-flex;gap:8px}
+.ss-seg button{border:1px solid transparent;border-radius:20px;background:transparent;padding:6px 14px;font-family:inherit;font-size:15px;cursor:pointer;color:#2d2d2d}
+.ss-seg button.on{border-color:#2d2d2d}
+.ss-legend{display:flex;gap:20px;align-items:center;padding-top:20px;font-size:15px}
+.ss-swatch{width:14px;height:14px;border-radius:3px;display:inline-block;margin-right:8px;vertical-align:-2px}
+
+/* ── modals ──────────────────────────────────────────────────── */
+.ss-ov{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9300;display:none;align-items:center;justify-content:center;padding:24px}
+.ss-ov.open{display:flex}
+.ss-modal{background:#fff;border-radius:12px;border:1px solid #e4e2e0;width:800px;max-width:100%;max-height:92vh;display:flex;flex-direction:column;box-shadow:rgba(45,45,45,.16) 0 0 2px 0,rgba(45,45,45,.08) 0 4px 8px 0}
+.ss-modal.sm{width:600px}
+.ss-modal.md{width:700px}
+.ss-mhead{display:flex;align-items:flex-start;justify-content:space-between;padding:20px 12px 8px 24px}
+.ss-mhead h3{font-size:20px;font-weight:700;margin:0;line-height:30px}
+.ss-mhead .sb{font-size:16px;color:#767676;margin:2px 0 0}
+.ss-mclose{width:44px;height:44px;border-radius:12px;border:0;background:none;cursor:pointer;font-size:24px;line-height:1;color:#2d2d2d;flex:0 0 44px}
+.ss-mclose:hover{background:#f3f2f1}
+.ss-mbody{padding:0 24px 20px;overflow-y:auto;flex:1}
+.ss-mfoot{display:flex;justify-content:flex-end;gap:12px;padding:16px 24px 20px;border-top:1px solid #f0efee}
+.ss-mfoot.split{justify-content:space-between}
+.ss-field{display:flex;align-items:center;gap:16px;padding:12px 0;border-bottom:1px solid #e4e2e0}
+.ss-field .lb{flex:0 0 110px;font-size:16px;font-weight:700}
+.ss-field input.tx{flex:1;border:0;border-bottom:1px solid transparent;outline:0;font-family:inherit;font-size:16px;padding:4px 0;background:transparent}
+.ss-field input.tx:focus{border-bottom-color:#004fcb}
+.ss-field.err input.tx{border-bottom:2px solid #a9252b}
+.ss-err{color:#a9252b;font-size:16px;display:flex;align-items:center;gap:8px;padding:4px 0 8px}
+.ss-err svg{width:20px;height:20px;flex:0 0 20px}
+.ss-rte{border:1px solid #767676;border-radius:12px;overflow:hidden}
+.ss-rte-bar{display:flex;align-items:center;gap:4px;padding:8px 10px;border-bottom:1px solid #e4e2e0;background:#fff}
+.ss-rte-bar button{width:34px;height:34px;border:0;background:none;border-radius:6px;cursor:pointer;font-size:16px;font-weight:700;color:#2d2d2d}
+.ss-rte-bar button:hover{background:#f3f2f1}
+.ss-rte-body{padding:14px;min-height:170px;font-size:16px;line-height:24px;white-space:pre-wrap;outline:0}
+.ss-rte-foot{display:flex;gap:6px;padding:10px 14px}
+.ss-beta{background:#004fcb;color:#fff;border-radius:6px;padding:2px 8px;font-size:13px;font-weight:700;display:inline-flex;gap:5px;align-items:center}
+.ss-menu{position:absolute;background:#fff;border:1px solid #e4e2e0;border-radius:12px;box-shadow:rgba(45,45,45,.16) 0 0 2px 0,rgba(45,45,45,.14) 0 4px 12px 0;padding:8px 0;z-index:9400;min-width:200px}
+.ss-menu button{display:block;width:100%;text-align:left;border:0;background:none;font-family:inherit;font-size:16px;padding:11px 20px;cursor:pointer;color:#2d2d2d}
+.ss-menu button:hover{background:#f3f2f1}
+.ss-tok{color:#1f662c}
+
+/* ── toast + popover ─────────────────────────────────────────── */
+.ss-toast{position:fixed;left:24px;bottom:24px;background:#fff;border-radius:12px;box-shadow:rgba(45,45,45,.2) 0 4px 18px 0;padding:16px 20px;display:flex;gap:12px;align-items:flex-start;z-index:9500;min-width:280px}
+.ss-toast .ok{color:#1f662c;flex:0 0 24px}
+.ss-toast b{display:block;font-size:16px}
+.ss-toast span{font-size:15px;color:#2d2d2d}
+.ss-toast .x{margin-left:auto;border:0;background:none;font-size:20px;cursor:pointer;color:#595959}
+.ss-pop{position:absolute;background:#fff;border-radius:12px;box-shadow:rgba(45,45,45,.2) 0 4px 18px 0;padding:20px;width:410px;z-index:9400}
+.ss-pop h4{font-size:17px;font-weight:700;margin:0 0 10px}
+.ss-pop p{font-size:16px;line-height:24px;color:#2d2d2d;margin:0 0 16px}
+.ss-pop .row{display:flex;gap:12px;justify-content:flex-end}
+.ss-pop .x{position:absolute;top:12px;right:12px;border:0;background:none;font-size:20px;cursor:pointer;color:#595959}
+
+/* ── assistant wizard ────────────────────────────────────────── */
+.ss-astatus{display:flex;align-items:flex-start;padding:16px 28px;background:linear-gradient(135deg,#eef3ff 0%,#f2f8f3 100%)}
+.ss-astatus .l1{font-size:16px}
+.ss-astatus .l2{font-size:18px;margin-top:2px}
+.ss-astatus .l2 b{font-weight:700}
+.ss-astatus a{margin-left:auto;color:#004fcb;font-size:16px;font-weight:700;cursor:pointer;text-decoration:none}
+.ss-two{display:flex;gap:32px;padding:24px 28px 40px;align-items:flex-start}
+.ss-left{flex:0 0 390px}
+.ss-right{flex:1;min-width:0}
+.ss-actcard{border:1px solid #e4e2e0;border-radius:12px;padding:20px;min-height:320px;margin-bottom:28px}
+.ss-actcard h3{display:flex;align-items:center;gap:10px;font-size:17px;font-weight:700;margin:0 0 18px}
+.ss-tline{position:relative;padding-left:26px}
+.ss-tline .e{position:relative;padding-bottom:20px}
+.ss-tline .e:before{content:"";position:absolute;left:-26px;top:4px;width:11px;height:11px;border-radius:50%;border:2px solid #767676;background:#fff}
+.ss-tline .e.done:before{background:#2d2d2d;border-color:#2d2d2d}
+.ss-tline .e:not(:last-child):after{content:"";position:absolute;left:-21px;top:17px;bottom:2px;width:1px;background:#d4d2d0}
+.ss-tline .t{font-size:16px}
+.ss-tline .t b{font-weight:700}
+.ss-tline .s{font-size:14px;color:#595959;margin-top:2px}
+.ss-instr h3{display:flex;align-items:center;gap:10px;font-size:17px;font-weight:700;margin:0}
+.ss-instrbox{border:1px solid #e4e2e0;border-radius:12px;padding:20px;margin-top:14px;max-height:330px;overflow:hidden;position:relative}
+.ss-instrbox b{font-weight:700}
+.ss-instrbox p{font-size:16px;line-height:24px;margin:0 0 8px}
+.ss-instrbox ul{margin:0 0 16px;padding-left:22px}
+.ss-instrbox li{font-size:16px;line-height:24px;margin-bottom:4px}
+.ss-fadenote{font-size:14px;color:#595959;padding-top:12px}
+.ss-eyebrow{font-size:16px;color:#2d2d2d;margin:0 0 4px}
+.ss-stepper{display:flex;align-items:center;margin:20px 0 24px;max-width:530px}
+.ss-step{display:flex;flex-direction:column;align-items:center;gap:8px;flex:0 0 auto}
+.ss-stepdot{width:28px;height:28px;border-radius:50%;border:1px solid #2d2d2d;display:flex;align-items:center;justify-content:center;font-size:14px;background:#fff;color:#2d2d2d}
+.ss-stepdot.done{background:#2d2d2d;border-color:#2d2d2d;color:#fff}
+.ss-step .lb{font-size:14px;color:#2d2d2d}
+.ss-step.on .lb{font-weight:700}
+.ss-stepbar{flex:1;height:1px;background:#2d2d2d;margin:0 6px;margin-bottom:26px}
+.ss-tcard{border:1px solid #e4e2e0;border-radius:12px;padding:20px 24px;max-width:530px}
+.ss-tcard .acts{display:flex;gap:16px;margin-bottom:20px}
+.ss-tcard .acts button{flex:1;height:52px;border:1px solid #e4e2e0;border-radius:12px;background:#fff;font-family:inherit;font-size:16px;font-weight:700;color:#004fcb;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:10px}
+.ss-tcard .acts button:hover{background:#f7f6f5}
+.ss-tcard .nm{font-size:16px;font-weight:700;text-decoration:underline}
+.ss-tcard h4{font-size:16px;font-weight:700;margin:16px 0 8px}
+.ss-tcard ul{margin:0;padding-left:20px}
+.ss-tcard li{font-size:16px;line-height:24px;margin-bottom:8px}
+.ss-tcard .rat{font-size:16px;line-height:24px;color:#2d2d2d;margin-top:14px}
+.ss-loadbar{height:6px;border-radius:3px;background:#e4e2e0;overflow:hidden;margin-bottom:24px;max-width:370px}
+.ss-loadbar i{display:block;height:100%;width:36%;background:#004fcb;border-radius:3px;animation:ssload 1.4s ease-in-out infinite}
+@keyframes ssload{0%{margin-left:0}50%{margin-left:64%}100%{margin-left:0}}
+.ss-spin{width:18px;height:18px;border:2px solid #d4d2d0;border-top-color:#004fcb;border-radius:50%;display:inline-block;animation:ssspin .8s linear infinite;vertical-align:-3px}
+@keyframes ssspin{to{transform:rotate(360deg)}}
+.ss-wizfoot{position:sticky;bottom:0;background:#fff;border-top:1px solid #e4e2e0;padding:14px 28px;display:flex;align-items:center;gap:16px}
+.ss-wizfoot .note{font-size:14px;color:#595959}
+.ss-wizfoot .sp{flex:1}
+.ss-dl{margin:20px 0}
+.ss-dl .r{display:flex;gap:24px;padding:16px 0;border-bottom:1px solid #e4e2e0}
+.ss-dl .k{flex:0 0 180px;font-size:16px;font-weight:700}
+.ss-dl .v{flex:1;font-size:16px;line-height:24px}
+.ss-dl .v i{color:#595959}
+.ss-dl .k.u{text-decoration:underline}
+.ss-prev{border:1px solid #e4e2e0;border-radius:12px;margin-top:8px}
+.ss-prev .h{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid #e4e2e0;font-size:16px;font-weight:700}
+.ss-prev .h span{font-weight:400;font-size:15px;color:#595959;display:inline-flex;gap:8px;align-items:center}
+.ss-prev .b{padding:20px;font-size:16px;line-height:24px;white-space:pre-line}
+.ss-legal{font-size:14px;color:#595959;line-height:20px;flex:1}
+.ss-infocard{background:#eef2fd;border:1px solid #cdd9f5;border-radius:12px;padding:20px 24px;display:flex;gap:20px;align-items:flex-start;position:relative;margin-bottom:24px}
+.ss-infocard h3{font-size:22px;font-weight:700;margin:0 0 10px}
+.ss-infocard ul{margin:0;padding-left:20px}
+.ss-infocard li{font-size:16px;line-height:26px}
+.ss-infocard .x{position:absolute;top:12px;right:12px;border:0;background:none;font-size:20px;cursor:pointer;color:#2d2d2d}
+.ss-autoinv{border:1px solid #e4e2e0;border-radius:12px;padding:20px 24px;margin-bottom:24px}
+.ss-autoinv h3{display:flex;gap:12px;align-items:center;font-size:18px;font-weight:700;margin:0 0 4px}
+.ss-autoinv .sub{font-size:16px;color:#595959;margin:0 0 16px;padding-left:36px}
+.ss-autoinv .ft{display:flex;align-items:center;gap:10px;border-top:1px solid #e4e2e0;padding-top:16px;font-size:16px}
+.ss-autoinv .ft a{margin-left:auto;color:#004fcb;font-weight:700;cursor:pointer;text-decoration:none}
+.ss-hubcards{display:flex;gap:24px;margin-top:20px;flex-wrap:wrap}
+.ss-hubcard{flex:0 0 340px;border:1px solid #e4e2e0;border-radius:12px;padding:20px;position:relative;background:#fff}
+.ss-hubcard.empty{border-style:dashed;display:flex;align-items:center;justify-content:center;min-height:132px;color:#004fcb;font-weight:700;font-size:16px;gap:10px;cursor:pointer}
+.ss-hubcard h4{font-size:16px;font-weight:700;margin:0 0 4px}
+.ss-hubcard .m{font-size:15px;color:#595959;line-height:22px}
+.ss-hubcard .used{font-size:15px;margin-top:14px}
+.ss-badge{position:absolute;top:18px;right:18px;border-radius:8px;padding:3px 10px;font-size:13px;font-weight:700}
+.ss-badge.pending{background:#8a6116;color:#fff}
+.ss-badge.working{background:#e4f7e6;color:#1f662c}
+.ss-kebab{position:absolute;right:16px;bottom:16px;width:36px;height:36px;border-radius:8px;border:0;background:none;cursor:pointer;color:#2d2d2d;font-size:18px}
+.ss-kebab:hover{background:#f3f2f1}
+
+/* ── projects / saved searches / templates ───────────────────── */
+.ss-split2{display:flex;gap:32px;align-items:flex-start;padding-top:24px}
+.ss-side{flex:0 0 280px}
+.ss-side .grp{font-size:12px;font-weight:700;letter-spacing:.6px;color:#767676;margin:20px 0 8px}
+.ss-sideitem{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:8px;font-size:16px;color:#2d2d2d;cursor:pointer;border:0;background:none;width:100%;text-align:left;font-family:inherit}
+.ss-sideitem:hover{background:#f7f6f5}
+.ss-sideitem.on{background:#f3f2f1;font-weight:700}
+.ss-sideitem .n{margin-left:auto;color:#767676}
+.ss-main{flex:1;min-width:0}
+.ss-promo{background:#eef2fd;border-radius:12px;padding:24px;display:flex;gap:24px;align-items:flex-start;position:relative;margin-bottom:24px}
+.ss-promo h3{font-size:18px;font-weight:700;margin:10px 0 8px}
+.ss-promo p{font-size:16px;color:#2d2d2d;margin:0 0 16px}
+.ss-nb{background:#004fcb;color:#fff;border-radius:8px;padding:2px 10px;font-size:13px;font-weight:700;display:inline-block}
+.ss-emptybox{border:1px solid #e4e2e0;border-radius:12px;padding:32px;display:flex;gap:32px;align-items:center}
+.ss-emptybox h3{font-size:28px;font-weight:800;margin:0 0 10px}
+.ss-emptybox p{font-size:16px;line-height:24px;color:#2d2d2d;margin:0 0 14px}
+.ss-illus{flex:0 0 200px;height:120px;border-radius:12px;background:linear-gradient(135deg,#fdeef0 0%,#eef2fd 100%);display:flex;align-items:center;justify-content:center;color:#8a93a8}
+.ss-projrow{border:1px solid #e4e2e0;border-radius:12px;padding:20px 24px;margin-bottom:16px;position:relative}
+.ss-projrow a{font-size:17px;font-weight:700;color:#004fcb;text-decoration:underline;cursor:pointer}
+.ss-projrow .c{font-size:16px;color:#2d2d2d;margin-top:4px}
+.ss-projrow .h{font-size:15px;color:#595959;margin-top:10px}
+.ss-projrow .u{position:absolute;right:24px;bottom:18px;font-size:14px;color:#595959}
+.ss-centerempty{text-align:center;padding:80px 0}
+.ss-centerempty h1{font-size:36px;font-weight:800;margin:0 0 20px}
+.ss-centerempty .rw{display:flex;gap:20px;align-items:center;justify-content:center;font-size:20px}
+
 </style>
 <script>
 (function(){
@@ -7198,6 +8117,898 @@ function agxPlanCycle(btn){
  if(chip)chip.style.display=yearly?"":"none";
  var cm=document.querySelector(".agx-cm-pp"); if(cm)cm.textContent=yearly?"$416":"$520";
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   SMART SOURCING — self-contained module.
+   All globals are prefixed ss / SS. Nothing here is referenced by
+   Agents, Interviews, Dashboard or Messaging.
+   Structure + copy captured from resumes.indeed.com, Aug 3 2026.
+   ═══════════════════════════════════════════════════════════════ */
+var SS = {
+  mode: 'active',          // 'active' | 'empty'  (dev toolbar)
+  screen: 'home',
+  assistant: 'none',       // none | setup | training | outreach | working
+  contacts: 5,
+  acContacts: 15,
+  trainIdx: 0,
+  page: 1,
+  perPage: 5,
+  sort: 'Relevance',
+  sel: [],                 // selected candidate ids (bulk)
+  openId: null,            // candidate open in detail pane
+  dtab: 'profile',
+  filters: {},
+  attachedJob: null,
+  msgFor: null
+};
+
+SS.INSTR = {
+  must: ['At least 1 year of web development experience',
+    'Proficiency in JavaScript and at least one additional language: Python, Java, C#, C++, or C',
+    'Experience developing responsive web applications using modern JavaScript frameworks such as React or Angular',
+    'Experience designing and implementing RESTful APIs',
+    'Experience with version control tools such as Git or SVN'],
+  pref: ['Experience with cloud infrastructure such as AWS or Azure',
+    'Familiarity with microservices architecture and software design patterns',
+    'Experience with SQL or MySQL database management',
+    'Familiarity with CI/CD pipelines and Agile methodologies',
+    'Understanding of security protocols such as RBAC and application security best practices'],
+  other: ['Location is remote']
+};
+
+/* Candidates. 1-3 are verbatim from the live result set; the rest are
+   representative rows built to the same field structure. */
+SS.CANDS = [
+ {id:'c1',n:'Michael Congdon',loc:'Remote',act:'Active 2 months ago',upd:'Resume updated 2 months ago',
+  roles:[['Freelance / Contract','TX','2019–Present'],['Software Engineering Manager','nCino','Present']],
+  edu:'Bachelor of Computer Science, Web Development',school:'Baker College',
+  skills:['JPA','SCSS','Web development'],more:9,contacted:false,live:true,
+  summary:"I am a full stack developer who is looking to help build a stronger company through leadership, project success, and increasing productivity of my future workplace and provide excellent services to internal and external customers.",
+  auth:'Authorized to work in the US for any employer',
+  certs:['Google Analytics Certification'],
+  insights:['Skills and Abilities Coding Languages','Google Analytics, SEO, and google development tools','Project Management','UML Process Mapping','VB.NET and C#','Experience with OOP'],
+  exp:[{t:'Freelance / Contract',c:'TX',d:'October 2019 – Present · 6 yr 10 mo',l:'Melissa, TX',b:"Symfony and Doctrine to connect and pass data from the Microsoft SQL Server database to the front end. The AWS servers used Lambdas to support front end efficiency.\n\n• Also helped the Angular 8 front end team in making the mobile apps more accessible for disabled users using VoiceOver technology within the app.\n• Mobile apps built for cross platform support using ionic\n• Used Bitbucket for API repositories, and Git Labs for mobile apps repositories.\n• Managed projects using Jira."},
+   {t:'Software Engineering Manager',c:'nCino',d:'Through current',l:'',b:''},
+   {t:'Full-Stack Developer',c:'NIC Industries',d:'April 2017 – October 2019 · 2 yr 6 mo',l:'Medford, OR',b:"Lead developer for the company websites (prismaticpowders.com and cerakote.com) and internal management system. Was part of the development team to build the custom Website, Java API, and internal employee management system.\n• The JAVA API was built with Spring, Hibernate, JPA, and OAuth to create a secure permission based API.\n• The Websites are built on a cutting edge PHP Laravel routing framework, symfony, and with the PHP blade pages built using primarily Vue.js in ES6 format."}]},
+ {id:'c2',n:'Colin Soderstrom',loc:'Minneapolis, MN',act:'Active 2 days ago',upd:'Resume updated 4 days ago',
+  roles:[['Web Developer','Studio 2 Design + Digital','2022–2023'],['Marketing Web Developer','Spear Marketing Group','2021–2022']],
+  edu:'Bachelor of Arts, Graphic Design',school:'University of Minnesota-Duluth',
+  skills:[],more:0,contacted:false,live:true,
+  summary:"Front-end focused web developer with a design background. I build marketing sites that load fast, convert well and stay easy for non-technical teams to update.",
+  auth:'Authorized to work in the US for any employer',
+  certs:[],insights:['HTML / CSS','JavaScript','WordPress','Figma','Accessibility'],
+  exp:[{t:'Web Developer',c:'Studio 2 Design + Digital',d:'March 2022 – August 2023 · 1 yr 6 mo',l:'Minneapolis, MN',b:"• Built and maintained 20+ client marketing sites on a shared component library.\n• Cut average Largest Contentful Paint from 4.1s to 1.6s across the portfolio.\n• Ran accessibility audits and remediated to WCAG 2.1 AA."},
+   {t:'Marketing Web Developer',c:'Spear Marketing Group',d:'June 2021 – February 2022 · 9 mo',l:'Minneapolis, MN',b:"• Owned landing page build and A/B testing for demand-gen campaigns."}]},
+ {id:'c3',n:'Jahaziah Benjamin',loc:'Glen Burnie, MD',act:'Active today',upd:'Resume updated 6 days ago',
+  roles:[['Web Developer','Assedo Consulting, LLC','2026–2026'],['WordPress Developer','ALTA IT Services','2022–2023']],
+  edu:'B.S., Computer Technology',school:'Bowie State University',
+  skills:['CompTIA A+',"Driver's License",'UX Design Certification'],more:0,contacted:false,live:true,
+  summary:"Web developer with a systems background. Comfortable owning a site end to end, from hosting and DNS through templates, plugins and analytics.",
+  auth:'Authorized to work in the US for any employer',
+  certs:['CompTIA A+','UX Design Certification'],
+  insights:['WordPress','PHP','JavaScript','Site migration','Google Analytics'],
+  exp:[{t:'Web Developer',c:'Assedo Consulting, LLC',d:'January 2026 – Present',l:'Glen Burnie, MD',b:"• Rebuilt the public site on a headless WordPress + Next.js stack."},
+   {t:'WordPress Developer',c:'ALTA IT Services',d:'May 2022 – November 2023 · 1 yr 7 mo',l:'Hanover, MD',b:"• Maintained 12 federal-contractor microsites, including Section 508 compliance."}]}
+];
+
+/* representative rows — same field structure, plausible data */
+(function(){
+  var seed = [
+   ['Priya Raghunathan','Austin, TX','Active 3 days ago','Resume updated 1 week ago','Senior Frontend Engineer','Bazaarvoice','2021–Present','Software Engineer','Indeed','2018–2021','B.S., Computer Science','University of Texas at Austin',['React','TypeScript','GraphQL'],6],
+   ['Marcus Whitfield','Remote','Active today','Resume updated 3 days ago','Full Stack Developer','Cardinal Health','2022–Present','Web Developer','Nationwide','2019–2022','B.S., Information Systems','Ohio State University',['Node.js','PostgreSQL','AWS'],8],
+   ['Dana Kowalczyk','Chicago, IL','Active 5 days ago','Resume updated 2 weeks ago','Web Developer','Grubhub','2020–Present','Junior Developer','Sprout Social','2018–2020','B.A., Interactive Media','DePaul University',['Vue.js','SCSS','Jest'],4],
+   ['Tobias Nkemdirim','Remote','Active 1 day ago','Resume updated 5 days ago','Lead Web Engineer','Shopify Partner Agency','2023–Present','Full Stack Developer','Rocket Mortgage','2020–2023','M.S., Software Engineering','Wayne State University',['React','Next.js','Docker'],11],
+   ['Elena Vasquez','Denver, CO','Active 4 days ago','Resume updated 1 week ago','Frontend Developer','Ibotta','2021–Present','UI Developer','Zayo Group','2019–2021','B.S., Computer Science','Colorado State University',['Angular','RxJS','Cypress'],7],
+   ['Ryan Ostrowski','Remote','Active 2 days ago','Resume updated 4 days ago','Senior Web Developer','Deluxe','2019–Present','Web Developer','Best Buy','2016–2019','B.S., Web Development','Metropolitan State University',['C#','.NET','Azure'],9],
+   ['Amara Osei','Atlanta, GA','Active today','Resume updated 2 days ago','Software Engineer II','Mailchimp','2022–Present','Web Developer','Cox Enterprises','2020–2022','B.S., Computer Science','Georgia State University',['Python','Django','React'],5],
+   ['Nathan Brzezinski','Remote','Active 6 days ago','Resume updated 3 weeks ago','Full Stack Engineer','Paylocity','2021–Present','Application Developer','Northern Trust','2018–2021','B.S., Computer Engineering','University of Illinois Chicago',['Java','Spring','React'],10],
+   ['Sofia Marchetti','Boston, MA','Active 1 day ago','Resume updated 6 days ago','Web Developer','Wayfair','2022–Present','Frontend Developer','Toast','2020–2022','B.S., Computer Science','Northeastern University',['TypeScript','Redux','GraphQL'],6],
+   ['Devon Achebe','Remote','Active 3 days ago','Resume updated 1 week ago','Senior Full Stack Developer','Optum','2020–Present','Web Developer','Target','2017–2020','B.S., Information Technology','University of Minnesota',['Node.js','MongoDB','Kubernetes'],12],
+   ['Hannah Lindqvist','Seattle, WA','Active today','Resume updated 4 days ago','Frontend Engineer','Zillow','2021–Present','Web Developer','Nordstrom','2019–2021','B.S., Human Centered Design','University of Washington',['React','Accessibility','Storybook'],7],
+   ['Julian Reyes-Ortiz','Phoenix, AZ','Active 2 days ago','Resume updated 5 days ago','Web Developer','Carvana','2022–Present','Junior Web Developer','Axon','2020–2022','B.S., Software Engineering','Arizona State University',['JavaScript','PHP','MySQL'],5],
+   ['Rebecca Thornbury','Remote','Active 4 days ago','Resume updated 2 weeks ago','Lead Developer','Sprinklr','2019–Present','Full Stack Developer','Bandwidth','2016–2019','M.S., Computer Science','NC State University',['React','AWS','Terraform'],14],
+   ['Omar Haddadi','Detroit, MI','Active 1 day ago','Resume updated 3 days ago','Web Developer','Rocket Companies','2023–Present','Software Developer','DTE Energy','2021–2023','B.S., Computer Science','Michigan State University',['Angular','C#','SQL Server'],6],
+   ['Grace Nakamura','Portland, OR','Active 5 days ago','Resume updated 1 week ago','Senior Frontend Developer','Nike','2020–Present','Web Developer','Columbia Sportswear','2018–2020','B.A., Digital Design','Portland State University',['Vue.js','Nuxt','Figma'],8],
+   ['Andre Boulanger','Remote','Active today','Resume updated 2 days ago','Full Stack Web Developer','Cigna','2021–Present','Web Developer','Travelers','2018–2021','B.S., Computer Information Systems','University of Connecticut',['Java','React','Jenkins'],9],
+   ['Willa Fitzgerald','Nashville, TN','Active 3 days ago','Resume updated 6 days ago','Web Developer','HCA Healthcare','2022–Present','Frontend Developer','AllianceBernstein','2020–2022','B.S., Computer Science','Vanderbilt University',['React','TypeScript','Tailwind'],5],
+   ['Kenji Watanabe','Remote','Active 2 days ago','Resume updated 4 days ago','Principal Web Engineer','Twilio','2019–Present','Senior Developer','SendGrid','2016–2019','M.S., Computer Science','University of Colorado Boulder',['Node.js','React','GraphQL'],15]
+  ];
+  seed.forEach(function(s,i){
+    SS.CANDS.push({id:'r'+(i+1),n:s[0],loc:s[1],act:s[2],upd:s[3],
+      roles:[[s[4],s[5],s[6]],[s[7],s[8],s[9]]],
+      edu:s[10],school:s[11],skills:s[12],more:s[13],contacted:false,live:false,
+      summary:'Web developer with '+(4+i%9)+' years building production web applications. Comfortable across the stack, with a bias toward shipping accessible, well-tested interfaces.',
+      auth:'Authorized to work in the US for any employer',
+      certs:[],insights:s[12].concat(['REST APIs','Git']),
+      exp:[{t:s[4],c:s[5],d:s[6].replace('–',' – '),l:s[1],b:'• Owned feature delivery for customer-facing web applications.\n• Partnered with design and product on scoping and estimates.\n• Reviewed code and mentored junior developers.'},
+           {t:s[7],c:s[8],d:s[9].replace('–',' – '),l:s[1],b:'• Built and maintained responsive interfaces against a REST API.'}]});
+  });
+})();
+
+/* the 5 Assistant training candidates (captured from the live wizard) */
+SS.TRAIN = [
+ {i:'SH',n:'Saddam Hussain',loc:'Lahore, VA',
+  exp:[['Senior Full Stack Engineer','Stech Experts LTD, 2025 - Present'],['Senior Full Stack Engineer / Team Lead','Inner Machinations (Silicon Valley), 2024 - 2025']],
+  edu:'BS, University of the Punjab',upd:'Recently updated: Jul 18 2026',act:'Active yesterday',
+  rat:"This candidate has strong proficiency in web development languages, including JavaScript and Python, and experience with front-end frameworks like React. They also have expertise in developing RESTful APIs and working with cloud infrastructure on AWS, aligning with the job's requirements."},
+ {i:'SS',n:'Sai Swetha',loc:'United States',
+  exp:[['Full Stack .Net Developer','HCA Healthcare, 2024 - Present'],['Full Stack .Net Developer','Client: Tech Mahindra, 2020 - 2022']],
+  edu:'MS, Computer Science',upd:'Recently updated: Jul 22 2026',act:'Active 3 days ago',
+  rat:"Deep .NET and C# background with responsive front-end work in Angular and React, plus RESTful API design. Cloud exposure through Azure aligns with the preferred qualifications."},
+ {i:'CT',n:'Carmen Trujillo',loc:'Remote',
+  exp:[['Senior Web Developer','Vistaprint, 2023 - Present'],['Web Developer','Wayfair, 2020 - 2023']],
+  edu:'BS, Computer Science, Boston University',upd:'Recently updated: Jul 29 2026',act:'Active today',
+  rat:"Six years of responsive web application work in React and TypeScript, with RESTful API design and Git-based workflows. Matches every must-have qualification."},
+ {i:'DM',n:'Darius Mbeki',loc:'Remote',
+  exp:[['Full Stack Developer','Liberty Mutual, 2022 - Present'],['Software Engineer','Fidelity Investments, 2019 - 2022']],
+  edu:'BS, Software Engineering, Penn State',upd:'Recently updated: Jul 25 2026',act:'Active 2 days ago',
+  rat:"Java and JavaScript across the stack, with microservices and CI/CD pipeline experience that maps to the preferred qualifications. Remote-based, matching the location criterion."},
+ {i:'BW',n:'BRITTANY WASHINGTON',loc:'Remote',
+  exp:[['Software Engineer (Full Stack | Cloud)','100devs, 2024 - Present'],['Software Engineer','100devs, Present']],
+  edu:'BS, Information Science',upd:'Recently updated: Jul 30 2026',act:'Active today',
+  rat:"Full-stack and cloud experience with modern JavaScript frameworks and REST API design. Strong Git workflow background and remote-first."}
+];
+
+SS.FILTERGROUPS = [
+ {t:'Skills',k:'skills',o:['Web development','Software development','JavaScript','HTML','Front-end development','CSS','Web applications','User-facing feature development','Front-end component implementation','UI development'],more:true},
+ {t:'Work authorization',k:'auth',o:['Not specified','Authorized to work in the US for any employer','Sponsorship required to work in the US']},
+ {t:'Job titles',k:'titles',o:['Web Developer','Software Engineer','Senior Software Engineer','Full Stack Web Developer','Full Stack Developer','Software Developer','Freelance Web Developer','Front-End Web Developer','Senior Web Developer','Front End developer']},
+ {t:'Companies',k:'cos',o:['Self-employed','Freelancer','Self Employed Contractor','Upwork','Freelance/Self Employed','Fiverr/Upwork','Tata Consultancy Services']},
+ {t:'Availability',k:'avail',o:['Ready to work now']},
+ {t:'Job type',k:'jtype',o:['Full-time','Part-time','Contract','Temporary','Internship','Permanent','Apprenticeship','Volunteer']},
+ {t:'Years of work experience',k:'yrs',o:['Less than 1 year','1-2 years','3-5 years','6-10 years','More than 10 years']},
+ {t:'Education',k:'edu',o:['Bachelors','Masters','Associates','Diploma','Doctorate']},
+ {t:'Security clearances',k:'clear',o:['Secret Clearance','Top Secret Clearance','TS/SCI','Q Clearance']},
+ {t:'Military service',k:'mil',o:['Active or former military']}
+];
+
+/* ── helpers ─────────────────────────────────────────────────── */
+function ssEl(id){return document.getElementById(id);}
+function ssEsc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function ssShow(id,on){var e=ssEl(id); if(e) e.classList.toggle('ss-hide',!on);}
+function ssOpen(id){var e=ssEl(id); if(e) e.classList.add('open');}
+function ssClose(id){var e=ssEl(id); if(e) e.classList.remove('open');}
+function ssCloseDrawer(id){var e=ssEl(id); if(e) e.classList.remove('open');}
+
+function ssToast(title,msg){
+  var old=document.querySelector('.ss-toast'); if(old) old.remove();
+  var d=document.createElement('div'); d.className='ss-toast';
+  d.innerHTML='<svg class="ok" viewBox="0 0 24 24" width="24" height="24" fill="#1f662c"><circle cx="12" cy="12" r="10"/><path fill="#fff" d="M10.2 15.6l-3-3 1.4-1.4 1.6 1.6 4.2-4.2 1.4 1.4z"/></svg>'+
+    '<div><b>'+ssEsc(title)+'</b><span>'+ssEsc(msg)+'</span></div>'+
+    '<button class="x" onclick="this.parentNode.remove()">&times;</button>';
+  document.body.appendChild(d);
+  setTimeout(function(){ if(d.parentNode) d.remove(); },6000);
+}
+
+/* ── screen routing ──────────────────────────────────────────── */
+var SS_SCREENS={home:'ssScrHome',search:'ssScrSearch',welcome:'ssScrWelcome',setup:'ssScrSetup',
+  hub:'ssScrHub',projects:'ssScrProjects',saved:'ssScrSaved',templates:'ssScrTemplates',plans:'ssScrPlans'};
+
+function ssGo(screen,btn){
+  SS.screen=screen;
+  var pop=document.querySelector('.ss-pop'); if(pop) pop.remove();
+  ssKillMenu();
+  Object.keys(SS_SCREENS).forEach(function(k){ var e=ssEl(SS_SCREENS[k]); if(e) e.classList.add('ss-hide'); });
+  var t=ssEl(SS_SCREENS[screen]); if(t) t.classList.remove('ss-hide');
+  // sub-nav highlight
+  document.querySelectorAll('#ssSubnav .ss-tab').forEach(function(b){ b.classList.remove('on'); });
+  var tabFor={home:'home',search:'home',plans:'plans',projects:'projects',saved:'saved',templates:'templates'}[screen];
+  if(tabFor){ var tb=document.querySelector('#ssSubnav .ss-tab[data-ss="'+tabFor+'"]'); if(tb) tb.classList.add('on'); }
+  // assistant strip is hidden inside the wizard
+  ssShow('ssStrip', screen!=='setup');
+  if(screen==='search') ssRenderList();
+  if(screen==='projects') ssRenderProjects();
+  if(screen==='saved') ssRenderSaved();
+  if(screen==='templates') ssRenderTemplates();
+  if(screen==='hub') ssRenderHub();
+  if(screen==='welcome'){ ssShow('ssJobErr',false); document.querySelectorAll('.ss-jobpick .tick').forEach(function(t){t.style.visibility='hidden';}); SS.pickedJob=null; }
+  window.scrollTo(0,0);
+}
+
+function ssStripAction(){
+  if(SS.assistant==='none') ssGo('welcome');
+  else ssGo('hub');
+}
+
+function ssRefreshStrip(){
+  var lbl=ssEl('ssStripLbl'), lnk=ssEl('ssStripLink');
+  if(!lbl) return;
+  if(SS.assistant==='none'){
+    lbl.innerHTML='Sourcing Assistant is <b class="b-setup">waiting for assignments</b>';
+    lnk.innerHTML='Select a job <svg viewBox="0 0 24 24" fill="none" stroke="#004fcb" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>';
+  } else {
+    lbl.innerHTML='Sourcing Assistant is <b class="b-pending">pending</b>';
+    lnk.innerHTML='View all Assistant jobs <svg viewBox="0 0 24 24" fill="none" stroke="#004fcb" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>';
+  }
+  ssEl('ssContacts').textContent=SS.contacts+' contact'+(SS.contacts===1?'':'s');
+  // home slots reflect assignment
+  var slots=ssEl('ssSlots');
+  if(slots){
+    var first=slots.children[0];
+    if(SS.assistant==='working'||SS.assistant==='outreach'){
+      first.style.borderStyle='solid'; first.style.background='#fff';
+      first.innerHTML='<span style="font-weight:700">Web Developer</span>';
+      first.onclick=function(){ssGo('setup');ssRenderSetup();};
+    }
+  }
+}
+
+/* ── search ──────────────────────────────────────────────────── */
+function ssRunSearch(q,l){
+  if(q!==undefined){ ssEl('ssQ').value=q; ssEl('ssL').value=l||''; }
+  else { ssEl('ssQ').value=ssEl('ssHomeQ').value||'web developer'; ssEl('ssL').value=ssEl('ssHomeL').value||'Remote'; }
+  SS.page=1; SS.openId=null; SS.sel=[];
+  ssGo('search');
+}
+function ssApply(){ SS.page=1; ssRenderList(); }
+
+function ssActiveCands(){
+  if(SS.mode==='empty') return [];
+  var q=(ssEl('ssQ')?ssEl('ssQ').value:'').toLowerCase().trim();
+  var list=SS.CANDS.slice();
+  if(q && q!=='web developer'){
+    list=list.filter(function(c){
+      return (c.n+' '+c.edu+' '+c.school+' '+c.roles.map(function(r){return r.join(' ');}).join(' ')+' '+c.skills.join(' ')).toLowerCase().indexOf(q)>=0;
+    });
+  }
+  // apply checkbox filters loosely so the UI feels real
+  var f=SS.filters;
+  if(f.jtype && f.jtype.length) list=list.filter(function(c,i){ return i%2===0; });
+  if(f.yrs && f.yrs.length) list=list.filter(function(c,i){ return i%3!==2; });
+  if(f.edu && f.edu.length) list=list.filter(function(c){ return /Bachelor|B\.S\.|B\.A\.|BS|BA|Master|M\.S\./i.test(c.edu); });
+  if(f.auth && f.auth.length) list=list.filter(function(c){ return !!c.auth; });
+  if(SS.sort==='Most recent') list=list.slice().sort(function(a,b){ return (a.act.indexOf('today')>=0?0:1)-(b.act.indexOf('today')>=0?0:1); });
+  return list;
+}
+function ssTotalLabel(n){
+  if(SS.mode==='empty') return '0 results';
+  return (n>=SS.CANDS.length? '7,000' : n.toLocaleString())+' result'+(n===1?'':'s');
+}
+
+function ssRenderList(){
+  var all=ssActiveCands(), n=all.length;
+  var cnt=ssEl('ssCount'); if(cnt) cnt.textContent=ssTotalLabel(n);
+  var fc=ssEl('ssFilterCount'); if(fc) fc.textContent = SS.mode==='empty'?'0':(n>=SS.CANDS.length?'7,000':n.toLocaleString());
+  var list=ssEl('ssList'), det=ssEl('ssDetail');
+  list.classList.toggle('split', !!SS.openId);
+  ssShow('ssDetail', !!SS.openId);
+
+  if(SS.mode==='empty' || n===0){
+    list.classList.remove('split'); ssShow('ssDetail',false);
+    list.innerHTML='<div class="ss-emptybox" style="margin-top:8px"><div style="flex:1">'+
+      '<h3>No candidates match this search</h3>'+
+      '<p>Try removing a filter, widening the distance, or searching a different job title. Resume Alerts can tell you when new matching candidates appear.</p>'+
+      '<button class="ss-btn ss-btn-pri" onclick="ssResetFilters()">Clear all filters</button></div>'+
+      '<div class="ss-illus"><svg viewBox="0 0 24 24" width="52" height="52" fill="none" stroke="#8a93a8" stroke-width="1.5"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg></div></div>';
+    ssEl('ssPager').innerHTML=''; ssRenderBulk(); return;
+  }
+
+  var start=(SS.page-1)*SS.perPage, page=all.slice(start,start+SS.perPage);
+  list.innerHTML=page.map(function(c){ return ssCardHTML(c); }).join('');
+  ssRenderPager(all.length);
+  ssRenderBulk();
+  if(SS.openId){ var c=SS.CANDS.filter(function(x){return x.id===SS.openId;})[0]; if(c) det.innerHTML=ssDetailHTML(c); }
+}
+
+function ssCardHTML(c){
+  var selected = SS.openId===c.id;
+  var checked = SS.sel.indexOf(c.id)>=0;
+  var action = c.contacted
+    ? '<span class="ss-contacted"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#767676" stroke-width="2"><path d="M4 4h16v13H7l-3 3z"/></svg>Contacted</span>'
+    : '<button class="ss-msgbtn" onclick="event.stopPropagation();ssMessage(\''+c.id+'\')">Message</button>'+
+      '<button class="ss-thumb" title="Not interested" onclick="event.stopPropagation();ssNotMatch(\''+c.id+'\')"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#2d2d2d" stroke-width="2"><path d="M10 15v4a3 3 0 003 3l4-9V2H5.7a2 2 0 00-2 1.7l-1.4 9A2 2 0 004.3 15zM17 2h2.7A2.3 2.3 0 0122 4.3v6.4A2.3 2.3 0 0119.7 13H17"/></svg></button>';
+  return '<div class="ss-res'+(selected?' sel':'')+'" onclick="ssOpenCand(\''+c.id+'\')">'+
+    '<div class="c1"><span class="ss-cb'+(checked?' on':'')+'" onclick="event.stopPropagation();ssToggleSel(\''+c.id+'\')"></span>'+
+      '<div><p class="ss-name">'+ssEsc(c.n)+'</p><p class="ss-loc">'+ssEsc(c.loc)+'</p>'+
+      '<div class="ss-meta">'+ssEsc(c.act)+'<br>'+ssEsc(c.upd)+'</div></div></div>'+
+    '<div class="c2"><div class="ss-tl">'+c.roles.map(function(r){
+        return '<div class="it"><div class="t">'+ssEsc(r[0])+'</div><div class="c">'+ssEsc(r[1])+' <span>('+ssEsc(r[2])+')</span></div></div>';
+      }).join('')+'</div></div>'+
+    '<div class="c3"><div class="ss-edu">'+ssEsc(c.edu)+'</div><div>'+ssEsc(c.school)+'</div>'+
+      (c.skills.length?'<div class="ss-skills">'+c.skills.map(function(s){return '<span class="ss-chip">'+ssEsc(s)+'</span>';}).join('')+(c.more?'<span style="font-size:15px;color:#2d2d2d;padding:3px 4px">+'+c.more+' more</span>':'')+'</div>':'')+
+    '</div>'+
+    '<div class="c4">'+action+'</div></div>';
+}
+
+function ssOpenCand(id){ SS.openId = (SS.openId===id? null : id); SS.dtab='profile'; ssRenderList(); }
+function ssToggleSel(id){ var i=SS.sel.indexOf(id); if(i>=0) SS.sel.splice(i,1); else SS.sel.push(id); ssRenderList(); }
+function ssClearSel(){ SS.sel=[]; ssRenderList(); }
+
+function ssRenderBulk(){
+  var bar=ssEl('ssBulkBar');
+  if(!SS.sel.length){ bar.classList.add('ss-hide'); bar.innerHTML=''; return; }
+  bar.classList.remove('ss-hide');
+  bar.innerHTML='<div class="ss-bulk"><b>'+SS.sel.length+' selected</b>'+
+    '<button onclick="ssBulk(\'message\')">Message</button>'+
+    '<button onclick="ssBulk(\'project\')">Add to project</button>'+
+    '<button onclick="ssBulk(\'tag\')">Tag</button>'+
+    '<button onclick="ssBulk(\'notmatch\')">Not a match</button>'+
+    '<button class="x" onclick="ssClearSel()">&times;</button></div>';
+}
+function ssBulk(kind){
+  var n=SS.sel.length;
+  if(kind==='message'){ ssToast('Bulk message', n+' candidates queued. Each send uses one contact.'); }
+  if(kind==='project'){ ssToast('Added to project', n+' candidates added to Default project.'); }
+  if(kind==='tag'){ ssToast('Tagged', n+' candidates tagged.'); }
+  if(kind==='notmatch'){
+    SS.sel.forEach(function(id){ var c=SS.CANDS.filter(function(x){return x.id===id;})[0]; if(c) c.hidden=true; });
+    ssToast('Marked not a match', n+' candidates hidden from this search.');
+  }
+  SS.sel=[]; ssRenderList();
+}
+function ssNotMatch(id){
+  var c=SS.CANDS.filter(function(x){return x.id===id;})[0]; if(!c) return;
+  ssToast('Not a match', ssEsc(c.n)+' will not be shown again for this search.');
+}
+
+function ssRenderPager(total){
+  var pages=Math.max(1,Math.ceil(total/SS.perPage));
+  if(pages<=1){ ssEl('ssPager').innerHTML=''; return; }
+  var h='<div class="ss-pager"><button onclick="ssPage('+(SS.page-1)+')"'+(SS.page===1?' disabled':'')+'>&#8249;</button>';
+  var max=Math.min(pages,7);
+  for(var i=1;i<=max;i++) h+='<button class="'+(i===SS.page?'on':'')+'" onclick="ssPage('+i+')">'+i+'</button>';
+  if(pages>7) h+='<span style="padding:0 6px;color:#767676">…</span>';
+  h+='<button onclick="ssPage('+(SS.page+1)+')"'+(SS.page===pages?' disabled':'')+'>&#8250;</button></div>';
+  ssEl('ssPager').innerHTML=h;
+}
+function ssPage(p){ var t=ssActiveCands().length, pages=Math.max(1,Math.ceil(t/SS.perPage));
+  if(p<1||p>pages) return; SS.page=p; SS.openId=null; ssRenderList(); window.scrollTo(0,220); }
+
+/* ── candidate detail pane ───────────────────────────────────── */
+SS.NOTES={}; SS.TAGS={}; SS.STATUS={}; SS.ACTS={};
+
+function ssDetailHTML(c){
+  var tabs=['profile','notes','activity'];
+  var h='<div class="ss-dhead"><h2>'+ssEsc(c.n)+'</h2><p class="loc">'+ssEsc(c.loc)+'</p>'+
+   '<div class="ss-dactions">'+
+     (c.contacted?'<span class="ss-contacted" style="height:44px;display:inline-flex;align-items:center">Contacted</span>'
+                 :'<button class="ss-btn ss-btn-pri" onclick="ssMessage(\''+c.id+'\')">Message</button>')+
+     '<button class="ss-btn ss-btn-ghost" onclick="ssNotMatch(\''+c.id+'\')">Not a match</button>'+
+     '<span class="sep"></span>'+
+     '<button class="ss-btn ss-btn-ghost" onclick="ssSaveCand(\''+c.id+'\')">Save</button>'+
+     '<button class="ss-thumb" title="Download profile"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#2d2d2d" stroke-width="2"><path d="M12 3v12M7 11l5 5 5-5M4 20h16"/></svg></button>'+
+     '<span class="sep"></span>'+
+     '<button class="ss-thumb" onclick="ssMenu(event,\'cand\')">&#8943;</button>'+
+     '<button class="ss-mclose" style="margin-left:auto" onclick="ssOpenCand(\''+c.id+'\')">&times;</button>'+
+   '</div></div>'+
+   '<div class="ss-dmeta"><span>Updated: '+ssEsc(c.upd.replace('Resume updated ',''))+'</span><span>'+ssEsc(c.act)+'</span></div>';
+
+  h+='<div class="ss-insights"><h3>Insights <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#767676" stroke-width="2" style="vertical-align:-2px"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg></h3>'+
+    (c.certs.length?'<h4>Licenses and certifications</h4>'+c.certs.map(function(x){return '<span class="ss-ins-chip">'+ssEsc(x)+'</span>';}).join(''):'')+
+    '<h4>Skills and experience</h4>'+c.insights.map(function(x){return '<span class="ss-ins-chip">'+ssEsc(x)+'</span>';}).join('')+
+    '<div><button class="ss-seemore">Show more ('+(20+c.insights.length)+')</button></div></div>';
+
+  h+='<div class="ss-dtabs">'+tabs.map(function(t){
+      var lbl={profile:'Profile',notes:'Notes',activity:'Activity'}[t];
+      return '<button class="ss-dtab'+(SS.dtab===t?' on':'')+'" onclick="ssDTab(\''+t+'\')">'+lbl+'</button>';
+    }).join('')+'</div>';
+
+  if(SS.dtab==='profile'){
+    h+='<div class="ss-sec"><h3>Professional summary</h3><p>'+ssHighlight(c.summary)+'</p>'+
+       '<p style="display:flex;gap:10px;align-items:center;color:#2d2d2d"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#2d2d2d" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 012-2h2a2 2 0 012 2v2"/></svg>'+ssEsc(c.auth)+'</p></div>';
+    h+='<div class="ss-sec"><h3>Experience</h3>'+c.exp.map(function(e){
+      return '<div class="ss-exp"><div class="ss-expico"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="8" width="18" height="12" rx="2"/><path d="M8 8V6a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></div>'+
+        '<div><div class="t">'+ssEsc(e.t)+(e.c?' &middot; '+ssEsc(e.c):'')+'</div><div class="d">'+ssEsc(e.d)+'</div>'+
+        (e.l?'<div class="d">'+ssEsc(e.l)+'</div>':'')+(e.b?'<div class="b">'+ssHighlight(e.b)+'</div>':'')+'</div></div>';
+    }).join('')+'</div>';
+    h+='<div class="ss-sec"><h3>Education</h3><div class="ss-exp"><div class="ss-expico"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10L12 5 2 10l10 5z"/><path d="M6 12v5c0 1 2.7 2.5 6 2.5s6-1.5 6-2.5v-5"/></svg></div><div><div class="t">'+ssEsc(c.edu)+'</div><div class="d">'+ssEsc(c.school)+'</div></div></div></div>';
+    h+='<div class="ss-sec"><h3>Skills</h3><div class="ss-skills">'+c.insights.map(function(s){return '<span class="ss-chip">'+ssEsc(s)+'</span>';}).join('')+'</div></div>';
+    if(c.certs.length) h+='<div class="ss-sec"><h3>Certifications &amp; licenses</h3><div class="ss-skills">'+c.certs.map(function(s){return '<span class="ss-chip">'+ssEsc(s)+'</span>';}).join('')+'</div></div>';
+  }
+
+  if(SS.dtab==='notes'){
+    var notes=SS.NOTES[c.id]||[];
+    h+='<div class="ss-sec" style="border-top:0"><h3 style="cursor:default">Status &amp; tags</h3>'+
+      '<div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-bottom:16px">'+
+      '<select class="ss-statussel" onchange="ssSetStatus(\''+c.id+'\',this.value)">'+
+        ['Not contacted','Contacted','Awaiting reply','Interested','Screening','Interviewing','Not a match'].map(function(s){
+          return '<option'+((SS.STATUS[c.id]||'Not contacted')===s?' selected':'')+'>'+s+'</option>';}).join('')+
+      '</select>'+
+      '<button class="ss-btn ss-btn-out" style="height:40px" onclick="ssAddTag(\''+c.id+'\')">+ Add tag</button></div>'+
+      '<div id="ssTagWrap">'+((SS.TAGS[c.id]||[]).map(function(t,i){
+        return '<span class="ss-tag">'+ssEsc(t)+'<button onclick="ssDelTag(\''+c.id+'\','+i+')">&times;</button></span>';}).join('')||'<span style="color:#767676;font-size:15px">No tags yet.</span>')+'</div></div>'+
+    '<div class="ss-sec"><h3 style="cursor:default">Notes</h3>'+
+      '<textarea class="ss-noteinput" id="ssNoteIn" placeholder="Add a note for your team. Only your team can see this."></textarea>'+
+      '<div style="margin-top:10px"><button class="ss-btn ss-btn-pri" onclick="ssAddNote(\''+c.id+'\')">Add note</button></div>'+
+      '<div style="margin-top:20px">'+(notes.length?notes.map(function(n){
+        return '<div class="ss-note"><span class="who">'+ssEsc(n.who)+'</span> <span class="when">'+ssEsc(n.when)+'</span><div class="body">'+ssEsc(n.body)+'</div></div>';
+      }).join(''):'<p style="color:#767676;font-size:15px">No notes yet.</p>')+'</div></div>';
+  }
+
+  if(SS.dtab==='activity'){
+    var acts=SS.ACTS[c.id]||[{t:'Profile viewed by you',w:'Just now',i:'eye'}];
+    h+='<div class="ss-sec" style="border-top:0"><h3 style="cursor:default">Activity</h3>'+
+      acts.map(function(a){
+        return '<div class="ss-act"><div class="ss-actico"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">'+
+        (a.i==='mail'?'<path d="M4 5h16v14H4z"/><path d="M4 6l8 6 8-6"/>':a.i==='note'?'<path d="M4 4h12l4 4v12H4z"/><path d="M8 12h8M8 16h5"/>':'<path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/>')+
+        '</svg></div><div><div class="t">'+ssEsc(a.t)+'</div><div class="w">'+ssEsc(a.w)+'</div></div></div>';
+      }).join('')+'</div>';
+  }
+  return h;
+}
+function ssHighlight(txt){
+  var terms=['web developer','full stack','full-stack','developer','JavaScript','React','RESTful APIs','Angular','Git'];
+  var out=ssEsc(txt);
+  terms.forEach(function(t){
+    out=out.replace(new RegExp('('+t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','i'),'<span class="ss-hl">$1</span>');
+  });
+  return out;
+}
+function ssDTab(t){ SS.dtab=t; ssRenderList(); }
+function ssSetStatus(id,v){ SS.STATUS[id]=v; ssPushAct(id,'Status changed to '+v,'note'); ssToast('Status updated',v); }
+function ssAddTag(id){ var t=prompt('Tag name'); if(!t) return; (SS.TAGS[id]=SS.TAGS[id]||[]).push(t); ssPushAct(id,'Tagged "'+t+'"','note'); ssRenderList(); }
+function ssDelTag(id,i){ SS.TAGS[id].splice(i,1); ssRenderList(); }
+function ssAddNote(id){ var v=ssEl('ssNoteIn').value.trim(); if(!v) return;
+  (SS.NOTES[id]=SS.NOTES[id]||[]).unshift({who:'You',when:'Just now',body:v});
+  ssPushAct(id,'Note added','note'); ssRenderList(); ssToast('Note added','Visible to your team.'); }
+function ssPushAct(id,t,i){ (SS.ACTS[id]=SS.ACTS[id]||[]).unshift({t:t,w:'Just now',i:i||'eye'}); }
+function ssSaveCand(id){ ssPushAct(id,'Saved to Default project','note'); ssToast('Saved','Added to Default project.'); }
+
+/* ── filters drawer ──────────────────────────────────────────── */
+function ssOpenFilters(){ ssRenderFilters(); ssEl('ssFilters').classList.add('open'); }
+function ssCloseFilters(){ ssEl('ssFilters').classList.remove('open'); }
+function ssResetFilters(){ SS.filters={}; ssRenderFilters(); ssApply(); }
+function ssRenderFilters(){
+  var h='<h4 style="font-size:18px;font-weight:700;margin:0 0 18px">All filters</h4>';
+  h+='<div class="ss-fg"><h4>Candidate last active <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#767676" stroke-width="2" style="vertical-align:-2px"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg></h4><select onchange="ssSetSel(\'lastActive\',this.value)"><option>show all</option><option>within last day</option><option>within last 3 days</option><option>within last week</option><option>within last month</option></select></div>';
+  h+='<div class="ss-fg"><h4>Exclude contacted candidates <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#767676" stroke-width="2" style="vertical-align:-2px"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg></h4><select onchange="ssSetSel(\'excl\',this.value)"><option>within last 30 days</option><option>within last 90 days</option><option>never exclude</option></select></div>';
+  h+='<div class="ss-fg"><h4>Time at current job</h4><select onchange="ssSetSel(\'tenure\',this.value)"><option>show all</option><option>less than 1 year</option><option>1-2 years</option><option>3+ years</option></select></div>';
+  h+='<div class="ss-lock"><button style="position:absolute;top:12px;right:12px;border:0;background:none;font-size:18px;cursor:pointer;color:#2d2d2d" onclick="this.parentNode.style.display=\'none\'">&times;</button>'+
+     '<h4><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#c08a38" stroke-width="2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>Additional filters for Professional subscriptions</h4>'+
+     '<label class="ss-fopt"><input type="checkbox" disabled>Open to relocating</label>'+
+     '<label class="ss-fopt"><input type="checkbox" disabled>Job type (e.g. full-time)</label>'+
+     '<button class="up" onclick="showView(\'subs\')">Upgrade to Professional</button></div>';
+  SS.FILTERGROUPS.forEach(function(g){
+    h+='<div class="ss-fg"><h4>'+g.t+'</h4>'+g.o.map(function(o){
+      var on=(SS.filters[g.k]||[]).indexOf(o)>=0;
+      return '<label class="ss-fopt"><input type="checkbox"'+(on?' checked':'')+' onchange="ssFilterTog(\''+g.k+'\',this.value,this.checked)" value="'+ssEsc(o)+'">'+ssEsc(o)+'</label>';
+    }).join('')+(g.more?'<button class="ss-seemore">See more</button>':'')+'</div>';
+  });
+  ssEl('ssFiltersBody').innerHTML=h;
+}
+function ssSetSel(k,v){ SS.filters[k]=v; }
+function ssFilterTog(k,v,on){
+  SS.filters[k]=SS.filters[k]||[];
+  var i=SS.filters[k].indexOf(v);
+  if(on && i<0) SS.filters[k].push(v);
+  if(!on && i>=0) SS.filters[k].splice(i,1);
+  var n=ssActiveCands().length;
+  ssEl('ssFilterCount').textContent = SS.mode==='empty'?'0':(n>=SS.CANDS.length?'7,000':n.toLocaleString());
+}
+
+/* ── dropdown menus ──────────────────────────────────────────── */
+var SS_MENUS={
+  sort:[['Relevance',"ssSort('Relevance')"],['Most recent',"ssSort('Most recent')"]],
+  upd:[['Show all',"ssPick('upd','Show all')"],['Within last day',"ssPick('upd','Within last day')"],['Within last 3 days',"ssPick('upd','Within last 3 days')"],['Within last week',"ssPick('upd','Within last week')"],['Within last month',"ssPick('upd','Within last month')"],['Within last 3 months',"ssPick('upd','Within last 3 months')"],['Within last 6 months',"ssPick('upd','Within last 6 months')"]],
+  searchMore:[['Search syntax',"ssToast('Search syntax','AND, OR, NOT and \\\"quoted phrases\\\" are supported.')"],['Advanced search',"ssToast('Advanced search','Opens the advanced query builder.')"],['AI Highlighter — on',"ssToast('AI Highlighter','Matched terms are highlighted in green on candidate profiles.')"]],
+  ai:[['Shorten',"ssAI('Shorten')"],['Elaborate',"ssAI('Elaborate')"],['More formal',"ssAI('More formal')"],['More casual',"ssAI('More casual')"],['List bullets',"ssAI('List bullets')"]],
+  subj:[['Let {COMPANY} know you are interested',"ssSubj(0)"],["You're invited: Let's talk about {JOB_TITLE}","ssSubj(1)"],['{COMPANY} wants to start a conversation with you',"ssSubj(2)"],['{CANDIDATE_NAME} - New {JOB_TITLE} Opportunity at {COMPANY}',"ssSubj(3)"],["You're invited to discuss a {JOB_TITLE} opportunity","ssSubj(4)"],['{RECRUITER_NAME} sent you a message about your resume on Indeed',"ssSubj(5)"]],
+  tpl:[['No template selected',"ssTpl('No template selected')"]],
+  cand:[['Download profile',"ssToast('Download','Profile PDF generated.')"],['Report this resume',"ssToast('Reported','Thanks — our team will review it.')"],['Submit AI highlighter feedback',"ssToast('Thanks','Feedback recorded.')"]],
+  dist:[['Within 25 miles',"ssPick('dist','25')"],['Within 50 miles',"ssPick('dist','50')"],['Within 100 miles',"ssPick('dist','100')"]],
+  projsort:[['Date updated',"ssToast('Sorted','By date updated.')"],['Name',"ssToast('Sorted','By name.')"],['Candidates',"ssToast('Sorted','By candidate count.')"]],
+  jobsort:[['Newest',"ssToast('Sorted','Newest first.')"],['Oldest',"ssToast('Sorted','Oldest first.')"]],
+  jobloc:[['All locations',"ssToast('Filter','All locations.')"],['Remote',"ssToast('Filter','Remote only.')"]],
+  jobdate:[['Any time',"ssToast('Filter','Any time.')"],['Last 30 days',"ssToast('Filter','Last 30 days.')"]],
+  hubkebab:[['Remove assignment',"ssClose('__');ssOpen('ssMdRemove')"]]
+};
+function ssMenu(ev,key){
+  ev.stopPropagation(); ssKillMenu();
+  var items=SS_MENUS[key]||[]; if(!items.length) return;
+  var m=document.createElement('div'); m.className='ss-menu'; m.id='ssActiveMenu';
+  m.innerHTML=items.map(function(it){ return '<button onclick="ssKillMenu();'+it[1]+'">'+it[0].replace(/\{([A-Z_]+)\}/g,'<span class="ss-tok">{$1}</span>')+'</button>'; }).join('');
+  document.body.appendChild(m);
+  var r=ev.currentTarget.getBoundingClientRect();
+  var top=r.bottom+window.scrollY+6, left=r.left+window.scrollX;
+  if(left+m.offsetWidth>window.innerWidth-12) left=window.innerWidth-m.offsetWidth-12;
+  m.style.top=top+'px'; m.style.left=left+'px';
+}
+function ssKillMenu(){ var m=ssEl('ssActiveMenu'); if(m) m.remove(); }
+document.addEventListener('click',function(){ ssKillMenu(); });
+function ssSort(v){ SS.sort=v; ssEl('ssSortV').textContent=v; ssApply(); }
+function ssPick(k,v){ SS.filters[k]=v; ssApply(); }
+function ssAI(kind){ ssToast('AI assist',kind+' applied to the draft.'); }
+function ssTpl(v){ ssEl('ssMsgTpl').textContent=v; }
+function ssSubj(i){ ssEl('ssMsgSubj').value=SS_MENUS.subj[i][0]; }
+
+/* ── messaging ───────────────────────────────────────────────── */
+function ssMessage(id){
+  var c=SS.CANDS.filter(function(x){return x.id===id;})[0]; if(!c) return;
+  SS.msgFor=id; SS.attachedJob=null;
+  ssEl('ssMsgTitle').textContent='Message: '+c.n;
+  ssEl('ssMsgFrom').value=''; ssEl('ssMsgJob').innerHTML='<button class="ss-link" onclick="ssOpen(\'ssMdSelectJob\')">Select jobs on Indeed</button>';
+  ssShow('ssErrFrom',false); ssShow('ssErrJob',false);
+  ssEl('ssFldFrom').classList.remove('err');
+  ssOpen('ssMdMessage');
+}
+function ssPickAttach(el,name){
+  SS.attachedJob=name;
+  ssEl('ssMsgJob').innerHTML='<span class="ss-chip">'+ssEsc(name)+'</span>';
+  document.querySelectorAll('.ss-jobpick2').forEach(function(x){x.style.background='';});
+  el.style.background='#f3f2f1';
+  ssShow('ssErrJob',false);
+}
+function ssMsgValid(){
+  var ok=true;
+  var from=ssEl('ssMsgFrom').value.trim();
+  if(!from){ ssShow('ssErrFrom',true); ssEl('ssFldFrom').classList.add('err'); ok=false; }
+  else { ssShow('ssErrFrom',false); ssEl('ssFldFrom').classList.remove('err'); }
+  if(!SS.attachedJob){ ssShow('ssErrJob',true); ok=false; } else ssShow('ssErrJob',false);
+  return ok;
+}
+function ssResolve(txt,c){
+  return txt.replace(/\{CANDIDATE_FIRSTNAME\}/g,c.n.split(' ')[0])
+            .replace(/\{CANDIDATE_NAME\}/g,c.n)
+            .replace(/\{COMPANY\}/g,'Lincoln Dynamic Group')
+            .replace(/\{JOB_TITLE\}/g,SS.attachedJob||'Web Developer')
+            .replace(/\{RECRUITER_NAME\}/g,ssEl('ssMsgFrom').value.trim()||'Lincoln Dynamic Group Recruiting Team');
+}
+function ssPreviewMsg(){
+  if(!ssMsgValid()) return;
+  var c=SS.CANDS.filter(function(x){return x.id===SS.msgFor;})[0];
+  ssEl('ssPvSubj').textContent=ssResolve(ssEl('ssMsgSubj').value,c);
+  ssEl('ssPvH').textContent=(ssEl('ssMsgFrom').value.trim()||'Lincoln Dynamic Group')+' wants to talk to you about the '+(SS.attachedJob||'Web Developer')+' opportunity';
+  ssEl('ssPvBody').textContent=ssResolve(ssEl('ssMsgBody').innerText,c);
+  ssOpen('ssMdPreview');
+}
+function ssGenerate(){
+  var c=SS.CANDS.filter(function(x){return x.id===SS.msgFor;})[0]; if(!c) return;
+  ssEl('ssMsgBody').innerHTML='<span class="ss-spin"></span> Generating…';
+  setTimeout(function(){
+    ssEl('ssMsgBody').innerText='Hi {CANDIDATE_FIRSTNAME},\n\nI came across your resume and your work at '+c.roles[0][1]+
+      ' stood out — particularly the '+(c.skills[0]||c.insights[0]||'front-end')+' experience. We are hiring a {JOB_TITLE} at {COMPANY} and I think it would line up well with what you have been doing.\n\nWorth a short conversation?\n\nRegards,\n{RECRUITER_NAME}\n{COMPANY}';
+  },900);
+}
+function ssSendMsg(skipValid){
+  if(!skipValid && !ssMsgValid()) return;
+  var c=SS.CANDS.filter(function(x){return x.id===SS.msgFor;})[0]; if(!c) return;
+  c.contacted=true;
+  SS.contacts=Math.max(0,SS.contacts-1);
+  ssPushAct(c.id,'Message sent by '+(ssEl('ssMsgFrom').value.trim()||'you'),'mail');
+  SS.STATUS[c.id]='Contacted';
+  ssClose('ssMdMessage'); ssClose('ssMdPreview');
+  ssRefreshStrip(); ssRenderList();
+  ssToast('Success!','You used 1 paid contact.');
+  ssShowMatchPop();
+}
+function ssShowMatchPop(){
+  var anchor=ssEl('ssQ'); if(!anchor) return;
+  var old=document.querySelector('.ss-pop'); if(old) old.remove();
+  var r=anchor.getBoundingClientRect();
+  var p=document.createElement('div'); p.className='ss-pop';
+  p.style.top=(r.bottom+window.scrollY+14)+'px'; p.style.left=(r.left+window.scrollX-40)+'px';
+  p.innerHTML='<button class="x" onclick="this.parentNode.remove()">&times;</button>'+
+    '<h4>Want better candidate matches?</h4>'+
+    '<p>You just messaged someone about a specific job. Attach that job to your search to get more relevant results.</p>'+
+    '<div class="row"><button class="ss-btn ss-btn-ghost" onclick="this.closest(\'.ss-pop\').remove()">No thanks</button>'+
+    '<button class="ss-btn ss-btn-pri" onclick="this.closest(\'.ss-pop\').remove();ssToast(\'Job attached\',\'Results now weighted to Web Developer.\')">Attach job</button></div>';
+  document.body.appendChild(p);
+}
+function ssRemTab(btn){ var p=btn.parentNode; p.querySelectorAll('.ss-dtab').forEach(function(b){b.classList.remove('on');}); btn.classList.add('on'); }
+function ssMsgMode(el,mode){
+  document.querySelectorAll('.ss-mc').forEach(function(x){ x.classList.remove('on'); x.style.border='1px solid #e4e2e0'; x.style.padding='15px 17px'; });
+  el.classList.add('on'); el.style.border='2px solid #004fcb'; el.style.padding='14px 16px';
+  ssShow('ssMCai',mode==='ai'); ssShow('ssMCcustom',mode==='custom');
+}
+function ssBump(){ var i=ssEl('ssPauseN'); i.value=(parseInt(i.value,10)||0)+10; }
+
+/* ── save search / projects / templates ──────────────────────── */
+SS.PROJECTS=[]; SS.SAVED=[]; SS.TEMPLATES=[];
+function ssSaveSearch(){ ssEl('ssSaveName').value=(ssEl('ssQ').value||'web developer')+' — '+(ssEl('ssL').value||'Remote'); ssOpen('ssMdSaveSearch'); }
+function ssSaveSearchGo(){
+  var n=ssEl('ssSaveName').value.trim()||'Untitled search';
+  SS.SAVED.push({n:n,alert:ssEl('ssSaveAlert').checked,when:'August 3, 2026',q:ssEl('ssQ').value,l:ssEl('ssL').value});
+  ssClose('ssMdSaveSearch'); ssToast('Search saved',n); ssRenderSaved();
+}
+function ssCreateProject(){
+  var n=ssEl('ssNewProjName').value.trim(); if(!n){ ssToast('Name required','Give the project a name.'); return; }
+  SS.PROJECTS.push({n:n,c:0,when:'August 3, 2026'}); ssEl('ssNewProjName').value='';
+  ssClose('ssMdNewProject'); ssToast('Project created',n); ssRenderProjects();
+}
+function ssCreateTemplate(){
+  var n=ssEl('ssTplName').value.trim(); if(!n){ ssToast('Name required','Give the template a name.'); return; }
+  SS.TEMPLATES.push({n:n,s:ssEl('ssTplSubj').value,b:ssEl('ssTplBody').innerText,when:'August 3, 2026'});
+  SS_MENUS.tpl=[['No template selected',"ssTpl('No template selected')"]].concat(SS.TEMPLATES.map(function(t){return [t.n,"ssTpl('"+t.n.replace(/'/g,"\\'")+"')"];}));
+  ssEl('ssTplName').value='';
+  ssClose('ssMdNewTemplate'); ssToast('Template saved',n); ssRenderTemplates();
+}
+function ssProjTab(btn,k){ btn.parentNode.querySelectorAll('.ss-sideitem').forEach(function(b){b.classList.remove('on');}); btn.classList.add('on'); ssRenderProjects(k); }
+
+function ssRenderProjects(kind){
+  var wrap=ssEl('ssProjList'); if(!wrap) return;
+  var base = (SS.mode==='empty') ? [] : [{n:'Default project',c:0,when:'August 2, 2026',dflt:true}];
+  if(SS.mode!=='empty' && (SS.assistant==='working'||SS.assistant==='outreach'))
+    base.push({n:'Sourcing Assistant - Web Developer (Remote)',c:0,when:'August 3, 2026',auto:true});
+  var list=base.concat(SS.PROJECTS);
+  var promo=ssEl('ssProjPromo'); if(promo) promo.style.display = list.length>1 ? 'none':'flex';
+  if(kind==='new'||kind==='arch'){
+    wrap.innerHTML='<div class="ss-emptybox"><div style="flex:1"><h3>Nothing here yet</h3><p>'+
+      (kind==='new'?'Candidate replies to your outreach will appear here.':'Archived projects will appear here.')+
+      '</p></div><div class="ss-illus"><svg viewBox="0 0 24 24" width="52" height="52" fill="none" stroke="#8a93a8" stroke-width="1.5"><rect x="3" y="4" width="18" height="4" rx="1"/><path d="M5 8v11a1 1 0 001 1h12a1 1 0 001-1V8"/></svg></div></div>';
+    return;
+  }
+  if(!list.length){
+    wrap.innerHTML='<div class="ss-emptybox"><div style="flex:1"><h3>No projects yet</h3><p>Create a project to track, organize and manage your candidates in one place.</p><button class="ss-btn ss-btn-pri" onclick="ssOpen(\'ssMdNewProject\')">Create your first project</button></div><div class="ss-illus"><svg viewBox="0 0 24 24" width="52" height="52" fill="none" stroke="#8a93a8" stroke-width="1.5"><path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg></div></div>';
+    return;
+  }
+  wrap.innerHTML=list.map(function(p){
+    return '<div class="ss-projrow"><a onclick="ssToast(\'Project\',\''+ssEsc(p.n)+' has '+p.c+' candidates.\')">'+ssEsc(p.n)+'</a>'+
+      '<div class="c">'+p.c+' candidate'+(p.c===1?'':'s')+'</div>'+
+      (p.c===0?'<div class="h">Search now to begin saving candidates to this project. <u style="cursor:pointer" onclick="ssGo(\'search\')">Start a search.</u></div>':'')+
+      '<div class="u">Last updated: '+ssEsc(p.when)+'</div>'+
+      '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#767676" stroke-width="2" style="position:absolute;top:20px;right:24px"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg></div>';
+  }).join('');
+}
+
+function ssRenderSaved(){
+  var wrap=ssEl('ssSavedList'); if(!wrap) return;
+  var list = SS.mode==='empty' ? [] : SS.SAVED;
+  ssEl('ssSavedN1').textContent=list.length;
+  ssEl('ssSavedN2').textContent=list.filter(function(s){return s.alert;}).length;
+  if(!list.length){
+    wrap.innerHTML='<div class="ss-emptybox"><div style="flex:1"><h3>Be the first to contact new candidates</h3>'+
+      '<p>Turn on Resume Alerts for any saved search to get email notifications for newly added and relevant candidates. Pause or delete them at any time.</p>'+
+      '<button class="ss-link" onclick="ssGo(\'search\')">Search for candidates &rarr;</button></div>'+
+      '<div class="ss-illus"><svg viewBox="0 0 24 24" width="52" height="52" fill="none" stroke="#8a93a8" stroke-width="1.5"><path d="M4 8h16v11H4z"/><path d="M4 8l8 6 8-6"/></svg></div></div>';
+    return;
+  }
+  wrap.innerHTML=list.map(function(s,i){
+    return '<div class="ss-projrow"><a onclick="ssEl(\'ssQ\').value=\''+ssEsc(s.q)+'\';ssEl(\'ssL\').value=\''+ssEsc(s.l)+'\';ssGo(\'search\')">'+ssEsc(s.n)+'</a>'+
+    '<div class="c">'+(s.alert?'<span class="ss-chip" style="background:#e4f7e6;color:#1f662c">Alert on</span>':'<span class="ss-chip">Alert off</span>')+'</div>'+
+    '<div class="h">Saved '+ssEsc(s.when)+'</div>'+
+    '<div class="u"><button class="ss-link" style="font-size:15px" onclick="SS.SAVED.splice('+i+',1);ssRenderSaved();ssToast(\'Deleted\',\'Saved search removed.\')">Delete</button></div></div>';
+  }).join('');
+}
+
+function ssRenderTemplates(){
+  var wrap=ssEl('ssTplWrap'); if(!wrap) return;
+  var list = SS.mode==='empty' ? [] : SS.TEMPLATES;
+  if(!list.length){
+    wrap.innerHTML='<div class="ss-centerempty"><h1>Your templates</h1><div class="rw"><span>You don\'t have any message templates.</span>'+
+      '<button class="ss-btn ss-btn-pri" onclick="ssOpen(\'ssMdNewTemplate\')"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#fff" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>New template</button></div></div>';
+    return;
+  }
+  wrap.innerHTML='<div style="display:flex;align-items:center;padding:24px 0"><h1 style="font-size:30px;font-weight:800;margin:0">Your templates</h1>'+
+    '<button class="ss-btn ss-btn-pri" style="margin-left:auto" onclick="ssOpen(\'ssMdNewTemplate\')">New template</button></div>'+
+    list.map(function(t,i){
+      return '<div class="ss-projrow"><a>'+ssEsc(t.n)+'</a><div class="c">'+ssEsc(t.s)+'</div>'+
+      '<div class="h" style="white-space:pre-line">'+ssEsc(t.b.slice(0,160))+(t.b.length>160?'…':'')+'</div>'+
+      '<div class="u"><button class="ss-link" style="font-size:15px" onclick="SS.TEMPLATES.splice('+i+',1);ssRenderTemplates();ssToast(\'Deleted\',\'Template removed.\')">Delete</button></div></div>';
+    }).join('');
+}
+
+/* ── Sourcing Assistant wizard ───────────────────────────────── */
+function ssPickJob(el){
+  document.querySelectorAll('.ss-jobpick').forEach(function(x){ x.querySelector('.tick').style.visibility='hidden'; x.style.background=''; });
+  el.querySelector('.tick').style.visibility='visible'; el.style.background='#f3f2f1';
+  SS.pickedJob=el.getAttribute('data-job'); ssShow('ssJobErr',false);
+}
+function ssStartSetup(){
+  if(!SS.pickedJob){ ssShow('ssJobErr',true); return; }
+  SS.assistant='setup'; SS.trainIdx=0; SS.acts=[{t:'Waking up',s:'',done:false}];
+  ssGo('setup'); ssRenderInstr(); ssRenderActivity(); ssRenderSetupLoading();
+  setTimeout(function(){
+    SS.acts=[{t:'<b>Now:</b> Finding top matches',s:'Planning your deep sourcing session',done:false},{t:'Waking up',s:'',done:true}];
+    ssRenderActivity();
+    SS.assistant='training'; ssRenderSetup();
+  },2600);
+}
+function ssCancelSetup(){
+  if(SS.assistant==='working'){ ssOpen('ssMdRemove'); return; }
+  SS.assistant='none'; ssRefreshStrip(); ssGo('home');
+  ssToast('Setup cancelled','Your Assistant is not assigned to a job.');
+}
+function ssRenderActivity(){
+  var w=ssEl('ssActivity'); if(!w) return;
+  w.innerHTML=(SS.acts||[]).map(function(a){
+    return '<div class="e'+(a.done?' done':'')+'"><div class="t">'+a.t+' <span style="float:right;color:#767676;font-size:13px">&#9662;</span></div>'+(a.s?'<div class="s">'+a.s+'</div>':'')+'</div>';
+  }).join('');
+}
+function ssInstrHTML(){
+  return '<p><b>Must-have qualifications:</b> Filter out matches who don\'t have these.</p><ul>'+
+    SS.INSTR.must.map(function(x){return '<li>'+ssEsc(x)+'</li>';}).join('')+'</ul>'+
+    '<p><b>Preferred qualifications:</b> Look for these, but don\'t filter out matches who don\'t have them.</p><ul>'+
+    SS.INSTR.pref.map(function(x){return '<li>'+ssEsc(x)+'</li>';}).join('')+'</ul>'+
+    '<p><b>Other criteria:</b> Not qualifications, but still important for filtering matches.</p><ul>'+
+    SS.INSTR.other.map(function(x){return '<li>'+ssEsc(x)+'</li>';}).join('')+'</ul>';
+}
+function ssRenderInstr(){
+  var b=ssEl('ssInstrBox'); if(b) b.innerHTML=ssInstrHTML()+'<div style="font-size:14px;color:#595959">Instructions generated</div>';
+  var e=ssEl('ssInstrEdit'); if(e){ e.innerHTML=ssInstrHTML(); ssEl('ssInstrCount').textContent=e.innerText.replace(/\s+/g,' ').trim().length; }
+}
+function ssSaveInstr(){
+  var e=ssEl('ssInstrEdit');
+  var lists=e.querySelectorAll('ul');
+  if(lists.length>=3){
+    SS.INSTR.must=[].map.call(lists[0].querySelectorAll('li'),function(li){return li.innerText.trim();});
+    SS.INSTR.pref=[].map.call(lists[1].querySelectorAll('li'),function(li){return li.innerText.trim();});
+    SS.INSTR.other=[].map.call(lists[2].querySelectorAll('li'),function(li){return li.innerText.trim();});
+  }
+  ssRenderInstr(); ssClose('ssMdInstr'); ssToast('Saved','Assistant instructions updated.');
+}
+function ssRenderSetupLoading(){
+  ssEl('ssSetupState').textContent='in setup'; ssEl('ssSetupState').style.color='#004fcb';
+  ssEl('ssSetupDot').style.color='#004fcb';
+  ssEl('ssSetupRight').textContent='Cancel setup'; ssEl('ssSetupRight').onclick=ssCancelSetup;
+  ssEl('ssSetupRight2').innerHTML='<p class="ss-eyebrow">Step 1 of 2</p><h1 style="font-size:34px;font-weight:800;margin:0 0 20px">Train your Assistant</h1>'+
+    '<div class="ss-card" style="padding:40px;display:flex;flex-direction:column;align-items:center">'+
+    '<div class="ss-loadbar" style="width:100%;max-width:370px"><i></i></div>'+
+    '<div style="display:flex;gap:24px;align-items:center;max-width:520px"><svg viewBox="0 0 24 24" width="72" height="72" fill="none" stroke="#8a93a8" stroke-width="1.2"><path d="M6 20h8M9 20v-4M4 12l6-8 5 3-6 8z"/><circle cx="17" cy="9" r="2"/></svg>'+
+    '<p style="font-size:16px;line-height:24px;margin:0"><b>Sourcing Assistant tip:</b> Your Sourcing Assistant will filter out any matches who don\'t meet the strict must-haves you set.</p></div></div>';
+  ssEl('ssSetupFoot').innerHTML='';
+}
+function ssRenderSetup(){
+  if(SS.assistant==='training') return ssRenderTraining();
+  if(SS.assistant==='outreach') return ssRenderOutreach();
+  if(SS.assistant==='working') return ssRenderWorking();
+}
+function ssRenderTraining(){
+  var i=SS.trainIdx, done=i>=SS.TRAIN.length;
+  var stepper='<div class="ss-stepper">'+SS.TRAIN.map(function(t,n){
+    var cls = n<i ? 'done' : '';
+    return '<div class="ss-step'+(n===i?' on':'')+'"><div class="ss-stepdot '+cls+'">'+(n<i?'&#10003;':(n+1))+'</div><div class="lb">'+t.i+'</div></div>'+
+      (n<SS.TRAIN.length-1?'<div class="ss-stepbar"></div>':'');
+  }).join('')+'</div>';
+  var body;
+  if(done){
+    body='<div style="text-align:center;padding:40px 0"><svg viewBox="0 0 24 24" width="96" height="96" fill="none" stroke="#c9a227" stroke-width="1.2" style="margin-bottom:20px"><path d="M8 21v-6M16 21v-8M12 21V9"/><circle cx="12" cy="5" r="3"/></svg>'+
+      '<h2 style="font-size:26px;font-weight:800;margin:0 0 10px">You\'re done training</h2>'+
+      '<p style="font-size:17px;color:#2d2d2d;margin:0">Now set up the outreach emails your Sourcing Assistant will send.</p></div>';
+  } else {
+    var t=SS.TRAIN[i];
+    body='<div class="ss-tcard"><div class="acts">'+
+      '<button onclick="ssTrainAdd()"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#004fcb" stroke-width="2"><path d="M4 12l5 5L20 6"/></svg>Add to invite list</button>'+
+      '<button onclick="ssTrainPass()"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#004fcb" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg>Pass</button></div>'+
+      '<div style="display:flex;align-items:baseline"><span class="nm">'+ssEsc(t.n)+'</span><span style="font-size:16px;color:#2d2d2d">&nbsp;&bull; '+ssEsc(t.loc)+'</span>'+
+      '<button class="ss-link" style="margin-left:auto;display:inline-flex;gap:8px;align-items:center" onclick="ssToast(\'Full profile\',\''+ssEsc(t.n)+'\\\'s resume opens in the candidate viewer.\')">Open full profile <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#004fcb" stroke-width="2"><path d="M6 3h8l5 5v13H6z"/><path d="M14 3v5h5"/></svg></button></div>'+
+      '<h4>Relevant Work Experience</h4><ul>'+t.exp.map(function(e){return '<li><b>'+ssEsc(e[0])+'</b><br>'+ssEsc(e[1])+'</li>';}).join('')+'</ul>'+
+      '<h4>Education</h4><ul><li>'+ssEsc(t.edu)+'</li></ul>'+
+      '<div style="font-size:15px;color:#595959;margin-top:12px">'+ssEsc(t.upd)+' &nbsp;&nbsp; '+ssEsc(t.act)+'</div>'+
+      '<p class="rat">'+ssEsc(t.rat)+'</p></div>';
+  }
+  ssEl('ssSetupRight2').innerHTML='<p class="ss-eyebrow">Step 1 of 2</p><h1 style="font-size:34px;font-weight:800;margin:0 0 4px">Train your Assistant</h1>'+
+    '<h2 style="font-size:19px;font-weight:700;margin:0 0 2px">Pick your first invites</h2>'+
+    '<p style="font-size:16px;color:#2d2d2d;margin:0">Your Sourcing Assistant learns from who you choose and refines your matches.</p>'+
+    stepper+body;
+  ssEl('ssSetupFoot').innerHTML='<span class="sp"></span><button class="ss-btn ss-btn-pri" onclick="ssToOutreach()">Next: Outreach settings</button>';
+}
+function ssTrainAdd(){
+  SS.trainIdx++;
+  SS.acts=[{t:'<b>Now:</b> Finding top matches',s:'Finished reasoning and summarizing the results.',done:true},{t:'Waking up',s:'',done:true}];
+  ssRenderActivity(); ssRenderTraining();
+}
+function ssTrainPass(){
+  var t=SS.TRAIN[SS.trainIdx]; if(!t) return;
+  ssEl('ssPassTitle').textContent='Why pass on '+t.n+'?';
+  ssEl('ssPassWhy').value='';
+  ssOpen('ssMdPass');
+}
+function ssPassConfirm(){
+  var why=ssEl('ssPassWhy').value.trim();
+  if(why) SS.INSTR.other.push(why);
+  ssClose('ssMdPass'); ssRenderInstr();
+  SS.trainIdx++;
+  SS.acts=[{t:'<b>Now:</b> Finding top matches',s:'Updated your instructions from your feedback.',done:true},{t:'Waking up',s:'',done:true}];
+  ssRenderActivity(); ssRenderTraining();
+  if(why) ssToast('Instructions updated','Your Assistant learned from that.');
+}
+function ssToOutreach(){ SS.assistant='outreach'; ssRenderOutreach(); }
+
+SS.OUT={usage:'Pause after using 30 contacts',daily:'Max 10 outreaches per day',
+  time:'Business hours only (Weekdays, 6 am to 8 pm CT)',
+  proj:'Store in designated Sourcing Assistant project',
+  msg:'Let your Assistant write personalized messages'};
+SS.MAILBODY='Hello {CANDIDATE_FIRSTNAME},\n\nI was impressed by your extensive full-stack experience with JavaScript, Python, React/Next.js, Node.js, REST APIs, PostgreSQL, AWS, and Azure, which appears to align very well with the Web Developer role at Lincoln Dynamic Group. In this opportunity, you’d develop and optimize scalable, secure web applications, work with modern JavaScript frameworks, design RESTful APIs, and contribute to cloud-based, high-availability systems using Agile practices and GitHub. If this sounds interesting, please apply or view the full job details to learn more.\n\nThanks,\nLincoln Dynamic Group Recruiting Team';
+
+function ssOutDL(){
+  return '<div class="ss-dl">'+
+   '<div class="r"><div class="k">Contact usage</div><div class="v">'+SS.OUT.usage+'</div></div>'+
+   '<div class="r"><div class="k">Daily outreach limit</div><div class="v">'+SS.OUT.daily+'</div></div>'+
+   '<div class="r"><div class="k">Send time</div><div class="v">'+SS.OUT.time+'</div></div>'+
+   '<div class="r"><div class="k u">Exclusions</div><div class="v">Past employees<br>Previous applicants<br>Current employees<br>People messaged recently<br><i>No email exclusions</i></div></div>'+
+   '<div class="r"><div class="k">Project</div><div class="v">'+SS.OUT.proj+'</div></div>'+
+   '<div class="r" style="border-bottom:0"><div class="k u">Message content</div><div class="v" style="display:flex">'+SS.OUT.msg+
+     '<button class="ss-link" style="margin-left:auto" onclick="ssOpen(\'ssMdEmailPrev\')">Preview email</button></div></div></div>';
+}
+function ssRenderOutreach(){
+  ssEl('ssSetupState').textContent='in setup'; ssEl('ssSetupState').style.color='#004fcb';
+  ssEl('ssSetupDot').style.color='#004fcb';
+  ssEl('ssSetupRight').textContent='Cancel setup'; ssEl('ssSetupRight').onclick=ssCancelSetup;
+  ssEl('ssSetupRight2').innerHTML='<div style="display:flex;align-items:flex-start"><div><p class="ss-eyebrow">Step 2 of 2</p>'+
+    '<h1 style="font-size:34px;font-weight:800;margin:0 0 6px">Confirm outreach settings</h1>'+
+    '<p style="font-size:17px;color:#2d2d2d;margin:0">Tell your Assistant how it should reach out to matches.</p></div>'+
+    '<button class="ss-btn ss-btn-ghost" style="margin-left:auto" onclick="ssOpen(\'ssMdOutreach\')"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#2d2d2d" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg>Edit settings</button></div>'+
+    ssOutDL()+
+    '<div class="ss-prev"><div class="h">Outreach preview <span><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#595959" stroke-width="2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>Each match will get a personalized message in this style.</span></div>'+
+    '<div class="b">'+ssEsc(SS.MAILBODY)+'</div></div>';
+  ssEl('ssSetupFoot').innerHTML='<span class="ss-legal">By selecting Start Sourcing Assistant you agree to Indeed’s <u>Terms</u> &#8599; (including <u>arbitration</u> &#8599; and <u>Employer Terms</u> &#8599;) and acknowledge our <u>Privacy Policy</u> &#8599;. If you have a custom agreement, the aforementioned terms replace any custom terms relating to AI powered sourcing. You agree to adopt any text produced and used at your instruction as your own.</span>'+
+    '<button class="ss-btn ss-btn-pri" onclick="ssLaunch()">Start Sourcing Assistant</button>';
+}
+function ssLaunch(){
+  SS.assistant='working';
+  SS.OUT.proj='Store in your Sourcing Assistant - Web Developer (Remote) project';
+  ssRefreshStrip(); ssRenderWorking(); ssRenderProjects();
+  ssToast('Sourcing Assistant started','Your Assistant is now sourcing for Web Developer.');
+}
+function ssRenderWorking(){
+  ssEl('ssSetupState').textContent='working'; ssEl('ssSetupState').style.color='#1f662c';
+  ssEl('ssSetupDot').style.color='#1f662c';
+  ssEl('ssSetupRight').textContent='View all assistant jobs'; ssEl('ssSetupRight').onclick=function(){ssGo('hub');};
+  ssEl('ssSetupRight2').innerHTML='<div style="display:flex;align-items:flex-start;margin-bottom:20px"><div>'+
+    '<h1 style="font-size:34px;font-weight:800;margin:0 0 4px">Sourcing Assistant</h1>'+
+    '<p style="font-size:17px;color:#2d2d2d;margin:0">Web Developer &bull; Remote</p></div>'+
+    '<span style="margin-left:auto;display:flex;gap:12px">'+
+    '<button class="ss-btn ss-btn-ghost" onclick="SS.assistant=\'training\';SS.trainIdx=0;ssRenderTraining()">Train Assistant</button>'+
+    '<button class="ss-btn ss-btn-ghost" onclick="ssOpen(\'ssMdRemove\')">Remove assignment</button>'+
+    '<button class="ss-btn ss-btn-ghost" style="width:52px;padding:0" onclick="ssOpenSummary()"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#2d2d2d" stroke-width="2"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></button></span></div>'+
+    '<div class="ss-infocard"><svg viewBox="0 0 24 24" width="72" height="72" fill="none" stroke="#8a7fd4" stroke-width="1.2"><path d="M7 11V6a2 2 0 014 0v5M11 11V4a2 2 0 014 0v7M15 11V7a2 2 0 014 0v8a6 6 0 01-6 6h-2a6 6 0 01-6-6v-3a2 2 0 014 0"/></svg>'+
+    '<div><h3>Your Assistant is working</h3><ul><li>Monitoring Indeed for new matches</li><li>Reaching out to top matches using your instructions</li><li>Saving you an average of <u>7 hours per week</u></li></ul></div>'+
+    '<button class="x" onclick="this.parentNode.style.display=\'none\'">&times;</button></div>'+
+    '<div class="ss-autoinv"><h3><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#2d2d2d" stroke-width="2"><circle cx="10" cy="8" r="4"/><path d="M2 21v-2a6 6 0 016-6h4M18 12v6M15 15h6"/></svg>Auto-invite top matches</h3>'+
+    '<p class="sub">Identify and invite top matches to apply</p>'+
+    '<div class="ft">No outreaches sent yet. Check again soon. <span class="ss-spin"></span> Updating <a onclick="ssOpenSummary()">View &rarr;</a></div></div>'+
+    ssOutDL()+
+    '<button class="ss-btn ss-btn-out" style="margin-top:8px" onclick="ssOpen(\'ssMdOutreach\')">Edit outreach settings</button>';
+  ssEl('ssSetupFoot').innerHTML='';
+}
+function ssRemoveAssign(){
+  SS.assistant='none'; ssClose('ssMdRemove'); ssRefreshStrip(); ssGo('home');
+  ssToast('Assignment removed','Your Assistant is no longer sourcing for Web Developer.');
+}
+function ssOpenSummary(){ ssRenderSummary(); ssEl('ssSummary').classList.add('open'); }
+function ssSumRange(btn,k){ btn.parentNode.querySelectorAll('button').forEach(function(b){b.classList.remove('on');}); btn.classList.add('on'); SS.sumRange=k; ssRenderSummary(); }
+function ssRenderSummary(){
+  var r=SS.sumRange||'7';
+  var data = (SS.assistant!=='working') ? [0,0,0]
+    : (r==='7' ? [0,0,0] : r==='14' ? [4,1,0] : r==='30' ? [12,5,2] : [12,5,2]);
+  ssEl('ssSumMetrics').innerHTML=
+    '<div class="ss-metric"><span class="k">Outreaches sent</span><span class="v">'+data[0]+'</span></div>'+
+    '<div class="ss-metric"><span class="k">Started applications</span><span class="v">'+data[1]+'</span></div>'+
+    '<div class="ss-metric"><span class="k">Applications</span><span class="v">'+data[2]+'</span></div>';
+}
+function ssRenderHub(){
+  var w=ssEl('ssHubCards'); if(!w) return;
+  var assigned = SS.assistant!=='none';
+  ssEl('ssHubN').textContent = assigned?1:0;
+  var h='';
+  if(assigned){
+    var badge = SS.assistant==='working' ? '<span class="ss-badge working">Working</span>' : '<span class="ss-badge pending">Pending</span>';
+    h+='<div class="ss-hubcard">'+badge+'<h4>Web Developer</h4><div class="m">Open &bull; Remote &bull; Aug 2, 2026<br>Lincoln Dynamic Group</div>'+
+       '<div class="used">Contacts used: <b>0</b> of <b>30</b></div>'+
+       '<button class="ss-kebab" onclick="ssOpen(\'ssMdRemove\')">&#8943;</button></div>';
+  }
+  var slots = 3 - (assigned?1:0);
+  for(var i=0;i<slots;i++) h+='<div class="ss-hubcard empty" onclick="ssGo(\'welcome\')"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#004fcb" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>Assign a job</div>';
+  w.innerHTML=h;
+}
+
+/* ── dev toggle (mirrors the existing dev toolbar pattern) ───── */
+function setSourcingMode(mode,btn){
+  document.querySelectorAll('#ssToggle .dev-toggle-btn').forEach(function(b){ b.classList.remove('active'); });
+  if(btn) btn.classList.add('active');
+  SS.mode=mode;
+  if(mode==='empty'){ SS.assistant='none'; SS.contacts=0; SS.openId=null; SS.sel=[]; SS.PROJECTS=[]; SS.SAVED=[]; SS.TEMPLATES=[]; SS.CANDS.forEach(function(c){c.contacted=false;}); }
+  else { SS.contacts=5; }
+  ssRefreshStrip();
+  ssRenderProjects(); ssRenderSaved(); ssRenderTemplates(); ssRenderHub();
+  if(SS.screen==='search') ssRenderList();
+  if(SS.screen==='setup' && SS.assistant==='none') ssGo('home');
+}
+
+/* ── init ────────────────────────────────────────────────────── */
+(function ssInit(){
+  function boot(){
+    if(!ssEl('view-sourcing')) return;
+    ssRenderInstr(); ssRefreshStrip(); ssRenderProjects(); ssRenderSaved(); ssRenderTemplates(); ssRenderHub(); ssRenderSummary();
+    var ie=ssEl('ssInstrEdit');
+    if(ie) ie.addEventListener('input',function(){ ssEl('ssInstrCount').textContent=ie.innerText.replace(/\s+/g,' ').trim().length; });
+    document.querySelectorAll('.ss-ov').forEach(function(ov){
+      ov.addEventListener('click',function(e){ if(e.target===ov) ov.classList.remove('open'); });
+    });
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else boot();
+})();
+
 </script>
 </body>
 </html>
