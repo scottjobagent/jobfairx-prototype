@@ -8384,7 +8384,7 @@ if(lab==="Decline"){askMdl("Decline this request?",w.n+" will be told you can't 
 askMdl("Cancel this interview?",w.n+"'s interview on "+w.t[0]+" at "+w.t[1]+" will be cancelled and they'll be notified. This can't be undone.","Cancel interview","Keep interview")})})}
 function panelHtml(i,mode){
 var d=DEF[i];
-if(mode==="empty")return '<div class="iv-empty-state" style="text-align:center;padding:80px 20px"><h2 style="font-size:26px;font-weight:700;color:#2d2d2d;margin-bottom:10px">'+d.empty[0]+'</h2><p style="font-size:16px;color:#595959">'+d.empty[1]+'</p></div>';
+if(mode==="empty")return IVE.html(i);
 var live=(mode==="live");
 return panelBody(i,mode);}
 var MDSEL={},MDTAB={},MDJOINWIN=15;
@@ -13231,6 +13231,58 @@ CD.schedSend = function(){
   else setTimeout(boot, 90);
 })();
 
+
+/* ═══ IVE — INTERVIEWS EMPTY STATE ═══════════════════════════════════
+   Scoped, owner-authorised exception to the Interviews lock: the EMPTY
+   state only. The active state is untouched — this overrides panelHtml
+   solely for mode === "empty".
+
+   Fix: the old empty state was a single full-width box, so the two-column
+   layout disappeared when a tab was empty. It now keeps the ACTIVE layout
+   exactly (blank .md-list 480 + .md-det 732) and renders the empty content
+   inside the same panel that holds the candidate resume.
+   Illustration is the JobFairX mascot from the Messages empty state —
+   rays + body, message bubble removed.
+   ==================================================================== */
+(function(){
+
+  var IVE_COPY = {
+    0: ["You don’t have upcoming interviews",         "All scheduled interviews will show up here.",         "View past interviews", 3],
+    1: ["You don’t have pending interviews",          "All pending interviews will show up here."],
+    2: ["You don’t have interviews that need action", "Interviews needing your attention will appear here."],
+    3: ["You don’t have past interviews",             "All past interviews will show up here."]
+  };
+
+  function iveMascot(){
+    var rot = ['32.7','65.5','98.2','130.9','163.6','196.4','229.1','261.8','294.5','327.3'];
+    return '<svg class="ms-agent ive-mascot" width="200" height="200" viewBox="0 0 220 220" fill="none" aria-hidden="true">' +
+      '<g class="ms-rays"><g id="iveSpike"><path d="M110 16 L112.6 48 L110 55 L107.4 48 Z" fill="#0044B3" opacity="0.45"/></g>' +
+      rot.map(function(a){ return '<use href="#iveSpike" transform="rotate(' + a + ' 110 106)"/>'; }).join('') + '</g>' +
+      '<ellipse cx="110" cy="164" rx="30" ry="6" fill="#18181B" opacity="0.10"/>' +
+      '<g class="ms-body">' +
+        '<path d="M110 66 C87.9 66 70 83.9 70 106 C70 126 90 140 106.5 151 C108.6 152.4 111.4 152.4 113.5 151 C130 140 150 126 150 106 C150 83.9 132.1 66 110 66 Z" fill="#2d2d2d"/>' +
+        '<circle cx="110" cy="104" r="27" fill="#fff"/>' +
+        '<circle cx="101" cy="101" r="3.5" fill="#2d2d2d"/><circle cx="119" cy="101" r="3.5" fill="#2d2d2d"/>' +
+        '<path d="M100 110 Q110 119 120 110" stroke="#2d2d2d" stroke-width="3.5" fill="none" stroke-linecap="round"/>' +
+      '</g></svg>';
+  }
+
+  /* panelHtml lives inside a closure, so the source line for mode==="empty"
+     is repointed at this global helper by the build. */
+  window.IVE = {
+    html: function(i){
+      var c = IVE_COPY[i] || IVE_COPY[0];
+      return '<div class="md-wrap ive-wrap">' +
+        '<div class="md-list ive-list"></div>' +
+        '<div class="md-det ive-det">' +
+          '<h2>' + c[0] + '</h2><p>' + c[1] + '</p>' +
+          (c[2] ? '<button class="ive-cta" onclick="switchIvTab(' + c[3] + ')">' + c[2] + '</button>' : '') +
+          '<div class="ive-ill">' + iveMascot() + '</div>' +
+        '</div></div>';
+    }
+  };
+})();
+
 (function tlInit(){
   function boot(){ if(!tlEl('view-tools')) return; tlGo('overview'); }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else setTimeout(boot,0);
@@ -13944,6 +13996,38 @@ CD.schedSend = function(){
 
 /* dev toggle strip */
 .cd-devbar{ display:flex; align-items:center; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
+
+</style>
+<style>
+
+/* ═══ IVE — Interviews empty state ═════════════════════════════════════
+   Geometry copied from the ACTIVE layout: tab bar 480x53, list 480 wide,
+   detail 732 wide 1px #e4e2e0 radius 20 padding 24, gap 24, flex-start.
+   The detail panel top-aligns with the filter row, which is why it reads
+   taller than the left column — same as the active state.
+   ==================================================================== */
+.ive-wrap{ display:flex; gap:24px; align-items:flex-start; }
+.ive-list{ width:480px; flex:0 0 480px; background:#fff; border-radius:0 0 20px 20px;
+  padding:0 0 6px; min-height:569px; }
+.ive-det{ width:732px; flex:0 0 732px; background:#fff; border:1px solid #e4e2e0;
+  border-radius:20px; padding:24px; margin-top:-115px; min-height:684px;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; }
+.ive-det h2{ font-size:26px; line-height:34px; font-weight:700; color:#2d2d2d; margin:0 0 10px; }
+.ive-det p{ font-size:16px; line-height:24px; color:#595959; margin:0; }
+.ive-cta{ margin-top:22px; height:44px; padding:9px 20px; border:0; border-radius:12px;
+  background:#0044B3; color:#fff; font-family:inherit; font-size:16px; line-height:24px;
+  font-weight:700; cursor:pointer; }
+.ive-cta:hover{ background:#003a9b; }
+.ive-ill{ margin-top:30px; }
+.ive-mascot .ms-rays{ transform-box:view-box; transform-origin:110px 106px; animation:msRays 12s linear infinite; }
+.ive-mascot .ms-body{ transform-box:fill-box; transform-origin:center; animation:msBody 3s linear infinite; }
+@media (prefers-reduced-motion: reduce){ .ive-mascot .ms-rays, .ive-mascot .ms-body{ animation:none; } }
+
+@media (max-width:1200px){
+  .ive-wrap{ flex-wrap:wrap; }
+  .ive-det{ width:100%; flex:1 1 auto; margin-top:0; min-height:520px; }
+  .ive-list{ width:100%; flex:1 1 auto; min-height:180px; }
+}
 
 </style>
 </body>
