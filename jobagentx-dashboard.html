@@ -1018,6 +1018,15 @@ tbody tr:last-child td { border-bottom: none; }
       </div>
     </div>
     <div class="dev-toggle">
+      <span class="dev-toggle-label">Analytics:</span>
+      <div class="dev-toggle-switch" id="anToggle">
+        <button class="dev-toggle-btn active" onclick="jcSetState('populated', this)">Data</button>
+        <button class="dev-toggle-btn" onclick="jcSetState('empty', this)">Empty</button>
+        <button class="dev-toggle-btn" onclick="jcSetState('loading', this)">Loading</button>
+        <button class="dev-toggle-btn" onclick="jcSetState('error', this)">Error</button>
+      </div>
+    </div>
+    <div class="dev-toggle">
       <span class="dev-toggle-label">Agent:</span>
       <div class="dev-toggle-switch" id="agentToggle">
         <button class="dev-toggle-btn active" onclick="setDevMode('active', this)">Active</button>
@@ -7571,6 +7580,32 @@ body.agx-on #view-events.view.active .content-header{padding:0 24px 0 28px !impo
 .sb-pager .per{margin-left:auto;font-size:16px}
 .sb-pager .per b{font-weight:700}
 
+
+/* ═══ ANALYTICS · JOBS & CAMPAIGNS (.jc-*) ═══ */
+.jc-crumb{display:flex;align-items:center;gap:10px;font-size:15px;color:#595959;margin-bottom:14px}
+.jc-crumb a{color:#004fcb;font-weight:700;cursor:pointer;text-decoration:none}
+.jc-jobhead{display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap;margin-bottom:22px}
+.jc-jobhead h2{font-size:28px;font-weight:800;margin:0 0 4px}
+.jc-jobhead .m{font-size:16px;color:#595959}
+.jc-jobhead .sp{flex:1}
+.jc-funnel{display:flex;gap:0;align-items:flex-end;padding:10px 0 0}
+.jc-fstep{flex:1;text-align:center;position:relative}
+.jc-fbar{margin:0 6px;border-radius:8px 8px 0 0;background:#004fcb;transition:height .3s}
+.jc-fstep .lb{font-size:14px;color:#595959;margin-top:10px}
+.jc-fstep .vv{font-size:22px;font-weight:800;margin-top:6px}
+.jc-fstep .pc{font-size:13px;color:#767676}
+.jc-split{display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start}
+.jc-side{flex:0 0 260px;border:1px solid #e4e2e0;border-radius:12px;padding:14px;background:#fff}
+.jc-side h4{font-size:13px;font-weight:700;color:#767676;text-transform:uppercase;letter-spacing:.5px;margin:6px 8px 10px}
+.jc-jobitem{display:block;width:100%;text-align:left;border:0;background:none;font-family:inherit;padding:12px;border-radius:10px;cursor:pointer;font-size:15px;color:#2d2d2d}
+.jc-jobitem:hover{background:#f7f6f5}
+.jc-jobitem.on{background:#eef2fd;font-weight:700}
+.jc-jobitem .s{display:block;font-size:13px;color:#767676;font-weight:400;margin-top:2px}
+.jc-err{border:1px solid #f2c2c2;background:#fdf3f3;border-radius:12px;padding:32px;text-align:center}
+.jc-err h3{font-size:22px;font-weight:800;margin:14px 0 8px;color:#a9252b}
+.jc-err p{font-size:16px;color:#5c1f1f;margin:0 auto 18px;max-width:460px;line-height:24px}
+.jc-succ{display:flex;gap:12px;align-items:center;background:#e8f3ec;border:1px solid #a9d6b8;border-radius:12px;padding:14px 18px;margin-bottom:20px;color:#14532a;font-size:15px}
+
 </style>
 <script>
 (function(){
@@ -9499,6 +9534,7 @@ AN.ADS=[
 
 function anGo(sec,btn){
   if(sec==='insights'){ anExternal(); return; }
+  if(sec!=='jobs') AN.job=null;
   AN.sec=sec;
   document.querySelectorAll('#anTabs .an-tab').forEach(function(b){ b.classList.remove('on'); });
   var t = btn || document.querySelector('#anTabs .an-tab[data-an="'+sec+'"]');
@@ -9567,22 +9603,7 @@ function anRender(){
     return;
   }
 
-  if(AN.sec==='jobs'){
-    var v2=anSeries(17,n,90,240), a2=anSeries(41,n,4,20);
-    b.innerHTML=anCaveat()+
-      '<h2 class="an-h2">Jobs and campaigns</h2><p class="an-lead">Per-job performance, spend and cost per application.</p>'+
-      '<div class="an-kpis">'+
-        anKPI('Active jobs','3','1','up')+
-        anKPI('Total applications','375','8%','up')+
-        anKPI('Cost per application','$15.12','4%','down')+
-        anKPI('Total spend','$5,491','6%','up')+
-      '</div>'+
-      '<div class="an-grid"><div class="an-card full"><h3>Applications over time</h3><p class="sub">Completed applications across all campaigns.</p>'+
-        anLine([v2,a2],L,['#004fcb','#1f662c'],['Views','Applications'])+
-        '<div class="an-legend"><span><i style="background:#004fcb"></i>Job views</span><span><i style="background:#1f662c"></i>Applications</span></div></div></div>'+
-      '<div class="an-card full" style="margin-top:24px"><h3>All jobs and campaigns<span class="sp"></span><button class="an-ctl" onclick="anMenu(event,\'export\')">Export</button></h3>'+ anJobsTable() +'</div>';
-    return;
-  }
+  if(AN.sec==='jobs'){ b.innerHTML=jcRenderJobs(); return; }
 
   if(AN.sec==='sourcing'){
     var out=anSeries(5,n,0,4), st=anSeries(9,n,0,2), ap=anSeries(13,n,0,1);
@@ -9674,10 +9695,7 @@ function anJobsTable(limit){
         '<td class="num">'+j.q+'</td><td class="num">$'+j.cpa.toFixed(2)+'</td><td class="num">$'+anN(j.spend)+'</td></tr>';
     }).join('')+'</tbody></table>';
 }
-function anJobDetail(name){
-  var j=AN.JOBS.filter(function(x){return x.n===name;})[0]; if(!j) return;
-  if(typeof ssToast==='function') ssToast(j.n, j.apps+' applications · '+j.q+' qualified · $'+j.cpa.toFixed(2)+' per application');
-}
+function anJobDetail(name){ if(typeof jcOpenJob==='function') jcOpenJob(name); }
 function anContactUsage(){
   var used = (typeof SS!=='undefined') ? (5-SS.contacts) : 1;
   var acUsed = 0;
@@ -9945,6 +9963,136 @@ function setSubsMode(mode,btn){
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else setTimeout(boot,0);
 })();
+
+
+
+/* ═══ ANALYTICS · JOBS & CAMPAIGNS — full sub-product ═══ */
+AN.state='populated';   /* populated | empty | loading | error | success */
+AN.job=null;            /* null = list view, otherwise a job name */
+
+AN.JOBDETAIL={
+ 'Web Developer':{loc:'Remote',st:'Open',posted:'Aug 2, 2026',budget:'$120 / day',camp:'Sponsored — Smart',
+   funnel:[4820,1640,412,186],src:[{k:'Organic search',v:88},{k:'Sponsored',v:61},{k:'Smart Sourcing invites',v:24},{k:'Branding Ads',v:13}],
+   stages:[['New',96],['Reviewed',44],['Contacting',18],['Interviewing',21],['Offer',5],['Hired',2]],seed:11},
+ 'Test Engineer':{loc:'Remote',st:'Open',posted:'Mar 25, 2023',budget:'$70 / day',camp:'Sponsored — Standard',
+   funnel:[2140,690,141,63],src:[{k:'Organic search',v:34},{k:'Sponsored',v:19},{k:'Smart Sourcing invites',v:7},{k:'Branding Ads',v:3}],
+   stages:[['New',31],['Reviewed',15],['Contacting',6],['Interviewing',8],['Offer',2],['Hired',1]],seed:29},
+ 'Senior Frontend Engineer':{loc:'Austin, TX',st:'Paused',posted:'Jun 11, 2026',budget:'Paused',camp:'Sponsored — Smart',
+   funnel:[1310,455,96,41],src:[{k:'Organic search',v:22},{k:'Sponsored',v:13},{k:'Smart Sourcing invites',v:4},{k:'Branding Ads',v:2}],
+   stages:[['New',19],['Reviewed',11],['Contacting',4],['Interviewing',5],['Offer',1],['Hired',1]],seed:41},
+ 'QA Automation Engineer':{loc:'Remote',st:'Closed',posted:'Feb 4, 2026',budget:'Ended',camp:'Sponsored — Standard',
+   funnel:[980,300,61,28],src:[{k:'Organic search',v:15},{k:'Sponsored',v:9},{k:'Smart Sourcing invites',v:3},{k:'Branding Ads',v:1}],
+   stages:[['New',12],['Reviewed',7],['Contacting',3],['Interviewing',4],['Offer',1],['Hired',1]],seed:53},
+ 'Support Engineer':{loc:'Chicago, IL',st:'Open',posted:'Jul 8, 2026',budget:'$60 / day',camp:'Sponsored — Standard',
+   funnel:[1655,520,118,57],src:[{k:'Organic search',v:29},{k:'Sponsored',v:18},{k:'Smart Sourcing invites',v:7},{k:'Branding Ads',v:3}],
+   stages:[['New',26],['Reviewed',13],['Contacting',5],['Interviewing',9],['Offer',3],['Hired',1]],seed:67}
+};
+
+function jcOpenJob(name){ AN.job=name; AN.sec='jobs'; anLoad(); }
+function jcBack(){ AN.job=null; anLoad(); }
+function jcSetState(mode,btn){
+  document.querySelectorAll('#anToggle .dev-toggle-btn').forEach(function(b){ b.classList.remove('active'); });
+  if(btn) btn.classList.add('active');
+  AN.state=mode;
+  if(mode==='loading'){ AN.loading=true; anRender(); return; }
+  AN.loading=false; anRender();
+}
+function jcFunnel(vals){
+  var labels=['Job views','Clicked apply','Started application','Completed application'];
+  var max=vals[0]||1, H=150;
+  return '<div class="jc-funnel">'+vals.map(function(v,i){
+    var h=Math.max(8,(v/max)*H);
+    var pct = i===0 ? '100%' : Math.round(v/vals[0]*100)+'%';
+    return '<div class="jc-fstep"><div class="jc-fbar" style="height:'+h.toFixed(0)+'px;background:'+['#004fcb','#3b7fd4','#6aa0e0','#1f662c'][i]+'" '+
+      'onmouseenter="anTip(event,\''+labels[i]+': '+anN(v)+'\')" onmouseleave="anTipOff()"></div>'+
+      '<div class="vv">'+anN(v)+'</div><div class="lb">'+labels[i]+'</div><div class="pc">'+pct+' of views</div></div>';
+  }).join('')+'</div>';
+}
+function jcJobList(){
+  return '<div class="jc-side"><h4>Jobs</h4>'+
+    AN.JOBS.map(function(j){
+      return '<button class="jc-jobitem'+(AN.job===j.n?' on':'')+'" onclick="jcOpenJob(\''+anEsc(j.n).replace(/'/g,"\\'")+'\')">'+anEsc(j.n)+
+        '<span class="s">'+anEsc(j.loc)+' &middot; '+j.st+'</span></button>';
+    }).join('')+
+    '<button class="jc-jobitem'+(AN.job===null?' on':'')+'" style="margin-top:8px;border-top:1px solid #e4e2e0;border-radius:0" onclick="jcBack()">All jobs and campaigns</button></div>';
+}
+function jcRenderJobs(){
+  var L=anLabels(), n=L.length;
+
+  if(AN.state==='error'){
+    return '<h2 class="an-h2">Jobs and campaigns</h2>'+
+      '<div class="jc-err"><svg viewBox="0 0 24 24" width="52" height="52" fill="none" stroke="#a9252b" stroke-width="1.6" style="margin:0 auto"><circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16h.01"/></svg>'+
+      '<h3>We couldn\'t load this report</h3><p>The reporting service didn\'t respond in time. Your data is safe — try again in a moment.</p>'+
+      '<button class="an-ctl pri" onclick="jcSetState(\'populated\',document.querySelector(\'#anToggle .dev-toggle-btn\'))">Try again</button></div>';
+  }
+  if(AN.state==='empty'){
+    return '<h2 class="an-h2">Jobs and campaigns</h2>'+
+      '<div class="an-empty"><svg viewBox="0 0 24 24" width="60" height="60" fill="none" stroke="#8a93a8" stroke-width="1.4" style="margin:0 auto"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 012-2h2a2 2 0 012 2v2"/></svg>'+
+      '<h3>No campaign data for this period</h3><p>Nothing ran in '+anEsc(AN.range).toLowerCase()+'. Widen the date range, or sponsor a job to start collecting performance data.</p>'+
+      '<button class="an-ctl pri" onclick="anSetRange(\'Last 12 months\')">Widen to last 12 months</button></div>';
+  }
+
+  /* ── job detail ── */
+  if(AN.job){
+    var d=AN.JOBDETAIL[AN.job], j=AN.JOBS.filter(function(x){return x.n===AN.job;})[0];
+    if(!d||!j) { AN.job=null; return jcRenderJobs(); }
+    var views=anSeries(d.seed,n,60,200), apps=anSeries(d.seed+7,n,2,14);
+    var maxStage=Math.max.apply(null,d.stages.map(function(s){return s[1];}));
+    return (AN.state==='success'?'<div class="jc-succ"><svg viewBox="0 0 24 24" width="20" height="20" fill="#1f662c"><circle cx="12" cy="12" r="10"/><path fill="#fff" d="M10.2 15.6l-3-3 1.4-1.4 1.6 1.6 4.2-4.2 1.4 1.4z"/></svg>Campaign settings saved. Changes take effect on the next refresh.</div>':'')+
+      anCaveat()+
+      '<div class="jc-crumb"><a onclick="jcBack()">Jobs and campaigns</a> <span>&rsaquo;</span> <span>'+anEsc(AN.job)+'</span></div>'+
+      '<div class="jc-jobhead"><div><h2>'+anEsc(AN.job)+'</h2>'+
+        '<div class="m">'+anEsc(d.loc)+' &middot; Posted '+d.posted+' &middot; '+d.camp+' &middot; Budget '+d.budget+'</div></div>'+
+        '<span class="an-pill '+d.st.toLowerCase()+'" style="margin-top:8px">'+d.st+'</span><div class="sp"></div>'+
+        '<button class="an-ctl" onclick="anMenu(event,\'export\')">Export</button>'+
+        '<button class="an-ctl pri" onclick="jcSetState(\'success\')">Save campaign settings</button></div>'+
+      '<div class="jc-split"><div style="flex:1;min-width:0">'+
+        '<div class="an-kpis">'+
+          anKPI('Job views',anN(d.funnel[0]),'9%','up')+
+          anKPI('Applications',anN(d.funnel[3]),'6%','up')+
+          anKPI('Qualified',anN(j.q),'4%','up')+
+          anKPI('Cost per application','$'+j.cpa.toFixed(2),'3%','down')+
+        '</div>'+
+        '<div class="an-card full"><h3>Application funnel</h3><p class="sub">How many people moved from a job view to a completed application.</p>'+jcFunnel(d.funnel)+'</div>'+
+        '<div class="an-grid" style="margin-top:24px">'+
+          '<div class="an-card full"><h3>Performance over time</h3><p class="sub">Views against completed applications for '+anEsc(AN.range).toLowerCase()+'.</p>'+
+            anLine([views,apps],L,['#004fcb','#1f662c'],['Views','Applications'])+
+            '<div class="an-legend"><span><i style="background:#004fcb"></i>Job views</span><span><i style="background:#1f662c"></i>Applications</span></div></div>'+
+          '<div class="an-card"><h3>Candidate sources</h3><p class="sub">Where this job\'s applications came from.</p>'+
+            anDonut(d.src,['#004fcb','#1f662c','#8a6fd4','#c08a38'])+
+            '<div class="an-legend">'+d.src.map(function(s,i){return '<span><i style="background:'+['#004fcb','#1f662c','#8a6fd4','#c08a38'][i]+'"></i>'+anEsc(s.k)+'</span>';}).join('')+'</div></div>'+
+          '<div class="an-card"><h3>Candidate pipeline</h3><p class="sub">Applicants by stage.</p>'+
+            '<table class="an-tbl"><tbody>'+d.stages.map(function(s){
+              return '<tr><td class="name" style="width:140px">'+s[0]+'</td>'+
+                '<td><div class="an-bar"><i style="width:'+Math.round(s[1]/maxStage*100)+'%"></i></div></td>'+
+                '<td class="num" style="width:60px"><b>'+s[1]+'</b></td></tr>';
+            }).join('')+'</tbody></table></div>'+
+        '</div>'+
+        '<div class="an-card full" style="margin-top:24px"><h3>Daily spend</h3><p class="sub">Sponsored spend for this campaign.</p>'+
+          anBars(anSeries(d.seed+13,n,10,90),L,'#004fcb','Spend ($)')+'</div>'+
+      '</div>'+jcJobList()+'</div>';
+  }
+
+  /* ── list view ── */
+  var v2=anSeries(17,n,90,240), a2=anSeries(41,n,4,20);
+  return anCaveat()+
+    '<h2 class="an-h2">Jobs and campaigns</h2><p class="an-lead">Per-job performance, spend and cost per application. Select a job to open its report.</p>'+
+    '<div class="an-kpis">'+
+      anKPI('Active jobs','3','1','up')+
+      anKPI('Total applications','375','8%','up')+
+      anKPI('Cost per application','$15.12','4%','down')+
+      anKPI('Total spend','$5,491','6%','up')+
+    '</div>'+
+    '<div class="jc-split"><div style="flex:1;min-width:0">'+
+      '<div class="an-card full"><h3>Applications over time<span class="sp"></span>'+
+        '<div class="an-seg"><button class="on" onclick="anSeg(this)">Daily</button><button onclick="anSeg(this)">Weekly</button></div></h3>'+
+        '<p class="sub">Completed applications across all campaigns.</p>'+
+        anLine([v2,a2],L,['#004fcb','#1f662c'],['Views','Applications'])+
+        '<div class="an-legend"><span><i style="background:#004fcb"></i>Job views</span><span><i style="background:#1f662c"></i>Applications</span></div></div>'+
+      '<div class="an-card full" style="margin-top:24px"><h3>All jobs and campaigns<span class="sp"></span>'+
+        '<button class="an-ctl" onclick="anMenu(event,\'export\')">Export</button></h3>'+ anJobsTable() +'</div>'+
+    '</div>'+jcJobList()+'</div>';
+}
 
 </script>
 </body>
