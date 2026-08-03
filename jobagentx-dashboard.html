@@ -11020,6 +11020,441 @@ else nvInit();
   }
 })();
 
+
+/* ═══ RN — ANALYTICS REPORT NAVIGATION & FILTERS ══════════════════════
+   Rebuilds the Analytics chrome to match employers.indeed.com exactly:
+   report-category dropdowns, header card with Copy link, the boxed Date
+   range control + comparison range, Saved views menu and modal, and the
+   full date-range picker (13 presets, month/year selects, range calendar).
+   Measured spec: rn/CRAWL.md.  Namespaced .rn-* / RN.
+   ==================================================================== */
+var RN = {
+  cat: null,               // which category dropdown is open
+  report: 'overview',      // active report key
+  compare: false,
+  saved: [],
+  preset: 'last30Days',
+  start: '07/03/2026',
+  end:   '08/01/2026',
+  calM: 6,                 // 0-indexed month shown (July)
+  calY: 2026,
+  pick: null,              // 'start' while choosing a range start
+  TODAY: { y: 2026, m: 7, d: 3 },       // 08/03/2026
+  MIN:   { y: 2024, m: 7, d: 1 },       // 07/01/2024
+  MAX:   { y: 2026, m: 8, d: 3 }        // 08/03/2026
+};
+
+RN.PRESETS = [
+  ['',            'Select an option'], ['monthToDate','Month to date'], ['custom','Custom'],
+  ['yesterday',   'Yesterday'],        ['lastWeek',   'Last week'],     ['lastMonth','Last month'],
+  ['lastQuarter', 'Last quarter'],     ['last6Months','Last 6 months'], ['lastYear', 'Last year'],
+  ['last7Days',   'Last 7 days'],      ['last14Days', 'Last 14 days'],  ['last30Days','Last 30 days'],
+  ['thisYear',    'This year']
+];
+RN.MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+/* Report model — routes and labels exactly as enumerated on the live app. */
+RN.REPORTS = {
+  overview:      { label: 'Analytics overview',    route: '/analytics',                            sec: 'overview' },
+  jobsSummary:   { label: 'Jobs and campaigns',    route: '/analytics/overview-jobs-campaigns',    sec: 'jobs'  },
+  jobsDetail:    { label: 'Jobs and campaigns — detailed report', route: '/analytics/report-jobs-campaigns',  sec: 'jobs',     pending: true },
+  ssSummary:     { label: 'Smart Sourcing',        route: '/analytics/overview-smart-sourcing',    sec: 'sourcing' },
+  ssDetail:      { label: 'Smart Sourcing — detailed report',     route: '/analytics/report-candidate-sourcing', sec: 'sourcing', pending: true },
+  interviews:    { label: 'Interviews and events', route: '/analytics/report-interviews-events',   sec: 'interviews' },
+  ads:           { label: 'Employer Branding Ads', route: '/analytics/report-employer-branding-ads', sec: 'ads' },
+  brandScore:    { label: 'Brand Score',           route: '/analytics/brand-score',                sec: 'ads',      pending: true },
+  insights:      { label: 'Hiring Insights',       route: '/hiring-insights', ext: true,            sec: 'insights' }
+};
+
+RN.CATS = {
+  jobs:    { pill: 'rnPillJobs',    width: 251, items: [
+    { k: 'jobsSummary', label: 'Summary' },
+    { k: 'jobsDetail',  label: 'Detailed report' },
+    { k: null,          label: 'Job management', ext: true, url: 'https://employers.indeed.com/jobs' }
+  ]},
+  sourcing:{ pill: 'rnPillSS',      width: 210, items: [
+    { k: 'ssSummary', label: 'Summary' },
+    { k: 'ssDetail',  label: 'Detailed report' }
+  ]},
+  more:    { pill: 'rnPillMore',    width: 271, items: [
+    { k: 'ads',        label: 'Employer Branding Ads' },
+    { k: 'brandScore', label: 'Brand Score' },
+    { k: 'insights',   label: 'Hiring Insights', ext: true }
+  ]}
+};
+
+function rnEl(id){ return document.getElementById(id); }
+var RN_EXT = '<svg class="ext" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><path d="M15 3h6v6"/><path d="M10 14L21 3"/></svg>';
+var RN_CV  = '<svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
+
+/* ---------- sub-nav ------------------------------------------------- */
+RN.buildBar = function(){
+  var top = document.querySelector('#view-analytics .an-top');
+  if (!top || rnEl('rnBar')) return;
+  var bar = document.createElement('div');
+  bar.className = 'rn-bar'; bar.id = 'rnBar';
+  bar.innerHTML =
+    '<h1 class="rn-title">Analytics</h1><span class="rn-div"></span>' +
+    '<button class="rn-pill on" id="rnPillOverview" onclick="rnGo(\'overview\')">Overview</button>' +
+    '<button class="rn-pill" id="rnPillJobs" onclick="rnCat(event,\'jobs\')">Jobs and campaigns' + RN_CV + '</button>' +
+    '<button class="rn-pill" id="rnPillSS" onclick="rnCat(event,\'sourcing\')">Smart Sourcing' + RN_CV + '</button>' +
+    '<button class="rn-pill" id="rnPillIV" onclick="rnGo(\'interviews\')">Interviews and events</button>' +
+    '<button class="rn-pill rn-more" id="rnPillMore" aria-label="More navigation options" onclick="rnCat(event,\'more\')">' +
+      '<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></button>' +
+    '<span class="rn-sp"></span>' +
+    '<button class="rn-discover" onclick="rnDiscover()">Discover Indeed Analytics</button>';
+  top.parentNode.insertBefore(bar, top);
+  top.style.display = 'none';          /* the old flat tab strip is replaced, not deleted */
+
+  var m = document.createElement('div'); m.className = 'rn-menu'; m.id = 'rnCatMenu';
+  document.body.appendChild(m);
+
+  /* header card + saved-views row are injected above the report body */
+  var body = rnEl('anBody');
+  if (body && !rnEl('rnHead')) {
+    var head = document.createElement('div');
+    head.id = 'rnHeadWrap';
+    head.innerHTML = RN.headHTML();
+    body.parentNode.insertBefore(head, body);
+    var legal = document.createElement('p');
+    legal.className = 'rn-legal';
+    legal.textContent = 'All analytics data provided here is for informational purposes only and Indeed does not guarantee its accuracy. Values shown may deviate from the actual charges. Indeed reserves the right to adjust the information shown here or change the method of measuring such figures at any time. This information does not constitute a contract.';
+    body.parentNode.insertBefore(legal, body.nextSibling);
+  }
+  RN.buildPicker();
+  document.addEventListener('click', function(e){
+    var mm = rnEl('rnCatMenu');
+    if (mm && mm.classList.contains('on') && !mm.contains(e.target) && !(e.target.closest && e.target.closest('.rn-pill'))) RN.closeCat();
+    var sv = rnEl('rnSavedMenu');
+    if (sv && sv.classList.contains('on') && !sv.contains(e.target) && !(e.target.closest && e.target.closest('.rn-saved'))) sv.classList.remove('on');
+    var dr = rnEl('rnPicker');
+    if (dr && dr.classList.contains('on') && !dr.contains(e.target) && !(e.target.closest && e.target.closest('.rn-rangebox'))) dr.classList.remove('on');
+  });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') { RN.closeCat(); var d = rnEl('rnPicker'); if (d) d.classList.remove('on'); } });
+};
+
+RN.headHTML = function(){
+  var r = RN.REPORTS[RN.report] || RN.REPORTS.overview;
+  var subs = {
+    overview:    'Monitor and analyze performance to optimize your spend across products',
+    jobsSummary: 'See how your jobs and campaigns are performing',
+    ssSummary:   'See how Smart Sourcing is performing',
+    interviews:  'See how your interviews and hiring events are performing',
+    ads:         'See how your Employer Branding Ads are performing'
+  };
+  return '<div class="rn-head" id="rnHead">' +
+    '<div class="l"><div class="rn-h1row"><h1>' + r.label + '</h1>' +
+      '<button class="rn-copy" onclick="rnCopyLink()"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.5.5l3-3a5 5 0 00-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 00-7.5-.5l-3 3a5 5 0 007 7l1.7-1.7"/></svg>Copy link</button></div>' +
+      '<p class="rn-sub">' + (subs[RN.report] || 'Monitor and analyze performance') + '</p></div>' +
+    '<div class="r">' +
+      '<div class="rn-rangerow">' +
+        '<button class="rn-rangebox" onclick="rnOpenPicker(event)"><span><span class="lb">Date range</span>' +
+          '<span class="vl" id="rnRangeVal">' + RN.start + ' - ' + RN.end + '</span></span>' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></button>' +
+        '<button class="rn-cmp" onclick="rnCompare()"><span class="pl">' + (RN.compare ? '&minus;' : '+') + '</span>' +
+          (RN.compare ? 'Remove comparison' : 'Compare to date range') + '</button>' +
+      '</div>' +
+      '<div class="rn-helpful">Is this page helpful?' +
+        '<button id="rnUp" onclick="rnHelpful(1)" aria-label="This page is helpful"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.3a2 2 0 002-1.7l1.4-9A2 2 0 0019.7 9zM7 22H4a2 2 0 01-2-2v-7a2 2 0 012-2h3"/></svg></button>' +
+        '<button id="rnDown" onclick="rnHelpful(0)" aria-label="This page is not helpful"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 15v4a3 3 0 003 3l4-9V2H5.7a2 2 0 00-2 1.7l-1.4 9A2 2 0 004.3 15zM17 2h3a2 2 0 012 2v7a2 2 0 01-2 2h-3"/></svg></button>' +
+      '</div>' +
+    '</div></div>' +
+    '<div class="rn-savedrow"><button class="rn-saved" onclick="rnSavedMenu(event)">Saved views' + RN_CV + '</button></div>';
+};
+
+function rnCat(e, key){
+  e.stopPropagation();
+  if (RN.cat === key) { RN.closeCat(); return; }
+  RN.closeCat();
+  var cfg = RN.CATS[key], pill = rnEl(cfg.pill), m = rnEl('rnCatMenu');
+  var r = pill.getBoundingClientRect();
+  m.style.minWidth = cfg.width + 'px';
+  m.innerHTML = cfg.items.map(function(it){
+    var on = it.k && RN.report === it.k;
+    var oc = it.k ? 'rnGo(\'' + it.k + '\')' : 'window.open(\'' + it.url + '\',\'_blank\',\'noopener\')';
+    return '<a onclick="RN.closeCat();' + oc + '" class="' + (on ? 'on' : '') + '">' + it.label + (it.ext ? RN_EXT : '') + '</a>';
+  }).join('');
+  m.style.left = Math.round(r.left) + 'px';
+  m.style.top  = Math.round(r.bottom + 4) + 'px';
+  m.classList.add('on');
+  pill.classList.add('open');
+  RN.cat = key;
+}
+RN.closeCat = function(){
+  var m = rnEl('rnCatMenu'); if (m) m.classList.remove('on');
+  document.querySelectorAll('.rn-pill.open').forEach(function(p){ p.classList.remove('open'); });
+  RN.cat = null;
+};
+
+function rnGo(key){
+  var r = RN.REPORTS[key]; if (!r) return;
+  RN.report = key;
+  RN.closeCat();
+  ['rnPillOverview','rnPillJobs','rnPillSS','rnPillIV','rnPillMore'].forEach(function(id){
+    var e = rnEl(id); if (e) e.classList.remove('on');
+  });
+  var pillFor = { overview:'rnPillOverview', jobsSummary:'rnPillJobs', jobsDetail:'rnPillJobs',
+    ssSummary:'rnPillSS', ssDetail:'rnPillSS', interviews:'rnPillIV', ads:'rnPillMore',
+    brandScore:'rnPillMore', insights:'rnPillMore' }[key];
+  var p = rnEl(pillFor); if (p) p.classList.add('on');
+  var hw = rnEl('rnHeadWrap'); if (hw) hw.innerHTML = RN.headHTML();
+  if (r.pending) { RN.renderPending(r); return; }
+  if (typeof anGo === 'function') anGo(r.sec);
+}
+
+RN.renderPending = function(r){
+  var b = rnEl('anBody'); if (!b) return;
+  b.innerHTML = '<div class="an-note" style="align-items:flex-start">' +
+    '<svg viewBox="0 0 24 24" fill="none" stroke="#8a6116" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>' +
+    '<span><b>Capture pending &mdash; not yet built.</b><br>' +
+    '<code>' + r.route + '</code> is confirmed present in the live Analytics navigation, but its ' +
+    'report contents were not recreated: the host is currently behind a Cloudflare human-verification ' +
+    'challenge this build session is not permitted to clear. The navigation path above is measured and ' +
+    'exact; nothing inside this report has been guessed.</span></div>';
+};
+
+function rnDiscover(){ window.open('https://www.indeed.com/hire/indeed-analytics', '_blank', 'noopener'); }
+function rnCopyLink(){
+  var r = RN.REPORTS[RN.report];
+  var url = 'https://employers.indeed.com' + (r ? r.route : '/analytics');
+  if (navigator.clipboard) { try { navigator.clipboard.writeText(url); } catch(e) {} }
+  if (typeof ssToast === 'function') ssToast('Link copied', url);
+}
+function rnHelpful(up){
+  var a = rnEl('rnUp'), b = rnEl('rnDown');
+  if (a) a.classList.toggle('on', !!up);
+  if (b) b.classList.toggle('on', !up);
+  if (typeof ssToast === 'function') ssToast('Thanks for the feedback', up ? 'Glad this page was helpful.' : 'We will use this to improve the report.');
+}
+function rnCompare(){
+  RN.compare = !RN.compare;
+  if (typeof AN === 'object' && AN) AN.compare = RN.compare;
+  var hw = rnEl('rnHeadWrap'); if (hw) hw.innerHTML = RN.headHTML();
+  if (typeof anRender === 'function' && !(RN.REPORTS[RN.report] || {}).pending) anRender();
+}
+
+/* ---------- saved views -------------------------------------------- */
+function rnSavedMenu(e){
+  e.stopPropagation();
+  var m = rnEl('rnSavedMenu');
+  if (!m) { m = document.createElement('div'); m.className = 'rn-menu'; m.id = 'rnSavedMenu'; document.body.appendChild(m); }
+  if (m.classList.contains('on')) { m.classList.remove('on'); return; }
+  var has = RN.saved.length > 0;
+  m.style.minWidth = '306px';
+  m.innerHTML =
+    '<button class="rn-mi" onclick="rnSaveView()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg>Save as new view</button>' +
+    '<button class="rn-mi" ' + (has ? '' : 'disabled') + ' onclick="rnSaveCurrent()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0115-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 01-15 6.7L3 16"/></svg>Save changes to current view</button>' +
+    '<button class="rn-mi" ' + (has ? '' : 'disabled') + ' onclick="rnShowSaved()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>Show all saved views</button>';
+  var r = e.currentTarget.getBoundingClientRect();
+  m.style.left = Math.round(r.right - 306) + 'px';
+  m.style.top  = Math.round(r.bottom + 4) + 'px';
+  m.classList.add('on');
+}
+function rnSaveView(){
+  var m = rnEl('rnSavedMenu'); if (m) m.classList.remove('on');
+  var ov = rnEl('rnSaveModal');
+  if (!ov) {
+    ov = document.createElement('div');
+    ov.id = 'rnSaveModal'; ov.className = 'credits-modal-overlay';
+    ov.innerHTML =
+      '<div class="credits-modal" style="width:520px">' +
+        '<div class="credits-modal-header"><h3>Save as new view</h3>' +
+          '<button class="credits-modal-close" onclick="rnCloseSave()">&times;</button></div>' +
+        '<div class="credits-modal-body">' +
+          '<p class="credits-modal-desc">The selected filters and columns will save as a view that you can share and return to as needed. To make changes, cancel and adjust before saving.</p>' +
+          '<label style="display:block;font-size:14px;font-weight:700;color:#2d2d2d;margin-bottom:6px">View name (required)</label>' +
+          '<input id="rnViewName" type="text" maxlength="50" oninput="rnViewCount()" style="width:100%;height:44px;border:1px solid #595959;border-radius:12px;padding:9px 12px;font-family:inherit;font-size:16px;box-sizing:border-box">' +
+          '<p id="rnViewCount" style="font-size:13px;color:#595959;margin:8px 0 0">0 out of 50, 50 characters remaining</p>' +
+          '<div style="display:flex;justify-content:flex-end;gap:12px;margin-top:24px">' +
+            '<button class="ss-btn ss-btn-ghost" onclick="rnCloseSave()">Close</button>' +
+            '<button class="ss-btn ss-btn-pri" onclick="rnDoSave()">Save</button></div>' +
+        '</div></div>';
+    document.body.appendChild(ov);
+  }
+  ov.classList.add('open');
+  var i = rnEl('rnViewName'); if (i) { i.value = ''; rnViewCount(); i.focus(); }
+}
+function rnViewCount(){
+  var i = rnEl('rnViewName'), p = rnEl('rnViewCount'); if (!i || !p) return;
+  var n = i.value.length;
+  p.textContent = n + ' out of 50, ' + (50 - n) + ' characters remaining';
+}
+function rnCloseSave(){ var o = rnEl('rnSaveModal'); if (o) o.classList.remove('open'); }
+function rnDoSave(){
+  var i = rnEl('rnViewName'); if (!i || !i.value.trim()) return;
+  RN.saved.push({ name: i.value.trim(), report: RN.report, start: RN.start, end: RN.end });
+  rnCloseSave();
+  if (typeof ssToast === 'function') ssToast('View saved', '"' + i.value.trim() + '" is now in Saved views.');
+}
+function rnSaveCurrent(){
+  var m = rnEl('rnSavedMenu'); if (m) m.classList.remove('on');
+  if (typeof ssToast === 'function') ssToast('View updated', 'Current filters and date range saved.');
+}
+function rnShowSaved(){
+  var m = rnEl('rnSavedMenu'); if (m) m.classList.remove('on');
+  if (typeof ssToast === 'function') ssToast('Saved views', RN.saved.map(function(v){ return v.name; }).join(', ') || 'None yet.');
+}
+
+/* ---------- date range picker -------------------------------------- */
+RN.buildPicker = function(){
+  if (rnEl('rnPicker')) return;
+  var d = document.createElement('div');
+  d.className = 'rn-dr'; d.id = 'rnPicker';
+  document.body.appendChild(d);
+};
+function rnOpenPicker(e){
+  e.stopPropagation();
+  var d = rnEl('rnPicker'); if (!d) return;
+  if (d.classList.contains('on')) { d.classList.remove('on'); return; }
+  rnRenderPicker();
+  var r = e.currentTarget.getBoundingClientRect();
+  d.classList.add('on');
+  var h = d.getBoundingClientRect().height;
+  d.style.left = Math.round(Math.min(r.left, window.innerWidth - 361)) + 'px';
+  d.style.top  = Math.round(Math.max(8, Math.min(r.bottom + 6, window.innerHeight - h - 8))) + 'px';
+}
+function rnRenderPicker(){
+  var d = rnEl('rnPicker'); if (!d) return;
+  d.innerHTML =
+    '<div class="note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg>' +
+      '<span>Analytics stores data for the last 25 months: 07/01/2024 and 08/03/2026</span></div>' +
+    '<label for="rnPreset">Set date range to</label>' +
+    '<select id="rnPreset" onchange="rnPreset(this.value)">' +
+      RN.PRESETS.map(function(p){ return '<option value="' + p[0] + '"' + (p[0] === RN.preset ? ' selected' : '') + '>' + p[1] + '</option>'; }).join('') +
+    '</select>' +
+    '<p class="hint">Use format MM/DD/YYYY</p>' +
+    '<div class="row"><div class="fld"><label for="rnStart">Start date *</label>' +
+      '<input id="rnStart" type="text" value="' + RN.start + '" onchange="rnTyped()"></div>' +
+      '<span class="to">to</span>' +
+      '<div class="fld"><label for="rnEnd">End date *</label>' +
+      '<input id="rnEnd" type="text" value="' + RN.end + '" onchange="rnTyped()"></div></div>' +
+    '<div class="my"><div class="fld"><label for="rnMonth">Month</label>' +
+      '<select id="rnMonth" onchange="RN.calM=+this.value;rnRenderCal()">' +
+        RN.MONTHS.map(function(m, i){ return '<option value="' + i + '"' + (i === RN.calM ? ' selected' : '') + '>' + m + '</option>'; }).join('') +
+      '</select></div>' +
+      '<div class="fld"><label for="rnYear">Year</label>' +
+      '<select id="rnYear" onchange="RN.calY=+this.value;rnRenderCal()">' +
+        [2024, 2025, 2026].map(function(y){ return '<option value="' + y + '"' + (y === RN.calY ? ' selected' : '') + '>' + y + '</option>'; }).join('') +
+      '</select></div></div>' +
+    '<div class="rn-cal" id="rnCal"></div>' +
+    '<div class="foot"><button class="cancel" onclick="rnCancelPicker()">Cancel</button>' +
+      '<button class="apply" onclick="rnApply()">Apply</button></div>';
+  rnRenderCal();
+}
+function rnPad(n){ return (n < 10 ? '0' : '') + n; }
+function rnFmt(y, m, d){ return rnPad(m + 1) + '/' + rnPad(d) + '/' + y; }
+function rnParse(s){ var p = String(s).split('/'); return p.length === 3 ? { m: +p[0] - 1, d: +p[1], y: +p[2] } : null; }
+function rnNum(o){ return o ? o.y * 10000 + o.m * 100 + o.d : 0; }
+function rnRenderCal(){
+  var c = rnEl('rnCal'); if (!c) return;
+  var y = RN.calY, m = RN.calM;
+  var first = new Date(y, m, 1).getDay();
+  var days  = new Date(y, m + 1, 0).getDate();
+  var prev  = new Date(y, m, 0).getDate();
+  var s = rnNum(rnParse(RN.start)), e = rnNum(rnParse(RN.end));
+  var lo = rnNum(RN.MIN), hi = rnNum(RN.MAX);
+  var h = ['Su','Mo','Tu','We','Th','Fr','Sa'].map(function(x){ return '<div class="dh">' + x + '</div>'; }).join('');
+  /* leading / trailing days belong to the adjacent months and stay selectable,
+     and they take range highlighting — as they do on the live picker */
+  function cell(yy, mm, dd, muted){
+    var n = yy * 10000 + mm * 100 + dd;
+    var cls = muted ? ['mut'] : [];
+    if (n === s || n === e) cls = cls.filter(function(x){ return x !== 'mut'; }).concat('end');
+    else if (n > s && n < e) cls.push('inr');
+    if (yy === RN.TODAY.y && mm === RN.TODAY.m && dd === RN.TODAY.d) cls.push('today');
+    var dis = (n < lo || n > hi) ? ' disabled' : '';
+    return '<button class="' + cls.join(' ') + '"' + dis + ' onclick="rnPickDay(' + yy + ',' + mm + ',' + dd + ')">' + dd + '</button>';
+  }
+  var pm = m === 0 ? 11 : m - 1, py = m === 0 ? y - 1 : y;
+  for (var i = 0; i < first; i++) h += cell(py, pm, prev - first + i + 1, true);
+  for (var d = 1; d <= days; d++) h += cell(y, m, d, false);
+  var nm = m === 11 ? 0 : m + 1, ny = m === 11 ? y + 1 : y;
+  var trail = (7 - ((first + days) % 7)) % 7;
+  for (var t = 1; t <= trail; t++) h += cell(ny, nm, t, true);
+  c.innerHTML = h;
+}
+function rnPickDay(y, m, d){
+  if (RN.pick === null) { RN.start = rnFmt(y, m, d); RN.end = rnFmt(y, m, d); RN.pick = 'end'; }
+  else {
+    var n = y * 10000 + m * 100 + d;
+    if (n < rnNum(rnParse(RN.start))) RN.start = rnFmt(y, m, d);
+    else RN.end = rnFmt(y, m, d);
+    RN.pick = null;
+  }
+  RN.preset = 'custom';
+  var p = rnEl('rnPreset'); if (p) p.value = 'custom';
+  var a = rnEl('rnStart'); if (a) a.value = RN.start;
+  var b = rnEl('rnEnd');   if (b) b.value = RN.end;
+  rnRenderCal();
+}
+function rnTyped(){
+  var a = rnEl('rnStart'), b = rnEl('rnEnd');
+  if (a && rnParse(a.value)) RN.start = a.value;
+  if (b && rnParse(b.value)) RN.end = b.value;
+  RN.preset = 'custom'; var p = rnEl('rnPreset'); if (p) p.value = 'custom';
+  var st = rnParse(RN.start); if (st) { RN.calM = st.m; RN.calY = st.y; }
+  rnRenderCal();
+}
+function rnPreset(v){
+  RN.preset = v;
+  var end = new Date(2026, 7, 3), s = new Date(2026, 7, 3), e = new Date(2026, 7, 3);
+  var span = { last7Days: 7, last14Days: 14, last30Days: 30, last6Months: 182, lastYear: 365, lastQuarter: 91 };
+  if (v === 'yesterday')      { s = new Date(2026, 7, 2); e = new Date(2026, 7, 2); }
+  else if (v === 'lastWeek')  { s = new Date(2026, 6, 26); e = new Date(2026, 7, 1); }
+  else if (v === 'lastMonth') { s = new Date(2026, 6, 1);  e = new Date(2026, 6, 31); }
+  else if (v === 'monthToDate'){ s = new Date(2026, 7, 1); e = new Date(2026, 7, 3); }
+  else if (v === 'thisYear')  { s = new Date(2026, 0, 1);  e = new Date(2026, 7, 3); }
+  else if (span[v])           { e = new Date(2026, 7, 1); s = new Date(e.getTime() - (span[v] - 1) * 864e5); }
+  else if (v === 'custom' || v === '') return;
+  RN.start = rnFmt(s.getFullYear(), s.getMonth(), s.getDate());
+  RN.end   = rnFmt(e.getFullYear(), e.getMonth(), e.getDate());
+  RN.calM = s.getMonth(); RN.calY = s.getFullYear();
+  var a = rnEl('rnStart'); if (a) a.value = RN.start;
+  var b = rnEl('rnEnd');   if (b) b.value = RN.end;
+  var mm = rnEl('rnMonth'); if (mm) mm.value = RN.calM;
+  var yy = rnEl('rnYear');  if (yy) yy.value = RN.calY;
+  rnRenderCal();
+}
+function rnCancelPicker(){ var d = rnEl('rnPicker'); if (d) d.classList.remove('on'); }
+function rnApply(){
+  var d = rnEl('rnPicker'); if (d) d.classList.remove('on');
+  var v = rnEl('rnRangeVal'); if (v) v.textContent = RN.start + ' - ' + RN.end;
+  var lbl = (RN.PRESETS.filter(function(p){ return p[0] === RN.preset; })[0] || ['', 'Custom'])[1];
+  if (typeof AN === 'object' && AN) { AN.range = lbl; }
+  var rl = document.getElementById('anRangeLbl'); if (rl) rl.textContent = lbl;
+  if (typeof anLoad === 'function' && !(RN.REPORTS[RN.report] || {}).pending) anLoad();
+  if (typeof ssToast === 'function') ssToast('Date range updated', RN.start + ' - ' + RN.end);
+}
+
+(function rnInit(){
+  function boot(){
+    if (!document.getElementById('view-analytics')) return;
+    RN.buildBar();
+    if (typeof NV === 'object' && NV) {
+      /* keep the sidebar flyout and the report bar in step */
+      var map = { overview:'overview', jobs:'jobsSummary', sourcing:'ssSummary', interviews:'interviews', ads:'ads', insights:'insights' };
+      var _anGo = window.anGo;
+      if (_anGo && !_anGo.__rn) {
+        var w = function(sec, btn){
+          var r = _anGo.apply(this, arguments);
+          var key = map[sec];
+          if (key && RN.report !== key) {
+            RN.report = key;
+            ['rnPillOverview','rnPillJobs','rnPillSS','rnPillIV','rnPillMore'].forEach(function(id){ var e = rnEl(id); if (e) e.classList.remove('on'); });
+            var pf = { overview:'rnPillOverview', jobsSummary:'rnPillJobs', ssSummary:'rnPillSS', interviews:'rnPillIV', ads:'rnPillMore', insights:'rnPillMore' }[key];
+            var p = rnEl(pf); if (p) p.classList.add('on');
+            var hw = rnEl('rnHeadWrap'); if (hw) hw.innerHTML = RN.headHTML();
+          }
+          return r;
+        };
+        w.__rn = true; window.anGo = w;
+      }
+    }
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else setTimeout(boot, 0);
+})();
+
 (function tlInit(){
   function boot(){ if(!tlEl('view-tools')) return; tlGo('overview'); }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else setTimeout(boot,0);
@@ -11128,6 +11563,119 @@ else nvInit();
 .ss-list.split .c3{ order:3; width:100%; margin-top:12px; }
 .ss-list.split .c1b{ order:4; width:100%; padding-left:0; margin-top:12px; }
 .ss-list.split .c4{ order:5; width:100%; justify-content:flex-end; margin-top:12px; }
+
+</style>
+<style>
+
+/* ═══ RN — ANALYTICS REPORT NAVIGATION & FILTERS ══════════════════════
+   Measured live on employers.indeed.com/analytics (see rn/CRAWL.md).
+   ==================================================================== */
+.rn-bar{ display:flex; align-items:center; gap:0; padding:0; min-height:44px; }
+.rn-title{ font-size:20px; line-height:30px; font-weight:700; color:#2d2d2d; margin:0 24px 0 0; }
+.rn-div{ width:1px; height:44px; background:#e4e2e0; margin:0 24px 0 0; flex:0 0 1px; }
+.rn-pill{ display:inline-flex; align-items:center; gap:8px; height:44px; padding:9px 12px; border:0;
+  background:transparent; border-radius:12px; font-family:inherit; font-size:14px; line-height:21px;
+  font-weight:400; color:#2d2d2d; cursor:pointer; white-space:nowrap; text-decoration:none; }
+.rn-pill:hover{ background:#f3f2f1; }
+.rn-pill.on{ background:#595959; color:#fff; font-weight:700; }
+.rn-pill.open{ background:#e4e2e0; color:#003a9b; }
+.rn-pill .cv{ width:16px; height:16px; flex:0 0 16px; transition:transform .15s; }
+.rn-pill.open .cv{ transform:rotate(180deg); }
+.rn-more{ width:48px; padding:9px; justify-content:center; }
+.rn-sp{ flex:1 1 auto; }
+.rn-discover{ font-size:16px; line-height:24px; font-weight:700; color:#a3175f; background:none;
+  border:0; font-family:inherit; cursor:pointer; padding:9px 12px; border-radius:12px; white-space:nowrap; }
+.rn-discover:hover{ background:#fbeef4; }
+
+/* dropdown card — 1px #d4d2d0, radius 12, z 1050, NO shadow (as measured) */
+.rn-menu{ position:fixed; z-index:1050; background:#fff; border:1px solid #d4d2d0; border-radius:12px;
+  padding:0; display:none; min-width:210px; }
+.rn-menu.on{ display:block; }
+.rn-menu a{ display:flex; align-items:center; gap:8px; height:44px; padding:0 16px; font-size:16px;
+  line-height:24px; font-weight:400; color:#2d2d2d; text-decoration:none; cursor:pointer; }
+.rn-menu a:first-child{ border-radius:11px 11px 0 0; }
+.rn-menu a:last-child{ border-radius:0 0 11px 11px; }
+.rn-menu a:hover{ background:#f3f2f1; }
+.rn-menu a.on{ background:#f3f2f1; font-weight:700; }
+.rn-menu a .ext{ width:14px; height:14px; margin-left:auto; color:#767676; }
+
+/* header card */
+.rn-head{ background:#fff; border:1px solid #e4e2e0; border-radius:16px; padding:24px 32px;
+  display:flex; align-items:flex-start; gap:24px; margin-bottom:16px; }
+.rn-head .l{ flex:1 1 auto; min-width:0; }
+.rn-h1row{ display:flex; align-items:center; gap:16px; }
+.rn-head h1{ font-size:28px; line-height:34px; font-weight:700; color:#2d2d2d; margin:0; }
+.rn-copy{ display:inline-flex; align-items:center; gap:8px; background:none; border:0; font-family:inherit;
+  font-size:16px; line-height:24px; font-weight:700; color:#2d2d2d; cursor:pointer; padding:6px 8px; border-radius:12px; }
+.rn-copy:hover{ background:#f3f2f1; }
+.rn-sub{ font-size:16px; line-height:24px; color:#595959; margin:8px 0 0; }
+.rn-head .r{ flex:0 0 auto; display:flex; flex-direction:column; align-items:flex-end; gap:12px; }
+.rn-rangerow{ display:flex; align-items:center; gap:20px; }
+.rn-rangebox{ border:1px solid #595959; border-radius:12px; padding:8px 12px; display:flex;
+  align-items:center; gap:12px; background:#fff; cursor:pointer; font-family:inherit; }
+.rn-rangebox .lb{ display:block; font-size:12px; line-height:18px; font-weight:700; color:#2d2d2d; text-align:left; }
+.rn-rangebox .vl{ display:block; font-size:16px; line-height:24px; color:#2d2d2d; text-align:left; }
+.rn-rangebox svg{ width:22px; height:22px; color:#2d2d2d; flex:0 0 22px; }
+.rn-cmp{ display:inline-flex; align-items:center; gap:8px; background:none; border:0; font-family:inherit;
+  font-size:16px; line-height:24px; color:#004fcb; cursor:pointer; padding:6px 8px; border-radius:12px; }
+.rn-cmp:hover{ text-decoration:underline; }
+.rn-cmp .pl{ width:20px; height:20px; border-radius:50%; background:#004fcb; color:#fff; display:inline-flex;
+  align-items:center; justify-content:center; font-size:14px; line-height:1; flex:0 0 20px; }
+.rn-helpful{ display:inline-flex; align-items:center; gap:12px; background:#ecf2ff; border-radius:12px;
+  padding:10px 16px; font-size:16px; line-height:24px; color:#2d2d2d; }
+.rn-helpful button{ background:none; border:0; cursor:pointer; color:#2d2d2d; padding:4px; border-radius:8px; display:inline-flex; }
+.rn-helpful button:hover{ background:#dbe6fb; }
+.rn-helpful button.on{ color:#004fcb; }
+
+/* saved views */
+.rn-savedrow{ display:flex; justify-content:flex-end; margin-bottom:16px; position:relative; }
+.rn-saved{ display:inline-flex; align-items:center; gap:8px; height:44px; padding:9px 16px; background:#fff;
+  border:1px solid #e4e2e0; border-radius:12px; font-family:inherit; font-size:16px; line-height:24px;
+  font-weight:700; color:#004fcb; cursor:pointer; }
+.rn-saved:hover{ background:#f7f6f5; }
+.rn-menu .rn-mi{ display:flex; align-items:center; gap:12px; height:46px; padding:0 16px; font-size:16px;
+  line-height:24px; color:#2d2d2d; background:none; border:0; width:100%; font-family:inherit; cursor:pointer; text-align:left; }
+.rn-menu .rn-mi:hover:not(:disabled){ background:#f3f2f1; }
+.rn-menu .rn-mi:disabled{ color:#a6a4a2; cursor:default; }
+.rn-menu .rn-mi svg{ width:20px; height:20px; flex:0 0 20px; }
+
+/* date-range popover — 345 wide, radius 12, z 10000, 2px blue border */
+.rn-dr{ position:fixed; z-index:10000; width:345px; background:#fff; border:2px solid #004fcb;
+  border-radius:12px; padding:16px; display:none;
+  box-shadow:rgba(45,45,45,.16) 0 0 2px 0, rgba(45,45,45,.08) 0 4px 8px 0, rgba(45,45,45,.04) 0 8px 16px 0; }
+.rn-dr.on{ display:block; }
+.rn-dr .note{ display:flex; gap:12px; background:#ecf2ff; border-radius:12px; padding:12px 16px;
+  font-size:14px; line-height:21px; color:#2d2d2d; margin-bottom:16px; }
+.rn-dr .note svg{ width:20px; height:20px; flex:0 0 20px; color:#004fcb; }
+.rn-dr label{ display:block; font-size:14px; line-height:21px; font-weight:700; color:#2d2d2d; margin-bottom:6px; }
+.rn-dr select, .rn-dr input[type=text]{ width:100%; height:44px; border:1px solid #595959; border-radius:12px;
+  padding:9px 12px; font-family:inherit; font-size:16px; line-height:24px; color:#2d2d2d; background:#fff; box-sizing:border-box; }
+.rn-dr .hint{ font-size:13px; line-height:20px; color:#595959; margin:12px 0 8px; }
+.rn-dr .row{ display:flex; align-items:flex-end; gap:8px; }
+.rn-dr .row .fld{ flex:1 1 0; min-width:0; }
+.rn-dr .row .to{ padding-bottom:11px; font-size:16px; color:#2d2d2d; }
+.rn-dr .my{ display:flex; gap:12px; margin:16px 0 8px; }
+.rn-dr .my .fld{ flex:1 1 0; }
+.rn-cal{ display:grid; grid-template-columns:repeat(7,1fr); }
+.rn-cal .dh{ text-align:center; font-size:13px; line-height:20px; font-weight:700; color:#595959; padding:6px 0; }
+.rn-cal button{ height:40px; border:0; background:transparent; font-family:inherit; font-size:14px;
+  line-height:21px; color:#2d2d2d; cursor:pointer; padding:0; }
+.rn-cal button:hover:not(:disabled){ background:#f3f2f1; }
+.rn-cal button.mut{ color:#c8c6c4; }
+.rn-cal button:disabled{ color:#d9d7d5; cursor:default; }
+.rn-cal button.inr{ background:#f3f2f1; }
+.rn-cal button.end{ background:#2d2d2d; color:#fff; font-weight:700; }
+.rn-cal button.today{ position:relative; }
+.rn-cal button.today:after{ content:""; position:absolute; left:50%; bottom:5px; transform:translateX(-50%);
+  width:4px; height:4px; border-radius:50%; background:currentColor; }
+.rn-dr .foot{ display:flex; justify-content:flex-end; gap:12px; margin-top:16px; }
+.rn-dr .foot .cancel{ background:none; border:0; font-family:inherit; font-size:16px; line-height:24px;
+  font-weight:700; color:#004fcb; cursor:pointer; padding:9px 16px; border-radius:12px; }
+.rn-dr .foot .apply{ background:#004fcb; color:#fff; border:0; border-radius:12px; padding:9px 16px;
+  height:44px; font-family:inherit; font-size:16px; line-height:24px; font-weight:700; cursor:pointer; }
+
+/* legal footer */
+.rn-legal{ font-size:13px; line-height:20px; color:#767676; margin:24px 0 8px; max-width:1240px; }
 
 </style>
 </body>
