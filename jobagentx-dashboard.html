@@ -1011,6 +1011,13 @@ tbody tr:last-child td { border-bottom: none; }
       </div>
     </div>
     <div class="dev-toggle">
+      <span class="dev-toggle-label">Subs:</span>
+      <div class="dev-toggle-switch" id="subsToggle">
+        <button class="dev-toggle-btn active" onclick="setSubsMode('active', this)">Active</button>
+        <button class="dev-toggle-btn" onclick="setSubsMode('empty', this)">Empty</button>
+      </div>
+    </div>
+    <div class="dev-toggle">
       <span class="dev-toggle-label">Agent:</span>
       <div class="dev-toggle-switch" id="agentToggle">
         <button class="dev-toggle-btn active" onclick="setDevMode('active', this)">Active</button>
@@ -2653,6 +2660,7 @@ tbody tr:last-child td { border-bottom: none; }
       <div class="agx-subtabs">
         <button type="button" class="agx-subtab on" onclick="agxSubsTab(this,'subsManage')">Manage Subscriptions</button>
         <button type="button" class="agx-subtab" onclick="agxSubsTab(this,'subsActivity')">Subscription Activity</button>
+        <button type="button" class="agx-subtab" onclick="showView('analytics');anGo('sourcing')">Candidate sourcing report &#8599;</button>
       </div>
     </div>
 
@@ -2685,6 +2693,118 @@ tbody tr:last-child td { border-bottom: none; }
           <span class="agx-actarrows">&larr;&nbsp;&nbsp;&rarr;</span>
           <span>0 - 0 of 0</span>
           <span class="agx-actper">Items per page: <b>50 per page</b> &#9662;</span>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ── SUBSCRIPTION MANAGEMENT · ACTIVE (populated) ── -->
+    <div class="agx-subpanel" id="subsManageFull">
+      <div class="sb-card sb-dash">
+        <h2>Dashboard</h2>
+        <div class="sp"></div>
+        <span class="buy">Buy:</span>
+        <button class="sb-btn" onclick="agxShowPlans(1)">Subscriptions</button>
+        <button class="sb-btn pri" onclick="sbOpen('sbMdAssign')">Assign subscriptions</button>
+      </div>
+
+      <div class="sb-info" id="sbInfoBar">
+        <span class="ico"><svg viewBox="0 0 24 24" width="24" height="24" fill="#004fcb"><circle cx="12" cy="12" r="10"/><path fill="#fff" d="M11 10h2v7h-2zM11 7h2v2h-2z"/></svg></span>
+        <span style="flex:1"><b>Understand subscription usage and sourcing performance with Indeed Analytics</b>
+          <span>Track sourcing efforts for one or more jobs, monitor the effectiveness of recruiters, and see performance trends over time.</span></span>
+        <button class="sb-btn pri" onclick="showView('analytics');anGo('sourcing')">View Smart Sourcing report &#8599;</button>
+        <button class="x" onclick="this.parentNode.style.display='none'">&times;</button>
+      </div>
+
+      <div class="sb-cards">
+        <div class="sb-c">
+          <h3>Subscriptions</h3>
+          <div class="sb-donutrow">
+            <div class="sb-legend">
+              <div><i style="background:#d4d2d0"></i><span id="sbUnassigned">1</span> Unassigned <a onclick="sbFilterTbl('unassigned')">view</a></div>
+              <div><i style="background:#004fcb"></i><span id="sbAssigned">1</span> Assigned</div>
+            </div>
+            <div style="margin-left:auto" id="sbDonut"></div>
+          </div>
+        </div>
+        <div class="sb-c">
+          <h3>Contact summary</h3>
+          <div class="sb-cs">
+            <div><div class="k">Subscription<br>contacts</div><div class="v" id="sbSubContacts">4</div></div>
+            <div><div class="k">Shared<br>contacts</div><div class="v">0</div></div>
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#2d2d2d" stroke-width="2" style="margin-top:2px"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>
+            <span class="mv" onclick="sbOpen('sbMdMove')">Move</span>
+          </div>
+          <div class="sb-hr"></div>
+          <div class="sb-used">
+            <span class="lbl"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#2d2d2d" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Contacts used this cycle</span>
+            <span class="sb-usedbox">By email: <b id="sbUsedByEmail">1</b></span>
+          </div>
+          <div class="sb-cycle">Aug 2, 2026 &rarr; Sep 2, 2026</div>
+          <a class="sb-allact" onclick="agxSubsTab(document.querySelectorAll('#view-subs .agx-subtab')[1],'subsActivity')">All activity</a>
+        </div>
+        <div class="sb-c">
+          <h3 id="sbRenewH">No upcoming renewals</h3>
+          <div style="display:flex;gap:24px">
+            <ul class="sb-ren" style="flex:1;list-style:disc"><li>0 subscriptions renewing</li><li>0 new contacts granted</li></ul>
+            <div class="cost">Renewal cost:<b>$0.00</b></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sb-card" style="margin-top:24px">
+        <div class="sb-tabstrip">
+          <button class="sb-st on" onclick="sbTab(this,'subs')">Subscriptions</button>
+          <button class="sb-st" onclick="sbTab(this,'pool')">Shared contact pool</button>
+          <button class="sb-st" onclick="sbTab(this,'assistant')">Manage Sourcing Assistant</button>
+        </div>
+        <div id="sbTabBody"></div>
+      </div>
+    </div>
+
+    <!-- ── SUBSCRIPTION ACTIVITY · ACTIVE (populated) ── -->
+    <div class="agx-subpanel" id="subsActivityFull">
+      <div class="sb-card">
+        <div style="display:flex;align-items:center;padding:22px 24px">
+          <h2 style="font-size:24px;font-weight:400;margin:0">Subscription activity</h2>
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#2d2d2d" stroke-width="2" style="margin-left:auto;cursor:pointer" onclick="sbOpen('sbMdDownload')"><path d="M12 3v12M7 11l5 5 5-5M4 20h16"/></svg>
+        </div>
+        <div class="sb-tblbar">
+          <span class="f" onclick="sbToggleActFilter()"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#2d2d2d" stroke-width="2"><path d="M4 6h16M7 12h10M10 18h4"/></svg>Filter</span>
+          <span class="n"><span id="sbActN">5</span> results</span>
+          <span style="margin-left:auto;font-size:15px">August 2, 2026 &nbsp;&mdash;&nbsp; August 2, 2026</span>
+        </div>
+        <div id="sbActFilter" style="display:none;padding:22px 24px;border-bottom:1px solid #e4e2e0">
+          <div style="display:flex;gap:48px;flex-wrap:wrap">
+            <div style="flex:0 0 260px">
+              <label style="font-size:16px;font-weight:700;display:block;margin-bottom:6px">Activity</label>
+              <select class="ss-statussel" style="width:100%" id="sbFAct"><option>All</option><option>Contact used</option><option>Contacts renewed</option><option>Subscription purchased</option><option>Subscription assigned</option></select>
+              <label style="font-size:16px;font-weight:700;display:block;margin:16px 0 6px">Accounts</label>
+              <select class="ss-statussel" style="width:100%"><option>All</option><option>kat@lincolndynamic.org</option><option>Lincoln Dynamic Group</option></select>
+              <label style="font-size:16px;font-weight:700;display:block;margin:16px 0 6px">Subscriptions</label>
+              <select class="ss-statussel" style="width:100%"><option>All</option><option>Professional (Monthly)</option><option>Trial (Free trial)</option></select>
+              <label style="font-size:16px;font-weight:700;display:block;margin:16px 0 6px">Markets</label>
+              <select class="ss-statussel" style="width:100%"><option>All</option><option>Global</option><option>United States</option></select>
+              <button class="ss-link" style="margin-top:14px" onclick="sbToggleActFilter()">View less</button>
+            </div>
+            <div style="flex:0 0 320px">
+              <label style="font-size:16px;font-weight:700;display:block;margin-bottom:6px">Tags</label>
+              <div class="ss-qwrap"><input placeholder="Search existing tags"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#767676" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg></div>
+            </div>
+          </div>
+          <div style="display:flex;gap:16px;margin-top:22px">
+            <button class="sb-btn" style="flex:0 0 190px" onclick="sbToggleActFilter()">Close</button>
+            <button class="sb-btn pri" style="flex:0 0 190px" onclick="sbApplyActFilter()">Apply</button>
+          </div>
+        </div>
+        <table class="sb-tbl">
+          <thead><tr><th>Date</th><th>Source</th><th>Activity <span class="s">&#9432;</span></th><th>Account</th><th><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#2d2d2d" stroke-width="2" style="vertical-align:-3px"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg></th><th>Amount</th><th>Sub. balance <span class="s">&#9432;</span></th></tr></thead>
+          <tbody id="sbActBody"></tbody>
+        </table>
+        <div class="sb-pager">
+          <span class="box"><span class="ar">&larr;</span><span class="pg">1</span><span class="ar">&rarr;</span></span>
+          <span class="rng">1 - <span id="sbActN2">5</span> of <span id="sbActN3">5</span></span>
+          <span class="per">Items per page: <b>50 per page</b> &#9662;</span>
         </div>
       </div>
     </div>
@@ -3530,6 +3650,54 @@ Regards,
   <div class="ss-mfoot"><button class="ss-btn ss-btn-ghost" onclick="ssClose('ssMdNewTemplate')">Cancel</button><button class="ss-btn ss-btn-pri" onclick="ssCreateTemplate()">Save template</button></div>
 </div></div>
 <!-- ══════════════════ /SMART SOURCING MODALS ══════════════════ -->
+
+
+<div class="ss-ov" id="sbMdAssign"><div class="ss-modal sm">
+  <div class="ss-mhead"><h3>Assign subscriptions</h3><button class="ss-mclose" onclick="sbClose('sbMdAssign')">&times;</button></div>
+  <div class="ss-mbody">
+    <p style="font-size:16px;line-height:24px;margin:0 0 16px">Assign an available subscription to a team member. They will get their own contact balance for the billing cycle.</p>
+    <label style="font-size:16px;font-weight:700;display:block;margin-bottom:8px">Subscription</label>
+    <select class="ss-statussel" style="width:100%"><option>Professional — Monthly (unassigned)</option></select>
+    <label style="font-size:16px;font-weight:700;display:block;margin:18px 0 8px">Assign to</label>
+    <select class="ss-statussel" style="width:100%" id="sbAssignTo"><option>kat@lincolndynamic.org</option><option>scott@jobfairx.com</option><option>maria.lopez@jobfairx.com</option></select>
+  </div>
+  <div class="ss-mfoot"><button class="ss-btn ss-btn-ghost" onclick="sbClose('sbMdAssign')">Cancel</button><button class="ss-btn ss-btn-pri" onclick="sbAssign()">Assign</button></div>
+</div></div>
+
+<div class="ss-ov" id="sbMdMove"><div class="ss-modal sm">
+  <div class="ss-mhead"><h3>Move contacts</h3><button class="ss-mclose" onclick="sbClose('sbMdMove')">&times;</button></div>
+  <div class="ss-mbody">
+    <p style="font-size:16px;line-height:24px;margin:0 0 16px">Move contacts between a subscription and your shared contact pool. Shared contacts can be used by anyone on your team.</p>
+    <div style="display:flex;gap:16px;align-items:flex-end">
+      <div style="flex:1"><label style="font-size:16px;font-weight:700;display:block;margin-bottom:8px">From</label>
+        <select class="ss-statussel" style="width:100%"><option>Subscription contacts (4)</option><option>Shared contacts (0)</option></select></div>
+      <div style="flex:0 0 110px"><label style="font-size:16px;font-weight:700;display:block;margin-bottom:8px">Amount</label>
+        <input class="ss-noteinput" id="sbMoveN" style="min-height:0;height:48px" value="1"></div>
+    </div>
+    <label style="font-size:16px;font-weight:700;display:block;margin:18px 0 8px">To</label>
+    <select class="ss-statussel" style="width:100%"><option>Shared contacts</option><option>Subscription contacts</option></select>
+  </div>
+  <div class="ss-mfoot"><button class="ss-btn ss-btn-ghost" onclick="sbClose('sbMdMove')">Cancel</button><button class="ss-btn ss-btn-pri" onclick="sbMove()">Move contacts</button></div>
+</div></div>
+
+<div class="ss-ov" id="sbMdDownload"><div class="ss-modal sm">
+  <div class="ss-mhead"><h3>Download activity</h3><button class="ss-mclose" onclick="sbClose('sbMdDownload')">&times;</button></div>
+  <div class="ss-mbody">
+    <p style="font-size:16px;line-height:24px;margin:0 0 16px">Export subscription activity for the selected period. Large exports are emailed when they finish.</p>
+    <label style="font-size:16px;font-weight:700;display:block;margin-bottom:8px">Format</label>
+    <select class="ss-statussel" style="width:100%" id="sbDlFmt"><option>CSV</option><option>XLSX</option></select>
+    <label style="font-size:16px;font-weight:700;display:block;margin:18px 0 8px">Period</label>
+    <select class="ss-statussel" style="width:100%"><option>Current cycle (Aug 2 – Sep 2, 2026)</option><option>Last 90 days</option><option>All activity</option></select>
+    <label class="ss-fopt" style="margin-top:16px"><input type="checkbox" checked>Email me a copy at kat@lincolndynamic.org</label>
+  </div>
+  <div class="ss-mfoot"><button class="ss-btn ss-btn-ghost" onclick="sbClose('sbMdDownload')">Cancel</button><button class="ss-btn ss-btn-pri" onclick="sbDownload()">Download</button></div>
+</div></div>
+
+<div class="ss-ov" id="sbMdRowMenu"><div class="ss-modal sm">
+  <div class="ss-mhead"><h3 id="sbRowTitle">Subscription</h3><button class="ss-mclose" onclick="sbClose('sbMdRowMenu')">&times;</button></div>
+  <div class="ss-mbody" id="sbRowBody"></div>
+  <div class="ss-mfoot"><button class="ss-btn ss-btn-pri" onclick="sbClose('sbMdRowMenu')">Close</button></div>
+</div></div>
 
 <!-- Success Toast -->
 <!-- Toast is created dynamically by showToast() -->
@@ -7334,6 +7502,75 @@ body.agx-on #view-events.view.active .content-header{padding:0 24px 0 28px !impo
 .an-seg button{border:1px solid transparent;border-radius:20px;background:transparent;padding:6px 14px;font-family:inherit;font-size:14px;cursor:pointer;color:#2d2d2d}
 .an-seg button.on{border-color:#2d2d2d;font-weight:700}
 
+
+/* ═══ SUBSCRIPTION MANAGEMENT — populated dashboard (.sb-*) ═══
+   Measured from resumes.indeed.com/admin, Aug 3 2026 (trial active). */
+#subsManageFull{font-family:'Noto Sans',-apple-system,BlinkMacSystemFont,sans-serif;color:#2d2d2d}
+#subsManageFull *{box-sizing:border-box}
+.sb-card{border:1px solid #e4e2e0;border-radius:12px;background:#fff}
+.sb-dash{padding:24px 28px;margin-bottom:0;display:flex;align-items:center;flex-wrap:wrap;gap:16px}
+.sb-dash h2{font-size:24px;font-weight:700;margin:0}
+.sb-dash .sp{flex:1}
+.sb-dash .buy{font-size:16px;color:#2d2d2d;margin-right:4px}
+.sb-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:46px;padding:9px 18px;border-radius:12px;font-family:inherit;font-size:16px;font-weight:700;cursor:pointer;border:1px solid #e4e2e0;background:#fff;color:#004fcb}
+.sb-btn:hover{background:#f7f6f5}
+.sb-btn.pri{background:#004fcb;border-color:#004fcb;color:#fff}
+.sb-btn.pri:hover{background:#0043ad}
+.sb-info{display:flex;align-items:center;gap:16px;background:#eef2fd;border-radius:0;padding:18px 28px;position:relative;flex-wrap:wrap}
+.sb-info .ico{flex:0 0 24px;color:#004fcb}
+.sb-info b{font-size:16px;display:block}
+.sb-info span{font-size:15px;color:#2d2d2d}
+.sb-info .x{border:0;background:none;font-size:20px;cursor:pointer;color:#2d2d2d;margin-left:8px}
+.sb-cards{display:flex;gap:24px;padding:24px 0 0;flex-wrap:wrap}
+.sb-c{flex:1 1 300px;min-width:280px;border:1px solid #e4e2e0;border-radius:12px;padding:22px 24px;background:#fff;min-height:238px}
+.sb-c h3{font-size:18px;font-weight:700;margin:0 0 18px}
+.sb-legend{font-size:16px;line-height:34px}
+.sb-legend i{width:14px;height:14px;border-radius:3px;display:inline-block;margin-right:12px;vertical-align:-2px}
+.sb-legend a{color:#004fcb;font-weight:700;text-decoration:none;cursor:pointer;margin-left:8px}
+.sb-donutrow{display:flex;align-items:center;gap:20px}
+.sb-cs{display:flex;gap:28px;align-items:flex-start}
+.sb-cs .k{font-size:15px;color:#2d2d2d;line-height:21px}
+.sb-cs .v{font-size:22px;font-weight:700;margin-top:8px}
+.sb-cs .mv{margin-left:auto;color:#004fcb;font-weight:700;cursor:pointer}
+.sb-hr{border-top:1px solid #e4e2e0;margin:18px 0}
+.sb-used{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.sb-used .lbl{font-size:15px;display:inline-flex;align-items:center;gap:8px}
+.sb-usedbox{border:1px solid #e4e2e0;border-radius:8px;padding:8px 14px;display:flex;gap:24px;align-items:center;font-size:15px}
+.sb-usedbox b{font-weight:700}
+.sb-cycle{font-size:13px;color:#767676;margin-top:6px}
+.sb-allact{color:#004fcb;font-weight:700;cursor:pointer;display:block;text-align:right;margin-top:12px;font-size:15px}
+.sb-ren li{font-size:15px;line-height:26px;margin-left:18px}
+.sb-ren .cost{font-size:15px}
+.sb-ren .cost b{display:block;font-size:22px;font-weight:700;margin-top:4px}
+.sb-tabstrip{display:flex;gap:6px;padding:16px 20px;border-bottom:1px solid #e4e2e0;flex-wrap:wrap}
+.sb-st{padding:9px 16px;border:0;border-radius:10px;background:transparent;font-family:inherit;font-size:16px;color:#2d2d2d;cursor:pointer}
+.sb-st:hover{background:#f7f6f5}
+.sb-st.on{background:#eef2fd;color:#12315b;font-weight:700}
+.sb-tblbar{display:flex;align-items:center;gap:20px;padding:14px 20px;border-bottom:1px solid #e4e2e0}
+.sb-tblbar .f{display:inline-flex;align-items:center;gap:8px;font-size:16px;cursor:pointer}
+.sb-tblbar .n{font-size:16px;color:#2d2d2d}
+.sb-tblbar .dl{margin-left:auto;cursor:pointer;color:#2d2d2d}
+.sb-tbl{width:100%;border-collapse:collapse;font-size:15px}
+.sb-tbl th{text-align:left;font-size:15px;font-weight:700;color:#2d2d2d;padding:14px 16px;border-bottom:1px solid #e4e2e0;white-space:nowrap;text-transform:none;letter-spacing:normal}
+.sb-tbl th .s{color:#767676;font-size:11px;margin-left:4px}
+.sb-tbl td{padding:18px 16px;border-bottom:1px solid #e4e2e0;vertical-align:top}
+.sb-tbl .nm{font-size:16px;font-weight:400}
+.sb-tbl .sub{font-size:14px;color:#595959;margin-top:2px}
+.sb-tbl a{color:#004fcb;font-weight:700;text-decoration:none;cursor:pointer}
+.sb-st-amber{color:#8a6116}
+.sb-st-red{color:#a9252b}
+.sb-st-green{color:#1f662c;font-weight:700}
+.sb-cb{width:20px;height:20px;border:1px solid #767676;border-radius:4px;background:#fff;cursor:pointer;display:inline-block}
+.sb-addbtn{display:inline-flex;align-items:center;gap:6px;color:#004fcb;font-weight:700;cursor:pointer}
+.sb-addbtn .p{width:20px;height:20px;border-radius:50%;background:#004fcb;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:14px;line-height:1}
+.sb-pager{display:flex;align-items:center;gap:16px;padding:16px 20px}
+.sb-pager .box{display:inline-flex;align-items:center;gap:10px;border:1px solid #e4e2e0;border-radius:10px;padding:6px 10px}
+.sb-pager .pg{width:36px;height:36px;border-radius:8px;background:#2d2d2d;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700}
+.sb-pager .ar{color:#a6a4a2;font-size:18px}
+.sb-pager .rng{font-size:16px}
+.sb-pager .per{margin-left:auto;font-size:16px}
+.sb-pager .per b{font-weight:700}
+
 </style>
 <script>
 (function(){
@@ -9518,6 +9755,195 @@ function anExport(kind){
     anRender();
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else boot();
+})();
+
+
+
+/* ═══ SUBSCRIPTION MANAGEMENT — populated states (SB) ═══
+   Measured from resumes.indeed.com/admin, Aug 3 2026 (trial active). */
+var SB = { mode:'active', tab:'subs', usedByEmail:1, subContacts:4, shared:0, assigned:1, unassigned:1 };
+function sbEl(id){return document.getElementById(id);}
+function sbOpen(id){var e=sbEl(id); if(e) e.classList.add('open');}
+function sbClose(id){var e=sbEl(id); if(e) e.classList.remove('open');}
+function sbToast(t,m){ if(typeof ssToast==='function') ssToast(t,m); }
+
+SB.SUBS=[
+ {name:'Professional',cycle:'Monthly',status:'Starts on 8/16',sub:'Access pending',stCls:'sb-st-amber',
+  assignee:null,assignLink:'Assign subscription',assignSub:'Unassigned',reassign:'',contacts:'100 available',contactsSub:'on 8/16'},
+ {name:'Trial',cycle:'Free trial',status:'Expiring 8/16',sub:'',stCls:'sb-st-red',
+  assignee:'kat@lincolndynamic.org',assignSub:'Trial started on 8/2/2026',assignSubCls:'sb-st-green',reassign:'',contacts:'4 available',contactsSub:''}
+];
+SB.ACT=[
+ {grp:'Total balance: 4', upd:'Updated: Aug 2, 2026, 10:33 PM Pacific Daylight Time. This total balance includes activity during the period since the previously published total balance.'},
+ {d:'08/02/26',src:'Subscription',act:'Contact used',acct:'kat@lincolndynamic.org',mkt:'Global',amt:'-1',amtCls:'sb-st-red',bal:'4'},
+ {grp:'Total balance: 5', upd:'Updated: Aug 2, 2026, 9:23 PM Pacific Daylight Time. This total balance includes activity during the period since the previously published total balance.'},
+ {d:'08/02/26',src:'Subscription',act:'Contacts renewed',acct:'kat@lincolndynamic.org',mkt:'Global',amt:'+5',amtCls:'',bal:'5'},
+ {d:'08/02/26',src:'Subscription',act:'Subscription purchased',acct:'Lincoln Dynamic Group',mkt:'Global',amt:'<span style="background:#1f662c;color:#fff;border-radius:6px;padding:3px 12px;font-size:14px;font-weight:700">Free</span>',amtCls:'',bal:'0'}
+];
+
+function sbDonutSVG(a,u){
+  var total=a+u||1, C=2*Math.PI*46, la=(a/total)*C;
+  return '<svg viewBox="0 0 120 120" width="118" height="118">'+
+    '<circle cx="60" cy="60" r="46" fill="none" stroke="#d4d2d0" stroke-width="20"/>'+
+    '<circle cx="60" cy="60" r="46" fill="none" stroke="#004fcb" stroke-width="20" stroke-dasharray="'+la.toFixed(1)+' '+(C-la).toFixed(1)+'" transform="rotate(-90 60 60)"/></svg>';
+}
+function sbTab(btn,k){
+  if(btn){ btn.parentNode.querySelectorAll('.sb-st').forEach(function(b){b.classList.remove('on');}); btn.classList.add('on'); }
+  SB.tab=k; sbRenderTab();
+}
+function sbRenderTab(){
+  var w=sbEl('sbTabBody'); if(!w) return;
+  if(SB.tab==='subs'){
+    w.innerHTML='<div class="sb-tblbar"><span class="f" onclick="sbToast(\'Filter\',\'Filter subscriptions by status, assignee or tag.\')"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#2d2d2d" stroke-width="2"><path d="M4 6h16M7 12h10M10 18h4"/></svg>Filter</span>'+
+      '<span class="n">'+SB.SUBS.length+' subscriptions</span>'+
+      '<span class="dl" onclick="sbOpen(\'sbMdDownload\')"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#2d2d2d" stroke-width="2"><path d="M12 3v12M7 11l5 5 5-5M4 20h16"/></svg></span></div>'+
+      '<table class="sb-tbl"><thead><tr><th style="width:56px"><span class="sb-cb"></span></th>'+
+      ['Subscription','Status','Assignee','Reassignments left','Contacts','PO#','Tags'].map(function(h){return '<th>'+h+' <span class="s">&#8645;</span></th>';}).join('')+
+      '<th style="width:56px"></th></tr></thead><tbody>'+
+      SB.SUBS.map(function(s,i){
+        return '<tr><td><span class="sb-cb"></span></td>'+
+          '<td><div class="nm">'+s.name+'</div><div class="sub">'+s.cycle+'</div></td>'+
+          '<td><div class="'+s.stCls+'">'+s.status+'</div>'+(s.sub?'<div class="sub">'+s.sub+'</div>':'')+'</td>'+
+          '<td>'+(s.assignee?('<div class="nm">'+s.assignee+'</div>'):('<a onclick="sbOpen(\'sbMdAssign\')">'+s.assignLink+'</a>'))+
+            '<div class="sub '+(s.assignSubCls||'')+'">'+s.assignSub+'</div></td>'+
+          '<td>'+(s.reassign||'')+'</td>'+
+          '<td><div class="nm" style="font-weight:700">'+s.contacts+'</div>'+(s.contactsSub?'<div class="sub">'+s.contactsSub+'</div>':'')+'</td>'+
+          '<td><span class="sb-addbtn" onclick="sbRowAction('+i+',\'PO#\')">Add PO# <span class="p">+</span></span></td>'+
+          '<td><span class="sb-addbtn" onclick="sbRowAction('+i+',\'tag\')">Add tag <span class="p">+</span></span></td>'+
+          '<td style="text-align:right;cursor:pointer" onclick="sbRowMenu('+i+')">&#8943;</td></tr>';
+      }).join('')+'</tbody></table>'+
+      '<div class="sb-pager"><span class="box"><span class="ar">&larr;</span><span class="pg">1</span><span class="ar">&rarr;</span></span>'+
+      '<span class="rng">1 - '+SB.SUBS.length+' of '+SB.SUBS.length+'</span>'+
+      '<span class="per">Items per page: <b>25 per page</b> &#9662;</span></div>';
+    return;
+  }
+  if(SB.tab==='pool'){
+    w.innerHTML='<div style="padding:48px 32px;text-align:center">'+
+      '<svg viewBox="0 0 24 24" width="56" height="56" fill="none" stroke="#8a93a8" stroke-width="1.4" style="margin:0 auto"><circle cx="9" cy="8" r="4"/><path d="M2 21v-2a6 6 0 016-6h2"/><circle cx="17" cy="16" r="4"/></svg>'+
+      '<h3 style="font-size:22px;font-weight:800;margin:16px 0 8px">No shared contacts</h3>'+
+      '<p style="font-size:16px;color:#595959;max-width:470px;margin:0 auto 18px;line-height:24px">Move contacts from a subscription into the shared pool so anyone on your team can use them.</p>'+
+      '<button class="sb-btn pri" onclick="sbOpen(\'sbMdMove\')">Move contacts</button></div>';
+    return;
+  }
+  var assigned = (typeof SS!=='undefined' && SS.assistant!=='none');
+  w.innerHTML='<div class="sb-tblbar"><span class="n">'+(assigned?1:0)+' of 3 jobs assigned</span>'+
+    '<span class="dl" onclick="showView(\'sourcing\');ssGo(\'hub\')" style="color:#004fcb;font-weight:700;font-size:15px">Open Sourcing Assistant &rarr;</span></div>'+
+    (assigned
+      ? '<table class="sb-tbl"><thead><tr><th>Job</th><th>Status</th><th>Contacts used</th><th>Daily limit</th><th style="width:56px"></th></tr></thead><tbody>'+
+        '<tr><td><div class="nm">Web Developer</div><div class="sub">Remote &middot; Lincoln Dynamic Group</div></td>'+
+        '<td><div class="'+(SS.assistant==='working'?'sb-st-green':'sb-st-amber')+'">'+(SS.assistant==='working'?'Working':'Pending')+'</div></td>'+
+        '<td>0 of 30</td><td>Max 10 / day</td>'+
+        '<td style="text-align:right;cursor:pointer" onclick="showView(\'sourcing\');ssGo(\'hub\')">&#8943;</td></tr></tbody></table>'
+      : '<div style="padding:48px 32px;text-align:center"><h3 style="font-size:22px;font-weight:800;margin:0 0 8px">No jobs assigned</h3>'+
+        '<p style="font-size:16px;color:#595959;margin:0 auto 18px">Assign a job to your Sourcing Assistant to start automated outreach.</p>'+
+        '<button class="sb-btn pri" onclick="showView(\'sourcing\');ssGo(\'welcome\')">Select a job</button></div>');
+}
+function sbRowAction(i,kind){
+  var v=prompt(kind==='PO#'?'Purchase order number':'Tag name'); if(!v) return;
+  sbToast(kind+' added', SB.SUBS[i].name+' — '+v);
+}
+function sbRowMenu(i){
+  var s=SB.SUBS[i];
+  sbEl('sbRowTitle').textContent=s.name+' — '+s.cycle;
+  sbEl('sbRowBody').innerHTML='<div style="font-size:16px;line-height:30px">'+
+    '<div><b>Status:</b> '+s.status+(s.sub?' ('+s.sub+')':'')+'</div>'+
+    '<div><b>Assignee:</b> '+(s.assignee||'Unassigned')+'</div>'+
+    '<div><b>Contacts:</b> '+s.contacts+'</div></div>'+
+    '<div style="display:flex;gap:12px;margin-top:20px;flex-wrap:wrap">'+
+    '<button class="sb-btn" onclick="sbClose(\'sbMdRowMenu\');sbOpen(\'sbMdAssign\')">Reassign</button>'+
+    '<button class="sb-btn" onclick="sbClose(\'sbMdRowMenu\');sbOpen(\'sbMdMove\')">Move contacts</button>'+
+    '<button class="sb-btn" onclick="sbToast(\'Auto-renew off\',\''+s.name+' will not renew.\')">Turn off auto-renew</button></div>';
+  sbOpen('sbMdRowMenu');
+}
+function sbAssign(){
+  var who=sbEl('sbAssignTo').value;
+  SB.SUBS[0].assignee=who; SB.SUBS[0].assignSub='Assigned on Aug 3, 2026'; SB.SUBS[0].assignSubCls='sb-st-green';
+  SB.assigned=2; SB.unassigned=0;
+  sbClose('sbMdAssign'); sbRender(); sbToast('Subscription assigned','Professional assigned to '+who+'.');
+}
+function sbMove(){
+  var n=parseInt(sbEl('sbMoveN').value,10)||0;
+  if(n<1||n>SB.subContacts){ sbToast('Check the amount','You have '+SB.subContacts+' subscription contacts.'); return; }
+  SB.subContacts-=n; SB.shared+=n;
+  sbClose('sbMdMove'); sbRender(); sbToast('Contacts moved',n+' moved to the shared pool.');
+}
+function sbDownload(){
+  var f=sbEl('sbDlFmt').value;
+  sbClose('sbMdDownload'); sbToast('Preparing export','Subscription activity — '+f+'.');
+  setTimeout(function(){ sbToast('Download ready','subscription-activity-aug-2026.'+f.toLowerCase()); },1200);
+}
+function sbToggleActFilter(){ var e=sbEl('sbActFilter'); e.style.display = e.style.display==='none'?'block':'none'; }
+function sbApplyActFilter(){
+  var v=sbEl('sbFAct').value; sbToggleActFilter();
+  SB.actFilter = (v==='All')? null : v; sbRenderAct();
+  sbToast('Filters applied', v==='All'?'Showing all activity.':'Showing "'+v+'".');
+}
+function sbRenderAct(){
+  var body=sbEl('sbActBody'); if(!body) return;
+  var rows=SB.ACT, out='', n=0;
+  if(SB.mode==='empty'){
+    body.innerHTML='<tr><td colspan="7" style="padding:48px;text-align:center;color:#595959;font-size:16px">No subscription activity yet.</td></tr>';
+    ['sbActN','sbActN2','sbActN3'].forEach(function(id){ var e=sbEl(id); if(e) e.textContent='0'; });
+    return;
+  }
+  rows.forEach(function(r){
+    if(r.grp){ if(!SB.actFilter){ n++; out+='<tr><td colspan="7" style="border-bottom:0;padding-bottom:4px"><b style="font-size:16px">'+r.grp+'</b><div class="sub" style="margin-top:4px">'+r.upd+'</div></td></tr>'; } return; }
+    if(SB.actFilter && r.act!==SB.actFilter) return;
+    n++;
+    out+='<tr><td>'+r.d+'</td><td>'+r.src+'</td><td>'+r.act+'</td><td>'+r.acct+'</td><td>'+r.mkt+'</td>'+
+      '<td class="'+(r.amtCls||'')+'">'+r.amt+'</td><td>'+r.bal+'</td></tr>';
+  });
+  body.innerHTML=out;
+  ['sbActN','sbActN2','sbActN3'].forEach(function(id){ var e=sbEl(id); if(e) e.textContent=n; });
+}
+function sbFilterTbl(){ sbTab(document.querySelector('#subsManageFull .sb-st'),'subs'); sbToast('Filtered','Showing unassigned subscriptions.'); }
+function sbRender(){
+  var d=sbEl('sbDonut'); if(d) d.innerHTML=sbDonutSVG(SB.assigned,SB.unassigned);
+  var m={sbUnassigned:SB.unassigned,sbAssigned:SB.assigned,sbSubContacts:SB.subContacts,sbUsedByEmail:SB.usedByEmail};
+  Object.keys(m).forEach(function(k){ var e=sbEl(k); if(e) e.textContent=m[k]; });
+  sbRenderTab(); sbRenderAct();
+}
+/* Empty ↔ Active toggle. Swaps which panel the existing tab system shows. */
+function setSubsMode(mode,btn){
+  document.querySelectorAll('#subsToggle .dev-toggle-btn').forEach(function(b){ b.classList.remove('active'); });
+  if(btn) btn.classList.add('active');
+  SB.mode=mode;
+  var activeTabIdx = 0;
+  var tabs=document.querySelectorAll('#view-subs .agx-subtab');
+  tabs.forEach(function(t,i){ if(t.classList.contains('on')) activeTabIdx=i; });
+  var showFull = (mode==='active');
+  ['subsManage','subsActivity'].forEach(function(id){ var e=sbEl(id); if(e) e.dataset.sbEmpty='1'; });
+  // hide everything, then show the right pair for the active tab
+  document.querySelectorAll('#view-subs .agx-subpanel').forEach(function(p){ p.classList.remove('on'); p.style.display='none'; });
+  var target = activeTabIdx===0 ? (showFull?'subsManageFull':'subsManage') : (showFull?'subsActivityFull':'subsActivity');
+  var t=sbEl(target); if(t){ t.classList.add('on'); t.style.display=''; }
+  sbRender();
+}
+/* wrap the existing tab switcher so it respects the mode without editing it */
+(function sbInit(){
+  function boot(){
+    if(!sbEl('subsManageFull')) return;
+    sbRender();
+    var orig = window.agxSubsTab;
+    if(typeof orig==='function' && !orig.__sbWrapped){
+      var wrapped = function(btn,id){
+        orig(btn,id);
+        if(SB.mode==='active'){
+          document.querySelectorAll('#view-subs .agx-subpanel').forEach(function(p){ p.classList.remove('on'); p.style.display='none'; });
+          var map={subsManage:'subsManageFull',subsActivity:'subsActivityFull'};
+          var t=sbEl(map[id]||id); if(t){ t.classList.add('on'); t.style.display=''; }
+          sbRender();
+        } else {
+          document.querySelectorAll('#subsManageFull,#subsActivityFull').forEach(function(p){ p.classList.remove('on'); p.style.display='none'; });
+        }
+      };
+      wrapped.__sbWrapped = true;
+      window.agxSubsTab = wrapped;
+    }
+    // default the prototype to the Active experience
+    setSubsMode('active', document.querySelector('#subsToggle .dev-toggle-btn'));
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else setTimeout(boot,0);
 })();
 
 </script>
