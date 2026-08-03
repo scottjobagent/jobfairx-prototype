@@ -9535,6 +9535,8 @@ AN.ADS=[
 function anGo(sec,btn){
   if(sec==='insights'){ anExternal(); return; }
   if(sec!=='jobs') AN.job=null;
+  if(sec!=='interviews') AN.event=null;
+  if(sec!=='ads') AN.ad=null;
   AN.sec=sec;
   document.querySelectorAll('#anTabs .an-tab').forEach(function(b){ b.classList.remove('on'); });
   var t = btn || document.querySelector('#anTabs .an-tab[data-an="'+sec+'"]');
@@ -9632,44 +9634,9 @@ function anRender(){
     return;
   }
 
-  if(AN.sec==='interviews'){
-    var iv=anSeries(23,n,0,6);
-    b.innerHTML=anCaveat()+
-      '<h2 class="an-h2">Interviews and events</h2><p class="an-lead">Scheduling, attendance and outcomes across interviews and hiring events.</p>'+
-      '<div class="an-kpis">'+
-        anKPI('Interviews scheduled','90','5%','up')+
-        anKPI('Attendance rate','66%','2%','up')+
-        anKPI('No-shows','31','3%','down')+
-        anKPI('Hires','12','2','up')+
-      '</div>'+
-      '<div class="an-grid"><div class="an-card full"><h3>Interviews scheduled</h3><p class="sub">Per day across all events.</p>'+
-        anBars(iv,L,'#004fcb','Interviews')+'</div></div>'+
-      '<div class="an-card full" style="margin-top:24px"><h3>Events</h3>'+
-      '<table class="an-tbl"><thead><tr><th>Event</th><th>Date</th><th class="num">Registered</th><th class="num">Attended</th><th class="num">Interviews</th><th class="num">Hires</th></tr></thead><tbody>'+
-      AN.EVENTS.map(function(e){ return '<tr><td class="name">'+anEsc(e.n)+'</td><td>'+anEsc(e.d)+'</td><td class="num">'+e.reg+'</td><td class="num">'+e.att+'</td><td class="num">'+e.iv+'</td><td class="num">'+e.hire+'</td></tr>'; }).join('')+
-      '</tbody></table></div>';
-    return;
-  }
+  if(AN.sec==='interviews'){ b.innerHTML=ieRenderInterviews(); return; }
 
-  if(AN.sec==='ads'){
-    var imp=anSeries(31,n,2000,9000), clk=anSeries(37,n,30,160);
-    b.innerHTML=anCaveat()+
-      '<h2 class="an-h2">Employer Branding Ads</h2><p class="an-lead">Reach, engagement and spend for your employer brand campaigns.</p>'+
-      '<div class="an-kpis">'+
-        anKPI('Impressions','333,400','14%','up')+
-        anKPI('Clicks','5,620','9%','up')+
-        anKPI('Click-through rate','1.69%','','flat')+
-        anKPI('Spend','$3,330','7%','up')+
-      '</div>'+
-      '<div class="an-grid"><div class="an-card full"><h3>Impressions and clicks</h3><p class="sub">Daily reach against engagement.</p>'+
-        anLine([imp,clk.map(function(c){return c*40;})],L,['#8a6fd4','#c08a38'],['Impressions','Clicks (x40)'])+
-        '<div class="an-legend"><span><i style="background:#8a6fd4"></i>Impressions</span><span><i style="background:#c08a38"></i>Clicks</span></div></div></div>'+
-      '<div class="an-card full" style="margin-top:24px"><h3>Campaigns</h3>'+
-      '<table class="an-tbl"><thead><tr><th>Campaign</th><th class="num">Impressions</th><th class="num">Clicks</th><th class="num">CTR</th><th class="num">Spend</th><th class="num">Company follows</th></tr></thead><tbody>'+
-      AN.ADS.map(function(a){ return '<tr><td class="name">'+anEsc(a.n)+'</td><td class="num">'+anN(a.imp)+'</td><td class="num">'+anN(a.clicks)+'</td><td class="num">'+a.ctr.toFixed(2)+'%</td><td class="num">$'+anN(a.spend)+'</td><td class="num">'+a.fav+'</td></tr>'; }).join('')+
-      '</tbody></table></div>';
-    return;
-  }
+  if(AN.sec==='ads'){ b.innerHTML=adRenderAds(); return; }
 
   if(AN.sec==='insights'){
     b.innerHTML='<div class="an-empty" style="max-width:720px;margin:40px auto">'+
@@ -10092,6 +10059,211 @@ function jcRenderJobs(){
       '<div class="an-card full" style="margin-top:24px"><h3>All jobs and campaigns<span class="sp"></span>'+
         '<button class="an-ctl" onclick="anMenu(event,\'export\')">Export</button></h3>'+ anJobsTable() +'</div>'+
     '</div>'+jcJobList()+'</div>';
+}
+
+
+
+/* ═══ ANALYTICS · INTERVIEWS & EVENTS + EMPLOYER BRANDING ADS ═══
+   Each submenu is its own product area with list → detail drill-down. */
+AN.event=null; AN.ad=null;
+
+AN.EVDETAIL={
+ 'Web Developer — Virtual Hiring Event':{d:'Jul 29, 2026',host:'Lincoln Dynamic Group',fmt:'Virtual · 2 hours',
+   reg:112,att:74,iv:41,hire:6,noshow:38,seed:23,
+   slots:[['9:00 AM',12,10],['9:30 AM',14,11],['10:00 AM',16,12],['10:30 AM',13,8],['11:00 AM',11,6],['11:30 AM',8,4]],
+   sources:[{k:'Job post',v:52},{k:'Smart Sourcing invite',v:31},{k:'Direct link',v:19},{k:'Branding Ads',v:10}]},
+ 'Engineering Open House':{d:'Jul 15, 2026',host:'Lincoln Dynamic Group',fmt:'Virtual · 90 minutes',
+   reg:88,att:52,iv:30,hire:4,noshow:36,seed:37,
+   slots:[['1:00 PM',10,7],['1:30 PM',12,8],['2:00 PM',14,9],['2:30 PM',9,4],['3:00 PM',7,2]],
+   sources:[{k:'Job post',v:38},{k:'Smart Sourcing invite',v:24},{k:'Direct link',v:16},{k:'Branding Ads',v:10}]},
+ 'QA & Test Careers Day':{d:'Jun 30, 2026',host:'Lincoln Dynamic Group',fmt:'Virtual · 2 hours',
+   reg:64,att:39,iv:19,hire:2,noshow:25,seed:51,
+   slots:[['10:00 AM',9,6],['10:30 AM',11,7],['11:00 AM',12,6],['11:30 AM',8,3]],
+   sources:[{k:'Job post',v:27},{k:'Smart Sourcing invite',v:18},{k:'Direct link',v:12},{k:'Branding Ads',v:7}]}
+};
+AN.ADDETAIL={
+ 'Lincoln Dynamic — Employer Brand':{status:'Active',start:'Jun 1, 2026',budget:'$40 / day',aud:'Software engineering · US · Remote-open',
+   imp:184200,clicks:3120,ctr:1.69,spend:1840,fav:412,cpc:0.59,seed:31,
+   place:[{k:'Job search results',v:96400},{k:'Company page',v:48200},{k:'Job description',v:26800},{k:'Email',v:12800}]},
+ 'Engineering Culture Spotlight':{status:'Active',start:'Jun 20, 2026',budget:'$25 / day',aud:'Full-stack & frontend · US',
+   imp:96400,clicks:1710,ctr:1.77,spend:960,fav:238,cpc:0.56,seed:43,
+   place:[{k:'Job search results',v:51200},{k:'Company page',v:24800},{k:'Job description',v:14200},{k:'Email',v:6200}]},
+ 'Remote-First Hiring':{status:'Paused',start:'May 12, 2026',budget:'Paused',aud:'Remote-only · US',
+   imp:52800,clicks:790,ctr:1.50,spend:530,fav:96,cpc:0.67,seed:59,
+   place:[{k:'Job search results',v:27400},{k:'Company page',v:13600},{k:'Job description',v:8100},{k:'Email',v:3700}]}
+};
+
+function ieOpenEvent(n){ AN.event=n; AN.sec='interviews'; anLoad(); }
+function ieBackEvents(){ AN.event=null; anLoad(); }
+function adOpenAd(n){ AN.ad=n; AN.sec='ads'; anLoad(); }
+function adBackAds(){ AN.ad=null; anLoad(); }
+
+function ieSideList(items,cur,openFn,backLabel,backFn){
+  return '<div class="jc-side"><h4>'+(backLabel==='All events'?'Events':'Campaigns')+'</h4>'+
+    items.map(function(x){
+      return '<button class="jc-jobitem'+(cur===x[0]?' on':'')+'" onclick="'+openFn+'(\''+anEsc(x[0]).replace(/'/g,"\\'")+'\')">'+anEsc(x[0])+
+        '<span class="s">'+anEsc(x[1])+'</span></button>';
+    }).join('')+
+    '<button class="jc-jobitem'+(cur===null?' on':'')+'" style="margin-top:8px;border-top:1px solid #e4e2e0;border-radius:0" onclick="'+backFn+'()">'+backLabel+'</button></div>';
+}
+function ieStateGuard(title,emptyMsg){
+  if(AN.state==='error') return '<h2 class="an-h2">'+title+'</h2>'+
+    '<div class="jc-err"><svg viewBox="0 0 24 24" width="52" height="52" fill="none" stroke="#a9252b" stroke-width="1.6" style="margin:0 auto"><circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16h.01"/></svg>'+
+    '<h3>We couldn\'t load this report</h3><p>The reporting service didn\'t respond in time. Your data is safe — try again in a moment.</p>'+
+    '<button class="an-ctl pri" onclick="jcSetState(\'populated\',document.querySelector(\'#anToggle .dev-toggle-btn\'))">Try again</button></div>';
+  if(AN.state==='empty') return '<h2 class="an-h2">'+title+'</h2>'+
+    '<div class="an-empty"><svg viewBox="0 0 24 24" width="60" height="60" fill="none" stroke="#8a93a8" stroke-width="1.4" style="margin:0 auto"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>'+
+    '<h3>Nothing to report for this period</h3><p>'+emptyMsg+'</p>'+
+    '<button class="an-ctl pri" onclick="anSetRange(\'Last 12 months\')">Widen to last 12 months</button></div>';
+  return null;
+}
+
+function ieRenderInterviews(){
+  var g=ieStateGuard('Interviews and events','No interviews or events ran in '+anEsc(AN.range).toLowerCase()+'. Widen the date range to see earlier activity.');
+  if(g) return g;
+  var L=anLabels(), n=L.length;
+
+  if(AN.event){
+    var e=AN.EVDETAIL[AN.event]; if(!e){ AN.event=null; return ieRenderInterviews(); }
+    var maxSlot=Math.max.apply(null,e.slots.map(function(s){return s[1];}));
+    var attRate=Math.round(e.att/e.reg*100);
+    return anCaveat()+
+      '<div class="jc-crumb"><a onclick="ieBackEvents()">Interviews and events</a> <span>&rsaquo;</span> <span>'+anEsc(AN.event)+'</span></div>'+
+      '<div class="jc-jobhead"><div><h2>'+anEsc(AN.event)+'</h2>'+
+        '<div class="m">'+e.d+' &middot; '+anEsc(e.fmt)+' &middot; '+anEsc(e.host)+'</div></div>'+
+        '<div class="sp"></div><button class="an-ctl" onclick="anMenu(event,\'export\')">Export</button>'+
+        '<button class="an-ctl pri" onclick="showView(\'interviews\')">Open in Interviews</button></div>'+
+      '<div class="jc-split"><div style="flex:1;min-width:0">'+
+        '<div class="an-kpis">'+
+          anKPI('Registered',anN(e.reg),'','flat')+
+          anKPI('Attended',anN(e.att),attRate+'% attendance','up')+
+          anKPI('Interviews held',anN(e.iv),'','flat')+
+          anKPI('Hires',anN(e.hire),'','flat')+
+        '</div>'+
+        '<div class="an-card full"><h3>Attendance funnel</h3><p class="sub">Registered through to hire.</p>'+
+          jcFunnelCustom([e.reg,e.att,e.iv,e.hire],['Registered','Attended','Interviewed','Hired'])+'</div>'+
+        '<div class="an-grid" style="margin-top:24px">'+
+          '<div class="an-card full"><h3>Registrations over time</h3><p class="sub">Sign-ups in the run-up to event day.</p>'+
+            anLine([anSeries(e.seed,n,1,9),anSeries(e.seed+5,n,0,5)],L,['#004fcb','#1f662c'],['Registrations','Confirmed'])+
+            '<div class="an-legend"><span><i style="background:#004fcb"></i>Registrations</span><span><i style="background:#1f662c"></i>Confirmed</span></div></div>'+
+          '<div class="an-card"><h3>Registration sources</h3><p class="sub">How attendees found this event.</p>'+
+            anDonut(e.sources,['#004fcb','#8a6fd4','#1f662c','#c08a38'])+
+            '<div class="an-legend">'+e.sources.map(function(s,i){return '<span><i style="background:'+['#004fcb','#8a6fd4','#1f662c','#c08a38'][i]+'"></i>'+anEsc(s.k)+'</span>';}).join('')+'</div></div>'+
+          '<div class="an-card"><h3>Interview slots</h3><p class="sub">Booked against attended, by time slot.</p>'+
+            '<table class="an-tbl"><thead><tr><th>Slot</th><th>Booked</th><th class="num">Attended</th></tr></thead><tbody>'+
+            e.slots.map(function(s){
+              return '<tr><td class="name" style="width:110px">'+s[0]+'</td>'+
+                '<td><div style="display:flex;align-items:center;gap:10px"><div class="an-bar" style="flex:1"><i style="width:'+Math.round(s[1]/maxSlot*100)+'%"></i></div><b>'+s[1]+'</b></div></td>'+
+                '<td class="num">'+s[2]+'</td></tr>';
+            }).join('')+'</tbody></table></div>'+
+        '</div></div>'+
+        ieSideList(Object.keys(AN.EVDETAIL).map(function(k){return [k,AN.EVDETAIL[k].d];}),AN.event,'ieOpenEvent','All events','ieBackEvents')+
+      '</div>';
+  }
+
+  var iv=anSeries(23,n,0,6);
+  return anCaveat()+
+    '<h2 class="an-h2">Interviews and events</h2><p class="an-lead">Scheduling, attendance and outcomes. Select an event to open its report.</p>'+
+    '<div class="an-kpis">'+
+      anKPI('Interviews scheduled','90','5%','up')+
+      anKPI('Attendance rate','66%','2%','up')+
+      anKPI('No-shows','31','3%','down')+
+      anKPI('Hires','12','2','up')+
+    '</div>'+
+    '<div class="jc-split"><div style="flex:1;min-width:0">'+
+      '<div class="an-card full"><h3>Interviews scheduled<span class="sp"></span>'+
+        '<div class="an-seg"><button class="on" onclick="anSeg(this)">Daily</button><button onclick="anSeg(this)">Weekly</button></div></h3>'+
+        '<p class="sub">Per day across all events.</p>'+anBars(iv,L,'#004fcb','Interviews')+'</div>'+
+      '<div class="an-card full" style="margin-top:24px"><h3>Events<span class="sp"></span>'+
+        '<button class="an-ctl" onclick="anMenu(event,\'export\')">Export</button></h3>'+
+        '<table class="an-tbl"><thead><tr><th>Event</th><th>Date</th><th class="num">Registered</th><th>Attended</th><th class="num">Interviews</th><th class="num">Hires</th></tr></thead><tbody>'+
+        AN.EVENTS.map(function(ev){
+          var d=AN.EVDETAIL[ev.n]||{};
+          var pct=Math.round(ev.att/ev.reg*100);
+          return '<tr style="cursor:pointer" onclick="ieOpenEvent(\''+anEsc(ev.n).replace(/'/g,"\\'")+'\')">'+
+            '<td class="name">'+anEsc(ev.n)+'<div class="sub">'+(d.fmt||'')+'</div></td><td>'+anEsc(ev.d)+'</td>'+
+            '<td class="num">'+ev.reg+'</td>'+
+            '<td><div style="display:flex;align-items:center;gap:10px"><div class="an-bar" style="flex:1"><i style="width:'+pct+'%"></i></div><b>'+ev.att+'</b></div></td>'+
+            '<td class="num">'+ev.iv+'</td><td class="num">'+ev.hire+'</td></tr>';
+        }).join('')+'</tbody></table></div>'+
+    '</div>'+ieSideList(Object.keys(AN.EVDETAIL).map(function(k){return [k,AN.EVDETAIL[k].d];}),null,'ieOpenEvent','All events','ieBackEvents')+'</div>';
+}
+function jcFunnelCustom(vals,labels){
+  var max=vals[0]||1,H=150;
+  return '<div class="jc-funnel">'+vals.map(function(v,i){
+    var h=Math.max(8,(v/max)*H), pct=i===0?'100%':Math.round(v/vals[0]*100)+'%';
+    return '<div class="jc-fstep"><div class="jc-fbar" style="height:'+h.toFixed(0)+'px;background:'+['#004fcb','#3b7fd4','#6aa0e0','#1f662c'][i]+'" '+
+      'onmouseenter="anTip(event,\''+labels[i]+': '+anN(v)+'\')" onmouseleave="anTipOff()"></div>'+
+      '<div class="vv">'+anN(v)+'</div><div class="lb">'+labels[i]+'</div><div class="pc">'+pct+'</div></div>';
+  }).join('')+'</div>';
+}
+
+function adRenderAds(){
+  var g=ieStateGuard('Employer Branding Ads','No branding campaigns delivered in '+anEsc(AN.range).toLowerCase()+'. Widen the date range to see earlier activity.');
+  if(g) return g;
+  var L=anLabels(), n=L.length;
+
+  if(AN.ad){
+    var a=AN.ADDETAIL[AN.ad]; if(!a){ AN.ad=null; return adRenderAds(); }
+    return anCaveat()+
+      '<div class="jc-crumb"><a onclick="adBackAds()">Employer Branding Ads</a> <span>&rsaquo;</span> <span>'+anEsc(AN.ad)+'</span></div>'+
+      '<div class="jc-jobhead"><div><h2>'+anEsc(AN.ad)+'</h2>'+
+        '<div class="m">Started '+a.start+' &middot; Budget '+a.budget+' &middot; '+anEsc(a.aud)+'</div></div>'+
+        '<span class="an-pill '+(a.status==='Active'?'open':'paused')+'" style="margin-top:8px">'+a.status+'</span>'+
+        '<div class="sp"></div><button class="an-ctl" onclick="anMenu(event,\'export\')">Export</button>'+
+        '<button class="an-ctl pri" onclick="jcSetState(\'success\')">Save campaign settings</button></div>'+
+      (AN.state==='success'?'<div class="jc-succ"><svg viewBox="0 0 24 24" width="20" height="20" fill="#1f662c"><circle cx="12" cy="12" r="10"/><path fill="#fff" d="M10.2 15.6l-3-3 1.4-1.4 1.6 1.6 4.2-4.2 1.4 1.4z"/></svg>Campaign settings saved.</div>':'')+
+      '<div class="jc-split"><div style="flex:1;min-width:0">'+
+        '<div class="an-kpis">'+
+          anKPI('Impressions',anN(a.imp),'11%','up')+
+          anKPI('Clicks',anN(a.clicks),'8%','up')+
+          anKPI('Click-through rate',a.ctr.toFixed(2)+'%','','flat')+
+          anKPI('Cost per click','$'+a.cpc.toFixed(2),'5%','down')+
+        '</div>'+
+        '<div class="an-grid">'+
+          '<div class="an-card full"><h3>Delivery over time</h3><p class="sub">Impressions against clicks.</p>'+
+            anLine([anSeries(a.seed,n,1200,7000),anSeries(a.seed+9,n,20,120).map(function(c){return c*40;})],L,['#8a6fd4','#c08a38'],['Impressions','Clicks (x40)'])+
+            '<div class="an-legend"><span><i style="background:#8a6fd4"></i>Impressions</span><span><i style="background:#c08a38"></i>Clicks</span></div></div>'+
+          '<div class="an-card"><h3>Placements</h3><p class="sub">Where this campaign was shown.</p>'+
+            anDonut(a.place,['#8a6fd4','#004fcb','#1f662c','#c08a38'])+
+            '<div class="an-legend">'+a.place.map(function(s,i){return '<span><i style="background:'+['#8a6fd4','#004fcb','#1f662c','#c08a38'][i]+'"></i>'+anEsc(s.k)+'</span>';}).join('')+'</div></div>'+
+          '<div class="an-card"><h3>Engagement</h3><p class="sub">Actions taken after seeing the ad.</p>'+
+            '<table class="an-tbl"><tbody>'+
+            [['Company page visits',Math.round(a.clicks*0.62)],['Company follows',a.fav],['Job views from ad',Math.round(a.clicks*0.41)],['Applications from ad',Math.round(a.clicks*0.06)]]
+              .map(function(r){ return '<tr><td class="name">'+r[0]+'</td><td class="num"><b>'+anN(r[1])+'</b></td></tr>'; }).join('')+
+            '</tbody></table>'+
+            '<div style="margin-top:14px;font-size:15px;color:#595959">Total spend <b style="color:#2d2d2d">$'+anN(a.spend)+'</b></div></div>'+
+        '</div>'+
+        '<div class="an-card full" style="margin-top:24px"><h3>Daily spend</h3><p class="sub">Delivery cost for this campaign.</p>'+
+          anBars(anSeries(a.seed+17,n,8,60),L,'#8a6fd4','Spend ($)')+'</div>'+
+      '</div>'+ieSideList(Object.keys(AN.ADDETAIL).map(function(k){return [k,AN.ADDETAIL[k].status];}),AN.ad,'adOpenAd','All campaigns','adBackAds')+'</div>';
+  }
+
+  var imp=anSeries(31,n,2000,9000), clk=anSeries(37,n,30,160);
+  return anCaveat()+
+    '<h2 class="an-h2">Employer Branding Ads</h2><p class="an-lead">Reach, engagement and spend. Select a campaign to open its report.</p>'+
+    '<div class="an-kpis">'+
+      anKPI('Impressions','333,400','14%','up')+
+      anKPI('Clicks','5,620','9%','up')+
+      anKPI('Click-through rate','1.69%','','flat')+
+      anKPI('Spend','$3,330','7%','up')+
+    '</div>'+
+    '<div class="jc-split"><div style="flex:1;min-width:0">'+
+      '<div class="an-card full"><h3>Impressions and clicks</h3><p class="sub">Daily reach against engagement.</p>'+
+        anLine([imp,clk.map(function(c){return c*40;})],L,['#8a6fd4','#c08a38'],['Impressions','Clicks (x40)'])+
+        '<div class="an-legend"><span><i style="background:#8a6fd4"></i>Impressions</span><span><i style="background:#c08a38"></i>Clicks</span></div></div>'+
+      '<div class="an-card full" style="margin-top:24px"><h3>Campaigns<span class="sp"></span>'+
+        '<button class="an-ctl" onclick="anMenu(event,\'export\')">Export</button></h3>'+
+        '<table class="an-tbl"><thead><tr><th>Campaign</th><th>Status</th><th class="num">Impressions</th><th class="num">Clicks</th><th class="num">CTR</th><th class="num">Spend</th><th class="num">Follows</th></tr></thead><tbody>'+
+        AN.ADS.map(function(ad){
+          var d=AN.ADDETAIL[ad.n]||{};
+          return '<tr style="cursor:pointer" onclick="adOpenAd(\''+anEsc(ad.n).replace(/'/g,"\\'")+'\')">'+
+            '<td class="name">'+anEsc(ad.n)+'<div class="sub">'+(d.aud||'')+'</div></td>'+
+            '<td><span class="an-pill '+((d.status||'Active')==='Active'?'open':'paused')+'">'+(d.status||'Active')+'</span></td>'+
+            '<td class="num">'+anN(ad.imp)+'</td><td class="num">'+anN(ad.clicks)+'</td><td class="num">'+ad.ctr.toFixed(2)+'%</td>'+
+            '<td class="num">$'+anN(ad.spend)+'</td><td class="num">'+ad.fav+'</td></tr>';
+        }).join('')+'</tbody></table></div>'+
+    '</div>'+ieSideList(Object.keys(AN.ADDETAIL).map(function(k){return [k,AN.ADDETAIL[k].status];}),null,'adOpenAd','All campaigns','adBackAds')+'</div>';
 }
 
 </script>
