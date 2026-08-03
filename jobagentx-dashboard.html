@@ -14531,45 +14531,48 @@ CX.AUTOMSG = 'Hi {first}, thanks for applying to our {job} job. We reviewed your
    one; they appeared later as Scott's automation fired. So gate it on the
    Automations dev toggle AND keep it to a couple of rows. */
 CX.autoOn = function(){
-  var g = document.querySelector('#autoDevToggles .dev-toggle-btn.active') ||
-          (function(){
-            var f = null;
-            document.querySelectorAll('.topbar .dev-toggle').forEach(function(x){
-              var l = x.querySelector('.dev-toggle-label');
-              if (l && /^Automations:/i.test((l.textContent||'').trim()))
-                f = x.querySelector('.dev-toggle-btn.active');
-            });
-            return f;
-          })();
-  return !g || !/empty/i.test(g.textContent || '');
+  var f = null;
+  document.querySelectorAll('.topbar .dev-toggle').forEach(function(x){
+    var l = x.querySelector('.dev-toggle-label');
+    if (l && /^Automations:/i.test((l.textContent||'').trim()))
+      f = x.querySelector('.dev-toggle-btn.active');
+  });
+  return !f || !/empty/i.test(f.textContent || '');
 };
-CX.queueMins = function(c){
+
+/* CAUSALITY, corrected: marking a candidate is what SCHEDULES the send.
+   Scott: "I click the check mark. It turns green. You'll send a message in
+   58 minutes. That's because automations are on."  The build previously had
+   this backwards — countdown while unmarked, replaced on marking. */
+CX.SEND_WINDOW = 59 * 60;                    /* seconds */
+CX.secsLeft = function(c){
   if (!CX.autoOn()) return null;
-  if (c.interest) return null;                 /* marking supersedes the pending send */
-  if (c.stage !== 'New') return null;
-  var idx = (CD.ALL || []).indexOf(c);
-  if (idx !== 0 && idx !== 3) return null;     /* the exception, not the rule */
-  var h = 0, n = c.id + c.n;
-  for (var i=0;i<n.length;i++) h = (h*31 + n.charCodeAt(i)) >>> 0;
-  var base = 45 + (h % 15);                    /* 45–59, stable per candidate */
-  return Math.max(1, base - (CX.elapsed || 0));
+  if (c.interest !== 'shortlist' && c.interest !== 'undecided') return null;
+  if (!c.markedAt) return null;
+  var gone = Math.floor((CX.now() - c.markedAt) / 1000);
+  return Math.max(0, CX.SEND_WINDOW - gone);
+};
+CX.now = function(){ return CX.clock; };
+CX.fmt = function(s){
+  if (s >= 60){ var m = Math.floor(s / 60); return 'in ' + m + ' minute' + (m === 1 ? '' : 's'); }
+  return 'in ' + s + ' second' + (s === 1 ? '' : 's');
 };
 CX.activity = function(c){
-  var mins = CX.queueMins(c);
-  if (mins != null){
-    return '<div class="cx-act"><div class="aq">You\u2019ll send a scheduled message &middot; in ' +
-      mins + ' minute' + (mins === 1 ? '' : 's') + '</div><div class="body clamp">' +
-      CX.esc(CX.AUTOMSG.replace('{first}', CX.first(c.n)).replace('{job}', c.job)) + '</div></div>';
-  }
-  if (c.interest === 'shortlist')
-    return '<div class="cx-act"><div>Shortlisted &middot; ' + CX.esc(c.applied) + '</div>' +
-           '<a class="lnk" onclick="CX.rowAction(\'Message\')">Send message</a></div>';
-  if (c.interest === 'undecided')
-    return '<div class="cx-act"><div>Marked undecided &middot; ' + CX.esc(c.applied) + '</div>' +
-           '<a class="lnk" onclick="CX.rowAction(\'Message\')">Send message</a></div>';
-  if (c.interest === 'rejected')
-    return '<div class="cx-act">Rejected &middot; just now</div>';
-  return '<div class="cx-act">' + CX.esc(c.act || '') + '</div>';
+  var secs = CX.secsLeft(c);
+  var head = c.interest === 'shortlist' ? 'Shortlisted &middot; ' + CX.esc(c.applied)
+           : c.interest === 'undecided' ? 'Marked undecided &middot; ' + CX.esc(c.applied)
+           : c.interest === 'rejected'  ? 'Rejected &middot; just now'
+           : CX.esc(c.act || '');
+  if (secs == null)
+    return '<div class="cx-act"><div>' + head + '</div>' +
+      (c.interest === 'shortlist' || c.interest === 'undecided'
+        ? '<a class="lnk" onclick="CX.rowAction(\'Message\')">Send message</a>' : '') + '</div>';
+  /* marked AND automations on — the scheduled send, counting down */
+  return '<div class="cx-act" data-cd="' + c.id + '"><div>' + head + '</div>' +
+    '<div class="aq">You\u2019ll send a scheduled message &middot; <span class="cd">' + CX.fmt(secs) + '</span></div>' +
+    '<div class="body clamp">' +
+    CX.esc(CX.AUTOMSG.replace('{first}', CX.first(c.n)).replace('{job}', c.job)) + '</div>' +
+    '<a class="lnk" onclick="CX.rowAction(\'Message\')">Send message</a></div>';
 };
 CX.first = function(n){ return (n||'').trim().split(/\s+/)[0]; };
 
@@ -14648,7 +14651,9 @@ CX.manage = function(){
   if (!page.length) return bar + tools + '<div class="cx-none">No candidates match these filters.</div>';
 
   return bar + tools + (CD.sel && CD.sel.length ? CX.bulk(rows.length, page.length) : '') +
-    '<table class="cx-tbl"><thead><tr>' +
+    '<table class="cx-tbl">' +
+    '<colgroup><col class="c1"><col class="c2"><col class="c3"><col class="c4"><col class="c5"></colgroup>' +
+    '<thead><tr>' +
       '<th>' + CX.cb(CX.allOn(page), "CX.toggleAll(event)") + '</th>' +
       '<th>Candidates</th><th class="u">Work experience</th><th>Activity</th><th>Interest</th>' +
     '</tr></thead><tbody>' +
@@ -14880,13 +14885,21 @@ CX.setSort = function(s){ CD.sort = s; CX.close(); CX.paint(); };
 CX.setLoc = function(l){ CD.loc = l; CD.page = 1; CX.locQuery = ''; CX.close(); CX.paint(); };
 CX.locType = function(v){ CX.locQuery = v; CX.paint();
   var i = document.querySelector('.cx-typeahead'); if (i){ i.focus(); i.setSelectionRange(v.length, v.length); } };
-/* the queued-automation countdown ticks, as it does on Indeed */
-CX.elapsed = 0;
+/* Tick every second, rewriting only the countdown text node. A full
+   re-render here would reflow the table and make the page jump — the exact
+   thing Scott reported. */
+CX.clock = 0;
 setInterval(function(){
-  CX.elapsed++;
-  var v = document.getElementById('view-candidates');
-  if (v && v.querySelector('.cx-act .aq') && CD.view !== 'profile') CX.paint();
-}, 60000);
+  CX.clock += 1000;
+  var els = document.querySelectorAll('#view-candidates .cx-act[data-cd]');
+  if (!els.length) return;
+  els.forEach(function(el){
+    var c = (CD.ALL || []).find(function(x){ return x.id === el.getAttribute('data-cd'); });
+    if (!c) return;
+    var s = CX.secsLeft(c), t = el.querySelector('.cd');
+    if (t && s != null) t.textContent = CX.fmt(s);
+  });
+}, 1000);
 CX.setInterest = function(i){ CD.interest = (CD.interest === i) ? '' : i; CD.page = 1; CX.close(); CX.paint(); };
 CX.search = function(v){ CD.q = v; CD.page = 1; CX.paint();
   var i = document.querySelector('.cx-search input'); if (i){ i.focus(); i.setSelectionRange(v.length, v.length); } };
@@ -14911,7 +14924,12 @@ CX.bulkStatus = function(s){
 };
 /* One of the three at most — clicking a pressed button clears it. */
 CX.interestSet = function(id, k){
-  (CD.ALL || []).forEach(function(c){ if (c.id === id) c.interest = (c.interest === k) ? null : k; });
+  (CD.ALL || []).forEach(function(c){
+    if (c.id !== id) return;
+    var off = (c.interest === k);
+    c.interest = off ? null : k;
+    c.markedAt = off ? null : CX.now();      /* marking starts the clock */
+  });
   CX.paint();
 };
 CX.rowAction = function(a){
@@ -16095,7 +16113,15 @@ CX.openProfile = function(id){
 .cx-b svg{width:20px;height:20px}
 
 /* ---- table ------------------------------------------------------ */
-.cx-tbl{width:100%;border-collapse:separate;border-spacing:0}
+/* table-layout:fixed with the measured column widths — without this,
+   changing a cell's content reflows every column and the page jumps.
+   Indeed's does not move. §9.2 */
+.cx-tbl{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed}
+.cx-tbl col.c1{width:52px}.cx-tbl col.c2{width:26%}.cx-tbl col.c3{width:26%}
+.cx-tbl col.c4{width:26%}.cx-tbl col.c5{width:200px}
+.cx-tbl td{overflow-wrap:anywhere}
+/* the activity cell must not change height when its state changes */
+.cx-act{min-height:72px}
 .cx-tbl thead tr{background:#f7f6f5;height:46px;border-radius:12px}
 .cx-tbl thead th{font-size:14px;line-height:21px;font-weight:400;color:#595959;text-align:left;
   padding:1px 12px 1px 16px;white-space:nowrap;text-transform:none;letter-spacing:normal}
