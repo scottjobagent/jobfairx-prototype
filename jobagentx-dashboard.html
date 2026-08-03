@@ -13420,6 +13420,98 @@ CD.schedSend = function(){
   else setTimeout(boot, 200);
 })();
 
+
+/* ═══ Nav + dev-toolbar trim ══════════════════════════════════════════
+   1. Analytics submenu: 3 items. "Interviews & Events" → "Interviews";
+      Jobs & Campaigns, Employer Branding Ads and Hiring Insights removed
+      from the menu (their report views stay in the file, just unreachable).
+   2. Billing toggle group removed from the dev toolbar. Subscriptions is
+      still reachable from the account menu top-right.
+   3. Loaders becomes a hover dropdown instead of five inline links,
+      reclaiming ~400px of toolbar width. Every href is preserved.
+   ==================================================================== */
+(function(){
+  /* ---- 1. Analytics submenu ---------------------------------------- */
+  if (typeof IA === 'object' && IA.tree) {
+    IA.tree.forEach(function(n){
+      if (!n || n.id !== 'analytics' || !n.children) return;
+      var KEEP = ['an-overview','an-sourcing','an-interviews'];
+      n.children = n.children.filter(function(k){ return KEEP.indexOf(k.id) >= 0; });
+      n.children.forEach(function(k){ if (k.id === 'an-interviews') k.label = 'Interviews'; });
+    });
+  }
+
+  function boot(){
+    /* ---- 2. Billing group ----------------------------------------- */
+    document.querySelectorAll('.topbar .dev-toggle').forEach(function(g){
+      var l = g.querySelector('.dev-toggle-label');
+      if (l && /^Billing:/i.test((l.textContent || '').trim())) g.remove();
+    });
+
+    /* ---- 3. Loaders → hover dropdown ------------------------------- */
+    var grp = null;
+    document.querySelectorAll('.topbar .dev-toggle').forEach(function(g){
+      var l = g.querySelector('.dev-toggle-label');
+      if (l && /^Loaders:/i.test((l.textContent || '').trim())) grp = g;
+    });
+    if (grp && !grp.classList.contains('dv-drop')) {
+      var sw = grp.querySelector('.dev-toggle-switch');
+      var links = sw ? [].slice.call(sw.querySelectorAll('a')) : [];
+      if (links.length) {
+        grp.classList.add('dv-drop');
+        var trigger = document.createElement('button');
+        trigger.type = 'button';
+        trigger.className = 'dev-toggle-btn dv-trigger';
+        trigger.setAttribute('aria-haspopup', 'true');
+        trigger.setAttribute('aria-expanded', 'false');
+        trigger.innerHTML = 'Loaders <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
+        var panel = document.createElement('div');
+        panel.className = 'dv-panel';
+        links.forEach(function(a){ panel.appendChild(a); });
+        if (sw) sw.remove();
+        var lbl = grp.querySelector('.dev-toggle-label');
+        if (lbl) lbl.remove();                       /* the trigger carries the label */
+        grp.appendChild(trigger);
+        grp.appendChild(panel);
+
+        var closeT;
+        function open(){ clearTimeout(closeT); grp.classList.add('dv-open'); trigger.setAttribute('aria-expanded','true'); }
+        function close(){ grp.classList.remove('dv-open'); trigger.setAttribute('aria-expanded','false'); }
+        grp.addEventListener('mouseenter', open);
+        grp.addEventListener('mouseleave', function(){ closeT = setTimeout(close, 180); });
+        trigger.addEventListener('click', function(e){
+          e.preventDefault(); e.stopPropagation();
+          grp.classList.contains('dv-open') ? close() : open();
+        });
+        trigger.addEventListener('focus', open);
+        document.addEventListener('click', function(e){ if (!grp.contains(e.target)) close(); });
+        document.addEventListener('keydown', function(e){ if (e.key === 'Escape') close(); });
+      }
+    }
+    if (typeof IA === 'object' && IA.render && document.querySelector('.sidebar-nav')) IA.render();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else setTimeout(boot, 220);
+})();
+
+/* ═══ Remove the stale Analytics "Representative data" banner ═════════
+   Same reason as the Automations one: the host WAS reached and crawled
+   live, so the disclaimer is false. anCaveat() is called from 8 sites
+   across the Analytics report states; nulling it clears all of them.
+   ==================================================================== */
+(function(){
+  if (typeof anCaveat !== 'function') return;
+  window.anCaveat = function(){ return ''; };
+  function boot(){
+    try { if (typeof anRender === 'function' && document.getElementById('view-analytics')) anRender(); } catch(e) {}
+    document.querySelectorAll('#anBody .an-note, #view-analytics .an-note').forEach(function(n){
+      if (/Representative data/i.test(n.textContent || '')) n.remove();
+    });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else setTimeout(boot, 260);
+})();
+
 (function tlInit(){
   function boot(){ if(!tlEl('view-tools')) return; tlGo('overview'); }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else setTimeout(boot,0);
@@ -14165,6 +14257,24 @@ CD.schedSend = function(){
   .ive-det{ width:100%; flex:1 1 auto; margin-top:0; min-height:520px; }
   .ive-list{ width:100%; flex:1 1 auto; min-height:180px; }
 }
+
+</style>
+<style>
+
+/* ═══ Loaders hover dropdown ══════════════════════════════════════════ */
+.topbar .dev-toggle.dv-drop{ position:relative; }
+.topbar .dev-toggle.dv-drop .dv-trigger{ display:inline-flex; align-items:center; gap:6px; cursor:pointer; }
+.topbar .dev-toggle.dv-drop.dv-open .dv-trigger{ background:#0044B3; color:#fff; }
+.topbar .dev-toggle.dv-drop.dv-open .dv-trigger svg{ transform:rotate(180deg); }
+.topbar .dev-toggle.dv-drop .dv-trigger svg{ transition:transform .15s; }
+.dv-panel{ position:absolute; top:calc(100% + 6px); left:0; z-index:6000; min-width:190px;
+  background:#fff; border:1px solid #e2e0da; border-radius:10px; padding:6px;
+  box-shadow:0 0 2px rgba(45,45,45,.16), 0 6px 16px rgba(45,45,45,.12);
+  display:none; flex-direction:column; gap:2px; }
+.dev-toggle.dv-open .dv-panel{ display:flex; }
+.dv-panel a{ display:block; padding:7px 10px; border-radius:7px; font-size:12px; font-weight:600;
+  color:#3d3d3a; text-decoration:none; white-space:nowrap; background:none; border:0; }
+.dv-panel a:hover{ background:#f1efe8; color:#2d2d2d; }
 
 </style>
 </body>
