@@ -14510,6 +14510,48 @@ CX.IC = {
   send:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M3 11l18-8-8 18-2-7-8-3z"/></svg>'
 };
 
+/* Interest — measured §11.1. The keys MUST be these strings: CD.rows()
+   filters on c.interest === 'shortlist'. The build previously wrote
+   'yes'/'maybe'/'no', so "Interest marked → Shortlist" matched nothing. */
+CX.INTEREST = [
+  { k:'shortlist', c:'sl', t:'Add to Shortlist',  tOn:'Remove from Shortlist',  a:'Add to Shortlist' },
+  { k:'undecided', c:'ud', t:'Add to Undecided',  tOn:'Remove from Undecided',  a:'Maybe' },
+  /* Reject is the one whose title does NOT change when pressed */
+  { k:'rejected',  c:'rj', t:'Reject',            tOn:'Reject',                 a:'Reject' }
+];
+
+/* Activity column — five states, §11.2. Some rows carry a queued automation
+   whose countdown ticks live and whose message body renders inline. */
+CX.AUTOMSG = 'Hi {first}, thanks for applying to our {job} job. We reviewed your application and ' +
+  'would like to schedule a time to chat. What days and times are you free? Looking forward to ' +
+  'hearing from you. Thanks, the team at Lincoln Dynamic Group';
+CX.queueMins = function(c){
+  if (c.interest) return null;                 /* marking supersedes the pending send */
+  if (c.stage !== 'New') return null;
+  var h = 0, n = c.id + c.n;
+  for (var i=0;i<n.length;i++) h = (h*31 + n.charCodeAt(i)) >>> 0;
+  var base = 45 + (h % 15);                    /* 45–59, stable per candidate */
+  return Math.max(1, base - (CX.elapsed || 0));
+};
+CX.activity = function(c){
+  var mins = CX.queueMins(c);
+  if (mins != null){
+    return '<div class="cx-act"><div class="aq">You\u2019ll send a scheduled message &middot; in ' +
+      mins + ' minute' + (mins === 1 ? '' : 's') + '</div><div class="body">' +
+      CX.esc(CX.AUTOMSG.replace('{first}', CX.first(c.n)).replace('{job}', c.job)) + '</div></div>';
+  }
+  if (c.interest === 'shortlist')
+    return '<div class="cx-act"><div>Shortlisted &middot; ' + CX.esc(c.applied) + '</div>' +
+           '<a class="lnk" onclick="CX.rowAction(\'Message\')">Send message</a></div>';
+  if (c.interest === 'undecided')
+    return '<div class="cx-act"><div>Marked undecided &middot; ' + CX.esc(c.applied) + '</div>' +
+           '<a class="lnk" onclick="CX.rowAction(\'Message\')">Send message</a></div>';
+  if (c.interest === 'rejected')
+    return '<div class="cx-act">Rejected &middot; just now</div>';
+  return '<div class="cx-act">' + CX.esc(c.act || '') + '</div>';
+};
+CX.first = function(n){ return (n||'').trim().split(/\s+/)[0]; };
+
 /* ── data helpers, all riding on CD ─────────────────────────────── */
 CX.counts = function(){
   var all = (typeof CD === 'object' && CD.ALL) ? CD.ALL : [];
@@ -14565,7 +14607,10 @@ CX.manage = function(){
     '<div class="cx-ctl" role="button" tabindex="0" onclick="CX.open(event,\'sort\')"><b>Sort by:</b> ' + CX.esc(CD.sort) + CX.IC.chev +
       (CX.menu === 'sort' ? CX.sortMenu() : '') + '</div>' +
     '<div class="cx-ctl" role="button" tabindex="0" style="min-width:180px" onclick="CX.open(event,\'loc\')">' +
-      (CD.loc ? CX.esc(CD.loc) : 'Location') + CX.IC.chev +
+      (CX.menu === 'loc'
+        ? '<input class="cx-typeahead" autofocus placeholder="Location" value="' + CX.esc(CX.locQuery || '') +
+          '" oninput="CX.locType(this.value)" onclick="event.stopPropagation()">'
+        : (CD.loc ? CX.esc(CD.loc) : 'Location')) + CX.IC.chev +
       (CX.menu === 'loc' ? CX.locMenu() : '') + '</div>' +
     '<div class="cx-ctl" role="button" tabindex="0" onclick="CX.open(event,\'interest\')">' +
       (CD.interest ? CX.esc(CD.interest) : 'Interest marked') + CX.IC.chev +
@@ -14607,13 +14652,14 @@ CX.row = function(r){
     '<td>' + (r.roles || []).slice(0,2).map(function(x){
         return '<div class="cx-exp"><div class="r">' + CX.esc(x[0]) + '</div>' +
                '<div class="c">' + CX.esc(x[1]) + ' (' + CX.esc(x[2]) + ')</div></div>'; }).join('') + '</td>' +
-    '<td><div class="cx-act">' + CX.esc(r.act || '') + '</div></td>' +
+    '<td>' + CX.activity(r) + '</td>' +
     '<td><span style="display:inline-flex;align-items:flex-start">' +
       '<span class="cx-iv">' +
-        ['yes','maybe','no'].map(function(k,i){
-          return '<button class="' + (r.interest === k ? 'on' : '') + '" aria-label="' +
-            (k === 'yes' ? 'Interested' : k === 'maybe' ? 'Maybe' : 'Not interested') +
-            '" onclick="CX.interestSet(\'' + r.id + '\',\'' + k + '\')">' +
+        CX.INTEREST.map(function(o,i){
+          var on = r.interest === o.k;
+          return '<button class="' + o.c + (on ? ' on' : '') + '" aria-pressed="' + on +
+            '" title="' + (on ? o.tOn : o.t) + '" aria-label="' + o.a + ' ' + CX.esc(r.n) +
+            '" onclick="CX.interestSet(\'' + r.id + '\',\'' + o.k + '\')">' +
             (i === 0 ? CX.IC.tick : i === 1 ? CX.IC.q : CX.IC.x) + '</button>'; }).join('') +
       '</span>' +
       '<div class="cx-more" role="button" tabindex="0" aria-label="More actions" onclick="CX.open(event,\'row:' + r.id + '\')">' +
@@ -14645,14 +14691,17 @@ CX.sortMenu = function(){
     return '<button onclick="CX.setSort(\'' + o + '\')"><span class="tick">' +
       (CD.sort === o ? CX.IC.tick : '') + '</span>' + o + '</button>'; }).join(''));
 };
+/* Measured §10.1: a typeahead. First row is always "All locations"; every
+   other row carries a count in parentheses, sorted alphabetically. */
 CX.locMenu = function(){
-  var locs = [];
-  (CD.ALL || []).forEach(function(c){ if (c.loc && locs.indexOf(c.loc) < 0) locs.push(c.loc); });
-  locs.sort();
+  var counts = {};
+  (CD.ALL || []).forEach(function(c){ if (c.loc) counts[c.loc] = (counts[c.loc] || 0) + 1; });
+  var q = (CX.locQuery || '').toLowerCase();
+  var locs = Object.keys(counts).sort().filter(function(l){ return !q || l.toLowerCase().indexOf(q) >= 0; });
   return CX.menuWrap('<button onclick="CX.setLoc(\'\')"><span class="tick">' + (!CD.loc ? CX.IC.tick : '') +
     '</span>All locations</button>' + locs.map(function(l){
       return '<button onclick="CX.setLoc(\'' + l.replace(/'/g,"\\'") + '\')"><span class="tick">' +
-        (CD.loc === l ? CX.IC.tick : '') + '</span>' + CX.esc(l) + '</button>'; }).join(''));
+        (CD.loc === l ? CX.IC.tick : '') + '</span>' + CX.esc(l) + ' (' + counts[l] + ')</button>'; }).join(''));
 };
 CX.interestMenu = function(){
   var all = CD.ALL || [];
@@ -14807,7 +14856,16 @@ CX.setScope = function(n){ CD.scope = n || 'All open and paused jobs'; CD.sel = 
 CX.go = function(tab){ CD.tab = tab; CD.sel = []; CX.selectedAll = false; CX.close(); CX.paint(); };
 CX.stage = function(p){ CD.stage = (p === 'All applications') ? 'All' : p; CD.page = 1; CD.sel = []; CX.selectedAll = false; CX.close(); CX.paint(); };
 CX.setSort = function(s){ CD.sort = s; CX.close(); CX.paint(); };
-CX.setLoc = function(l){ CD.loc = l; CD.page = 1; CX.close(); CX.paint(); };
+CX.setLoc = function(l){ CD.loc = l; CD.page = 1; CX.locQuery = ''; CX.close(); CX.paint(); };
+CX.locType = function(v){ CX.locQuery = v; CX.paint();
+  var i = document.querySelector('.cx-typeahead'); if (i){ i.focus(); i.setSelectionRange(v.length, v.length); } };
+/* the queued-automation countdown ticks, as it does on Indeed */
+CX.elapsed = 0;
+setInterval(function(){
+  CX.elapsed++;
+  var v = document.getElementById('view-candidates');
+  if (v && v.querySelector('.cx-act .aq') && CD.view !== 'profile') CX.paint();
+}, 60000);
 CX.setInterest = function(i){ CD.interest = (CD.interest === i) ? '' : i; CD.page = 1; CX.close(); CX.paint(); };
 CX.search = function(v){ CD.q = v; CD.page = 1; CX.paint();
   var i = document.querySelector('.cx-search input'); if (i){ i.focus(); i.setSelectionRange(v.length, v.length); } };
@@ -14830,6 +14888,7 @@ CX.bulkStatus = function(s){
   (CD.ALL || []).forEach(function(c){ if (ids.indexOf(c.id) >= 0) c.stage = s; });
   CD.sel = []; CX.selectedAll = false; CX.close(); CX.paint();
 };
+/* One of the three at most — clicking a pressed button clears it. */
 CX.interestSet = function(id, k){
   (CD.ALL || []).forEach(function(c){ if (c.id === id) c.interest = (c.interest === k) ? null : k; });
   CX.paint();
@@ -16043,12 +16102,23 @@ CX.openProfile = function(id){
 .cx-exp .c{font-size:14px;line-height:21px;color:#595959}
 .cx-act{font-size:14px;line-height:21px;color:#595959}
 
-.cx-iv{display:inline-flex;border:1px solid #e4e2e0;border-radius:12px;overflow:hidden}
-.cx-iv button{width:56px;height:44px;border:0;background:#fff;cursor:pointer;color:#2d2d2d;
-  display:grid;place-items:center;border-right:1px solid #e4e2e0}
-.cx-iv button:last-child{border-right:0}
+/* Measured: each button carries its OWN border; the wrapper has none.
+   Pressed fill AND border share one colour, glyph goes white. §11.1 */
+.cx-iv{display:inline-flex}
+.cx-iv button{width:56px;height:44px;background:#fff;cursor:pointer;color:#2d2d2d;
+  border:1px solid #e4e2e0;display:grid;place-items:center;padding:9px 15px;margin-left:-1px}
+.cx-iv button:first-child{border-radius:12px 0 0 12px;margin-left:0}
+.cx-iv button:last-child{border-radius:0 12px 12px 0}
 .cx-iv button svg{width:20px;height:20px}
-.cx-iv button.on{background:#ecf2ff;color:#004fcb}
+.cx-iv button.on{color:#fff}
+.cx-iv button.on.sl{background:#1f662c;border-color:#1f662c}
+.cx-iv button.on.ud{background:#595959;border-color:#595959}
+.cx-iv button.on.rj{background:#a9252b;border-color:#a9252b}
+
+/* Activity column — five states, §11.2 */
+.cx-act .aq{color:#2d2d2d;font-weight:700}
+.cx-act .body{color:#595959;margin-top:4px}
+.cx-act .lnk{color:#004fcb;text-decoration:underline;cursor:pointer;display:inline-block;margin-top:4px}
 .cx-more{width:44px;height:44px;border:0;background:none;border-radius:12px;cursor:pointer;color:#2d2d2d;
   display:grid;place-items:center;margin-left:8px;position:relative}
 .cx-more:hover{background:#f3f2f1}
@@ -16141,6 +16211,9 @@ CX.openProfile = function(id){
 .cx-jrow .t{font-weight:400}
 .cx-jrow .m{font-size:14px;line-height:21px;color:#595959}
 .cx-jrow .ref{font-size:14px;line-height:21px;color:#595959;font-style:italic}
+
+.cx-typeahead{border:0;outline:none;background:none;font-family:inherit;font-size:16px;line-height:24px;
+  color:#2d2d2d;width:100%;min-width:0}
 
 </style>
 </body>
