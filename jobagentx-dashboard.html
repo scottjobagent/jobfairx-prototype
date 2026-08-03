@@ -12281,10 +12281,10 @@ function IAUsers(t){ IA.usersTab = t; IA.sync(); }
      honest pending panel in their OWN view — the protected module is untouched. */
   if (byId.interviews) {
     byId.interviews.children = [
-      { id:'iv-all',   label:'All interviews',        go:function(){ showView('interviews'); },
+      { id:'iv-all',   label:'All interviews',        go:function(){ CDIV.go('all'); },
         match:function(){ return CDIV.sec === 'all'; } },
-      { id:'iv-avail', label:'Interview availability', go:function(){ CDIV.open('availability','Interview availability','/interviews/availability'); },
-        match:function(){ return CDIV.sec === 'availability'; } }
+      { id:'iv-avail', label:'Interview availability', go:function(){ CDIV.go('avail'); },
+        match:function(){ return CDIV.sec === 'avail'; } }
     ];
   }
 
@@ -13844,6 +13844,75 @@ AE.err = function(title){
     } catch(e){ /* never let an empty state take the page down */ }
     return orig.apply(this, arguments);
   };
+})();
+
+/* ═══ Interview availability — reconnect the sidebar flyout ══════════
+   Bug this fixes: the real Interview availability page was already built
+   (window.agvGo, #agvWrap — Connect your calendar, Regular Availability,
+   Availability exceptions, the weekly grid).  It lives INSIDE the
+   protected Interviews module and is reached by the module's own
+   "All interviews | Interview availability" toggle.
+
+   When the sidebar was rebuilt as Indeed-style flyouts, the flyout's
+   "Interview availability" item was pointed at CDIV.open(...) — a
+   separate "capture pending, not yet built" placeholder view — instead
+   of at the page that already existed.  Nothing was overwritten; the new
+   door was pointed at the wrong room.
+
+   This routes both flyout items through the module's own switcher, so
+   the flyout and the in-page toggle are two entry points to one page and
+   stay in sync in both directions — which is how Indeed behaves.
+   Nothing is rendered here: no new markup, no new state, no new copy.
+   ==================================================================== */
+(function(){
+  if (typeof CDIV !== 'object' || !CDIV) return;
+
+  var pending = null;   /* set while CDIV.go drives showView, so the
+                           plain-navigation reset below doesn't fight it */
+
+  function apply(tab){
+    if (typeof window.agvGo === 'function') { try { window.agvGo(tab); } catch(e){} }
+  }
+  function sync(){ if (typeof IA === 'object' && IA.sync) { try { IA.sync(); } catch(e){} } }
+
+  /* the flyout's two items both land here */
+  CDIV.go = function(tab){
+    tab = (tab === 'avail') ? 'avail' : 'all';
+    pending = tab;
+    showView('interviews');
+    CDIV.sec = tab;
+    apply(tab);
+    requestAnimationFrame(function(){ apply(tab); });   /* module rebuilds async */
+    setTimeout(function(){ apply(tab); sync(); }, 80);
+    setTimeout(function(){ pending = null; }, 400);
+    sync();
+  };
+
+  /* Reaching Interviews any other way (sidebar parent, deep link, a
+     "Open in Interviews" button) lands on All interviews, as before. */
+  var _sv = window.showView;
+  if (_sv && !_sv.__avfix){
+    var w = function(v){
+      var r = _sv.apply(this, arguments);
+      if (v === 'interviews' && !pending){
+        CDIV.sec = 'all';
+        setTimeout(function(){ apply('all'); sync(); }, 0);
+      }
+      return r;
+    };
+    w.__avfix = true; w.__ivsec = true; w.__ia = true; w.__iaexp = true;
+    window.showView = w;
+  }
+
+  /* Clicking the in-page toggle updates the sidebar highlight too, so the
+     two entry points never disagree. Capture phase: runs before the
+     module's own handler, and never blocks it. */
+  document.addEventListener('click', function(e){
+    var b = e.target && e.target.closest && e.target.closest('.agv-tab');
+    if (!b) return;
+    CDIV.sec = (b.dataset.tab === 'avail') ? 'avail' : 'all';
+    setTimeout(sync, 0);
+  }, true);
 })();
 
 (function tlInit(){
