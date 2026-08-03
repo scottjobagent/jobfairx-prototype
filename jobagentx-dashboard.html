@@ -10932,11 +10932,203 @@ else nvInit();
   };
 })();
 
+
+/* ═══ SX — SMART SOURCING EXACT-LAYOUT CORRECTIONS (behaviour) ═══════
+   Re-measured against resumes.indeed.com. Overrides three renderers so
+   the DOM matches the live structure: activity metadata is emitted as its
+   own grid cell (it reorders below education in the split view), the bulk
+   bar is an in-flow white row, and pagination is a Previous/Next segmented
+   control rather than numbered pages.
+   ==================================================================== */
+(function(){
+  if (typeof ssCardHTML !== 'function') return;
+
+  /* 5.2 — card markup */
+  window.ssCardHTML = function(c){
+    var selected = SS.openId === c.id;
+    var checked  = SS.sel.indexOf(c.id) >= 0;
+    /* live app removes the action buttons while the card is checked */
+    var action = checked ? ''
+      : (c.contacted
+        ? '<span class="ss-contacted"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#767676" stroke-width="2"><path d="M4 4h16v13H7l-3 3z"/></svg>Contacted</span>'
+        : '<button class="ss-msgbtn" onclick="event.stopPropagation();ssMessage(\'' + c.id + '\')">Message</button>' +
+          '<button class="ss-thumb" title="Not a match" onclick="event.stopPropagation();ssNotMatch(\'' + c.id + '\')"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 15v4a3 3 0 003 3l4-9V2H5.7a2 2 0 00-2 1.7l-1.4 9A2 2 0 004.3 15zM17 2h2.7A2.3 2.3 0 0122 4.3v6.4A2.3 2.3 0 0119.7 13H17"/></svg></button>');
+
+    /* max 2 work-history entries render on a card */
+    var roles = (c.roles || []).slice(0, 2);
+
+    return '<div class="ss-res' + (selected ? ' sel' : '') + '" onclick="ssOpenCand(\'' + c.id + '\')">' +
+      '<div class="c1">' +
+        '<span class="ss-cb' + (checked ? ' on' : '') + '" onclick="event.stopPropagation();ssToggleSel(\'' + c.id + '\')"></span>' +
+        '<div><p class="ss-name">' + ssEsc(c.n) + '</p><p class="ss-loc">' + ssEsc(c.loc) + '</p></div>' +
+      '</div>' +
+      '<div class="c1b"><div class="ss-meta">' + ssEsc(c.act) + '<br>' + ssEsc(c.upd) + '</div></div>' +
+      '<div class="c2"><div class="ss-tl">' + roles.map(function(r){
+          return '<div class="it"><div class="t">' + ssEsc(r[0]) + '</div>' +
+                 '<div class="c">' + ssEsc(r[1]) + ' <span>(' + ssEsc(r[2]) + ')</span></div></div>';
+        }).join('') + '</div></div>' +
+      '<div class="c3"><div class="ss-edu">' + ssEsc(c.edu) + '</div><div>' + ssEsc(c.school) + '</div>' +
+        ((c.skills && c.skills.length)
+          ? '<div class="ss-skills">' + c.skills.map(function(s){ return '<span class="ss-chip">' + ssEsc(s) + '</span>'; }).join('') +
+            (c.more ? '<span class="ss-more">+' + c.more + ' more</span>' : '') + '</div>'
+          : '') +
+      '</div>' +
+      '<div class="c4">' + action + '</div></div>';
+  };
+
+  /* 6 — bulk action bar */
+  window.ssRenderBulk = function(){
+    var bar = ssEl('ssBulkBar');
+    if (!bar) return;
+    if (!SS.sel.length){ bar.classList.add('ss-hide'); bar.innerHTML = ''; return; }
+    bar.classList.remove('ss-hide');
+    var n = SS.sel.length;
+    bar.innerHTML =
+      '<div class="ss-bulk">' +
+        '<b>' + n + ' resume' + (n === 1 ? '' : 's') + ' selected</b>' +
+        '<span class="sepd">-</span>' +
+        '<button class="lnk" onclick="ssClearSel()">clear</button>' +
+        '<button class="msg grow" onclick="ssBulk(\'message\')">' +
+          '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>' +
+          'Message</button>' +
+      '</div>';
+  };
+
+  /* 7 — segmented Previous / Next pagination */
+  window.ssRenderPager = function(total){
+    var pages = Math.max(1, Math.ceil(total / SS.perPage));
+    var el = ssEl('ssPager'); if (!el) return;
+    if (pages <= 1){ el.innerHTML = ''; return; }
+    el.innerHTML =
+      '<div class="ss-pager">' +
+        '<button class="prev" onclick="ssPage(' + (SS.page - 1) + ')"' + (SS.page === 1 ? ' disabled' : '') + '>' +
+          '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>Previous</button>' +
+        '<button class="next" onclick="ssPage(' + (SS.page + 1) + ')"' + (SS.page === pages ? ' disabled' : '') + '>' +
+          'Next<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>' +
+      '</div>';
+  };
+
+  /* 8.1 — split grid toggles on the wrapper, not just the list */
+  if (typeof ssRenderList === 'function'){
+    var _origRenderList = ssRenderList;
+    window.ssRenderList = function(){
+      var r = _origRenderList.apply(this, arguments);
+      var wrap = document.querySelector('#view-sourcing .ss-split2');
+      if (wrap) wrap.classList.toggle('on', !!SS.openId);
+      return r;
+    };
+  }
+})();
+
 (function tlInit(){
   function boot(){ if(!tlEl('view-tools')) return; tlGo('overview'); }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else setTimeout(boot,0);
 })();
 
 </script>
+<style>
+
+/* ═══ SX — SMART SOURCING EXACT-LAYOUT CORRECTIONS ═════════════════════
+   Re-measured against resumes.indeed.com (see rn/SMART-SOURCING-EXACT.md).
+   Same selectors as the original .ss-* rules, declared later, so equal
+   specificity resolves in favour of the measured values.
+   ==================================================================== */
+
+/* --- 5.1 Card box ------------------------------------------------- */
+.ss-res{
+  border:2px solid #e4e2e0; border-radius:20px; padding:16px; background:#fff; cursor:pointer;
+  display:grid; grid-template-columns:327px 327px 327px 200px; column-gap:8px;
+  grid-template-areas:"a b c d" "m b c d"; align-content:start;
+}
+.ss-res:hover{ box-shadow:none; }                    /* live app: no hover change */
+.ss-res.sel{
+  border:2px solid #004fcb; padding:16px;
+  box-shadow:rgba(45,45,45,.16) 0 0 2px 0, rgba(45,45,45,.08) 0 1px 3px 0, rgba(45,45,45,.04) 0 2px 4px 0;
+}
+.ss-res .c1{ grid-area:a; display:flex; gap:16px; align-items:flex-start; }
+.ss-res .c1b{ grid-area:m; padding-left:40px; }      /* 24px checkbox + 16px gap */
+.ss-res .c2{ grid-area:b; }
+.ss-res .c3{ grid-area:c; }
+.ss-res .c4{ grid-area:d; display:flex; gap:8px; align-items:flex-start; justify-content:flex-end; }
+
+/* --- checkbox ------------------------------------------------------ */
+.ss-res .ss-cb{ width:24px; height:24px; border:1px solid #595959; border-radius:8px; background:#fff; flex:0 0 24px; }
+.ss-res .ss-cb.on{ background:#424242; border-color:#424242; }
+
+/* --- column A ------------------------------------------------------ */
+.ss-name{ font-size:16px; line-height:19.2px; font-weight:700; color:#2d2d2d; margin:0; }
+.ss-loc{ font-size:14px; line-height:16.8px; font-weight:400; color:#2d2d2d; margin:4px 0 0; }
+.ss-meta{ font-size:14px; line-height:21px; color:#767676; margin-top:8px; }
+
+/* --- column B: work-history rail ----------------------------------- */
+.ss-tl{ position:relative; padding-left:0; padding-top:6px; }
+.ss-tl:before{ content:none; }                       /* rail is per-entry, not one long line */
+.ss-tl .it{ position:relative; padding-left:14px; padding-bottom:8px; margin-bottom:0; }
+.ss-tl .it:before{ content:""; position:absolute; left:2px; top:8px; width:2px; height:42px; background:#d4d2d0; border-radius:0; }
+.ss-tl .it:after{ content:""; position:absolute; left:0; top:0; width:6px; height:6px; border-radius:9999px; background:#d4d2d0; }
+.ss-tl .t{ font-size:14px; line-height:21px; font-weight:500; color:#2d2d2d;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.ss-tl .c{ font-size:14px; line-height:21px; font-weight:400; color:#2d2d2d;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.ss-tl .c span{ color:#767676; }
+
+/* --- column C: education + chips ----------------------------------- */
+.ss-edu{ font-size:14px; line-height:21px; font-weight:500; color:#2d2d2d;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.ss-edu+div{ font-size:14px; line-height:21px; font-weight:400; color:#767676; margin-bottom:0;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.ss-skills{ display:flex; flex-wrap:wrap; gap:4px 8px; margin-top:8px; align-items:center; }
+.ss-chip{ display:inline-flex; align-items:center; background:#f3f2f1; color:#595959;
+  border-radius:8px; padding:3px 9px; font-size:12px; line-height:18px; font-weight:500; }
+.ss-more{ font-size:14px; line-height:21px; font-weight:400; color:#767676; padding-left:3px; }
+
+/* --- column D ------------------------------------------------------ */
+.ss-msgbtn{ background:#004fcb; color:#fff; border:0; border-radius:12px; padding:9px 16px; height:44px;
+  font-family:inherit; font-size:16px; line-height:24px; font-weight:700; cursor:pointer; }
+.ss-thumb{ width:44px; height:44px; border-radius:12px; border:1px solid #e4e2e0; background:#fff;
+  display:inline-flex; align-items:center; justify-content:center; cursor:pointer; color:#004fcb; flex:0 0 44px; padding:9px; }
+
+/* --- 6. Bulk action bar (white in-flow row, not a dark floating pill) */
+.ss-bulk{ display:flex; align-items:center; gap:0; background:#fff; color:#595959;
+  border-radius:0; padding:6px 16px; margin-bottom:16px; height:48px; box-sizing:border-box; }
+.ss-bulk b{ font-size:16px; line-height:24px; font-weight:400; color:#595959; }
+.ss-bulk .sepd{ font-size:16px; line-height:24px; color:#595959; padding:0 6px; }
+.ss-bulk .lnk{ background:transparent; border:0; color:#004fcb; font-family:inherit;
+  font-size:16px; line-height:24px; font-weight:700; cursor:pointer; border-radius:12px; padding:0 6px; }
+.ss-bulk .lnk:hover{ background:#f3f2f1; }
+.ss-bulk .grow{ margin-left:auto; }
+.ss-bulk .msg{ display:inline-flex; align-items:center; gap:8px; background:transparent; border:0;
+  color:#004fcb; font-family:inherit; font-size:16px; line-height:24px; font-weight:700;
+  cursor:pointer; height:44px; padding:0 8px; border-radius:12px; }
+.ss-bulk .msg:hover{ background:#f3f2f1; }
+
+/* --- 7. Pagination: segmented Previous / Next ---------------------- */
+.ss-pager{ display:flex; gap:0; align-items:center; justify-content:center; padding:12px 0; }
+.ss-pager button{ min-width:0; height:44px; border:1px solid #e4e2e0; background:#fff;
+  font-family:inherit; font-size:16px; line-height:24px; font-weight:700; color:#004fcb;
+  cursor:pointer; padding:9px 15px; display:inline-flex; align-items:center; gap:8px; }
+.ss-pager button.prev{ border-radius:12px 0 0 12px; min-width:131px; justify-content:center; }
+.ss-pager button.next{ border-radius:0 12px 12px 0; min-width:100px; justify-content:center; border-left:0; }
+.ss-pager button:disabled{ color:#c8c6c4; cursor:default; }
+.ss-pager button:disabled:hover{ background:#fff; }
+.ss-pager button:hover{ background:#f7f6f5; }
+
+/* --- 8.1 Split layout: 380 / 845 grid, independent scroll ---------- */
+.ss-split2{ display:grid; grid-template-columns:1fr; column-gap:16px; align-items:start; padding-top:24px; }
+.ss-split2.on{ grid-template-columns:380px minmax(0,845px); }
+.ss-list{ min-width:0; display:flex; flex-direction:column; gap:8px; }
+.ss-list.split{ flex:none; width:380px; box-sizing:border-box; position:sticky; top:116px; max-height:572px; overflow-y:auto; padding-right:24px; }
+.ss-detail{ min-width:0; border-left:0; padding-left:0; max-height:624px; overflow-y:auto; }
+
+/* --- 8.2 Narrow card while split: single stack, activity after edu -- */
+.ss-list.split .ss-res{ display:flex; flex-direction:column; gap:0; padding:16px; border-radius:20px; }
+.ss-list.split .ss-res.sel{ padding:16px; }
+.ss-list.split .c1{ order:1; width:100%; }
+.ss-list.split .c2{ order:2; width:100%; margin-top:12px; }
+.ss-list.split .c3{ order:3; width:100%; margin-top:12px; }
+.ss-list.split .c1b{ order:4; width:100%; padding-left:0; margin-top:12px; }
+.ss-list.split .c4{ order:5; width:100%; justify-content:flex-end; margin-top:12px; }
+
+</style>
 </body>
 </html>
