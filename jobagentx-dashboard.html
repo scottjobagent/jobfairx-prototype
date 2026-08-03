@@ -983,6 +983,10 @@ tbody tr:last-child td { border-bottom: none; }
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 15l4-5 3 3 5-7"/></svg>
         <span class="nav-text">Analytics</span>
       </a>
+      <a class="nav-item" onclick="showView('tools')" id="nav-tools">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a4 4 0 01-5.4 5.4L4 17v3h3l5.3-5.3a4 4 0 015.4-5.4z"/></svg>
+        <span class="nav-text">Tools</span>
+      </a>
     </div>
   </div>
   <div class="sidebar-usage">
@@ -1024,6 +1028,13 @@ tbody tr:last-child td { border-bottom: none; }
         <button class="dev-toggle-btn" onclick="jcSetState('empty', this)">Empty</button>
         <button class="dev-toggle-btn" onclick="jcSetState('loading', this)">Loading</button>
         <button class="dev-toggle-btn" onclick="jcSetState('error', this)">Error</button>
+      </div>
+    </div>
+    <div class="dev-toggle">
+      <span class="dev-toggle-label">Tools:</span>
+      <div class="dev-toggle-switch" id="tlToggle">
+        <button class="dev-toggle-btn active" onclick="setToolsMode('data', this)">Data</button>
+        <button class="dev-toggle-btn" onclick="setToolsMode('empty', this)">Empty</button>
       </div>
     </div>
     <div class="dev-toggle">
@@ -3380,6 +3391,23 @@ tbody tr:last-child td { border-bottom: none; }
   </div>
   <!-- ══════════════════ /ANALYTICS ══════════════════ -->
 
+  <!-- ══════════════════ TOOLS ══════════════════ -->
+  <div class="view" id="view-tools">
+    <div class="tl-top">
+      <h1>Tools</h1>
+      <div style="display:flex;gap:2px;flex-wrap:wrap" id="tlTabs">
+        <button class="tl-tab on" data-tl="overview" onclick="tlGo('overview',this)">Overview</button>
+        <button class="tl-tab" data-tl="ats" onclick="tlGo('ats',this)">ATS Integrations</button>
+        <button class="tl-tab" data-tl="automations" onclick="tlGo('automations',this)">Automations</button>
+        <button class="tl-tab" data-tl="wallet" onclick="tlGo('wallet',this)">Employee Wallet</button>
+      </div>
+      <div style="flex:1"></div>
+      <button class="an-ctl pri" id="tlPrimary" onclick="tlNewAutomation()">Create automation</button>
+    </div>
+    <div class="tl-page" id="tlBody"></div>
+  </div>
+  <!-- ══════════════════ /TOOLS ══════════════════ -->
+
 
 </div>
 
@@ -3706,6 +3734,25 @@ Regards,
   <div class="ss-mhead"><h3 id="sbRowTitle">Subscription</h3><button class="ss-mclose" onclick="sbClose('sbMdRowMenu')">&times;</button></div>
   <div class="ss-mbody" id="sbRowBody"></div>
   <div class="ss-mfoot"><button class="ss-btn ss-btn-pri" onclick="sbClose('sbMdRowMenu')">Close</button></div>
+</div></div>
+
+
+<div class="ss-ov" id="tlMdCreate"><div class="ss-modal">
+  <div class="ss-mhead"><div><h3 id="tlCreateTitle">Create an automation</h3><p class="sb" id="tlCreateSub">Pick a preset to start from.</p></div><button class="ss-mclose" onclick="ssClose('tlMdCreate')">&times;</button></div>
+  <div class="ss-mbody" id="tlCreateBody"></div>
+  <div class="ss-mfoot" id="tlCreateFoot"></div>
+</div></div>
+
+<div class="ss-ov" id="tlMdRow"><div class="ss-modal sm">
+  <div class="ss-mhead"><h3 id="tlRowTitle">Automation</h3><button class="ss-mclose" onclick="ssClose('tlMdRow')">&times;</button></div>
+  <div class="ss-mbody" id="tlRowBody"></div>
+  <div class="ss-mfoot"><button class="ss-btn ss-btn-pri" onclick="ssClose('tlMdRow')">Close</button></div>
+</div></div>
+
+<div class="ss-ov" id="tlMdDelete"><div class="ss-modal sm">
+  <div class="ss-mhead"><h3>Delete automation?</h3><button class="ss-mclose" onclick="ssClose('tlMdDelete')">&times;</button></div>
+  <div class="ss-mbody"><p style="font-size:16px;line-height:24px">This automation will stop running immediately and be removed from your list. Messages already sent are not affected.</p></div>
+  <div class="ss-mfoot"><button class="ss-btn ss-btn-ghost" onclick="ssClose('tlMdDelete')">Keep automation</button><button class="ss-btn ss-btn-pri" style="background:#a9252b" onclick="tlDeleteConfirm()">Delete automation</button></div>
 </div></div>
 
 <!-- Success Toast -->
@@ -7606,6 +7653,66 @@ body.agx-on #view-events.view.active .content-header{padding:0 24px 0 28px !impo
 .jc-err p{font-size:16px;color:#5c1f1f;margin:0 auto 18px;max-width:460px;line-height:24px}
 .jc-succ{display:flex;gap:12px;align-items:center;background:#e8f3ec;border:1px solid #a9d6b8;border-radius:12px;padding:14px 18px;margin-bottom:20px;color:#14532a;font-size:15px}
 
+
+/* ═══ TOOLS (.tl-*) ═══ */
+#view-tools{background:#fff;margin:-24px -28px -40px;padding:0;font-family:'Noto Sans',-apple-system,BlinkMacSystemFont,sans-serif;color:#2d2d2d}
+#view-tools *{box-sizing:border-box}
+.tl-top{display:flex;align-items:center;gap:16px;padding:16px 28px;border-bottom:1px solid #e4e2e0;flex-wrap:wrap;row-gap:10px}
+.tl-top h1{font-size:22px;font-weight:700;margin:0;padding-right:20px;border-right:1px solid #e4e2e0}
+.tl-tab{padding:9px 14px;border:0;border-radius:12px;background:transparent;font-family:inherit;font-size:15px;color:#2d2d2d;cursor:pointer;white-space:nowrap}
+.tl-tab:hover{background:#f3f2f1}
+.tl-tab.on{background:#4a4a4a;color:#fff;font-weight:700}
+.tl-page{padding:24px 28px 56px}
+.tl-h2{font-size:26px;font-weight:800;margin:0 0 6px}
+.tl-lead{font-size:16px;color:#595959;margin:0 0 22px}
+.tl-grid{display:flex;gap:20px;flex-wrap:wrap}
+.tl-card{flex:1 1 320px;min-width:300px;border:1px solid #e4e2e0;border-radius:12px;padding:22px 24px;background:#fff;cursor:pointer}
+.tl-card:hover{box-shadow:rgba(45,45,45,.16) 0 0 2px 0,rgba(45,45,45,.08) 0 1px 3px 0}
+.tl-card .ic{width:44px;height:44px;border-radius:10px;background:#eef2fd;display:flex;align-items:center;justify-content:center;color:#004fcb;margin-bottom:14px}
+.tl-card h3{font-size:18px;font-weight:700;margin:0 0 6px}
+.tl-card p{font-size:15px;line-height:22px;color:#595959;margin:0 0 14px}
+.tl-card .go{color:#004fcb;font-weight:700;font-size:15px}
+.tl-bar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:20px}
+.tl-search{display:flex;align-items:center;gap:8px;border:1px solid #767676;border-radius:12px;padding:0 12px;height:46px;background:#fff;flex:1 1 320px;max-width:420px}
+.tl-search input{border:0;outline:0;font-family:inherit;font-size:16px;flex:1;background:transparent}
+.tl-sel{border:1px solid #2d2d2d;border-radius:12px;padding:11px 14px;font-family:inherit;font-size:15px;background:#fff;cursor:pointer}
+.tl-tbl{width:100%;border-collapse:collapse;font-size:15px;border:1px solid #e4e2e0;border-radius:12px;overflow:hidden}
+.tl-tbl th{text-align:left;font-size:14px;font-weight:700;color:#595959;padding:14px 16px;background:#faf9f8;border-bottom:1px solid #e4e2e0;white-space:nowrap}
+.tl-tbl td{padding:16px;border-bottom:1px solid #f0efee;vertical-align:top}
+.tl-tbl tr:last-child td{border-bottom:0}
+.tl-tbl tr:hover td{background:#faf9f8}
+.tl-tbl .nm{font-weight:700;font-size:16px}
+.tl-tbl .sub{font-size:13px;color:#767676;margin-top:3px}
+.tl-sw{width:44px;height:24px;border-radius:12px;background:#c8c6c4;position:relative;cursor:pointer;display:inline-block;transition:background .15s}
+.tl-sw.on{background:#1f662c}
+.tl-sw i{position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .15s}
+.tl-sw.on i{left:23px}
+.tl-preset{flex:1 1 300px;min-width:280px;border:1px solid #e4e2e0;border-radius:12px;padding:20px 22px;background:#fff;cursor:pointer;display:flex;flex-direction:column}
+.tl-preset:hover{border-color:#004fcb;box-shadow:0 0 0 1px #004fcb}
+.tl-preset .ic{width:40px;height:40px;border-radius:10px;background:#eef2fd;display:flex;align-items:center;justify-content:center;color:#004fcb;margin-bottom:12px}
+.tl-preset h4{font-size:16px;font-weight:700;margin:0 0 6px}
+.tl-preset p{font-size:14px;line-height:21px;color:#595959;margin:0 0 14px;flex:1}
+.tl-preset .tag{display:inline-block;background:#f3f2f1;border-radius:8px;padding:3px 10px;font-size:12px;font-weight:700;color:#595959}
+.tl-empty{border:1px solid #e4e2e0;border-radius:12px;padding:56px 32px;text-align:center}
+.tl-empty h3{font-size:22px;font-weight:800;margin:16px 0 8px}
+.tl-empty p{font-size:16px;color:#595959;max-width:470px;margin:0 auto 20px;line-height:24px}
+.tl-step{display:flex;gap:10px;align-items:center;margin-bottom:20px;flex-wrap:wrap}
+.tl-step .s{display:inline-flex;align-items:center;gap:8px;font-size:15px;color:#767676}
+.tl-step .s.on{color:#2d2d2d;font-weight:700}
+.tl-step .n{width:26px;height:26px;border-radius:50%;border:1px solid #767676;display:inline-flex;align-items:center;justify-content:center;font-size:13px}
+.tl-step .s.on .n{background:#2d2d2d;border-color:#2d2d2d;color:#fff}
+.tl-step .arr{color:#c8c6c4}
+.tl-fld{margin-bottom:18px}
+.tl-fld label{display:block;font-size:16px;font-weight:700;margin-bottom:8px}
+.tl-fld input,.tl-fld select,.tl-fld textarea{width:100%;border:1px solid #767676;border-radius:12px;padding:11px 12px;font-family:inherit;font-size:16px;background:#fff}
+.tl-fld textarea{min-height:150px;resize:vertical;line-height:24px}
+.tl-fld .hint{font-size:14px;color:#595959;margin-top:6px}
+.tl-int{display:flex;align-items:center;gap:16px;border:1px solid #e4e2e0;border-radius:12px;padding:18px 20px;margin-bottom:14px}
+.tl-int .lg{width:48px;height:48px;border-radius:10px;background:#f3f2f1;display:flex;align-items:center;justify-content:center;font-weight:800;color:#595959;font-size:16px;flex:0 0 48px}
+.tl-int .nm{font-size:17px;font-weight:700}
+.tl-int .ds{font-size:14px;color:#595959;margin-top:2px}
+.tl-int .sp{flex:1}
+
 </style>
 <script>
 (function(){
@@ -10265,6 +10372,281 @@ function adRenderAds(){
         }).join('')+'</tbody></table></div>'+
     '</div>'+ieSideList(Object.keys(AN.ADDETAIL).map(function(k){return [k,AN.ADDETAIL[k].status];}),null,'adOpenAd','All campaigns','adBackAds')+'</div>';
 }
+
+
+
+/* ═══ TOOLS — Overview / ATS Integrations / Automations / Employee Wallet ═══
+   Section list and preset names taken from Scott's walkthrough of
+   employers.indeed.com/tools, which this session could not reach directly. */
+var TL = { sec:'overview', mode:'data', q:'', creator:'All creators', status:'All statuses', step:1, preset:null, editing:null };
+function tlEl(id){return document.getElementById(id);}
+function tlEsc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+TL.PRESETS=[
+ {k:'new',n:'Message new candidates',d:'Send a message as soon as a candidate applies to a job, so nobody waits on a first reply.',tag:'Messaging',trigger:'A candidate applies',
+  subj:'Thanks for applying to {JOB_TITLE}',body:'Hi {CANDIDATE_FIRSTNAME},\n\nThanks for applying to {JOB_TITLE} at {COMPANY}. We are reviewing applications now and will be in touch within a few days.\n\nRegards,\n{RECRUITER_NAME}'},
+ {k:'short',n:'Message shortlisted candidates',d:'Reach out automatically when you move someone to your shortlist.',tag:'Messaging',trigger:'A candidate is shortlisted',
+  subj:'Next steps for {JOB_TITLE}',body:'Hi {CANDIDATE_FIRSTNAME},\n\nGood news — we would like to move forward with your application for {JOB_TITLE}. Are you free for a short call this week?\n\nRegards,\n{RECRUITER_NAME}'},
+ {k:'interested',n:'Message "Interested" candidates',d:'Follow up the moment a candidate marks themselves interested in your role.',tag:'Messaging',trigger:'A candidate marks Interested',
+  subj:'Great to hear from you about {JOB_TITLE}',body:'Hi {CANDIDATE_FIRSTNAME},\n\nThanks for showing interest in {JOB_TITLE} at {COMPANY}. Here is a link to book a time that suits you.\n\nRegards,\n{RECRUITER_NAME}'},
+ {k:'rejected',n:'Email rejected candidates',d:'Send a considerate rejection automatically when a candidate is marked not a match.',tag:'Email',trigger:'A candidate is rejected',
+  subj:'Update on your {JOB_TITLE} application',body:'Hi {CANDIDATE_FIRSTNAME},\n\nThank you for taking the time to apply for {JOB_TITLE} at {COMPANY}. We have decided to move forward with other candidates for this role.\n\nWe would be glad to see you apply again in future.\n\nRegards,\n{RECRUITER_NAME}'}
+];
+TL.AUTOS=[
+ {id:1,name:'Message new candidates',preset:'new',job:'Web Developer',creator:'kat@lincolndynamic.org',status:'Active',sent:184,created:'Aug 2, 2026'},
+ {id:2,name:'Email rejected candidates',preset:'rejected',job:'All jobs',creator:'kat@lincolndynamic.org',status:'Active',sent:61,created:'Jul 28, 2026'},
+ {id:3,name:'Shortlist follow-up — Test Engineer',preset:'short',job:'Test Engineer',creator:'scott@jobfairx.com',status:'Inactive',sent:0,created:'Jul 14, 2026'}
+];
+
+function tlGo(sec,btn){
+  TL.sec=sec;
+  document.querySelectorAll('#tlTabs .tl-tab').forEach(function(b){ b.classList.remove('on'); });
+  var t=btn||document.querySelector('#tlTabs .tl-tab[data-tl="'+sec+'"]'); if(t) t.classList.add('on');
+  var p=tlEl('tlPrimary');
+  if(p){ p.style.display = (sec==='automations')?'':'none'; }
+  tlRender(); window.scrollTo(0,0);
+}
+function setToolsMode(mode,btn){
+  document.querySelectorAll('#tlToggle .dev-toggle-btn').forEach(function(b){ b.classList.remove('active'); });
+  if(btn) btn.classList.add('active');
+  TL.mode=mode; tlRender();
+}
+function tlAutos(){
+  if(TL.mode==='empty') return [];
+  var q=TL.q.toLowerCase();
+  return TL.AUTOS.filter(function(a){
+    if(q && (a.name+' '+a.job).toLowerCase().indexOf(q)<0) return false;
+    if(TL.creator!=='All creators' && a.creator!==TL.creator) return false;
+    if(TL.status!=='All statuses' && a.status!==TL.status) return false;
+    return true;
+  });
+}
+function tlCaveat(){
+  return '<div class="an-note"><svg viewBox="0 0 24 24" fill="none" stroke="#8a6116" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>'+
+    '<span><b>Representative data.</b> Indeed serves Tools from <code>employers.indeed.com</code>, which was not reachable from the capture session. '+
+    'Section names and preset names come from Scott\'s walkthrough; layout and figures are illustrative.</span></div>';
+}
+
+function tlRender(){
+  var b=tlEl('tlBody'); if(!b) return;
+  if(TL.sec==='overview'){
+    b.innerHTML=tlCaveat()+'<h2 class="tl-h2">Tools</h2><p class="tl-lead">Everything that runs alongside your jobs and sourcing.</p>'+
+      '<div class="tl-grid">'+
+      [['ats','ATS Integrations','Connect your applicant tracking system so candidates and statuses stay in sync both ways.','M4 7h16M4 12h16M4 17h10'],
+       ['automations','Automations','Send messages and emails automatically when candidates apply, get shortlisted, show interest or are rejected.','M13 2L4 14h6l-1 8 9-12h-6z'],
+       ['wallet','Employee Wallet','Manage sponsored-job budget, credits and who on your team can spend them.','M3 7h18v12H3zM3 7l3-4h12l3 4M16 13h3']]
+      .map(function(c){
+        return '<div class="tl-card" onclick="tlGo(\''+c[0]+'\')"><div class="ic"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="'+c[3]+'"/></svg></div>'+
+          '<h3>'+c[1]+'</h3><p>'+c[2]+'</p><span class="go">Open &rarr;</span></div>';
+      }).join('')+'</div>';
+    return;
+  }
+  if(TL.sec==='ats'){
+    var ints=[['GH','Greenhouse','Two-way sync of candidates, stages and notes.','Connected'],
+      ['LV','Lever','Push Indeed applicants into Lever automatically.','Not connected'],
+      ['WD','Workday','Enterprise sync with scheduled imports.','Not connected'],
+      ['SR','SmartRecruiters','Sync candidates and job postings.','Not connected'],
+      ['BH','Bullhorn','For staffing and agency workflows.','Not connected']];
+    b.innerHTML=tlCaveat()+'<h2 class="tl-h2">ATS Integrations</h2><p class="tl-lead">Keep Indeed and your applicant tracking system in step.</p>'+
+      ints.map(function(i){
+        var on = i[3]==='Connected';
+        return '<div class="tl-int"><div class="lg">'+i[0]+'</div><div><div class="nm">'+i[1]+'</div><div class="ds">'+i[2]+'</div></div><div class="sp"></div>'+
+          '<span class="an-pill '+(on?'open':'paused')+'">'+i[3]+'</span>'+
+          '<button class="an-ctl'+(on?'':' pri')+'" onclick="ssToast(\''+(on?'Manage':'Connect')+' '+i[1]+'\',\''+(on?'Opens the '+i[1]+' sync settings.':'Starts the '+i[1]+' OAuth connection flow.')+'\')">'+(on?'Manage':'Connect')+'</button></div>';
+      }).join('');
+    return;
+  }
+  if(TL.sec==='wallet'){
+    if(TL.mode==='empty'){
+      b.innerHTML=tlCaveat()+'<h2 class="tl-h2">Employee Wallet</h2>'+
+        '<div class="tl-empty"><svg viewBox="0 0 24 24" width="60" height="60" fill="none" stroke="#8a93a8" stroke-width="1.4" style="margin:0 auto"><path d="M3 7h18v12H3zM3 7l3-4h12l3 4M16 13h3"/></svg>'+
+        '<h3>No wallet set up yet</h3><p>Add a payment method to fund sponsored jobs and give your team a shared budget to spend from.</p>'+
+        '<button class="an-ctl pri" onclick="ssToast(\'Set up wallet\',\'Opens the payment method flow.\')">Set up wallet</button></div>';
+      return;
+    }
+    b.innerHTML=tlCaveat()+'<h2 class="tl-h2">Employee Wallet</h2><p class="tl-lead">Shared budget for sponsored jobs and branding campaigns.</p>'+
+      '<div class="an-kpis">'+anKPI('Wallet balance','$2,140','','flat')+anKPI('Spent this month','$1,690','12%','up')+anKPI('Daily budget','$120','','flat')+anKPI('Team members with access','3','1','up')+'</div>'+
+      '<div class="an-card full"><h3>Spend by campaign</h3><p class="sub">Where wallet funds went this cycle.</p>'+
+        '<table class="an-tbl"><thead><tr><th>Campaign</th><th>Type</th><th class="num">Spent</th><th>Share</th></tr></thead><tbody>'+
+        [['Web Developer','Sponsored job',830],['Support Engineer','Sponsored job',409],['Lincoln Dynamic — Employer Brand','Branding ad',451]].map(function(r){
+          return '<tr><td class="name">'+r[0]+'</td><td>'+r[1]+'</td><td class="num">$'+r[2]+'</td>'+
+            '<td><div class="an-bar"><i style="width:'+Math.round(r[2]/830*100)+'%"></i></div></td></tr>';
+        }).join('')+'</tbody></table></div>'+
+      '<div class="an-card full" style="margin-top:24px"><h3>Team access</h3>'+
+        '<table class="an-tbl"><thead><tr><th>Member</th><th>Role</th><th class="num">Monthly limit</th></tr></thead><tbody>'+
+        [['kat@lincolndynamic.org','Admin','Unlimited'],['scott@jobfairx.com','Admin','Unlimited'],['maria.lopez@jobfairx.com','Limited','$500']].map(function(r){
+          return '<tr><td class="name">'+r[0]+'</td><td>'+r[1]+'</td><td class="num">'+r[2]+'</td></tr>';
+        }).join('')+'</tbody></table></div>';
+    return;
+  }
+
+  /* ── Automations ── */
+  var list=tlAutos();
+  var bar='<div class="tl-bar">'+
+    '<div class="tl-search"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#767676" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>'+
+    '<input id="tlQ" placeholder="Search automations" value="'+tlEsc(TL.q)+'" oninput="TL.q=this.value;tlRender();setTimeout(function(){var e=tlEl(\'tlQ\');if(e){e.focus();e.setSelectionRange(e.value.length,e.value.length);}},0)"></div>'+
+    '<select class="tl-sel" onchange="TL.creator=this.value;tlRender()">'+
+      ['All creators','kat@lincolndynamic.org','scott@jobfairx.com'].map(function(c){return '<option'+(TL.creator===c?' selected':'')+'>'+c+'</option>';}).join('')+'</select>'+
+    '<select class="tl-sel" onchange="TL.status=this.value;tlRender()">'+
+      ['All statuses','Active','Inactive'].map(function(c){return '<option'+(TL.status===c?' selected':'')+'>'+c+'</option>';}).join('')+'</select>'+
+    '<div style="flex:1"></div><span style="font-size:15px;color:#595959">'+list.length+' automation'+(list.length===1?'':'s')+'</span></div>';
+
+  if(!list.length){
+    var filtered = TL.mode!=='empty';
+    b.innerHTML=tlCaveat()+'<h2 class="tl-h2">My Automations</h2><p class="tl-lead">Rules that message candidates for you when something happens.</p>'+bar+
+      '<div class="tl-empty"><svg viewBox="0 0 24 24" width="60" height="60" fill="none" stroke="#8a93a8" stroke-width="1.4" style="margin:0 auto"><path d="M13 2L4 14h6l-1 8 9-12h-6z"/></svg>'+
+      '<h3>'+(filtered?'No automations match those filters':'You have no automations yet')+'</h3>'+
+      '<p>'+(filtered?'Try clearing the search or the creator and status filters.':'Start from a preset and your Assistant will handle the follow-up the moment a candidate applies, gets shortlisted, shows interest or is rejected.')+'</p>'+
+      '<button class="an-ctl pri" onclick="'+(filtered?'TL.q=\'\';TL.creator=\'All creators\';TL.status=\'All statuses\';tlRender()':'tlNewAutomation()')+'">'+(filtered?'Clear filters':'Create your first automation')+'</button></div>'+
+      tlPresetGrid();
+    return;
+  }
+  b.innerHTML=tlCaveat()+'<h2 class="tl-h2">My Automations</h2><p class="tl-lead">Rules that message candidates for you when something happens.</p>'+bar+
+    '<table class="tl-tbl"><thead><tr><th>Automation</th><th>Applies to</th><th>Trigger</th><th>Created by</th><th>Messages sent</th><th>Status</th><th style="width:56px"></th></tr></thead><tbody>'+
+    list.map(function(a){
+      var pr=TL.PRESETS.filter(function(p){return p.k===a.preset;})[0]||{};
+      return '<tr><td><div class="nm">'+tlEsc(a.name)+'</div><div class="sub">Created '+a.created+'</div></td>'+
+        '<td>'+tlEsc(a.job)+'</td><td>'+tlEsc(pr.trigger||'')+'</td><td>'+tlEsc(a.creator)+'</td>'+
+        '<td><b>'+a.sent+'</b></td>'+
+        '<td><span class="tl-sw'+(a.status==='Active'?' on':'')+'" onclick="tlToggle('+a.id+')"><i></i></span></td>'+
+        '<td style="text-align:right;cursor:pointer" onclick="tlRowMenu('+a.id+')">&#8943;</td></tr>';
+    }).join('')+'</tbody></table>'+
+    tlPresetGrid();
+}
+function tlPresetGrid(){
+  return '<h3 style="font-size:20px;font-weight:700;margin:34px 0 6px">Automation presets</h3>'+
+    '<p style="font-size:16px;color:#595959;margin:0 0 18px">Start from one of these and change the message.</p>'+
+    '<div class="tl-grid">'+TL.PRESETS.map(function(p){
+      return '<div class="tl-preset" onclick="tlNewAutomation(\''+p.k+'\')">'+
+        '<div class="ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16v14H4z"/><path d="M4 6l8 6 8-6"/></svg></div>'+
+        '<h4>'+tlEsc(p.n)+'</h4><p>'+tlEsc(p.d)+'</p>'+
+        '<div><span class="tag">'+p.tag+'</span> <span class="tag">'+tlEsc(p.trigger)+'</span></div></div>';
+    }).join('')+'</div>';
+}
+
+/* ── create / edit workflow ─────────────────────────────────── */
+function tlNewAutomation(presetKey){
+  TL.step = presetKey?2:1; TL.preset = presetKey||null; TL.editing=null;
+  tlRenderCreate(); ssOpen('tlMdCreate');
+}
+function tlEditAutomation(id){
+  var a=TL.AUTOS.filter(function(x){return x.id===id;})[0]; if(!a) return;
+  TL.editing=a; TL.preset=a.preset; TL.step=2;
+  tlRenderCreate(); ssClose('tlMdRow'); ssOpen('tlMdCreate');
+}
+function tlRenderCreate(){
+  var body=tlEl('tlCreateBody'), foot=tlEl('tlCreateFoot');
+  var steps='<div class="tl-step">'+
+    [[1,'Choose a preset'],[2,'Set the trigger'],[3,'Write the message'],[4,'Review']].map(function(s,i){
+      return (i?'<span class="arr">&rsaquo;</span>':'')+'<span class="s'+(TL.step===s[0]?' on':'')+'"><span class="n">'+s[0]+'</span>'+s[1]+'</span>';
+    }).join('')+'</div>';
+  var p = TL.preset ? TL.PRESETS.filter(function(x){return x.k===TL.preset;})[0] : null;
+  tlEl('tlCreateTitle').textContent = TL.editing ? 'Edit automation' : 'Create an automation';
+  tlEl('tlCreateSub').textContent = p ? p.n : 'Pick a preset to start from.';
+
+  if(TL.step===1){
+    body.innerHTML=steps+'<div class="tl-grid">'+TL.PRESETS.map(function(x){
+      return '<div class="tl-preset" onclick="TL.preset=\''+x.k+'\';TL.step=2;tlRenderCreate()">'+
+        '<div class="ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16v14H4z"/><path d="M4 6l8 6 8-6"/></svg></div>'+
+        '<h4>'+tlEsc(x.n)+'</h4><p>'+tlEsc(x.d)+'</p><div><span class="tag">'+x.tag+'</span></div></div>';
+    }).join('')+'</div>';
+    foot.innerHTML='<button class="ss-btn ss-btn-ghost" onclick="ssClose(\'tlMdCreate\')">Cancel</button>';
+    return;
+  }
+  if(TL.step===2){
+    body.innerHTML=steps+
+      '<div class="tl-fld"><label>Automation name</label><input id="tlName" value="'+tlEsc(TL.editing?TL.editing.name:p.n)+'"></div>'+
+      '<div class="tl-fld"><label>Trigger</label><input value="'+tlEsc(p.trigger)+'" readonly style="background:#f7f6f5"><div class="hint">Presets have a fixed trigger. Choose a different preset to change it.</div></div>'+
+      '<div class="tl-fld"><label>Applies to</label><select id="tlJob">'+
+        ['All jobs','Web Developer','Test Engineer','Senior Frontend Engineer','Support Engineer'].map(function(j){
+          return '<option'+((TL.editing&&TL.editing.job===j)?' selected':'')+'>'+j+'</option>';}).join('')+'</select></div>'+
+      '<div class="tl-fld"><label>Send delay</label><select id="tlDelay"><option>Immediately</option><option>After 1 hour</option><option>After 1 day</option><option>After 3 days</option></select></div>';
+    foot.innerHTML='<button class="ss-btn ss-btn-ghost" onclick="TL.step=1;tlRenderCreate()">Back</button>'+
+      '<button class="ss-btn ss-btn-pri" onclick="tlStep3()">Next: Write the message</button>';
+    return;
+  }
+  if(TL.step===3){
+    body.innerHTML=steps+
+      '<div class="tl-fld"><label>Subject</label><input id="tlSubj" value="'+tlEsc(TL.draft.subj)+'"></div>'+
+      '<div class="tl-fld"><label>Message</label><textarea id="tlBodyTxt">'+tlEsc(TL.draft.body)+'</textarea>'+
+      '<div class="hint">Tokens available: {CANDIDATE_FIRSTNAME}, {JOB_TITLE}, {COMPANY}, {RECRUITER_NAME}</div></div>';
+    foot.innerHTML='<button class="ss-btn ss-btn-ghost" onclick="TL.step=2;tlRenderCreate()">Back</button>'+
+      '<button class="ss-btn ss-btn-pri" onclick="tlStep4()">Next: Review</button>';
+    return;
+  }
+  var d=TL.draft;
+  body.innerHTML=steps+
+    '<div class="ss-dl" style="margin:0">'+
+    [['Name',d.name],['Preset',p.n],['Trigger',p.trigger],['Applies to',d.job],['Send delay',d.delay],['Subject',d.subj]]
+      .map(function(r){ return '<div class="r" style="display:flex;gap:24px;padding:14px 0;border-bottom:1px solid #e4e2e0"><div style="flex:0 0 160px;font-weight:700;font-size:16px">'+r[0]+'</div><div style="flex:1;font-size:16px">'+tlEsc(r[1])+'</div></div>'; }).join('')+
+    '</div>'+
+    '<div class="ss-prev" style="margin-top:18px"><div class="h">Message preview <span>Sent automatically when the trigger fires.</span></div>'+
+    '<div class="b">'+tlEsc(d.body)+'</div></div>';
+  foot.innerHTML='<button class="ss-btn ss-btn-ghost" onclick="TL.step=3;tlRenderCreate()">Back</button>'+
+    '<button class="ss-btn ss-btn-pri" onclick="tlSave()">'+(TL.editing?'Save changes':'Create automation')+'</button>';
+}
+TL.draft={};
+function tlStep3(){
+  var p=TL.PRESETS.filter(function(x){return x.k===TL.preset;})[0];
+  TL.draft={ name:(tlEl('tlName').value||p.n).trim(), job:tlEl('tlJob').value, delay:tlEl('tlDelay').value, subj:p.subj, body:p.body };
+  if(!TL.draft.name){ ssToast('Name required','Give the automation a name.'); return; }
+  TL.step=3; tlRenderCreate();
+}
+function tlStep4(){
+  TL.draft.subj=tlEl('tlSubj').value.trim();
+  TL.draft.body=tlEl('tlBodyTxt').value;
+  if(!TL.draft.subj){ ssToast('Subject required','Add a subject line.'); return; }
+  TL.step=4; tlRenderCreate();
+}
+function tlSave(){
+  var d=TL.draft;
+  if(TL.editing){
+    TL.editing.name=d.name; TL.editing.job=d.job;
+    ssToast('Automation saved',d.name+' updated.');
+  } else {
+    TL.AUTOS.unshift({id:Date.parse?TL.AUTOS.length+100:0,name:d.name,preset:TL.preset,job:d.job,
+      creator:'kat@lincolndynamic.org',status:'Active',sent:0,created:'Aug 3, 2026'});
+    ssToast('Automation created',d.name+' is now active.');
+  }
+  TL.editing=null; ssClose('tlMdCreate'); tlRender();
+}
+function tlToggle(id){
+  var a=TL.AUTOS.filter(function(x){return x.id===id;})[0]; if(!a) return;
+  a.status = a.status==='Active'?'Inactive':'Active';
+  tlRender(); ssToast(a.status==='Active'?'Automation on':'Automation paused', a.name);
+}
+function tlRowMenu(id){
+  var a=TL.AUTOS.filter(function(x){return x.id===id;})[0]; if(!a) return;
+  TL.rowId=id;
+  tlEl('tlRowTitle').textContent=a.name;
+  var pr=TL.PRESETS.filter(function(p){return p.k===a.preset;})[0]||{};
+  tlEl('tlRowBody').innerHTML='<div style="font-size:16px;line-height:30px">'+
+    '<div><b>Trigger:</b> '+tlEsc(pr.trigger||'')+'</div>'+
+    '<div><b>Applies to:</b> '+tlEsc(a.job)+'</div>'+
+    '<div><b>Created by:</b> '+tlEsc(a.creator)+' on '+a.created+'</div>'+
+    '<div><b>Messages sent:</b> '+a.sent+'</div>'+
+    '<div><b>Status:</b> '+a.status+'</div></div>'+
+    '<div style="display:flex;gap:12px;margin-top:20px;flex-wrap:wrap">'+
+    '<button class="ss-btn ss-btn-out" onclick="tlEditAutomation('+id+')">Edit</button>'+
+    '<button class="ss-btn ss-btn-out" onclick="tlToggle('+id+');ssClose(\'tlMdRow\')">'+(a.status==='Active'?'Pause':'Activate')+'</button>'+
+    '<button class="ss-btn ss-btn-out" onclick="tlDuplicate('+id+')">Duplicate</button>'+
+    '<button class="ss-btn ss-btn-out" style="color:#a9252b;border-color:#f2c2c2" onclick="ssClose(\'tlMdRow\');ssOpen(\'tlMdDelete\')">Delete</button></div>';
+  ssOpen('tlMdRow');
+}
+function tlDuplicate(id){
+  var a=TL.AUTOS.filter(function(x){return x.id===id;})[0]; if(!a) return;
+  TL.AUTOS.unshift({id:TL.AUTOS.length+200,name:a.name+' (copy)',preset:a.preset,job:a.job,
+    creator:'kat@lincolndynamic.org',status:'Inactive',sent:0,created:'Aug 3, 2026'});
+  ssClose('tlMdRow'); tlRender(); ssToast('Duplicated',a.name+' (copy) created as inactive.');
+}
+function tlDeleteConfirm(){
+  TL.AUTOS = TL.AUTOS.filter(function(x){return x.id!==TL.rowId;});
+  ssClose('tlMdDelete'); tlRender(); ssToast('Automation deleted','It will not run again.');
+}
+(function tlInit(){
+  function boot(){ if(!tlEl('view-tools')) return; tlGo('overview'); }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else setTimeout(boot,0);
+})();
 
 </script>
 </body>
