@@ -12067,6 +12067,197 @@ function IAUsers(t){ IA.usersTab = t; IA.sync(); }
   IA.sync();
 })();
 
+
+/* ═══ IA-FLYOUT — INDEED-EXACT SIDEBAR DISCLOSURE ════════════════════
+   Replaces the inline accordion with Indeed's actual mechanic:
+   a right-pointing chevron button (42x44, x=175) that opens a panel
+   BESIDE the sidebar at x = sidebarWidth + 6.
+   Measured on employers.indeed.com — see rn/NAV.md.
+   ==================================================================== */
+(function(){
+  if (typeof IA !== 'object' || !IA.tree) return;
+
+  /* Indeed has no Messaging row in the sidebar — Messages is a top-bar
+     utility. Remove the invented submenu; keep Messaging as a plain row. */
+  IA.tree.forEach(function(n){ if (n && n.id === 'messaging') delete n.children; });
+
+  IA.flyoutOpen = null;
+  IA.pinned = false;
+
+  var CH_RIGHT = '<svg class="ia-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>';
+
+  /* ---- render: rows + a body-level panel per branch ---------------- */
+  IA.render = function(){
+    var host = document.querySelector('.sidebar-nav');
+    if (!host) return;
+    IA.index = {};
+    document.querySelectorAll('.ia-fly').forEach(function(e){ e.remove(); });
+
+    var html = '<div class="ia-nav" id="iaNav">';
+    IA.tree.forEach(function(n){
+      if (n.section) return;                     /* Indeed has no group headers */
+      IA.index[n.id] = n;
+      var kids = n.children || [];
+      html += '<div class="ia-row" id="iarow-' + n.id + '">' +
+        '<a class="nav-item ia-item' + (kids.length ? ' has-kids' : '') + '" id="nav-' + n.id + '"' +
+          ' tabindex="0" onclick="IA.go(\'' + n.id + '\')" onkeydown="IA.key(event,\'' + n.id + '\')">' +
+          iaIcon(n.icon) + '<span class="ia-lbl nav-text">' + n.label + '</span>' +
+          (n.badge ? '<span class="ia-badge">' + n.badge + '</span>' : '') +
+        '</a>' +
+        (kids.length
+          ? '<button class="ia-disc" type="button" aria-haspopup="true" aria-expanded="false"' +
+            ' aria-label="Enter ' + n.label + ' subnavigation"' +
+            ' onclick="event.stopPropagation();IA.fly(\'' + n.id + '\',true)">' + CH_RIGHT + '</button>'
+          : '') +
+      '</div>';
+
+      if (kids.length) {
+        var panel = document.createElement('div');
+        panel.className = 'ia-fly' + (n.flyWide ? ' wide' : '');
+        panel.id = 'iafly-' + n.id;
+        panel.setAttribute('role', 'menu');
+        panel.innerHTML = '<ul>' + kids.map(function(k){
+          IA.index[k.id] = k; k.parent = n.id;
+          return '<li><a role="menuitem" id="nav-' + k.id + '" tabindex="-1"' +
+            ' onclick="IA.goChild(\'' + n.id + '\',\'' + k.id + '\')">' +
+            '<span class="ia-lbl">' + k.label + '</span>' + (k.ext ? IA_EXT : '') + '</a></li>';
+        }).join('') + '</ul>';
+        document.body.appendChild(panel);
+        panel.addEventListener('mouseenter', function(){ clearTimeout(IA._close); });
+        panel.addEventListener('mouseleave', function(){ IA.scheduleClose(); });
+      }
+    });
+    html += '</div>';
+    host.innerHTML = html;
+
+    /* hover opens, matching the live app */
+    IA.tree.forEach(function(n){
+      if (n.section || !(n.children || []).length) return;
+      var row = document.getElementById('iarow-' + n.id);
+      if (!row) return;
+      row.addEventListener('mouseenter', function(){
+        clearTimeout(IA._close);
+        IA._hover = setTimeout(function(){ IA.fly(n.id, false); }, 200);
+      });
+      row.addEventListener('mouseleave', function(){
+        clearTimeout(IA._hover); IA.scheduleClose();
+      });
+    });
+    IA.sync();
+  };
+
+  IA.scheduleClose = function(){
+    IA._close = setTimeout(function(){ if (!IA.pinned) IA.closeFly(); }, 240);
+  };
+
+  IA.fly = function(id, pin){
+    var n = IA.index[id]; if (!n || !(n.children || []).length) return;
+    if (IA.flyoutOpen === id && pin) { IA.closeFly(); return; }
+    IA.closeFly();
+    var sb = document.getElementById('sidebar');
+    if (sb && sb.classList.contains('collapsed')) return;
+    var row = document.getElementById('iarow-' + id), fly = document.getElementById('iafly-' + id);
+    if (!row || !fly) return;
+    var r = row.getBoundingClientRect();
+    /* anchored to the sidebar's right edge (223 + 6 = 229), as measured */
+    var sr = sb ? sb.getBoundingClientRect().right : r.right;
+    fly.style.left = Math.round(sr + 6) + 'px';
+    fly.style.top  = Math.round(r.top) + 'px';
+    fly.classList.add('open');
+    row.classList.add('flyopen');
+    var b = row.querySelector('.ia-disc'); if (b) b.setAttribute('aria-expanded', 'true');
+    var fr = fly.getBoundingClientRect();
+    if (fr.bottom > window.innerHeight - 8) fly.style.top = Math.max(8, window.innerHeight - 8 - fr.height) + 'px';
+    IA.flyoutOpen = id;
+    IA.pinned = !!pin;
+    IA.sync();
+  };
+
+  IA.closeFly = function(){
+    if (!IA.flyoutOpen) return;
+    var row = document.getElementById('iarow-' + IA.flyoutOpen), fly = document.getElementById('iafly-' + IA.flyoutOpen);
+    if (fly) fly.classList.remove('open');
+    if (row) {
+      row.classList.remove('flyopen');
+      var b = row.querySelector('.ia-disc'); if (b) b.setAttribute('aria-expanded', 'false');
+    }
+    IA.flyoutOpen = null; IA.pinned = false;
+  };
+
+  /* clicking the row navigates; it does not expand anything */
+  IA.go = function(id){
+    var n = IA.index[id]; if (!n) return;
+    IA.closeFly();
+    if (n.view) showView(n.view);
+    IA.current = id;
+    IA.sync();
+  };
+  IA.goChild = function(parentId, childId){
+    var p = IA.index[parentId], k = IA.index[childId];
+    if (!p || !k) return;
+    IA.closeFly();
+    if (p.view) showView(p.view);
+    try { if (k.go) k.go(); } catch(e) {}
+    IA.current = parentId;
+    IA.sync();
+  };
+  IA.key = function(e, id){
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); IA.go(id); }
+    if (e.key === 'ArrowRight') IA.fly(id, true);
+    if (e.key === 'ArrowLeft' || e.key === 'Escape') IA.closeFly();
+  };
+  IA.toggle = function(){};   /* accordion no longer exists */
+
+  IA.sync = function(){
+    var vname = ((document.querySelector('.view.active') || {}).id || '').replace('view-', '');
+    document.querySelectorAll('.ia-item, .ia-fly a').forEach(function(e){
+      e.classList.remove('active', 'branch-active');
+    });
+    IA.tree.forEach(function(n){
+      if (n.section) return;
+      var a = document.getElementById('nav-' + n.id);
+      if (!a || n.view !== vname) return;
+      var kids = n.children || [], hit = null;
+      kids.forEach(function(k){ if (!hit && k.match) { try { if (k.match()) hit = k; } catch(e) {} } });
+      a.classList.add('active');
+      if (hit) { var ce = document.getElementById('nav-' + hit.id); if (ce) ce.classList.add('active'); }
+    });
+    IA.crumbs();
+  };
+
+  document.addEventListener('click', function(e){
+    if (!IA.flyoutOpen) return;
+    var fly = document.getElementById('iafly-' + IA.flyoutOpen);
+    var row = document.getElementById('iarow-' + IA.flyoutOpen);
+    if ((fly && fly.contains(e.target)) || (row && row.contains(e.target))) return;
+    IA.closeFly();
+  });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') IA.closeFly(); });
+  window.addEventListener('resize', function(){ if (IA.flyoutOpen) IA.fly(IA.flyoutOpen, IA.pinned); });
+  document.addEventListener('scroll', function(){ IA.closeFly(); }, true);
+
+  /* Tools carries the widest label — 250px, as measured */
+  IA.tree.forEach(function(n){ if (n && n.id === 'tools') n.flyWide = true; });
+
+  if (document.querySelector('.sidebar-nav')) IA.render();
+  else document.addEventListener('DOMContentLoaded', function(){ IA.render(); });
+})();
+
+/* ═══ nav order, per Scott: Agents → Smart Sourcing → Candidates ═════ */
+(function(){
+  if (typeof IA !== 'object' || !IA.tree) return;
+  var ORDER = ['overview','events','sourcing','candidates','interviews','messaging',
+               'analytics','tools','users','subs','settings'];
+  var byId = {};
+  IA.tree.forEach(function(n){ if (n && n.id) byId[n.id] = n; });
+  var ordered = ORDER.map(function(id){ return byId[id]; }).filter(Boolean);
+  /* anything registered later that isn't in ORDER keeps its relative place at the end */
+  IA.tree.forEach(function(n){ if (n && n.id && ORDER.indexOf(n.id) < 0) ordered.push(n); });
+  IA.tree.length = 0;
+  ordered.forEach(function(n){ IA.tree.push(n); });
+  if (document.querySelector('.sidebar-nav')) IA.render();
+})();
+
 (function tlInit(){
   function boot(){ if(!tlEl('view-tools')) return; tlGo('overview'); }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else setTimeout(boot,0);
@@ -12448,6 +12639,51 @@ function IAUsers(t){ IA.usersTab = t; IA.sync(); }
 #sidebar .collapse-btn{ height:44px; border-radius:12px; padding:0 8px; gap:8px; font-size:14px;
   line-height:21px; font-weight:400; }
 #sidebar .collapse-btn svg{ width:24px; height:24px; flex:0 0 24px; }
+
+</style>
+<style>
+
+/* ═══ IA-FLYOUT — Indeed-exact sidebar disclosure ══════════════════════
+   Row: x=6, 44px tall on a 48px pitch, radius 12, padding 0 16 0 8,
+   8px gap, 24px icon, label 14/21/400 at x=47.
+   Row WITH children: link 169 wide + 42x44 chevron button at x=175.
+   Panel: opens at sidebarRight + 6, radius 12, 6px 0 padding,
+   220 wide (250 for Tools), 44px items with 4px gaps.
+   ==================================================================== */
+.ia-nav{ gap:4px; }
+.ia-sec{ display:none; }                       /* Indeed has no group headers */
+
+.ia-row{ position:relative; display:block; }
+.ia-item.has-kids{ width:169px; padding-right:8px; }
+.ia-disc{ position:absolute; top:0; left:169px; width:42px; height:44px; display:flex;
+  align-items:center; justify-content:center; border:0; background:none; cursor:pointer;
+  border-radius:12px; color:#7a7873; padding:0; transition:background .13s, color .13s; }
+.ia-disc .ia-caret{ width:20px; height:20px; transition:none; transform:none; }
+.ia-disc:hover{ background:#f1efe8; color:#2d2d2d; }
+.ia-disc:focus-visible{ outline:2px solid #0044B3; outline-offset:1px; }
+.ia-row.flyopen > .ia-item{ background:#EEEDEA; color:#2d2d2d; }
+.ia-row.flyopen > .ia-disc{ color:#2d2d2d; }
+
+/* the panel */
+.ia-fly{ position:fixed; z-index:4300; width:220px; padding:6px 0; border-radius:12px;
+  background:#fff; border:1px solid #e2e0da;
+  box-shadow:0 0 2px rgba(45,45,45,.16), 0 4px 8px rgba(45,45,45,.08), 0 8px 24px rgba(45,45,45,.10);
+  display:none; }
+.ia-fly.open{ display:block; }
+.ia-fly.wide{ width:250px; }
+.ia-fly ul{ list-style:none; margin:0; padding:0 6px; }
+.ia-fly li + li{ margin-top:4px; }
+.ia-fly a{ display:flex; align-items:center; gap:8px; height:44px; padding:0 8px; border-radius:12px;
+  font-size:15px; line-height:24px; font-weight:400; color:#2d2d2d; text-decoration:none;
+  cursor:pointer; white-space:nowrap; transition:background .12s; }
+.ia-fly a:hover{ background:#f1efe8; }
+.ia-fly a.active{ background:#EEEDEA; font-weight:700; }
+.ia-fly a .ia-ext{ width:14px; height:14px; margin-left:auto; color:#9b9992; flex:0 0 14px; }
+.ia-fly .ia-lbl{ flex:1 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; }
+
+/* the accordion is gone */
+.ia-kids{ display:none !important; }
+.sidebar.collapsed .ia-disc{ display:none; }
 
 </style>
 </body>
