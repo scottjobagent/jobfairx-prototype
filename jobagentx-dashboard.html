@@ -11584,6 +11584,489 @@ function rnApply(){
   };
 })();
 
+
+/* ═══ SP — SMART SOURCING PROFILE PANE, EXACT HEADER + TABS ══════════
+   Measured on resumes.indeed.com (rn/SMART-SOURCING-EXACT.md §8.3-8.6).
+   Corrections: the candidate name is a "Copy name" button, the meta row
+   carries the magenta "Recently updated" line, and Resume is the first
+   and default tab. Notes / Activity are retained as JobAgentX additions
+   beyond Indeed's two tabs.
+   ==================================================================== */
+(function(){
+  if (typeof ssDetailHTML !== 'function') return;
+  var _orig = ssDetailHTML;
+
+  SS.dtab = 'resume';
+
+  /* Resume is the default tab on the live app, not Profile */
+  if (typeof ssOpenCand === 'function') {
+    var _open = ssOpenCand;
+    window.ssOpenCand = function(id){
+      var was = SS.openId;
+      var r = _open.apply(this, arguments);
+      if (SS.openId && SS.openId !== was) { SS.dtab = 'resume'; ssRenderList(); }
+      return r;
+    };
+  }
+
+  /* header overflow + download menus, per §8.6 */
+  if (typeof SS_MENUS === 'object' && SS_MENUS) {
+    SS_MENUS.candMore = [
+      ['Report this resume',            "ssToast('Report submitted','Thanks — our team will review this resume.')"],
+      ['Submit AI highlighter feedback',"ssToast('Feedback sent','Thanks for helping improve AI highlighting.')"]
+    ];
+    SS_MENUS.candDownload = [
+      ['Download profile',            "ssToast('Download started','profile.pdf')"],
+      ['Download resume',             "ssToast('Download started','resume.pdf')"],
+      ['Download profile and resume', "ssToast('Download started','profile-and-resume.zip')"]
+    ];
+  }
+
+  function copyName(n){
+    if (navigator.clipboard) { try { navigator.clipboard.writeText(n); } catch(e) {} }
+    ssToast('Name copied', n);
+  }
+  window.ssCopyName = copyName;
+
+  window.ssDetailHTML = function(c){
+    var h =
+      '<div class="sp-head">' +
+        '<button class="sp-name" aria-label="Copy name" onclick="ssCopyName(' + JSON.stringify(c.n).replace(/"/g,'&quot;') + ')">' + ssEsc(c.n) + '</button>' +
+        '<p class="sp-loc">' + ssEsc(c.loc) + '</p>' +
+        '<div class="sp-actions">' +
+          (c.contacted
+            ? '<span class="ss-contacted" style="height:44px;display:inline-flex;align-items:center">Contacted</span>'
+            : '<button class="ss-btn ss-btn-pri" onclick="ssMessage(\'' + c.id + '\')">Message</button>') +
+          '<button class="ss-btn ss-btn-ghost" onclick="ssNotMatch(\'' + c.id + '\')">Not a match</button>' +
+          '<span class="sp-sep"></span>' +
+          '<button class="ss-btn ss-btn-ghost" onclick="ssSaveCand(\'' + c.id + '\')">Save</button>' +
+          '<button class="ss-thumb" aria-label="Download actions" onclick="ssMenu(event,\'candDownload\')"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12M7 11l5 5 5-5M4 20h16"/></svg></button>' +
+          '<span class="sp-sep"></span>' +
+          '<button class="ss-thumb" aria-label="More" onclick="ssMenu(event,\'candMore\')">&#8943;</button>' +
+          '<button class="sp-close" aria-label="Close" onclick="ssOpenCand(\'' + c.id + '\')">&times;</button>' +
+        '</div>' +
+      '</div>' +
+      '<div class="sp-meta">' +
+        '<span class="upd">Recently updated: ' + ssEsc(String(c.upd).replace('Resume updated ', '')) + '</span>' +
+        '<span class="act"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2h12M6 22h12M6 2v5l6 5-6 5v5M18 2v5l-6 5 6 5v5"/></svg>' + ssEsc(c.act) + '</span>' +
+      '</div>' +
+      '<div class="sp-tabs" role="tablist">' +
+        ['resume','profile','notes','activity'].map(function(t){
+          var lbl = { resume:'Resume', profile:'Profile', notes:'Notes', activity:'Activity' }[t];
+          return '<button class="sp-tab' + (SS.dtab === t ? ' on' : '') + '" role="tab" aria-selected="' +
+            (SS.dtab === t) + '" onclick="ssDTab(\'' + t + '\')">' + lbl + '</button>';
+        }).join('') +
+      '</div>';
+
+    if (SS.dtab === 'resume') {
+      h += '<div class="sp-doc">' + [1,2].map(function(pn){
+        return '<div class="sp-page"><div class="sp-pg-in">' +
+          '<div class="sp-pg-h">' + ssEsc(c.n) + '</div>' +
+          '<div class="sp-pg-s">' + ssEsc(c.loc) + '</div>' +
+          (pn === 1
+            ? '<div class="sp-pg-sec">Professional summary</div><p>' + ssHighlight(c.summary || '') + '</p>' +
+              '<div class="sp-pg-sec">Experience</div>' +
+              (c.exp || []).map(function(e){
+                return '<p><b>' + ssEsc(e.t) + '</b>' + (e.c ? ' &middot; ' + ssEsc(e.c) : '') + '<br><span class="mut">' + ssEsc(e.d || '') + '</span></p>';
+              }).join('')
+            : '<div class="sp-pg-sec">Education</div><p><b>' + ssEsc(c.edu) + '</b><br><span class="mut">' + ssEsc(c.school) + '</span></p>' +
+              '<div class="sp-pg-sec">Skills</div><p class="sk">' + (c.insights || []).map(ssEsc).join(' &nbsp;·&nbsp; ') + '</p>') +
+          '<div class="sp-pg-n">Page ' + pn + ' of 2</div>' +
+        '</div></div>';
+      }).join('') + '</div>';
+      return h;
+    }
+
+    /* other tabs reuse the existing rendering; strip its old chrome via DOM,
+       which is safer than string slicing */
+    var tmp = document.createElement('div');
+    tmp.innerHTML = _orig(c);
+    ['.ss-dhead', '.ss-dmeta', '.ss-dtabs'].forEach(function(sel){
+      var n = tmp.querySelector(sel); if (n) n.remove();
+    });
+    return h + tmp.innerHTML;
+  };
+})();
+
+
+/* ═══ IA — APPLICATION NAVIGATION ARCHITECTURE ════════════════════════
+   One declarative tree drives the sidebar, the active/branch highlighting,
+   the breadcrumb trail and the page headers. New modules register a node
+   instead of hand-writing markup, so the architecture scales without any
+   hard-coded navigation behaviour.
+
+   Node shape:
+     { id, label, icon, section, view, go(), children:[], badge, ext, external }
+       id       stable key, also the DOM id (nav-<id>) where a view exists
+       view     the #view-<name> this node activates
+       go()     optional custom activation (module sub-section routing)
+       match()  optional predicate deciding whether this node is current
+   ==================================================================== */
+var IA = { expanded: {}, current: null, tree: [], index: {} };
+
+var IA_ICONS = {
+  dashboard:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
+  sourcing :'<circle cx="10" cy="8" r="4"/><path d="M2 21v-2a6 6 0 016-6h3"/><circle cx="17.5" cy="16.5" r="3.5"/><path d="M20 19l2.5 2.5"/>',
+  candidates:'<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/>',
+  agents   :'<path d="M12 3l2.1 5.2 5.4.4-4.1 3.5 1.3 5.3-4.6-2.9-4.6 2.9 1.3-5.3-4.1-3.5 5.4-.4z"/>',
+  interviews:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/>',
+  analytics:'<path d="M3 3v18h18"/><path d="M7 15l4-5 3 3 5-7"/>',
+  messaging:'<path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>',
+  tools    :'<path d="M14.7 6.3a4 4 0 01-5.4 5.4L4 17v3h3l5.3-5.3a4 4 0 015.4-5.4z"/>',
+  users    :'<path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 00-3-3.87M16 3.1a4 4 0 010 7.75"/>',
+  subs     :'<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M6 15h4"/>',
+  settings :'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.9l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.9-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1A1.7 1.7 0 008 19.4a1.7 1.7 0 00-1.9.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.9 1.7 1.7 0 00-1.5-1H2a2 2 0 110-4h.1A1.7 1.7 0 004.6 8a1.7 1.7 0 00-.3-1.9l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.9.3H9a1.7 1.7 0 001-1.5V2a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.9-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.9V9a1.7 1.7 0 001.5 1H22a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/>'
+};
+var IA_EXT = '<svg class="ia-ext" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><path d="M15 3h6v6"/><path d="M10 14L21 3"/></svg>';
+var IA_CARET = '<svg class="ia-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>';
+
+function iaIcon(k){
+  return '<svg class="ia-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + (IA_ICONS[k] || '') + '</svg>';
+}
+function iaSec(v){ try { return (v && v.sec) || null; } catch(e) { return null; } }
+
+/* ── the tree ─────────────────────────────────────────────────────── */
+IA.tree = [
+  { section: 'Workspace' },
+  { id:'overview',  label:'Dashboard',     icon:'dashboard',  view:'overview' },
+
+  { section: 'Hiring' },
+  { id:'sourcing',  label:'Smart Sourcing', icon:'sourcing',  view:'sourcing', children:[
+      { id:'sourcing-home',      label:'Find candidates',   go:function(){ ssGo('home'); },      match:function(){ return SS.screen==='home' || SS.screen==='search'; } },
+      { id:'sourcing-plans',     label:'Plans and Pricing', go:function(){ ssGo('plans'); },     match:function(){ return SS.screen==='plans'; } },
+      { id:'sourcing-projects',  label:'Projects',          go:function(){ ssGo('projects'); },  match:function(){ return SS.screen==='projects'; } },
+      { id:'sourcing-saved',     label:'Saved searches',    go:function(){ ssGo('saved'); },     match:function(){ return SS.screen==='saved'; } },
+      { id:'sourcing-templates', label:'Templates',         go:function(){ ssGo('templates'); }, match:function(){ return SS.screen==='templates'; } }
+  ]},
+  { id:'candidates', label:'Candidates',   icon:'candidates', view:'candidates' },
+  { id:'events',     label:'Agents',       icon:'agents',     view:'events' },
+  { id:'interviews', label:'Interviews',   icon:'interviews', view:'interviews' },
+
+  { section: 'Insights' },
+  { id:'analytics', label:'Analytics',     icon:'analytics',  view:'analytics', children:[
+      { id:'an-overview',   label:'Analytics Overview',    go:function(){ rnGo('overview'); },   match:function(){ return RN.report==='overview'; } },
+      { id:'an-jobs',       label:'Jobs & Campaigns',      go:function(){ rnGo('jobsSummary'); },match:function(){ return RN.report==='jobsSummary'||RN.report==='jobsDetail'; } },
+      { id:'an-sourcing',   label:'Smart Sourcing',        go:function(){ rnGo('ssSummary'); },  match:function(){ return RN.report==='ssSummary'||RN.report==='ssDetail'; } },
+      { id:'an-interviews', label:'Interviews & Events',   go:function(){ rnGo('interviews'); }, match:function(){ return RN.report==='interviews'; } },
+      { id:'an-ads',        label:'Employer Branding Ads', go:function(){ rnGo('ads'); },        match:function(){ return RN.report==='ads'||RN.report==='brandScore'; } },
+      { id:'an-insights',   label:'Hiring Insights', ext:true, go:function(){ rnGo('insights'); }, match:function(){ return RN.report==='insights'; } }
+  ]},
+
+  { section: 'Communication' },
+  { id:'messaging', label:'Messaging',     icon:'messaging',  view:'messaging', children:[
+      { id:'msg-inbox',     label:'Inbox',             go:function(){ NV.msg('inbox'); },     match:function(){ return (NV.msgSec||'inbox')==='inbox'; } },
+      { id:'msg-unread',    label:'Unread',            go:function(){ NV.msg('unread'); },    match:function(){ return NV.msgSec==='unread'; } },
+      { id:'msg-awaiting',  label:'Awaiting reply',    go:function(){ NV.msg('awaiting'); },  match:function(){ return NV.msgSec==='awaiting'; } },
+      { id:'msg-archived',  label:'Archived',          go:function(){ NV.msg('archived'); },  match:function(){ return NV.msgSec==='archived'; } },
+      { id:'msg-templates', label:'Message templates', go:function(){ NV.msg('templates'); }, match:function(){ return NV.msgSec==='templates'; } }
+  ]},
+
+  { section: 'Administration' },
+  { id:'tools', label:'Tools',             icon:'tools',      view:'tools', children:[
+      { id:'tl-overview',    label:'Overview',         go:function(){ tlGo('overview'); },    match:function(){ return TL.sec==='overview'; } },
+      { id:'tl-action',      label:'Action Center',    go:function(){ tlGo('action'); },      match:function(){ return TL.sec==='action'; } },
+      { id:'tl-ats',         label:'ATS Integrations', go:function(){ tlGo('ats'); },         match:function(){ return TL.sec==='ats'; } },
+      { id:'tl-automations', label:'Automations',      go:function(){ tlGo('automations'); }, match:function(){ return TL.sec==='automations'; } },
+      { id:'tl-wallet',      label:'Employee Wallet',  go:function(){ tlGo('wallet'); },      match:function(){ return TL.sec==='wallet'; } }
+  ]},
+  { id:'users', label:'Users',             icon:'users',      view:'users', children:[
+      { id:'usr-agents', label:'Agents', go:function(){ showView('events'); },              match:function(){ return false; } },
+      { id:'usr-roles',  label:'Roles',  go:function(){ showView('users'); IAUsers('roles'); }, match:function(){ return IA.usersTab==='roles'; } }
+  ]},
+  { id:'subs',     label:'Subscriptions', icon:'subs',     view:'subs' },
+  { id:'settings', label:'Settings',      icon:'settings', view:'settings' }
+];
+
+/* ── registry: future modules call IA.register instead of editing markup ── */
+IA.register = function(node, opts){
+  opts = opts || {};
+  var t = IA.tree, at = t.length;
+  if (opts.after) { for (var i = 0; i < t.length; i++) if (t[i].id === opts.after) { at = i + 1; break; } }
+  else if (opts.section) { for (var j = 0; j < t.length; j++) if (t[j].section === opts.section) at = j + 1; }
+  t.splice(at, 0, node);
+  IA.render();
+  return node;
+};
+IA.registerChild = function(parentId, node, at){
+  var p = IA.index[parentId];
+  if (!p) return null;
+  p.children = p.children || [];
+  if (typeof at === 'number') p.children.splice(at, 0, node); else p.children.push(node);
+  IA.render();
+  return node;
+};
+
+/* ── render ───────────────────────────────────────────────────────── */
+IA.render = function(){
+  var host = document.querySelector('.sidebar-nav');
+  if (!host) return;
+  IA.index = {};
+  var html = '<div class="ia-nav" id="iaNav">';
+  IA.tree.forEach(function(n){
+    if (n.section) { html += '<div class="ia-sec">' + n.section + '</div>'; return; }
+    IA.index[n.id] = n;
+    var kids = n.children || [];
+    var open = !!IA.expanded[n.id];
+    html += '<div class="ia-row' + (open ? ' open' : '') + '" id="iarow-' + n.id + '">';
+    html += '<a class="nav-item ia-item" id="nav-' + n.id + '" role="' + (kids.length ? 'button' : 'link') + '"' +
+      (kids.length ? ' aria-expanded="' + open + '"' : '') +
+      ' tabindex="0" onclick="IA.go(\'' + n.id + '\')" onkeydown="IA.key(event,\'' + n.id + '\')">' +
+      iaIcon(n.icon) + '<span class="ia-lbl nav-text">' + n.label + '</span>' +
+      (n.badge ? '<span class="ia-badge">' + n.badge + '</span>' : '') +
+      (kids.length ? IA_CARET : '') + '</a>';
+    if (kids.length) {
+      html += '<div class="ia-kids" id="iakids-' + n.id + '"><div class="ia-kids-in">';
+      kids.forEach(function(k){
+        IA.index[k.id] = k; k.parent = n.id;
+        html += '<a class="ia-child" id="nav-' + k.id + '" tabindex="0" onclick="IA.goChild(\'' + n.id + '\',\'' + k.id + '\')" onkeydown="IA.key(event,\'' + k.id + '\',\'' + n.id + '\')">' +
+          '<span class="ia-lbl">' + k.label + '</span>' + (k.ext ? IA_EXT : '') + '</a>';
+      });
+      html += '</div></div>';
+    }
+    html += '</div>';
+  });
+  html += '</div>';
+  host.innerHTML = html;
+  /* restore open heights without animating on first paint */
+  IA.tree.forEach(function(n){
+    if (!n.children || !IA.expanded[n.id]) return;
+    var box = document.getElementById('iakids-' + n.id);
+    if (box) { box.style.transition = 'none'; box.style.height = box.firstElementChild.offsetHeight + 'px';
+               void box.offsetHeight; box.style.transition = ''; }
+  });
+  IA.sync();
+};
+
+IA.toggle = function(id, force){
+  var n = IA.index[id]; if (!n || !n.children) return;
+  var box = document.getElementById('iakids-' + id), row = document.getElementById('iarow-' + id);
+  if (!box || !row) return;
+  var open = (typeof force === 'boolean') ? force : !IA.expanded[id];
+  IA.expanded[id] = open;
+  var inner = box.firstElementChild;
+  var target = inner.offsetHeight;
+  if (open) {
+    row.classList.add('open');
+    box.style.height = target + 'px';
+    var done = function(){ if (IA.expanded[id]) box.style.height = 'auto'; box.removeEventListener('transitionend', done); };
+    box.addEventListener('transitionend', done);
+  } else {
+    box.style.height = box.offsetHeight + 'px';
+    void box.offsetHeight;
+    row.classList.remove('open');
+    box.style.height = '0px';
+  }
+  var a = document.getElementById('nav-' + id);
+  if (a) a.setAttribute('aria-expanded', String(open));
+};
+
+/* activating a parent: open it, show its view, and land on its first child */
+IA.go = function(id){
+  var n = IA.index[id]; if (!n) return;
+  if (n.children && n.children.length) {
+    var wasOpen = !!IA.expanded[id];
+    IA.toggle(id, true);
+    if (n.view) showView(n.view);
+    if (!wasOpen || IA.current !== id) {
+      var first = n.children[0];
+      try { if (first.go) first.go(); } catch(e) {}
+    }
+  } else if (n.view) {
+    showView(n.view);
+  }
+  IA.current = id;
+  IA.sync();
+};
+IA.goChild = function(parentId, childId){
+  var p = IA.index[parentId], k = IA.index[childId];
+  if (!p || !k) return;
+  IA.toggle(parentId, true);
+  if (p.view) showView(p.view);
+  try { if (k.go) k.go(); } catch(e) {}
+  IA.current = parentId;
+  IA.sync();
+};
+IA.key = function(e, id, parentId){
+  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); parentId ? IA.goChild(parentId, id) : IA.go(id); }
+  if (e.key === 'ArrowRight' && IA.index[id] && IA.index[id].children) IA.toggle(id, true);
+  if (e.key === 'ArrowLeft'  && IA.index[id] && IA.index[id].children) IA.toggle(id, false);
+};
+
+/* highlighting derives from the tree — no per-module bookkeeping */
+IA.sync = function(){
+  var view = (document.querySelector('.view.active') || {}).id || '';
+  var vname = view.replace('view-', '');
+  document.querySelectorAll('.ia-item, .ia-child').forEach(function(e){
+    e.classList.remove('active', 'branch-active');
+  });
+  IA.tree.forEach(function(n){
+    if (n.section) return;
+    var isView = n.view === vname;
+    var a = document.getElementById('nav-' + n.id);
+    if (!a) return;
+    if (isView) {
+      var kids = n.children || [], hit = null;
+      kids.forEach(function(k){ if (!hit && k.match) { try { if (k.match()) hit = k; } catch(e) {} } });
+      if (kids.length) {
+        a.classList.add('branch-active');
+        if (hit) { var ce = document.getElementById('nav-' + hit.id); if (ce) ce.classList.add('active'); }
+        else a.classList.add('active');
+      } else {
+        a.classList.add('active');
+      }
+    }
+  });
+  IA.crumbs();
+};
+
+/* breadcrumbs, derived from the same tree */
+IA.trail = function(){
+  var view = ((document.querySelector('.view.active') || {}).id || '').replace('view-', '');
+  var out = [];
+  IA.tree.forEach(function(n){
+    if (n.section || n.view !== view) return;
+    out.push({ label: n.label, id: n.id });
+    (n.children || []).forEach(function(k){
+      if (k.match) { try { if (k.match()) out.push({ label: k.label, id: k.id, parent: n.id }); } catch(e) {} }
+    });
+  });
+  return out;
+};
+IA.crumbs = function(){
+  var t = IA.trail();
+  document.querySelectorAll('[data-ia-crumbs]').forEach(function(el){
+    el.innerHTML = ['<a onclick="IA.go(\'overview\')">Home</a>'].concat(t.map(function(c, i){
+      return i === t.length - 1
+        ? '<span class="cur">' + c.label + '</span>'
+        : '<a onclick="IA.go(\'' + c.id + '\')">' + c.label + '</a>';
+    })).join('<span class="sep">/</span>');
+  });
+};
+
+/* reusable page header — the one page-chrome component for every module */
+IA.pageHeader = function(o){
+  o = o || {};
+  return '<div class="ia-pghead"><div class="l">' +
+    (o.crumbs === false ? '' : '<div class="ia-crumbs" data-ia-crumbs></div>') +
+    '<h1 class="ia-pgt">' + (o.title || '') + '</h1>' +
+    (o.desc ? '<p class="ia-pgd">' + o.desc + '</p>' : '') +
+    '</div>' + (o.actions ? '<div class="ia-pgacts">' + o.actions + '</div>' : '') + '</div>';
+};
+
+IA.usersTab = 'people';
+function IAUsers(t){ IA.usersTab = t; IA.sync(); }
+
+/* ── boot ─────────────────────────────────────────────────────────── */
+(function iaInit(){
+  function boot(){
+    if (!document.querySelector('.sidebar-nav')) return;
+    /* retire the flyout prototype cleanly */
+    try { if (typeof NV === 'object' && NV) { NV.close && NV.close(); } } catch(e) {}
+    document.querySelectorAll('.nv-fly').forEach(function(e){ e.remove(); });
+
+    IA.expanded = {};
+    IA.render();
+
+    /* every navigation entry point re-syncs highlighting + crumbs */
+    ['showView','anGo','tlGo','ssGo','rnGo'].forEach(function(fn){
+      if (typeof window[fn] !== 'function' || window[fn].__ia) return;
+      var orig = window[fn];
+      var w = function(){ var r = orig.apply(this, arguments); try { IA.sync(); } catch(e) {} return r; };
+      w.__ia = true; window[fn] = w;
+    });
+
+    /* opening a module from anywhere expands its branch */
+    var _sv = window.showView;
+    if (_sv && !_sv.__iaexp) {
+      var w2 = function(v){
+        var r = _sv.apply(this, arguments);
+        IA.tree.forEach(function(n){
+          if (n.view === v && n.children && n.children.length && !IA.expanded[n.id]) IA.toggle(n.id, true);
+        });
+        try { IA.sync(); } catch(e) {}
+        return r;
+      };
+      w2.__iaexp = true; w2.__ia = true; window.showView = w2;
+    }
+    IA.sync();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else setTimeout(boot, 30);
+})();
+
+
+/* ═══ IA — MISSING PRODUCT-AREA SHELLS ════════════════════════════════
+   Candidates and Settings exist in the information architecture, so they
+   get real destinations rather than dead nav items. Both are built from
+   the shared IA page chrome (breadcrumbs → title → description → actions)
+   so any future module drops into the same layout.
+   ==================================================================== */
+(function(){
+  function mkView(id, html){
+    if (document.getElementById('view-' + id)) return;
+    var host = document.querySelector('#view-overview') ;
+    if (!host || !host.parentNode) return;
+    var v = document.createElement('div');
+    v.className = 'view';
+    v.id = 'view-' + id;
+    v.innerHTML = html;
+    host.parentNode.appendChild(v);
+  }
+
+  /* ---- Candidates ------------------------------------------------- */
+  mkView('candidates',
+    IA.pageHeader({
+      title: 'Candidates',
+      desc:  'Everyone who has applied to, been sourced for, or been invited to your jobs.',
+      actions: '<button class="ss-btn ss-btn-ghost" onclick="IA.go(\'sourcing\')">Source candidates</button>' +
+               '<button class="ss-btn ss-btn-pri" onclick="IA.go(\'events\')">Create an agent</button>'
+    }) +
+    '<div class="an-note" style="align-items:flex-start">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="#8a6116" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>' +
+      '<span><b>Module in progress.</b><br>Candidates is registered in the navigation architecture and its ' +
+      'route <code>employers.indeed.com/candidates</code> is confirmed, but its screens have not been ' +
+      'recreated yet — the host was behind a human-verification challenge during the build session. ' +
+      'Nothing on this page is invented. The module will slot into this shell without any navigation ' +
+      'changes once captured.</span></div>' +
+    '<div class="ia-hub" style="margin-top:20px">' +
+      [['Smart Sourcing','Search resumes and invite matched candidates to apply.','sourcing'],
+       ['Agents','Standing searches that surface new candidates automatically.','events'],
+       ['Interviews','Schedule and run interviews with shortlisted candidates.','interviews'],
+       ['Messaging','Conversations with candidates across every channel.','messaging']]
+      .map(function(c){
+        return '<div class="ia-hubcard" onclick="IA.go(\'' + c[2] + '\')">' +
+          '<div class="ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + (IA_ICONS[c[2] === 'events' ? 'agents' : c[2]] || IA_ICONS.candidates) + '</svg></div>' +
+          '<h3>' + c[0] + '</h3><p>' + c[1] + '</p><span class="go">Open &rarr;</span></div>';
+      }).join('') +
+    '</div>');
+
+  /* ---- Settings ---------------------------------------------------- */
+  mkView('settings',
+    IA.pageHeader({
+      title: 'Settings',
+      desc:  'Account, team and workspace configuration.'
+    }) +
+    '<div class="ia-hub">' +
+      [['Users &amp; permissions','Invite teammates, set roles and control who can see which jobs and candidates.','users','users'],
+       ['Subscriptions &amp; billing','Plans, contact credits, invoices and renewal dates.','subs','subs'],
+       ['Agents','Standing search agents that run on your behalf.','events','agents'],
+       ['Automations','Rules that message, email or move candidates without manual work.','tools','tools'],
+       ['ATS Integrations','Keep candidates and statuses in sync with your applicant tracking system.','tools','tools'],
+       ['Analytics preferences','Default date range, saved views and report access.','analytics','analytics']]
+      .map(function(c){
+        return '<div class="ia-hubcard" onclick="IA.go(\'' + c[2] + '\')">' +
+          '<div class="ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + (IA_ICONS[c[3]] || '') + '</svg></div>' +
+          '<h3>' + c[0] + '</h3><p>' + c[1] + '</p><span class="go">Open &rarr;</span></div>';
+      }).join('') +
+    '</div>' +
+    '<div style="margin-top:28px">' +
+      '<h2 style="font-size:18px;font-weight:700;color:#2d2d2d;margin:0 0 6px">Prototype state</h2>' +
+      '<p style="font-size:14px;color:#5f5e5a;margin:0 0 14px">Every module carries its own empty / populated / loading / error toggles in the developer toolbar on that page. This is a prototype-only control and would not ship.</p>' +
+    '</div>');
+
+  IA.sync();
+})();
+
 (function tlInit(){
   function boot(){ if(!tlEl('view-tools')) return; tlGo('overview'); }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else setTimeout(boot,0);
@@ -11832,6 +12315,139 @@ function rnApply(){
 .ss-seemore{ background:none; border:0; font-family:inherit; font-size:16px; line-height:24px;
   color:#004fcb; cursor:pointer; padding:4px 0; }
 .ss-fi{ cursor:pointer; }
+
+</style>
+<style>
+
+/* ═══ SP — Smart Sourcing profile pane (measured §8.3–8.6) ═════════ */
+.sp-head{ background:#fff; padding:16px 24px 0; }
+.sp-name{ background:none; border:0; font-family:inherit; font-size:16px; line-height:24px;
+  font-weight:700; color:#004fcb; text-decoration:underline; cursor:pointer; padding:0 4px;
+  border-radius:12px; display:inline-block; }
+.sp-name:hover{ background:#f3f2f1; }
+.sp-loc{ font-size:16px; line-height:24px; color:#595959; margin:8px 0 0 4px; }
+.sp-actions{ display:flex; align-items:center; gap:8px; margin-top:8px; padding-bottom:16px;
+  border-bottom:1px solid #e4e2e0; }
+.sp-sep{ width:1px; height:44px; background:#e4e2e0; flex:0 0 1px; margin:0 8px; }
+.sp-close{ margin-left:auto; width:44px; height:44px; border:0; background:none; border-radius:12px;
+  font-size:24px; line-height:1; color:#2d2d2d; cursor:pointer; }
+.sp-close:hover{ background:#f3f2f1; }
+.sp-meta{ display:flex; align-items:center; gap:32px; padding:8px 24px; }
+.sp-meta .upd{ font-size:14px; line-height:21px; color:#9d2b6b; }
+.sp-meta .act{ display:inline-flex; align-items:center; gap:8px; font-size:14px; line-height:21px; color:#595959; }
+.sp-tabs{ display:flex; gap:0; padding:0 24px; border-bottom:1px solid #e4e2e0; }
+.sp-tab{ height:56px; padding:0 16px; border:0; background:none; font-family:inherit; font-size:16px;
+  line-height:24px; font-weight:400; color:#595959; cursor:pointer; position:relative; }
+.sp-tab.on{ font-weight:700; color:#2d2d2d; }
+.sp-tab.on:after{ content:""; position:absolute; left:8px; right:8px; bottom:0; height:3px;
+  background:#2d2d2d; border-radius:3px 3px 0 0; }
+.sp-doc{ padding:24px; background:#f7f6f5; }
+.sp-page{ background:#fff; border:1px solid #e4e2e0; margin-bottom:16px; }
+.sp-pg-in{ padding:48px 56px; font-size:13px; line-height:20px; color:#2d2d2d; }
+.sp-pg-h{ font-size:22px; line-height:30px; font-weight:700; }
+.sp-pg-s{ font-size:13px; color:#595959; margin-bottom:20px; }
+.sp-pg-sec{ font-size:13px; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
+  color:#2d2d2d; border-bottom:1px solid #d4d2d0; padding-bottom:4px; margin:20px 0 10px; }
+.sp-pg-in p{ margin:0 0 10px; }
+.sp-pg-in .mut{ color:#767676; }
+.sp-pg-in .sk{ color:#595959; }
+.sp-pg-n{ margin-top:28px; text-align:center; font-size:11px; color:#a6a4a2; }
+
+</style>
+<style>
+
+/* ═══ IA — APPLICATION NAVIGATION ARCHITECTURE ════════════════════════
+   Declarative sidebar built from NAV_TREE. Inline accordion disclosure,
+   indentation-based hierarchy, persistent expansion, active parent and
+   active child highlighting. Replaces the flyout prototype.
+   ==================================================================== */
+
+/* the flyout module's artefacts are removed at runtime; these keep any
+   stragglers from rendering */
+.nv-fly{ display:none !important; }
+
+.ia-nav{ display:flex; flex-direction:column; gap:4px; }
+.ia-sec{ margin:16px 0 4px; padding:0 8px; font-size:11px; font-weight:700; letter-spacing:.07em;
+  text-transform:uppercase; color:#9b9992; }
+.ia-sec:first-child{ margin-top:0; }
+
+/* ── row metrics: matched 1:1 to employers.indeed.com ──────────────
+   row 44px tall on a 48px pitch, inset 6px, radius 12,
+   padding 0 16px 0 8px, 8px icon gap, 24px icon, label at x=47,
+   label 14px/21px/400.  Palette stays JobAgentX light.            */
+.ia-row{ position:relative; }
+.ia-item{ display:flex; align-items:center; gap:8px; height:44px; padding:0 16px 0 8px;
+  border-radius:12px; font-size:14px; line-height:21px; font-weight:400; color:#3d3d3a;
+  cursor:pointer; text-decoration:none; letter-spacing:normal;
+  transition:background .13s, color .13s; width:100%; box-sizing:border-box;
+  border:0; background:none; font-family:inherit; text-align:left; }
+.ia-item:hover{ background:#f1efe8; color:#2d2d2d; }
+.ia-item.active{ background:#EEEDEA; color:#2d2d2d; font-weight:700; }
+.ia-item.branch-active{ color:#2d2d2d; font-weight:700; }
+.ia-item .ia-ic{ width:24px; height:24px; flex:0 0 24px; color:#5f5e5a; }
+.ia-item.active .ia-ic, .ia-item.branch-active .ia-ic{ color:#2d2d2d; }
+.ia-item .ia-lbl{ flex:1 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.ia-item .ia-badge{ background:#0044B3; color:#fff; font-size:12px; font-weight:700; padding:2px 9px;
+  border-radius:10px; min-width:24px; text-align:center; flex:0 0 auto; }
+.ia-caret{ width:16px; height:16px; flex:0 0 16px; color:#8a8880;
+  transition:transform .22s cubic-bezier(.4,0,.2,1); }
+.ia-row.open > .ia-item .ia-caret{ transform:rotate(90deg); }
+.ia-item:focus-visible{ outline:2px solid #0044B3; outline-offset:1px; }
+
+/* children: same 44/48 rhythm, indented to the parent label (x=47 → 40px inset) */
+.ia-kids{ overflow:hidden; height:0; transition:height .24s cubic-bezier(.4,0,.2,1); }
+.ia-kids-in{ display:flex; flex-direction:column; gap:4px; padding:4px 0 0; position:relative; }
+.ia-kids-in:before{ content:""; position:absolute; left:19px; top:6px; bottom:2px; width:1px; background:#e2e0d9; }
+.ia-child{ display:flex; align-items:center; gap:8px; height:44px; padding:0 16px 0 40px;
+  border-radius:12px; font-size:14px; line-height:21px; font-weight:400; color:#63615c;
+  cursor:pointer; text-decoration:none; transition:background .13s, color .13s; position:relative;
+  border:0; background:none; font-family:inherit; width:100%; box-sizing:border-box; text-align:left; }
+.ia-child:hover{ background:#f1efe8; color:#2d2d2d; }
+.ia-child.active{ background:#EEEDEA; color:#2d2d2d; font-weight:700; }
+.ia-child.active:before{ content:""; position:absolute; left:19px; top:8px; bottom:8px; width:2px;
+  background:#0044B3; border-radius:2px; }
+.ia-child .ia-ext{ width:14px; height:14px; margin-left:auto; color:#9b9992; flex:0 0 14px; }
+
+/* collapsed sidebar: icons only */
+.sidebar.collapsed .ia-sec,
+.sidebar.collapsed .ia-caret,
+.sidebar.collapsed .ia-kids{ display:none; }
+.sidebar.collapsed .ia-item{ justify-content:center; padding:0; }
+
+@media (prefers-reduced-motion: reduce){
+  .ia-kids, .ia-caret{ transition:none; }
+}
+
+/* ═══ standard page chrome — every product area uses this ═══ */
+.ia-pghead{ display:flex; align-items:flex-start; gap:24px; padding:0 0 20px; margin-bottom:20px;
+  border-bottom:1px solid #e6e4e0; }
+.ia-pghead .l{ flex:1 1 auto; min-width:0; }
+.ia-crumbs{ display:flex; align-items:center; gap:6px; font-size:13px; color:#767676; margin-bottom:8px; }
+.ia-crumbs a{ color:#767676; text-decoration:none; cursor:pointer; border-radius:6px; padding:1px 3px; }
+.ia-crumbs a:hover{ color:#2d2d2d; text-decoration:underline; }
+.ia-crumbs .sep{ color:#c8c6c0; }
+.ia-crumbs .cur{ color:#2d2d2d; font-weight:600; }
+.ia-pgt{ font-size:26px; line-height:32px; font-weight:700; color:#2d2d2d; margin:0; }
+.ia-pgd{ font-size:15px; line-height:22px; color:#5f5e5a; margin:6px 0 0; }
+.ia-pgacts{ flex:0 0 auto; display:flex; align-items:center; gap:10px; }
+
+.ia-hub{ display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:16px; }
+.ia-hubcard{ background:#fff; border:1px solid #e6e4e0; border-radius:12px; padding:20px; cursor:pointer;
+  transition:box-shadow .15s, border-color .15s; }
+.ia-hubcard:hover{ box-shadow:0 2px 10px rgba(0,0,0,.06); border-color:#d4d2cc; }
+.ia-hubcard .ic{ width:40px; height:40px; border-radius:10px; background:#f1efe8; display:flex;
+  align-items:center; justify-content:center; color:#3d3d3a; margin-bottom:14px; }
+.ia-hubcard h3{ font-size:16px; font-weight:700; color:#2d2d2d; margin:0 0 6px; }
+.ia-hubcard p{ font-size:14px; line-height:21px; color:#5f5e5a; margin:0 0 12px; }
+.ia-hubcard .go{ font-size:14px; font-weight:700; color:#0044B3; }
+
+/* shell: 223px, rows inset 6px like the live app */
+#sidebar{ width:223px; flex:0 0 223px; }
+#sidebar .sidebar-nav{ padding:0 6px; }
+#sidebar .sidebar-collapse{ padding:6px; }
+#sidebar .collapse-btn{ height:44px; border-radius:12px; padding:0 8px; gap:8px; font-size:14px;
+  line-height:21px; font-weight:400; }
+#sidebar .collapse-btn svg{ width:24px; height:24px; flex:0 0 24px; }
 
 </style>
 </body>
