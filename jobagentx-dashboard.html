@@ -13915,6 +13915,544 @@ AE.err = function(title){
   }, true);
 })();
 
+/* ═══ MESSAGES — rebuilt to match employers.indeed.com/messages ══════
+   Crawled live 2026-08-03 (account kat@lincolndynamic.org).
+   Full measured spec: rn/MESSAGES-EXACT.md.
+
+   Scope, per Scott: the full-page Messages view reached from the left
+   nav. NOT the bottom-right one-on-one popup chat widget.
+
+   What is reproduced, all measured, none invented:
+     · Inbox / Sourcing underline tabs, unread dot, Online chip
+     · "Filter by job" single-select radio menu
+     · the unread/all toggle button (its real job — it is NOT "mark read")
+     · list rows: 44px avatar, job line, timestamp, bold-when-unread name,
+       preview, unread dot; Sourcing rows drop the job line
+     · bubbles: #004FCB white 20/20/8/20 out, #F3F2F1 grey 20/20/20/8 in
+     · outbound meta = timestamp only; inbound = avatar + name + time
+     · date dividers, interview system cards with the green status pill
+     · Draft a reply: five pills, copy reproduced word for word
+     · Rewrite bar, and the feedback row (AI drafts only, not templates)
+     · Message Templates popover + the three template bodies verbatim
+     · "Replace your message" confirm, with its red destructive button
+     · kebab: View candidate details + Report conversation (Scott dropped
+       "Messaging policy and terms" and the "Send on Enter" toggle)
+     · participants modal, and the Welcome empty state illustration
+
+   Namespaced .mg-* / MG. Additive: the old markup is replaced at runtime,
+   nothing above this point in the file is edited.
+   ==================================================================== */
+var MG = {
+  tab: 'inbox',
+  cur: null,
+  unreadOnly: false,
+  job: null,          // null = All jobs
+  menu: null,         // 'kebab' | 'job' | 'tpl' | null
+  pendingTpl: null,   // template awaiting the Replace confirm
+  mode: 'active'      // driven by the Message: Active | Empty dev toggle
+};
+
+MG.COMPANY = 'Lincoln Dynamic Group';
+MG.esc = function(s){ return String(s == null ? '' : s)
+  .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); };
+
+/* deterministic avatar colour — same person always gets the same one,
+   matching Indeed's behaviour (the palette is theirs, sampled live) */
+MG.PALETTE = ['#004fcb','#89471e','#735324','#2b6256','#767676','#5a3cb4','#9d2b6b','#237ea3'];
+MG.colour = function(name){
+  var h = 0; for (var i=0;i<name.length;i++) h = (h*31 + name.charCodeAt(i)) >>> 0;
+  return MG.PALETTE[h % MG.PALETTE.length];
+};
+MG.initial = function(n){ return (n||'?').trim().charAt(0).toUpperCase(); };
+MG.first = function(n){ return (n||'').trim().split(/\s+/)[0]; };
+
+MG.AVSVG = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">' +
+  '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7z"/></svg>';
+
+/* ── Draft a reply — reproduced WORD FOR WORD from Indeed ──────────
+   Captured from the Paul Brooks / Web Developer thread. Only the name
+   and job title are substituted; every other character is Indeed's.
+   On the live site these are model-generated per thread — see §4.1 of
+   the spec. Here they are fixed, which is what a prototype can do.   */
+MG.DRAFTS = {
+  'Invite to interview':
+    "Hi {first},\n\nI appreciate your prompt response! I'm looking forward to our conversation on Wednesday. " +
+    "Are you available for a video call at 2 PM EST or 3 PM EST? It'll be a great chance to discuss your " +
+    "experience and how it aligns with our {joblc} position.\n\nLet me know which time works for you!",
+  'Ask questions':
+    "Hi {first},\n\nI'm glad to hear you're still interested in the {joblc} role. I noticed you've managed " +
+    "scalable systems using AWS, and your work with microservices is impressive. Can you share more about a " +
+    "specific project where you faced challenges in system design and how you addressed them?\n\n" +
+    "Let's connect on Wednesday as planned. I look forward to hearing more about your experiences.",
+  'Confirm interest':
+    "Hi {first}, thanks for getting back to me. I'm glad to hear you're still interested in the {joblc} " +
+    "position. Let's connect as planned on Wednesday to discuss the opportunity further.",
+  'Share next steps':
+    "Hi {first},\n\nI wanted to check in and see if you're still available for our conversation about the " +
+    "{joblc} position. Your experience with AWS and microservices is impressive, and I believe you'd be a " +
+    "great fit for our team. Do you still want to connect this week?\n\nLooking forward to hearing from you.",
+  'Decline':
+    "Hi {full},\n\nThank you for taking the time to speak with me about the {job} position. I appreciate your " +
+    "interest and the insights you shared regarding your experience.\n\nAfter careful consideration, we've " +
+    "decided to move forward with other candidates who more closely match our current needs. I encourage you " +
+    "to continue exploring opportunities that align with your expertise.\n\nThank you again for your time, " +
+    "and I wish you all the best in your job search."
+};
+MG.PILLS = ['Invite to interview','Ask questions','Confirm interest','Share next steps','Decline'];
+
+/* ── Message Templates — verbatim, merge fields intact ───────────── */
+MG.TEMPLATES = [
+  { name: 'Still Interested?', body:
+    "Hi {full},\n\nThanks for applying to the {job} position at {company}. Are you still interested in the " +
+    "position?\n\nIf you are, please let me know your availability for a call to talk about next steps.\n\n" +
+    "Thank you." },
+  { name: 'Rejection Note', body:
+    "Dear {full},\n\nThank you for applying for the {job} position at {company}.\n\nWe carefully reviewed your " +
+    "skills and qualifications and have decided to move forward with another candidate for the position.\n\n" +
+    "We appreciate the time you invested to apply for this position at {company}, and we encourage you to " +
+    "pursue future openings. Best wishes for a successful job search. Thank you, again, for your interest in " +
+    "our company." },
+  /* Observed: selecting this on a thread that already has messages inserts
+     NOTHING. Reproduced faithfully rather than inventing a body. */
+  { name: 'Initial Message', body: null }
+];
+
+MG.fill = function(t, c){
+  if (t == null) return null;
+  return t.replace(/\{first\}/g, MG.first(c.name))
+          .replace(/\{full\}/g,  c.name)
+          .replace(/\{joblc\}/g, (c.job||'').toLowerCase())
+          .replace(/\{job\}/g,   c.job||'')
+          .replace(/\{company\}/g, MG.COMPANY);
+};
+
+/* ── fixtures ──────────────────────────────────────────────────────
+   Inbox threads are built from the Candidates module's own seed data so
+   the two areas never disagree about who applied to what.             */
+MG.build = function(){
+  var inbox = [];
+  var seed = (typeof CD === 'object' && CD.SEED) ? CD.SEED : [];
+  var pre = [
+    { prev:"Hi, thanks for reaching out. Yes, I'm definitely interested in the position. Wednesday still works for me. Looking forward to speaking with you then.",
+      time:'11:19 AM', unread:true, people:2, full:true },
+    { prev:'No worries 👍', time:'10:24 AM', unread:false, people:2 },
+    { prev:'', time:'8:39 AM', unread:false, people:2 },
+    { prev:'', time:'Aug 2', unread:false, people:3 },
+    { prev:'Thanks for your interest in the role — I have a couple of questions before we set a time.',
+      time:'Aug 2', unread:false, people:2 },
+    { prev:'Hi, thanks for reaching out about your application.', time:'Aug 2', unread:false, people:2 }
+  ];
+  seed.slice(0, pre.length).forEach(function(s, i){
+    var name = s[0], loc = s[1], job = s[4], p = pre[i];
+    var c = { id:'i'+i, name:name, loc:loc, job:job,
+      sub:'Applied to ' + job + ' in ' + loc,
+      time:p.time, prev:p.prev, unread:p.unread, people:p.people,
+      colour: MG.colour(name), msgs: [] };
+    if (p.full){
+      c.msgs = [
+        { s:'out', day:'Yesterday', time:'7:13 PM',
+          t:'Hi ' + MG.first(name) + ',\n\nI wanted to follow up after my last message. Your experience with AWS and ' +
+            'implementing microservices really stood out to me for our ' + job.toLowerCase() + ' position. Are you still ' +
+            'interested in discussing this opportunity further? Let me know if you have some time to chat this week.' },
+        { s:'card', side:'out', title:'Video interview invitation sent' },
+        { s:'card', side:'in', title:'Interview confirmed', status:'Interview confirmed',
+          lines:['Video interview','Aug 5 · 2 to 2:15 PM PDT'] },
+        { s:'in', day:'Today', time:'11:19 AM', t:p.prev }
+      ];
+    } else if (p.prev){
+      c.msgs = [{ s:'in', day:'Today', time:p.time, t:p.prev }];
+    }
+    inbox.push(c);
+  });
+
+  /* Sourcing threads come from the Smart Sourcing candidate pool — the
+     same people you can contact there, so the two stay in step. SS holds
+     no outreach log of its own, so MG keeps one rather than mutating SS. */
+  var sourced = [];
+  var pool = (typeof SS === 'object' && SS.CANDS) ? SS.CANDS : [];
+  var sPre = [
+    { prev:'Hi {first}, I work at ' + MG.COMPANY + ' and I came across your resume. I think you could be a great fit for a role we’re hiring for.', time:'Aug 2' },
+    { prev:'Thanks for getting in touch — happy to hear more about the role.', time:'Aug 1' }
+  ];
+  pool.slice(0, sPre.length).forEach(function(p, i){
+    var name = p.n, prev = sPre[i].prev.replace('{first}', MG.first(name));
+    sourced.push({ id:'s'+i, name:name, loc:p.loc||'', job:'',
+      sub:'Sourced candidate', time:sPre[i].time, prev:prev, unread:false, people:2,
+      colour: MG.colour(name),
+      msgs:[{ s:'out', day:'Aug 2', time:'9:04 AM', t:prev }] });
+  });
+
+  MG.INBOX = inbox;
+  MG.SOURCED = sourced;
+};
+
+MG.rows = function(){
+  var list = (MG.tab === 'inbox') ? (MG.INBOX||[]) : (MG.SOURCED||[]);
+  if (MG.mode === 'empty') return [];
+  if (MG.unreadOnly) list = list.filter(function(c){ return c.unread; });
+  if (MG.job) list = list.filter(function(c){ return c.job === MG.job; });
+  return list;
+};
+
+MG.jobs = function(){
+  var out = [];
+  (MG.INBOX||[]).forEach(function(c){ if (c.job && out.indexOf(c.job) < 0) out.push(c.job); });
+  return out;
+};
+
+/* ── the Welcome illustration, reproduced from the live SVG ──────── */
+MG.ILLO = function(){
+  var p = 'mgspot';
+  return '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 124 89" aria-hidden="true">' +
+  '<defs>' +
+    '<filter id="'+p+'-5" x="0%" y="0%">' +
+      '<feTurbulence baseFrequency="2.5" numOctaves="4" result="noise" seed="14"/>' +
+      '<feComponentTransfer in="noise" result="opacity"><feFuncA slope="0.6" type="linear"/></feComponentTransfer>' +
+      '<feBlend in="opacity" in2="SourceGraphic" mode="overlay" result="blend"/></filter>' +
+    '<pattern id="'+p+'-0" width="50" height="40" x="0" y="0" patternTransform="scale(.3)" patternUnits="userSpaceOnUse">' +
+      '<path d="M0 0h50v40H0z" filter="url(#'+p+'-5)"/></pattern>' +
+    '<linearGradient id="'+p+'-2" x1="52.435" x2="57.807" y1="30.335" y2="93.549" gradientUnits="userSpaceOnUse">' +
+      '<stop stop-color="#237EA3"/><stop offset="1" stop-color="#1D465C"/></linearGradient>' +
+    '<clipPath id="'+p+'-1"><path fill="#fff" d="M105.275 45.724a26.4 26.4 0 0 0 2.497-2.73c8.033 4.64 16.029 4.223 16.029 4.223-3.282-.677-9.367-4.435-13.266-8.5 4.713-9.134 3.838-20.584-3.128-29.002C98.095-1.538 81.424-3.111 70.171 6.2a26.349 26.349 0 0 0-6.969 8.889l-44.657 5.814L0 77.301h25.994c-4.358 7.02-9.64 10.736-9.64 10.736 6.328-2.547 10.896-6.485 14.19-10.736h86.311l-11.58-31.577z"/></clipPath>' +
+  '</defs>' +
+  '<g clip-path="url(#'+p+'-1)">' +
+    '<path fill="#F5CB9D" d="m116.855 77.3-24.22-66.043-74.09 9.647L0 77.301h116.855z"/>' +
+    '<path fill="#F39E78" d="M107.772 42.994a26.542 26.542 0 0 1-3.879 3.957c-11.253 9.312-27.924 7.739-37.237-3.514-9.312-11.253-7.738-27.924 3.515-37.236 11.253-9.312 27.924-7.739 37.236 3.514 6.966 8.418 7.841 19.868 3.128 29.001 3.899 4.066 9.984 7.824 13.266 8.5 0 0-7.996.418-16.029-4.222z"/>' +
+    '<path fill="url(#'+p+'-2)" d="m35.823 68.116 45.821-4.957c4.277-.417 7.328-5.041 6.815-10.33l.042-11.377c-.516-5.288-4.4-9.234-8.677-8.817l-54.729 4.783c-4.277.421-7.328 5.042-6.81 10.33l2.726 12.215c.517 5.289 4.4 9.234 8.677 8.817l.27-.03C25.97 81.274 16.355 88.037 16.355 88.037c10.841-4.364 16.517-12.81 19.468-19.92z"/>' +
+    '<path fill="#fff" d="M66.043 52.58c1.862 0 3.371-1.536 3.371-3.432 0-1.897-1.509-3.434-3.37-3.434-1.862 0-3.371 1.538-3.371 3.434 0 1.896 1.509 3.433 3.37 3.433zm-9.113-2.432a3.433 3.433 0 1 1-6.867 0 3.433 3.433 0 0 1 6.867 0zm-12.11 1.371c0 1.896-1.51 3.433-3.371 3.433-1.862 0-3.37-1.537-3.37-3.433s1.508-3.434 3.37-3.434 3.37 1.538 3.37 3.434z"/>' +
+  '</g>' +
+  '<rect clip-path="url(#'+p+'-1)" width="100%" height="100%" fill="url(#'+p+'-0)" style="mix-blend-mode: overlay;"></rect>' +
+  '</svg>';
+};
+
+/* ── icons ─────────────────────────────────────────────────────────── */
+MG.IC = {
+  chev:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>',
+  unread:'<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h9"/><path d="M2 7l10 6 10-6"/><path d="M16 19l2 2 4-4"/></svg>',
+  people:'<svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><circle cx="9" cy="8" r="3.4"/><path d="M2.5 19c0-3.6 2.9-5.8 6.5-5.8s6.5 2.2 6.5 5.8z"/><circle cx="17" cy="9" r="2.6"/><path d="M15.5 13.6c3 0 6 1.6 6 5.4h-4.2"/></svg>',
+  kebab:'<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>',
+  spark:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.9 5.6L19.5 9l-5.6 1.9L12 16.5l-1.9-5.6L4.5 9l5.6-1.4z"/><path d="M18.5 14l.9 2.6 2.6.9-2.6.9-.9 2.6-.9-2.6-2.6-.9 2.6-.9z"/></svg>',
+  clip:'<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12l-8.5 8.5a5 5 0 0 1-7-7L14 5a3.5 3.5 0 0 1 5 5l-8.5 8.5a2 2 0 0 1-3-3L16 7"/></svg>',
+  tpl:'<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-8 8H7l-4 3V12a8 8 0 0 1 8-8h2a8 8 0 0 1 8 8z"/></svg>',
+  cal:'<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>',
+  up:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M7 11v9H4a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1zM7 11l4-8a2 2 0 0 1 3 2l-1 5h5a2 2 0 0 1 2 2.4l-1.4 6A2 2 0 0 1 16.6 20H7"/></svg>',
+  down:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M17 13V4h3a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1zM17 13l-4 8a2 2 0 0 1-3-2l1-5H6a2 2 0 0 1-2-2.4l1.4-6A2 2 0 0 1 7.4 4H17"/></svg>',
+  exp:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"/></svg>',
+  close:'<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+  info:'<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><circle cx="12" cy="12" r="10" opacity=".15"/><path d="M11 10h2v7h-2zM11 6.5h2v2h-2z"/></svg>',
+  lock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>',
+  bldg:'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h2M14 7h2M8 11h2M14 11h2M8 15h8"/></svg>',
+  rwi:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h10M4 17h13"/></svg>'
+};
+
+/* ── render ────────────────────────────────────────────────────────── */
+MG.el = function(){ return document.getElementById('view-messaging'); };
+
+MG.render = function(){
+  var v = MG.el(); if (!v) return;
+  v.innerHTML =
+    '<div class="mg">' +
+      '<div class="mg-left">' +
+        '<div class="mg-h1">Messages</div>' +
+        '<div class="mg-tabs">' +
+          '<button class="mg-tab' + (MG.tab==='inbox'?' on':'') + '" role="tab" aria-selected="' + (MG.tab==='inbox') + '" onclick="MG.go(\'inbox\')">Inbox' +
+            (MG.mode!=='empty' && (MG.INBOX||[]).some(function(c){return c.unread;}) ? ' <i class="mg-udot"></i>' : '') + '</button>' +
+          '<button class="mg-tab' + (MG.tab==='sourcing'?' on':'') + '" role="tab" aria-selected="' + (MG.tab==='sourcing') + '" onclick="MG.go(\'sourcing\')">Sourcing</button>' +
+          '<span class="mg-online"><i></i>Online</span>' +
+        '</div>' +
+        '<div class="mg-frow">' +
+          '<button class="mg-filter" onclick="MG.toggle(event,\'job\')">Filter by job: ' +
+            MG.esc(MG.job || 'All jobs') + MG.IC.chev +
+            '<span class="mg-jobmenu" id="mgJobMenu" style="display:none"></span></button>' +
+          '<button class="mg-unread' + (MG.unreadOnly?' on':'') + '" onclick="MG.toggleUnread()" ' +
+            'aria-label="Click to toggle displaying only unread or all conversations">' + MG.IC.unread + '</button>' +
+        '</div>' +
+        '<div class="mg-list">' + MG.list() + '</div>' +
+      '</div>' +
+      '<div class="mg-right">' + (MG.cur ? MG.thread(MG.cur) : MG.welcome()) + '</div>' +
+    '</div>' + MG.modals();
+};
+
+MG.list = function(){
+  var rows = MG.rows();
+  if (!rows.length){
+    return '<div class="mg-nolist">' +
+      (MG.mode === 'empty' ? 'No conversations yet'
+        : MG.unreadOnly ? 'No unread conversations'
+        : MG.job ? 'No conversations for this job' : 'No conversations yet') + '</div>';
+  }
+  return rows.map(function(c){
+    return '<button class="mg-row' + (MG.cur && MG.cur.id===c.id ? ' on':'') + '" onclick="MG.open(\'' + c.id + '\')">' +
+      '<span class="mg-av" style="background:' + c.colour + '">' + MG.AVSVG + '</span>' +
+      '<span class="mg-rb">' +
+        '<span class="mg-rtop"><span class="mg-rjob">' + MG.esc(c.job ? 'Applied to ' + c.job + ' in ' + c.loc : '') + '</span>' +
+        '<span class="mg-rtime">' + MG.esc(c.time) + '</span></span>' +
+        '<span class="mg-rname' + (c.unread?' unread':'') + '"><span>' + MG.esc(c.name) + '</span>' +
+          (c.unread ? '<i class="mg-udot"></i>' : '') + '</span>' +
+        (c.prev ? '<span class="mg-rprev">' + MG.esc(c.prev) + '</span>' : '') +
+      '</span></button>';
+  }).join('');
+};
+
+MG.welcome = function(){
+  return '<div class="mg-empty">' + MG.ILLO() +
+    '<h2>Welcome to Messages</h2><p>Select a conversation to view and respond.</p></div>';
+};
+
+MG.thread = function(c){
+  var body = '', lastDay = null;
+  c.msgs.forEach(function(m){
+    if (m.day && m.day !== lastDay){ body += '<div class="mg-day"><span>' + MG.esc(m.day) + '</span></div>'; lastDay = m.day; }
+    if (m.s === 'card'){
+      body += '<div class="mg-m ' + (m.side==='out'?'out':'in') + '"><div class="mg-card">' +
+        (m.status ? '<div class="mg-stat">' + MG.esc(m.status) + '</div>' : '') +
+        '<div class="t">' + MG.esc(m.title) + '</div>' +
+        (m.lines ? m.lines.map(function(l){ return '<div class="l">' + MG.esc(l) + '</div>'; }).join('') : '') +
+        '</div></div>';
+    } else if (m.s === 'out'){
+      body += '<div class="mg-m out"><div class="mg-bub">' + MG.esc(m.t) + '</div>' +
+        '<div class="mg-meta">' + MG.esc(m.time) + '</div></div>';
+    } else {
+      body += '<div class="mg-m in"><div class="mg-bub">' + MG.esc(m.t) + '</div>' +
+        '<div class="mg-meta"><span class="mg-mav" style="background:' + c.colour + '">' + MG.AVSVG + '</span>' +
+        '<span class="who">' + MG.esc(c.name) + '</span><span>' + MG.esc(m.time) + '</span></div></div>';
+    }
+  });
+
+  return '<div class="mg-head">' +
+      '<span class="mg-av" style="background:' + c.colour + '">' + MG.AVSVG + '</span>' +
+      '<div><div class="mg-hname">' + MG.esc(c.name) + '</div><div class="mg-hsub">' + MG.esc(c.sub) + '</div></div>' +
+      '<div class="mg-hact">' +
+        '<button class="mg-ib blue" onclick="MG.participants()" aria-label="' + c.people + ' participants, view participants">' +
+          MG.IC.people + c.people + '</button>' +
+        '<button class="mg-ib" onclick="MG.toggle(event,\'kebab\')" aria-label="More actions">' + MG.IC.kebab + '</button>' +
+        '<div class="mg-menu" id="mgKebab">' +
+          '<button onclick="MG.candidateDetails()">View candidate details</button>' +
+          '<button onclick="MG.report()">Report conversation</button>' +
+        '</div>' +
+      '</div></div>' +
+    '<div class="mg-thread" id="mgThread">' + body + '</div>' +
+    '<div class="mg-comp">' +
+      '<div class="mg-quick"><span class="mg-ql">' + MG.IC.spark + 'Draft a reply</span>' +
+        MG.PILLS.map(function(p){
+          return '<button class="mg-qp" onclick="MG.draft(this,\'' + p + '\')">' + p + '</button>';
+        }).join('') +
+      '</div>' +
+      '<div class="mg-rw" id="mgRw">' +
+        '<button class="mg-rwb" onclick="MG.rewrite()">' + MG.IC.spark + 'Rewrite</button>' +
+        ['Make professional','Make casual','Make shorter','Make longer','Bullet list'].map(function(a){
+          return '<button class="mg-rwi" aria-label="' + a + '" title="' + a + '" onclick="MG.rewrite(\'' + a + '\')">' + MG.IC.rwi + '</button>';
+        }).join('') +
+      '</div>' +
+      '<div class="mg-tw">' +
+        '<textarea class="mg-ta" id="mgTa" oninput="MG.tick()" placeholder="Start typing or choose a suggestion above. You can edit your message before sending."></textarea>' +
+        '<button class="mg-exp" aria-label="Expand" onclick="MG.expand()">' + MG.IC.exp + '</button>' +
+      '</div>' +
+      '<div class="mg-bar">' +
+        '<button class="mg-bi" aria-label="Attach a file" onclick="MG.stub(\'Attach a file\')">' + MG.IC.clip + '</button>' +
+        '<span style="position:relative">' +
+          '<button class="mg-bi" aria-label="Messaging templates menu" onclick="MG.toggle(event,\'tpl\')">' + MG.IC.tpl + '</button>' +
+          '<div class="mg-tpl" id="mgTpl">' +
+            '<div class="mg-tplhead"><h4>Message Templates</h4>' +
+              '<button aria-label="Close" onclick="MG.closeMenus()">' + MG.IC.close + '</button></div>' +
+            MG.TEMPLATES.map(function(t,i){
+              return '<button class="mg-tplrow" onclick="MG.pickTpl(' + i + ')">' +
+                '<span class="mg-tplic">' + MG.IC.info + '</span>' + MG.esc(t.name) + '</button>';
+            }).join('') +
+            '<button class="mg-tplcta" onclick="MG.stub(\'Create new template\')">Create new template</button>' +
+          '</div>' +
+        '</span>' +
+        '<button class="mg-bi" aria-label="Schedule interview" onclick="MG.schedule()">' + MG.IC.cal + '</button>' +
+        '<span class="mg-fb" id="mgFb"><span>How was this suggestion?</span>' +
+          '<button class="mg-bi" aria-label="Thumbs up" onclick="MG.rate(this,1)">' + MG.IC.up + '</button>' +
+          '<button class="mg-bi" aria-label="Thumbs down" onclick="MG.rate(this,0)">' + MG.IC.down + '</button>' +
+        '</span>' +
+        '<button class="mg-send" id="mgSend" onclick="MG.send()">Send</button>' +
+      '</div>' +
+    '</div>';
+};
+
+MG.modals = function(){
+  var c = MG.cur || { name:'', people:2, colour:'#767676' };
+  return '<div class="mg-ov" id="mgReplaceOv">' +
+    '<div class="mg-modal" role="dialog" aria-modal="true">' +
+      '<div class="mg-mhead"><h3>Replace your message</h3>' +
+        '<button aria-label="Close" onclick="MG.closeReplace()">' + MG.IC.close + '</button></div>' +
+      '<p>Are you sure you’d like to replace your current message with this template? Your changes will not be saved.</p>' +
+      '<div class="mg-mfoot">' +
+        '<button class="mg-b sec" onclick="MG.closeReplace()">Keep current message</button>' +
+        '<button class="mg-b danger" onclick="MG.applyTpl()">Replace message</button>' +
+      '</div></div></div>' +
+
+    '<div class="mg-ov" id="mgPartOv">' +
+    '<div class="mg-modal" role="dialog" aria-modal="true">' +
+      '<div class="mg-mhead">' + '<span style="color:#2d2d2d">' + MG.IC.people + '</span>' +
+        '<h3>Participants</h3><button aria-label="Close" onclick="MG.closePart()">' + MG.IC.close + '</button></div>' +
+      '<div style="margin-top:16px"><div style="font-size:16px;line-height:24px;font-weight:700">Manage participants</div>' +
+      '<div style="font-size:16px;line-height:24px;color:#595959">Participants will be notified about new messages.</div></div>' +
+      '<div class="mg-psel">Add a colleague' + MG.IC.chev + '</div>' +
+      '<div class="mg-prow"><span class="mg-pav" style="background:#767676">' + MG.AVSVG + '</span><b>You</b></div>' +
+      '<div class="mg-prow"><span class="mg-pav" style="background:' + c.colour + '">' + MG.esc(MG.initial(c.name)) + '</span>' +
+        '<span><b>' + MG.esc(c.name) + '</b> (Candidate)</span></div>' +
+      '<div class="mg-prow"><span class="mg-pav" style="background:#f3f2f1;color:#2d2d2d">' + MG.IC.bldg + '</span>' +
+        '<span>All users with candidate access can view and respond to all messages.</span></div>' +
+      '<div class="mg-pnote">' + MG.IC.lock +
+        '<span>Make sure anyone you add meets your company’s policy to view application data. Participants you add to this message will be able to directly message candidates and have access to their data.</span></div>' +
+      '<div class="mg-pnote" style="padding-left:24px">Company email addresses are only shown to people linked to your employer account.</div>' +
+      '<div class="mg-mfoot">' +
+        '<button class="mg-b sec" onclick="MG.closePart()">Cancel</button>' +
+        '<button class="mg-b pri" disabled>Update participants</button>' +
+      '</div></div></div>';
+};
+
+/* ── behaviour ─────────────────────────────────────────────────────── */
+MG.go = function(tab){ MG.tab = tab; MG.cur = null; MG.job = null; MG.render(); };
+MG.open = function(id){
+  var c = MG.rows().filter(function(x){ return x.id === id; })[0];
+  if (!c) return;
+  c.unread = false;          // opening a thread marks it read, as on Indeed
+  MG.cur = c; MG.render();
+  var t = document.getElementById('mgThread'); if (t) t.scrollTop = t.scrollHeight;
+};
+MG.toggleUnread = function(){ MG.unreadOnly = !MG.unreadOnly; MG.cur = null; MG.render(); };
+
+MG.closeMenus = function(){
+  MG.menu = null;
+  var k = document.getElementById('mgKebab'); if (k) k.classList.remove('show');
+  var t = document.getElementById('mgTpl');   if (t) t.classList.remove('show');
+  var j = document.getElementById('mgJobMenu'); if (j) j.style.display = 'none';
+};
+MG.toggle = function(e, which){
+  if (e) e.stopPropagation();
+  var was = MG.menu; MG.closeMenus();
+  if (was === which) return;
+  MG.menu = which;
+  if (which === 'kebab'){ var k = document.getElementById('mgKebab'); if (k) k.classList.add('show'); }
+  if (which === 'tpl'){ var t = document.getElementById('mgTpl'); if (t) t.classList.add('show'); }
+  if (which === 'job'){
+    var j = document.getElementById('mgJobMenu'); if (!j) return;
+    j.innerHTML = MG.jobs().map(function(n){
+      return '<button onclick="MG.setJob(event,\'' + n.replace(/'/g,"\\'") + '\')">' +
+        '<span class="mg-radio' + (MG.job===n?' on':'') + '"></span>' + MG.esc(n) + '</button>';
+    }).join('') || '<button onclick="MG.setJob(event,null)"><span class="mg-radio on"></span>All jobs</button>';
+    j.style.display = 'block';
+  }
+};
+MG.setJob = function(e, n){
+  if (e) e.stopPropagation();
+  MG.job = (MG.job === n) ? null : n;      // clicking the selected row clears it
+  MG.cur = null; MG.closeMenus(); MG.render();
+};
+
+MG.ta = function(){ return document.getElementById('mgTa'); };
+MG.tick = function(){
+  var t = MG.ta(), s = document.getElementById('mgSend');
+  if (t && s) s.classList.toggle('on', t.value.trim().length > 0);
+};
+
+MG.draft = function(btn, intent){
+  if (!MG.cur) return;
+  document.querySelectorAll('.mg-qp').forEach(function(b){ b.classList.remove('on'); });
+  if (btn) btn.classList.add('on');
+  var t = MG.ta(); if (!t) return;
+  t.value = MG.fill(MG.DRAFTS[intent], MG.cur) || '';
+  var rw = document.getElementById('mgRw'); if (rw) rw.classList.add('show');
+  var fb = document.getElementById('mgFb'); if (fb) fb.classList.add('show');   /* AI drafts only */
+  document.querySelectorAll('#mgFb .mg-bi').forEach(function(b){ b.classList.remove('picked'); });
+  MG.tick();
+};
+
+MG.pickTpl = function(i){
+  var t = MG.ta(); if (!t) return;
+  MG.pendingTpl = i;
+  if (t.value.trim().length){
+    MG.closeMenus();
+    var ov = document.getElementById('mgReplaceOv'); if (ov) ov.classList.add('show');
+    return;
+  }
+  MG.applyTpl();
+};
+MG.applyTpl = function(){
+  var i = MG.pendingTpl, t = MG.ta();
+  MG.closeReplace(); MG.closeMenus();
+  if (i == null || !t || !MG.cur) return;
+  var body = MG.fill(MG.TEMPLATES[i].body, MG.cur);
+  /* "Initial Message" inserts nothing on a thread that already has
+     messages — observed on Indeed, reproduced rather than invented. */
+  if (body == null){ MG.pendingTpl = null; return; }
+  t.value = body;
+  var rw = document.getElementById('mgRw'); if (rw) rw.classList.add('show');
+  var fb = document.getElementById('mgFb'); if (fb) fb.classList.remove('show'); /* templates get no feedback row */
+  document.querySelectorAll('.mg-qp').forEach(function(b){ b.classList.remove('on'); });
+  MG.pendingTpl = null; MG.tick();
+};
+MG.closeReplace = function(){
+  var ov = document.getElementById('mgReplaceOv'); if (ov) ov.classList.remove('show');
+};
+
+MG.participants = function(){ var o = document.getElementById('mgPartOv'); if (o) o.classList.add('show'); };
+MG.closePart = function(){ var o = document.getElementById('mgPartOv'); if (o) o.classList.remove('show'); };
+
+MG.rate = function(btn, up){
+  document.querySelectorAll('#mgFb .mg-bi').forEach(function(b){ b.classList.remove('picked'); });
+  if (btn) btn.classList.add('picked');
+};
+MG.rewrite = function(){ /* the live one calls a model; nothing to fake here */ };
+MG.expand = function(){
+  var t = MG.ta(); if (!t) return;
+  t.style.minHeight = (parseInt(t.style.minHeight || '104', 10) > 200) ? '104px' : '260px';
+};
+
+MG.send = function(){
+  var t = MG.ta(); if (!t || !t.value.trim() || !MG.cur) return;
+  var now = new Date(2026, 7, 3, 11, 42);
+  var hh = now.getHours() % 12 || 12, mm = ('0' + now.getMinutes()).slice(-2);
+  var stamp = hh + ':' + mm + ' ' + (now.getHours() < 12 ? 'AM' : 'PM');
+  var last = MG.cur.msgs[MG.cur.msgs.length - 1];
+  MG.cur.msgs.push({ s:'out', t:t.value, time:stamp, day:(last && last.day==='Today')?null:'Today' });
+  MG.cur.prev = t.value.split('\n')[0];
+  MG.cur.time = stamp;
+  MG.render();
+  var th = document.getElementById('mgThread'); if (th) th.scrollTop = th.scrollHeight;
+};
+
+MG.candidateDetails = function(){
+  MG.closeMenus();
+  if (typeof showView === 'function' && document.getElementById('view-candidates')) showView('candidates');
+};
+MG.report = function(){ MG.closeMenus(); };
+MG.schedule = function(){
+  if (typeof showView === 'function' && document.getElementById('view-interviews')) showView('interviews');
+};
+MG.stub = function(){};
+
+/* ── boot ──────────────────────────────────────────────────────────── */
+(function(){
+  function boot(){
+    if (!MG.el()) return;
+    MG.build();
+    /* pick up whatever the Message: Active | Empty toggle is set to */
+    var on = document.querySelector('#msgDevToggles .dev-toggle-btn.active');
+    MG.mode = (on && /empty/i.test(on.textContent)) ? 'empty' : 'active';
+    MG.render();
+
+    /* the dev toggle keeps working — it drives MG.mode now */
+    var prev = window.setMsgDevMode;
+    window.setMsgDevMode = function(mode, btn){
+      document.querySelectorAll('#msgDevToggles .dev-toggle-btn').forEach(function(b){
+        b.classList.toggle('active', b.textContent.trim().toLowerCase() === mode);
+      });
+      MG.mode = (mode === 'empty') ? 'empty' : 'active';
+      MG.cur = null; MG.unreadOnly = false; MG.job = null;
+      MG.build(); MG.render();
+    };
+
+    document.addEventListener('click', function(){ MG.closeMenus(); });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else setTimeout(boot, 300);
+})();
+
 (function tlInit(){
   function boot(){ if(!tlEl('view-tools')) return; tlGo('overview'); }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else setTimeout(boot,0);
@@ -14778,6 +15316,202 @@ AE.err = function(title){
 .ae-narr b{ font-weight:700; }
 
 .ae-blank{ height:162px; }
+
+</style>
+<style>
+/* ═══ MESSAGES (.mg-*) ═══════════════════════════════════════════════
+   Rebuilt to match employers.indeed.com/messages exactly.
+   Every value below is measured — source: rn/MESSAGES-EXACT.md.
+   ==================================================================== */
+
+/* the view ships with card padding/background from the old layout — the
+   Indeed page runs edge to edge, so neutralise it for this module only */
+#view-messaging{padding:0!important;background:#fff!important}
+#view-messaging > *:not(.mg):not(.mg-ov){display:none!important}
+/* .main carries the shell's global 24px 28px 40px padding, shared by every
+   view — cancel it here with negative margins instead of editing the shell,
+   so the Messages page runs edge to edge exactly as Indeed's does. */
+#view-messaging .mg{display:flex;margin:-24px -28px -40px;background:#fff;
+  height:calc(100vh - 56px);min-height:640px}
+
+/* ---- left column: 379px fixed --------------------------------- */
+.mg-left{width:379px;flex:0 0 379px;border-right:1px solid #e4e2e0;display:flex;flex-direction:column;min-width:0}
+.mg-h1{font-size:20px;line-height:30px;font-weight:700;color:#2d2d2d;padding:22px 0 16px 28px}
+
+.mg-tabs{display:flex;align-items:center;padding:0 16px;border-bottom:1px solid #e4e2e0}
+.mg-tab{height:50px;padding:16px;border:0;background:none;font-size:13.3333px;line-height:normal;
+  font-weight:400;color:#595959;cursor:pointer;position:relative;display:flex;align-items:center;gap:6px}
+.mg-tab.on{font-weight:700;color:#2d2d2d}
+.mg-tab.on:after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;background:#2d2d2d;
+  border-radius:2px 2px 0 0}
+.mg-udot{width:8px;height:8px;border-radius:50%;background:#a9252b;display:inline-block;flex:0 0 8px}
+.mg-online{margin-left:auto;display:inline-flex;align-items:center;gap:6px;background:#e4f7e6;color:#1f662c;
+  font-size:12px;line-height:18px;font-weight:700;padding:3px 10px;border-radius:20px}
+.mg-online i{width:8px;height:8px;border-radius:50%;background:#1f662c}
+
+.mg-frow{display:flex;gap:12px;align-items:center;padding:16px}
+.mg-filter{flex:1;height:44px;border:1px solid #595959;border-radius:12px;padding:9px 12px;background:#fff;
+  font-size:16px;line-height:24px;color:#595959;display:flex;align-items:center;cursor:pointer;
+  text-align:left;position:relative}
+.mg-filter svg{margin-left:auto;width:24px;height:24px;flex:0 0 24px}
+.mg-unread{width:36px;height:36px;flex:0 0 36px;border:1px solid #e4e2e0;border-radius:12px;background:#fff;
+  display:grid;place-items:center;cursor:pointer;color:#2d2d2d}
+.mg-unread.on{background:#ecf2ff;border-color:#004fcb;color:#004fcb}
+
+.mg-jobmenu{position:absolute;top:48px;left:0;width:318px;background:#fff;border:1px solid #e4e2e0;
+  border-radius:12px;padding:8px;z-index:30;box-shadow:0 0 2px rgba(45,45,45,.16),0 4px 12px rgba(45,45,45,.08)}
+.mg-jobmenu button{display:flex;align-items:center;gap:12px;width:100%;text-align:left;border:0;background:none;
+  padding:10px 12px;border-radius:8px;font-size:16px;line-height:24px;color:#2d2d2d;cursor:pointer}
+.mg-jobmenu button:hover{background:#f3f2f1}
+.mg-radio{width:20px;height:20px;flex:0 0 20px;border:1px solid #595959;border-radius:50%;display:grid;place-items:center}
+.mg-radio.on{border-color:#004fcb;border-width:2px}
+.mg-radio.on:after{content:"";width:10px;height:10px;border-radius:50%;background:#004fcb}
+
+.mg-list{overflow:auto;padding:0 8px 16px;flex:1}
+.mg-row{display:flex;gap:12px;padding:8px;border-radius:8px;cursor:pointer;margin-bottom:8px;text-align:left;
+  border:0;background:none;width:100%}
+.mg-row:hover{background:#f7f6f5}
+.mg-row.on{background:#ecf2ff}
+.mg-av{width:44px;height:44px;flex:0 0 44px;border-radius:50%;display:grid;place-items:center;color:#fff}
+.mg-av svg{width:22px;height:22px}
+.mg-rb{display:block;min-width:0;flex:1;overflow:hidden}
+.mg-rtop{display:flex;gap:8px;align-items:baseline}
+.mg-rjob{font-size:14px;color:#595959;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
+.mg-rtime{font-size:12px;line-height:18px;color:#595959;flex:0 0 auto}
+.mg-rname{display:flex;font-size:16px;line-height:24px;color:#2d2d2d;align-items:center;gap:8px;min-width:0}
+.mg-rname > span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mg-rname.unread{font-weight:700}
+.mg-rname .mg-udot{margin-left:auto}
+.mg-rprev{display:block;font-size:16px;line-height:24px;color:#595959;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ---- right column --------------------------------------------- */
+.mg-right{flex:1;display:flex;flex-direction:column;min-width:0}
+.mg-head{display:flex;align-items:center;gap:16px;padding:12px 16px;border-bottom:1px solid #e4e2e0}
+.mg-hname{font-size:16px;line-height:24px;font-weight:700;color:#2d2d2d}
+.mg-hsub{font-size:12px;line-height:18px;color:#2d2d2d}
+.mg-hact{margin-left:auto;display:flex;align-items:center;gap:8px;position:relative}
+.mg-ib{height:44px;min-width:44px;border:0;background:none;border-radius:12px;padding:9px;cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;gap:4px;color:#2d2d2d}
+.mg-ib:hover{background:#f3f2f1}
+.mg-ib.blue{color:#004fcb;font-size:16px;line-height:24px;font-weight:700}
+
+.mg-thread{flex:1;overflow:auto;padding:24px 16px}
+.mg-day{display:flex;align-items:center;gap:16px;margin:24px 0}
+.mg-day:before,.mg-day:after{content:"";flex:1;height:1px;background:#e4e2e0}
+.mg-day span{font-size:14px;line-height:21px;font-weight:700;color:#595959}
+
+.mg-m{margin-bottom:20px;display:flex;flex-direction:column}
+.mg-m.out{align-items:flex-end}
+.mg-m.in{align-items:flex-start}
+.mg-bub{max-width:658px;padding:16px;font-size:16px;line-height:24px;font-weight:400;white-space:pre-line}
+.mg-m.out .mg-bub{background:#004fcb;color:#fff;border-radius:20px 20px 8px 20px}
+.mg-m.in  .mg-bub{background:#f3f2f1;color:#595959;border-radius:20px 20px 20px 8px}
+.mg-meta{margin-top:6px;font-size:12px;line-height:18px;color:#595959;display:flex;align-items:center;gap:4px}
+.mg-meta .who{font-weight:700;color:#2d2d2d}
+.mg-mav{width:20px;height:20px;flex:0 0 20px;border-radius:50%;display:grid;place-items:center;color:#fff}
+.mg-mav svg{width:11px;height:11px}
+
+.mg-card{border:1px solid #e4e2e0;border-radius:20px;background:#fff;padding:16px;max-width:340px}
+.mg-card .t{font-size:16px;line-height:24px;font-weight:700;color:#2d2d2d}
+.mg-card .l{font-size:14px;line-height:21px;color:#595959;margin-top:4px}
+.mg-stat{display:inline-block;background:#e4f7e6;color:#1f662c;font-size:12px;line-height:18px;font-weight:700;
+  border-radius:8px;padding:3px 9px;margin-bottom:8px}
+
+/* ---- composer -------------------------------------------------- */
+.mg-comp{border-top:1px solid #e4e2e0;padding:16px}
+.mg-quick{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.mg-ql{display:inline-flex;align-items:center;gap:6px;font-size:14px;line-height:14px;font-weight:500;color:#2d2d2d}
+.mg-ql svg{width:16px;height:16px;color:#004fcb}
+.mg-qp{height:24px;border:1px solid #e4e2e0;background:#fff;border-radius:20px;padding:0 8px;
+  font-size:14px;line-height:22.4px;font-weight:700;color:#004fcb;cursor:pointer}
+.mg-qp:hover{background:#f7f6f5}
+.mg-qp.on{border-color:#004fcb}
+.mg-qp[disabled]{opacity:.5;cursor:default}
+
+.mg-rw{display:none;align-items:center;gap:8px;padding:4px 8px;margin-bottom:8px}
+.mg-rw.show{display:flex}
+.mg-rwb{display:inline-flex;align-items:center;gap:6px;background:#f7f6f5;color:#003a9b;border:0;
+  border-radius:12px;padding:4px 10px;font-size:14px;line-height:22.4px;cursor:pointer}
+.mg-rwb svg{width:16px;height:16px}
+.mg-rwi{width:20px;height:34px;border:0;background:none;cursor:pointer;color:#2d2d2d;display:grid;place-items:center}
+.mg-rwi svg{width:18px;height:18px}
+
+.mg-tw{position:relative}
+.mg-ta{width:100%;min-height:104px;border:1px solid #e4e2e0;border-radius:12px;padding:16px 48px 16px 16px;
+  font-family:inherit;font-size:16px;line-height:24px;font-weight:400;color:#2d2d2d;resize:none;outline:none;
+  background:#fff}
+.mg-ta:focus{border-color:#004fcb}
+.mg-exp{position:absolute;right:12px;bottom:12px;border:0;background:none;cursor:pointer;color:#2d2d2d;padding:0}
+
+.mg-bar{display:flex;align-items:center;gap:4px;margin-top:12px}
+.mg-bi{width:36px;height:36px;flex:0 0 36px;border:0;background:none;border-radius:12px;cursor:pointer;
+  display:grid;place-items:center;color:#2d2d2d}
+.mg-bi:hover{background:#f3f2f1}
+.mg-fb{display:none;align-items:center;gap:4px;margin-left:16px}
+.mg-fb.show{display:flex}
+.mg-fb > span{font-size:16px;line-height:24px;color:#2d2d2d;margin-right:4px}
+.mg-bi.picked{color:#004fcb;background:#ecf2ff}
+.mg-send{margin-left:auto;border:0;border-radius:12px;padding:5px 16px;height:36px;color:#fff;
+  font-size:16px;line-height:24px;font-weight:700;background:rgba(0,79,203,.4);cursor:default}
+.mg-send.on{background:#004fcb;cursor:pointer}
+
+/* ---- kebab ----------------------------------------------------- */
+.mg-menu{display:none;position:absolute;top:48px;right:0;width:255px;background:#fff;border:1px solid #e4e2e0;
+  border-radius:12px;padding:12px;z-index:40;
+  box-shadow:0 0 2px rgba(45,45,45,.16),0 4px 12px rgba(45,45,45,.08)}
+.mg-menu.show{display:block}
+.mg-menu button{display:block;width:100%;text-align:left;height:44px;border:0;background:none;border-radius:8px;
+  padding:10px 12px;font-size:16px;line-height:24px;color:#2d2d2d;cursor:pointer}
+.mg-menu button:hover{background:#f3f2f1}
+
+/* ---- templates popover ----------------------------------------- */
+.mg-tpl{display:none;position:absolute;bottom:52px;left:0;width:436px;background:#fff;border:1px solid #e4e2e0;
+  border-radius:20px;padding:24px;z-index:40;box-shadow:0 0 2px rgba(45,45,45,.16),0 6px 20px rgba(45,45,45,.12)}
+.mg-tpl.show{display:block}
+.mg-tplhead{display:flex;align-items:center;margin-bottom:8px}
+.mg-tplhead h4{font-size:20px;line-height:30px;font-weight:700;color:#2d2d2d;margin:0}
+.mg-tplhead button{margin-left:auto;border:0;background:none;cursor:pointer;color:#2d2d2d;padding:4px;
+  border-radius:12px;display:grid;place-items:center}
+.mg-tplrow{display:flex;align-items:center;gap:16px;width:100%;border:0;background:none;padding:16px 0;
+  cursor:pointer;text-align:left;font-size:16px;line-height:24px;font-weight:700;color:#2d2d2d}
+.mg-tplrow:hover{background:#f7f6f5;border-radius:8px}
+.mg-tplic{width:32px;height:32px;flex:0 0 32px;border-radius:50%;background:#f3f2f1;display:grid;place-items:center;
+  color:#004fcb}
+.mg-tplcta{width:100%;margin-top:8px;background:#004fcb;color:#fff;border:0;border-radius:12px;height:48px;
+  font-size:16px;line-height:24px;font-weight:700;cursor:pointer}
+
+/* ---- modals ---------------------------------------------------- */
+.mg-ov{display:none;position:fixed;inset:0;background:rgba(45,45,45,.45);z-index:200;
+  align-items:center;justify-content:center;padding:24px}
+.mg-ov.show{display:flex}
+.mg-modal{background:#fff;border-radius:20px;width:600px;max-width:100%;padding:24px}
+.mg-modal h3{font-size:20px;line-height:30px;font-weight:700;margin:0;color:#2d2d2d}
+.mg-modal p{font-size:16px;line-height:24px;color:#2d2d2d;margin:12px 0 0}
+.mg-mhead{display:flex;align-items:flex-start;gap:12px}
+.mg-mhead button{margin-left:auto;border:0;background:none;cursor:pointer;color:#2d2d2d;border-radius:12px;padding:4px}
+.mg-mfoot{display:flex;justify-content:flex-end;gap:12px;margin-top:24px}
+.mg-b{border-radius:12px;height:44px;padding:9px 16px;font-size:16px;line-height:24px;font-weight:700;cursor:pointer}
+.mg-b.sec{background:#fff;color:#004fcb;border:1px solid #e4e2e0}
+.mg-b.danger{background:#a9252b;color:#fff;border:0}
+.mg-b.pri{background:#004fcb;color:#fff;border:0}
+.mg-b[disabled]{opacity:.4;cursor:default}
+
+.mg-psel{width:100%;height:44px;border:1px solid #595959;border-radius:12px;padding:9px 12px;background:#fff;
+  font-size:16px;line-height:24px;color:#595959;display:flex;align-items:center;margin:16px 0}
+.mg-psel svg{margin-left:auto;width:24px;height:24px}
+.mg-prow{display:flex;align-items:center;gap:12px;padding:10px 0;font-size:16px;line-height:24px;color:#2d2d2d}
+.mg-prow b{font-weight:700}
+.mg-pav{width:32px;height:32px;flex:0 0 32px;border-radius:50%;display:grid;place-items:center;color:#fff;
+  font-size:14px;font-weight:700}
+.mg-pnote{display:flex;gap:8px;font-size:14px;line-height:21px;color:#595959;margin-top:16px}
+.mg-pnote svg{width:16px;height:16px;flex:0 0 16px;margin-top:3px}
+
+/* ---- empty state ----------------------------------------------- */
+.mg-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px}
+.mg-empty svg{width:200px;height:144px;display:block}
+.mg-empty h2{font-size:20px;line-height:30px;font-weight:700;color:#2d2d2d;margin:24px 0 8px}
+.mg-empty p{font-size:16px;line-height:24px;color:#2d2d2d;margin:0}
+.mg-nolist{padding:48px 24px;text-align:center;color:#595959;font-size:16px;line-height:24px}
 
 </style>
 </body>
