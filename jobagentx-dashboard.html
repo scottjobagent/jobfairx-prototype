@@ -12258,6 +12258,938 @@ function IAUsers(t){ IA.usersTab = t; IA.sync(); }
   if (document.querySelector('.sidebar-nav')) IA.render();
 })();
 
+
+/* ═══ NAV — final structure per Scott ════════════════════════════════
+   Order: Dashboard, Agents, Smart Sourcing, Candidates, Interviews,
+   Messages, Analytics, Tools.  Arrows on Interviews / Analytics / Tools
+   only — exactly as Indeed does it.  Users, Subscriptions and Settings
+   move out of the sidebar and into the top-right account menu.
+   ==================================================================== */
+(function(){
+  if (typeof IA !== 'object' || !IA.tree) return;
+
+  var byId = {};
+  IA.tree.forEach(function(n){ if (n && n.id) byId[n.id] = n; });
+
+  /* Smart Sourcing loses its arrow — Indeed has none there */
+  if (byId.sourcing) delete byId.sourcing.children;
+  if (byId.users)    delete byId.users.children;
+
+  /* Messaging → "Messages", no submenu */
+  if (byId.messaging) { byId.messaging.label = 'Messages'; delete byId.messaging.children; }
+
+  /* Interviews gains Indeed's submenu. "All interviews" is the existing
+     protected view; the other three were never captured, so they render an
+     honest pending panel in their OWN view — the protected module is untouched. */
+  if (byId.interviews) {
+    byId.interviews.children = [
+      { id:'iv-all',   label:'All interviews',        go:function(){ showView('interviews'); },
+        match:function(){ return CDIV.sec === 'all'; } },
+      { id:'iv-avail', label:'Interview availability', go:function(){ CDIV.open('availability','Interview availability','/interviews/availability'); },
+        match:function(){ return CDIV.sec === 'availability'; } },
+      { id:'iv-odm',   label:'Interview on Demand',    go:function(){ CDIV.open('ondemand','Interview on Demand','/interviews/on-demand/dashboard'); },
+        match:function(){ return CDIV.sec === 'ondemand'; } },
+      { id:'iv-events',label:'Hiring events',          go:function(){ CDIV.open('events','Hiring events','/ihp/manage'); },
+        match:function(){ return CDIV.sec === 'events'; } }
+    ];
+  }
+
+  /* out of the sidebar */
+  var DROP = ['users','subs','settings'];
+  IA.tree = IA.tree.filter(function(n){ return !n || !n.id || DROP.indexOf(n.id) < 0; });
+
+  var ORDER = ['overview','events','sourcing','candidates','interviews','messaging','analytics','tools'];
+  var map = {}; IA.tree.forEach(function(n){ if (n && n.id) map[n.id] = n; });
+  var ordered = ORDER.map(function(id){ return map[id]; }).filter(Boolean);
+  IA.tree.forEach(function(n){ if (n && n.id && ORDER.indexOf(n.id) < 0) ordered.push(n); });
+  IA.tree.length = 0; ordered.forEach(function(n){ IA.tree.push(n); });
+
+  /* the three Interviews sub-pages that were never captured */
+  var CDIV = window.CDIV = { sec: 'all' };
+  CDIV.open = function(sec, title, route){
+    CDIV.sec = sec;
+    var v = document.getElementById('view-ivsub');
+    if (!v){
+      v = document.createElement('div'); v.className = 'view'; v.id = 'view-ivsub';
+      document.getElementById('view-overview').parentNode.appendChild(v);
+    }
+    v.innerHTML = IA.pageHeader({ title: title }) +
+      '<div class="an-note" style="align-items:flex-start">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="#8a6116" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>' +
+      '<span><b>Capture pending &mdash; not yet built.</b><br><code>' + route + '</code> is confirmed ' +
+      'present in the live Interviews sub-navigation, but its screens were never captured. It is ' +
+      'deliberately empty rather than invented, and it lives outside the protected Interviews module ' +
+      'so that module is byte-identical.</span></div>';
+    showView('ivsub');
+    IA.sync();
+  };
+  var _sv = window.showView;
+  if (_sv && !_sv.__ivsec){
+    var w = function(v){ if (v === 'interviews') CDIV.sec = 'all'; return _sv.apply(this, arguments); };
+    w.__ivsec = true; w.__ia = true; w.__iaexp = true; window.showView = w;
+  }
+
+  /* Settings joins the top-right account menu alongside Users and Subscriptions */
+  IA.accountExtra = [{ label: 'Settings', go: function(){ showView('settings'); } }];
+
+  if (document.querySelector('.sidebar-nav')) IA.render();
+})();
+
+/* ═══ CD — CANDIDATES MODULE ═════════════════════════════════════════
+   Independent of the protected Agents and Interviews modules: its own
+   namespace (CD / .cd-*), its own fixtures, its own profile pages.
+   Every string, metric and workflow below is measured from
+   employers.indeed.com — see rn/CANDIDATES-EXACT.md.
+   ==================================================================== */
+var CD = {
+  view:'list', tab:'manage', stage:'All', sort:'Apply date (newest first)',
+  loc:'', interest:'', q:'', page:1, perPage:20, sel:[], openIdx:0,
+  ptab:'application', mode:'populated', menu:null, seen:{}, notes:{}, toastT:null,
+  scope:'All open and paused jobs'
+};
+
+CD.STAGES = ['New','Reviewing','Contacting','Interviewing','Rejected','Hired'];
+CD.PILLS  = ['Invited candidates','All applications','New','Reviewing','Contacting','Interviewing','Rejected','Hired'];
+CD.SORTS  = ['Apply date (newest first)','Apply date (oldest first)','Interest (descending)',
+             'Interest (ascending)','Name (A to Z)','Name (Z to A)'];
+CD.SECTIONS = ['Interviews','Qualifications','Screener questions','Experience','Education','Resume'];
+
+/* fixtures — shapes and values follow the captured rows exactly */
+CD.SEED = [
+ ['Matthew Shimizu','Portland, OR','New','Applied Today','Web Developer',
+  [['Lead Software Engineer','Deloitte','2021–2026'],['Senior Software Engineer','NAVEX Global','2019–2021']],
+  'New applicant · 32 minutes ago', null,
+  {title:'Lead Software Engineer',co:'Deloitte',email:'mattshimizu957@outlook.com',li:'linkedin.com/in/mattshimizu',
+   zip:'Portland, OR, US, 97203',
+   quals:['AWS','Java','Azure','Microservices','C#','Web development'],met:6,
+   screener:['How many years of Web development experience do you have?','8','1'],
+   exp:[['Lead Software Engineer','Deloitte','April 2021 – May 2026','5 yr 1 mo','Portland, OR, US',
+        ['Led a platform team of nine engineers rebuilding the client reporting suite.',
+         'Cut median API latency from 480 ms to 120 ms by introducing read replicas and a caching layer.',
+         'Owned the migration of 40+ services from EC2 to ECS with zero customer-facing downtime.']],
+       ['Senior Software Engineer','NAVEX Global','June 2019 – March 2021','1 yr 10 mo','Portland, OR, US',
+        ['Built the compliance questionnaire builder used by 1,200 enterprise customers.',
+         'Introduced contract tests across six services, cutting integration defects by roughly half.']]],
+   edu:[["Bachelor's Degree in Computer Science",'University of Portland · Portland','August 2014 – May 2018']]}],
+
+ ['Mubeen Ali khan','','New','Applied Today','Web Developer',
+  [['Full Stack Developer','Inkling','2022–Present'],['SENIOR SOFTWARE DEVELOPER','ClickUp','2019–2022']],
+  'New applicant · 2 hours ago', null,
+  {title:'Full Stack Developer',co:'Inkling',email:'mubeen.alikhan@gmail.com',li:'linkedin.com/in/mubeenalikhan',
+   zip:'Lahore, PK',
+   quals:['JavaScript','React','Node.js','REST APIs'],met:4,
+   screener:['How many years of Web development experience do you have?','6','1'],
+   exp:[['Full Stack Developer','Inkling','March 2022 – Present','4 yr 5 mo','Lahore, PK',
+        ['Ships the customer-facing content editor used by roughly 90,000 monthly authors.',
+         'Reduced first-contentful-paint from 3.1 s to 1.4 s by code-splitting the editor bundle.']],
+       ['SENIOR SOFTWARE DEVELOPER','ClickUp','January 2019 – February 2022','3 yr 2 mo','Remote',
+        ['Owned the notifications service handling ~12 million events per day.']]],
+   edu:[['BSc in Software Engineering','University of the Punjab · Lahore','September 2014 – July 2018']]}],
+
+ ['Abe Jahwin','Kigali','New','Applied Today','Web Developer',
+  [['Full-stack Web Developer','201 Lange Technologies','2019–2019']],
+  'New applicant · 2 hours ago', null,
+  {title:'Full-stack Web Developer',co:'201 Lange Technologies',email:'abe.jahwin@outlook.com',li:'',
+   zip:'Kigali, RW', quals:['JavaScript','PHP','MySQL'],met:3,
+   screener:['How many years of Web development experience do you have?','4','1'],
+   exp:[['Full-stack Web Developer','201 Lange Technologies','February 2019 – December 2019','11 mo','Kigali, RW',
+        ['Built and maintained six client marketing sites on a shared Laravel codebase.']]],
+   edu:[['Diploma in Information Technology','Rwanda Polytechnic · Kigali','January 2016 – November 2018']]}],
+
+ ['Barry Williams','Portsmouth, VA','Reviewing','Applied 1 hour ago','Web Developer',
+  [['Full-Stack Developer (PHP / Vue / REST APIs)','TLAR Academy LLC','2020–Present'],
+   ['Web Developer','Sentara Health','2017–2020']],
+  'Reviewing · Applied 1 hour ago',
+  'Strong front-end background. Checking availability for a follow-up.',
+  {title:'Full-Stack Developer',co:'TLAR Academy LLC',email:'barry.williams@gmail.com',li:'linkedin.com/in/barrywilliamsdev',
+   zip:'Portsmouth, VA, US', quals:['PHP','Vue','REST APIs','MySQL','Web development'],met:5,
+   screener:['How many years of Web development experience do you have?','9','1'],
+   exp:[['Full-Stack Developer (PHP / Vue / REST APIs)','TLAR Academy LLC','June 2020 – Present','6 yr 2 mo','Portsmouth, VA, US',
+        ['Rebuilt the student portal on Vue 3, lifting course-completion rate by 18%.',
+         'Designed the REST API that the mobile apps and the partner integrations both consume.']],
+       ['Web Developer','Sentara Health','August 2017 – May 2020','2 yr 10 mo','Norfolk, VA, US',
+        ['Maintained a 300-page clinical content site and its accessibility compliance.']]],
+   edu:[["Bachelor's Degree in Information Systems",'Old Dominion University · Norfolk','August 2013 – May 2017']]}],
+
+ ['Andres Hincapie','Wakefield, MA','Interviewing','Applied 2 days ago','Web Developer',
+  [['IT Consultant','Insight Global','2021–Present'],['Web Developer','Liberty Mutual','2018–2021']],
+  'Upcoming interview · in 1 day', null,
+  {title:'IT Consultant',co:'Insight Global',email:'a.hincapie@proton.me',li:'linkedin.com/in/andreshincapie',
+   zip:'Wakefield, MA, US', quals:['Java','Azure','Microservices','C#'],met:4,
+   screener:['How many years of Web development experience do you have?','7','1'],
+   iv:{state:'Confirmed',slot:'Aug 4 at 12 pm (PDT)'},
+   exp:[['IT Consultant','Insight Global','May 2021 – Present','5 yr 3 mo','Wakefield, MA, US',
+        ['Embedded with two insurance clients modernising internal claims tooling.']],
+       ['Web Developer','Liberty Mutual','July 2018 – April 2021','2 yr 10 mo','Boston, MA, US',
+        ['Delivered the agent-portal redesign used daily by 4,000 agents.']]],
+   edu:[["Bachelor's Degree in Computer Engineering",'Northeastern University · Boston','September 2014 – June 2018']]}],
+
+ ['Robin Lee','Miami, FL','Interviewing','Applied 3 days ago','Web Developer',
+  [['Senior Software Engineer','Chewy','2020–Present'],['Software Engineer','Ultimate Software','2017–2020']],
+  'Pending interview · For 16 hours', null,
+  {title:'Senior Software Engineer',co:'Chewy',email:'robin.lee.dev@gmail.com',li:'linkedin.com/in/robinleedev',
+   zip:'Miami, FL, US', quals:['AWS','Java','Microservices','Web development'],met:4,
+   screener:['How many years of Web development experience do you have?','8','1'],
+   iv:{state:'Awaiting confirmation',slot:'Aug 5 at 9:30 am (PDT)'},
+   exp:[['Senior Software Engineer','Chewy','February 2020 – Present','6 yr 6 mo','Miami, FL, US',
+        ['Tech lead for the subscription platform processing ~$400M in annual recurring orders.']],
+       ['Software Engineer','Ultimate Software','March 2017 – January 2020','2 yr 11 mo','Weston, FL, US',
+        ['Built payroll-preview tooling that removed a two-day manual reconciliation step.']]],
+   edu:[["Bachelor's Degree in Computer Science",'University of Miami · Coral Gables','August 2013 – May 2017']]}],
+
+ ['Kevin Dinh','Houston, TX','Reviewing','Applied 3 days ago','Web Developer',
+  [['Senior Software Engineer','Halliburton','2019–Present']],
+  'Reviewing · Applied 4 hours ago', null,
+  {title:'Senior Software Engineer',co:'Halliburton',email:'kevin.dinh@outlook.com',li:'',
+   zip:'Houston, TX, US', quals:['C#','Azure','Web development'],met:3,
+   screener:['How many years of Web development experience do you have?','7','1'],
+   exp:[['Senior Software Engineer','Halliburton','October 2019 – Present','6 yr 10 mo','Houston, TX, US',
+        ['Maintains the well-data visualisation suite used across 30 field sites.']]],
+   edu:[["Bachelor's Degree in Computer Science",'University of Houston · Houston','August 2015 – May 2019']]}],
+
+ ['Faisal Hayat','Lahore','New','Applied 4 days ago','Web Developer',
+  [['Frontend Engineer','Systems Limited','2021–Present'],['Web Developer','Netsol Technologies','2018–2021']],
+  'New applicant · 4 days ago', null,
+  {title:'Frontend Engineer',co:'Systems Limited',email:'faisal.hayat@gmail.com',li:'',
+   zip:'Lahore, PK', quals:['JavaScript','React','Web development'],met:3,
+   screener:['How many years of Web development experience do you have?','5','1'],
+   exp:[['Frontend Engineer','Systems Limited','January 2021 – Present','5 yr 7 mo','Lahore, PK',
+        ['Owns the design-system package consumed by eleven internal products.']],
+       ['Web Developer','Netsol Technologies','June 2018 – December 2020','2 yr 7 mo','Lahore, PK',
+        ['Delivered customer portals for three leasing clients.']]],
+   edu:[['BSc in Computer Science','FAST NUCES · Lahore','September 2014 – June 2018']]}],
+
+ ['David Bergstrom','Eugene, OR','New','Applied 5 days ago','Web Developer',
+  [['Software Engineer','Palo Alto Networks','2022–Present']],
+  'New applicant · 5 days ago', null,
+  {title:'Software Engineer',co:'Palo Alto Networks',email:'d.bergstrom@fastmail.com',li:'linkedin.com/in/dbergstrom',
+   zip:'Eugene, OR, US', quals:['AWS','Microservices'],met:2,
+   screener:['How many years of Web development experience do you have?','4','1'],
+   exp:[['Software Engineer','Palo Alto Networks','August 2022 – Present','4 yr','Remote',
+        ['Works on the policy-evaluation service behind the firewall management console.']]],
+   edu:[["Bachelor's Degree in Computer Science",'University of Oregon · Eugene','September 2018 – June 2022']]}],
+
+ ['Nina Mir','San Francisco, CA','New','Applied 5 days ago','Web Developer',
+  [['Lecturer','San Francisco State University','2020–Present'],['Software Engineer','Salesforce','2016–2020']],
+  'New applicant · 5 days ago', null,
+  {title:'Lecturer',co:'San Francisco State University',email:'nina.mir@sfsu.edu',li:'linkedin.com/in/ninamir',
+   zip:'San Francisco, CA, US', quals:['JavaScript','Web development','Java'],met:3,
+   screener:['How many years of Web development experience do you have?','10','1'],
+   exp:[['Lecturer','San Francisco State University','August 2020 – Present','6 yr','San Francisco, CA, US',
+        ['Teaches the full-stack web development sequence to roughly 200 students a year.']],
+       ['Software Engineer','Salesforce','July 2016 – July 2020','4 yr 1 mo','San Francisco, CA, US',
+        ['Built internal developer tooling for the Lightning platform team.']]],
+   edu:[["Master's Degree in Computer Science",'Stanford University · Stanford','September 2014 – June 2016']]}]
+];
+
+CD.build = function(){
+  CD.ALL = [];
+  var extraNames = ['MUHAMMAD KHUZAMA','Adnan Saleem','Greg Stephens','Paul Lott','Tara Whitfield',
+    'Jorge Medina','Aisha Bello','Colin Pratt','Yuki Tanaka','Dmitri Volkov','Hannah Osei',
+    'Samuel Reyes','Priya Raman','Owen Clarke'];
+  var extraLocs = ['Rawalpindi','Lahore','Las Vegas, NV','Dallas, TX','Seattle, WA','San Antonio, TX',
+    'Lagos','Boston, MA','San Jose, CA','Brooklyn, NY','Columbus, OH','Orlando, FL','Fishers, IN','Ogden, UT'];
+  CD.SEED.forEach(function(s, i){
+    CD.ALL.push({ id:'c'+i, n:s[0], loc:s[1], stage:s[2], applied:s[3], job:s[4],
+      roles:s[5].slice(), act:s[6], note:s[7],
+      p: JSON.parse(JSON.stringify(s[8])), interest:null });
+  });
+  /* the remaining rows keep the observed shape without inventing detail beyond it */
+  for (var j = 0; j < extraNames.length; j++){
+    var base = CD.SEED[j % CD.SEED.length];
+    /* deep copy so per-candidate mutations (interview, status) stay local */
+    var pcopy = JSON.parse(JSON.stringify(base[8])); delete pcopy.iv;
+    CD.ALL.push({ id:'x'+j, n:extraNames[j], loc:extraLocs[j],
+      stage: j % 3 === 0 ? 'Reviewing' : 'New',
+      applied:'Applied ' + (j + 6) + ' days ago', job:'Web Developer',
+      roles: base[5], act:(j % 3 === 0 ? 'Reviewing · Applied ' : 'New applicant · ') + (j + 6) + ' days ago',
+      note:null, p: pcopy, interest:null });
+  }
+  CD.TOTAL = 100;   /* the live account reports 100; the prototype renders a representative page set */
+};
+CD.build();
+
+/* ═══ CD — CANDIDATES MODULE (behaviour) ═════════════════════════════ */
+function cdEl(id){ return document.getElementById(id); }
+function cdEsc(s){ return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function cdSvg(p, w){ return '<svg viewBox="0 0 24 24" width="' + (w||20) + '" height="' + (w||20) + '" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + p + '</svg>'; }
+var CD_ICON = {
+  caret:'<path d="M6 9l6 6 6-6"/>', check:'<path d="M20 6L9 17l-5-5"/>',
+  q:'<circle cx="12" cy="12" r="9"/><path d="M9.1 9a3 3 0 015.8 1c0 2-3 2.5-3 4"/><path d="M12 17h.01"/>',
+  x:'<path d="M18 6L6 18M6 6l12 12"/>', dots:'<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>',
+  search:'<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/>',
+  cal:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+  chat:'<path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>',
+  phone:'<path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6A19.8 19.8 0 012.1 4.2 2 2 0 014.1 2h3a2 2 0 012 1.7c.1.9.4 1.8.7 2.6a2 2 0 01-.5 2.1L8.1 9.9a16 16 0 006 6l1.5-1.2a2 2 0 012.1-.5c.8.3 1.7.6 2.6.7a2 2 0 011.7 2z"/>',
+  brief:'<rect x="3" y="8" width="18" height="12" rx="2"/><path d="M8 8V6a2 2 0 012-2h4a2 2 0 012 2v2"/>',
+  pin:'<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/>',
+  cap:'<path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c0 1 3 3 6 3s6-2 6-3v-5"/>',
+  left:'<path d="M19 12H5M11 6l-6 6 6 6"/>', right:'<path d="M5 12h14M13 6l6 6-6 6"/>',
+  dl:'<path d="M12 3v12M7 11l5 5 5-5M4 20h16"/>', note:'<path d="M4 4h16v13H7l-3 3z"/>',
+  clip:'<path d="M21 11l-8.5 8.5a5 5 0 01-7-7L14 4a3.5 3.5 0 015 5l-8.5 8.5a2 2 0 01-3-3L15 6"/>'
+};
+
+function cdToast(t, s){
+  var el = cdEl('cdToast');
+  if (!el){ el = document.createElement('div'); el.className = 'cd-toast'; el.id = 'cdToast'; document.body.appendChild(el); }
+  el.innerHTML = '<b>' + cdEsc(t) + '</b>' + (s ? ' &nbsp;' + cdEsc(s) : '');
+  el.classList.add('on');
+  clearTimeout(CD.toastT);
+  CD.toastT = setTimeout(function(){ el.classList.remove('on'); }, 3200);
+}
+
+/* ---- data selection ------------------------------------------------ */
+CD.rows = function(){
+  if (CD.mode === 'empty' || CD.mode === 'error') return [];
+  var out = CD.ALL.slice();
+  if (CD.stage !== 'All' && CD.stage !== 'Invited candidates') out = out.filter(function(c){ return c.stage === CD.stage; });
+  if (CD.stage === 'Invited candidates') out = [];
+  if (CD.loc) out = out.filter(function(c){ return c.loc === CD.loc; });
+  if (CD.interest === 'Shortlist') out = out.filter(function(c){ return c.interest === 'shortlist'; });
+  if (CD.interest === 'No interest') out = out.filter(function(c){ return c.interest !== 'shortlist'; });
+  if (CD.q) out = out.filter(function(c){ return c.n.toLowerCase().indexOf(CD.q.toLowerCase()) >= 0; });
+  var s = CD.sort;
+  if (s === 'Name (A to Z)') out.sort(function(a,b){ return a.n.localeCompare(b.n); });
+  if (s === 'Name (Z to A)') out.sort(function(a,b){ return b.n.localeCompare(a.n); });
+  if (s === 'Apply date (oldest first)') out.reverse();
+  return out;
+};
+CD.counts = function(){
+  var c = { 'Invited candidates':0 };
+  var base = (CD.mode === 'empty' || CD.mode === 'error') ? [] : CD.ALL;
+  c['All applications'] = base.length ? CD.TOTAL : 0;
+  CD.STAGES.forEach(function(s){ c[s] = base.filter(function(x){ return x.stage === s; }).length; });
+  if (base.length){ c['New'] = 58; c['Reviewing'] = 34; c['Interviewing'] = 8; c['Contacting'] = 0; c['Rejected'] = 0; c['Hired'] = 0; }
+  if (CD.q){ CD.PILLS.forEach(function(p){ c[p] = 0; }); }
+  return c;
+};
+CD.locs = function(){
+  var m = {};
+  CD.ALL.forEach(function(c){ var k = c.loc || 'No information provided'; m[k] = (m[k]||0) + 1; });
+  return Object.keys(m).sort().map(function(k){ return [k, m[k]]; });
+};
+
+/* ---- popover plumbing --------------------------------------------- */
+function cdPop(ev, id, html, w){
+  ev.stopPropagation(); cdKillPop();
+  var p = document.createElement('div');
+  p.className = 'cd-pop open'; p.id = 'cdPop';
+  p.style.minWidth = (w || 240) + 'px';
+  p.innerHTML = html;
+  document.body.appendChild(p);
+  var r = ev.currentTarget.getBoundingClientRect();
+  var top = r.bottom + 4, h = p.getBoundingClientRect().height;
+  if (top + h > window.innerHeight - 8) top = Math.max(8, r.top - h - 4);   /* drop-up */
+  p.style.top = Math.round(top) + 'px';
+  p.style.left = Math.round(Math.min(r.left, window.innerWidth - (w||240) - 12)) + 'px';
+  CD.menu = id;
+  ev.currentTarget.classList.add('open');
+}
+function cdKillPop(){
+  var p = cdEl('cdPop'); if (p) p.remove();
+  document.querySelectorAll('#view-candidates .open').forEach(function(e){
+    if (e.classList.contains('cd-ctl') || e.classList.contains('cd-status') || e.classList.contains('cd-scope')) e.classList.remove('open');
+  });
+  CD.menu = null;
+}
+document.addEventListener('click', function(){ cdKillPop(); });
+document.addEventListener('keydown', function(e){ if (e.key === 'Escape'){ cdKillPop(); cdTipHide(); } });
+
+function cdTip(ev, text){
+  ev.stopPropagation();
+  var t = cdEl('cdTip');
+  if (!t){ t = document.createElement('div'); t.className = 'cd-tip'; t.id = 'cdTip'; document.body.appendChild(t); }
+  if (t.classList.contains('on')){ cdTipHide(); return; }
+  t.textContent = text; t.classList.add('on');
+  var r = ev.currentTarget.getBoundingClientRect();
+  t.style.top = Math.round(r.bottom + 30) + 'px';
+  t.style.left = Math.round(r.left) + 'px';
+}
+function cdTipHide(){ var t = cdEl('cdTip'); if (t) t.classList.remove('on'); }
+document.addEventListener('click', function(){ cdTipHide(); });
+
+/* ═══ CD — list + profile rendering ══════════════════════════════════ */
+CD.render = function(){
+  var v = cdEl('view-candidates'); if (!v) return;
+  v.innerHTML = CD.view === 'profile' ? CD.profileHTML() : CD.listHTML();
+  if (typeof IA === 'object' && IA.crumbs) IA.crumbs();
+};
+
+CD.devbar = function(){
+  var modes = [['populated','Populated'],['empty','Empty'],['loading','Loading'],['error','Error']];
+  return '<div class="cd-devbar">' + modes.map(function(m){
+    return '<button class="dev-toggle-btn' + (CD.mode === m[0] ? ' active' : '') + '" onclick="CD.setMode(\'' + m[0] + '\')">' + m[1] + '</button>';
+  }).join('') +
+  '<button class="dev-toggle-btn" onclick="CD.setVolume(10)">10 rows</button>' +
+  '<button class="dev-toggle-btn" onclick="CD.setVolume(24)">24 rows</button>' +
+  '</div>';
+};
+CD.setMode = function(m){
+  CD.mode = m; CD.sel = []; CD.page = 1; CD.view = 'list';
+  if (m === 'loading'){ CD.render(); setTimeout(function(){ if (CD.mode === 'loading'){ CD.mode = 'populated'; CD.render(); } }, 1400); return; }
+  CD.render();
+};
+CD.setVolume = function(n){ CD.build(); CD.ALL = CD.ALL.slice(0, n); CD.TOTAL = n === 24 ? 100 : n; CD.page = 1; CD.render(); };
+
+CD.listHTML = function(){
+  var counts = CD.counts(), rows = CD.rows();
+  var h = CD.devbar();
+
+  /* title row — the scope selector IS the page title */
+  h += '<div class="cd-titlerow">' +
+    '<button class="cd-scope" onclick="CD.scopeMenu(event)">' + cdEsc(CD.scope) + cdSvg(CD_ICON.caret, 24) + '</button>' +
+    '<button class="cd-addbtn" onclick="CD.add()">Add candidate</button></div>';
+
+  /* three sub-tabs */
+  h += '<div class="cd-tabs">' +
+    [['sourcing-assistant','Recruiting Assistant'],['find','Find candidates'],['manage','Manage candidates']]
+      .map(function(t){ return '<button class="cd-tab' + (CD.tab === t[0] ? ' on' : '') + '" onclick="CD.setTab(\'' + t[0] + '\')">' + t[1] + '</button>'; }).join('') +
+    '</div>';
+
+  if (CD.tab !== 'manage') return h + CD.otherTabHTML();
+
+  /* pipeline pill bar — this is the counts dashboard; Indeed has no KPI cards */
+  h += '<div class="cd-tabs cd-pills">' + CD.PILLS.map(function(p){
+      var key = p === 'All applications' ? 'All' : p;
+      return '<button class="cd-tab' + (CD.stage === key ? ' on' : '') + '" onclick="CD.setStage(\'' + key + '\')">' +
+        cdEsc(p) + ' &bull; ' + counts[p] + '</button>';
+    }).join('') + '</div>';
+
+  if (CD.mode === 'error'){
+    return h + '<div class="cd-zero"><p>Something went wrong loading candidates. Try again.</p>' +
+      '<button class="cd-btn pri" style="margin-top:16px" onclick="CD.setMode(\'populated\')">Retry</button></div>';
+  }
+
+  /* toolbar — Sort by / Location / Interest marked / Search */
+  var showLoc = !CD.q && ['All','New','Reviewing','Interviewing'].indexOf(CD.stage) >= 0;
+  var showInt = !CD.q && ['All','Interviewing'].indexOf(CD.stage) >= 0;
+  var sortVal = CD.q ? 'Name (A to Z)' : (CD.stage === 'Invited candidates' ? 'Invite date (newest first)' : CD.sort);
+  h += '<div class="cd-toolbar">' +
+    '<div class="cd-ctl sort" onclick="CD.sortMenu(event)"><span><b>Sort by:</b> <span class="v">' + cdEsc(sortVal) + '</span></span>' + cdSvg(CD_ICON.caret) + '</div>' +
+    (showLoc ? '<div class="cd-ctl loc" onclick="CD.locMenu(event)"><span class="v">' + cdEsc(CD.loc || 'Location') + '</span>' + cdSvg(CD_ICON.caret) + '</div>' : '') +
+    (showInt ? '<div class="cd-ctl int" onclick="CD.intMenu(event)"><span class="v">' + cdEsc(CD.interest || 'Interest marked') + '</span>' + cdSvg(CD_ICON.caret) + '</div>' : '') +
+    '<div class="cd-search">' + cdSvg(CD_ICON.search) +
+      '<input id="cdQ" placeholder="Search candidates" value="' + cdEsc(CD.q) + '" onkeydown="if(event.key===\'Enter\')CD.search(this.value)">' +
+      (CD.q ? '<button style="background:none;border:0;cursor:pointer;font-size:18px;color:#2d2d2d" onclick="CD.search(\'\')">&times;</button>' : '') +
+    '</div></div>';
+
+  if (CD.mode === 'loading') return h + CD.skeletonHTML();
+
+  if (!rows.length){
+    if (CD.q){
+      return h + '<div class="cd-zero">' + CD.emptyIllus() +
+        '<p>We didn&rsquo;t find any candidates with &lsquo;' + cdEsc(CD.q) + '&rsquo; in their name.</p></div>';
+    }
+    return h + '<div class="cd-zero">' + CD.emptyIllus() +
+      '<p>No candidates in this stage yet.</p></div>';
+  }
+
+  /* bulk bar sits between the toolbar and the table, in flow */
+  if (CD.sel.length){
+    h += '<div class="cd-bulk"><span class="cnt">' + CD.sel.length + ' candidate' + (CD.sel.length === 1 ? ' is' : 's are') + ' selected</span>' +
+      '<button class="sec" onclick="CD.selectAll()">Select all ' + CD.TOTAL + ' candidates</button>' +
+      '<button class="sec" onclick="CD.clearSel()">Clear selected</button>' +
+      '<button class="pri" onclick="CD.bulkStatusMenu(event)">Change status' + cdSvg(CD_ICON.caret) + '</button>' +
+      '<button class="pri dis" onclick="CD.exportMenu(event)">Export candidates' + cdSvg(CD_ICON.caret) + '</button>' +
+      '</div>';
+  }
+
+  /* table */
+  var start = (CD.page - 1) * CD.perPage, page = rows.slice(start, start + CD.perPage);
+  var allOn = page.length && page.every(function(c){ return CD.sel.indexOf(c.id) >= 0; });
+  h += '<table class="cd-table"><thead><tr>' +
+    '<th><span class="cd-cb' + (allOn ? ' on' : (CD.sel.length ? ' on ind' : '')) + '" onclick="CD.toggleAll(event)"></span></th>' +
+    '<th>Candidates</th>' +
+    '<th><button class="cd-wexp-hd" onclick="cdTip(event,\'Details may be pulled by AI from candidate profiles and resumes and may contain mistakes. Review the application for full details.\')">Work experience</button></th>' +
+    '<th>Activity</th><th>Interest</th></tr></thead><tbody>' +
+    page.map(CD.rowHTML).join('') + '</tbody></table>';
+
+  /* pagination */
+  var pages = Math.max(1, Math.ceil(rows.length / CD.perPage));
+  var to = Math.min(start + CD.perPage, rows.length);
+  h += '<div class="cd-pager"><div class="cd-pgbtns">' +
+    '<button aria-disabled="' + (CD.page === 1) + '" onclick="CD.setPage(' + (CD.page - 1) + ')">' + cdSvg(CD_ICON.left) + 'Prev</button>' +
+    '<button aria-disabled="' + (CD.page === pages) + '" onclick="CD.setPage(' + (CD.page + 1) + ')">Next' + cdSvg(CD_ICON.right) + '</button>' +
+    '</div><div class="cd-count">Showing ' + (start + 1) + '-' + to + ' of ' + rows.length + '</div></div>';
+  return h;
+};
+
+CD.emptyIllus = function(){
+  return '<svg viewBox="0 0 724 306" fill="none"><rect x="250" y="180" width="224" height="18" rx="9" fill="#EFE7DC"/>' +
+    '<path d="M300 180V96h124v84" stroke="#D9C7AE" stroke-width="8" stroke-linecap="round"/>' +
+    '<rect x="292" y="88" width="140" height="26" rx="10" fill="#E4B77A"/>' +
+    '<circle cx="500" cy="150" r="26" fill="#CFE3D6"/><path d="M500 124v52" stroke="#8FBEA0" stroke-width="6"/>' +
+    '<rect x="486" y="176" width="28" height="22" rx="4" fill="#D9C7AE"/></svg>';
+};
+CD.skeletonHTML = function(){
+  var bar = function(w){ return '<div style="height:16px;border-radius:8px;background:#f7f6f5;width:' + w + '%;margin-bottom:8px"></div>'; };
+  var h = '<div style="background:#f3f2f1;border-radius:12px;padding:16px">';
+  for (var i = 0; i < 6; i++) h += '<div style="padding:14px 0">' + bar(22) + bar(14) + bar(30) + '</div>';
+  return h + '</div>';
+};
+
+CD.rowHTML = function(c){
+  var on = CD.sel.indexOf(c.id) >= 0;
+  var iv = c.p && c.p.iv;
+  var act = iv
+    ? '<div class="cd-act">' + (iv.state === 'Confirmed' ? 'Upcoming interview &middot; in 1 day' : 'Pending interview &middot; For 16 hours') + '</div>' +
+      '<div style="margin-top:6px"><span class="cd-badge ' + (iv.state === 'Confirmed' ? 'ok' : 'wait') + '">' + iv.state + '</span> ' +
+      '<span class="cd-act">&middot; ' + cdEsc(iv.slot) + '</span></div>' +
+      '<button class="cd-viewdet" onclick="CD.viewDetails(\'' + c.id + '\')">View details</button>'
+    : '<div class="cd-act">' + cdEsc(c.act) + '</div>';
+
+  return '<tr>' +
+    '<td><span class="cd-cb' + (on ? ' on' : '') + '" onclick="CD.toggleSel(\'' + c.id + '\')"></span></td>' +
+    '<td><a class="cd-name' + (CD.seen[c.id] ? ' seen' : '') + '" onclick="CD.open(\'' + c.id + '\')">' + cdEsc(c.n) + '</a>' +
+      (c.loc ? '<div class="cd-cloc">' + cdEsc(c.loc) + '</div>' : '') +
+      '<div><span class="cd-cstage">' + cdEsc(c.stage) + '</span><span class="cd-cdot">&bull;</span><span class="cd-capp">' + cdEsc(c.applied) + '</span></div>' +
+      '<div><span class="cd-capp">Applied to: </span><a class="cd-cjob">' + cdEsc(c.job) + '</a></div>' +
+      (c.note ? '<div class="cd-notestrip">' + cdSvg(CD_ICON.note, 20) + '<span class="lb">Latest note:</span>' +
+        '<span class="bd">' + cdEsc(c.note) + '</span><button onclick="CD.open(\'' + c.id + '\',\'activity\')">See all notes</button></div>' : '') +
+    '</td>' +
+    '<td><ul class="cd-wexp">' + c.roles.slice(0,2).map(function(r){
+        return '<li><div class="t">' + cdEsc(r[0]) + '</div><div class="c">' + cdEsc(r[1]) + ' <span>(' + cdEsc(r[2]) + ')</span></div></li>';
+      }).join('') + '</ul></td>' +
+    '<td>' + act + '</td>' +
+    '<td><div style="display:flex;align-items:center">' + CD.interestHTML(c) +
+      '<button class="cd-more" aria-label="More Actions" onclick="CD.rowMenu(event,\'' + c.id + '\')">' + cdSvg(CD_ICON.dots, 22) + '</button></div></td>' +
+  '</tr>';
+};
+
+CD.interestHTML = function(c){
+  var b = function(kind, title, aria, icon){
+    return '<button title="' + title + '" aria-label="' + aria + ' ' + cdEsc(c.n) + '" aria-pressed="' + (c.interest === kind) +
+      '" onclick="CD.setInterest(\'' + c.id + '\',\'' + kind + '\')">' + cdSvg(icon) + '</button>';
+  };
+  return '<div class="cd-int" role="presentation">' +
+    b('shortlist','Add to Shortlist','Add to Shortlist', CD_ICON.check) +
+    b('undecided','Add to Undecided','Maybe', CD_ICON.q) +
+    b('reject','Reject','Reject', CD_ICON.x) + '</div>';
+};
+
+/* ═══ CD — menus, actions, profile ═══════════════════════════════════ */
+CD.setTab = function(t){ CD.tab = t; CD.sel = []; CD.render(); };
+CD.setStage = function(s){ CD.stage = s; CD.page = 1; CD.sel = []; CD.render(); };
+CD.setPage = function(p){
+  var pages = Math.max(1, Math.ceil(CD.rows().length / CD.perPage));
+  if (p < 1 || p > pages) return;
+  CD.page = p; CD.render();
+};
+CD.search = function(q){ CD.q = q; CD.page = 1; CD.sel = []; CD.render(); };
+CD.toggleSel = function(id){
+  var i = CD.sel.indexOf(id); if (i >= 0) CD.sel.splice(i,1); else CD.sel.push(id);
+  CD.render();
+};
+CD.toggleAll = function(ev){
+  ev.stopPropagation();
+  var rows = CD.rows(), start = (CD.page-1)*CD.perPage, page = rows.slice(start, start+CD.perPage);
+  var allOn = page.length && page.every(function(c){ return CD.sel.indexOf(c.id) >= 0; });
+  CD.sel = allOn ? [] : page.map(function(c){ return c.id; });
+  CD.render();
+};
+CD.selectAll = function(){ CD.sel = CD.rows().map(function(c){ return c.id; }); cdToast('Selection expanded', 'All ' + CD.TOTAL + ' candidates selected.'); CD.render(); };
+CD.clearSel = function(){ CD.sel = []; CD.render(); };
+
+CD.sortMenu = function(ev){
+  cdPop(ev, 'sort', '<ul>' + CD.SORTS.map(function(s){
+    return '<li class="' + (CD.sort === s ? 'on' : '') + '" onclick="CD.sort=\'' + s + '\';cdKillPop();CD.render()">' +
+      cdSvg(CD_ICON.check, 24).replace('<svg','<svg class="ck"') + cdEsc(s) + '</li>';
+  }).join('') + '</ul>', 297);
+};
+CD.locMenu = function(ev){
+  var items = [['All locations', null]].concat(CD.locs());
+  cdPop(ev, 'loc', '<ul>' + items.map(function(l){
+    var val = l[1] === null ? '' : l[0];
+    return '<li class="' + (CD.loc === val ? 'on' : '') + '" onclick="CD.loc=' + JSON.stringify(val).replace(/"/g,'&quot;') + ';CD.page=1;cdKillPop();CD.render()">' +
+      cdSvg(CD_ICON.check, 24).replace('<svg','<svg class="ck"') + cdEsc(l[0]) + (l[1] ? ' (' + l[1] + ')' : '') + '</li>';
+  }).join('') + '</ul>', 288);
+};
+CD.intMenu = function(ev){
+  var short = CD.ALL.filter(function(c){ return c.interest === 'shortlist'; }).length;
+  var opts = [['Shortlist', short], ['No interest', CD.ALL.length - short]];
+  cdPop(ev, 'int', '<ul>' + opts.map(function(o){
+    return '<li class="' + (CD.interest === o[0] ? 'on' : '') + '" onclick="CD.interest=(CD.interest===\'' + o[0] + '\'?\'\':\'' + o[0] + '\');CD.page=1;cdKillPop();CD.render()">' +
+      cdSvg(CD_ICON.check, 24).replace('<svg','<svg class="ck"') + o[0] + ' (' + o[1] + ')</li>';
+  }).join('') + '</ul>', 300);
+};
+CD.scopeMenu = function(ev){
+  var jobs = ['All open and paused jobs','Web Developer','Test Engineer','Registered Nurse'];
+  cdPop(ev, 'scope', '<ul>' + jobs.map(function(j){
+    return '<li class="' + (CD.scope === j ? 'on' : '') + '" onclick="CD.scope=' + JSON.stringify(j).replace(/"/g,'&quot;') + ';cdKillPop();CD.render()">' +
+      cdSvg(CD_ICON.check, 24).replace('<svg','<svg class="ck"') + cdEsc(j) + '</li>';
+  }).join('') + '</ul>', 380);
+};
+CD.bulkStatusMenu = function(ev){
+  /* Hired is deliberately absent from the bulk menu on the live app */
+  cdPop(ev, 'bulk', '<ul>' + ['New','Reviewing','Contacting','Interviewing','Rejected'].map(function(s){
+    return '<li onclick="CD.bulkStatus(\'' + s + '\')">' + s + '</li>';
+  }).join('') + '</ul>', 174);
+};
+CD.bulkStatus = function(s){
+  var n = CD.sel.length;
+  CD.sel.forEach(function(id){ var c = CD.byId(id); if (c) c.stage = s; });
+  cdKillPop(); CD.sel = [];
+  cdToast('Status updated', n + ' candidate' + (n === 1 ? '' : 's') + ' moved to ' + s + '.');
+  CD.render();
+};
+CD.exportMenu = function(ev){
+  cdPop(ev, 'exp', '<ul><li class="dis">Export selected candidates (' + CD.sel.length + ')</li>' +
+    '<li class="dis">Export all candidates</li></ul>', 250);
+};
+CD.rowMenu = function(ev, id){
+  cdPop(ev, 'row', '<ul>' +
+    '<li onclick="CD.message(\'' + id + '\')">Message</li>' +
+    '<li onclick="CD.call(\'' + id + '\')">Call</li>' +
+    '<li onclick="CD.schedule(\'' + id + '\')">Set up interview</li>' +
+    '<li onclick="CD.deleteConfirm(\'' + id + '\')">Delete candidate</li>' +
+    '<li style="height:56px" onclick="CD.markHired(\'' + id + '\')"><span style="color:#004fcb;font-weight:700">Mark as hired</span></li>' +
+    '</ul>', 200);
+};
+CD.byId = function(id){ return CD.ALL.filter(function(c){ return c.id === id; })[0]; };
+
+CD.setInterest = function(id, kind){
+  var c = CD.byId(id); if (!c) return;
+  c.interest = (c.interest === kind) ? null : kind;
+  if (c.interest === 'reject') c.stage = 'Rejected';
+  cdToast(c.interest === 'shortlist' ? 'Added to Shortlist' : c.interest === 'undecided' ? 'Marked Undecided' : c.interest === 'reject' ? 'Candidate rejected' : 'Interest cleared', c.n);
+  CD.render();
+};
+CD.markHired = function(id){
+  var c = CD.byId(id); if (c) c.stage = 'Hired';
+  cdKillPop(); cdToast('Marked as hired', c ? c.n : '');
+  CD.render();
+};
+CD.deleteConfirm = function(id){
+  cdKillPop();
+  var c = CD.byId(id);
+  cdToast('Delete is disabled in the prototype', c ? c.n + ' was not removed.' : '');
+};
+CD.viewDetails = function(id){ CD.open(id); };
+CD.call = function(id){
+  cdKillPop();
+  var c = CD.byId(id);
+  cdToast('Call', 'Indeed shares a phone number once ' + (c ? c.n.split(' ')[0] : 'the candidate') + ' confirms the interview.');
+};
+CD.add = function(){ cdToast('Add candidate', 'The /candidates/add form was not captured before access lapsed.'); };
+CD.schedule = function(id){ cdKillPop(); CD.scheduleOpen(id); };
+
+/* ---- profile ------------------------------------------------------- */
+CD.open = function(id, tab){
+  var rows = CD.rows();
+  var idx = rows.map(function(c){ return c.id; }).indexOf(id);
+  if (idx < 0) return;
+  CD.openIdx = idx; CD.view = 'profile'; CD.ptab = tab || 'application';
+  CD.seen[id] = true;
+  var c = rows[idx];
+  /* the live app auto-advances a New candidate to Reviewing on open */
+  if (c.stage === 'New'){ c.stage = 'Reviewing'; c.act = 'Reviewing · Applied 1 hour ago'; }
+  CD.render();
+  var m = document.querySelector('#view-candidates .cd-pfmain'); if (m) m.scrollTop = 0;
+};
+CD.back = function(){ CD.view = 'list'; CD.render(); };
+CD.step = function(d){
+  var rows = CD.rows(), i = CD.openIdx + d;
+  if (i < 0 || i >= rows.length) return;
+  CD.open(rows[i].id, CD.ptab);
+};
+CD.setPtab = function(t){ CD.ptab = t; CD.render(); };
+CD.secOpen = {};
+CD.toggleSec = function(k){ CD.secOpen[k] = CD.secOpen[k] === false ? true : false; CD.render(); };
+
+CD.statusMenu = function(ev){
+  var rows = CD.rows(), c = rows[CD.openIdx];
+  cdPop(ev, 'status', '<ul>' + CD.STAGES.map(function(s){
+    return '<li class="' + (c.stage === s ? 'on' : '') + '" onclick="CD.setStatus(\'' + s + '\')">' +
+      cdSvg(CD_ICON.check, 24).replace('<svg','<svg class="ck"') + s + '</li>';
+  }).join('') + '</ul>', 187);
+};
+CD.setStatus = function(s){
+  var c = CD.rows()[CD.openIdx];
+  if (c){ c.stage = s; c.act = s + ' · Applied 1 hour ago'; }
+  cdKillPop(); cdToast('Status updated', (c ? c.n : '') + ' moved to ' + s + '.');
+  CD.render();
+};
+CD.pfMenu = function(ev){
+  cdPop(ev, 'pf', '<ul>' +
+    '<li onclick="cdKillPop();cdToast(\'Download started\',\'resume.pdf\')">Download resume</li>' +
+    '<li onclick="cdKillPop();cdToast(\'Download started\',\'application-data.pdf\')">Download application data</li>' +
+    '<li onclick="CD.setStatus(\'Rejected\')">Reject candidate</li>' +
+    '<li onclick="CD.deleteConfirm(CD.rows()[CD.openIdx].id)">Delete candidate</li></ul>', 224);
+};
+CD.saveNote = function(){
+  var t = cdEl('cdNote'); if (!t || !t.value.trim()) return;
+  var c = CD.rows()[CD.openIdx];
+  CD.notes[c.id] = (CD.notes[c.id] || []).concat([t.value.trim()]);
+  c.note = t.value.trim();
+  cdToast('Note saved', 'Private to your team.');
+  CD.render();
+};
+CD.noteInput = function(el){ var b = cdEl('cdSaveNote'); if (b) b.disabled = !el.value.trim(); };
+
+/* ═══ CD — profile page markup ═══════════════════════════════════════ */
+CD.profileHTML = function(){
+  var rows = CD.rows(), c = rows[CD.openIdx];
+  if (!c) { CD.view = 'list'; return CD.listHTML(); }
+  var p = c.p || {};
+
+  var h = CD.devbar() +
+    '<div class="cd-titlerow">' +
+      '<button class="cd-scope" onclick="CD.scopeMenu(event)">' + cdEsc(CD.scope) + cdSvg(CD_ICON.caret, 24) + '</button>' +
+      '<button class="cd-addbtn" onclick="CD.add()">Add candidate</button></div>' +
+    '<div class="cd-tabs">' +
+      [['sourcing-assistant','Recruiting Assistant'],['find','Find candidates'],['manage','Manage candidates']]
+        .map(function(t){ return '<button class="cd-tab' + (CD.tab === t[0] ? ' on' : '') + '" onclick="CD.setTab(\'' + t[0] + '\')">' + t[1] + '</button>'; }).join('') +
+    '</div>';
+
+  h += '<div class="cd-pf">';
+
+  /* sticky bar */
+  h += '<div class="cd-pfsticky">' +
+    '<button class="cd-back" onclick="CD.back()">' + cdSvg(CD_ICON.left) + 'Back to list</button>' +
+    '<div class="cd-pfnav">' +
+      '<button aria-label="Previous candidate" aria-disabled="' + (CD.openIdx === 0) + '" onclick="CD.step(-1)">' + cdSvg(CD_ICON.left) + '</button>' +
+      '<button aria-label="Next candidate" aria-disabled="' + (CD.openIdx === rows.length - 1) + '" onclick="CD.step(1)">' + cdSvg(CD_ICON.right) + '</button>' +
+      '<span class="of">' + (CD.openIdx + 1) + ' of ' + rows.length + '</span>' +
+    '</div></div>';
+
+  /* left rail */
+  h += '<div class="cd-rail">' + rows.map(function(r, i){
+    return '<div class="cd-railcard' + (i === CD.openIdx ? ' on' : '') + '" onclick="CD.open(\'' + r.id + '\')">' +
+      '<div class="n">' + cdEsc(r.n) + '</div>' +
+      ((r.p && r.p.title) ? '<div class="s">' + cdEsc(r.p.title) + (r.loc ? ' &bull; ' + cdEsc(r.loc) : '') + '</div>' : (r.loc ? '<div class="s">' + cdEsc(r.loc) + '</div>' : '')) +
+      '<div class="a">' + cdEsc(r.act) + '</div></div>';
+  }).join('') + '</div>';
+
+  /* right column */
+  h += '<div class="cd-pfmain">';
+  h += '<div class="cd-pfhead"><div><h1 class="cd-pfname">' + cdEsc(c.n) + '</h1>' +
+    (p.title ? '<div class="cd-pfmeta">' + cdSvg(CD_ICON.brief, 16) + cdEsc(p.title) + (p.co ? ' &middot; ' + cdEsc(p.co) : '') + '</div>' : '') +
+    (c.loc ? '<div class="cd-pfmeta">' + cdSvg(CD_ICON.pin, 16) + cdEsc(c.loc) + '</div>' : '') +
+    '</div><div class="r">' + CD.interestHTML(c) +
+    '<button class="cd-more" aria-label="More actions" onclick="CD.pfMenu(event)">' + cdSvg(CD_ICON.dots, 22) + '</button></div></div>';
+
+  h += '<div class="cd-pfacts">' +
+    '<button class="cd-btn pri" onclick="CD.schedule(\'' + c.id + '\')">' + cdSvg(CD_ICON.cal) + 'Set up interview</button>' +
+    '<button class="cd-btn sec" onclick="CD.message(\'' + c.id + '\')">' + cdSvg(CD_ICON.chat) + 'Message</button>' +
+    '<button class="cd-btn sec" onclick="CD.call(\'' + c.id + '\')">' + cdSvg(CD_ICON.phone) + 'Call</button>' +
+    '<button class="cd-status" onclick="CD.statusMenu(event)"><b>Status:</b> <span class="v">' + cdEsc(c.stage) + '</span>' + cdSvg(CD_ICON.caret) + '</button>' +
+    '</div>';
+
+  /* two tabs only — this is what the live profile has */
+  h += '<div class="cd-tabs" style="margin-top:24px" role="tablist">' +
+    '<button class="cd-tab' + (CD.ptab === 'application' ? ' on' : '') + '" role="tab" aria-selected="' + (CD.ptab === 'application') + '" onclick="CD.setPtab(\'application\')">Application</button>' +
+    '<button class="cd-tab' + (CD.ptab === 'activity' ? ' on' : '') + '" role="tab" aria-selected="' + (CD.ptab === 'activity') + '" onclick="CD.setPtab(\'activity\')">Activity &amp; notes</button>' +
+    '</div>';
+
+  h += (CD.ptab === 'application') ? CD.appTabHTML(c, p) : CD.activityTabHTML(c);
+  h += '</div></div>';
+  return h;
+};
+
+CD.sec = function(key, title, body){
+  var open = CD.secOpen[key] !== false;
+  return '<div class="cd-sec"><button class="cd-sechead" aria-expanded="' + open + '" onclick="CD.toggleSec(\'' + key + '\')">' +
+    '<h2>' + title + '</h2>' + cdSvg(CD_ICON.caret, 24).replace('<svg','<svg class="cv"') + '</button>' +
+    '<div class="cd-secbody"' + (open ? '' : ' hidden') + '>' + body + '</div></div>';
+};
+
+CD.appTabHTML = function(c, p){
+  var h = '';
+
+  /* 1 Interviews */
+  var iv = p.iv;
+  h += CD.sec('iv', 'Interviews', iv
+    ? '<div class="cd-ivcard"><span><b>' + iv.state + '</b> &middot; ' + cdEsc(iv.slot) + '</span>' +
+      '<button onclick="CD.viewDetails(\'' + c.id + '\')">View details</button></div>'
+    : '<div class="cd-ivcard"><span>You have <b>78 time slots</b> available starting on ' +
+      '<b>Tuesday, August 4 at 12:15 pm (PDT)</b>. We&rsquo;ll send your availability with the invite. </span>' +
+      '<button onclick="CD.schedule(\'' + c.id + '\')">Schedule now</button></div>');
+
+  /* 2 Qualifications */
+  var quals = p.quals || [], met = p.met || 0;
+  var meter = '<div class="cd-meter">' + [0,1,2,3,4,5].map(function(i){ return '<i class="' + (i < met ? 'on' : '') + '"></i>'; }).join('') + '</div>';
+  h += CD.sec('q', 'Qualifications' + meter,
+    '<h3 class="cd-qsub">Preferred</h3><div class="cd-chips">' +
+    quals.map(function(q){ return '<span class="cd-chip">' + cdEsc(q) + '</span>'; }).join('') + '</div>');
+
+  /* 3 Screener questions */
+  var s = p.screener;
+  h += CD.sec('s', 'Screener questions', s
+    ? '<h4 class="cd-q">' + cdEsc(s[0]) + '</h4><span class="cd-ans">' + cdSvg(CD_ICON.check, 16) + cdEsc(s[1]) + '</span>' +
+      '<span class="cd-req">Your requirement: ' + cdEsc(s[2]) + '</span>'
+    : '<p class="cd-act">No screener questions were answered.</p>');
+
+  /* 4 Experience */
+  h += CD.sec('e', 'Experience', (p.exp || []).map(function(e){
+    return '<div class="cd-exp"><div class="cd-exptile">' + cdSvg(CD_ICON.brief, 24) + '</div><div>' +
+      '<div class="t"><b>' + cdEsc(e[0]) + '</b> &middot; ' + cdEsc(e[1]) + '</div>' +
+      '<div class="d">' + cdEsc(e[2]) + ' &bull; ' + cdEsc(e[3]) + '</div>' +
+      '<div class="d">' + cdEsc(e[4]) + '</div>' +
+      '<div class="bul">' + (e[5] || []).map(function(b){ return '<p>' + cdEsc(b) + '</p>'; }).join('') + '</div>' +
+      '</div></div>';
+  }).join(''));
+
+  /* 5 Education */
+  h += CD.sec('ed', 'Education', (p.edu || []).map(function(e){
+    return '<div class="cd-exp"><div class="cd-exptile">' + cdSvg(CD_ICON.cap, 24) + '</div><div>' +
+      '<div class="t"><b>' + cdEsc(e[0]) + '</b></div>' +
+      '<div class="d">' + cdEsc(e[1]) + '</div><div class="d">' + cdEsc(e[2]) + '</div></div></div>';
+  }).join(''));
+
+  /* 6 Resume — embedded viewer, not a link-out */
+  h += CD.sec('r', 'Resume',
+    '<div class="cd-resbar"><button class="cd-zoom" aria-label="Zoom out">&minus;</button>' +
+    '<span class="cd-zoomlvl">100%</span><button class="cd-zoom" aria-label="Zoom in">+</button>' +
+    '<button class="cd-dl" onclick="cdToast(\'Download started\',\'resume.pdf\')">' + cdSvg(CD_ICON.dl) + 'Download resume</button></div>' +
+    '<div class="cd-resume"><h3>' + cdEsc(c.n) + '</h3>' +
+    '<div class="role">' + cdEsc(p.title || '') + '</div>' +
+    '<div class="contact">' + (p.email ? '&#9993; <a>' + cdEsc(p.email) + '</a> &nbsp;|&nbsp; ' : '') +
+      '&#128205; ' + cdEsc(p.zip || c.loc || '') + (p.li ? ' &nbsp;|&nbsp; in <a>' + cdEsc(p.li) + '</a>' : '') + '</div>' +
+    '<h4>Summary</h4><p>' + cdEsc(p.title || '') + ' with experience across ' +
+      cdEsc((p.quals || []).slice(0,3).join(', ')) + '.</p>' +
+    '<h4>Experience</h4>' + (p.exp || []).map(function(e){
+      return '<p><b>' + cdEsc(e[0]) + '</b> &mdash; ' + cdEsc(e[1]) + '<br>' + cdEsc(e[2]) + ' &middot; ' + cdEsc(e[4]) + '</p>';
+    }).join('') +
+    '<h4>Education</h4>' + (p.edu || []).map(function(e){
+      return '<p><b>' + cdEsc(e[0]) + '</b><br>' + cdEsc(e[1]) + ' &middot; ' + cdEsc(e[2]) + '</p>';
+    }).join('') + '</div>');
+  return h;
+};
+
+CD.activityTabHTML = function(c){
+  var notes = CD.notes[c.id] || [];
+  return '<div style="padding-top:24px">' +
+    '<h2 class="cd-feedh">Activity feed</h2>' +
+    '<h3 class="cd-feedday">Aug 3, 2026</h3>' +
+    '<div class="cd-feeditem">' + cdEsc(c.n) + ' applied to ' + cdEsc(c.job) + '</div>' +
+    notes.map(function(n){ return '<div class="cd-feeditem">Note added by you</div>'; }).join('') +
+    (notes.length ? '<h3 class="cd-feedday" style="margin-top:24px">Notes</h3>' +
+      notes.map(function(n){ return '<div class="cd-feeditem" style="color:#2d2d2d;padding:6px 0">' + cdEsc(n) + '</div>'; }).join('') : '') +
+    '<div class="cd-notecomp" style="margin-top:32px">' +
+      '<label for="cdNote">Write private note here...</label>' +
+      '<textarea id="cdNote" rows="3" placeholder="Write private note here..." oninput="CD.noteInput(this)"></textarea>' +
+      '<button class="save" id="cdSaveNote" disabled onclick="CD.saveNote()">Save note</button>' +
+    '</div></div>';
+};
+
+/* ---- other two sub-tabs ------------------------------------------- */
+CD.otherTabHTML = function(){
+  var scoped = CD.scope !== 'All open and paused jobs';
+  if (CD.tab === 'find'){
+    return scoped
+      ? '<div style="padding:32px 0"><p class="cd-act"><b>772 resumes match your criteria</b></p>' +
+        '<span class="cd-chip" style="margin-top:12px">Daily goal 0/0 invites</span></div>'
+      : '<div class="cd-zero">' + CD.emptyIllus() + '<p>Select a job to find matching candidates.</p></div>';
+  }
+  return scoped
+    ? '<div style="padding:32px 0"><div class="cd-ivcard"><span>Your Recruiting Assistant is <b>pending</b>.</span></div></div>'
+    : '<div class="cd-zero">' + CD.emptyIllus() + '<p>Select a job to set up your Recruiting Assistant.</p></div>';
+};
+
+/* ---- message panel + schedule modal -------------------------------- */
+CD.message = function(id){
+  cdKillPop();
+  CD.msgFor = id;
+  var c = CD.byId(id) || CD.rows()[CD.openIdx];
+  var p = cdEl('cdChat');
+  if (!p){ p = document.createElement('div'); p.className = 'cd-chat'; p.id = 'cdChat'; document.body.appendChild(p); }
+  p.innerHTML =
+    '<div class="hd">' + cdSvg(CD_ICON.chat) + '<h3>' + cdEsc(c.n) + '</h3>' +
+      '<button aria-label="Close" onclick="CD.msgClose()">&times;</button></div>' +
+    '<div class="bd" id="cdChatBody"><div class="cd-sugg">' +
+      ['Invite to interview','Ask questions','Confirm interest','Share next steps','Decline']
+        .map(function(s){ return '<button onclick="CD.msgSuggest(' + JSON.stringify(s).replace(/"/g,'&quot;') + ')">' + s + '</button>'; }).join('') +
+    '</div><p class="cd-act">No messages yet. Indeed shares contact details once the candidate replies.</p></div>' +
+    '<div class="ft"><textarea id="cdMsg" placeholder="Write a message..." oninput="CD.msgValid()"></textarea>' +
+      '<div class="ftrow">' +
+        '<button class="cd-zoom" aria-label="Attach" title="Attach a file">' + cdSvg(CD_ICON.clip, 16) + '</button>' +
+        '<button class="cd-zoom" style="width:auto;padding:0 10px" onclick="CD.tplMenu(event)">Templates</button>' +
+        '<label style="font-size:13px;color:#595959;display:inline-flex;align-items:center;gap:6px"><input type="checkbox" checked> Send on Enter</label>' +
+        '<button class="send" id="cdSend" disabled onclick="CD.msgSend()">Send</button>' +
+      '</div></div>';
+  p.classList.add('open');
+};
+CD.msgClose = function(){ var p = cdEl('cdChat'); if (p) p.classList.remove('open'); };
+CD.msgValid = function(){ var t = cdEl('cdMsg'), b = cdEl('cdSend'); if (b) b.disabled = !t.value.trim(); };
+CD.msgSuggest = function(kind){
+  var c = CD.byId(CD.msgFor);
+  var first = c ? c.n.split(' ')[0] : 'there';
+  var map = {
+    'Invite to interview':'Hi ' + first + ' — thanks for applying. We\'d like to set up a short interview. What does your week look like?',
+    'Ask questions':'Hi ' + first + ' — a couple of quick questions about your application before we move forward.',
+    'Confirm interest':'Hi ' + first + ' — just checking you\'re still interested in this role.',
+    'Share next steps':'Hi ' + first + ' — here\'s what happens next in our process.',
+    'Decline':'Hi ' + first + ' — thanks for your time. We\'re moving forward with other candidates for this role.'
+  };
+  var t = cdEl('cdMsg'); if (t){ t.value = map[kind] || ''; CD.msgValid(); }
+};
+CD.tplMenu = function(ev){
+  cdPop(ev, 'tpl', '<ul>' + ['Still Interested?','Rejection Note','Initial Message'].map(function(t){
+    return '<li onclick="CD.msgSuggest(\'Confirm interest\');cdKillPop()">' + t + '</li>';
+  }).join('') + '</ul>', 240);
+};
+CD.msgSend = function(){
+  var t = cdEl('cdMsg'), body = cdEl('cdChatBody');
+  if (!t || !t.value.trim() || !body) return;
+  var now = new Date();
+  var hh = now.getHours() % 12 || 12, mm = ('0' + now.getMinutes()).slice(-2);
+  body.insertAdjacentHTML('beforeend',
+    '<div class="cd-bub out">' + cdEsc(t.value.trim()) +
+    '<span class="ts">Sent ' + hh + ':' + mm + (now.getHours() < 12 ? ' am' : ' pm') + '</span></div>');
+  t.value = ''; CD.msgValid();
+  body.scrollTop = body.scrollHeight;
+  cdToast('Message sent', 'It will appear in Messages.');
+};
+CD.scheduleOpen = function(id){
+  var c = CD.byId(id) || CD.rows()[CD.openIdx];
+  CD.schedFor = c ? c.id : null;
+  var ov = cdEl('cdSchedOv');
+  if (!ov){ ov = document.createElement('div'); ov.className = 'credits-modal-overlay'; ov.id = 'cdSchedOv'; document.body.appendChild(ov); }
+  ov.innerHTML = '<div class="credits-modal" style="width:720px;max-width:94vw">' +
+    '<div class="credits-modal-header"><h3>Set up interview</h3>' +
+      '<button class="credits-modal-close" onclick="CD.schedClose()">&times;</button></div>' +
+    '<div class="credits-modal-body">' +
+      '<p class="credits-modal-desc">We&rsquo;ll send ' + cdEsc(c ? c.n : 'the candidate') +
+      ' your availability with the invite. Indeed shares their phone number once they confirm.</p>' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">' +
+        '<div><label style="font-size:14px;font-weight:700;color:#2d2d2d;display:block;margin-bottom:6px">Interview type</label>' +
+        '<select style="width:100%;height:44px;border:1px solid #595959;border-radius:12px;padding:9px 12px;font-family:inherit;font-size:16px">' +
+        '<option>Phone</option><option>Video</option><option>In person</option></select></div>' +
+        '<div><label style="font-size:14px;font-weight:700;color:#2d2d2d;display:block;margin-bottom:6px">Duration</label>' +
+        '<select style="width:100%;height:44px;border:1px solid #595959;border-radius:12px;padding:9px 12px;font-family:inherit;font-size:16px">' +
+        '<option>15 minutes</option><option selected>30 minutes</option><option>45 minutes</option><option>60 minutes</option></select></div>' +
+      '</div>' +
+      '<p style="font-size:14px;color:#595959;margin:16px 0 8px">You have <b>78 time slots</b> available starting on <b>Tuesday, August 4 at 12:15 pm (PDT)</b>.</p>' +
+      '<div style="display:flex;justify-content:flex-end;gap:12px;margin-top:24px">' +
+        '<button class="cd-btn sec" onclick="CD.schedClose()">Cancel interview request</button>' +
+        '<button class="cd-btn pri" onclick="CD.schedSend()">Send interview request</button></div>' +
+    '</div></div>';
+  ov.classList.add('open');
+};
+CD.schedClose = function(){ var o = cdEl('cdSchedOv'); if (o) o.classList.remove('open'); };
+CD.schedSend = function(){
+  var c = CD.byId(CD.schedFor);
+  if (c){ c.stage = 'Interviewing'; c.p = c.p || {}; c.p.iv = { state:'Awaiting confirmation', slot:'Aug 5 at 9:30 am (PDT)' }; c.act = 'Pending interview · For 16 hours'; }
+  CD.schedClose();
+  cdToast('Interview request sent', (c ? c.n : '') + ' will confirm a slot.');
+  CD.render();
+};
+
+/* ---- boot ---------------------------------------------------------- */
+(function cdInit(){
+  function boot(){
+    if (!document.getElementById('view-candidates')) return;
+    CD.render();
+    var _sv = window.showView;
+    if (_sv && !_sv.__cd){
+      var w = function(v){ var r = _sv.apply(this, arguments); if (v === 'candidates') CD.render(); return r; };
+      w.__cd = true; w.__ia = true; w.__iaexp = true; w.__ivsec = true; window.showView = w;
+    }
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else setTimeout(boot, 60);
+})();
+
 (function tlInit(){
   function boot(){ if(!tlEl('view-tools')) return; tlGo('overview'); }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else setTimeout(boot,0);
@@ -12684,6 +13616,293 @@ function IAUsers(t){ IA.usersTab = t; IA.sync(); }
 /* the accordion is gone */
 .ia-kids{ display:none !important; }
 .sidebar.collapsed .ia-disc{ display:none; }
+
+</style>
+<style>
+
+/* ═══ CD — CANDIDATES MODULE ═══════════════════════════════════════════
+   Independent namespace. Nothing here is shared with Agents or Interviews.
+   Metrics measured on employers.indeed.com — rn/CANDIDATES-EXACT.md.
+   ==================================================================== */
+#view-candidates{ --ink:#2d2d2d; --ink2:#595959; --ink3:#767676; --line:#e4e2e0; --blue:#004fcb; }
+
+/* page title row — the job-scope selector IS the page title */
+.cd-titlerow{ display:flex; align-items:center; justify-content:space-between; height:54px; }
+.cd-scope{ display:inline-flex; align-items:center; gap:8px; background:none; border:0; padding:9px 0;
+  border-radius:12px; font-family:inherit; font-size:24px; line-height:36px; font-weight:700;
+  color:#2d2d2d; cursor:pointer; }
+.cd-scope svg{ width:24px; height:24px; color:#2d2d2d; transition:transform .15s; }
+.cd-scope.open svg{ transform:rotate(180deg); }
+.cd-addbtn{ background:none; border:0; font-family:inherit; font-size:16px; line-height:24px;
+  font-weight:700; color:#004fcb; cursor:pointer; padding:5px 0; border-radius:12px; }
+
+/* underline tab component — used by sub-tabs, pipeline pills and profile tabs */
+.cd-tabs{ display:flex; align-items:flex-end; gap:8px; border-bottom:1px solid #e4e2e0; }
+.cd-tab{ position:relative; border:0; background:none; font-family:inherit; padding:16px;
+  cursor:pointer; font-size:16px; line-height:24px; font-weight:400; color:#767676; }
+.cd-tab.on{ font-weight:700; color:#2d2d2d; }
+.cd-tab:after{ content:""; position:absolute; left:0; right:0; bottom:0; height:3px;
+  border-radius:2px 2px 0 0; background:transparent; }
+.cd-tab.on:after{ background:#2d2d2d; }
+.cd-pills{ display:flex; align-items:flex-end; gap:16px; border-bottom:0; margin-top:8px; }
+.cd-pills .cd-tab{ padding:16px; }
+
+/* toolbar */
+.cd-toolbar{ display:flex; align-items:center; gap:8px; margin:16px 0; }
+.cd-ctl{ height:36px; border:1px solid #e4e2e0; border-radius:12px; background:#fff;
+  display:inline-flex; align-items:center; gap:8px; padding:0 12px; font-family:inherit;
+  font-size:16px; line-height:24px; color:#2d2d2d; cursor:pointer; }
+.cd-ctl.open{ border:2px solid #004fcb; padding:0 11px; }
+.cd-ctl b{ font-weight:700; }
+.cd-ctl .v{ font-weight:400; }
+.cd-ctl svg{ width:20px; height:20px; flex:0 0 20px; color:#2d2d2d; }
+.cd-ctl.sort{ width:297px; justify-content:space-between; }
+.cd-ctl.loc{ width:288px; }
+.cd-ctl.int{ width:175px; justify-content:space-between; }
+.cd-search{ flex:1 1 auto; height:36px; border:1px solid #e4e2e0; border-radius:12px; background:#fff;
+  display:flex; align-items:center; gap:4px; padding:0 12px; }
+.cd-search input{ flex:1 1 auto; border:0; outline:0; font-family:inherit; font-size:16px;
+  line-height:24px; color:#2d2d2d; background:transparent; padding:5px 0; }
+.cd-search svg{ width:20px; height:20px; color:#595959; flex:0 0 20px; }
+.cd-search.focus{ border:2px solid #004fcb; padding:0 11px; }
+
+/* popovers — shared component */
+.cd-pop{ position:fixed; z-index:1020; background:#fff; border:1px solid #e4e2e0; border-radius:12px;
+  padding:12px; box-shadow:rgba(45,45,45,.16) 0 0 2px 0, rgba(45,45,45,.08) 0 4px 8px 0,
+  rgba(45,45,45,.04) 0 8px 16px 0; max-height:340px; overflow-y:auto; display:none; }
+.cd-pop.open{ display:block; }
+.cd-pop ul{ list-style:none; margin:0; padding:0; }
+.cd-pop li{ height:44px; border-radius:8px; padding:10px 12px; font-size:16px; line-height:24px;
+  color:#2d2d2d; cursor:pointer; display:flex; align-items:center; gap:8px; box-sizing:border-box; }
+.cd-pop li:hover{ background:#f7f6f5; }
+.cd-pop li.on{ background:#f7f6f5; }
+.cd-pop li .ck{ width:24px; height:24px; flex:0 0 24px; color:#2d2d2d; visibility:hidden; }
+.cd-pop li.on .ck{ visibility:visible; }
+.cd-pop li.dis{ color:#a6a4a2; cursor:default; }
+
+/* bulk bar — in flow, transparent, table shifts down */
+.cd-bulk{ display:flex; align-items:center; gap:8px; height:44px; padding:0 16px; }
+.cd-bulk .cnt{ font-size:16px; line-height:24px; font-weight:700; color:#2d2d2d; margin-right:24px; }
+.cd-bulk button{ height:36px; border-radius:12px; font-family:inherit; font-size:16px;
+  line-height:24px; font-weight:700; cursor:pointer; }
+.cd-bulk .sec{ background:#fff; border:1px solid #e4e2e0; color:#004fcb; padding:5px 15px; }
+.cd-bulk .pri{ background:#004fcb; border:0; color:#fff; padding:5px 16px; display:inline-flex;
+  align-items:center; gap:8px; }
+.cd-bulk .pri.dis{ background:rgba(0,79,203,.4); cursor:default; }
+
+/* table */
+.cd-table{ width:100%; border-collapse:collapse; table-layout:fixed; }
+.cd-table thead tr{ background:#f7f6f5; height:46px; }
+.cd-table th{ font-size:14px; font-weight:400; color:#595959; text-align:left;
+  padding:1px 64px 1px 0; vertical-align:middle; }
+.cd-table th:first-child{ width:52px; padding:1px 12px 1px 16px; }
+.cd-table th:last-child{ padding:1px 16px 1px 0; width:226px; }
+.cd-table td{ padding:16px 64px 16px 0; vertical-align:top; border:0; }
+.cd-table td:first-child{ padding:16px 12px 16px 16px; }
+.cd-table td:last-child{ padding:16px 16px 16px 0; }
+.cd-table tbody tr{ background:transparent; border-bottom:1px solid #e4e2e0; }
+.cd-wexp-hd{ background:none; border:0; padding:0; font-family:inherit; font-size:14px; color:#595959;
+  cursor:pointer; text-decoration:underline 1px dotted #2d2d2d; }
+.cd-cb{ width:24px; height:24px; border-radius:8px; border:1px solid #595959; background:#fff;
+  cursor:pointer; display:inline-block; position:relative; flex:0 0 24px; }
+.cd-cb.on{ background:#2d2d2d; border-color:#2d2d2d; }
+.cd-cb.on:after{ content:""; position:absolute; left:8px; top:4px; width:6px; height:11px;
+  border:solid #fff; border-width:0 2px 2px 0; transform:rotate(45deg); }
+.cd-cb.ind:after{ content:""; position:absolute; left:5px; top:10px; width:12px; height:2px;
+  background:#fff; border:0; transform:none; }
+
+.cd-name{ font-size:16px; line-height:24px; font-weight:700; color:#2d2d2d; text-decoration:none;
+  cursor:pointer; border-radius:12px; }
+.cd-name:hover{ color:#003a9b; }
+.cd-name.seen{ color:#004fcb; }
+.cd-cloc{ font-size:14px; line-height:21px; color:#2d2d2d; }
+.cd-cstage{ font-size:14px; line-height:21px; font-weight:500; color:#2d2d2d; }
+.cd-cdot{ font-size:12px; line-height:18px; color:#2d2d2d; padding:0 4px; }
+.cd-capp{ font-size:14px; line-height:21px; color:#2d2d2d; }
+.cd-cjob{ font-size:14px; line-height:21px; color:#004fcb; text-decoration:underline; cursor:pointer; }
+
+.cd-wexp{ list-style:none; margin:0; padding:0; }
+.cd-wexp li{ position:relative; padding-left:14px; padding-bottom:10px; }
+.cd-wexp li:before{ content:""; position:absolute; left:2px; top:8px; width:2px; height:42px; background:#d4d2d0; }
+.cd-wexp li:after{ content:""; position:absolute; left:0; top:0; width:6px; height:6px;
+  border-radius:9999px; background:#d4d2d0; }
+.cd-wexp .t{ font-size:14px; line-height:21px; font-weight:700; color:#2d2d2d;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.cd-wexp .c{ font-size:14px; line-height:21px; color:#2d2d2d;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.cd-wexp .c span{ color:#767676; }
+
+.cd-act{ font-size:14px; line-height:21px; color:#595959; }
+.cd-badge{ display:inline-block; border-radius:8px; padding:3px 9px; font-size:12px; line-height:18px; font-weight:700; }
+.cd-badge.ok{ background:#e4f7e6; color:#1f662c; }
+.cd-badge.wait{ background:#fdefe9; color:#844b17; }
+.cd-viewdet{ background:none; border:0; font-family:inherit; font-size:16px; line-height:24px;
+  font-weight:700; color:#004fcb; cursor:pointer; padding:5px 0; border-radius:12px; }
+.cd-notestrip{ display:flex; align-items:center; gap:8px; background:#ecf2ff; border-radius:8px;
+  padding:4px 12px; margin-top:12px; }
+.cd-notestrip .lb{ font-size:14px; line-height:21px; font-weight:700; color:#2d2d2d; padding-right:8px; }
+.cd-notestrip .bd{ font-size:14px; line-height:21px; color:#595959; flex:1 1 auto; }
+.cd-notestrip button{ background:none; border:0; font-family:inherit; font-size:14px; line-height:21px;
+  font-weight:700; color:#004fcb; cursor:pointer; }
+
+/* interest segmented control */
+.cd-int{ display:inline-flex; align-items:center; }
+.cd-int button{ width:56px; height:44px; background:#fff; border:1px solid #e4e2e0; cursor:pointer;
+  display:inline-flex; align-items:center; justify-content:center; padding:9px 15px; color:#2d2d2d; }
+.cd-int button:first-child{ border-radius:12px 0 0 12px; }
+.cd-int button:nth-child(3){ border-radius:0 12px 12px 0; }
+.cd-int button + button{ margin-left:-1px; }
+.cd-int button svg{ width:20px; height:20px; }
+.cd-int button[aria-pressed="true"]{ background:#2d2d2d; border-color:#2d2d2d; color:#fff; }
+.cd-more{ width:44px; height:44px; border:0; background:none; border-radius:12px; padding:9px;
+  cursor:pointer; color:#2d2d2d; margin-left:8px; }
+.cd-more:hover{ background:#f3f2f1; }
+
+/* pagination */
+.cd-pager{ display:flex; align-items:center; justify-content:center; gap:17px; padding:16px 0 8px; }
+.cd-pgbtns{ display:flex; }
+.cd-pgbtns button{ height:44px; border:0; background:#fff; font-family:inherit; font-size:16px;
+  line-height:24px; font-weight:700; color:#004fcb; cursor:pointer; padding:9px 15px;
+  display:inline-flex; align-items:center; gap:8px; }
+.cd-pgbtns button:first-child{ border-radius:12px 0 0 12px; }
+.cd-pgbtns button:last-child{ border-radius:0 12px 12px 0; }
+.cd-pgbtns button:hover:not([aria-disabled=true]){ background:#f7f6f5; color:#003a9b; }
+.cd-pgbtns button[aria-disabled=true]{ color:rgba(0,79,203,.4); cursor:default; }
+.cd-count{ border:1px solid #e4e2e0; border-radius:12px; padding:11px 16px; font-size:16px;
+  line-height:24px; color:#595959; background:#fff; }
+
+/* zero results */
+.cd-zero{ text-align:center; padding:64px 0; }
+.cd-zero svg{ width:320px; height:135px; }
+.cd-zero p{ font-size:16px; line-height:24px; font-weight:700; color:#595959; margin:38px 0 0; }
+
+/* ── profile ─────────────────────────────────────────────────────── */
+.cd-pf{ display:grid; grid-template-columns:255px minmax(0,1019px); background:#fff; padding:8px; }
+.cd-pfsticky{ grid-column:1/-1; position:sticky; top:0; z-index:9; background:#fff; padding-top:12px;
+  display:flex; align-items:center; height:70px; }
+.cd-back{ display:inline-flex; align-items:center; gap:8px; background:none; border:0; font-family:inherit;
+  font-size:16px; line-height:24px; font-weight:700; color:#004fcb; cursor:pointer; padding:9px 24px; border-radius:12px; }
+.cd-pfnav{ margin-left:auto; display:flex; align-items:center; gap:8px; }
+.cd-pfnav button{ width:42px; height:42px; border:1px solid #e4e2e0; border-radius:12px; background:#fff;
+  cursor:pointer; padding:8px; color:#004fcb; }
+.cd-pfnav button[aria-disabled=true]{ color:rgba(0,79,203,.4); cursor:default; }
+.cd-pfnav .of{ font-size:16px; line-height:24px; color:#595959; margin-left:8px; }
+.cd-rail{ padding-right:16px; max-height:720px; overflow-y:auto; }
+.cd-railcard{ padding:12px; border-bottom:1px solid #e4e2e0; cursor:pointer; }
+.cd-railcard.on{ border:1px solid #2d2d2d; border-radius:12px; background:#fff; }
+.cd-railcard .n{ font-size:16px; line-height:24px; font-weight:700; color:#2d2d2d; }
+.cd-railcard .s{ font-size:14px; line-height:21px; color:#2d2d2d; }
+.cd-railcard .a{ font-size:14px; line-height:21px; color:#595959; }
+.cd-pfmain{ border-radius:12px; padding:0 24px; max-height:720px; overflow-y:auto; }
+.cd-pfname{ font-size:36px; line-height:45px; font-weight:700; color:#2d2d2d; margin:0; }
+.cd-pfmeta{ display:flex; align-items:center; gap:6px; font-size:16px; line-height:24px; color:#595959; margin-top:8px; }
+.cd-pfmeta svg{ width:16px; height:16px; flex:0 0 16px; }
+.cd-pfhead{ display:flex; align-items:flex-start; gap:16px; }
+.cd-pfhead .r{ margin-left:auto; display:flex; align-items:center; }
+.cd-pfacts{ display:flex; align-items:center; gap:8px; margin:24px 0 0; }
+.cd-btn{ height:44px; border-radius:12px; font-family:inherit; font-size:16px; line-height:24px;
+  font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:8px; }
+.cd-btn.pri{ background:#004fcb; border:0; color:#fff; padding:9px 16px; }
+.cd-btn.sec{ background:#fff; border:1px solid #e4e2e0; color:#004fcb; padding:9px 15px; }
+.cd-btn svg{ width:20px; height:20px; }
+.cd-status{ margin-left:auto; height:42px; border:1px solid #e4e2e0; border-radius:12px; background:#fff;
+  display:inline-flex; align-items:center; gap:8px; padding:0 12px; font-family:inherit; cursor:pointer; }
+.cd-status.open{ border:2px solid #004fcb; }
+.cd-status b{ font-size:16px; line-height:24px; font-weight:700; color:#2d2d2d; }
+.cd-status .v{ font-size:16px; line-height:24px; color:#2d2d2d; }
+.cd-sec{ border-top:1px solid #e4e2e0; }
+.cd-sechead{ width:100%; display:flex; align-items:center; background:none; border:0; padding:24px 0 12px;
+  font-family:inherit; cursor:pointer; text-align:left; }
+.cd-sechead h2{ font-size:20px; line-height:30px; font-weight:700; color:#2d2d2d; margin:0; }
+.cd-sechead .cv{ margin-left:auto; width:24px; height:24px; color:#2d2d2d; transition:transform .2s; }
+.cd-sechead[aria-expanded=false] .cv{ transform:rotate(180deg); }
+.cd-secbody{ padding-bottom:24px; }
+.cd-secbody[hidden]{ display:none; }
+.cd-ivcard{ background:#f7f6f5; border-radius:12px; padding:16px; font-size:14px; line-height:21px; color:#595959;
+  display:flex; align-items:center; gap:8px; }
+.cd-ivcard b{ color:#2d2d2d; }
+.cd-ivcard button{ margin-left:auto; background:none; border:0; font-family:inherit; font-size:16px;
+  font-weight:700; color:#004fcb; cursor:pointer; border-radius:12px; }
+.cd-meter{ display:flex; gap:8px; margin-left:auto; }
+.cd-meter i{ width:15px; height:15px; border-radius:50%; background:#d4d2d0; display:block; }
+.cd-meter i.on{ background:#336cf6; }
+.cd-qsub{ font-size:16px; line-height:24px; font-weight:700; color:#2d2d2d; margin:0 0 8px; }
+.cd-chips{ display:flex; flex-wrap:wrap; gap:9px; }
+.cd-chip{ display:inline-flex; align-items:center; gap:8px; height:29px; background:#f3f2f1;
+  border-radius:12px; padding:4px 9px; font-size:12px; line-height:18px; font-weight:700; color:#595959; box-sizing:border-box; }
+.cd-chip:before{ content:"\2022"; color:#336cf6; }
+.cd-q{ font-size:16px; line-height:24px; font-weight:700; color:#2d2d2d; margin:0 0 8px; }
+.cd-ans{ display:inline-flex; align-items:center; gap:6px; background:#e4f7e6; border-radius:8px;
+  padding:3px 9px; font-size:14px; font-weight:700; color:#1f662c; }
+.cd-req{ font-size:12px; color:#767676; margin-left:8px; }
+.cd-exp{ display:flex; gap:16px; margin-bottom:24px; }
+.cd-exptile{ width:48px; height:48px; border-radius:12px; background:#ecf2ff; display:flex;
+  align-items:center; justify-content:center; color:#004fcb; flex:0 0 48px; }
+.cd-exp .t{ font-size:16px; line-height:24px; color:#2d2d2d; }
+.cd-exp .t b{ font-weight:700; }
+.cd-exp .d{ font-size:14px; line-height:21px; color:#595959; }
+.cd-exp .bul{ margin-top:8px; padding-left:24px; border-left:2px solid #d4d2d0; }
+.cd-exp .bul p{ font-size:14px; line-height:21px; color:#2d2d2d; margin:0 0 6px; }
+.cd-resbar{ display:flex; align-items:center; gap:8px; margin-bottom:12px; }
+.cd-zoom{ width:36px; height:36px; border:1px solid #e4e2e0; border-radius:12px; background:#fff; cursor:pointer; color:#2d2d2d; }
+.cd-zoomlvl{ border:1px solid #e4e2e0; border-radius:12px; padding:6px 12px; font-size:14px; color:#2d2d2d; }
+.cd-dl{ margin-left:auto; background:none; border:0; font-family:inherit; font-size:16px;
+  font-weight:700; color:#004fcb; cursor:pointer; display:inline-flex; align-items:center; gap:8px; }
+.cd-resume{ border-top:1px solid #e4e2e0; padding:32px; background:#fff; }
+.cd-resume h3{ font-size:26px; font-weight:700; color:#004fcb; margin:0; }
+.cd-resume .role{ font-size:13px; letter-spacing:.14em; text-transform:uppercase; color:#595959; margin:4px 0 10px; }
+.cd-resume .contact{ font-size:13px; color:#2d2d2d; margin-bottom:18px; }
+.cd-resume .contact a{ color:#004fcb; }
+.cd-resume h4{ font-size:12px; letter-spacing:.1em; text-transform:uppercase; color:#2d2d2d;
+  border-bottom:1px solid #d4d2d0; padding-bottom:4px; margin:18px 0 8px; }
+.cd-resume p{ font-size:13px; line-height:20px; color:#2d2d2d; margin:0 0 8px; }
+.cd-notecomp label{ display:block; font-size:16px; line-height:24px; font-weight:700; color:#2d2d2d; margin-bottom:8px; }
+.cd-notecomp textarea{ width:100%; min-height:150px; border:1px solid #e4e2e0; border-radius:12px;
+  padding:5px 11px; font-family:inherit; font-size:16px; line-height:24px; resize:vertical; box-sizing:border-box; }
+.cd-notecomp .save{ margin-top:16px; height:36px; background:#fff; border:1px solid #e4e2e0;
+  border-radius:12px; padding:5px 15px; font-family:inherit; font-size:16px; font-weight:700;
+  color:#004fcb; cursor:pointer; }
+.cd-notecomp .save:disabled{ color:#a6a4a2; cursor:default; }
+.cd-feedh{ font-size:16px; line-height:24px; font-weight:700; color:#2d2d2d; margin:0 0 16px; }
+.cd-feedday{ font-size:12px; line-height:18px; font-weight:700; color:#2d2d2d; margin:16px 0 4px; }
+.cd-feeditem{ font-size:14px; line-height:21px; color:#595959; }
+
+/* chat panel — docked, not a modal */
+.cd-chat{ position:fixed; right:24px; bottom:0; width:500px; height:600px; background:#fff;
+  border:1px solid #e4e2e0; border-radius:12px 12px 0 0; box-shadow:0 -2px 16px rgba(45,45,45,.14);
+  z-index:5000; display:none; flex-direction:column; }
+.cd-chat.open{ display:flex; }
+.cd-chat .hd{ display:flex; align-items:center; gap:8px; padding:16px; border-bottom:1px solid #e4e2e0; }
+.cd-chat .hd h3{ font-size:16px; line-height:24px; font-weight:700; color:#2d2d2d; margin:0; }
+.cd-chat .hd button{ margin-left:auto; background:none; border:0; font-size:22px; cursor:pointer; color:#2d2d2d; }
+.cd-chat .bd{ flex:1 1 auto; overflow-y:auto; padding:16px; }
+.cd-sugg{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px; }
+.cd-sugg button{ border:1px solid #e4e2e0; border-radius:20px; background:#fff; padding:6px 12px;
+  font-family:inherit; font-size:14px; color:#004fcb; cursor:pointer; }
+.cd-chat .ft{ border-top:1px solid #e4e2e0; padding:12px 16px; }
+.cd-chat textarea{ width:100%; min-height:72px; border:1px solid #e4e2e0; border-radius:12px;
+  padding:8px 12px; font-family:inherit; font-size:15px; resize:vertical; box-sizing:border-box; }
+.cd-chat .ftrow{ display:flex; align-items:center; gap:8px; margin-top:8px; }
+.cd-chat .ftrow .send{ margin-left:auto; background:#004fcb; color:#fff; border:0; border-radius:12px;
+  height:36px; padding:5px 16px; font-family:inherit; font-size:16px; font-weight:700; cursor:pointer; }
+.cd-chat .ftrow .send:disabled{ background:rgba(0,79,203,.4); cursor:default; }
+.cd-bub{ max-width:80%; border-radius:12px; padding:10px 14px; font-size:14px; line-height:21px; margin-bottom:10px; }
+.cd-bub.out{ margin-left:auto; background:#ecf2ff; color:#2d2d2d; }
+.cd-bub .ts{ display:block; font-size:12px; color:#767676; margin-top:4px; }
+
+/* toast */
+.cd-toast{ position:fixed; left:50%; bottom:24px; transform:translateX(-50%) translateY(8px);
+  background:#2d2d2d; color:#fff; border-radius:12px; padding:12px 20px; font-size:14px; line-height:21px;
+  z-index:9999; opacity:0; pointer-events:none; transition:opacity .18s, transform .18s; max-width:520px; }
+.cd-toast.on{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+/* tooltip */
+.cd-tip{ position:fixed; z-index:9999; background:#2d2d2d; color:#fff; border-radius:12px;
+  padding:8px 16px; font-size:14px; line-height:21px; max-width:294px; display:none; }
+.cd-tip.on{ display:block; }
+
+/* dev toggle strip */
+.cd-devbar{ display:flex; align-items:center; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
 
 </style>
 </body>
