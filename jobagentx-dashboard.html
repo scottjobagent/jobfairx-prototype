@@ -41,6 +41,37 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
 .nav-item.active svg { color: #2d2d2d; }
 .nav-item .badge { margin-left: auto; background: #0044B3; color: #fff; font-size: 12px; font-weight: 700; padding: 2px 9px; border-radius: 10px; min-width: 24px; text-align: center; }
 
+/* ═══ NV — EXPANDABLE SIDEBAR NAVIGATION (flyout submenus) ═══ */
+.nv-row { position: relative; display: block; }
+.nv-row > .nav-item { padding-right: 40px; }
+.nv-disc { position: absolute; top: 50%; right: 6px; transform: translateY(-50%); width: 28px; height: 28px;
+  display: flex; align-items: center; justify-content: center; border: none; background: none; cursor: pointer;
+  border-radius: 7px; color: #7a7873; padding: 0; transition: background .13s, color .13s, transform .18s; }
+.nv-disc svg { width: 16px; height: 16px; display: block; }
+.nv-disc:hover { background: #e6e4de; color: #2d2d2d; }
+.nv-disc:focus-visible { outline: 2px solid #0044B3; outline-offset: 1px; }
+.nv-row.nv-open > .nv-disc { transform: translateY(-50%) rotate(90deg); color: #2d2d2d; }
+.nv-row.nv-open > .nav-item { background: #EEEDEA; color: #2d2d2d; }
+.sidebar.collapsed .nv-disc { display: none; }
+
+.nv-fly { position: fixed; z-index: 4200; width: 220px; background: #fff; border: 1px solid #e2e0da;
+  border-radius: 12px; padding: 6px 0; box-shadow: 0 0 2px rgba(45,45,45,.16), 0 4px 8px rgba(45,45,45,.08), 0 8px 24px rgba(45,45,45,.10);
+  opacity: 0; transform: translateX(-6px); pointer-events: none; transition: opacity .14s ease, transform .14s ease; }
+.nv-fly.nv-show { opacity: 1; transform: translateX(0); pointer-events: auto; }
+.nv-fly.nv-wide { width: 250px; }
+.nv-fly ul { list-style: none; margin: 0; padding: 0 6px; }
+.nv-fly li + li { margin-top: 4px; }
+.nv-fly a { display: flex; align-items: center; gap: 8px; height: 44px; padding: 0 8px; border-radius: 12px;
+  font-size: 15px; line-height: 24px; font-weight: 400; color: #2d2d2d; text-decoration: none; cursor: pointer;
+  white-space: nowrap; transition: background .12s; }
+.nv-fly a:hover { background: #f1efe8; }
+.nv-fly a.nv-on { background: #EEEDEA; font-weight: 600; }
+.nv-fly a .nv-ext { width: 14px; height: 14px; margin-left: auto; color: #7a7873; flex-shrink: 0; }
+.nv-fly a .nv-ic { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.nv-fly a .nv-ic svg { width: 14px; height: 14px; color: #fff; }
+.nv-fly-sep { height: 1px; background: #eceae4; margin: 6px 8px; }
+
+
 /* ═══ EVENT CREDITS MODAL ═══ */
 .credits-modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center; }
 .credits-modal-overlay.open { display: flex; }
@@ -10643,6 +10674,264 @@ function tlDeleteConfirm(){
   TL.AUTOS = TL.AUTOS.filter(function(x){return x.id!==TL.rowId;});
   ssClose('tlMdDelete'); tlRender(); ssToast('Automation deleted','It will not run again.');
 }
+
+/* ═══ NV — EXPANDABLE SIDEBAR NAVIGATION ═══════════════════════════════
+   Additive module. Injects disclosure buttons + flyout submenus onto the
+   existing .nav-item rows without editing their markup, so protected
+   modules (Agents / Interviews) keep byte-identical view HTML.
+   Structure, item order, row metrics (44px / radius 12 / 220px, 250px for
+   Tools) and external-link markers mirror employers.indeed.com exactly;
+   palette follows the JobAgentX light sidebar.
+   ==================================================================== */
+var NV = { open: null, hoverT: null, closeT: null, built: false };
+
+var NV_EXT_SVG = '<svg class="nv-ext" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><path d="M15 3h6v6"/><path d="M10 14L21 3"/></svg>';
+
+/* Submenu model — mirrors the live Indeed sidebar flyouts.
+   act: id used for submenu active highlighting
+   go : function run on click                                            */
+var NV_MENUS = {
+  'nav-sourcing': { width: 220, items: [
+    { label: 'Find candidates', act: 'sourcing:home',     go: function(){ showView('sourcing'); ssGo('home'); } },
+    { label: 'Plans and Pricing',act:'sourcing:plans',     go: function(){ showView('sourcing'); ssGo('plans'); } },
+    { label: 'Projects',        act: 'sourcing:projects', go: function(){ showView('sourcing'); ssGo('projects'); } },
+    { label: 'Saved searches',  act: 'sourcing:saved',    go: function(){ showView('sourcing'); ssGo('saved'); } },
+    { label: 'Templates',       act: 'sourcing:templates',go: function(){ showView('sourcing'); ssGo('templates'); } }
+  ]},
+  'nav-messaging': { width: 220, items: [
+    { label: 'Inbox',            act: 'messaging:inbox',    go: function(){ showView('messaging'); NV.msg('inbox'); } },
+    { label: 'Unread',           act: 'messaging:unread',   go: function(){ showView('messaging'); NV.msg('unread'); } },
+    { label: 'Awaiting reply',   act: 'messaging:awaiting', go: function(){ showView('messaging'); NV.msg('awaiting'); } },
+    { label: 'Archived',         act: 'messaging:archived', go: function(){ showView('messaging'); NV.msg('archived'); } },
+    { label: 'Message templates',act: 'messaging:templates',go: function(){ showView('messaging'); NV.msg('templates'); } }
+  ]},
+  'nav-analytics': { width: 220, items: [
+    { label: 'Analytics overview',   act: 'analytics:overview',   go: function(){ showView('analytics'); anGo('overview'); } },
+    { label: 'Jobs and campaigns',   act: 'analytics:jobs',       go: function(){ showView('analytics'); anGo('jobs'); } },
+    { label: 'Smart Sourcing',       act: 'analytics:sourcing',   go: function(){ showView('analytics'); anGo('sourcing'); } },
+    { label: 'Interviews and events',act: 'analytics:interviews', go: function(){ showView('analytics'); anGo('interviews'); } },
+    { label: 'Employer Branding Ads',act: 'analytics:ads',        go: function(){ showView('analytics'); anGo('ads'); } },
+    { label: 'Hiring Insights', ext: true, act: 'analytics:insights', go: function(){ showView('analytics'); anGo('insights'); } }
+  ]},
+  'nav-tools': { width: 250, items: [
+    { label: 'Overview',          act: 'tools:overview',    go: function(){ showView('tools'); tlGo('overview'); } },
+    { label: 'Action Center',     act: 'tools:action',      go: function(){ showView('tools'); tlGo('action'); } },
+    { label: 'ATS Integrations',  act: 'tools:ats',         go: function(){ showView('tools'); tlGo('ats'); } },
+    { label: 'Automations',       act: 'tools:automations', go: function(){ showView('tools'); tlGo('automations'); } },
+    { label: 'Employee Wallet',   act: 'tools:wallet',      go: function(){ showView('tools'); tlGo('wallet'); } },
+    { label: 'Employer Guide', ext: true, act: 'tools:guide',
+      go: function(){ window.open('https://www.indeed.com/hire/resources', '_blank', 'noopener'); } },
+    { label: 'AI Job Description Generator', ext: true, act: 'tools:aijd',
+      go: function(){ window.open('https://www.indeed.com/employers/o/job-description-generator', '_blank', 'noopener'); } }
+  ]}
+};
+
+NV.msg = function(sec){
+  NV.msgSec = sec;
+  if (typeof msgSetSection === 'function') { msgSetSection(sec); return; }
+  /* fall back to the existing Inbox / Archived tab strip */
+  var tabs = document.querySelectorAll('#view-messaging .msg-empty-tab, #view-messaging .msg-tab');
+  if (!tabs.length) return;
+  var want = (sec === 'archived') ? 'archived' : 'inbox';
+  tabs.forEach(function(t){
+    var on = (t.textContent || '').trim().toLowerCase().indexOf(want) === 0;
+    t.classList.toggle('active', on);
+  });
+};
+
+NV.build = function(){
+  if (NV.built) return;
+  Object.keys(NV_MENUS).forEach(function(navId){
+    var a = document.getElementById(navId);
+    if (!a || !a.parentElement) return;
+    var cfg = NV_MENUS[navId];
+
+    /* wrap the existing <a> in a positioned row — the <a> itself is untouched */
+    var row = document.createElement('div');
+    row.className = 'nv-row';
+    row.id = 'nvrow-' + navId;
+    a.parentElement.insertBefore(row, a);
+    row.appendChild(a);
+
+    var btn = document.createElement('button');
+    btn.className = 'nv-disc';
+    btn.type = 'button';
+    btn.setAttribute('aria-expanded', 'false');
+    btn.setAttribute('aria-haspopup', 'true');
+    btn.setAttribute('aria-label', 'Enter ' + (a.querySelector('.nav-text') || {}).textContent + ' subnavigation');
+    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>';
+    btn.onclick = function(e){ e.stopPropagation(); e.preventDefault(); NV.toggle(navId); };
+    row.appendChild(btn);
+
+    var fly = document.createElement('div');
+    fly.className = 'nv-fly' + (cfg.width === 250 ? ' nv-wide' : '');
+    fly.id = 'nvfly-' + navId;
+    fly.setAttribute('role', 'menu');
+    var ul = document.createElement('ul');
+    cfg.items.forEach(function(it, i){
+      var li = document.createElement('li');
+      var link = document.createElement('a');
+      link.setAttribute('role', 'menuitem');
+      link.setAttribute('tabindex', '-1');
+      link.setAttribute('data-nv-act', it.act);
+      link.innerHTML = '<span class="nv-lbl">' + it.label + '</span>' + (it.ext ? NV_EXT_SVG : '');
+      link.onclick = function(e){ e.preventDefault(); NV.close(); try { it.go(); } catch(err) {} NV.sync(); };
+      li.appendChild(link);
+      ul.appendChild(li);
+    });
+    fly.appendChild(ul);
+    document.body.appendChild(fly);
+
+    /* hover-to-open, matching the live app */
+    row.addEventListener('mouseenter', function(){
+      clearTimeout(NV.closeT);
+      NV.hoverT = setTimeout(function(){ NV.show(navId); }, 220);
+    });
+    row.addEventListener('mouseleave', function(){
+      clearTimeout(NV.hoverT);
+      NV.closeT = setTimeout(function(){ if (NV.open === navId && !NV.pinned) NV.close(); }, 260);
+    });
+    fly.addEventListener('mouseenter', function(){ clearTimeout(NV.closeT); });
+    fly.addEventListener('mouseleave', function(){
+      NV.closeT = setTimeout(function(){ if (!NV.pinned) NV.close(); }, 220);
+    });
+  });
+
+  document.addEventListener('click', function(e){
+    if (!NV.open) return;
+    var fly = document.getElementById('nvfly-' + NV.open);
+    var row = document.getElementById('nvrow-' + NV.open);
+    if (fly && (fly.contains(e.target) || (row && row.contains(e.target)))) return;
+    NV.close();
+  });
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'Escape' && NV.open) NV.close();
+  });
+
+  NV.built = true;
+  NV.sync();
+};
+
+NV.show = function(navId){
+  if (NV.open && NV.open !== navId) NV.close();
+  var row = document.getElementById('nvrow-' + navId);
+  var fly = document.getElementById('nvfly-' + navId);
+  if (!row || !fly) return;
+  var sb = document.getElementById('sidebar');
+  if (sb && sb.classList.contains('collapsed')) return;
+  var r = row.getBoundingClientRect();
+  fly.style.left = Math.round(r.right + 6) + 'px';
+  var top = Math.round(r.top);
+  fly.style.top = top + 'px';
+  fly.classList.add('nv-show');
+  row.classList.add('nv-open');
+  var btn = row.querySelector('.nv-disc');
+  if (btn) btn.setAttribute('aria-expanded', 'true');
+  /* keep the panel inside the viewport */
+  var fr = fly.getBoundingClientRect();
+  if (fr.bottom > window.innerHeight - 8) {
+    fly.style.top = Math.max(8, window.innerHeight - 8 - fr.height) + 'px';
+  }
+  NV.open = navId;
+  NV.sync();
+};
+
+NV.close = function(){
+  if (!NV.open) return;
+  var row = document.getElementById('nvrow-' + NV.open);
+  var fly = document.getElementById('nvfly-' + NV.open);
+  if (fly) fly.classList.remove('nv-show');
+  if (row) {
+    row.classList.remove('nv-open');
+    var btn = row.querySelector('.nv-disc');
+    if (btn) btn.setAttribute('aria-expanded', 'false');
+  }
+  NV.open = null; NV.pinned = false;
+};
+
+NV.toggle = function(navId){
+  if (NV.open === navId) { NV.close(); return; }
+  NV.show(navId); NV.pinned = true;
+};
+
+/* highlight the submenu item matching the module's current section */
+NV.sync = function(){
+  var act = null;
+  var view = (document.querySelector('.view.active') || {}).id || '';
+  if (view === 'view-analytics' && typeof AN === 'object' && AN) act = 'analytics:' + AN.sec;
+  else if (view === 'view-tools' && typeof TL === 'object' && TL) act = 'tools:' + TL.sec;
+  else if (view === 'view-sourcing' && typeof SS === 'object' && SS) act = 'sourcing:' + (SS.screen === 'search' ? 'home' : (SS.screen || 'home'));
+  else if (view === 'view-messaging') act = 'messaging:' + (NV.msgSec || 'inbox');
+  document.querySelectorAll('.nv-fly a[data-nv-act]').forEach(function(a){
+    a.classList.toggle('nv-on', !!act && a.getAttribute('data-nv-act') === act);
+  });
+};
+
+/* keep the flyout glued to its row while scrolling / resizing */
+window.addEventListener('resize', function(){ if (NV.open) NV.show(NV.open); });
+document.addEventListener('scroll', function(){ if (NV.open) NV.close(); }, true);
+
+/* wrap the existing navigation entry points so highlighting stays correct */
+NV.hook = function(){
+  ['showView','anGo','tlGo','ssGo'].forEach(function(fn){
+    if (typeof window[fn] !== 'function' || window[fn].__nv) return;
+    var orig = window[fn];
+    var wrapped = function(){ var r = orig.apply(this, arguments); try { NV.sync(); } catch(e) {} return r; };
+    wrapped.__nv = true;
+    window[fn] = wrapped;
+  });
+};
+
+function nvInit(){ NV.build(); NV.hook(); NV.sync(); }
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', nvInit);
+else nvInit();
+
+
+/* ═══ TOOLS → ACTION CENTER (nav parity with employers.indeed.com) ═══
+   The live /actioncenter route sits behind a Cloudflare human-verification
+   challenge that this session is not permitted to clear, so the section is
+   registered in navigation (its presence and position ARE verified) but its
+   contents are deliberately left uncaptured rather than invented.          */
+(function(){
+  if (typeof tlRender !== 'function') return;
+  var _tlRenderOrig = tlRender;
+
+  window.tlRender = function(){
+    if (TL.sec === 'action') {
+      var b = tlEl('tlBody'); if (!b) return;
+      b.innerHTML =
+        '<h2 class="tl-h2">Action Center</h2>' +
+        '<p class="tl-lead">Tasks Indeed surfaces for you across jobs, candidates and billing.</p>' +
+        '<div class="an-note" style="align-items:flex-start;">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="#8a6116" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>' +
+          '<span><b>Capture pending &mdash; not yet built.</b><br>' +
+          'Action Center is confirmed present in the live Tools sub-navigation at ' +
+          '<code>employers.indeed.com/actioncenter</code>, in position 2 of 6. Its screens were ' +
+          'not recreated because the host is currently behind a Cloudflare human-verification ' +
+          'challenge that this build session is not permitted to clear. Nothing here is guessed. ' +
+          'Once the challenge is cleared the section will be captured and built like the rest.</span>' +
+        '</div>';
+      return;
+    }
+    var r = _tlRenderOrig.apply(this, arguments);
+    /* keep the Tools overview grid in sync with the 6-item live sub-nav */
+    if (TL.sec === 'overview') {
+      var grid = document.querySelector('#tlBody .tl-grid');
+      if (grid && !grid.querySelector('[data-tl-card="action"]')) {
+        var card = document.createElement('div');
+        card.className = 'tl-card';
+        card.setAttribute('data-tl-card', 'action');
+        card.onclick = function(){ tlGo('action'); };
+        card.innerHTML = '<div class="ic"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></div>' +
+          '<h3>Action Center</h3><p>Tasks Indeed surfaces for you across jobs, candidates and billing.</p>' +
+          '<span class="go">Open &rarr;</span>';
+        grid.insertBefore(card, grid.firstChild);
+      }
+    }
+    return r;
+  };
+})();
+
 (function tlInit(){
   function boot(){ if(!tlEl('view-tools')) return; tlGo('overview'); }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else setTimeout(boot,0);
