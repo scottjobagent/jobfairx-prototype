@@ -11455,6 +11455,135 @@ function rnApply(){
   else setTimeout(boot, 0);
 })();
 
+
+/* ═══ SF — SMART SOURCING "MORE FILTERS" DRAWER, EXACT INVENTORY ══════
+   Replaces ssRenderFilters with the 14 groups measured live on
+   resumes.indeed.com (rn/SMART-SOURCING-EXACT.md §4.5). Every option
+   string, default and tooltip below is a verbatim capture.
+   ==================================================================== */
+(function(){
+  if (typeof ssRenderFilters !== 'function') return;
+
+  var TIP = {
+    lastActive: 'When a candidate last visited Indeed.',
+    excl:       'Excludes resumes contacted by you or anyone associated with your company account within the selected timeframe.',
+    avail:      'Jobseekers tagged #readytowork have self-identified as being ready to begin work immediately.',
+    jobType:    'Applies only to employment preferences set by job seekers.',
+    clearance:  'Security clearance is self-reported and Indeed cannot verify its legitimacy.',
+    military:   'Military experience is self-reported and Indeed cannot verify veteran/active military status'
+  };
+
+  var COMBOS = [
+    ['lastActive', 'Candidate last active', TIP.lastActive,
+      ['within last week','within last month','within last 3 months','within last 6 months','show all'], 'show all'],
+    ['excl', 'Exclude contacted candidates', TIP.excl,
+      ['within last 30 days','within last 60 days','within last 90 days','show all'], 'within last 30 days'],
+    ['tenure', 'Time at current job', null,
+      ['greater than 3 months','greater than 1 year','greater than 2 years','greater than 5 years','greater than 10 years','show all'], 'show all']
+  ];
+
+  var GROUPS = [
+    ['avail', 'Availability', TIP.avail, ['Ready to work now'], false],
+    ['skills', 'Skills', null, ['Software development','JavaScript','APIs',
+      'Software development experience within technology industry',
+      'Developing and maintaining backend systems','Web development','System development',
+      'Web applications','Git','Full-stack development'], true],
+    ['workauth', 'Work authorization', null, ['Not specified',
+      'Authorized to work in the US for any employer','Sponsorship required to work in the US'], false],
+    ['titles', 'Job titles', null, ['Software Engineer','Web developer','Full-Stack Developer',
+      'Software Developer','Senior Software Engineer','Full Stack Web Developer','Senior Web Developer',
+      'Front End Developer','Freelance Web Developer','Senior Full Stack Developer'], true],
+    ['company', 'Company', null, ['Freelance','Newco','Self-employed','Freelance/Self Employed',
+      'Accenture','Freelancer','Centene Corporation','Independent','Elit Tile','Peraton'], true],
+    ['jobtype', 'Job type', TIP.jobType, ['Full-time','Contract','Part-time','Temporary',
+      'Internship','Permanent','Apprenticeship'], false],
+    ['yoe', 'Years of work experience', null, ['Less than 1 year','1-2 years','3-5 years',
+      '6-10 years','More than 10 years'], false],
+    ['edu', 'Education', null, ['Bachelors','Masters','Associates','Diploma','Doctorate'], false],
+    ['clearance', 'Security clearances', TIP.clearance, ['Secret Clearance','TS/SCI',
+      'Top Secret Clearance','Confidential Clearance','Q Clearance'], false],
+    ['military', 'Military service', TIP.military, ['Active or former military'], false]
+  ];
+
+  SS.seeMore = SS.seeMore || {};
+
+  function info(t){
+    if (!t) return '';
+    return ' <svg class="ss-fi" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#767676" stroke-width="2" style="vertical-align:-3px" onclick="event.stopPropagation();ssToast(\'\',' + JSON.stringify(t) + ')"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>';
+  }
+
+  window.ssRenderFilters = function(){
+    var f = SS.filters || (SS.filters = {});
+    var applied = [];
+    COMBOS.forEach(function(c){ if (f[c[0]] && f[c[0]] !== c[4]) applied.push([c[1], 1, c[0], null]); });
+    GROUPS.forEach(function(g){ var v = f[g[0]] || []; if (v.length) applied.push([g[1], v.length, g[0], null]); });
+
+    var h = '';
+
+    /* applied-filter block sits above "All filters" once anything is set */
+    if (applied.length) {
+      h += '<div class="ss-applied"><div class="ss-appliedhead">' +
+             '<h4>Applied filter (' + applied.length + ')</h4>' +
+             '<button class="ss-clearall" onclick="ssResetFilters()">Clear all</button></div>' +
+           applied.map(function(a){
+             return '<span class="ss-fchip">' + ssEsc(a[0]) + ' <b>(' + a[1] + ')</b>' +
+               '<button aria-label="Remove filter" onclick="ssClearGroup(\'' + a[2] + '\')">&times;</button></span>';
+           }).join('') + '</div>';
+    }
+
+    h += '<h4 class="ss-allf">All filters</h4>';
+
+    COMBOS.forEach(function(c){
+      var cur = f[c[0]] || c[4];
+      h += '<div class="ss-fg"><h4>' + c[1] + info(c[2]) + '</h4>' +
+        '<select onchange="ssSetSel(\'' + c[0] + '\',this.value);ssRenderFilters()">' +
+        c[3].map(function(o){ return '<option' + (o === cur ? ' selected' : '') + '>' + o + '</option>'; }).join('') +
+        '</select></div>';
+    });
+
+    /* group 4 — Professional upsell card (measured position: after the 3 comboboxes) */
+    h += '<div class="ss-lock" id="ssUpsell">' +
+      '<button aria-label="Dismiss additional filters" style="position:absolute;top:12px;right:12px;border:0;background:none;font-size:18px;cursor:pointer;color:#2d2d2d" onclick="document.getElementById(\'ssUpsell\').style.display=\'none\'">&times;</button>' +
+      '<h4><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#c08a38" stroke-width="2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>Additional filters for Professional subscriptions</h4>' +
+      '<label class="ss-fopt"><input type="checkbox" disabled>Open to relocating</label>' +
+      '<label class="ss-fopt"><input type="checkbox" disabled>Job type (e.g. full-time)</label>' +
+      '<button class="up" onclick="showView(\'subs\')">Upgrade to Professional</button></div>';
+
+    GROUPS.forEach(function(g){
+      var key = g[0], sel = f[key] || [], truncable = g[4];
+      var open = !!SS.seeMore[key];
+      var opts = (truncable && !open) ? g[3].slice(0, 6) : g[3];
+      h += '<fieldset class="ss-fg ss-fset"><legend>' + g[1] + info(g[2]) +
+        (sel.length ? '<button class="ss-greset" onclick="ssClearGroup(\'' + key + '\')">&#8634; Reset</button>' : '') +
+        '</legend>';
+      h += opts.map(function(o){
+        var on = sel.indexOf(o) >= 0;
+        return '<label class="ss-fopt"><input type="checkbox"' + (on ? ' checked' : '') +
+          ' onchange="ssFilterTog(\'' + key + '\',' + JSON.stringify(o).replace(/"/g, '&quot;') + ',this.checked);ssRenderFilters()">' +
+          ssEsc(o) + '</label>';
+      }).join('');
+      if (truncable && g[3].length > 6) {
+        h += '<button class="ss-seemore" onclick="SS.seeMore[\'' + key + '\']=' + (open ? 'false' : 'true') + ';ssRenderFilters()">' +
+          (open ? 'See less' : 'See more') + ' &#9662;</button>';
+      }
+      h += '</fieldset>';
+    });
+
+    var body = ssEl('ssFiltersBody') || document.querySelector('#ssFilters .ss-dr-body');
+    if (body) body.innerHTML = h;
+    var n = ssActiveCands().length;
+    var vb = ssEl('ssFilterCount');
+    if (vb) vb.textContent = SS.mode === 'empty' ? '0' : (n >= SS.CANDS.length ? '7,000' : n.toLocaleString());
+    return h;
+  };
+
+  window.ssClearGroup = function(key){
+    if (Array.isArray(SS.filters[key])) SS.filters[key] = [];
+    else delete SS.filters[key];
+    ssRenderFilters(); ssApply();
+  };
+})();
+
 (function tlInit(){
   function boot(){ if(!tlEl('view-tools')) return; tlGo('overview'); }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else setTimeout(boot,0);
@@ -11676,6 +11805,33 @@ function rnApply(){
 
 /* legal footer */
 .rn-legal{ font-size:13px; line-height:20px; color:#767676; margin:24px 0 8px; max-width:1240px; }
+
+</style>
+<style>
+
+/* ═══ SF — More-filters drawer styling (measured) ═══════════════════ */
+#ssFilters .ss-allf{ font-size:16px; line-height:24px; font-weight:700; color:#2d2d2d; margin:0 0 16px; }
+.ss-applied{ margin-bottom:20px; }
+.ss-appliedhead{ display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+.ss-appliedhead h4{ font-size:16px; line-height:24px; font-weight:700; color:#2d2d2d; margin:0; }
+.ss-clearall{ background:none; border:0; font-family:inherit; font-size:16px; line-height:24px;
+  font-weight:700; color:#004fcb; cursor:pointer; padding:6px 8px; border-radius:12px; }
+.ss-fchip{ display:inline-flex; align-items:center; gap:6px; min-height:32px; background:#f3f2f1;
+  color:#2d2d2d; border:1px solid #595959; border-radius:20px; padding:4px 12px; font-size:14px;
+  line-height:21px; margin:0 8px 8px 0; }
+.ss-fchip button{ background:none; border:0; cursor:pointer; font-size:16px; line-height:1; color:#2d2d2d; padding:0 0 0 2px; }
+.ss-fset{ border:0; padding:0; margin:0 0 20px; }
+.ss-fset legend{ display:flex; align-items:center; width:100%; font-size:14px; line-height:21px;
+  font-weight:700; color:#595959; padding:0; margin-bottom:6px; }
+.ss-greset{ margin-left:auto; background:none; border:0; font-family:inherit; font-size:14px;
+  line-height:21px; font-weight:700; color:#004fcb; cursor:pointer; padding:0; }
+#ssFilters .ss-fopt{ display:flex; align-items:flex-start; gap:12px; min-height:29px; padding:4px 0;
+  font-size:14px; line-height:21px; color:#2d2d2d; cursor:pointer; }
+#ssFilters .ss-fopt input[type=checkbox]{ width:20px; height:20px; flex:0 0 20px; border-radius:8px;
+  border:1px solid #595959; background:#fff; margin:0; accent-color:#424242; }
+.ss-seemore{ background:none; border:0; font-family:inherit; font-size:16px; line-height:24px;
+  color:#004fcb; cursor:pointer; padding:4px 0; }
+.ss-fi{ cursor:pointer; }
 
 </style>
 </body>
