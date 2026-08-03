@@ -8623,6 +8623,78 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 })();
 </script>
 <script>
+/* ═══ CXFIX — Candidates logic corrections (build35) ═════════════════════
+   Presentation untouched: no CSS, no markup, no geometry. Logic only. */
+(function(){
+  function apply(){
+    if (typeof CX !== 'object' || typeof CD !== 'object') return false;
+    if (!CX.interestMenu || !CD.setInterest) return false;
+
+    /* ── 1. count the values that are actually written ─────────────── */
+    CX.interestMenu = function(){
+      var all   = CD.ALL || [];
+      var short = all.filter(function(c){ return c.interest === 'shortlist'; }).length;
+      /* "No interest" mirrors CD.rows(): everything not shortlisted. */
+      var no    = all.filter(function(c){ return c.interest !== 'shortlist'; }).length;
+      return CX.menuWrap(
+        '<button onclick="CX.setInterest(\'Shortlist\')"><span class="tick">' +
+          (CD.interest === 'Shortlist' ? CX.IC.tick : '') +
+          '</span>Shortlist (' + short + ')</button>' +
+        '<button onclick="CX.setInterest(\'No interest\')"><span class="tick">' +
+          (CD.interest === 'No interest' ? CX.IC.tick : '') +
+          '</span>No interest (' + no + ')</button>');
+    };
+
+    /* ── 2. one vocabulary for interest, on both surfaces ──────────── */
+    var KEY = { reject: 'rejected', yes: 'shortlist', maybe: 'undecided', no: 'rejected' };
+    /* rejecting moves the stage; un-rejecting puts it back. One rule, both
+       surfaces — CD used to do this and CX did not. */
+    function stageFor(id){
+      (CD.ALL || []).forEach(function(c){
+        if (c.id !== id) return;
+        if (c.interest === 'rejected') c.stage = 'Rejected';
+        else if (c.stage === 'Rejected') c.stage = 'Reviewing';
+      });
+    }
+    var cdSetInterest = CD.setInterest;
+    CD.setInterest = function(id, kind){
+      var r = cdSetInterest.call(this, id, KEY[kind] || kind);
+      stageFor(id); CD.render();
+      return r;
+    };
+    /* the profile's own buttons must compare against the stored value */
+    var cdInterestHTML = CD.interestHTML;
+    if (cdInterestHTML) {
+      CD.interestHTML = function(c){
+        return cdInterestHTML.call(this, c).replace(/'reject'/g, "'rejected'")
+                                           .replace(/"reject"/g, '"rejected"');
+      };
+    }
+    var cxSet = CX.interestSet;
+    CX.interestSet = function(id, k){
+      cxSet.call(this, id, k);
+      stageFor(id); CX.paint();
+    };
+
+    /* ── 3. index against the array the profile actually reads ─────── */
+    CX.openProfile = function(id){
+      var rows = CD.rows ? CD.rows() : [];
+      var i = -1;
+      for (var n = 0; n < rows.length; n++) { if (rows[n].id === id) { i = n; break; } }
+      if (i < 0) return;                       /* not on screen — do nothing */
+      CD.openIdx = i; CD.view = 'profile';
+      if (CD.seen) CD.seen[id] = true;
+      CX.close(); CX.paint();
+    };
+    return true;
+  }
+  if (!apply()) {
+    var tries = 0;
+    var t = setInterval(function(){ if (apply() || ++tries > 40) clearInterval(t); }, 100);
+  }
+})();
+</script>
+<script>
 /* AGX-ACCT: account-menu routing, subscription tabs, plan toggle */
 function agxMenuGo(e,view){
  if(e){e.stopPropagation();}
