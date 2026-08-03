@@ -13345,6 +13345,28 @@ CD.schedSend = function(){
   else setTimeout(boot, 140);
 })();
 
+
+/* ═══ Remove the stale "Representative data" banner ═══════════════════
+   It said Tools was never reachable. That is no longer true — the area
+   was crawled live on 2026-08-03 from the scott@cloudhire.com account,
+   so the disclaimer is now false. Removed from BOTH the Automations data
+   and empty states (tlCaveat is called in each branch of tlRender).
+   Nothing else in the module changes.
+   ==================================================================== */
+(function(){
+  if (typeof tlCaveat !== 'function') return;
+  window.tlCaveat = function(){ return ''; };
+  function boot(){
+    if (typeof tlRender === 'function' && document.getElementById('view-tools')) tlRender();
+    /* belt and braces: strip any banner already painted into the panel */
+    document.querySelectorAll('#tlBody .an-note').forEach(function(n){
+      if (/Representative data/i.test(n.textContent || '')) n.remove();
+    });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else setTimeout(boot, 180);
+})();
+
 (function tlInit(){
   function boot(){ if(!tlEl('view-tools')) return; tlGo('overview'); }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else setTimeout(boot,0);
