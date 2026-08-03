@@ -13283,6 +13283,68 @@ CD.schedSend = function(){
   };
 })();
 
+
+/* ═══ NAV — Tools becomes Automations ════════════════════════════════
+   Per Scott: no Tools Overview, Action Center, ATS Integrations or
+   Employee Wallet. The row is just Automations, no disclosure arrow.
+   Order: Agents · Smart Sourcing · Candidates · Interviews · Messages ·
+   Automations · Analytics.
+   The Automations module itself is NOT touched — content, empty/active
+   states and its dev toggle are exactly as they were. The four unused
+   Tools sections stay in the file, simply unreachable.
+   ==================================================================== */
+(function(){
+  if (typeof IA !== 'object' || !IA.tree) return;
+
+  IA_ICONS.automations = '<path d="M13 2L4.5 13.5H11l-1 8.5 8.5-11.5H12l1-8.5z"/>';
+
+  var byId = {};
+  IA.tree.forEach(function(n){ if (n && n.id) byId[n.id] = n; });
+
+  var t = byId.tools;
+  if (t) {
+    t.label = 'Automations';
+    t.icon  = 'automations';
+    delete t.children;          /* no submenu → no chevron */
+    t.go = function(){ showView('tools'); if (typeof tlGo === 'function') tlGo('automations'); };
+  }
+
+  var ORDER = ['events','sourcing','candidates','interviews','messaging','tools','analytics'];
+  var map = {}; IA.tree.forEach(function(n){ if (n && n.id) map[n.id] = n; });
+  var ordered = ORDER.map(function(id){ return map[id]; }).filter(Boolean);
+  IA.tree.forEach(function(n){ if (n && n.id && ORDER.indexOf(n.id) < 0) ordered.push(n); });
+  IA.tree.length = 0; ordered.forEach(function(n){ IA.tree.push(n); });
+
+  /* a row with a custom go() must still route through it */
+  var _go = IA.go;
+  IA.go = function(id){
+    var n = IA.index[id];
+    if (n && n.id === 'tools' && typeof n.go === 'function') {
+      IA.closeFly(); n.go(); IA.current = id; IA.sync(); return;
+    }
+    return _go.apply(this, arguments);
+  };
+
+  function boot(){
+    /* hide the Tools pill bar inside the view — Automations opens directly */
+    var bar = document.getElementById('tlTabs');
+    if (bar) bar.style.display = 'none';
+
+    /* dev toolbar: rename the label only, leave the group and its wiring alone */
+    document.querySelectorAll('.topbar .dev-toggle-label').forEach(function(l){
+      if (/^Tools:/i.test((l.textContent || '').trim())) l.textContent = 'Automations:';
+    });
+
+    if (typeof TL === 'object' && TL) TL.sec = 'automations';
+    if (typeof tlGo === 'function' && document.getElementById('view-tools')) tlGo('automations');
+
+    if (document.querySelector('.sidebar-nav')) IA.render();
+    IA.sync();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else setTimeout(boot, 140);
+})();
+
 (function tlInit(){
   function boot(){ if(!tlEl('view-tools')) return; tlGo('overview'); }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else setTimeout(boot,0);
