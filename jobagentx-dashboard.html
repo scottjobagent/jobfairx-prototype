@@ -8570,6 +8570,7 @@ function agxRise(){
  var r=Math.round(det.getBoundingClientRect().top-f.getBoundingClientRect().top);
  if(r>0)det.style.marginTop=(-r)+"px";
 }
+window.__ivRise=agxRise;
 function paint(){
 var tabs=document.querySelector(".iv-tabs");if(!tabs)return;
 var names=["Upcoming","Pending","Action needed","Past"];
@@ -13367,6 +13368,58 @@ CD.schedSend = function(){
   else setTimeout(boot, 180);
 })();
 
+
+/* ═══ IVE-FIX — Interviews empty state: alignment + Live toggle ═══════
+   1. The module's own agxRise() top-aligns .md-det with the filter row.
+      It ran once, while #view-interviews was still hidden, so the element
+      measured as zero, `if(r>0)` never fired and margin-top stayed 0px.
+      It is now re-run whenever the view becomes visible, on tab switch
+      and on resize — so the empty state aligns by the same rule as the
+      active state, at any window size.
+   2. The hardcoded margin-top:-115px is dropped; agxRise owns the number.
+   3. The Interview dev toggle loses its third option — Empty | Active only.
+      The `live` code paths stay in the file, unreachable.
+   ==================================================================== */
+(function(){
+  function rise(){
+    try { if (typeof window.__ivRise === 'function') window.__ivRise(); } catch(e) {}
+  }
+  /* let layout settle before measuring */
+  function riseSoon(){ rise(); requestAnimationFrame(rise); setTimeout(rise, 60); setTimeout(rise, 220); }
+  window.__iveRise = riseSoon;
+
+  function boot(){
+    /* 3 — drop the Live button */
+    var live = document.getElementById('ivHeaderLiveBtn');
+    if (live && live.parentNode) live.parentNode.removeChild(live);
+
+    /* 1 — recompute whenever Interviews becomes visible */
+    var _sv = window.showView;
+    if (typeof _sv === 'function' && !_sv.__ive2){
+      var w = function(v){
+        var r = _sv.apply(this, arguments);
+        if (v === 'interviews') riseSoon();
+        return r;
+      };
+      w.__ive2 = true; w.__ia = true; w.__iaexp = true; w.__ivsec = true; w.__cd = true;
+      window.showView = w;
+    }
+    var _sw = window.switchIvTab;
+    if (typeof _sw === 'function' && !_sw.__ive2){
+      var w2 = function(){ var r = _sw.apply(this, arguments); riseSoon(); return r; };
+      w2.__ive2 = true; w2.__ive = true; window.switchIvTab = w2;
+    }
+    window.addEventListener('resize', function(){ 
+      if ((document.querySelector('.view.active') || {}).id === 'view-interviews') rise();
+    });
+
+    /* if we are already on Interviews at boot */
+    if ((document.querySelector('.view.active') || {}).id === 'view-interviews') riseSoon();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else setTimeout(boot, 200);
+})();
+
 (function tlInit(){
   function boot(){ if(!tlEl('view-tools')) return; tlGo('overview'); }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else setTimeout(boot,0);
@@ -14094,7 +14147,7 @@ CD.schedSend = function(){
 .ive-list{ width:480px; flex:0 0 480px; background:#fff; border-radius:0 0 20px 20px;
   padding:0 0 6px; min-height:569px; }
 .ive-det{ width:732px; flex:0 0 732px; background:#fff; border:1px solid #e4e2e0;
-  border-radius:20px; padding:24px; margin-top:-115px; min-height:684px;
+  border-radius:20px; padding:24px; min-height:684px;
   display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; }
 .ive-det h2{ font-size:26px; line-height:34px; font-weight:700; color:#2d2d2d; margin:0 0 10px; }
 .ive-det p{ font-size:16px; line-height:24px; color:#595959; margin:0; }
