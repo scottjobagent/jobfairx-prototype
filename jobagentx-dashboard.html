@@ -5809,6 +5809,7 @@ table.iv2 td:nth-child(4){overflow:visible}
 .md-afd{font-size:14px;color:#767676}
 .md-afe{font-size:16px;color:#2d2d2d;margin-top:3px}
 .md-afn{font-size:16px;color:#2d2d2d;margin-top:4px;line-height:1.55;white-space:pre-wrap}
+.md-actrow.agx-solo{justify-content:flex-end;margin-top:16px}
 </style>
 <script>
 (function(){
@@ -6345,7 +6346,7 @@ Array.prototype.forEach.call(wrap.querySelectorAll("[data-mdtab]"),function(b){b
 Array.prototype.forEach.call(wrap.querySelectorAll("[data-mdact]"),function(b){b.onclick=function(e){e.stopPropagation();
  var q=b.getAttribute("data-mdact").split("|"),act=q[0],pk=q[1];
  var who=(P[pk]&&P[pk].n)||"the candidate";var x=pxOf(pk);
- if(act==="setup"){openSch(pk);return}
+ if(act==="setup"){Array.prototype.forEach.call(document.querySelectorAll(".md-mpop,.md-stpop"),function(x){x.classList.remove("on")});openSch(pk);return}
  if(act==="notes"){openEv(pk);return}
  if(act==="disp"){DISP[pk]=(DISP[pk]===q[2])?"":q[2];paint();
   var L={sl:"Shortlist",un:"Undecided",rj:"Rejected"};
@@ -6524,6 +6525,7 @@ function cvTopHtml(pk){
  +'</div>'
  +'<button type="button" class="md-more" data-mdact="more|'+pk+'" aria-label="More actions">'+cvIco("dots")+'</button>'
  +'<div class="md-mpop" id="mdMore'+pk+'">'
+ +'<button type="button" data-mdact="setup|'+pk+'">Set up interview</button>'
  +'<button type="button" data-mdact="dl|'+pk+'">Download resume</button>'
  +'<button type="button" data-mdact="dlapp|'+pk+'">Download application data</button>'
  +'<button type="button" data-mdact="rejcand|'+pk+'">Reject candidate</button>'
@@ -6563,22 +6565,26 @@ function mdDetail(i,r){
  var prim=ph?('<span class="md-phwrap"><button type="button" class="md-b pri" data-mdact="showphone|'+r.p+'">'+mdIco("ph")+"Show phone number</button></span>")
   :('<button type="button" class="md-b pri" data-mdact="join|'+r.p+"|"+mdEpoch(r)+"|"+encodeURIComponent(r.t[0]+", "+r.t[1])+'">'+mdIco("cam")+"Join interview</button>");
  var noteB='<button type="button" class="md-b" data-mdact="notes|'+r.p+'">'+mdIco("clip")+"Take notes</button>";
+ var msgB='<button type="button" class="md-b" data-mdact="msg|'+r.p+'">'+mdIco("msg")+"Message</button>";
+ var callB='<span class="md-phwrap"><button type="button" class="md-b" data-mdact="showphone|'+r.p+'">'+mdIco("ph")+"Call</button></span>";
  var fb=(r.fb&&r.fb[0]&&r.fb[0]!=="\u2014")?r.fb[0]:"";
  var acts,kebI;
  if(i===1){
-  acts='<button type="button" class="md-b pri" data-mdact="msg|'+r.p+'">'+mdIco("msg")+"Send a message</button>"
+  acts='<button type="button" class="md-b pri" data-mdact="msg|'+r.p+'">'+mdIco("msg")+"Message</button>"
+   +callB
    +'<button type="button" class="md-b" data-mdact="setup|'+r.p+'">'+mdIco("cal")+"Change proposed times</button>"
    +'<button type="button" class="md-b" data-mdact="cancelcall|'+r.p+'">'+mdIco("x")+"Cancel call</button>";
   kebI=[["dl","Download resume",0]];
  } else if(i===2){
-  acts=agxGrp(r.p)+noteB;
-  kebI=[["msg","Send a message",0],["dl","Download resume",0]];
+  acts=agxGrp(r.p)+msgB+callB+noteB;
+  kebI=[["dl","Download resume",0]];
  } else if(i===3){
   acts='<button type="button" class="md-b pri" data-mdact="setup|'+r.p+'">'+mdIco("cal")+"Set up interview</button>"
+   +msgB+callB
    +'<button type="button" class="md-b" data-mdact="notes|'+r.p+'">'+mdIco("clip")+(fb?"Update evaluation":"Add evaluation")+"</button>";
-  kebI=[["msg","Send a message",0],["dl","Download resume",0]];
+  kebI=[["dl","Download resume",0]];
  } else {
-  acts=prim+noteB;
+  acts=prim+msgB+(ph?"":callB)+noteB;
   kebI=[["cal","Reschedule",0],["x","Cancel interview",1]];
  }
  var ivCard='<div class="md-ic"><div style="display:flex;justify-content:space-between;gap:8px"><span style="font-size:16px;font-weight:700;color:#2d2d2d">'+(ph?"Phone":"Video")+" interview</span>"
@@ -6608,7 +6614,7 @@ function mdDetail(i,r){
   +'<div class="md-top" data-mdtop="1"><div><div class="md-nm">'+p.n+"</div>"
   +'<div class="md-loc">'+mdIco("pin")+p.l+"</div></div>"+cvTopHtml(r.p)+"</div>"
   +'<div class="md-meta">'+mdIco(ph?"ph":"cam")+(ph?"Phone call":"Video call")+" &middot; "+r.t[0]+" &middot; "+r.t[1]+"</div>"
-  +'<div class="md-actrow"><div class="md-acts"><button type="button" class="md-b pri" data-mdact="setup|'+r.p+'">'+mdIco("cal")+'Set up interview</button><button type="button" class="md-b" data-mdact="msg|'+r.p+'">'+mdIco("msg")+'Message</button><span class="md-phwrap"><button type="button" class="md-b" data-mdact="showphone|'+r.p+'">'+mdIco("ph")+"Call</button></span></div>"+cvStatusHtml(r.p)+"</div>"
+  +'<div class="md-actrow agx-solo">'+cvStatusHtml(r.p)+"</div>"
   +'<div class="md-tabs"><button type="button" class="md-tab'+(tab==="app"?" on":"")+'" data-mdtab="app|'+i+'">Application</button><button type="button" class="md-tab'+(tab==="act"?" on":"")+'" data-mdtab="act|'+i+'">Activity &amp; notes</button></div>'
   +(tab==="app"?app:act)+"</div>"}
 function fltRowHtml(i){
