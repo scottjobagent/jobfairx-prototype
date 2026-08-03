@@ -13190,6 +13190,47 @@ CD.schedSend = function(){
   else setTimeout(boot, 60);
 })();
 
+/* ═══ NAV — remove Dashboard ═════════════════════════════════════════
+   Per Scott: the sidebar is exactly Agents → Smart Sourcing → Candidates
+   → Interviews → Messages → Analytics → Tools. The Dashboard view stays in
+   the file (nothing is deleted) but is no longer reachable from the nav,
+   and its dev-toolbar toggle is removed. Agents becomes the landing view.
+   ==================================================================== */
+(function(){
+  if (typeof IA !== 'object' || !IA.tree) return;
+
+  IA.tree = IA.tree.filter(function(n){ return !n || n.id !== 'overview'; });
+
+  /* breadcrumbs no longer start at a Dashboard "Home" link */
+  IA.crumbs = function(){
+    var t = IA.trail();
+    document.querySelectorAll('[data-ia-crumbs]').forEach(function(el){
+      el.innerHTML = t.map(function(c, i){
+        return i === t.length - 1
+          ? '<span class="cur">' + c.label + '</span>'
+          : '<a onclick="IA.go(\'' + c.id + '\')">' + c.label + '</a>';
+      }).join('<span class="sep">/</span>');
+    });
+  };
+
+  function boot(){
+    /* drop the "Dash view:" toggle group from the dev toolbar */
+    document.querySelectorAll('.topbar .dev-toggle').forEach(function(g){
+      var lb = g.querySelector('.dev-toggle-label');
+      if (lb && /^Dash view:/i.test((lb.textContent || '').trim())) g.remove();
+    });
+
+    if (document.querySelector('.sidebar-nav')) IA.render();
+
+    /* land on Agents rather than the now-unreachable Dashboard */
+    var cur = (document.querySelector('.view.active') || {}).id;
+    if (!cur || cur === 'view-overview') showView('events');
+    IA.sync();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else setTimeout(boot, 90);
+})();
+
 (function tlInit(){
   function boot(){ if(!tlEl('view-tools')) return; tlGo('overview'); }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else setTimeout(boot,0);
