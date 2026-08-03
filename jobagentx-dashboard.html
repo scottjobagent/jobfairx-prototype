@@ -14191,9 +14191,19 @@ MG.list = function(){
   }).join('');
 };
 
+/* Two DIFFERENT right-pane states, which is the point:
+     · no conversations at all  -> tell them what will appear on the left
+     · conversations exist, none selected -> Indeed's measured line
+   Indeed's own zero-conversation state was never observable (that account
+   has conversations), so the empty copy is ours, not theirs. The old
+   "...from your upcoming hiring events" sentence is dropped — hiring
+   events are JobFairX, not JobAgentX. */
 MG.welcome = function(){
+  var sub = (MG.mode === 'empty')
+    ? 'When you message a candidate, conversations show up here.'
+    : 'Select a conversation to view and respond.';
   return '<div class="mg-empty">' + MG.ILLO() +
-    '<h2>Welcome to Messages</h2><p>Select a conversation to view and respond.</p></div>';
+    '<h2>Welcome to Messages</h2><p>' + sub + '</p></div>';
 };
 
 MG.thread = function(c){
