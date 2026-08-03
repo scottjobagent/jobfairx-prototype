@@ -979,6 +979,10 @@ tbody tr:last-child td { border-bottom: none; }
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
         <span class="nav-text">Messaging</span>
       </a>
+      <a class="nav-item" onclick="showView('analytics')" id="nav-analytics">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 15l4-5 3 3 5-7"/></svg>
+        <span class="nav-text">Analytics</span>
+      </a>
     </div>
   </div>
   <div class="sidebar-usage">
@@ -3194,6 +3198,58 @@ tbody tr:last-child td { border-bottom: none; }
     </div>
   </div>
   <!-- ══════════════════ /SMART SOURCING ══════════════════ -->
+
+  <!-- ══════════════════ ANALYTICS ══════════════════ -->
+  <div class="view" id="view-analytics">
+    <div class="an-top">
+      <h1>Analytics</h1>
+      <div class="an-tabs" id="anTabs">
+        <button class="an-tab on" data-an="overview" onclick="anGo('overview',this)">Analytics overview</button>
+        <button class="an-tab" data-an="jobs" onclick="anGo('jobs',this)">Jobs and campaigns</button>
+        <button class="an-tab" data-an="sourcing" onclick="anGo('sourcing',this)">Smart Sourcing</button>
+        <button class="an-tab" data-an="interviews" onclick="anGo('interviews',this)">Interviews and events</button>
+        <button class="an-tab" data-an="ads" onclick="anGo('ads',this)">Employer Branding Ads</button>
+        <button class="an-tab" data-an="insights" onclick="anGo('insights',this)">Hiring Insights <span class="ext">&#8599;</span></button>
+      </div>
+      <div class="an-sp"></div>
+      <button class="an-ctl" id="anRangeBtn" onclick="anMenu(event,'range')"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#2d2d2d" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span id="anRangeLbl">Last 30 days</span> <span style="font-size:11px">&#9662;</span></button>
+      <button class="an-ctl" onclick="anOpenFilters()"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#2d2d2d" stroke-width="2"><path d="M4 6h16M7 12h10M10 18h4"/></svg>Filters<span id="anFilterN"></span></button>
+      <button class="an-ctl pri" onclick="anMenu(event,'export')"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#fff" stroke-width="2"><path d="M12 3v12M7 11l5 5 5-5M4 20h16"/></svg>Export <span style="font-size:11px">&#9662;</span></button>
+    </div>
+
+    <div class="an-page" id="anBody"></div>
+
+    <!-- filters drawer -->
+    <div class="an-drawer" id="anFilters">
+      <div class="an-dr-head"><h3>Filters</h3><button class="ss-mclose" onclick="anCloseFilters()">&times;</button></div>
+      <div class="an-dr-body">
+        <div class="an-fg"><h4>Date range</h4>
+          <select id="anFRange" onchange="anSetRange(this.value)">
+            <option>Last 7 days</option><option selected>Last 30 days</option><option>Last 90 days</option><option>Last 12 months</option><option>Year to date</option><option>Custom range…</option>
+          </select></div>
+        <div class="an-fg" id="anCustomWrap" style="display:none">
+          <h4>Custom range</h4>
+          <input type="date" id="anFrom" value="2026-07-04" style="margin-bottom:10px">
+          <input type="date" id="anTo" value="2026-08-03">
+        </div>
+        <div class="an-fg"><h4>Job</h4>
+          <select id="anFJob"><option>All jobs</option><option>Web Developer</option><option>Test Engineer</option></select></div>
+        <div class="an-fg"><h4>Location</h4>
+          <select id="anFLoc"><option>All locations</option><option>Remote</option><option>United States</option></select></div>
+        <div class="an-fg"><h4>Status</h4>
+          <label class="an-opt"><input type="checkbox" checked value="Open">Open</label>
+          <label class="an-opt"><input type="checkbox" value="Paused">Paused</label>
+          <label class="an-opt"><input type="checkbox" value="Closed">Closed</label></div>
+        <div class="an-fg"><h4>Compare</h4>
+          <label class="an-opt"><input type="checkbox" id="anCompare" onchange="anRender()">Compare to previous period</label></div>
+      </div>
+      <div class="an-dr-foot">
+        <button class="an-ctl" onclick="anResetFilters()">Reset</button>
+        <button class="an-ctl pri" onclick="anCloseFilters();anRender()">Apply filters</button>
+      </div>
+    </div>
+  </div>
+  <!-- ══════════════════ /ANALYTICS ══════════════════ -->
 
 
 </div>
@@ -7202,6 +7258,82 @@ body.agx-on #view-events.view.active .content-header{padding:0 24px 0 28px !impo
 .ss-centerempty h1{font-size:36px;font-weight:800;margin:0 0 20px}
 .ss-centerempty .rw{display:flex;gap:20px;align-items:center;justify-content:center;font-size:20px}
 
+
+/* ═══════════════════════════════════════════════════════════════
+   ANALYTICS — self-contained module (.an-* / #view-analytics).
+   Nav structure captured live from Indeed's Analytics flyout.
+   Chart/table data is representative; see SMART-SOURCING-CRAWL.md.
+   ═══════════════════════════════════════════════════════════════ */
+#view-analytics{background:#fff;margin:-24px -28px -40px;padding:0;font-family:'Noto Sans',-apple-system,BlinkMacSystemFont,sans-serif;color:#2d2d2d}
+#view-analytics *{box-sizing:border-box}
+.an-top{display:flex;align-items:center;gap:16px;padding:16px 28px;border-bottom:1px solid #e4e2e0;flex-wrap:wrap;row-gap:10px}
+.an-top h1{font-size:22px;font-weight:700;margin:0;padding-right:20px;border-right:1px solid #e4e2e0}
+.an-tabs{display:flex;gap:2px;flex-wrap:wrap}
+.an-tab{padding:9px 14px;border:0;border-radius:12px;background:transparent;font-family:inherit;font-size:15px;color:#2d2d2d;cursor:pointer;white-space:nowrap}
+.an-tab:hover{background:#f3f2f1}
+.an-tab.on{background:#4a4a4a;color:#fff;font-weight:700}
+.an-tab .ext{font-size:12px;margin-left:4px;color:inherit}
+.an-sp{flex:1}
+.an-ctl{display:inline-flex;align-items:center;gap:8px;border:1px solid #2d2d2d;border-radius:12px;padding:8px 14px;background:#fff;font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;color:#2d2d2d;white-space:nowrap}
+.an-ctl:hover{background:#f7f6f5}
+.an-ctl.pri{background:#004fcb;border-color:#004fcb;color:#fff}
+.an-ctl.pri:hover{background:#0043ad}
+.an-page{padding:24px 28px 56px}
+.an-h2{font-size:26px;font-weight:800;margin:0 0 6px}
+.an-lead{font-size:16px;color:#595959;margin:0 0 22px}
+.an-kpis{display:flex;gap:20px;flex-wrap:wrap;margin-bottom:28px}
+.an-kpi{flex:1 1 210px;min-width:200px;border:1px solid #e4e2e0;border-radius:12px;padding:20px 22px;background:#fff}
+.an-kpi .k{font-size:15px;color:#595959;display:flex;align-items:center;gap:8px}
+.an-kpi .v{font-size:34px;font-weight:800;line-height:44px;color:#2d2d2d;margin-top:6px}
+.an-kpi .d{font-size:14px;font-weight:700;margin-top:2px}
+.an-kpi .d.up{color:#1f662c}
+.an-kpi .d.down{color:#a9252b}
+.an-kpi .d.flat{color:#767676}
+.an-grid{display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start}
+.an-card{border:1px solid #e4e2e0;border-radius:12px;padding:22px 24px;background:#fff;flex:1 1 460px;min-width:380px}
+.an-card.full{flex:1 1 100%}
+.an-card h3{font-size:18px;font-weight:700;margin:0 0 4px;display:flex;align-items:center;gap:10px}
+.an-card h3 .sp{flex:1}
+.an-card .sub{font-size:15px;color:#595959;margin:0 0 18px}
+.an-chartwrap{position:relative}
+.an-legend{display:flex;gap:20px;flex-wrap:wrap;font-size:14px;color:#2d2d2d;padding-top:14px}
+.an-legend i{width:12px;height:12px;border-radius:3px;display:inline-block;margin-right:7px;vertical-align:-1px}
+.an-tbl{width:100%;border-collapse:collapse;font-size:15px}
+.an-tbl th{text-align:left;font-size:13px;font-weight:700;color:#595959;text-transform:uppercase;letter-spacing:.4px;padding:10px 12px;border-bottom:1px solid #e4e2e0;white-space:nowrap}
+.an-tbl th.num,.an-tbl td.num{text-align:right}
+.an-tbl td{padding:14px 12px;border-bottom:1px solid #f0efee;color:#2d2d2d}
+.an-tbl tr:hover td{background:#faf9f8}
+.an-tbl .name{font-weight:700}
+.an-tbl .sub{font-size:13px;color:#767676;font-weight:400}
+.an-pill{display:inline-block;border-radius:8px;padding:2px 10px;font-size:13px;font-weight:700}
+.an-pill.open{background:#e4f7e6;color:#1f662c}
+.an-pill.paused{background:#f3f2f1;color:#595959}
+.an-pill.closed{background:#fdefe9;color:#844b17}
+.an-bar{height:8px;border-radius:4px;background:#eceae8;overflow:hidden;min-width:80px}
+.an-bar i{display:block;height:100%;border-radius:4px;background:#004fcb}
+.an-empty{border:1px solid #e4e2e0;border-radius:12px;padding:48px 32px;text-align:center}
+.an-empty h3{font-size:22px;font-weight:800;margin:16px 0 8px}
+.an-empty p{font-size:16px;color:#595959;margin:0 auto 18px;max-width:460px;line-height:24px}
+.an-skel{background:linear-gradient(90deg,#f0efee 25%,#f8f7f6 37%,#f0efee 63%);background-size:400% 100%;animation:anshim 1.3s ease infinite;border-radius:6px}
+@keyframes anshim{0%{background-position:100% 50%}100%{background-position:0 50%}}
+.an-note{display:flex;gap:12px;align-items:flex-start;background:#fff8e8;border:1px solid #f0d9a0;border-radius:12px;padding:14px 18px;margin-bottom:24px;font-size:15px;line-height:22px;color:#5c4413}
+.an-note svg{flex:0 0 20px;margin-top:2px}
+.an-drawer{position:fixed;top:0;right:0;bottom:0;width:440px;background:#fff;box-shadow:-4px 0 24px rgba(0,0,0,.14);z-index:9200;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .22s ease}
+.an-drawer.open{transform:translateX(0)}
+.an-dr-head{display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid #e4e2e0}
+.an-dr-head h3{font-size:20px;font-weight:700;margin:0}
+.an-dr-body{flex:1;overflow-y:auto;padding:20px 24px 90px}
+.an-dr-foot{position:absolute;left:0;right:0;bottom:0;padding:16px 24px;background:#fff;border-top:1px solid #e4e2e0;display:flex;justify-content:flex-end;gap:12px}
+.an-fg{margin-bottom:22px}
+.an-fg h4{font-size:16px;font-weight:700;margin:0 0 10px}
+.an-fg select,.an-fg input{width:100%;border:1px solid #767676;border-radius:12px;padding:11px 12px;font-family:inherit;font-size:16px;background:#fff}
+.an-opt{display:flex;gap:10px;align-items:center;padding:6px 0;font-size:16px;cursor:pointer}
+.an-opt input{width:18px;height:18px;accent-color:#004fcb}
+.an-tip{position:absolute;background:#2d2d2d;color:#fff;border-radius:8px;padding:8px 12px;font-size:13px;line-height:19px;pointer-events:none;z-index:9600;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.2)}
+.an-seg{display:inline-flex;gap:6px}
+.an-seg button{border:1px solid transparent;border-radius:20px;background:transparent;padding:6px 14px;font-family:inherit;font-size:14px;cursor:pointer;color:#2d2d2d}
+.an-seg button.on{border-color:#2d2d2d;font-weight:700}
+
 </style>
 <script>
 (function(){
@@ -9005,6 +9137,385 @@ function setSourcingMode(mode,btn){
     document.querySelectorAll('.ss-ov').forEach(function(ov){
       ov.addEventListener('click',function(e){ if(e.target===ov) ov.classList.remove('open'); });
     });
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else boot();
+})();
+
+
+/* ═══════════════════════════════════════════════════════════════
+   ANALYTICS — self-contained. Globals prefixed an / AN.
+   Nav structure (six sections, order, external marker) captured
+   live from Indeed's Analytics flyout on resumes.indeed.com.
+   Charts/tables use representative data — employers.indeed.com
+   was not observable from this session. See the crawl doc.
+   ═══════════════════════════════════════════════════════════════ */
+var AN = { sec:'overview', range:'Last 30 days', compare:false, loading:false, filters:{} };
+
+function anEl(id){return document.getElementById(id);}
+function anEsc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function anN(n){return n.toLocaleString();}
+
+/* deterministic pseudo-random so charts are stable between renders */
+function anSeries(seed,len,base,spread){
+  var out=[],x=seed;
+  for(var i=0;i<len;i++){ x=(x*9301+49297)%233280; out.push(Math.round(base + (x/233280)*spread)); }
+  return out;
+}
+function anDays(){ return {'Last 7 days':7,'Last 30 days':30,'Last 90 days':90,'Last 12 months':12,'Year to date':8,'Custom range…':30}[AN.range]||30; }
+function anLabels(){
+  var n=anDays();
+  if(AN.range==='Last 12 months') return ['Sep','Oct','Nov','Dec','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug'];
+  if(AN.range==='Year to date')   return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug'];
+  var out=[],d=new Date(2026,7,3);
+  for(var i=n-1;i>=0;i--){ var t=new Date(2026,7,3-i); out.push((t.getMonth()+1)+'/'+t.getDate()); }
+  return out;
+}
+
+/* ── inline SVG charts (no external libraries) ───────────────── */
+function anLine(series,labels,colors,names,h){
+  h=h||220;
+  var W=760,H=h,PL=44,PR=12,PT=14,PB=28;
+  var all=[].concat.apply([],series);
+  var max=Math.max.apply(null,all)||1; max=Math.ceil(max*1.15/5)*5||5;
+  var n=labels.length, iw=W-PL-PR, ih=H-PT-PB;
+  function X(i){ return PL + (n<=1?0:(i*(iw/(n-1)))); }
+  function Y(v){ return PT + ih - (v/max)*ih; }
+  var g='';
+  for(var t=0;t<=4;t++){
+    var v=Math.round(max*t/4), y=Y(v);
+    g+='<line x1="'+PL+'" y1="'+y+'" x2="'+(W-PR)+'" y2="'+y+'" stroke="#eceae8"/>'+
+       '<text x="'+(PL-8)+'" y="'+(y+4)+'" text-anchor="end" font-size="11" fill="#767676">'+anN(v)+'</text>';
+  }
+  var step=Math.max(1,Math.ceil(n/8));
+  for(var i=0;i<n;i+=step) g+='<text x="'+X(i)+'" y="'+(H-8)+'" text-anchor="middle" font-size="11" fill="#767676">'+labels[i]+'</text>';
+  series.forEach(function(s,si){
+    var d=s.map(function(v,i){ return (i?'L':'M')+X(i).toFixed(1)+' '+Y(v).toFixed(1); }).join(' ');
+    var area=d+' L'+X(n-1).toFixed(1)+' '+(PT+ih)+' L'+X(0).toFixed(1)+' '+(PT+ih)+' Z';
+    g+='<path d="'+area+'" fill="'+colors[si]+'" opacity=".08"/>';
+    g+='<path d="'+d+'" fill="none" stroke="'+colors[si]+'" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>';
+    s.forEach(function(v,i){
+      g+='<circle cx="'+X(i).toFixed(1)+'" cy="'+Y(v).toFixed(1)+'" r="9" fill="transparent" '+
+         'onmouseenter="anTip(event,\''+anEsc(names[si])+': '+anN(v)+'<br>'+labels[i]+'\')" onmouseleave="anTipOff()"/>';
+    });
+  });
+  return '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block">'+g+'</svg>';
+}
+function anBars(vals,labels,color,names){
+  var W=760,H=220,PL=44,PR=12,PT=14,PB=28;
+  var max=Math.max.apply(null,vals)||1; max=Math.ceil(max*1.15/5)*5||5;
+  var n=vals.length, iw=W-PL-PR, ih=H-PT-PB;
+  var bw=Math.max(6,Math.min(38,(iw/n)*0.6));
+  var g='';
+  for(var t=0;t<=4;t++){
+    var v=Math.round(max*t/4), y=PT+ih-(v/max)*ih;
+    g+='<line x1="'+PL+'" y1="'+y+'" x2="'+(W-PR)+'" y2="'+y+'" stroke="#eceae8"/>'+
+       '<text x="'+(PL-8)+'" y="'+(y+4)+'" text-anchor="end" font-size="11" fill="#767676">'+anN(v)+'</text>';
+  }
+  vals.forEach(function(v,i){
+    var x=PL+(i+0.5)*(iw/n)-bw/2, hh=(v/max)*ih, y=PT+ih-hh;
+    g+='<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+Math.max(1,hh).toFixed(1)+'" rx="3" fill="'+color+'" '+
+       'onmouseenter="anTip(event,\''+anEsc(names||'Value')+': '+anN(v)+'<br>'+labels[i]+'\')" onmouseleave="anTipOff()"/>';
+  });
+  var step=Math.max(1,Math.ceil(n/8));
+  for(var i2=0;i2<n;i2+=step) g+='<text x="'+(PL+(i2+0.5)*(iw/n)).toFixed(1)+'" y="'+(H-8)+'" text-anchor="middle" font-size="11" fill="#767676">'+labels[i2]+'</text>';
+  return '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block">'+g+'</svg>';
+}
+function anDonut(parts,colors){
+  var total=parts.reduce(function(a,b){return a+b.v;},0)||1, R=76, C=2*Math.PI*R, off=0, g='';
+  parts.forEach(function(p,i){
+    var frac=p.v/total, len=frac*C;
+    g+='<circle cx="100" cy="100" r="'+R+'" fill="none" stroke="'+colors[i]+'" stroke-width="30" '+
+       'stroke-dasharray="'+len.toFixed(1)+' '+(C-len).toFixed(1)+'" stroke-dashoffset="'+(-off).toFixed(1)+'" transform="rotate(-90 100 100)" '+
+       'onmouseenter="anTip(event,\''+anEsc(p.k)+': '+anN(p.v)+' ('+Math.round(frac*100)+'%)\')" onmouseleave="anTipOff()"/>';
+    off+=len;
+  });
+  g+='<text x="100" y="96" text-anchor="middle" font-size="26" font-weight="800" fill="#2d2d2d">'+anN(total)+'</text>';
+  g+='<text x="100" y="118" text-anchor="middle" font-size="12" fill="#767676">total</text>';
+  return '<svg viewBox="0 0 200 200" style="width:200px;height:200px;display:block;margin:0 auto">'+g+'</svg>';
+}
+function anTip(ev,html){
+  anTipOff();
+  var d=document.createElement('div'); d.className='an-tip'; d.id='anTipEl'; d.innerHTML=html;
+  document.body.appendChild(d);
+  d.style.left=(ev.pageX+14)+'px'; d.style.top=(ev.pageY-10)+'px';
+}
+function anTipOff(){ var t=anEl('anTipEl'); if(t) t.remove(); }
+
+/* ── data (representative; structure mirrors the observed IA) ─── */
+AN.JOBS=[
+ {n:'Web Developer',loc:'Remote',st:'Open',views:4820,apps:186,q:74,cpa:12.40,spend:2306},
+ {n:'Test Engineer',loc:'Remote',st:'Open',views:2140,apps:63,q:29,cpa:18.10,spend:1140},
+ {n:'Senior Frontend Engineer',loc:'Austin, TX',st:'Paused',views:1310,apps:41,q:22,cpa:15.60,spend:640},
+ {n:'QA Automation Engineer',loc:'Remote',st:'Closed',views:980,apps:28,q:11,cpa:21.30,spend:596},
+ {n:'Support Engineer',loc:'Chicago, IL',st:'Open',views:1655,apps:57,q:24,cpa:14.20,spend:809}
+];
+AN.EVENTS=[
+ {n:'Web Developer — Virtual Hiring Event',d:'Jul 29, 2026',reg:112,att:74,iv:41,hire:6},
+ {n:'Engineering Open House',d:'Jul 15, 2026',reg:88,att:52,iv:30,hire:4},
+ {n:'QA & Test Careers Day',d:'Jun 30, 2026',reg:64,att:39,iv:19,hire:2}
+];
+AN.ADS=[
+ {n:'Lincoln Dynamic — Employer Brand',imp:184200,clicks:3120,ctr:1.69,spend:1840,fav:412},
+ {n:'Engineering Culture Spotlight',imp:96400,clicks:1710,ctr:1.77,spend:960,fav:238},
+ {n:'Remote-First Hiring',imp:52800,clicks:790,ctr:1.50,spend:530,fav:96}
+];
+
+function anGo(sec,btn){
+  if(sec==='insights'){ anExternal(); return; }
+  AN.sec=sec;
+  document.querySelectorAll('#anTabs .an-tab').forEach(function(b){ b.classList.remove('on'); });
+  var t = btn || document.querySelector('#anTabs .an-tab[data-an="'+sec+'"]');
+  if(t) t.classList.add('on');
+  anLoad();
+}
+function anExternal(){
+  document.querySelectorAll('#anTabs .an-tab').forEach(function(b){ b.classList.remove('on'); });
+  var t=document.querySelector('#anTabs .an-tab[data-an="insights"]'); if(t) t.classList.add('on');
+  AN.sec='insights'; anRender();
+}
+function anLoad(){
+  AN.loading=true; anRender();
+  setTimeout(function(){ AN.loading=false; anRender(); }, 420);
+}
+function anSkeleton(){
+  var b='<div class="an-kpis">';
+  for(var i=0;i<4;i++) b+='<div class="an-kpi"><div class="an-skel" style="height:14px;width:60%"></div><div class="an-skel" style="height:34px;width:45%;margin-top:12px"></div><div class="an-skel" style="height:12px;width:30%;margin-top:8px"></div></div>';
+  b+='</div><div class="an-grid"><div class="an-card"><div class="an-skel" style="height:18px;width:40%"></div><div class="an-skel" style="height:220px;margin-top:18px"></div></div>'+
+     '<div class="an-card"><div class="an-skel" style="height:18px;width:40%"></div><div class="an-skel" style="height:220px;margin-top:18px"></div></div></div>';
+  return b;
+}
+function anKPI(k,v,delta,dir){
+  return '<div class="an-kpi"><div class="k">'+anEsc(k)+'</div><div class="v">'+v+'</div>'+
+    (delta?'<div class="d '+dir+'">'+(dir==='up'?'&#9650; ':dir==='down'?'&#9660; ':'')+delta+' vs previous period</div>':'')+'</div>';
+}
+function anCaveat(){
+  return '<div class="an-note"><svg viewBox="0 0 24 24" fill="none" stroke="#8a6116" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>'+
+    '<span><b>Representative data.</b> Indeed serves this report from <code>employers.indeed.com</code>, which was not reachable from the capture session. '+
+    'The section list, layout and controls follow the observed Analytics navigation; the figures are illustrative. '+
+    'Smart Sourcing analytics below are the exception &mdash; those were measured live.</span></div>';
+}
+
+function anRender(){
+  var b=anEl('anBody'); if(!b) return;
+  if(AN.loading){ b.innerHTML=anSkeleton(); return; }
+  var L=anLabels(), n=L.length, cmp=anEl('anCompare')&&anEl('anCompare').checked;
+  AN.compare=!!cmp;
+
+  if(AN.sec==='overview'){
+    var views=anSeries(11,n,120,260), apps=anSeries(29,n,6,26), prev=anSeries(53,n,100,220);
+    var tv=views.reduce(function(a,c){return a+c;},0), ta=apps.reduce(function(a,c){return a+c;},0);
+    b.innerHTML=anCaveat()+
+      '<h2 class="an-h2">Analytics overview</h2><p class="an-lead">Performance across every hiring channel for '+anEsc(AN.range).toLowerCase()+'.</p>'+
+      '<div class="an-kpis">'+
+        anKPI('Job views',anN(tv),'12%','up')+
+        anKPI('Applications',anN(ta),'8%','up')+
+        anKPI('Candidates contacted','1','&mdash;','flat')+
+        anKPI('Interviews scheduled','18','3%','down')+
+      '</div>'+
+      '<div class="an-grid">'+
+        '<div class="an-card full"><h3>Views and applications<span class="sp"></span>'+
+          '<div class="an-seg"><button class="on" onclick="anSeg(this)">Daily</button><button onclick="anSeg(this)">Weekly</button></div></h3>'+
+          '<p class="sub">Job views compared with completed applications.</p>'+
+          '<div class="an-chartwrap">'+anLine(cmp?[views,apps,prev]:[views,apps],L,['#004fcb','#1f662c','#c8c6c4'],cmp?['Views','Applications','Previous period']:['Views','Applications'])+'</div>'+
+          '<div class="an-legend"><span><i style="background:#004fcb"></i>Job views</span><span><i style="background:#1f662c"></i>Applications</span>'+
+          (cmp?'<span><i style="background:#c8c6c4"></i>Previous period</span>':'')+'</div></div>'+
+        '<div class="an-card"><h3>Candidate sources</h3><p class="sub">Where completed applications came from.</p>'+
+          anDonut([{k:'Organic search',v:118},{k:'Sponsored',v:74},{k:'Smart Sourcing invites',v:31},{k:'Employer Branding Ads',v:19}],['#004fcb','#1f662c','#8a6fd4','#c08a38'])+
+          '<div class="an-legend"><span><i style="background:#004fcb"></i>Organic search</span><span><i style="background:#1f662c"></i>Sponsored</span><span><i style="background:#8a6fd4"></i>Smart Sourcing</span><span><i style="background:#c08a38"></i>Branding Ads</span></div></div>'+
+        '<div class="an-card"><h3>Spend snapshot</h3><p class="sub">Daily spend across sponsored jobs and ads.</p>'+
+          anBars(anSeries(71,n,40,180),L,'#004fcb','Spend ($)')+
+          '<div class="an-legend"><span><i style="background:#004fcb"></i>Daily spend</span><span style="margin-left:auto;color:#595959">Total: $'+anN(anSeries(71,n,40,180).reduce(function(a,c){return a+c;},0))+'</span></div></div>'+
+      '</div>'+
+      '<div class="an-card full" style="margin-top:24px"><h3>Top jobs<span class="sp"></span><button class="ss-link" onclick="anGo(\'jobs\')">View all &rarr;</button></h3>'+ anJobsTable(3) +'</div>';
+    return;
+  }
+
+  if(AN.sec==='jobs'){
+    var v2=anSeries(17,n,90,240), a2=anSeries(41,n,4,20);
+    b.innerHTML=anCaveat()+
+      '<h2 class="an-h2">Jobs and campaigns</h2><p class="an-lead">Per-job performance, spend and cost per application.</p>'+
+      '<div class="an-kpis">'+
+        anKPI('Active jobs','3','1','up')+
+        anKPI('Total applications','375','8%','up')+
+        anKPI('Cost per application','$15.12','4%','down')+
+        anKPI('Total spend','$5,491','6%','up')+
+      '</div>'+
+      '<div class="an-grid"><div class="an-card full"><h3>Applications over time</h3><p class="sub">Completed applications across all campaigns.</p>'+
+        anLine([v2,a2],L,['#004fcb','#1f662c'],['Views','Applications'])+
+        '<div class="an-legend"><span><i style="background:#004fcb"></i>Job views</span><span><i style="background:#1f662c"></i>Applications</span></div></div></div>'+
+      '<div class="an-card full" style="margin-top:24px"><h3>All jobs and campaigns<span class="sp"></span><button class="an-ctl" onclick="anMenu(event,\'export\')">Export</button></h3>'+ anJobsTable() +'</div>';
+    return;
+  }
+
+  if(AN.sec==='sourcing'){
+    var out=anSeries(5,n,0,4), st=anSeries(9,n,0,2), ap=anSeries(13,n,0,1);
+    var real = (typeof SS!=='undefined' && SS.assistant==='working');
+    b.innerHTML=
+      '<div class="an-note" style="background:#e8f3ec;border-color:#a9d6b8;color:#14532a"><svg viewBox="0 0 24 24" fill="none" stroke="#1f662c" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8 12l3 3 5-6"/></svg>'+
+      '<span><b>Measured live.</b> The metric set, time-range control and legend below were captured from the Sourcing summary drawer on the running Sourcing Assistant.</span></div>'+
+      '<h2 class="an-h2">Smart Sourcing</h2><p class="an-lead">Outreach and application performance for your Sourcing Assistant and manual invites.</p>'+
+      '<div class="an-kpis">'+
+        anKPI('Outreaches sent', real?'0':'0','&mdash;','flat')+
+        anKPI('Started applications','0','&mdash;','flat')+
+        anKPI('Applications','0','&mdash;','flat')+
+        anKPI('Contacts used', (typeof SS!=='undefined'? (5-SS.contacts) : 1)+' of 30','','flat')+
+      '</div>'+
+      '<div class="an-grid">'+
+      '<div class="an-card full"><h3>Outreach funnel<span class="sp"></span>'+
+        '<div class="an-seg" id="anSumSeg"><button onclick="anSumRange(this,\'all\')">All</button><button onclick="anSumRange(this,\'30\')">30d</button><button onclick="anSumRange(this,\'14\')">14d</button><button class="on" onclick="anSumRange(this,\'7\')">7d</button></div></h3>'+
+        '<p class="sub">Outreaches sent, applications started and applications completed.</p>'+
+        anLine([out,st,ap],L,['#3b7fd4','#8c1d4d','#1f662c'],['Outreaches sent','Started applications','Applications'])+
+        '<div class="an-legend"><span><i style="background:#3b7fd4"></i>Invited by Assistant</span><span><i style="background:#8c1d4d"></i>Invited by you</span><span><i style="background:#1f662c"></i>Applications</span></div></div>'+
+      '<div class="an-card"><h3>Contact usage</h3><p class="sub">Trial allowance and Assistant balance.</p>'+
+        anContactUsage()+'</div>'+
+      '<div class="an-card"><h3>Assistant assignments</h3><p class="sub">Jobs currently assigned to your Sourcing Assistant.</p>'+
+        anAssignTable()+'</div>'+
+      '</div>';
+    return;
+  }
+
+  if(AN.sec==='interviews'){
+    var iv=anSeries(23,n,0,6);
+    b.innerHTML=anCaveat()+
+      '<h2 class="an-h2">Interviews and events</h2><p class="an-lead">Scheduling, attendance and outcomes across interviews and hiring events.</p>'+
+      '<div class="an-kpis">'+
+        anKPI('Interviews scheduled','90','5%','up')+
+        anKPI('Attendance rate','66%','2%','up')+
+        anKPI('No-shows','31','3%','down')+
+        anKPI('Hires','12','2','up')+
+      '</div>'+
+      '<div class="an-grid"><div class="an-card full"><h3>Interviews scheduled</h3><p class="sub">Per day across all events.</p>'+
+        anBars(iv,L,'#004fcb','Interviews')+'</div></div>'+
+      '<div class="an-card full" style="margin-top:24px"><h3>Events</h3>'+
+      '<table class="an-tbl"><thead><tr><th>Event</th><th>Date</th><th class="num">Registered</th><th class="num">Attended</th><th class="num">Interviews</th><th class="num">Hires</th></tr></thead><tbody>'+
+      AN.EVENTS.map(function(e){ return '<tr><td class="name">'+anEsc(e.n)+'</td><td>'+anEsc(e.d)+'</td><td class="num">'+e.reg+'</td><td class="num">'+e.att+'</td><td class="num">'+e.iv+'</td><td class="num">'+e.hire+'</td></tr>'; }).join('')+
+      '</tbody></table></div>';
+    return;
+  }
+
+  if(AN.sec==='ads'){
+    var imp=anSeries(31,n,2000,9000), clk=anSeries(37,n,30,160);
+    b.innerHTML=anCaveat()+
+      '<h2 class="an-h2">Employer Branding Ads</h2><p class="an-lead">Reach, engagement and spend for your employer brand campaigns.</p>'+
+      '<div class="an-kpis">'+
+        anKPI('Impressions','333,400','14%','up')+
+        anKPI('Clicks','5,620','9%','up')+
+        anKPI('Click-through rate','1.69%','','flat')+
+        anKPI('Spend','$3,330','7%','up')+
+      '</div>'+
+      '<div class="an-grid"><div class="an-card full"><h3>Impressions and clicks</h3><p class="sub">Daily reach against engagement.</p>'+
+        anLine([imp,clk.map(function(c){return c*40;})],L,['#8a6fd4','#c08a38'],['Impressions','Clicks (x40)'])+
+        '<div class="an-legend"><span><i style="background:#8a6fd4"></i>Impressions</span><span><i style="background:#c08a38"></i>Clicks</span></div></div></div>'+
+      '<div class="an-card full" style="margin-top:24px"><h3>Campaigns</h3>'+
+      '<table class="an-tbl"><thead><tr><th>Campaign</th><th class="num">Impressions</th><th class="num">Clicks</th><th class="num">CTR</th><th class="num">Spend</th><th class="num">Company follows</th></tr></thead><tbody>'+
+      AN.ADS.map(function(a){ return '<tr><td class="name">'+anEsc(a.n)+'</td><td class="num">'+anN(a.imp)+'</td><td class="num">'+anN(a.clicks)+'</td><td class="num">'+a.ctr.toFixed(2)+'%</td><td class="num">$'+anN(a.spend)+'</td><td class="num">'+a.fav+'</td></tr>'; }).join('')+
+      '</tbody></table></div>';
+    return;
+  }
+
+  if(AN.sec==='insights'){
+    b.innerHTML='<div class="an-empty" style="max-width:720px;margin:40px auto">'+
+      '<svg viewBox="0 0 24 24" width="64" height="64" fill="none" stroke="#8a93a8" stroke-width="1.4" style="margin:0 auto"><path d="M3 3v18h18"/><path d="M7 15l4-5 3 3 5-7"/></svg>'+
+      '<h3>Hiring Insights opens in a new tab</h3>'+
+      '<p>Indeed serves Hiring Insights as a separate product surface. In the live application this navigation item carries an external-link marker and leaves the Analytics shell.</p>'+
+      '<button class="an-ctl pri" onclick="ssToast(\'Hiring Insights\',\'Opens Indeed Hiring Insights in a new tab.\')">Open Hiring Insights &#8599;</button></div>';
+    return;
+  }
+}
+
+function anJobsTable(limit){
+  var rows=AN.JOBS.slice(0,limit||AN.JOBS.length);
+  var maxApps=Math.max.apply(null,AN.JOBS.map(function(j){return j.apps;}));
+  return '<table class="an-tbl"><thead><tr><th>Job</th><th>Status</th><th class="num">Views</th><th>Applications</th><th class="num">Qualified</th><th class="num">Cost / app</th><th class="num">Spend</th></tr></thead><tbody>'+
+    rows.map(function(j){
+      var pct=Math.round(j.apps/maxApps*100);
+      return '<tr onclick="anJobDetail(\''+anEsc(j.n)+'\')" style="cursor:pointer">'+
+        '<td class="name">'+anEsc(j.n)+'<div class="sub">'+anEsc(j.loc)+'</div></td>'+
+        '<td><span class="an-pill '+j.st.toLowerCase()+'">'+j.st+'</span></td>'+
+        '<td class="num">'+anN(j.views)+'</td>'+
+        '<td><div style="display:flex;align-items:center;gap:10px"><div class="an-bar" style="flex:1"><i style="width:'+pct+'%"></i></div><b>'+j.apps+'</b></div></td>'+
+        '<td class="num">'+j.q+'</td><td class="num">$'+j.cpa.toFixed(2)+'</td><td class="num">$'+anN(j.spend)+'</td></tr>';
+    }).join('')+'</tbody></table>';
+}
+function anJobDetail(name){
+  var j=AN.JOBS.filter(function(x){return x.n===name;})[0]; if(!j) return;
+  if(typeof ssToast==='function') ssToast(j.n, j.apps+' applications · '+j.q+' qualified · $'+j.cpa.toFixed(2)+' per application');
+}
+function anContactUsage(){
+  var used = (typeof SS!=='undefined') ? (5-SS.contacts) : 1;
+  var acUsed = 0;
+  return '<div style="font-size:15px;color:#2d2d2d">'+
+    '<div style="display:flex;justify-content:space-between;margin-bottom:6px"><span>Paid contacts (trial)</span><b>'+used+' of 5</b></div>'+
+    '<div class="an-bar" style="height:10px"><i style="width:'+(used/5*100)+'%"></i></div>'+
+    '<div style="display:flex;justify-content:space-between;margin:18px 0 6px"><span>Assistant contacts</span><b>'+acUsed+' of 15</b></div>'+
+    '<div class="an-bar" style="height:10px"><i style="width:'+(acUsed/15*100)+'%;background:#1f662c"></i></div>'+
+    '<div style="display:flex;justify-content:space-between;margin:18px 0 6px"><span>Assistant allowance for this job</span><b>0 of 30</b></div>'+
+    '<div class="an-bar" style="height:10px"><i style="width:0%;background:#8a6fd4"></i></div>'+
+    '<p style="margin:18px 0 0;font-size:14px;color:#595959">Pause after using 30 contacts &middot; max 10 outreaches per day &middot; business hours only.</p>'+
+    '<button class="an-ctl" style="margin-top:14px" onclick="showView(\'subs\')">Manage subscription</button></div>';
+}
+function anAssignTable(){
+  var assigned = (typeof SS!=='undefined' && SS.assistant!=='none');
+  if(!assigned) return '<div class="an-empty" style="padding:28px 16px;border:0">'+
+    '<svg viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="#8a93a8" stroke-width="1.4" style="margin:0 auto"><circle cx="10" cy="8" r="4"/><path d="M2 21v-2a6 6 0 016-6h4"/><circle cx="17.5" cy="16.5" r="3.5"/></svg>'+
+    '<h3 style="font-size:18px">No jobs assigned</h3><p style="font-size:15px">Assign a job to your Sourcing Assistant to start collecting outreach data.</p>'+
+    '<button class="an-ctl pri" onclick="showView(\'sourcing\');ssGo(\'welcome\')">Select a job</button></div>';
+  var st = SS.assistant==='working' ? 'Working' : 'Pending';
+  return '<table class="an-tbl"><thead><tr><th>Job</th><th>Status</th><th class="num">Contacts used</th><th class="num">Outreaches</th></tr></thead><tbody>'+
+    '<tr><td class="name">Web Developer<div class="sub">Remote &middot; Lincoln Dynamic Group</div></td>'+
+    '<td><span class="an-pill '+(st==='Working'?'open':'paused')+'">'+st+'</span></td>'+
+    '<td class="num">0 of 30</td><td class="num">0</td></tr></tbody></table>';
+}
+function anSeg(btn){ btn.parentNode.querySelectorAll('button').forEach(function(b){b.classList.remove('on');}); btn.classList.add('on'); }
+function anSumRange(btn,k){ anSeg(btn); }
+
+/* ── controls ────────────────────────────────────────────────── */
+var AN_MENUS={
+  range:[['Last 7 days',"anSetRange('Last 7 days')"],['Last 30 days',"anSetRange('Last 30 days')"],['Last 90 days',"anSetRange('Last 90 days')"],['Last 12 months',"anSetRange('Last 12 months')"],['Year to date',"anSetRange('Year to date')"],['Custom range…',"anSetRange('Custom range…')"]],
+  export:[['Download CSV',"anExport('CSV')"],['Download XLSX',"anExport('XLSX')"],['Download PDF',"anExport('PDF')"],['Schedule email report',"anExport('schedule')"]]
+};
+function anMenu(ev,key){
+  ev.stopPropagation(); if(typeof ssKillMenu==='function') ssKillMenu();
+  var items=AN_MENUS[key]||[]; if(!items.length) return;
+  var m=document.createElement('div'); m.className='ss-menu'; m.id='ssActiveMenu';
+  m.innerHTML=items.map(function(it){ return '<button onclick="ssKillMenu();'+it[1]+'">'+it[0]+'</button>'; }).join('');
+  document.body.appendChild(m);
+  var r=ev.currentTarget.getBoundingClientRect();
+  var left=r.left+window.scrollX; if(left+m.offsetWidth>window.innerWidth-12) left=window.innerWidth-m.offsetWidth-12;
+  m.style.top=(r.bottom+window.scrollY+6)+'px'; m.style.left=left+'px';
+}
+function anSetRange(v){
+  AN.range=v; anEl('anRangeLbl').textContent=(v==='Custom range…'?'Jul 4 – Aug 3, 2026':v);
+  var s=anEl('anFRange'); if(s) s.value=v;
+  var cw=anEl('anCustomWrap'); if(cw) cw.style.display = (v==='Custom range…')?'block':'none';
+  anLoad();
+}
+function anOpenFilters(){ anEl('anFilters').classList.add('open'); }
+function anCloseFilters(){ anEl('anFilters').classList.remove('open'); }
+function anResetFilters(){
+  anEl('anFRange').value='Last 30 days'; anEl('anFJob').value='All jobs'; anEl('anFLoc').value='All locations';
+  anEl('anCompare').checked=false;
+  anEl('anFilters').querySelectorAll('input[type=checkbox]').forEach(function(c,i){ c.checked = (i===0); });
+  anEl('anFilterN').textContent='';
+  anSetRange('Last 30 days');
+}
+function anExport(kind){
+  if(kind==='schedule'){ if(typeof ssToast==='function') ssToast('Scheduled report','A weekly '+AN.sec+' report will be emailed to kat@lincolndynamic.org.'); return; }
+  if(typeof ssToast==='function') ssToast('Export started','Preparing '+kind+' for '+AN.sec+' — '+AN.range.toLowerCase()+'.');
+  setTimeout(function(){ if(typeof ssToast==='function') ssToast('Export ready','analytics-'+AN.sec+'-'+AN.range.toLowerCase().replace(/[^a-z0-9]+/g,'-')+'.'+kind.toLowerCase()); },1200);
+}
+
+/* ── init ────────────────────────────────────────────────────── */
+(function anInit(){
+  function boot(){
+    if(!anEl('view-analytics')) return;
+    /* The theme switcher injects itself into .nav-group at runtime and lands
+       between Messaging and Analytics. Put it back at the end of the group so
+       the nav reads Dashboard / Smart Sourcing / Agents / Interviews /
+       Messaging / Analytics, then the theme control. Nothing else is touched. */
+    var themeEl=document.querySelector('.sidebar .agx-theme'), navA=anEl('nav-analytics');
+    if(themeEl && navA && themeEl.parentElement===navA.parentElement) themeEl.parentElement.appendChild(themeEl);
+    anRender();
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else boot();
 })();
