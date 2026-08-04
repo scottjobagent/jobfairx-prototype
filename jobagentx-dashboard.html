@@ -8584,6 +8584,7 @@ if(tw){var fr=document.getElementById("agxFltRow");
  fr.innerHTML=fltRowHtml(ACTIVE);
  Array.prototype.forEach.call(fr.querySelectorAll("[data-dt]"),function(b){b.onclick=function(e){e.stopPropagation();
   flt(+b.getAttribute("data-i")).dt=+b.getAttribute("data-dt");KEEPOPEN=null;paint()}});
+wire(fr);
 }
 var wrap=document.querySelector(".iv-panel-wrapper");if(!wrap)return;
 wrap.innerHTML=[0,1,2,3].map(function(i){
@@ -14729,7 +14730,7 @@ CX.page = function(){
         CX.esc(job || 'All open and paused jobs') +
         (CX.jobsOpen ? CX.IC.chevUp : CX.IC.chev) +
         (CX.jobsOpen ? CX.jobPopover() : '') + '</div>' +
-        (job ? '<div class="cx-sub">Remote</div>' : '') +
+        (job ? '<div class="cx-sub">' + CX.esc((CX.JOBS.filter(function(j){return j.n===job;})[0]||{}).loc||'Remote') + '</div>' : '') +
       '</div>' +
       '<div class="cx-titleacts">' +
         (job ? '<button class="cx-auto" onclick="CX.noop()">' + CX.IC.auto + 'Automations' + CX.IC.chev + '</button>' : '') +
@@ -14901,7 +14902,7 @@ CX.jobPopover = function(){
         '<span class="cx-jf"><b style="color:#2d2d2d">Sort by:</b> Newest' + CX.IC.chev + '</span>' +
       '</span>' +
     '</span>' +
-    '<span class="cx-jcount">' + CX.IC.brief + '3 of 5 jobs</span>' +
+    '<span class="cx-jcount">' + CX.IC.brief + CX.JOBS.length + ' of ' + CX.JOBS.length + ' jobs</span>' +
     '<button class="cx-jrow' + (!cur ? ' on' : '') + '" onclick="CX.setScope(null)">' +
       '<span class="tick">' + (!cur ? CX.IC.tick : '') + '</span>' +
       '<span class="t">Candidates for all open and paused jobs</span></button>' +
@@ -16457,5 +16458,453 @@ body:not(.collapsed) .main   { margin-left: 223px; }
    any position, and still takes no layout space. */
 .md-it.on { outline-offset: -2px; }
 </style>
+<style>
+/* ═══ AGJOBS — Agents-as-Jobs wiring (build44) ══════════════════════════
+   Values are computed CSS from the live source, Aug 4 2026 —
+   rn/AGENT-DETAILS-MEASURE.md. No invented hover states: the list rows
+   have none on the live source, so none are added here. */
+
+/* list kebab menu grows to the measured 236px for the longer items */
+.agx-menu.agd-w{min-width:236px;width:max-content}
+.agx-menu.agd-w button{white-space:nowrap;width:100%}
+.agx-menu .agd-more{display:flex;justify-content:space-between;align-items:center;gap:8px}
+
+/* ── Agent details view ──────────────────────────────────────────── */
+#view-agentdetails{background:#fff}
+.agd-wrap{padding:24px 30px 40px;max-width:1289px}
+.agd-bk{display:inline-flex;align-items:center;gap:8px;color:#004fcb;font-size:14px;font-weight:700;text-decoration:none;cursor:pointer;background:none;border:none;font-family:inherit;padding:0;margin-bottom:18px}
+.agd-hrow{display:flex;align-items:flex-start;gap:18px}
+.agd-hmain{flex:1;min-width:0}
+.agd-h1{font-size:24px;line-height:30px;font-weight:700;color:#2d2d2d;margin:0}
+.agd-meta{font-size:16px;line-height:24px;font-weight:400;color:#595959;margin:6px 0 16px}
+.agd-meta b{color:#2d2d2d;font-weight:700}
+.agd-edit{background:#004fcb;color:#fff;font-size:14px;font-weight:700;border:none;border-radius:12px;padding:5px 16px;height:36px;cursor:pointer;font-family:inherit}
+.agd-st{display:inline-flex;align-items:center;gap:8px;border:1px solid #b5b3ae;border-radius:12px;padding:5px 14px;height:36px;font-size:14px;font-weight:700;color:#2d2d2d;background:#fff;font-family:inherit;cursor:pointer}
+.agd-dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.agd-keb{width:36px;height:36px;border:none;border-radius:12px;background:transparent;cursor:pointer;font-size:20px;color:#2d2d2d;line-height:1}
+.agd-keb:hover{background:#f3f2f1}
+.agd-kwrap{position:relative}
+.agd-sect{border-top:1px solid #e4e2e0;margin-top:26px;padding-top:24px}
+.agd-sh{font-size:20px;line-height:30px;font-weight:700;color:#2d2d2d;margin:0 0 16px}
+.agd-cards{display:flex;gap:16px}
+.agd-card{flex:1;border:1px solid #e4e2e0;border-radius:20px;background:#fff;padding:22px 24px;height:162px;display:flex;flex-direction:column;align-items:flex-start}
+.agd-ct{display:flex;align-items:center;gap:10px;font-size:24px;line-height:30px;font-weight:700;color:#2d2d2d}
+.agd-ct svg{width:22px;height:22px;stroke:#2d2d2d;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.agd-cs{font-size:16px;line-height:24px;color:#595959;margin:4px 0 auto}
+.agd-cl{font-size:16px;line-height:24px;font-weight:700;color:#004fcb;text-decoration:none;cursor:pointer;background:none;border:none;padding:0;font-family:inherit}
+.agd-psub{display:flex;gap:8px;align-items:center;font-size:14px;line-height:20px;color:#2d2d2d;margin:0 0 18px}
+.agd-psub svg{width:16px;height:16px;stroke:#2d2d2d;fill:none;stroke-width:2}
+.agd-kpis{display:flex}
+.agd-kpi{padding:0 26px;border-left:1px solid #e4e2e0}
+.agd-kpi:first-child{border-left:none;padding-left:0}
+.agd-kn{font-size:24px;line-height:30px;font-weight:700;color:#2d2d2d}
+.agd-kl{font-size:14px;line-height:20px;color:#2d2d2d;border-bottom:1px dashed #767676;display:inline-block;margin-top:4px}
+.agd-out{background:#fff;color:#004fcb;font-size:14px;font-weight:700;border:1px solid #004fcb;border-radius:12px;padding:5px 16px;height:36px;cursor:pointer;font-family:inherit;margin-top:22px}
+.agd-rec{display:flex;justify-content:space-between;align-items:center;border:1px solid #e4e2e0;border-radius:12px;padding:16px 20px;margin-top:12px}
+.agd-rl{display:flex;gap:12px;align-items:center;font-size:16px;font-weight:700;color:#2d2d2d}
+.agd-ck{width:20px;height:20px;border-radius:50%;background:#0f7a3d;color:#fff;font-size:13px;line-height:20px;font-weight:700;text-align:center;flex:0 0 20px}
+.agd-done{color:#0f7a3d;font-size:15px}
+.agd-ai{display:inline-flex;gap:9px;align-items:center;background:#f3f2f1;border:none;border-radius:20px;padding:10px 18px;font-size:15px;font-weight:700;color:#2d2d2d;font-family:inherit;cursor:pointer;margin:0 0 18px}
+.agd-sum p{font-size:16px;line-height:24px;color:#2d2d2d;margin:0 0 10px}
+.agd-sum b{font-weight:700}
+
+/* ── Select locations view ───────────────────────────────────────── */
+#view-multiloc{background:#fff}
+.agd-ml{max-width:702px;margin:0 auto;padding:44px 16px 48px}
+.agd-ml h1{font-size:44px;line-height:52px;font-weight:700;color:#2d2d2d;margin:0 0 20px}
+.agd-ml p{font-size:16px;line-height:24px;color:#2d2d2d;margin:0 0 14px}
+.agd-flab{font-size:16px;line-height:24px;font-weight:700;margin:22px 0 2px}
+.agd-fsub{font-size:14px;line-height:20px;color:#2d2d2d;margin-bottom:8px}
+.agd-fin{width:100%;height:44px;border:1px solid #595959;border-radius:12px;font-size:16px;padding:9px 12px;font-family:inherit;box-sizing:border-box}
+.agd-step{display:inline-flex;width:270px;border:1px solid #595959;border-radius:12px;overflow:hidden;height:44px}
+.agd-step input{flex:1;border:none;padding:9px 12px;font-size:16px;color:#767676;font-family:inherit;min-width:0;outline:none}
+.agd-step button{width:52px;border:none;border-left:1px solid #595959;background:#fff;font-size:19px;cursor:pointer;font-family:inherit}
+.agd-step .p{background:#f3f2f1;font-weight:700}
+.agd-add{display:inline-flex;gap:8px;align-items:center;color:#004fcb;font-size:16px;font-weight:700;background:none;border:none;font-family:inherit;cursor:pointer;padding:20px 0 0;margin-top:22px;border-top:1px solid #e4e2e0;width:100%;justify-content:flex-start}
+.agd-terms{font-size:14px;line-height:21px;color:#2d2d2d;margin:24px 0 26px}
+.agd-mlft{display:flex;justify-content:space-between}
+.agd-back{background:#fff;color:#004fcb;font-size:16px;font-weight:700;border:1px solid #e4e2e0;border-radius:12px;height:36px;padding:5px 16px;cursor:pointer;font-family:inherit}
+.agd-cont{background:#004fcb;color:#fff;font-size:16px;font-weight:700;border:none;border-radius:12px;height:44px;padding:9px 16px;cursor:pointer;font-family:inherit}
+
+/* ── Manage access dialog ────────────────────────────────────────── */
+.agd-ov{position:fixed;inset:0;background:rgba(45,45,45,.55);z-index:900;display:flex;align-items:center;justify-content:center}
+.agd-dlg{background:#fff;border-radius:12px;width:600px;max-width:92vw;box-shadow:rgba(45,45,45,.16) 0 0 2px 0,rgba(45,45,45,.08) 0 4px 8px 0,rgba(45,45,45,.04) 0 8px 16px 0}
+.agd-dhd{display:flex;justify-content:space-between;align-items:center;padding:22px 26px;border-bottom:1px solid #e4e2e0;font-size:18px;font-weight:700;color:#2d2d2d}
+.agd-x{background:none;border:none;font-size:18px;color:#2d2d2d;cursor:pointer;font-family:inherit}
+.agd-dbd{padding:26px;min-height:170px}
+.agd-lock{display:flex;gap:11px;align-items:center;font-size:16px;font-weight:700;margin-bottom:16px}
+.agd-sub{display:flex;gap:8px;align-items:center;font-size:16px;font-weight:700;margin-bottom:14px}
+.agd-sub .c{font-size:12px;color:#595959}
+.agd-dbd p{font-size:15px;line-height:22px;color:#2d2d2d;margin:0}
+.agd-dbd a{color:#004fcb;font-weight:700;text-decoration:underline;cursor:pointer}
+.agd-dft{display:flex;justify-content:flex-end;gap:12px;padding:18px 26px;border-top:1px solid #e4e2e0}
+.agd-dis{background:#e8e6e3;color:#8f8d8a;font-size:14px;font-weight:700;border:none;border-radius:12px;padding:5px 16px;height:36px;font-family:inherit}
+
+/* ── workspace kick line (Scott's clarity copy, workspace banner) ── */
+.agd-kick{background:#f0f5ff;border:1px solid #c9dcf7;border-radius:12px;margin:14px 0 4px;padding:13px 18px;font-size:15px;line-height:22px;color:#2d2d2d}
+.agd-kick b{font-weight:700}
+</style>
+<script>
+/* ═══ AGJOBS — Agents-as-Jobs wiring (build44) ═══════════════════════ */
+(function(){
+'use strict';
+var AGD = window.AGD = {};
+
+/* agents mirror — same records the AGX table renders */
+AGD.A = {
+ 'rn-dallas':     {n:'Registered Nurse',l:'Dallas, TX',st:'Live',pend:3,up:16,setup:'2 interviewers',date:'July 28, 2026',
+                   pay:'$34.50 - $46.20 per hour',
+                   desc:'We are seeking a compassionate and dedicated Registered Nurse to join our care team in Dallas. In this role, you will deliver high-quality patient care, coordinate with physicians and care managers, and support patients and their families through treatment and recovery.',
+                   kpi:[412,186,44,null,19]},
+ 'cna-pittsburgh':{n:'Certified Nursing Assistant',l:'Pittsburgh, PA',st:'Paused',pend:1,up:4,setup:'1 interviewer',date:'July 25, 2026',
+                   pay:'$18.00 - $23.50 per hour',
+                   desc:'We are looking for a reliable Certified Nursing Assistant to support daily patient care in Pittsburgh, working alongside our nursing team to assist with mobility, monitoring, and comfort.',
+                   kpi:[268,101,27,null,5]},
+ 'wa-austin':     {n:'Warehouse Associate',l:'Austin, TX',st:'Live',pend:0,up:6,setup:'1 interviewer',date:'July 23, 2026',
+                   pay:'$17.25 - $21.00 per hour',
+                   desc:'We are hiring a Warehouse Associate in Austin to pick, pack and stage orders, keep inventory accurate, and help the team hit daily shipping targets safely.',
+                   kpi:[344,152,38,null,6]},
+ 'rncm-houston':  {n:'RN Care Manager',l:'Houston, TX',st:'Live',pend:2,up:9,setup:'2 interviewers',date:'July 16, 2026',
+                   pay:'$38.00 - $52.75 per hour',
+                   desc:'We are seeking an experienced RN Care Manager in Houston to coordinate care plans, manage a panel of patients, and partner with providers and families to drive outcomes.',
+                   kpi:[391,163,41,null,11]},
+ 'se-chicago':    {n:'Software Engineer',l:'Chicago, IL',st:'Draft',pend:0,up:0,setup:'Incomplete',date:'July 27, 2026',pay:'',desc:'',kpi:[0,0,0,null,0]},
+ 'fe-atlanta':    {n:'Frontend Developer',l:'Atlanta, GA',st:'Draft',pend:0,up:0,setup:'Incomplete',date:'July 29, 2026',pay:'',desc:'',kpi:[0,0,0,null,0]},
+ 'rbt-houston':   {n:'Registered Behavior Technician',l:'Houston, TX',st:'Closed',pend:0,up:0,setup:'1 interviewer',date:'June 12, 2026',pay:'',desc:'',kpi:[0,0,0,null,0]}
+};
+var DOTC = {Live:'#16a34a',Paused:'#BA7517',Draft:'#767676',Closed:'#a32d2d'};
+
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+/* ── candidate counts per agent job, live from CD after the remap ── */
+function scopedCands(name){
+  var all=(window.CD&&CD.ALL)||[];
+  return all.filter(function(c){return c.job===name;});
+}
+
+/* ── views ────────────────────────────────────────────────────────── */
+function ensureView(id){
+  var v=document.getElementById(id);
+  if(!v){
+    var ref=document.getElementById('view-overview');
+    v=document.createElement('div'); v.className='view'; v.id=id;
+    ref.parentNode.appendChild(v);
+  }
+  return v;
+}
+AGD.show=function(id){
+  if(document.getElementById('regView')&&document.getElementById('regView').classList.contains('active')&&typeof hideRegView==='function')hideRegView();
+  document.querySelectorAll('.view').forEach(function(x){x.classList.remove('active');});
+  ensureView(id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active');});
+  var nav=document.getElementById('nav-events'); if(nav)nav.classList.add('active');
+  window.scrollTo(0,0);
+};
+
+var ICO={
+ people:'<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0116 0"/></svg>',
+ doc:'<svg viewBox="0 0 24 24"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6"/></svg>',
+ match:'<svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0113 0"/><path d="M16 10l2 2 4-4"/></svg>',
+ case_:'<svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>',
+ cal:'<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/></svg>'
+};
+
+AGD.details=function(slug){
+  var a=AGD.A[slug]; if(!a)return;
+  AGD.slug=slug;
+  var cands=scopedCands(a.n);
+  var nAll=cands.filter(function(c){return c.stage!=='Rejected';}).length;
+  var nNew=cands.filter(function(c){return c.stage==='New';}).length;
+  var v=ensureView('view-agentdetails');
+  var recs=['Job visibility','Edit your pay to be more competitive','Update your job title'];
+  v.innerHTML=
+   '<div class="agd-wrap">'+
+    '<button class="agd-bk" data-agd="back">&#8592;&nbsp; Back to agents</button>'+
+    '<div class="agd-hrow"><div class="agd-hmain">'+
+      '<h1 class="agd-h1">'+esc(a.n)+'</h1>'+
+      '<div class="agd-meta"><b>Location:</b> '+esc(a.l)+' &nbsp;&bull;&nbsp; <b>Company:</b> JobFairX</div>'+
+      '<button class="agd-edit" data-agd="edit">Edit agent</button>'+
+    '</div>'+
+    '<span class="agd-st"><span class="agd-dot" style="background:'+(DOTC[a.st]||'#767676')+'"></span>'+esc(a.st)+' &#9662;</span>'+
+    '<span class="agd-kwrap"><button class="agd-keb" data-agd="kebab" aria-haspopup="true">&#8943;</button>'+
+      '<div class="agx-menu agd-w" id="agdDetailMenu">'+
+        '<button data-agd="multiloc">Post job in multiple locations</button>'+
+        '<button data-agd="automations">Manage automations</button>'+
+        '<button data-agd="access">Manage access</button>'+
+      '</div></span>'+
+    '</div>'+
+    '<div class="agd-sect"><h2 class="agd-sh">Candidates</h2><div class="agd-cards">'+
+      '<div class="agd-card"><div class="agd-ct">'+ICO.people+nAll+' All</div><div class="agd-cs">Applications received</div><button class="agd-cl" data-agd="ws-all">View all applications &nbsp;&#8594;</button></div>'+
+      '<div class="agd-card"><div class="agd-ct">'+ICO.doc+nNew+' New</div><div class="agd-cs">Applications received</div><button class="agd-cl" data-agd="ws-new">Review new applications &nbsp;&#8594;</button></div>'+
+      '<div class="agd-card"><div class="agd-ct">'+ICO.match+'Matches</div><div class="agd-cs">Potential candidates</div><button class="agd-cl" data-agd="ws-find">Invite matches &nbsp;&#8594;</button></div>'+
+    '</div></div>'+
+    '<div class="agd-sect"><h2 class="agd-sh">Agent performance</h2>'+
+      '<div class="agd-psub">'+ICO.case_+' '+esc(a.st)+' agent &nbsp;&bull;&nbsp; '+ICO.cal+' August 1, 2026 - Today</div>'+
+      '<div class="agd-kpis">'+
+        '<div class="agd-kpi"><div class="agd-kn">'+a.kpi[0]+'</div><div class="agd-kl">Impressions</div></div>'+
+        '<div class="agd-kpi"><div class="agd-kn">'+a.kpi[1]+'</div><div class="agd-kl">Clicks</div></div>'+
+        '<div class="agd-kpi"><div class="agd-kn">'+a.kpi[2]+'</div><div class="agd-kl">Started applications</div></div>'+
+        '<div class="agd-kpi"><div class="agd-kn">'+nAll+'</div><div class="agd-kl">Applications</div></div>'+
+        '<div class="agd-kpi"><div class="agd-kn">'+a.kpi[4]+'</div><div class="agd-kl">Interviews scheduled</div></div>'+
+      '</div>'+
+      '<button class="agd-out" data-agd="report">View performance report</button>'+
+    '</div>'+
+    '<div class="agd-sect"><h2 class="agd-sh">Recommendations</h2>'+
+      recs.map(function(r){return '<div class="agd-rec"><div class="agd-rl"><span class="agd-ck">&#10003;</span>'+r+'</div><span class="agd-done">Completed</span></div>';}).join('')+
+    '</div>'+
+    '<div class="agd-sect agd-sum"><h2 class="agd-sh">Job post summary</h2>'+
+      '<button class="agd-ai">&#10024; Help me improve this job</button>'+
+      '<p><b>Date posted:</b> '+esc(a.date)+'</p>'+
+      (a.pay?'<p><b>Pay:</b> '+esc(a.pay)+'</p>':'')+
+      (a.desc?'<p><b>Job description:</b></p><p>'+esc(a.desc)+'</p>':'<p class="agd-cs">This agent is a draft &mdash; no job post yet.</p>')+
+    '</div>'+
+   '</div>';
+  AGD.show('view-agentdetails');
+};
+
+AGD.multiloc=function(slug){
+  var a=AGD.A[slug]||AGD.A[AGD.slug]||AGD.A['rn-dallas']; AGD.slug=slug||AGD.slug;
+  var v=ensureView('view-multiloc');
+  v.innerHTML=
+   '<div class="agd-ml">'+
+    '<h1>Select locations</h1>'+
+    '<p>Post your <b>'+esc(a.n)+'</b> position across multiple locations. These jobs will be advertised in <b>'+esc(a.l)+'</b>. We\'ll create a separate job post for each location.</p>'+
+    '<p>By posting in multiple locations, you acknowledge that the jobs listed meet or are exempt from the applicable local pay transparency or minimum wage laws.</p>'+
+    '<div class="agd-flab">Job location <span style="font-weight:400">*</span></div>'+
+    '<div class="agd-fsub">Enter a street address, city or ZIP code</div>'+
+    '<input class="agd-fin" type="text">'+
+    '<div class="agd-flab">Number of people to hire in the next 30 days <span style="font-weight:400">*</span></div>'+
+    '<div class="agd-step"><input value="0"><button type="button">&#8722;</button><button type="button" class="p">+</button></div>'+
+    '<div><button class="agd-add" type="button">&#8853;&nbsp; Add location</button></div>'+
+    '<p class="agd-terms">By selecting Continue, you agree that this job post reflects your requirements, and agree it will be posted and applications will be processed following JobAgentX\'s Terms and Privacy Policies. You agree to JobAgentX informing a user that you have opened, viewed or made a decision regarding the user\'s application.</p>'+
+    '<div class="agd-mlft"><button class="agd-back" data-agd="ml-back">&#8592;&nbsp;Back</button><button class="agd-cont" data-agd="ml-cont">Continue &nbsp;&#8594;</button></div>'+
+   '</div>';
+  AGD.show('view-multiloc');
+};
+
+AGD.mlStep2=function(){
+  var v=ensureView('view-multiloc');
+  v.innerHTML=
+   '<div class="agd-ml">'+
+    '<h1>Select locations</h1>'+
+    '<div class="an-note" style="align-items:flex-start;display:flex;gap:12px;background:#fff8e1;border:1px solid #ffe082;border-radius:12px;padding:16px 18px">'+
+      '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#8a6116" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>'+
+      '<span style="font-size:15px;line-height:22px"><b>Capture pending &mdash; not yet built.</b><br>'+
+      'The step after Continue in the multi-location flow was not captured on the live source (it sits behind Continue on a real account). '+
+      'It is deliberately empty rather than invented.</span>'+
+    '</div>'+
+    '<div class="agd-mlft" style="margin-top:26px"><button class="agd-back" data-agd="ml-back2">&#8592;&nbsp;Back</button></div>'+
+   '</div>';
+};
+
+AGD.access=function(slug){
+  var a=AGD.A[slug]||AGD.A[AGD.slug]; if(!a)return;
+  var ov=document.createElement('div'); ov.className='agd-ov'; ov.id='agdAccessOv';
+  ov.innerHTML=
+   '<div class="agd-dlg" role="dialog" aria-modal="true">'+
+    '<div class="agd-dhd">Access to the '+esc(a.n)+' job<button class="agd-x" data-agd="acc-x">&#10005;</button></div>'+
+    '<div class="agd-dbd">'+
+      '<div class="agd-lock">&#128274;&nbsp;Limited permissions users</div>'+
+      '<div class="agd-sub">There are no users with limited permissions <span class="c">&#9662;</span></div>'+
+      '<p>Add users or change access levels on the <a data-agd="acc-users">Users page</a>.</p>'+
+    '</div>'+
+    '<div class="agd-dft"><button class="agd-out" style="margin:0" data-agd="acc-x">Cancel</button><button class="agd-dis" disabled>Save changes</button></div>'+
+   '</div>';
+  ov.addEventListener('click',function(e){if(e.target===ov)ov.remove();});
+  document.body.appendChild(ov);
+};
+
+/* ── interviews deep link — the counts, his call: "we want interviews" ── */
+AGD.toInterviews=function(slug,which){
+  var a=AGD.A[slug]; if(!a)return;
+  if(typeof showView==='function')showView('interviews');
+  var tab=(which===0)?2:0;              /* Action needed -> tab 2, Upcoming/All -> tab 0 */
+  setTimeout(function(){
+    var t=document.querySelector('.iv-tab[data-iv2="'+tab+'"]');
+    if(t)t.click();
+    setTimeout(function(){
+      var boxes=document.querySelectorAll('input[data-f="ag"][data-i="'+tab+'"]');
+      var hit=null;
+      boxes.forEach(function(b){
+        var v=b.getAttribute('data-v')||'';
+        if(v.indexOf(a.n)===0)hit=b;
+        if(b.checked)b.click();          /* clear any previous agent filter */
+      });
+      if(hit&&!hit.checked)hit.click();
+      setTimeout(function(){
+        document.querySelectorAll('.iv2-fpop').forEach(function(p){p.classList.remove('on');});
+        if(typeof window.__ivRise==='function')window.__ivRise();
+      },80);
+    },120);
+  },60);
+};
+
+/* ── workspace deep links ─────────────────────────────────────────── */
+AGD.toWorkspace=function(slug,stage,tab){
+  var a=AGD.A[slug]; if(!a)return;
+  if(typeof showView==='function')showView('candidates');
+  setTimeout(function(){
+    if(window.CX){
+      if(typeof CX.setScope==='function')CX.setScope(a.n);
+      if(tab==='find'&&typeof CX.go==='function')CX.go('find');
+      else{
+        if(typeof CX.go==='function')CX.go('manage');
+        if(stage&&typeof CX.stage==='function')CX.stage(stage);
+      }
+    }
+  },60);
+};
+
+/* ── list wiring: menu rewrite + click routing ────────────────────── */
+function slugOfRow(el){
+  var tr=el.closest('tr'); if(!tr)return null;
+  var m=tr.querySelector('.agx-menu[data-slug]');
+  return m?m.getAttribute('data-slug'):null;
+}
+function rewriteMenus(){
+  document.querySelectorAll('#agxRows .agx-menu[data-slug]').forEach(function(m){
+    if(m.getAttribute('data-agd-done'))return;
+    m.setAttribute('data-agd-done','1');
+    m.classList.add('agd-w');
+    var slug=m.getAttribute('data-slug');
+    m.innerHTML=
+      '<button data-agd="edit" data-slug="'+esc(slug)+'">Edit agent</button>'+
+      '<button data-agd="details" data-slug="'+esc(slug)+'">View agent details</button>'+
+      '<button data-agd="multiloc" data-slug="'+esc(slug)+'">Post job in multiple locations</button>'+
+      '<button data-agd="more" data-slug="'+esc(slug)+'" class="agd-more">More actions <span style="font-size:17px">&#8594;</span></button>';
+  });
+}
+var rowsHost=document.getElementById('agxRows');
+if(rowsHost){
+  new MutationObserver(rewriteMenus).observe(rowsHost,{childList:true});
+  rewriteMenus();
+}
+
+document.addEventListener('click',function(e){
+  var t=e.target;
+  /* menu + view buttons */
+  var b=t.closest('[data-agd]');
+  if(b){
+    var act=b.getAttribute('data-agd');
+    var slug=b.getAttribute('data-slug')||slugOfRow(b)||AGD.slug;
+    if(act==='edit'){e.preventDefault();e.stopPropagation();location.href='jobagentx-edit-agent.html?event='+encodeURIComponent(slug||'dallas');return;}
+    if(act==='details'){e.preventDefault();e.stopPropagation();AGD.details(slug);return;}
+    if(act==='multiloc'){e.preventDefault();e.stopPropagation();document.querySelectorAll('.agx-menu').forEach(function(m){m.style.display='none';});AGD.multiloc(slug);return;}
+    if(act==='more'){e.preventDefault();e.stopPropagation();document.querySelectorAll('.agx-menu').forEach(function(m){m.style.display='none';});AGD.details(slug);
+      setTimeout(function(){var mm=document.getElementById('agdDetailMenu');if(mm)mm.style.display='block';},60);return;}
+    if(act==='kebab'){e.stopPropagation();var mm=document.getElementById('agdDetailMenu');if(mm)mm.style.display=(mm.style.display==='block')?'none':'block';return;}
+    if(act==='back'){AGD.show.call(null,'view-agentdetails');if(typeof showView==='function')showView('events');return;}
+    if(act==='automations'){document.getElementById('agdDetailMenu').style.display='none';if(typeof showView==='function')showView('tools');if(typeof tlGo==='function')tlGo('automations');return;}
+    if(act==='access'){document.getElementById('agdDetailMenu').style.display='none';AGD.access(slug);return;}
+    if(act==='acc-x'){var o=document.getElementById('agdAccessOv');if(o)o.remove();return;}
+    if(act==='acc-users'){var o2=document.getElementById('agdAccessOv');if(o2)o2.remove();if(typeof showView==='function')showView('users');return;}
+    if(act==='ml-back'){AGD.details(AGD.slug);return;}
+    if(act==='ml-back2'){AGD.multiloc(AGD.slug);return;}
+    if(act==='ml-cont'){AGD.mlStep2();return;}
+    if(act==='report'){if(typeof showView==='function')showView('analytics');if(typeof rnGo==='function')rnGo('overview');return;}
+    if(act==='ws-all'){AGD.toWorkspace(slug,'All applications');return;}
+    if(act==='ws-new'){AGD.toWorkspace(slug,'New');return;}
+    if(act==='ws-find'){AGD.toWorkspace(slug,null,'find');return;}
+  }
+  /* agent name -> details (was a dead hardcoded href) */
+  var nm=t.closest('#agxAgents .agx-name');
+  if(nm){e.preventDefault();e.stopPropagation();var s1=slugOfRow(nm);if(s1)AGD.details(s1);return;}
+  /* the 3 interview counts -> Interviews filtered to the agent */
+  var st=t.closest('#agxAgents .agx-stat');
+  if(st){e.preventDefault();e.stopPropagation();
+    var s2=slugOfRow(st); if(!s2)return;
+    var idx=Array.prototype.indexOf.call(st.parentNode.querySelectorAll('.agx-stat'),st);
+    AGD.toInterviews(s2,idx); return;}
+  /* details-page kebab closes on outside click */
+  var dm=document.getElementById('agdDetailMenu');
+  if(dm&&dm.style.display==='block'&&!t.closest('.agd-kwrap'))dm.style.display='none';
+},true);
+
+/* ── workspace unification: one set of jobs everywhere ────────────── */
+function unify(){
+  if(!window.CX||!window.CD||!CX.JOBS){setTimeout(unify,250);return;}
+  CX.JOBS=[
+    {n:'Registered Nurse',           st:'Live',  loc:'Dallas, TX',    d:'July 28th, 2026', ref:'7c2a91e4-rn01-4dal-8a72-3a6a28f1a371'},
+    {n:'Certified Nursing Assistant',st:'Paused',loc:'Pittsburgh, PA',d:'July 25th, 2026', ref:'38580816-cd4f-46a1-a1af-555620f41f42'},
+    {n:'Warehouse Associate',        st:'Live',  loc:'Austin, TX',    d:'July 23rd, 2026', ref:'11aa5402-a01b-41a0-9fbf-23f7aa3e0a41'},
+    {n:'RN Care Manager',            st:'Live',  loc:'Houston, TX',   d:'July 16th, 2026', ref:'7c9a41d0-5b22-4a8e-9c31-0b6f2ad8e114'}
+  ];
+  /* every candidate row carried job:'Web Developer' (verified). Spread them
+     across the four agent jobs deterministically so each agent's workspace
+     has a real pipeline: RN-weighted 2-1-1-1 cycle. */
+  var CYCLE=['Registered Nurse','Registered Nurse','Certified Nursing Assistant',
+             'Warehouse Associate','RN Care Manager'];
+  function AGDJOB(n){return CX.JOBS.some(function(j){return j.n===n;});}
+  (CD.ALL||[]).forEach(function(c,i){ if(!AGDJOB(c.job))c.job=CYCLE[i%CYCLE.length]; });
+
+  /* scope becomes real: CD.rows never filtered by job (verified). A later
+     module (CXDROP, build36) initializes on a delay and re-wraps CD.rows /
+     CX.counts over whatever is installed - its counts wrapper recomputes
+     'All applications' from CD.ALL unscoped, clobbering a scope done inside
+     the chain. So these wrappers KEEP THEMSELVES OUTERMOST: on every render
+     they re-wrap if something replaced them (marker-guarded, idempotent). */
+  function scopeRowsWrap(){
+    if(CD.rows&&CD.rows.__agd)return;
+    var base=CD.rows;
+    CD.rows=function(){
+      var out=base.apply(this,arguments);
+      var sj=(typeof CX.singleJob==='function')?CX.singleJob():null;
+      if(sj)out=out.filter(function(c){return c.job===sj;});
+      return out;
+    };
+    CD.rows.__agd=1;
+  }
+  function scopeCountsWrap(){
+    if(CX.counts&&CX.counts.__agd)return;
+    var base=CX.counts;
+    CX.counts=function(){
+      var c=base.apply(this,arguments);
+      var sj=(typeof CX.singleJob==='function')?CX.singleJob():null;
+      if(!sj)return c;
+      var live=(CD.mode==='empty'||CD.mode==='error')?[]:(CD.ALL||[]).filter(function(x){return x.job===sj;});
+      Object.keys(c).forEach(function(k){
+        if(k==='All applications')c[k]=live.filter(function(x){return x.stage!=='Rejected';}).length;
+        else if(k==='Invited candidates')c[k]=0;
+        else c[k]=live.filter(function(x){return x.stage===k;}).length;
+      });
+      return c;
+    };
+    CX.counts.__agd=1;
+  }
+  /* the clarity line, on the workspace: Scott's copy. The live shell is
+     CX.paint's .cx-tabs strip (the .cd-tabs path is the older renderer). */
+  function kick(){
+    try{
+      var host=document.querySelector('.cx-tabs')||document.querySelector('.cd-tabs');
+      if(host&&!document.getElementById('agdKick')){
+        var k=document.createElement('div'); k.className='agd-kick'; k.id='agdKick';
+        k.innerHTML='<b>Your agent works within a job.</b> Select a job to configure your agent, review candidates, and monitor activity.';
+        host.parentNode.insertBefore(k,host);
+      }
+    }catch(_){}
+  }
+  function hookRender(name,obj){
+    var cur=obj[name];
+    if(typeof cur!=='function'||cur.__agdHook)return;
+    var base=cur;
+    obj[name]=function(){
+      scopeRowsWrap(); scopeCountsWrap();
+      var r=base.apply(this,arguments);
+      kick();
+      return r;
+    };
+    obj[name].__agdHook=1;
+  }
+  scopeRowsWrap(); scopeCountsWrap();
+  hookRender('paint',CX); hookRender('render',CD);
+  /* CXDROP re-wraps CD.render/CX.counts on its own delayed init - re-hook
+     after it settles, and once more late as a belt-and-braces pass */
+  [800,2000].forEach(function(ms){
+    setTimeout(function(){ scopeRowsWrap(); scopeCountsWrap(); hookRender('paint',CX); hookRender('render',CD); },ms);
+  });
+}
+unify();
+})();
+</script>
 </body>
 </html>
