@@ -8695,6 +8695,64 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 })();
 </script>
 <script>
+/* ═══ CXDROP — rejected rows leave All applications (build36) ════════════
+   Logic only: no CSS, no markup, no geometry. */
+(function(){
+  function apply(){
+    if (typeof CX !== 'object' || typeof CD !== 'object') return false;
+    if (!CD.rows || !CX.counts || !CX.openProfile || !CD.open || !CD.render) return false;
+    if (CX.__drop) return true;
+    CX.__drop = true;
+    CX.openId = null;
+
+    /* the All-applications pill is CD.stage === 'All' */
+    function onAll(){ return CD.stage === 'All'; }
+    function visible(c){
+      return !(onAll() && c.stage === 'Rejected' && c.id !== CX.openId);
+    }
+
+    var cdRows = CD.rows;
+    CD.rows = function(){
+      var out = cdRows.apply(this, arguments);
+      if (!onAll()) return out;
+      return out.filter(visible);
+    };
+
+    var cxCounts = CX.counts;
+    CX.counts = function(){
+      var c = cxCounts.apply(this, arguments);
+      var all = (CD.ALL || []);
+      var live = (CD.mode === 'empty' || CD.mode === 'error') ? [] : all;
+      c['All applications'] = live.filter(function(x){ return x.stage !== 'Rejected'; }).length;
+      return c;
+    };
+
+    /* keep the open profile pinned to a candidate, not to a row index */
+    var cxOpen = CX.openProfile;
+    CX.openProfile = function(id){ CX.openId = id; return cxOpen.call(this, id); };
+    var cdOpen = CD.open;
+    CD.open = function(id, tab){ CX.openId = id; return cdOpen.call(this, id, tab); };
+
+    var cdRender = CD.render;
+    CD.render = function(){
+      if (CD.view === 'profile' && CX.openId){
+        var rows = CD.rows(), i = -1;
+        for (var n = 0; n < rows.length; n++){ if (rows[n].id === CX.openId){ i = n; break; } }
+        if (i >= 0) CD.openIdx = i;
+      } else if (CD.view !== 'profile') {
+        CX.openId = null;              /* back on the list — let the row go */
+      }
+      return cdRender.apply(this, arguments);
+    };
+    return true;
+  }
+  if (!apply()) {
+    var tries = 0;
+    var t = setInterval(function(){ if (apply() || ++tries > 40) clearInterval(t); }, 100);
+  }
+})();
+</script>
+<script>
 /* AGX-ACCT: account-menu routing, subscription tabs, plan toggle */
 function agxMenuGo(e,view){
  if(e){e.stopPropagation();}
@@ -16339,6 +16397,27 @@ CX.openProfile = function(id){
 .cx-act .body.clamp{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;
   overflow:hidden;font-size:14px;line-height:21px}
 
+</style>
+<style>
+/* ═══ NAVFIX — sidebar rail geometry (build37) ═══════════════════════════
+   `#sidebar { width:223px }` (an ID) was outranking `.sidebar.collapsed`
+   and the <=1024 rule (both classes), so neither took effect. Same fix
+   applied at ID specificity, plus the shell offsets moved 220 -> 223 to
+   match the measured rail. */
+
+/* 1. expanded — shell was offset 220 against a 223 rail */
+body:not(.collapsed) .topbar { left: 223px; }
+body:not(.collapsed) .main   { margin-left: 223px; }
+
+/* 2. collapsed — the rail never shrank */
+#sidebar.collapsed { width: 60px; flex: 0 0 60px; }
+
+/* 3. the <=1024 breakpoint had the same collision */
+@media (max-width: 1024px) {
+  #sidebar                     { width: 64px; flex: 0 0 64px; }
+  body:not(.collapsed) .topbar { left: 64px; }
+  body:not(.collapsed) .main   { margin-left: 64px; }
+}
 </style>
 </body>
 </html>
