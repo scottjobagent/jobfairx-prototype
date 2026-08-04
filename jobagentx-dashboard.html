@@ -5948,7 +5948,7 @@ var h="";rows.forEach(function(a,i){
 h+="<tr>";
 h+="<td><a href=\"jobagentx-edit-agent.html?event=dallas\" class=agx-name>"+a.n+"</a><div class=agx-loc>"+a.l+"</div></td>";
 h+="<td>"+candCell(a)+"</td>";
-h+="<td><a href=# class=agx-setup-link onclick=\"openInterviewSettings();return false\">"+a.setup+"</a></td>";
+h+="<td class=agx-actcell data-agslug=\""+a.slug+"\"></td>";
 h+="<td><div>"+a.ago+"</div><div class=agx-mut style=margin-top:2px>"+a.date+"</div></td>";
 h+="<td>"+stCell(a)+"</td>";
 h+="<td class=agx-kcell><button class=agx-kebab>&#8943;</button><div class=agx-menu data-slug="+a.slug+"><button>Edit</button><button>Share</button></div></td></tr>"});
@@ -5978,7 +5978,7 @@ chips+="<div class=agx-chip id=agxN_ti><span class=agx-lab>Title &#9662;</span>"
 chips+="<div class=agx-chip id=agxN_lo><span class=agx-lab>Location &#9662;</span>"+pop("lo",uniq("l"))+"</div>";
 chips+="<span class=agx-results id=agxCount></span></div>";
 var tbl="<div class=table-card style=padding:0;overflow:visible><table>";
-tbl+="<thead><tr><th class=agx-sort data-k=name>Agent<span class=arr id=agxArr_name>&#8597;</span></th><th>Interviews</th><th>Interview setup</th><th class=agx-sort data-k=date>Date created<span class=arr id=agxArr_date>&#8597;</span></th><th class=agx-sort data-k=status>Agent status<span class=arr id=agxArr_status>&#8597;</span></th><th></th></tr></thead><tbody id=agxRows></tbody></table></div>";
+tbl+="<thead><tr><th class=agx-sort data-k=name>Agent<span class=arr id=agxArr_name>&#8597;</span></th><th>Interviews</th><th>Agent activity</th><th class=agx-sort data-k=date>Date created<span class=arr id=agxArr_date>&#8597;</span></th><th class=agx-sort data-k=status>Agent status<span class=arr id=agxArr_status>&#8597;</span></th><th></th></tr></thead><tbody id=agxRows></tbody></table></div>";
 w.innerHTML=chips+tbl;
 var fr=document.querySelector("#view-events .filter-row");fr.insertAdjacentElement("afterend",w);
 w.addEventListener("change",function(e){var t=e.target;if(t.dataset&&t.dataset.k){F[t.dataset.k][t.dataset.v]=t.checked;render()}});
@@ -16904,6 +16904,167 @@ function unify(){
   });
 }
 unify();
+})();
+</script>
+<style>
+/* ═══ AGACT — Agent activity column (build45) ═══════════════════════════
+   Cell format is the measured Activity pattern from the live source's
+   Candidates table: one line, event text · relative time. Not clickable. */
+.agx-actcell{font-size:14px;color:#2d2d2d;line-height:20px}
+.agx-actcell .t{color:#5f5e5a}
+.agx-actcell .mut{color:#767676}
+</style>
+<script>
+/* ═══ AGACT — Agent activity column (build45) ════════════════════════ */
+(function(){
+'use strict';
+var ACT = window.AGACT = {};
+
+/* seeded latest event per agent — representative, live actions layer on top */
+ACT.latest = {
+ 'rn-dallas':     {txt:'Scheduled an interview \u2014 Fri, Aug 8, 2:00 PM CT', t:'2 hours ago'},
+ 'cna-pittsburgh':{txt:'Messaged 2 new applicants', t:'Today'},
+ 'wa-austin':     {txt:'Sourced 9 candidates', t:'Yesterday'},
+ 'rncm-houston':  {txt:'Screened Priya Raman \u2014 passed', t:'1 hour ago'},
+ 'se-chicago':    {txt:'No activity yet', t:null, mut:1},
+ 'fe-atlanta':    {txt:'No activity yet', t:null, mut:1},
+ 'rbt-houston':   {txt:'No recent activity', t:null, mut:1}
+};
+ACT.seed = JSON.parse(JSON.stringify(ACT.latest));
+
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+ACT.fill = function(){
+  document.querySelectorAll('#agxRows .agx-actcell[data-agslug]').forEach(function(td){
+    var e = ACT.latest[td.getAttribute('data-agslug')];
+    if(!e){ td.innerHTML=''; return; }
+    td.innerHTML = e.mut
+      ? '<span class="mut">'+esc(e.txt)+'</span>'
+      : esc(e.txt) + (e.t ? ' <span class="t">&middot; '+esc(e.t)+'</span>' : '');
+  });
+};
+
+/* agents' jobs -> slug, for routing live events to the right row */
+var JOB2SLUG = {'Registered Nurse':'rn-dallas','Certified Nursing Assistant':'cna-pittsburgh',
+                'Warehouse Associate':'wa-austin','RN Care Manager':'rncm-houston'};
+
+ACT.push = function(slug, txt){
+  if(!slug || !ACT.latest[slug]) return;
+  ACT.latest[slug] = {txt:txt, t:'just now'};
+  ACT.fill();
+};
+
+/* ── automation lookup: preset + status only, jobs left as-is per Scott ── */
+function autoActive(preset){
+  if(typeof TL!=='object'||!TL||!TL.AUTOS) return false;
+  return TL.AUTOS.some(function(a){ return a.preset===preset && a.status==='Active'; });
+}
+
+/* ── the checkmark seam: CD.setInterest (already wrapped by CXFIX; this
+      wrapper stays outermost the same way the AGJOBS ones do) ─────────── */
+function wrapInterest(){
+  if(typeof CD!=='object'||!CD||typeof CD.setInterest!=='function'){setTimeout(wrapInterest,300);return;}
+  if(CD.setInterest.__agact) return;
+  var base = CD.setInterest;
+  CD.setInterest = function(id, kind){
+    var r = base.apply(this, arguments);
+    try{
+      var c = (CD.ALL||[]).filter(function(x){return x.id===id;})[0];
+      if(c){
+        var slug = JOB2SLUG[c.job];
+        var k = String(kind||'').toLowerCase();
+        if((k==='yes'||k==='shortlist') && autoActive('short'))
+          ACT.push(slug, 'Messaged '+c.n);
+        else if((k==='no'||k==='reject'||k==='rejected') && autoActive('rejected'))
+          ACT.push(slug, 'Emailed '+c.n);
+      }
+    }catch(_){}
+    return r;
+  };
+  CD.setInterest.__agact = 1;
+  /* CXFIX may re-wrap later in load order; re-assert once after settle */
+  setTimeout(function(){
+    if(!CD.setInterest.__agact){ var b2=CD.setInterest;
+      CD.setInterest=function(){var r=b2.apply(this,arguments);return r;}; }
+  },1500);
+}
+wrapInterest();
+
+/* ── kebab gains "Add interviewers" after View agent details ───────────
+   The old column's link called openInterviewSettings(); same call here. */
+function addIvsItem(){
+  document.querySelectorAll('#agxRows .agx-menu[data-agd-done]').forEach(function(m){
+    if(m.querySelector('[data-agact="ivs"]')) return;
+    var after = m.querySelector('button[data-agd="details"]');
+    if(!after) return;
+    var b = document.createElement('button');
+    b.setAttribute('data-agact','ivs');
+    b.textContent = 'Add interviewers';
+    after.parentNode.insertBefore(b, after.nextSibling);
+  });
+}
+document.addEventListener('click', function(e){
+  var b = e.target.closest('[data-agact="ivs"]');
+  if(!b) return;
+  e.preventDefault(); e.stopPropagation();
+  document.querySelectorAll('.agx-menu').forEach(function(m){m.style.display='none';});
+  if(typeof openInterviewSettings==='function') openInterviewSettings();
+}, true);
+
+/* ── render hook: fill cells + menu item on every table render ─────────── */
+var rowsHost = document.getElementById('agxRows');
+function sync(){ ACT.fill(); addIvsItem(); }
+if(rowsHost){
+  new MutationObserver(sync).observe(rowsHost,{childList:true});
+  sync();
+}
+
+/* ── dev toolbar: Activity group — Seeded resets, Cycle shows every wording.
+      Prototype-only, like every toolbar group. ─────────────────────────── */
+ACT.cycleIx = -1;
+ACT.cycle = function(){
+  ACT.cycleIx = (ACT.cycleIx + 1) % 7;
+  var i = ACT.cycleIx;
+  Object.keys(ACT.latest).forEach(function(slug){
+    var job = null;
+    Object.keys(JOB2SLUG).forEach(function(j){ if(JOB2SLUG[j]===slug) job=j; });
+    var cands = (window.CD && CD.ALL ? CD.ALL : []).filter(function(c){return c.job===job;});
+    var n1 = cands[0] ? cands[0].n : 'Sarah Chen';
+    var n2 = cands[1] ? cands[1].n : 'Marcus Johnson';
+    var V = [
+      {txt:'Sourced '+(cands.length||9)+' candidates', t:'2 hours ago'},
+      {txt:'Matched '+n1, t:'32 minutes ago'},
+      {txt:'Screened '+n2+' \u2014 passed', t:'1 hour ago'},
+      {txt:'Screened '+n1+' \u2014 did not pass', t:'Yesterday'},
+      {txt:'Messaged '+(Math.max(1,Math.min(3,cands.length)))+' new applicants', t:'Today'},
+      {txt:'Scheduled an interview \u2014 Fri, Aug 8, 2:00 PM CT', t:'just now'},
+      {txt:'Sent a message', t:'4 hours ago'}
+    ];
+    ACT.latest[slug] = V[i];
+  });
+  ACT.fill();
+  var lab=document.getElementById('agactCycleBtn'); if(lab)lab.textContent='Cycle '+(i+1)+'/7';
+};
+ACT.reset = function(){
+  ACT.cycleIx = -1;
+  ACT.latest = JSON.parse(JSON.stringify(ACT.seed));
+  ACT.fill();
+  var lab=document.getElementById('agactCycleBtn'); if(lab)lab.textContent='Cycle';
+};
+(function devGroup(){
+  var host = document.getElementById('agentToggle');
+  if(!host){ setTimeout(devGroup, 400); return; }
+  var group = host.closest('.dev-toggle');
+  if(!group || document.getElementById('agactDev')) return;
+  var g = document.createElement('div');
+  g.className = 'dev-toggle'; g.id = 'agactDev';
+  g.innerHTML = '<span class="dev-toggle-label">Activity:</span>'+
+    '<div class="dev-toggle-switch">'+
+      '<button class="dev-toggle-btn active" onclick="AGACT.reset();this.classList.add(\'active\');document.getElementById(\'agactCycleBtn\').classList.remove(\'active\')">Seeded</button>'+
+      '<button class="dev-toggle-btn" id="agactCycleBtn" onclick="AGACT.cycle();this.classList.add(\'active\');this.previousElementSibling.classList.remove(\'active\')">Cycle</button>'+
+    '</div>';
+  group.parentNode.insertBefore(g, group.nextSibling);
+})();
 })();
 </script>
 </body>
