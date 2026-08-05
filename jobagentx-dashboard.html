@@ -18404,5 +18404,31 @@ setTimeout(function(){ clearInterval(t0); setInterval(S.rename, 1500); }, 12000)
 S.rename();
 })();
 </script>
+<style>
+/* ═══ SSTRIM — Sourcing tabs + country selector retired (build65) ═══════ */
+#ssSubnav .ss-tab[data-ss="projects"],
+#ssSubnav .ss-tab[data-ss="templates"]{display:none !important}
+#view-sourcing .ss-country{display:none !important}
+</style>
+<script>
+/* ═══ SSTRIM — build65 ═════════════════════════════════════════════ */
+(function(){
+'use strict';
+/* the tabs are hidden, but two dormant config routes can still call
+   ssGo('projects'|'templates'). Redirect those screens home rather than
+   letting the page land on a tabless screen. Keep-outermost wrapper. */
+function wrap(){
+  if(typeof window.ssGo !== 'function' || window.ssGo.__sstrim) return;
+  var base = window.ssGo;
+  window.ssGo = function(screen, btn){
+    if(screen === 'projects' || screen === 'templates') screen = 'home';
+    return base.call(this, screen, btn);
+  };
+  window.ssGo.__sstrim = 1;
+}
+wrap();
+var n = 0, t = setInterval(function(){ wrap(); if(++n > 20) clearInterval(t); }, 500);
+})();
+</script>
 </body>
 </html>
