@@ -18033,5 +18033,74 @@ setTimeout(function(){ clearInterval(t0); setInterval(sync, 1500); }, 12000);
 sync();
 })();
 </script>
+<style>
+/* ═══ CDTOG — Candidates controls to the top toolbar (build59) ══════════ */
+/* the in-page strip goes; the node stays as build58's insertion anchor */
+.cd-devbar{display:none !important}
+</style>
+<script>
+/* ═══ CDTOG — Candidates: Active | Empty in the top bar (build59) ═══ */
+(function(){
+'use strict';
+var T = window.CDTOG = {};
+
+T.build = function(){
+  if(document.getElementById('cdToggle')) return true;
+  var left = document.querySelector('.topbar-left');
+  var proto = document.querySelector('.topbar-left .dev-toggle');
+  if(!left || !proto) return false;
+
+  var g = document.createElement('div');
+  g.className = 'dev-toggle';
+  g.id = 'cdToggleGrp';
+
+  /* clone the live label node so the group inherits every theme rule */
+  var lb = proto.querySelector('.dev-toggle-label').cloneNode(false);
+  lb.textContent = 'Candidates:';
+  g.appendChild(lb);
+
+  var sw = document.createElement('div');
+  sw.className = 'dev-toggle-switch';
+  sw.id = 'cdToggle';
+  sw.innerHTML =
+    '<button class="dev-toggle-btn" data-cdm="populated">Active</button>'+
+    '<button class="dev-toggle-btn" data-cdm="empty">Empty</button>';
+  g.appendChild(sw);
+
+  /* sit next to Sourcing so the toolbar follows the rail order */
+  var ss = document.getElementById('ssToggle');
+  var after = ss ? ss.closest('.dev-toggle') : null;
+  if(after && after.parentElement === left) left.insertBefore(g, after.nextSibling);
+  else left.appendChild(g);
+  T.sync();
+  return true;
+};
+
+/* read state, don't remember clicks — CD.setMode is called from elsewhere */
+T.sync = function(){
+  var sw = document.getElementById('cdToggle');
+  if(!sw || !window.CD) return;
+  var m = CD.mode === 'empty' ? 'empty' : 'populated';
+  Array.prototype.forEach.call(sw.querySelectorAll('.dev-toggle-btn'), function(b){
+    b.classList.toggle('active', b.getAttribute('data-cdm') === m);
+  });
+};
+
+document.addEventListener('click', function(e){
+  var b = e.target.closest && e.target.closest('#cdToggle .dev-toggle-btn');
+  if(!b) return;
+  e.preventDefault();
+  if(window.CD && typeof CD.setMode === 'function') CD.setMode(b.getAttribute('data-cdm'));
+  T.sync();
+}, true);
+
+document.addEventListener('click', function(){ setTimeout(T.sync, 80); }, true);
+
+if(!T.build()){
+  var n = 0, t = setInterval(function(){ if(T.build() || ++n > 40) clearInterval(t); }, 250);
+}
+setInterval(T.sync, 1200);
+})();
+</script>
 </body>
 </html>
