@@ -17550,5 +17550,158 @@ function hook(){
 hook();
 })();
 </script>
+<style>
+/* ═══ SSMODAL — Add-your-agent modal + overflow menu, phase B (build54) ══
+   Every value DOM-measured on the live source. */
+.ssm-ov{position:fixed;inset:0;background:rgba(45,45,45,.5);z-index:5200;
+  display:none;align-items:center;justify-content:center}
+.ssm-ov.on{display:flex}
+.ssm-dlg{background:#fff;border-radius:20px;width:1000px;max-width:calc(100vw - 40px);
+  height:646px;max-height:calc(100vh - 40px);display:flex;flex-direction:column;
+  padding:0;box-sizing:border-box;overflow:hidden}
+.ssm-head{display:flex;align-items:flex-start;padding:17px 25px 0}
+.ssm-head h2{flex:1 1 auto;font-size:20px;line-height:30px;font-weight:700;color:#2d2d2d;margin:0}
+.ssm-x{flex:0 0 44px;width:44px;height:44px;border:0;background:none;border-radius:12px;
+  padding:9px;cursor:pointer;color:#2d2d2d;font-family:inherit;margin-top:-6px}
+.ssm-x:hover{background:#f3f2f1}
+.ssm-body{flex:1 1 auto;min-height:0;overflow:auto;padding:0 41px}
+.ssm-sub{font-size:16px;line-height:24px;font-weight:700;color:#2d2d2d;margin:16px 0 0}
+.ssm-search{display:flex;align-items:center;gap:8px;height:44px;margin-top:16px;
+  background:#fff;border:1px solid #595959;border-radius:12px;padding:0 12px;box-sizing:border-box}
+.ssm-search svg{flex:0 0 20px;width:20px;height:20px;color:#2d2d2d}
+.ssm-search input{flex:1 1 auto;min-width:0;border:0;outline:0;background:none;font-family:inherit;
+  font-size:16px;line-height:24px;color:#2d2d2d;padding:9px 12px 9px 4px}
+.ssm-search input::placeholder{color:#767676}
+.ssm-filters{display:flex;align-items:center;gap:12px;margin-top:24px}
+.ssm-chip{height:36px;background:#fff;border:1px solid #595959;border-radius:12px;
+  padding:5px 12px;font-family:inherit;font-size:16px;line-height:24px;font-weight:700;
+  color:#004fcb;cursor:pointer;white-space:nowrap}
+.ssm-clear{background:none;border:0;padding:9px 0;font-family:inherit;font-size:16px;
+  line-height:24px;font-weight:700;color:#004fcb;cursor:pointer}
+.ssm-sort{margin-left:auto;font-size:16px;line-height:24px;color:#2d2d2d;
+  background:none;border:0;font-family:inherit;cursor:pointer;padding:9px 0}
+.ssm-sort b{font-weight:700}
+.ssm-count{display:flex;align-items:center;gap:10px;margin-top:18px;
+  font-size:16px;line-height:24px;font-weight:700;color:#595959}
+.ssm-count svg{width:20px;height:20px;color:#595959}
+.ssm-rule{border:0;border-top:1px solid #e4e2e0;margin:12px 0 0}
+.ssm-empty{display:flex;flex-direction:column;align-items:center;text-align:center;padding:53px 0 0}
+.ssm-art{width:100px;height:72px;display:flex;align-items:center;justify-content:center}
+.ssm-empty h3{font-size:16px;line-height:20px;font-weight:700;color:#2d2d2d;margin:22px 0 0}
+.ssm-cf{margin-top:32px;height:44px;background:#004fcb;color:#fff;border:0;border-radius:12px;
+  padding:9px 16px;font-family:inherit;font-size:16px;line-height:24px;font-weight:700;cursor:pointer}
+.ssm-cf:hover{background:#0043ad}
+.ssm-foot{flex:0 0 auto;display:flex;justify-content:flex-end;padding:0 33px 33px}
+.ssm-done{height:44px;background:#004fcb;color:#fff;border:0;border-radius:12px;padding:9px 16px;
+  font-family:inherit;font-size:16px;line-height:24px;font-weight:700;cursor:pointer}
+.ssm-done:hover{background:#0043ad}
+
+/* overflow menu */
+.ssm-menu{position:absolute;z-index:5100;width:209px;background:#fff;border-radius:12px;padding:12px;
+  box-shadow:0 0 2px rgba(45,45,45,.16),0 4px 8px rgba(45,45,45,.08),0 8px 16px rgba(45,45,45,.04);
+  display:none;box-sizing:border-box}
+.ssm-menu.on{display:block}
+.ssm-menu button{display:flex;align-items:center;gap:10px;width:100%;height:44px;
+  padding:10px 12px;border:0;background:none;border-radius:8px;cursor:pointer;
+  font-family:inherit;font-size:16px;line-height:24px;font-weight:400;color:#2d2d2d;text-align:left;
+  box-sizing:border-box}
+.ssm-menu button:hover{background:#f3f2f1}
+.ssm-menu svg{flex:0 0 20px;width:20px;height:20px;color:#2d2d2d}
+</style>
+<script>
+/* ═══ SSMODAL — phase B (build54) ═══════════════════════════════════ */
+(function(){
+'use strict';
+var M = window.SSMODAL = {};
+
+var I_SEARCH = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">'+
+  '<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>';
+var I_BAG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">'+
+  '<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>';
+var I_HELP = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">'+
+  '<circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 115 .5c0 1.5-2.5 1.8-2.5 3.5"/>'+
+  '<circle cx="12" cy="17" r="1" fill="currentColor" stroke="none"/></svg>';
+var I_SLIDERS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">'+
+  '<path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h10M18 18h2"/>'+
+  '<circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="16" cy="18" r="2"/></svg>';
+/* our mark in their 100x72 slot — their illustration is their own asset */
+var ART = '<svg viewBox="0 0 24 24" width="64" height="64" fill="none" stroke="#8a8880" stroke-width="1.5">'+
+  '<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>';
+
+M.build = function(){
+  if(document.getElementById('ssmOv')) return;
+  var ov = document.createElement('div');
+  ov.className = 'ssm-ov'; ov.id = 'ssmOv';
+  ov.innerHTML =
+   '<div class="ssm-dlg" role="dialog" aria-modal="true" aria-label="Select from your agents">'+
+     '<div class="ssm-head"><h2>Select from your agents</h2>'+
+       '<button class="ssm-x" data-ssm="close" aria-label="Close">&#10005;</button></div>'+
+     '<div class="ssm-body">'+
+       '<div class="ssm-sub">Agents from JobFairX in United States</div>'+
+       '<div class="ssm-search">'+I_SEARCH+
+         '<input type="text" placeholder="Search by agent name or reference number">'+
+       '</div>'+
+       '<div class="ssm-filters">'+
+         '<button class="ssm-chip">(1) Status &#9662;</button>'+
+         '<button class="ssm-chip">Location &#9662;</button>'+
+         '<button class="ssm-clear">Clear all</button>'+
+         '<button class="ssm-sort"><b>Sort by:</b> Newest &#9662;</button>'+
+       '</div>'+
+       '<div class="ssm-count">'+I_BAG+'<span>0 agents</span></div>'+
+       '<hr class="ssm-rule">'+
+       '<div class="ssm-empty">'+
+         '<div class="ssm-art">'+ART+'</div>'+
+         '<h3>You have 0 matching agents</h3>'+
+         '<button class="ssm-cf">Clear all filters</button>'+
+       '</div>'+
+     '</div>'+
+     '<div class="ssm-foot"><button class="ssm-done" data-ssm="close">Done</button></div>'+
+   '</div>';
+  document.body.appendChild(ov);
+
+  var menu = document.createElement('div');
+  menu.className = 'ssm-menu'; menu.id = 'ssmMenu';
+  menu.innerHTML =
+    '<button>'+I_HELP+'Search syntax</button>'+
+    '<button>'+I_SLIDERS+'Advanced search</button>';
+  document.body.appendChild(menu);
+};
+
+M.open = function(){ M.build(); document.getElementById('ssmOv').classList.add('on'); M.closeMenu(); };
+M.close = function(){ var o=document.getElementById('ssmOv'); if(o) o.classList.remove('on'); };
+M.closeMenu = function(){ var m=document.getElementById('ssmMenu'); if(m) m.classList.remove('on'); };
+M.openMenu = function(btn){
+  M.build();
+  var m = document.getElementById('ssmMenu');
+  var r = btn.getBoundingClientRect();
+  /* their panel sits below the button, right edges aligned */
+  m.style.top  = (r.bottom + window.scrollY + 8) + 'px';
+  m.style.left = (r.right + window.scrollX - 209) + 'px';
+  m.classList.add('on');
+};
+
+document.addEventListener('click', function(e){
+  var t = e.target;
+  if(t.closest && t.closest('[data-ssm="close"]')){ e.preventDefault(); M.close(); return; }
+
+  var trig = t.closest && t.closest('[data-sse]');
+  if(trig && document.body.classList.contains('sse')){
+    var k = trig.getAttribute('data-sse');
+    if(k === 'addagent'){ e.preventDefault(); e.stopPropagation(); M.open(); return; }
+    if(k === 'more'){ e.preventDefault(); e.stopPropagation();
+      var m = document.getElementById('ssmMenu');
+      if(m && m.classList.contains('on')) M.closeMenu(); else M.openMenu(trig);
+      return; }
+  }
+  if(!(t.closest && t.closest('#ssmMenu'))) M.closeMenu();
+  var ov = document.getElementById('ssmOv');
+  if(ov && t === ov) M.close();
+}, true);
+
+document.addEventListener('keydown', function(e){
+  if(e.key === 'Escape'){ M.close(); M.closeMenu(); }
+});
+})();
+</script>
 </body>
 </html>
