@@ -18102,5 +18102,56 @@ if(!T.build()){
 setInterval(T.sync, 1200);
 })();
 </script>
+<style>
+/* ═══ AGKICK — clarity line moves to AI agents (build60) ════════════════ */
+
+/* Candidates: gone. Scoped by view — the class now paints the agents banner
+   too, so a class-level hide would take out both. */
+#view-candidates .agd-kick{display:none !important}
+
+/* AI agents: same component, same painted values as the Candidates one had
+   (#f0f5ff / 1px #c9dcf7 / r12 / 13px 18px / 15-22). Inset differs per state
+   because the two states inset their content differently. */
+/* One inset for BOTH states — the filter band and the table both start their
+   content 17px in, so the banner lines up with the page body rather than with
+   the h1 (which its own container pads to 28). Identical in Active and Empty:
+   flipping the toggle must not move it. */
+#agxKick{display:none}
+body.agx-on #agxKick,
+body.agx-empty #agxKick{display:block;margin:14px 17px 8px}
+</style>
+<script>
+/* ═══ AGKICK — build60 ═════════════════════════════════════════════ */
+(function(){
+'use strict';
+var K = window.AGKICK = {};
+
+K.HTML = '<b>AI Agent works within a job.</b> Select a position below to ' +
+         'configure your Agent, review candidates, and monitor activity.';
+
+K.build = function(){
+  var v = document.getElementById('view-events');
+  var band = document.getElementById('agxAgents');
+  if(!v || !band || document.getElementById('agxKick')) return;
+  var k = document.createElement('div');
+  k.id = 'agxKick';
+  k.className = 'agd-kick';           /* reuse the painted component */
+  k.innerHTML = K.HTML;
+  v.insertBefore(k, band);
+};
+
+/* the empty-state card's CTA, not the header-row one */
+K.cta = function(){
+  var b = document.querySelector('#noUpcomingState .btn-primary');
+  if(b && b.textContent.trim() === 'Create agent') b.textContent = 'Create new position';
+};
+
+function sync(){ K.build(); K.cta(); }
+document.addEventListener('click', function(){ setTimeout(sync, 80); }, true);
+var t0 = setInterval(sync, 500);
+setTimeout(function(){ clearInterval(t0); setInterval(sync, 1500); }, 12000);
+sync();
+})();
+</script>
 </body>
 </html>
