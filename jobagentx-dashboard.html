@@ -18186,5 +18186,174 @@ setTimeout(function(){ clearInterval(t0); setInterval(A.copy, 1500); }, 12000);
 A.copy();
 })();
 </script>
+<style>
+/* ═══ PGTOG — page-level dev toggles (build62) ══════════════════════════ */
+
+/* everything with a page leaves the top bar; the Loaders dropdown has no
+   page, so it stays */
+.topbar-left .dev-toggle:not(.dv-drop){display:none !important}
+
+/* the chip, painted with the same values as the top-bar groups it replaces */
+.pgt{display:inline-flex;align-items:center;gap:6px;flex:0 0 auto}
+.pgt-g{display:flex;align-items:center;gap:4px;padding:2px 6px;background:#f3f2ef;
+  border-radius:5px;border:1px solid #d4d2d0}
+.pgt-lbl{font-size:8px;font-weight:600;color:#767676;text-transform:uppercase;
+  letter-spacing:.3px;white-space:nowrap}
+.pgt-sw{display:flex;background:#e0e0e0;border-radius:3px;overflow:hidden}
+.pgt-btn{padding:2px 5px;font-size:9px;font-weight:700;border:0;background:transparent;
+  cursor:pointer;font-family:inherit;color:#767676;transition:all .15s;white-space:nowrap}
+.pgt-btn:hover{color:#2d2d2d}
+.pgt-btn.on{background:#0044B3;color:#fff}
+
+/* per-header nudges, each one measured against that header's own layout */
+
+/* .content-header is space-between with two children; without this the chip
+   would be spread to the middle instead of sitting beside the title */
+#view-events .content-header .pgt{margin-right:auto}
+
+/* .cde-head gives its h1 flex:1, which would shove the chip against the
+   search button. Release the h1 and let the chip take the slack — the search
+   button stays at its measured x=1444. */
+#view-candidates .cde-head > h1{flex:0 0 auto}
+#view-candidates .cde-head .pgt{margin-right:auto}
+
+/* .mg-h1 is a block with a bare text node; make it a row so the chip can sit
+   next to the word rather than under it */
+#view-messaging .mg-h1{display:flex;align-items:center;gap:12px}
+</style>
+<script>
+/* ═══ PGTOG — build62 ══════════════════════════════════════════════ */
+(function(){
+'use strict';
+var P = window.PGTOG = {};
+
+/* view -> header container -> anchor to sit after -> source switches.
+   'src' is whatever element CONTAINS the real .dev-toggle-btn set; clicking
+   our proxy clicks the real button, so every existing handler still runs. */
+P.MAP = [
+  {view:'view-events',     host:'.content-header', after:'h1',
+   groups:[{src:'#agentToggle', label:'Agent'}, {src:'#agactDev', label:'Activity'}]},
+  {view:'view-sourcing',   host:'.ss-titlebar',    after:'h1.ss-title',
+   groups:[{src:'#ssToggle'}]},
+  {view:'view-candidates', host:'.cx-titlerow',    after:'*',
+   groups:[{src:'#cdToggle'}]},
+  {view:'view-candidates', host:'.cde-head',       after:'h1',
+   groups:[{src:'#cdToggle'}]},
+  {view:'view-interviews', host:'.agv-tabs',       after:'h1',
+   groups:[{src:'#ivHeaderToggle', label:'Interview'}, {src:'#agvCalT', label:'Calendar'}]},
+  {view:'view-messaging',  host:'.mg-h1',          after:null,
+   groups:[{src:'#msgDevToggles'}]},
+  {view:'view-tools',      host:'.tl-top',         after:'h1',
+   groups:[{src:'#tlToggle'}]},
+  {view:'view-analytics',  host:'.rn-bar',         after:'h1.rn-title',
+   groups:[{src:'#anToggle'}]},
+  {view:'view-subs',       host:'.agx-pgh',        after:'h1.agx-pgt',
+   groups:[{src:'#subsToggle'}]}
+];
+
+function srcBtns(sel){
+  var el = document.querySelector(sel);
+  if(!el) return [];
+  return Array.prototype.slice.call(el.querySelectorAll('.dev-toggle-btn'));
+}
+
+function chip(g){
+  var wrap = document.createElement('span');
+  wrap.className = 'pgt-g';
+  wrap.setAttribute('data-pgt-src', g.src);
+  if(g.label){
+    var l = document.createElement('span');
+    l.className = 'pgt-lbl';
+    l.textContent = g.label + ':';
+    wrap.appendChild(l);
+  }
+  var sw = document.createElement('span');
+  sw.className = 'pgt-sw';
+  srcBtns(g.src).forEach(function(b, i){
+    var p = document.createElement('button');
+    p.type = 'button';
+    p.className = 'pgt-btn';
+    p.textContent = b.textContent.trim();
+    p.setAttribute('data-pgt-i', i);
+    sw.appendChild(p);
+  });
+  wrap.appendChild(sw);
+  return wrap;
+}
+
+/* lit state is read back from the real buttons, never remembered here —
+   several of these modes are also changed by code that passes no button */
+function mirror(){
+  document.querySelectorAll('.pgt-g').forEach(function(w){
+    var btns = srcBtns(w.getAttribute('data-pgt-src'));
+    w.querySelectorAll('.pgt-btn').forEach(function(p, i){
+      p.classList.toggle('on', !!(btns[i] && btns[i].classList.contains('active')));
+    });
+  });
+}
+
+P.place = function(){
+  P.MAP.forEach(function(m){
+    var v = document.getElementById(m.view);
+    if(!v || !v.classList.contains('active')) return;
+    var host = v.querySelector(m.host);
+    if(!host || host.querySelector(':scope > .pgt')) return;
+    if(!m.groups.some(function(g){ return document.querySelector(g.src); })) return;
+
+    var box = document.createElement('span');
+    box.className = 'pgt';
+    m.groups.forEach(function(g){ if(document.querySelector(g.src)) box.appendChild(chip(g)); });
+
+    var anchor = m.after === null ? null
+               : (m.after === '*' ? host.firstElementChild : host.querySelector(':scope > ' + m.after));
+    if(anchor && anchor.nextSibling) host.insertBefore(box, anchor.nextSibling);
+    else if(anchor) host.appendChild(box);
+    else host.appendChild(box);
+  });
+  mirror();
+};
+
+document.addEventListener('click', function(e){
+  var p = e.target.closest && e.target.closest('.pgt-btn');
+  if(!p) return;
+  e.preventDefault(); e.stopPropagation();
+  var w = p.closest('.pgt-g');
+  var b = srcBtns(w.getAttribute('data-pgt-src'))[+p.getAttribute('data-pgt-i')];
+  if(b) b.click();
+  setTimeout(function(){ P.place(); mirror(); }, 60);
+  setTimeout(function(){ P.place(); mirror(); }, 400);
+}, true);
+
+/* the Automations page title, and the legacy sidebar label so the two cannot
+   drift apart. The "My Automations" h2 stays, per Scott. */
+P.rename = function(){
+  var h = document.querySelector('#view-tools .tl-top h1');
+  if(h && h.textContent.trim() === 'Tools') h.textContent = 'Automations';
+  var n = document.querySelector('#nav-tools .nav-text');
+  if(n && n.textContent.trim() === 'Tools') n.textContent = 'Automations';
+};
+
+function sync(){ P.rename(); P.place(); }
+
+/* five of these views rebuild with innerHTML, so watch instead of only
+   polling — the guard in place() makes re-entry a no-op */
+var pending = 0;
+var mo = new MutationObserver(function(){
+  if(pending) return;
+  pending = setTimeout(function(){ pending = 0; sync(); }, 80);
+});
+function observe(){
+  var main = document.querySelector('.main');
+  if(main){ mo.observe(main, {childList:true, subtree:true}); return true; }
+  return false;
+}
+if(!observe()){ var o = 0, ot = setInterval(function(){ if(observe() || ++o > 40) clearInterval(ot); }, 250); }
+
+document.addEventListener('click', function(){ setTimeout(sync, 80); }, true);
+var t0 = setInterval(sync, 400);
+setTimeout(function(){ clearInterval(t0); setInterval(sync, 1200); }, 15000);
+sync();
+})();
+</script>
 </body>
 </html>
