@@ -18876,5 +18876,83 @@ setTimeout(function(){ clearInterval(t0); setInterval(function(){ U.build(); }, 
 U.build();
 })();
 </script>
+<style>
+/* ═══ SUBX — Subscription management to measured values (build68) ═══════ */
+
+/* 1. active pill: #595959, white, 14/700 */
+#view-subs .agx-subtab.on{background:#595959;color:#fff;font-weight:700}
+
+/* 2. divider between the title and the tabs */
+.agx-pgt{position:relative;padding-right:14px}
+.agx-pgt:after{content:"";position:absolute;right:0;top:50%;transform:translateY(-50%);
+  width:1px;height:28px;background:#e4e2e0}
+
+/* 4. the placeholder "!" art gives way to the robot injected by JS */
+#view-subs .agx-empty-ill{border:0;background:none;width:150px;height:127px}
+#view-subs .agx-empty-ill:after{content:none}
+
+/* 5. activity header: white head, icons, strong rule under the header row */
+.agx-acttbl th{background:#fff;border-bottom:2px solid #2d2d2d}
+.agx-acttbl .thico{display:inline-flex;vertical-align:-4px;margin-left:6px}
+.agx-acttbl th.mkt span.w{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+/* 6. pagination arrows in a bordered box */
+.agx-actarrows{display:inline-flex;border:1px solid #e4e2e0;border-radius:8px;overflow:hidden}
+.agx-actarrows b{display:inline-flex;align-items:center;justify-content:center;width:40px;height:36px;
+  font-weight:400;color:#2d2d2d;cursor:pointer}
+.agx-actarrows b+b{border-left:1px solid #e4e2e0}
+.agx-actarrows b.dim{color:#b9b7b3;cursor:default}
+.agx-actper b{color:#004fcb}
+</style>
+<script>
+/* ═══ SUBX — build68 ═══════════════════════════════════════════════ */
+(function(){
+'use strict';
+var S = window.SUBX = {};
+
+var ROBOT =
+ '<svg viewBox="0 0 220 220" width="127" height="127" fill="none" aria-hidden="true">'+
+ '<ellipse cx="110" cy="164" rx="30" ry="6" fill="#18181B" opacity="0.10"/>'+
+ '<path d="M110 66 C87.9 66 70 83.9 70 106 C70 126 90 140 106.5 151 C108.6 152.4 111.4 152.4 113.5 151 '+
+ 'C130 140 150 126 150 106 C150 83.9 132.1 66 110 66 Z" fill="#2d2d2d"/>'+
+ '<circle cx="110" cy="104" r="27" fill="#fff"/>'+
+ '<circle cx="101" cy="100" r="3.6" fill="#2d2d2d"/><circle cx="119" cy="100" r="3.6" fill="#2d2d2d"/>'+
+ '<path d="M100 109 Q110 119 120 109" stroke="#2d2d2d" stroke-width="3.6" fill="none" stroke-linecap="round"/></svg>';
+
+var Q = '<span class="thico"><svg viewBox="0 0 24 24" width="16" height="16"><circle cx="12" cy="12" r="10" fill="#2d2d2d"/><text x="12" y="16.4" text-anchor="middle" font-size="12.5" font-weight="700" fill="#fff">?</text></svg></span>';
+var I = '<span class="thico"><svg viewBox="0 0 24 24" width="16" height="16"><circle cx="12" cy="12" r="10" fill="#2d2d2d"/><path fill="#fff" d="M11 10.4h2V17h-2zM11 7h2v2h-2z"/></svg></span>';
+var GLOBE = '<span class="thico" style="margin-left:0"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#2d2d2d" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.6 2.5 3.9 5.5 3.9 9S14.6 18.5 12 21c-2.6-2.5-3.9-5.5-3.9-9S9.4 5.5 12 3z"/></svg></span>';
+
+S.fix = function(){
+  var v = document.getElementById('view-subs');
+  if(!v) return;
+  /* 3. wording */
+  var p = v.querySelector('#subsManage .agx-empty p');
+  if(p && p.textContent.trim() === 'Purchase a subscription to use JobAgentX')
+    p.textContent = 'Purchase a subscription to use AI Sourcing';
+  /* 4. robot */
+  var ill = v.querySelector('#subsManage .agx-empty-ill');
+  if(ill && !ill.__subx){ ill.__subx = 1; ill.innerHTML = ROBOT; }
+  /* 5. header icons */
+  var ths = v.querySelectorAll('.agx-acttbl th');
+  ths.forEach(function(th){
+    if(th.__subx) return;
+    var t = th.textContent.trim();
+    if(t === 'Activity'){ th.__subx = 1; th.innerHTML = 'Activity' + Q; }
+    if(t === 'Market'){ th.__subx = 1; th.className += ' mkt';
+      th.innerHTML = GLOBE + '<span class="w">Market</span>'; }
+    if(t === 'Sub. balance'){ th.__subx = 1; th.innerHTML = 'Sub. balance' + I; }
+  });
+  /* 6. arrows */
+  var ar = v.querySelector('.agx-actarrows');
+  if(ar && !ar.__subx){ ar.__subx = 1;
+    ar.innerHTML = '<b class="dim">&#8592;</b><b class="dim">&#8594;</b>'; }
+};
+
+var t0 = setInterval(S.fix, 500);
+setTimeout(function(){ clearInterval(t0); setInterval(S.fix, 1500); }, 12000);
+S.fix();
+})();
+</script>
 </body>
 </html>
