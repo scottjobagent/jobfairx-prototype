@@ -18430,5 +18430,43 @@ wrap();
 var n = 0, t = setInterval(function(){ wrap(); if(++n > 20) clearInterval(t); }, 500);
 })();
 </script>
+<script>
+/* ═══ GLOBALCTA — build66 ══════════════════════════════════════════ */
+(function(){
+'use strict';
+var G = window.GLOBALCTA = {};
+
+G.rename = function(){
+  /* 1. Candidates empty CTA */
+  var c = document.querySelector('.cde-cta');
+  if(c && c.textContent.trim() === 'Create agent') c.textContent = 'Create new position';
+
+  /* 2. create-agent success screen: button + its lead-in line */
+  var s = document.querySelector('.reg-success-primary');
+  if(s && s.textContent.trim() === 'Post a job') s.textContent = 'Create new position';
+  var m = document.querySelector('.reg-success-msg');
+  if(m && m.textContent.indexOf('Post your first job') === 0)
+    m.textContent = 'Create your first position so candidates can start matching with you.';
+
+  /* 3. kebab menus — rendered by innerHTML on open, so match by attribute
+     every pass */
+  document.querySelectorAll('[data-agd="multiloc"]').forEach(function(b){
+    if(b.textContent.trim() === 'Post job in multiple locations')
+      b.textContent = 'Create position in multiple locations';
+  });
+
+  /* hygiene: the retired overview view (unreachable — "there is no
+     dashboard"), same treatment as build63's dashEmptyState */
+  document.querySelectorAll('#view-overview .btn-primary').forEach(function(b){
+    if(b.textContent.trim() === 'Create agent') b.textContent = 'Create new position';
+  });
+};
+
+document.addEventListener('click', function(){ setTimeout(G.rename, 80); }, true);
+var t0 = setInterval(G.rename, 500);
+setTimeout(function(){ clearInterval(t0); setInterval(G.rename, 1500); }, 12000);
+G.rename();
+})();
+</script>
 </body>
 </html>
