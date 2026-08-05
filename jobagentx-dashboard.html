@@ -17703,5 +17703,130 @@ document.addEventListener('keydown', function(e){
 });
 })();
 </script>
+<style>
+/* ═══ SSPLANS — Plans and Pricing in the Sourcing tab, phase C (build55) ══
+   Values DOM-measured on the live source's /purchase page. */
+body.sse #ssScrPlans .ss-emptybox{display:none}
+#sspWrap{display:none}
+body.sse #ssScrPlans #sspWrap{display:block}
+
+/* stepper: 1200 wide, 85 tall, two 584 steps */
+.ssp-steps{display:flex;width:1200px;max-width:100%;margin:0 auto;padding:16px;
+  box-sizing:border-box;height:85px;align-items:flex-start}
+.ssp-step{flex:1 1 584px;display:flex;flex-direction:column;align-items:center;position:relative}
+.ssp-step .num{width:28px;height:28px;border-radius:50%;border:1px solid #2d2d2d;
+  display:flex;align-items:center;justify-content:center;font-size:14px;line-height:21px;
+  font-weight:700;color:#2d2d2d;background:#fff;position:relative;z-index:1}
+.ssp-step.pending .num{border-color:#767676;color:#767676}
+.ssp-step .lbl{margin-top:10px;font-size:14px;line-height:21px;font-weight:700;color:#2d2d2d}
+.ssp-step.pending .lbl{color:#595959}
+.ssp-step + .ssp-step:before{content:"";position:absolute;top:14px;right:50%;left:-50%;
+  border-top:1px solid #2d2d2d}
+
+/* Compare Plans, measured */
+.ssp-cmpwrap{text-align:center;padding:34px 0 8px}
+.ssp-cmpwrap p{font-size:16px;line-height:24px;color:#2d2d2d;margin:0 0 12px}
+.ssp-cmp{height:36px;background:#fff;border:1px solid #e4e2e0;border-radius:12px;
+  padding:5px 15px;font-family:inherit;font-size:16px;line-height:24px;font-weight:700;
+  color:#004fcb;cursor:pointer}
+.ssp-cmp:hover{background:#f7f9ff}
+
+/* comparison matrix: 960 wide, three 320 columns, rows 64 */
+.ssp-matrix{display:none;width:960px;max-width:100%;margin:24px auto 0}
+.ssp-matrix.on{display:block}
+.ssp-matrix h3{font-size:28px;line-height:36px;font-weight:700;color:#2d2d2d;margin:0 0 20px}
+.ssp-mrow{display:flex;border-bottom:1px solid #e4e2e0}
+.ssp-mrow > div{flex:0 0 320px;width:320px;min-height:64px;display:flex;align-items:center;
+  padding:12px 16px;box-sizing:border-box;font-size:16px;line-height:24px;color:#2d2d2d}
+.ssp-mrow > div:first-child{color:#2d2d2d}
+.ssp-mrow.head > div{font-weight:700}
+.ssp-mrow .tick{color:#1f662c;margin-right:8px;font-weight:700}
+</style>
+<script>
+/* ═══ SSPLANS — phase C (build55) ═══════════════════════════════════ */
+(function(){
+'use strict';
+var P = window.SSPLANS = {};
+var home = null, homeNext = null;   /* where #subsPlans lives normally */
+
+var MATRIX = [
+ ['Core AI Sourcing features', 'Included', 'Included', 1],
+ ['Sourcing Assistant', '3 assistants', 'Unlimited assistants', 1],
+ ['Ideal team size', '1–2 hiring teams', 'Multiple teams / departments', 0],
+ ['Pricing model', 'Fixed, subscription-based pricing', 'Custom, volume-based pricing', 0],
+ ['Usage limits', '100 contacts a month per user*', 'Custom limits with automatic allocation', 0],
+ ['Onboarding &amp; support', 'Standard support', 'Dedicated onboarding &amp; support', 0],
+ ['Contract flexibility', 'Month-to-month / annual', 'Custom terms available', 0],
+ ['Best for', 'Teams getting started fast', 'Organizations hiring at scale', 0],
+ ['Reassign subscriptions', '4 times per month', 'Unlimited', 0]
+];
+
+function matrixHtml(){
+  var h = '<div class="ssp-matrix" id="sspMatrix"><h3>Compare plans by team needs</h3>';
+  MATRIX.forEach(function(r){
+    var tick = r[3] ? '<span class="tick">&#10003;</span>' : '';
+    h += '<div class="ssp-mrow"><div>'+r[0]+'</div><div>'+tick+r[1]+'</div><div>'+tick+r[2]+'</div></div>';
+  });
+  return h + '</div>';
+}
+
+P.build = function(){
+  var scr = document.getElementById('ssScrPlans');
+  if(!scr || document.getElementById('sspWrap')) return;
+  var w = document.createElement('div');
+  w.id = 'sspWrap';
+  w.innerHTML =
+    '<div class="ssp-steps">'+
+      '<div class="ssp-step"><span class="num">1</span><span class="lbl">Choose subscription type</span></div>'+
+      '<div class="ssp-step pending"><span class="num">2</span><span class="lbl">Review order</span></div>'+
+    '</div>'+
+    '<div id="sspSlot"></div>'+
+    '<div class="ssp-cmpwrap">'+
+      '<p>Not sure which plan is right for you? Compare by team needs.</p>'+
+      '<button class="ssp-cmp" data-ssp="cmp">Compare Plans &#43;</button>'+
+      matrixHtml()+
+    '</div>';
+  scr.appendChild(w);
+};
+
+/* move the real panel in, remember where it came from */
+P.attach = function(){
+  P.build();
+  var panel = document.getElementById('subsPlans');
+  var slot  = document.getElementById('sspSlot');
+  if(!panel || !slot || panel.parentElement === slot) return;
+  if(!home){ home = panel.parentElement; homeNext = panel.nextSibling; }
+  slot.appendChild(panel);
+  panel.style.display = 'block';
+};
+P.detach = function(){
+  var panel = document.getElementById('subsPlans');
+  if(!panel || !home || panel.parentElement === home) return;
+  panel.style.display = '';
+  if(homeNext && homeNext.parentElement === home) home.insertBefore(panel, homeNext);
+  else home.appendChild(panel);
+};
+
+document.addEventListener('click', function(e){
+  var t = e.target.closest && e.target.closest('[data-ssp="cmp"]');
+  if(t){ e.preventDefault();
+    var m = document.getElementById('sspMatrix');
+    if(m){ m.classList.toggle('on');
+           t.innerHTML = m.classList.contains('on') ? 'Compare Plans &#8722;' : 'Compare Plans &#43;'; }
+  }
+}, true);
+
+/* attach when the Plans tab is showing in the empty state */
+function sync(){
+  var empty  = document.body.classList.contains('sse');
+  var onPlans = !!document.querySelector('#ssSubnav .ss-tab[data-ss="plans"].on');
+  if(empty && onPlans) P.attach(); else P.detach();
+}
+document.addEventListener('click', function(){ setTimeout(sync, 60); }, true);
+var t0 = setInterval(sync, 700);
+setTimeout(function(){ clearInterval(t0); setInterval(sync, 1500); }, 12000);
+sync();
+})();
+</script>
 </body>
 </html>
