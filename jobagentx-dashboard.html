@@ -17935,5 +17935,103 @@ var n = 0, t = setInterval(function(){ mark(); if(++n > 20) clearInterval(t); },
 document.addEventListener('click', function(){ setTimeout(mark, 120); }, true);
 })();
 </script>
+<style>
+/* ═══ CDEMPTY — Candidates empty state (build58) ════════════════════════
+   Every value DOM-measured on the live source's empty Candidates page. */
+
+/* their empty state strips the page chrome — measured absent, not assumed.
+   Structural rule rather than a list of class names: everything inside .cx
+   goes except the dev bar and our own block. A name list would have to be
+   kept in step with the markup; this cannot fall out of date. */
+body.cde #view-candidates .cx > *:not(.cd-devbar):not(#cdeWrap){display:none !important}
+
+#cdeWrap{display:none}
+body.cde #cdeWrap{display:block}
+/* their canvas is grey so the white card reads as a card. TWO elements paint
+   white here — the view and its .cx wrapper — and colouring only the view left
+   the card invisible on the first pass. */
+body.cde #view-candidates,
+body.cde #view-candidates .cx{background:#f3f2f1}
+/* their card is x=247 w=1241; our column starts 4px in, so pull it back out */
+body.cde #cdeWrap{margin:0 -4px}
+
+/* header: title + the 44x44 search button */
+.cde-head{display:flex;align-items:center;padding:0 0 0 4px;height:38px;margin:0 0 39px}
+.cde-head h1{flex:1 1 auto;font-size:20px;line-height:30px;font-weight:700;color:#2d2d2d;margin:0}
+.cde-search{flex:0 0 44px;width:44px;height:44px;background:#fff;border:1px solid #e4e2e0;
+  border-radius:12px;padding:9px;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;color:#2d2d2d}
+.cde-search:hover{background:#f7f9ff}
+
+/* one card, 80px vertical padding, centred stack */
+.cde-card{background:#fff;border-radius:12px;padding:80px 0;display:flex;flex-direction:column;
+  align-items:center;text-align:center}
+.cde-art{width:300px;height:127px;display:flex;align-items:center;justify-content:center}
+.cde-card h2{font-size:24px;line-height:30px;font-weight:700;color:#2d2d2d;margin:22px 0 0}
+.cde-card p{font-size:16px;line-height:24px;font-weight:400;color:#595959;margin:17px 0 0;
+  max-width:628px}
+.cde-cta{margin-top:18px;height:44px;background:#004fcb;color:#fff;border:0;border-radius:12px;
+  padding:9px 16px;font-family:inherit;font-size:16px;line-height:24px;font-weight:700;cursor:pointer}
+.cde-cta:hover{background:#0043ad}
+</style>
+<script>
+/* ═══ CDEMPTY — Candidates empty state (build58) ════════════════════ */
+(function(){
+'use strict';
+var C = window.CDEMPTY = {};
+
+/* our robot, sized to their measured 300x127 slot */
+var ROBOT =
+ '<svg viewBox="0 0 220 220" width="127" height="127" fill="none" aria-hidden="true">'+
+ '<ellipse cx="110" cy="164" rx="30" ry="6" fill="#18181B" opacity="0.10"/>'+
+ '<path d="M110 66 C87.9 66 70 83.9 70 106 C70 126 90 140 106.5 151 C108.6 152.4 111.4 152.4 113.5 151 '+
+ 'C130 140 150 126 150 106 C150 83.9 132.1 66 110 66 Z" fill="#2d2d2d"/>'+
+ '<circle cx="110" cy="104" r="27" fill="#fff"/>'+
+ '<circle cx="101" cy="100" r="3.6" fill="#2d2d2d"/><circle cx="119" cy="100" r="3.6" fill="#2d2d2d"/>'+
+ '<path d="M100 109 Q110 119 120 109" stroke="#2d2d2d" stroke-width="3.6" fill="none" stroke-linecap="round"/></svg>';
+
+var ICO_SEARCH = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" '+
+  'stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>';
+
+C.build = function(){
+  var v = document.getElementById('view-candidates');
+  if(!v || document.getElementById('cdeWrap')) return;
+  var w = document.createElement('div');
+  w.id = 'cdeWrap';
+  w.innerHTML =
+    '<div class="cde-head"><h1>Candidates</h1>'+
+      '<button class="cde-search" aria-label="Search candidates">'+ICO_SEARCH+'</button></div>'+
+    '<div class="cde-card">'+
+      '<div class="cde-art">'+ROBOT+'</div>'+
+      '<h2>No applicants available</h2>'+
+      '<p>You don\'t have any agents running in JobFairX. Create an agent today to '+
+      'seamlessly view and manage your applicants here.</p>'+
+      '<button class="cde-cta" data-cde="create">Create agent</button>'+
+    '</div>';
+  /* the dev bar's parent is .cx, not the view — insert as its sibling */
+  var bar = v.querySelector('.cd-devbar');
+  var host = bar ? bar.parentElement : (v.querySelector('.cx') || v);
+  if(bar && bar.nextSibling) host.insertBefore(w, bar.nextSibling); else host.appendChild(w);
+};
+
+document.addEventListener('click', function(e){
+  var b = e.target.closest && e.target.closest('[data-cde="create"]');
+  if(b){ e.preventDefault();
+    if(typeof showView === 'function') showView('events');
+    if(typeof showRegView === 'function') showRegView();
+  }
+}, true);
+
+function sync(){
+  var empty = !!(window.CD && CD.mode === 'empty');
+  document.body.classList.toggle('cde', empty);
+  if(empty) C.build();
+}
+document.addEventListener('click', function(){ setTimeout(sync, 80); }, true);
+var t0 = setInterval(sync, 600);
+setTimeout(function(){ clearInterval(t0); setInterval(sync, 1500); }, 12000);
+sync();
+})();
+</script>
 </body>
 </html>
