@@ -18468,5 +18468,413 @@ setTimeout(function(){ clearInterval(t0); setInterval(G.rename, 1500); }, 12000)
 G.rename();
 })();
 </script>
+<style>
+/* ═══ UADM — Users admin page (build67) ═════════════════════════════════ */
+
+/* legacy page hidden; the banner and the rebuild stay. Structural rule, not
+   a class list. */
+#view-users > *:not(#agxUsrBanner):not(#uadmWrap):not(#uadmChip){display:none !important}
+#view-users{padding-bottom:48px}
+
+#uadmChip{display:inline-block;background:#595959;color:#fff;font-size:14px;font-weight:700;
+  line-height:26px;border-radius:12px;padding:9px 12px;margin:28px 0 26px 28px}
+
+#uadmWrap{margin:0 28px}
+.uadm-head{display:flex;align-items:flex-start;justify-content:space-between;margin-top:22px}
+.uadm-head h1{font-size:28px;line-height:35px;font-weight:700;color:#2d2d2d;margin:0}
+.uadm-owner{font-size:14px;line-height:18px;color:#595959;margin-top:18px}
+.uadm-add{height:44px;background:#004fcb;color:#fff;border:0;border-radius:12px;padding:9px 16px;
+  font-family:inherit;font-size:16px;line-height:24px;font-weight:700;cursor:pointer;
+  display:inline-flex;align-items:center;gap:8px}
+.uadm-add:hover{background:#0043ad}
+
+.uadm-tabs{display:flex;gap:34px;margin-top:44px;border-bottom:1px solid #e4e2e0}
+.uadm-tab{background:none;border:0;padding:0 0 12px;cursor:pointer;font-family:inherit;text-align:left}
+.uadm-tab .n{display:block;font-size:14px;line-height:18px;color:#2d2d2d}
+.uadm-tab .l{display:block;font-size:16px;line-height:24px;color:#595959;margin-top:2px}
+.uadm-tab.on{box-shadow:inset 0 -3px 0 #2d2d2d}
+.uadm-tab.on .l{font-weight:700;color:#2d2d2d}
+
+.uadm-line{display:flex;align-items:center;justify-content:space-between;padding:18px 0}
+.uadm-line p{font-size:14px;line-height:18px;color:#2d2d2d;margin:0}
+.uadm-line a{color:#004fcb;text-decoration:underline;cursor:pointer}
+.uadm-exp{height:44px;background:#fff;border:1px solid #e4e2e0;border-radius:12px;padding:9px 15px;
+  font-family:inherit;font-size:16px;line-height:24px;font-weight:700;color:#2d2d2d;cursor:pointer;
+  display:inline-flex;align-items:center;gap:8px}
+.uadm-exp:hover{background:#f7f9ff}
+
+.uadm-tbl{width:100%;border-collapse:collapse}
+.uadm-tbl thead tr{background:#e4e2e0;height:46px}
+.uadm-tbl th{font-size:14px;line-height:18px;font-weight:700;color:#595959;text-align:left;
+  padding:0 16px 0 8px;text-transform:none;letter-spacing:normal}
+.uadm-tbl th.acc{width:60%}
+.uadm-tbl th.act{text-align:right;padding-right:16px}
+.uadm-sort{display:inline-block;margin-left:6px;color:#595959;font-size:11px}
+.uadm-tbl td{height:55px;border-bottom:1px solid #e4e2e0;padding:0 16px 0 8px;
+  font-size:14px;line-height:21px;color:#2d2d2d;vertical-align:middle}
+.uadm-tbl td.act{text-align:right}
+.uadm-pend td:first-child{font-style:italic;color:#595959}
+.uadm-clock{display:inline-flex;width:18px;height:18px;vertical-align:-4px;margin-left:10px}
+
+.uadm-bdg{display:inline-flex;align-items:center;gap:4px;height:24px;border-radius:8px;
+  padding:3px 9px;box-sizing:border-box;font-size:12px;line-height:18px;font-weight:700;
+  background:#ecf2ff;color:#004fcb;margin-right:8px}
+.uadm-bdg.grey{background:#f3f2f1;color:#595959}
+.uadm-bdg.amber{background:#faeec8;color:#734d00}
+
+.uadm-keb{width:44px;height:44px;background:none;border:0;cursor:pointer;font-size:18px;
+  color:#2d2d2d;border-radius:12px;letter-spacing:1px}
+.uadm-keb:hover{background:#f3f2f1}
+.uadm-menu{position:absolute;background:#fff;border:1px solid #e4e2e0;border-radius:12px;
+  padding:10px 0;width:224px;z-index:60;
+  box-shadow:0 0 2px rgba(45,45,45,.16),0 4px 8px rgba(45,45,45,.08),0 8px 16px rgba(45,45,45,.04)}
+.uadm-menu button{display:block;width:100%;text-align:left;background:none;border:0;cursor:pointer;
+  font-family:inherit;font-size:16px;line-height:24px;color:#2d2d2d;padding:10px 12px}
+.uadm-menu button:hover{background:#f7f9ff}
+.uadm-menu button.red{color:#a9252b}
+
+.uadm-pag{display:flex;align-items:center;gap:18px;margin-top:24px;padding-left:30px}
+.uadm-pag .pg{background:none;border:0;cursor:pointer;font-family:inherit;font-size:16px;
+  font-weight:700;color:#949494;display:inline-flex;align-items:center;gap:8px}
+.uadm-pag .cur{width:34px;height:34px;border-radius:10px;background:#2d2d2d;color:#fff;
+  font-size:14px;font-weight:700;display:inline-flex;align-items:center;justify-content:center}
+
+/* requests empty state */
+.uadm-req{display:flex;gap:44px;align-items:flex-start;margin-top:26px}
+.uadm-req .art{flex:0 0 155px;display:flex;justify-content:center}
+.uadm-req h2{font-size:24px;line-height:30px;font-weight:700;color:#2d2d2d;margin:0 0 12px}
+.uadm-req p{font-size:14px;line-height:21px;color:#2d2d2d;margin:0 0 16px;max-width:640px}
+
+/* modals */
+.uadm-ov{position:fixed;inset:0;background:rgba(45,45,45,.5);z-index:200;display:flex;
+  align-items:flex-start;justify-content:center;padding-top:40px}
+.uadm-mod{background:#fff;border:1px solid #e4e2e0;border-radius:20px;width:800px;max-width:94vw;
+  max-height:calc(100vh - 80px);display:flex;flex-direction:column;position:relative}
+.uadm-mod-h{padding:24px 24px 0;font-size:20px;line-height:30px;font-weight:700;color:#2d2d2d}
+.uadm-x{position:absolute;top:18px;right:18px;width:34px;height:34px;background:none;border:0;
+  cursor:pointer;font-size:20px;color:#2d2d2d;border-radius:8px}
+.uadm-x:hover{background:#f3f2f1}
+.uadm-mod-b{padding:14px 24px 0;overflow:auto}
+.uadm-lbl{font-size:16px;line-height:24px;font-weight:700;color:#2d2d2d}
+.uadm-hint{font-size:14px;line-height:21px;color:#595959}
+.uadm-in{width:100%;height:42px;border:1px solid #949494;border-radius:12px;padding:9px 12px;
+  box-sizing:border-box;font-family:inherit;font-size:16px;color:#2d2d2d;margin-top:5px}
+.uadm-in:focus{outline:2px solid #004fcb;outline-offset:-1px;border-color:#004fcb}
+.uadm-q{font-size:20px;line-height:30px;font-weight:700;color:#2d2d2d;margin:18px 0 12px}
+.uadm-seg{display:inline-flex;border:1px solid #e4e2e0;border-radius:12px;padding:3px;background:#fff}
+.uadm-seg button{border:0;background:transparent;border-radius:8px;padding:6px 16px;cursor:pointer;
+  font-family:inherit;font-size:16px;line-height:24px;font-weight:700;color:#2d2d2d}
+.uadm-seg button.on{background:#2d2d2d;color:#fff}
+.uadm-card{display:flex;gap:16px;align-items:flex-start;border:1px solid #e4e2e0;border-radius:12px;
+  padding:12px;margin-top:8px;cursor:pointer}
+.uadm-card .desc{font-size:14px;line-height:21px;color:#2d2d2d;margin-top:10px}
+.uadm-opt{display:flex;gap:14px;align-items:flex-start;padding:14px 0;border-bottom:1px solid #e4e2e0}
+.uadm-opt:last-child{border-bottom:0}
+.uadm-opt .t{font-size:14px;line-height:18px;font-weight:700;color:#2d2d2d}
+.uadm-opt .d{font-size:16px;line-height:24px;color:#595959;margin-top:2px}
+.uadm-sub{margin-top:10px;display:flex;flex-direction:column;gap:8px}
+.uadm-sub label{display:flex;align-items:center;gap:10px;font-size:14px;line-height:21px;color:#2d2d2d;cursor:pointer}
+.uadm-legal{font-size:13px;line-height:19px;color:#595959;padding:14px 24px 22px}
+.uadm-foot{display:flex;justify-content:flex-end;gap:10px;padding:18px 24px 0}
+.uadm-cancel{background:none;border:0;cursor:pointer;font-family:inherit;font-size:16px;
+  line-height:24px;font-weight:700;color:#004fcb;padding:9px 15px}
+.uadm-cancel.outl{background:#fff;border:1px solid #e4e2e0;border-radius:12px}
+.uadm-pri{height:44px;background:#004fcb;color:#fff;border:0;border-radius:12px;padding:9px 16px;
+  font-family:inherit;font-size:16px;line-height:24px;font-weight:700;cursor:pointer;
+  display:inline-flex;align-items:center;gap:8px}
+.uadm-pri:disabled{background:#e4ecfb;cursor:default}
+.uadm-mod.sm{width:560px}
+.uadm-mod.sm .uadm-mod-b p{font-size:16px;line-height:24px;color:#2d2d2d;margin:0 0 16px}
+
+/* export toast, bottom-left */
+#uadmToast{position:fixed;left:24px;bottom:24px;z-index:300;background:#fff;border-radius:12px;
+  padding:16px 20px;display:flex;gap:12px;align-items:flex-start;min-width:300px;
+  box-shadow:0 0 2px rgba(45,45,45,.16),0 4px 8px rgba(45,45,45,.08),0 8px 16px rgba(45,45,45,.04)}
+#uadmToast .tt{font-size:16px;line-height:24px;font-weight:700;color:#2d2d2d}
+#uadmToast .ts{font-size:14px;line-height:21px;color:#2d2d2d}
+</style>
+<script>
+/* ═══ UADM — build67 ═══════════════════════════════════════════════ */
+(function(){
+'use strict';
+var U = window.UADM = {};
+
+/* the page's data. maria/emily carried over from the legacy static table;
+   emily's old "Limited" renders the way the live source shows a
+   limited-access user: amber Limited + grey Candidates. */
+U.users = [
+  {email:'scott@jobfairx.com (you)', you:true,  badges:[['blue','Admin'],['blue','Owner']]},
+  {email:'maria.lopez@jobfairx.com', you:false, badges:[['blue','Admin']]},
+  {email:'emily.chen@jobfairx.com',  you:false, badges:[['amber','Limited'],['grey','Candidates']]}
+];
+U.tab = 'approved';
+
+var STAR = '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l2.6 5.6 6 .7-4.5 4.1 1.2 5.9L12 16.4 6.7 19.3l1.2-5.9L3.4 9.3l6-.7z"/></svg>';
+var LOCK = '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
+var DL   = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 4v11m-5-4l5 5 5-5M4 20h16"/></svg>';
+var PLUS = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg>';
+var CLOCK= '<svg viewBox="0 0 24 24" width="18" height="18"><circle cx="12" cy="12" r="10" fill="#b16c00"/><path d="M12 6.5V12l3.6 2.4" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>';
+var CHECKG='<svg viewBox="0 0 24 24" width="22" height="22"><circle cx="12" cy="12" r="10" fill="#1f662c"/><path d="M7.5 12.5l3 3 6-6.5" stroke="#fff" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+var ROBOT =
+ '<svg viewBox="0 0 220 220" width="127" height="127" fill="none" aria-hidden="true">'+
+ '<ellipse cx="110" cy="164" rx="30" ry="6" fill="#18181B" opacity="0.10"/>'+
+ '<path d="M110 66 C87.9 66 70 83.9 70 106 C70 126 90 140 106.5 151 C108.6 152.4 111.4 152.4 113.5 151 '+
+ 'C130 140 150 126 150 106 C150 83.9 132.1 66 110 66 Z" fill="#2d2d2d"/>'+
+ '<circle cx="110" cy="104" r="27" fill="#fff"/>'+
+ '<circle cx="101" cy="100" r="3.6" fill="#2d2d2d"/><circle cx="119" cy="100" r="3.6" fill="#2d2d2d"/>'+
+ '<path d="M100 109 Q110 119 120 109" stroke="#2d2d2d" stroke-width="3.6" fill="none" stroke-linecap="round"/></svg>';
+
+/* the access checklist — their nine rows, our words */
+U.OPTS = [
+ {k:'basic', t:'Basic access', d:'Use assigned subscriptions to search for and contact candidates', locked:true, on:true},
+ {k:'usermgmt', t:'User management', d:'Add users and edit permissions for new and existing users. Can grant the same or less access as themselves.'},
+ {k:'candidates', t:'Candidates', d:'View and contact applicants to posted positions', on:true, sub:true},
+ {k:'positions', t:'Positions', d:'Create and manage positions directly on JobFairX', on:true},
+ {k:'company', t:'Company Page', d:'Edit Company Page and respond to reviews'},
+ {k:'events', t:'Hiring events', d:'Create and manage event details'},
+ {k:'sourcing', t:'AI Sourcing subscription', d:'Assign subscriptions and distribute contacts'},
+ {k:'billing', t:'Billing', d:'Submit payments and edit billing information'},
+ {k:'analytics', t:'Analytics', d:'View analytics overview and all reports'}
+];
+
+function bdg(kind, label){
+  var star = kind === 'blue' ? STAR : (kind === 'amber' ? LOCK : '');
+  return '<span class="uadm-bdg '+(kind==='blue'?'':kind)+'">'+star+label+'</span>';
+}
+
+/* ── page ── */
+U.render = function(){
+  var w = document.getElementById('uadmWrap');
+  if(!w) return;
+  var approved = U.users.length;
+  var h =
+    '<div class="uadm-head"><div><h1>Users: Tesla</h1>'+
+      '<div class="uadm-owner">Owner: scott@jobfairx.com</div></div>'+
+      '<button class="uadm-add" data-uadm="add">'+PLUS+'Add users</button></div>'+
+    '<div class="uadm-tabs">'+
+      '<button class="uadm-tab'+(U.tab==='approved'?' on':'')+'" data-uadm="tab-approved"><span class="n">'+approved+'</span><span class="l">Approved</span></button>'+
+      '<button class="uadm-tab'+(U.tab==='requests'?' on':'')+'" data-uadm="tab-requests"><span class="n">0</span><span class="l">Requests</span></button>'+
+    '</div>';
+  if(U.tab === 'approved'){
+    h += '<div class="uadm-line"><p>Manage AI Sourcing subscriptions for Tesla in '+
+         '<a data-uadm="submgmt">subscription management</a>.</p>'+
+         '<button class="uadm-exp" data-uadm="export">'+DL+'Export</button></div>';
+    h += '<table class="uadm-tbl"><thead><tr>'+
+         '<th>Users<span class="uadm-sort">&#8645;</span></th><th class="acc">Access</th>'+
+         '<th class="act">Actions</th></tr></thead><tbody>';
+    U.users.forEach(function(u, i){
+      var cells = '<td>'+u.email+(u.pending?'<span class="uadm-clock">'+CLOCK+'</span>':'')+'</td>';
+      cells += '<td class="acc">'+u.badges.map(function(b){return bdg(b[0],b[1]);}).join('')+'</td>';
+      cells += '<td class="act">'+(u.you?'':'<button class="uadm-keb" data-uadm="keb" data-i="'+i+'">&#8943;</button>')+'</td>';
+      h += '<tr'+(u.pending?' class="uadm-pend"':'')+'>'+cells+'</tr>';
+    });
+    h += '</tbody></table>';
+    h += '<div class="uadm-pag"><button class="pg">&#8592;&nbsp;Prev</button>'+
+         '<span class="cur">1</span><button class="pg">Next&nbsp;&#8594;</button></div>';
+  } else {
+    h += '<div class="uadm-req"><div class="art">'+ROBOT+'</div><div>'+
+         '<h2>There are no access requests to view</h2>'+
+         '<p>JobFairX is in the process of rolling out features to make it easier for your hiring '+
+         'team members to request new or additional access to the Tesla JobFairX account. You and '+
+         'any other Admins will have the control to approve or deny requests.</p>'+
+         '<p>In addition to being visible here, the Tesla JobFairX account owner '+
+         '(scott@jobfairx.com) will receive emails about new access requests.</p></div></div>';
+  }
+  w.innerHTML = h;
+};
+
+U.build = function(){
+  var v = document.getElementById('view-users');
+  if(!v || document.getElementById('uadmWrap')) return;
+  var banner = document.getElementById('agxUsrBanner');
+  var chip = document.createElement('div');
+  chip.id = 'uadmChip'; chip.textContent = 'Users';
+  var w = document.createElement('div');
+  w.id = 'uadmWrap';
+  if(banner){ v.insertBefore(chip, banner); banner.after(w); }
+  else { v.prepend(chip); chip.after(w); }
+  U.render();
+};
+
+/* ── modals ── */
+function segAndOptions(state){
+  var h = '<div class="uadm-seg">'+
+    '<button data-um="seg-cur" class="'+(state.seg==='cur'?'on':'')+'">Currently used</button>'+
+    '<button data-um="seg-all" class="'+(state.seg==='all'?'on':'')+'">All options</button></div>';
+  if(state.seg === 'cur'){
+    h += '<label class="uadm-card"><input type="radio" name="umLevel" value="admin"'+(state.level==='admin'?' checked':'')+'>'+
+         '<span><span>'+bdg('blue','Admin')+'</span><div class="desc">Same as you.</div></span></label>';
+    h += '<label class="uadm-card"><input type="radio" name="umLevel" value="common"'+(state.level==='common'?' checked':'')+'>'+
+         '<span><span>'+bdg('grey','Candidates')+bdg('grey','Positions')+'</span>'+
+         '<div class="desc">Most common access level</div></span></label>';
+  } else {
+    h += '<div class="uadm-list">';
+    U.OPTS.forEach(function(o){
+      h += '<div class="uadm-opt"><input type="checkbox" data-uk="'+o.k+'"'+
+           (o.on?' checked':'')+(o.locked?' disabled':'')+'>'+
+           '<div style="flex:1"><div class="t">'+o.t+'</div><div class="d">'+o.d+'</div>';
+      if(o.sub){
+        h += '<div class="uadm-sub">'+
+          '<label><input type="radio" name="umCand" value="limited">'+bdg('amber','Limited')+
+          '<span>View and contact applicants for specific positions</span></label>'+
+          '<label><input type="radio" name="umCand" value="account" checked>'+
+          '<span>Allow access across the account</span></label></div>';
+      }
+      h += '</div></div>';
+    });
+    h += '</div>';
+  }
+  return h;
+}
+
+U.openAdd = function(){
+  U.mstate = {seg:'cur', level:'common'};
+  var ov = document.createElement('div');
+  ov.className = 'uadm-ov'; ov.id = 'uadmOv';
+  ov.innerHTML =
+    '<div class="uadm-mod"><div class="uadm-mod-h">Add users</div>'+
+    '<button class="uadm-x" data-um="close">&#10005;</button>'+
+    '<div class="uadm-mod-b">'+
+      '<div class="uadm-lbl">Email addresses</div>'+
+      '<div class="uadm-hint">Separate email addresses with a comma.</div>'+
+      '<input class="uadm-in" id="umEmails" type="text">'+
+      '<div class="uadm-q">What level of access would you like to provide?</div>'+
+      '<div id="umBody">'+segAndOptions(U.mstate)+'</div>'+
+    '</div>'+
+    '<div class="uadm-foot"><button class="uadm-cancel" data-um="close">Cancel</button>'+
+      '<button class="uadm-pri" id="umSave" disabled>Save and notify new users</button></div>'+
+    '<div class="uadm-legal">By clicking &quot;Save and notify new users&quot;, I agree JobFairX may share '+
+      'access to Tesla&#39;s account with this user, that I am authorized to grant such access, and for my '+
+      'email address to be shared with the user in this email notification. This user&#39;s access will '+
+      'match the role(s) I have selected for them.</div>'+
+    '</div>';
+  document.body.appendChild(ov);
+};
+
+U.openEdit = function(i){
+  U.mstate = {seg:'all', editing:i};
+  var u = U.users[i];
+  var ov = document.createElement('div');
+  ov.className = 'uadm-ov'; ov.id = 'uadmOv';
+  ov.innerHTML =
+    '<div class="uadm-mod"><div class="uadm-mod-h">Edit access for '+u.email.replace(' (you)','')+'</div>'+
+    '<button class="uadm-x" data-um="close">&#10005;</button>'+
+    '<div class="uadm-mod-b"><div id="umBody">'+segAndOptions(U.mstate)+'</div></div>'+
+    '<div class="uadm-foot" style="padding-bottom:22px">'+
+      '<button class="uadm-cancel outl" data-um="close">Cancel</button>'+
+      '<button class="uadm-pri" id="umEditSave">Save</button></div>'+
+    '</div>';
+  document.body.appendChild(ov);
+};
+
+U.openExport = function(){
+  var ov = document.createElement('div');
+  ov.className = 'uadm-ov'; ov.id = 'uadmOv';
+  ov.innerHTML =
+    '<div class="uadm-mod sm"><div class="uadm-mod-h">Export user list</div>'+
+    '<button class="uadm-x" data-um="close">&#10005;</button>'+
+    '<div class="uadm-mod-b" style="padding-top:18px">'+
+      '<p>A CSV file that contains user email addresses and their access will be sent to you at '+
+      '<b>scott@jobfairx.com</b>.</p><p>It might take up to 10 minutes to receive the email.</p></div>'+
+    '<div class="uadm-foot" style="padding-bottom:22px">'+
+      '<button class="uadm-cancel" data-um="close">Cancel</button>'+
+      '<button class="uadm-pri" id="umExportGo">'+DL+'Export</button></div>'+
+    '</div>';
+  document.body.appendChild(ov);
+};
+
+U.toast = function(){
+  var old = document.getElementById('uadmToast'); if(old) old.remove();
+  var t = document.createElement('div');
+  t.id = 'uadmToast';
+  t.innerHTML = CHECKG+'<div><div class="tt">Export started</div>'+
+    '<div class="ts">You&#39;ll receive an email with your file soon.</div></div>';
+  document.body.appendChild(t);
+  setTimeout(function(){ t.remove(); }, 5000);
+};
+
+function closeModal(){ var o = document.getElementById('uadmOv'); if(o) o.remove(); }
+function closeMenu(){ var m = document.getElementById('uadmMenu'); if(m) m.remove(); }
+
+/* ── events ── */
+document.addEventListener('input', function(e){
+  if(e.target && e.target.id === 'umEmails'){
+    var b = document.getElementById('umSave');
+    if(b) b.disabled = !e.target.value.trim();
+  }
+}, true);
+
+document.addEventListener('click', function(e){
+  var t = e.target.closest && e.target.closest('[data-uadm],[data-um],#umSave,#umEditSave,#umExportGo,[data-um-act]');
+  var menuHit = e.target.closest && e.target.closest('#uadmMenu');
+  if(!menuHit) closeMenu();
+  if(!t) return;
+
+  var a = t.getAttribute('data-uadm');
+  if(a === 'add'){ U.openAdd(); return; }
+  if(a === 'export'){ U.openExport(); return; }
+  if(a === 'submgmt'){ if(typeof showView==='function') showView('subs'); return; }
+  if(a === 'tab-approved'){ U.tab='approved'; U.render(); return; }
+  if(a === 'tab-requests'){ U.tab='requests'; U.render(); return; }
+  if(a === 'keb'){
+    e.stopPropagation();
+    var i = +t.getAttribute('data-i');
+    var m = document.createElement('div');
+    m.className = 'uadm-menu'; m.id = 'uadmMenu';
+    m.innerHTML = '<button data-um-act="edit" data-i="'+i+'">Edit</button>'+
+                  '<button data-um-act="remove" data-i="'+i+'" class="red">Remove access</button>';
+    document.body.appendChild(m);
+    var r = t.getBoundingClientRect();
+    m.style.left = Math.max(12, r.right - 224) + 'px';
+    m.style.top = (r.bottom + 4 + window.scrollY) + 'px';
+    return;
+  }
+
+  var act = t.getAttribute('data-um-act');
+  if(act === 'edit'){ closeMenu(); U.openEdit(+t.getAttribute('data-i')); return; }
+  if(act === 'remove'){ closeMenu(); U.users.splice(+t.getAttribute('data-i'),1); U.render(); return; }
+
+  var um = t.getAttribute('data-um');
+  if(um === 'close'){ closeModal(); return; }
+  if(um === 'seg-cur' || um === 'seg-all'){
+    U.mstate.seg = um === 'seg-cur' ? 'cur' : 'all';
+    var body = document.getElementById('umBody');
+    if(body) body.innerHTML = segAndOptions(U.mstate);
+    return;
+  }
+  if(t.id === 'umSave'){
+    var val = (document.getElementById('umEmails')||{value:''}).value;
+    val.split(',').map(function(s){return s.trim();}).filter(Boolean).forEach(function(em){
+      U.users.push({email:em, pending:true,
+        badges:[['grey','Positions'],['grey','Candidates']]});
+    });
+    closeModal(); U.tab='approved'; U.render(); return;
+  }
+  if(t.id === 'umEditSave'){
+    var i2 = U.mstate.editing;
+    var checks = [].slice.call(document.querySelectorAll('#umBody input[type="checkbox"]:checked'))
+      .map(function(c){ return c.getAttribute('data-uk'); })
+      .filter(function(k){ return k && k !== 'basic'; });
+    if(checks.length && U.users[i2] && !U.users[i2].badges.some(function(b){return b[1]==='Admin'||b[1]==='Owner';})){
+      U.users[i2].badges = checks.map(function(k){
+        var o = U.OPTS.filter(function(x){return x.k===k;})[0];
+        return ['grey', o ? o.t : k];
+      });
+    }
+    closeModal(); U.render(); return;
+  }
+  if(t.id === 'umExportGo'){ closeModal(); U.toast(); return; }
+}, true);
+
+/* radio card selection highlight (visual state only) */
+document.addEventListener('change', function(e){
+  if(e.target && e.target.name === 'umLevel') U.mstate.level = e.target.value;
+}, true);
+
+var t0 = setInterval(function(){ U.build(); }, 400);
+setTimeout(function(){ clearInterval(t0); setInterval(function(){ U.build(); }, 1500); }, 12000);
+U.build();
+})();
+</script>
 </body>
 </html>
