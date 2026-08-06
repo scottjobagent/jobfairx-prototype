@@ -19934,5 +19934,79 @@ setTimeout(function(){ clearInterval(t0); setInterval(W.sync, 1400); }, 13000);
 W.sync();
 })();
 </script>
+<style>
+/* ═══ RAXP — sponsor page audit fixes (build73) ═════════════════════════ */
+
+/* 1. keep the app shell: overlay covers only the content area */
+#raxPlan{position:fixed;inset:56px 0 0 220px;z-index:60}
+#raxPlan .raxp-top{display:none}
+
+/* 2. left-aligned column: h1 96px in, max 1112 */
+#raxPlan .raxp-body{margin:0;max-width:1112px;padding:40px 24px 80px 96px}
+
+/* 4. bands: #f7f6f5, r20 top, 14/500, no underline */
+#raxPlan .raxp-band{background:#f7f6f5;border-radius:20px 20px 0 0;font-weight:500;
+  text-decoration:none}
+
+/* 5. legal 12px; tip border #f9dec5 with a notch on the top edge */
+#raxPlan .raxp-legal{font-size:12px;line-height:18px}
+#raxPlan .raxp-tip{border-color:#f9dec5;position:relative;margin-top:14px}
+#raxPlan .raxp-tip:before,#raxPlan .raxp-tip:after{content:"";position:absolute;
+  left:56px;border-left:11px solid transparent;border-right:11px solid transparent}
+#raxPlan .raxp-tip:before{top:-12px;border-bottom:12px solid #f9dec5}
+#raxPlan .raxp-tip:after{top:-10px;border-left-width:10px;border-right-width:10px;
+  left:57px;border-bottom:11px solid #fff}
+</style>
+<script>
+/* ═══ RAXP — build73 ═══════════════════════════════════════════════ */
+(function(){
+'use strict';
+var X = window.RAXP = {};
+
+/* 3. duration combobox — four measured options driving the Max-budget line */
+X.OPTS = [
+  ['Runs continuously — Max budget: $562.50 per week', '$562.50 per week'],
+  ['30 days — Max budget: $2,250.00',                  '$2,250.00'],
+  ['15 days — Max budget: $1,125.00',                  '$1,125.00'],
+  ['4 days (ends August 8)',                                '$300.00']
+];
+
+X.fix = function(){
+  var o = document.getElementById('raxPlan');
+  if(!o || o.__raxp) return;
+  o.__raxp = 1;
+  var sel = o.querySelector('.raxp-sel');
+  var max = o.querySelector('.raxp-max');
+  var date = o.querySelector('.raxp-date');
+  if(sel){
+    sel.innerHTML = X.OPTS.map(function(p, i){
+      return '<option value="' + i + '"' + (i === 3 ? ' selected' : '') + '>' + p[0] + '</option>';
+    }).join('');
+    sel.onchange = function(){
+      var i = +sel.value;
+      if(max) max.innerHTML = '<b>Max budget:</b> ' + X.OPTS[i][1];
+      /* the end-date field belongs to the fixed-length choice */
+      var lbl = date && date.previousElementSibling;
+      var fixed = (i === 3);
+      if(date){ date.style.display = fixed ? '' : 'none'; }
+      if(lbl && lbl.classList.contains('raxp-lbl')) lbl.style.display = fixed ? '' : 'none';
+    };
+  }
+};
+
+if(window.RAX && RAX.openPlan && !RAX.openPlan.__raxp){
+  var _open = RAX.openPlan;
+  RAX.openPlan = function(){
+    var r = _open.apply(this, arguments);
+    X.fix();
+    return r;
+  };
+  RAX.openPlan.__raxp = 1;
+}
+/* the overlay can also appear via delegated clicks — sweep cheaply */
+var t0 = setInterval(X.fix, 500);
+setTimeout(function(){ clearInterval(t0); setInterval(X.fix, 1500); }, 12000);
+})();
+</script>
 </body>
 </html>
