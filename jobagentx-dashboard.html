@@ -20548,5 +20548,550 @@ var t0 = setInterval(RM.dialog, 600);
 setTimeout(function(){ clearInterval(t0); }, 12000);
 })();
 </script>
+<style>
+/* ═══ INTK — conversational intake + chooser + checks (build78) ═════════ */
+#intkOv,#intkScr{font-family:'Noto Sans',-apple-system,BlinkMacSystemFont,sans-serif}
+
+/* ── chooser modal ── */
+#intkOv{position:fixed;inset:0;background:rgba(45,45,45,.55);z-index:9500;display:none;align-items:center;justify-content:center}
+#intkOv.on{display:flex}
+.intk-modal{background:#fff;border-radius:20px;border:1px solid #e4e2e0;box-shadow:0 0 2px rgba(45,45,45,.16),0 4px 8px rgba(45,45,45,.08),0 8px 16px rgba(45,45,45,.04);padding:32px;width:760px;max-width:calc(100vw - 48px)}
+.intk-modal h2{font-size:20px;font-weight:700;color:#2d2d2d;margin:0 0 4px}
+.intk-modal .sub{font-size:14px;color:#595959;margin:0 0 24px}
+.intk-cards{display:flex;gap:16px}
+.intk-card{flex:1;border:1px solid #e4e2e0;border-radius:12px;padding:20px;cursor:pointer;background:#fff;text-align:left;transition:border-color .12s, box-shadow .12s;position:relative}
+.intk-card:hover{border-color:#2d2d2d;box-shadow:0 0 2px rgba(45,45,45,.16),0 4px 8px rgba(45,45,45,.08)}
+.intk-card .ic{width:44px;height:44px;border-radius:12px;background:#ecf2ff;display:flex;align-items:center;justify-content:center;margin-bottom:14px;font-size:20px;color:#004fcb}
+.intk-card .t{font-size:16px;font-weight:700;color:#2d2d2d;margin-bottom:4px}
+.intk-card .d{font-size:13.33px;color:#595959;line-height:1.45}
+.intk-new{position:absolute;top:14px;right:14px;background:#ecf2ff;color:#004fcb;font-size:12px;font-weight:700;border-radius:8px;padding:2px 8px}
+.intk-mfoot{display:flex;justify-content:flex-end;margin-top:24px}
+.intk-ghost{background:#f3f2f1;border:0;border-radius:12px;height:44px;padding:0 20px;font-size:14px;font-weight:700;color:#2d2d2d;cursor:pointer;font-family:inherit}
+.intk-ghost:hover{background:#e4e2e0}
+.intk-pri{background:#004fcb;border:0;border-radius:12px;height:44px;padding:0 20px;font-size:14px;font-weight:700;color:#fff;cursor:pointer;font-family:inherit}
+.intk-pri:hover{background:#0043ad}
+.intk-pri:disabled{background:#e4e2e0;color:#767676;cursor:default}
+
+/* ── full screen ── */
+#intkScr{position:fixed;inset:0;background:#faf9f8;z-index:9000;display:none;flex-direction:column}
+#intkScr.on{display:flex}
+.intk-head{height:64px;background:#fff;border-bottom:1px solid #e4e2e0;display:flex;align-items:center;padding:0 24px;gap:16px;flex:0 0 auto}
+.intk-back{background:none;border:0;font-size:14px;font-weight:700;color:#2d2d2d;cursor:pointer;display:flex;align-items:center;gap:6px;font-family:inherit;padding:8px 10px;border-radius:8px}
+.intk-back:hover{background:#f3f2f1}
+.intk-crumb{font-size:14px;color:#595959}
+.intk-crumb b{color:#2d2d2d;font-weight:700}
+.intk-hspace{flex:1}
+.intk-body{flex:1;display:flex;gap:16px;padding:16px;min-height:0}
+
+/* left panel */
+.intk-left{width:410px;flex:0 0 410px;background:#fff;border:1px solid #e4e2e0;border-radius:20px;display:flex;flex-direction:column;min-height:0}
+.intk-tabs{margin:12px;background:#f3f2f1;border-radius:12px;padding:4px;display:flex;gap:4px;flex:0 0 auto}
+.intk-tab{flex:1;border:0;background:none;border-radius:9px;height:36px;font-size:14px;font-weight:700;color:#595959;cursor:pointer;font-family:inherit}
+.intk-tab.on{background:#fff;color:#2d2d2d;box-shadow:0 0 2px rgba(45,45,45,.16),0 1px 2px rgba(45,45,45,.08)}
+.intk-feed{flex:1;overflow-y:auto;padding:4px 16px 12px;min-height:0}
+.intk-who{font-size:12px;color:#595959;margin:14px 2px 4px;display:flex;align-items:center;gap:6px}
+.intk-who.me{justify-content:flex-end}
+.intk-av{width:20px;height:20px;border-radius:50%;background:#004fcb;color:#fff;font-size:11px;font-weight:700;display:inline-flex;align-items:center;justify-content:center}
+.intk-av.bot{background:#2d2d2d}
+.intk-msg{border-radius:12px;padding:10px 14px;font-size:14px;line-height:1.5;color:#2d2d2d;max-width:88%}
+.intk-msg.user{background:#f3f2f1;margin-left:auto}
+.intk-msg.bot{background:#fff;border:1px solid #e4e2e0}
+.intk-threads{font-size:12px;color:#595959;margin:10px 0 6px;display:flex;align-items:center;gap:6px}
+.intk-thread{display:flex;align-items:center;gap:8px;width:100%;border:1px solid #e4e2e0;background:#fff;border-radius:12px;padding:8px 12px;font-size:13px;color:#2d2d2d;cursor:pointer;margin-top:6px;font-family:inherit;text-align:left}
+.intk-thread:hover{border-color:#2d2d2d}
+.intk-thread .arr{margin-left:auto;color:#767676}
+.intk-ckcard{border:1px solid #e4e2e0;border-radius:12px;padding:10px 14px;margin-top:8px;display:flex;align-items:center;gap:10px;font-size:13px;color:#2d2d2d;background:#fff}
+.intk-ckcard .st{font-size:12px;color:#595959;display:block}
+.intk-compose{border-top:1px solid #e4e2e0;padding:12px;display:flex;align-items:center;gap:8px;flex:0 0 auto;position:relative}
+#intkIn{flex:1;height:44px;border:1px solid #e4e2e0;border-radius:12px;padding:0 14px;font-size:14px;font-family:inherit;color:#2d2d2d;outline:none}
+#intkIn:focus{border:2px solid #004fcb;padding:0 13px}
+.intk-vchip{background:#f3f2f1;border:0;border-radius:999px;font-size:12px;font-weight:700;color:#595959;padding:6px 10px;cursor:pointer;font-family:inherit}
+.intk-send{width:36px;height:36px;border-radius:50%;background:#004fcb;border:0;color:#fff;cursor:pointer;font-size:15px;flex:0 0 auto}
+.intk-send:hover{background:#0043ad}
+.intk-vmenu{position:absolute;bottom:60px;right:12px;background:#fff;border:1px solid #e4e2e0;border-radius:12px;box-shadow:0 0 2px rgba(45,45,45,.16),0 4px 8px rgba(45,45,45,.08),0 8px 16px rgba(45,45,45,.04);padding:8px;min-width:230px;display:none;z-index:5}
+.intk-vmenu.on{display:block}
+.intk-vmenu .hd{font-size:12px;color:#767676;padding:4px 8px}
+.intk-vrow{padding:8px;border-radius:8px;font-size:13px;color:#2d2d2d;cursor:pointer;display:flex;gap:8px;align-items:center}
+.intk-vrow:hover{background:#f3f2f1}
+.intk-vrow .tag{background:#f3f2f1;border-radius:8px;font-size:11px;font-weight:700;color:#595959;padding:1px 6px}
+.intk-vrow .sub2{color:#767676;font-size:12px;display:block}
+
+/* doc panel */
+.intk-doc{flex:1;background:#fff;border:1px solid #e4e2e0;border-radius:20px;overflow-y:auto;min-height:0;display:flex;justify-content:center}
+.intk-docgrid{display:flex;gap:24px;padding:48px 40px;width:100%;max-width:1060px;align-items:flex-start}
+.intk-page{flex:1;max-width:660px;min-width:0}
+.intk-rail{width:300px;flex:0 0 300px}
+.intk-page h1{font-size:28px;font-weight:700;color:#2d2d2d;margin:0 0 6px}
+.intk-sec{margin:22px 0 0}
+.intk-sec h3{font-size:16px;font-weight:700;color:#2d2d2d;margin:0 0 8px}
+.intk-sec p,.intk-sec li{font-size:14px;line-height:1.6;color:#2d2d2d}
+.intk-sec ul{margin:0;padding-left:22px}
+.intk-empty{margin:120px auto;text-align:center;color:#767676;font-size:14px;max-width:340px}
+.intk-empty .big{font-size:16px;font-weight:700;color:#595959;margin-bottom:6px}
+.intk-del{color:#a9252b;text-decoration:line-through;background:#fbeaec;border-radius:3px;padding:0 2px}
+.intk-ins{color:#1f662c;background:#e9f3eb;border-radius:3px;padding:0 2px}
+h3.intk-ins,.intk-secnew h3{color:#1f662c;background:none}
+.intk-sug{background:#fff;border:1px solid #e4e2e0;border-radius:12px;box-shadow:0 0 2px rgba(45,45,45,.16),0 4px 8px rgba(45,45,45,.08),0 8px 16px rgba(45,45,45,.04);padding:14px 16px;margin-bottom:12px}
+.intk-sug .who{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:#2d2d2d}
+.intk-sug .ago{font-weight:400;color:#767676;font-size:12px}
+.intk-sug .body{font-size:13px;color:#2d2d2d;line-height:1.5;margin-top:6px}
+.intk-sug .cap{font-size:11px;font-weight:700;letter-spacing:.4px;color:#767676;margin-top:10px}
+.intk-sug .rep{font-size:13px;line-height:1.5;margin-top:2px}
+.intk-sug .rep .from{color:#a9252b}
+.intk-sug .rep .to{color:#1f662c}
+
+/* checks tab */
+.intk-ckwrap{flex:1;overflow-y:auto;padding:4px 16px 12px;min-height:0}
+.intk-ckcat{font-size:12px;font-weight:700;letter-spacing:.6px;color:#767676;text-transform:uppercase;margin:18px 2px 8px;display:flex;align-items:center}
+.intk-ckcat:first-child{margin-top:6px}
+.intk-ckrow{border:1px solid #e4e2e0;border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:10px;margin-bottom:8px;background:#fff}
+.intk-dot{width:14px;height:14px;border-radius:50%;border:1.5px solid #d4d2d0;flex:0 0 auto;background:#fff}
+.intk-dot.pass{background:#1f662c;border-color:#1f662c}
+.intk-dot.flag{background:#b16300;border-color:#b16300}
+.intk-dot.run{border-color:#004fcb;border-style:dashed;animation:intkspin 1s linear infinite}
+@keyframes intkspin{to{transform:rotate(360deg)}}
+.intk-ckmain{flex:1;min-width:0}
+.intk-ckname{font-size:14px;font-weight:700;color:#2d2d2d}
+.intk-cksub{font-size:12px;color:#767676}
+.intk-run{background:#fff;border:1px solid #e4e2e0;border-radius:10px;height:32px;padding:0 14px;font-size:13px;font-weight:700;color:#2d2d2d;cursor:pointer;font-family:inherit}
+.intk-run:hover{border-color:#2d2d2d}
+.intk-chev{background:none;border:0;color:#767676;cursor:pointer;font-size:16px;padding:4px}
+.intk-ckfoot{border-top:1px solid #e4e2e0;padding:12px;display:flex;gap:8px;flex:0 0 auto}
+.intk-ckfoot button{flex:1}
+/* check detail + run log */
+.intk-dhead{display:flex;align-items:center;gap:8px;margin:6px 2px 14px}
+.intk-dhead b{font-size:16px;font-weight:700;color:#2d2d2d;flex:1}
+.intk-lbl{font-size:14px;font-weight:700;color:#2d2d2d;margin:12px 2px 6px}
+.intk-lbl .hint{font-weight:400;font-size:12px;color:#767676;display:block}
+.intk-dinput{width:100%;height:44px;border:1px solid #e4e2e0;border-radius:12px;padding:0 14px;font-size:14px;font-family:inherit;color:#2d2d2d;box-sizing:border-box}
+.intk-dta{width:100%;min-height:110px;border:1px solid #e4e2e0;border-radius:12px;padding:12px 14px;font-size:14px;font-family:inherit;color:#2d2d2d;box-sizing:border-box;resize:vertical}
+.intk-dinput:focus,.intk-dta:focus{outline:none;border:2px solid #004fcb}
+.intk-runrow{border:1px solid #e4e2e0;border-radius:12px;padding:10px 14px;display:flex;align-items:center;gap:10px;margin-top:8px;cursor:pointer;font-size:13px;color:#2d2d2d}
+.intk-runrow:hover{border-color:#2d2d2d}
+.intk-log{font-size:13px;color:#2d2d2d;line-height:1.5}
+.intk-log .ts{color:#767676;font-size:12px;margin:14px 0 2px}
+.intk-log .ln{margin:0}
+</style>
+<script>
+(function(){
+'use strict';
+/* ═══ INTK — conversational intake (build78) ═══ */
+var K = window.INTK = { mode:'chat', tab:'chat', stage:'origin', turns:0,
+  versions:[], pend:[], threadsPending:[], detail:null, log:null };
+
+/* ── spec state (mirrors the Zod JobSpec; server-authoritative) ── */
+function blank(){ return { origin:null, title:null,
+  loc:{model:null,address:null,cadence:null,resReq:null,resWhere:null},
+  etype:null, sal:{structure:null,min:null,max:null,amount:null}, period:null,
+  benefits:null, sched:{shift:null,week:null}, skills:null, jd:false,
+  iv:{format:null,dur:null,auto:null,resume:null,emails:null},
+  screening:null }; }
+K.spec = blank();
+K.isComplete = function(s){ s=s||K.spec;
+  var loc = s.loc.model && (s.loc.model==='remote' ? s.loc.resReq!==null : !!s.loc.address);
+  var sal = s.sal.structure==='range' ? (s.sal.min&&s.sal.max) : !!s.sal.amount;
+  return !!(s.origin && s.title && loc && s.etype && sal && s.benefits &&
+    s.sched.shift && s.skills && s.skills.length && s.jd &&
+    s.iv.format && s.iv.dur && s.iv.auto!==null && s.iv.resume!==null &&
+    s.iv.emails && s.iv.emails.length && s.screening!==null); };
+
+/* ── DOM scaffolding (appended once) ── */
+var el = function(id){ return document.getElementById(id); };
+function h(html){ var d=document.createElement('div'); d.innerHTML=html; return d.firstElementChild; }
+document.body.appendChild(h(
+'<div id="intkOv" role="dialog">' +
+'<div class="intk-modal"><h2>How do you want to create this position?</h2>' +
+'<p class="sub">Three ways in — same result: a hiring agent sourcing for this role.</p>' +
+'<div class="intk-cards">' +
+'<button class="intk-card" id="intkOptChat"><span class="intk-new">New</span><span class="ic">&#128172;</span>' +
+'<div class="t">Chat with the Intake Assistant</div><div class="d">Tell it about the role in plain words. It builds the job spec live while you talk.</div></button>' +
+'<button class="intk-card" id="intkOptForm"><span class="ic">&#9998;</span>' +
+'<div class="t">Fill out the form</div><div class="d">The classic step-by-step form. Start fresh or from one of your previous agents.</div></button>' +
+'<button class="intk-card" id="intkOptPaste"><span class="ic">&#128203;</span>' +
+'<div class="t">Paste a job description</div><div class="d">Already have a JD? Paste it and the assistant pulls everything out of it.</div></button>' +
+'</div><div class="intk-mfoot"><button class="intk-ghost" id="intkCancel">Cancel</button></div></div></div>'));
+document.body.appendChild(h(
+'<div id="intkScr">' +
+'<div class="intk-head"><button class="intk-back" id="intkBack">&#8249; Dashboard</button>' +
+'<span class="intk-crumb">Positions / <b id="intkCrumb">New position</b></span>' +
+'<span class="intk-hspace"></span>' +
+'<button class="intk-pri" id="intkResolve" style="display:none">Resolve all suggestions</button>' +
+'<button class="intk-pri" id="intkCreate" disabled>Create agent</button></div>' +
+'<div class="intk-body">' +
+'<div class="intk-left">' +
+'<div class="intk-tabs"><button class="intk-tab on" id="intkTabChat">Chat</button>' +
+'<button class="intk-tab" id="intkTabChecks">Checks</button></div>' +
+'<div class="intk-feed" id="intkFeed"></div>' +
+'<div class="intk-ckwrap" id="intkChecks" style="display:none"></div>' +
+'<div class="intk-compose" id="intkComposeBar">' +
+'<input id="intkIn" placeholder="Tell me about the role..." autocomplete="off">' +
+'<button class="intk-vchip" id="intkVer">v1</button>' +
+'<button class="intk-send" id="intkSend">&#8593;</button>' +
+'<div class="intk-vmenu" id="intkVMenu"></div></div></div>' +
+'<div class="intk-doc"><div class="intk-docgrid">' +
+'<div class="intk-page" id="intkPage"></div>' +
+'<div class="intk-rail" id="intkRail"></div></div></div>' +
+'</div></div>'));
+
+/* ── chooser wiring: keep-outermost wrap of showRegView ── */
+if (!window.showRegView || !window.showRegView.__intk) {
+  var _orig = window.showRegView || function(){ window.location.href='jobagentx-create-agent.html'; };
+  window.showRegView = function(){ el('intkOv').classList.add('on'); };
+  window.showRegView.__intk = 1;
+  K.toForm = function(){ el('intkOv').classList.remove('on'); _orig(); };
+}
+el('intkCancel').onclick = function(){ el('intkOv').classList.remove('on'); };
+el('intkOv').addEventListener('click', function(e){ if(e.target===el('intkOv')) el('intkOv').classList.remove('on'); });
+el('intkOptForm').onclick = function(){ K.toForm(); };
+el('intkOptChat').onclick = function(){ K.open('chat'); };
+el('intkOptPaste').onclick = function(){ K.open('paste'); };
+el('intkBack').onclick = function(){ el('intkScr').classList.remove('on'); };
+
+/* ── chat feed helpers ── */
+function feed(){ return el('intkFeed'); }
+function scrollFeed(){ var f=feed(); f.scrollTop = f.scrollHeight; }
+function userMsg(t){ feed().appendChild(h('<div class="intk-who me">Scott <span class="intk-av">S</span></div>'));
+  var m=h('<div class="intk-msg user"></div>'); m.textContent=t; feed().appendChild(m); scrollFeed(); }
+function botMsg(html){ feed().appendChild(h('<div class="intk-who"><span class="intk-av bot">J</span> Intake Assistant</div>'));
+  var m=h('<div class="intk-msg bot"></div>'); m.innerHTML=html; feed().appendChild(m); scrollFeed(); return m; }
+
+/* ── versions ── */
+function stamp(label){ K.versions.push({n:K.versions.length+1,label:label});
+  el('intkVer').textContent = 'v'+K.versions.length; }
+el('intkVer').onclick = function(e){ e.stopPropagation();
+  var m = el('intkVMenu'); if(m.classList.contains('on')){ m.classList.remove('on'); return; }
+  m.innerHTML = '<div class="hd">'+K.versions.length+' Version'+(K.versions.length===1?'':'s')+'</div>' +
+    K.versions.map(function(v,i){ return '<div class="intk-vrow"><span>Version '+v.n+'</span>'+
+      (i===K.versions.length-1?'<span class="tag">VIEWING</span>':'')+
+      '<span class="sub2">'+v.label+'</span></div>'; }).reverse().join('');
+  m.classList.add('on'); };
+document.addEventListener('click', function(){ var m=el('intkVMenu'); if(m) m.classList.remove('on'); });
+
+/* ── doc rendering ── */
+function fmtMoney(n){ return '$'+(n*1000).toLocaleString('en-US'); }
+function salText(s){ if(!s.sal.structure) return null;
+  var per = {annual:'per year',hourly:'per hour',monthly:'per month',weekly:'per week'}[s.period||'annual'];
+  if(s.sal.structure==='range') return fmtMoney(s.sal.min)+'–'+fmtMoney(s.sal.max)+' '+per;
+  var lead={starting:'From ',maximum:'Up to ',exact:''}[s.sal.structure]||'';
+  return lead+fmtMoney(s.sal.amount)+' '+per; }
+function locText(s){ var L=s.loc;
+  if(L.model==='remote') return 'Fully remote'+(L.resReq? ' ('+L.resWhere+' residents)':'');
+  if(L.model==='hybrid') return 'Hybrid, with '+(L.cadence||'some')+' days a week at our '+(L.address||'office');
+  if(L.model==='inperson') return 'On-site at '+(L.address||'our office');
+  if(L.model==='road') return 'On the road'+(L.address? ' from '+L.address:''); return null; }
+function mark(txt, key){ // apply pending tracked changes for a section key
+  var out = txt;
+  K.pend.forEach(function(p){ if(p.key!==key) return;
+    if(p.del && p.ins) out = out.replace(p.ins, '<span class="intk-del">'+p.del+'</span> <span class="intk-ins">'+p.ins+'</span>');
+    else if(p.ins) out = out.replace(p.ins, '<span class="intk-ins">'+p.ins+'</span>'); });
+  return out; }
+var DUTIES = ['Develop, test, and maintain responsive web applications',
+  'Translate requirements and designs into clean, functional code',
+  'Troubleshoot bugs and improve performance and accessibility',
+  'Collaborate with teammates through the development process',
+  'Participate in code reviews and contribute to documentation'];
+function renderDoc(){
+  var s=K.spec, P=el('intkPage'), R=el('intkRail'); P.innerHTML=''; R.innerHTML='';
+  if(!s.title){ P.innerHTML = '<div class="intk-empty"><div class="big">Share a bit more in the chat</div>'+
+    'Your Live Job Specification builds here as we talk — title, pay, schedule, interviews, all of it.</div>';
+    el('intkCrumb').textContent='New position'; return; }
+  el('intkCrumb').textContent = s.title;
+  var html = '<h1>'+s.title+'</h1>';
+  html += '<div class="intk-sec"><h3>About the role</h3><p>'+
+    mark('We’re hiring a '+(s.etype? s.etype.replace('_','-')+' ':'')+s.title+
+    ' to build, maintain, and improve what we ship'+
+    (locText(s)? ' in a '+mark(locText(s).toLowerCase(),'loc-about')+' arrangement':'')+
+    '. You’ll turn requirements into reliable, user-friendly work — kept general where details haven’t been specified.','about')+'</p></div>';
+  html += '<div class="intk-sec"><h3>What you’ll do</h3><ul>'+
+    DUTIES.map(function(d){return '<li>'+d+'</li>';}).join('')+'</ul></div>';
+  if(s.skills && s.skills.length) html += '<div class="intk-sec"><h3>What we’re looking for</h3><ul>'+
+    s.skills.map(function(k){return '<li>Proficiency with '+k+'</li>';}).join('')+
+    '<li>Clear written and verbal communication skills</li></ul></div>';
+  if(s.etype || s.loc.model){ var la = locText(s);
+    html += '<div class="intk-sec"><h3>Working arrangement</h3><ul>'+
+      (s.etype? '<li>'+({full_time:'Full-time',part_time:'Part-time',contract:'Contract',cth:'Contract to hire'}[s.etype]||s.etype)+'</li>':'')+
+      (la? '<li>'+mark(la,'loc')+'</li>':'')+'</ul></div>'; }
+  var st = salText(s);
+  if(st){ var isNew = K.pend.some(function(p){return p.key==='comp';});
+    html += '<div class="intk-sec'+(isNew?' intk-secnew':'')+'"><h3'+(isNew?' class="intk-ins"':'')+'>Compensation</h3><ul><li>'+mark(st,'comp')+'</li></ul></div>'; }
+  if(s.benefits && s.benefits.length) html += '<div class="intk-sec"><h3>Benefits</h3><ul>'+
+    s.benefits.map(function(b){return '<li>'+b+'</li>';}).join('')+'</ul></div>';
+  if(s.sched.shift) html += '<div class="intk-sec"><h3>Schedule</h3><ul><li>'+s.sched.shift+'</li>'+
+    (s.sched.week? '<li>'+s.sched.week+'</li>':'')+'</ul></div>';
+  if(s.iv.format) html += '<div class="intk-sec"><h3>Interview process</h3><ul>'+
+    '<li>'+(s.iv.format==='video'?'Video':'Phone')+' interview, '+s.iv.dur+' minutes, self-scheduled by the candidate</li>'+
+    (s.iv.resume!==null? '<li>Resume '+(s.iv.resume?'required':'optional')+' before booking</li>':'')+
+    (s.iv.auto!==null? '<li>Interview requests are '+(s.iv.auto?'accepted automatically':'reviewed before accepting')+'</li>':'')+
+    (s.iv.emails? '<li>Interviews and updates go to '+s.iv.emails.join(', ')+'</li>':'')+'</ul></div>';
+  if(s.screening && s.screening.length) html += '<div class="intk-sec"><h3>Screening</h3><ul>'+
+    s.screening.map(function(q){return '<li>'+q.q+(q.disq? ' <i>(disqualifying)</i>':'')+'</li>';}).join('')+'</ul></div>';
+  html += '<div class="intk-sec"><p>We welcome applicants whose experience may not match every qualification listed.</p></div>';
+  P.innerHTML = html;
+  K.pend.forEach(function(p){ if(!p.card) return;
+    R.appendChild(h('<div class="intk-sug"><div class="who"><span class="intk-av bot">J</span> Intake Assistant <span class="ago">just now</span></div>'+
+      '<div class="body">'+p.card+'</div>'+
+      (p.del? '<div class="cap">SUGGESTION</div><div class="rep">Replace <span class="from">“'+p.del+'”</span> with <span class="to">“'+p.ins+'”</span></div>':'')+
+      '</div>')); });
+  el('intkResolve').style.display = K.pend.length? '':'none';
+  el('intkCreate').disabled = !K.isComplete();
+}
+el('intkResolve').onclick = function(){ K.pend=[]; renderDoc();
+  if(typeof ssToast==='function') ssToast('Suggestions resolved','All tracked changes accepted.'); };
+el('intkCreate').onclick = function(){ if(K.isComplete()) window.location.href='jobagentx-create-agent.html?loader=agent'; };
+
+/* ── scripted playbook (deterministic stand-in for the LLM; same
+      IntakeTurn contract: one question, full snapshot, deflection flag) ── */
+function parseDump(t){ var s=K.spec, got=[];
+  var m = t.match(/([A-Za-z][A-Za-z ]{2,30}?(?:developer|designer|engineer|nurse|manager|technician|assistant|representative|rep|analyst|instructor|associate))/i);
+  if(m){ s.title = m[1].trim().replace(/\b\w/g,function(c){return c.toUpperCase();}); got.push('title'); }
+  if(/hybrid/i.test(t)){ s.loc.model='hybrid'; got.push('location'); }
+  else if(/fully[- ]?remote|(^|\W)remote/i.test(t)){ s.loc.model='remote'; got.push('location'); }
+  else if(/in[- ]?person|on[- ]?site/i.test(t)){ s.loc.model='inperson'; got.push('location'); }
+  if(/full[- ]?time/i.test(t)){ s.etype='full_time'; got.push('type'); }
+  else if(/part[- ]?time/i.test(t)){ s.etype='part_time'; got.push('type'); }
+  else if(/contract/i.test(t)){ s.etype='contract'; got.push('type'); }
+  var sm = t.match(/(\d{2,3})\s*(?:k)?\s*(?:-|–|to)\s*(\d{2,3})\s*k/i);
+  if(sm){ s.sal={structure:'range',min:+sm[1],max:+sm[2],amount:null}; s.period='annual'; got.push('salary'); }
+  else { var one=t.match(/\$?(\d{2,3})k(?![\d-])/i); if(one){ s.sal={structure:'exact',min:null,max:null,amount:+one[1]}; s.period='annual'; got.push('salary'); } }
+  var sk=[]; ['React','TypeScript','Node','JavaScript','HTML','CSS','Python','SQL','Figma','Java'].forEach(function(k){
+    if(new RegExp('\\b'+k+'\\b','i').test(t)) sk.push(k); });
+  if(sk.length){ s.skills=(s.skills||[]).concat(sk.filter(function(k){return (s.skills||[]).indexOf(k)<0;})); got.push('skills'); }
+  return got; }
+function emailsIn(t){ return (t.match(/[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/gi)||[]); }
+function ask(){ // next question by highest-value gap
+  var s=K.spec;
+  if(!s.origin) return null;
+  if(!s.title) return {st:'title', q:'What’s the job title?'};
+  if(!s.loc.model) return {st:'loc', q:'Where does this one sit — in person, fully remote, hybrid, or on the road?'};
+  if(s.loc.model==='remote' && s.loc.resReq===null) return {st:'res', q:'Since it’s fully remote: do candidates need to live in a specific state or region, or is anywhere fine?'};
+  if((s.loc.model==='hybrid'||s.loc.model==='inperson') && !s.loc.address) return {st:'addr', q:'What’s the address for the on-site days?'};
+  if(!s.etype) return {st:'etype', q:'Full-time, part-time, or contract?'};
+  if(!s.sal.structure) return {st:'sal', q:'What are we thinking on comp — a range, or an exact number?'};
+  if(!s.benefits) return {st:'ben', q:'Anything on benefits you want called out, or keep it standard?'};
+  if(!s.sched.shift) return {st:'sched', q:'What’s the schedule — day shift, nights, Monday to Friday?'};
+  if(!s.skills || !s.skills.length) return {st:'skills', q:'What are the core skills that actually matter for this one?'};
+  if(!s.iv.format) return {st:'iv', q:'Phone or video for the first interview — and 15, 30, or 60 minutes?'};
+  if(s.iv.auto===null || s.iv.resume===null) return {st:'flags', q:'Two quick settings: auto-accept interview requests as they come in? And should candidates attach a resume before they can book?'};
+  if(!s.iv.emails) return {st:'emails', q:'Who gets the interviews and updates — which email addresses?'};
+  if(s.screening===null) return {st:'screen', q:'Any screening questions you want candidates to answer before they book — dealbreakers or nice-to-know?'};
+  return {st:'review', q:null}; }
+function recap(){ var s=K.spec;
+  return 'That’s everything. Quick recap: <b>'+s.title+'</b>, '+locText(s).toLowerCase()+', '+
+    (s.etype||'').replace('_','-')+', '+salText(s)+', '+
+    (s.benefits.length? s.benefits.join(' + '):'standard benefits')+', '+s.sched.shift+
+    (s.sched.week? ' ('+s.sched.week+')':'')+'. '+s.skills.join(', ')+'. '+
+    (s.iv.format==='video'?'Video':'Phone')+' interviews, '+s.iv.dur+' min, auto-accept '+
+    (s.iv.auto?'on':'off')+', resume '+(s.iv.resume?'required':'optional')+', updates to '+
+    s.iv.emails.join(', ')+'. '+ (s.screening.length? s.screening.length+' screening question'+
+    (s.screening.length>1?'s':'')+'.':'No custom screening.')+
+    '<br><br>Look right? Say the word and I’ll unlock <b>Create agent</b> up top.'; }
+function nextQ(){ var n=ask();
+  if(!n){ botMsg('Want to start from one of your previous agents (Registered Nurse, CNA, Warehouse Associate, RN Care Manager) or build this one fresh? If you’ve got the basics in your head — title, location, pay — just throw them at me in one go and I’ll sort them.'); K.stage='origin'; return; }
+  if(n.st==='review'){ K.spec.jd=true; K.stage='review'; botMsg(recap()); renderDoc();
+    if(typeof ssToast==='function') ssToast('Spec complete','Create agent is unlocked.'); return; }
+  K.stage=n.st; botMsg(n.q); }
+
+function turn(t){
+  var s=K.spec, low=t.toLowerCase(); K.turns++;
+  /* deflection guardrail — never lose ground */
+  if(/(find|get|source|send|show).{0,24}(candidates|people|matches)|candidates (right )?now/i.test(t) && K.stage!=='review'){
+    var cur = ask(); botMsg('I can absolutely help you source candidates — that engine kicks on the moment this position is set up. Let’s finish the build first. So: '+
+      (cur&&cur.q? cur.q.charAt(0).toLowerCase()+cur.q.slice(1) : 'where were we?')); return; }
+  /* correction: switch to hybrid (tracked changes + suggestion cards) */
+  if(/scratch|actually|make it/i.test(low) && /hybrid/i.test(low) && s.loc.model && s.loc.model!=='hybrid'){
+    var oldTxt = locText(s); parseDump(t);
+    var am = t.match(/(\d+[^,]{4,40}(?:ave|avenue|st|street|rd|road|blvd|way|congress)[^,]*(?:,[^,]{2,25})?)/i);
+    var dm = t.match(/(\d)\s*days/);
+    s.loc = {model:'hybrid', address:(am? am[1].trim():'our Austin office'), cadence:(dm? dm[1]:'3'), resReq:null, resWhere:null};
+    var newTxt = locText(s);
+    K.pend.push({key:'loc', del:oldTxt, ins:newTxt,
+      card:'Updated the working arrangement to reflect the hybrid schedule.'});
+    K.pend.push({key:'loc-about', del:'fully remote', ins:'hybrid', card:null});
+    if(s.sal.structure && K.versions.length<2) K.pend.push({key:'comp', ins:salText(s),
+      card:'Added the provided salary range as a new Compensation section.'});
+    stamp('Hybrid correction'); renderDoc();
+    var m=botMsg('Done — hybrid it is.');
+    m.innerHTML += '<div class="intk-threads">&#128488; '+(K.pend.length-1)+' new threads</div>'+
+      '<button class="intk-thread">&#9998; Updated the working arrangement… <span class="arr">&#8594;</span></button>'+
+      (K.pend.some(function(p){return p.key==='comp';})? '<button class="intk-thread">&#10133; Added the Compensation section… <span class="arr">&#8594;</span></button>':'');
+    scrollFeed(); nextQ(); return; }
+  switch(K.stage){
+    case 'origin':
+      s.origin = /template|previous|nurse|cna|warehouse/i.test(low)? 'template':'new';
+      var got = parseDump(t);
+      if(got.length>=2){ K.spec.jd=true; stamp('First draft'); renderDoc();
+        botMsg('Got it — '+got.join(', ')+' captured. I drafted the post from that and kept unspecified areas general rather than making assumptions.'); }
+      else if(got.length){ renderDoc(); }
+      nextQ(); return;
+    case 'title': if(!parseDump(t).length){ s.title=t.replace(/\b\w/g,function(c){return c.toUpperCase();}).slice(0,40); }
+      if(!K.versions.length){ K.spec.jd=true; stamp('First draft'); } renderDoc(); nextQ(); return;
+    case 'loc': parseDump(t); if(/road/i.test(low)) s.loc.model='road'; renderDoc(); nextQ(); return;
+    case 'res':
+      if(/anywhere|no|fine|nope/i.test(low)){ s.loc.resReq=false; }
+      else { s.loc.resReq=true; s.loc.resWhere=t.replace(/^(yes,?\s*)/i,''); }
+      renderDoc(); nextQ(); return;
+    case 'addr': s.loc.address=t; renderDoc(); nextQ(); return;
+    case 'etype': parseDump(t); renderDoc(); nextQ(); return;
+    case 'sal': if(!parseDump(t).length){ var n=t.match(/(\d{2,3})/); if(n){ s.sal={structure:'exact',min:null,max:null,amount:+n[1]}; s.period='annual'; } }
+      renderDoc(); nextQ(); return;
+    case 'ben':
+      if(/standard|none|skip/i.test(low)) s.benefits=[];
+      else { s.benefits=[]; if(/health|medical/i.test(low)) s.benefits.push('Health insurance');
+        if(/401k|401\(k\)/i.test(low)) s.benefits.push('401(k)');
+        if(/dental/i.test(low)) s.benefits.push('Dental insurance');
+        if(/pto|vacation/i.test(low)) s.benefits.push('Paid time off');
+        if(!s.benefits.length) s.benefits=[t]; }
+      renderDoc(); nextQ(); return;
+    case 'sched':
+      s.sched.shift = /night/i.test(low)? 'Night shift':'Day shift';
+      if(/m\s*[- ]?\s*f|monday/i.test(low)) s.sched.week='Monday to Friday';
+      parseDump(t); renderDoc(); nextQ(); return;
+    case 'skills': if(!parseDump(t).length) s.skills=t.split(/,|and/).map(function(x){return x.trim();}).filter(Boolean).slice(0,6);
+      renderDoc(); nextQ(); return;
+    case 'iv':
+      s.iv.format = /phone/i.test(low)? 'phone':'video';
+      var d=low.match(/15|30|60/); s.iv.dur = d? d[0]:'30';
+      renderDoc(); nextQ(); return;
+    case 'flags':
+      s.iv.auto = !/no auto|review|manual/i.test(low);
+      s.iv.resume = !/no resume|optional/i.test(low);
+      renderDoc(); nextQ(); return;
+    case 'emails':
+      var em=emailsIn(t); if(!em.length){ botMsg('That doesn’t look like an email — mind giving me the address again?'); return; }
+      s.iv.emails=em; renderDoc(); nextQ(); return;
+    case 'screen':
+      if(/^(no|none|nope|skip)\b/i.test(low.trim())){ s.screening=[]; }
+      else s.screening=[{q:t.replace(/dealbreaker.*$/i,'').replace(/ask (them )?(if (they )?)?/i,'').trim(), disq:/dealbreak|disqualif|must/i.test(low)}];
+      renderDoc(); nextQ(); return;
+    case 'review':
+      if(/ship|yes|good|right|create|go/i.test(low)){
+        botMsg('Locked in. Hit <b>Create agent</b> up top and your Assistant starts sourcing for <b>'+s.title+'</b>.');
+        el('intkCreate').disabled = !K.isComplete(); return; }
+      parseDump(t); renderDoc(); botMsg(recap()); return;
+    case 'paste':
+      if(t.length>180){ var got2=parseDump(t); K.spec.jd=true; K.spec.origin='new';
+        if(K.spec.screening===undefined) K.spec.screening=null;
+        stamp('Imported from pasted JD'); renderDoc();
+        botMsg('Pulled '+got2.length+' field'+(got2.length===1?'':'s')+' out of that ('+got2.join(', ')+') and drafted the spec — kept anything it didn’t cover general. Let’s fill the gaps.');
+        K.stage='fill'; nextQ(); return; }
+      botMsg('Paste the whole description in — the longer the better. I’ll pull the details out of it.'); return;
+    default: parseDump(t); renderDoc(); nextQ(); return; }
+}
+el('intkSend').onclick = function(){ var v=el('intkIn').value.trim(); if(!v) return;
+  el('intkIn').value=''; userMsg(v); setTimeout(function(){ turn(v); }, 350); };
+el('intkIn').addEventListener('keydown', function(e){ if(e.key==='Enter') el('intkSend').click(); });
+
+/* ── checks (24 checks / 6 categories, from the live catalog) ── */
+var CK = K.checks = [];
+function ck(cat,name,fn,slow){ CK.push({cat:cat,name:name,fn:fn,slow:!!slow,state:null,last:null,
+  prompt:'Check for '+name.toLowerCase()+' issues in the job post.'}); }
+var pass=function(){return {ok:true, note:'Looks good.'};};
+ck('Clarity and Readability','Formatting Consistency',function(s){ return s.jd? pass():{ok:false,note:'No draft yet — nothing to format.'}; });
+ck('Clarity and Readability','Readability and Plain Language',pass);
+ck('Clarity and Readability','Spelling and Grammar',pass);
+ck('Clarity and Readability','Timeless Content',pass);
+ck('Job Post Fundamentals','Company Overview',function(){ return {ok:false,note:'The post doesn’t say anything about the company yet. Add a line about the team.'}; },true);
+ck('Job Post Fundamentals','Interview Alignment',function(s){ return s.iv.format? pass():{ok:false,note:'Interview settings aren’t set yet.'}; });
+ck('Job Post Fundamentals','Requirements',function(s){ return (s.skills&&s.skills.length)? pass():{ok:false,note:'No core skills captured yet.'}; });
+ck('Job Post Fundamentals','Responsibilities',function(s){ return s.jd? pass():{ok:false,note:'No draft yet.'}; });
+ck('Style and Messaging','Active Voice',pass);
+ck('Style and Messaging','Behaviors over Traits',pass);
+ck('Style and Messaging','Consistent Tone',pass);
+ck('Style and Messaging','Direct Address',pass);
+ck('Inclusive Standards','Competitive Language',pass);
+ck('Inclusive Standards','Gender Decoder',pass);
+ck('Inclusive Standards','Inclusive Culture',pass);
+ck('Inclusive Standards','Technical Jargon',function(s){ return (s.skills&&s.skills.length>4)? {ok:false,note:'Heavy tool list — consider trimming to what really matters.'}:pass(); });
+ck('Career Development','Growth Opportunities',function(){ return {ok:false,note:'No growth or development language in the post yet.'}; });
+ck('Career Development','In-Person Obligations',function(s){ return (s.loc.model!=='hybrid'||s.loc.cadence)? pass():{ok:false,note:'Hybrid without a stated on-site cadence.'}; });
+ck('Career Development','Salary Transparency',function(s){ return salText(s)? pass():{ok:false,note:'The job post does not include a salary amount or salary range.'}; },true);
+ck('Career Development','Success Metrics',function(){ return {ok:false,note:'The post doesn’t describe what success looks like in the role.'}; });
+function now(){ var d=new Date(); return d.toLocaleTimeString('en-US',{hour12:true,hour:'numeric',minute:'2-digit',second:'2-digit'}); }
+function ckChatCard(c,res){ feed().appendChild(h('<div class="intk-ckcard"><span class="intk-dot '+(res.ok?'pass':'flag')+'"></span>'+
+  '<span><b>'+c.name+'</b><span class="st">Completed just now'+(res.ok?'':' — flagged')+'</span></span></div>')); scrollFeed(); }
+function runCheck(i, silent){ var c=CK[i];
+  if(!silent && !K.ranBanner){ K.ranBanner=1;
+    botMsg('Starting to run checks, as instructed by <b>@Scott</b>'); }
+  if(c.slow){ c.state='run'; renderChecks();
+    c.log=[{t:now(),l:'Check started by Scott'}];
+    setTimeout(function(){ c.log.push({t:now(),l:'Action: Analyzing job post'}); },700);
+    setTimeout(function(){ var res=c.fn(K.spec);
+      c.log.push({t:now(),l:(res.ok?'Observation: ':'Thought: ')+res.note});
+      if(!res.ok) c.log.push({t:now(),l:'Thought: Unable to produce grounded fixes for the blocking issue in this run.'});
+      c.state=res.ok?'pass':'flag'; c.last='a few seconds ago'; renderChecks(); ckChatCard(c,res);
+      if(K.detail===i) showDetail(i);
+    },2200); }
+  else { var res=c.fn(K.spec);
+    c.state=res.ok?'pass':'flag'; c.last='a few seconds ago';
+    c.log=[{t:now(),l:'Check started by Scott'},{t:now(),l:'Action: Validating against the live job spec'},
+      {t:now(),l:(res.ok?'Observation: ':'Thought: ')+res.note}];
+    renderChecks(); ckChatCard(c,res); } }
+function renderChecks(){ var W=el('intkChecks');
+  if(K.detail!==null){ return; }
+  var cats=[]; CK.forEach(function(c){ if(cats.indexOf(c.cat)<0) cats.push(c.cat); });
+  W.innerHTML = cats.map(function(cat){
+    return '<div class="intk-ckcat">'+cat+'</div>' + CK.map(function(c,i){
+      if(c.cat!==cat) return '';
+      return '<div class="intk-ckrow"><span class="intk-dot '+(c.state||'')+'"></span>'+
+        '<span class="intk-ckmain"><span class="intk-ckname">'+c.name+'</span>'+
+        '<span class="intk-cksub">'+(c.last? 'Last run '+c.last : (c.state==='run'?'Running…':'No runs completed'))+'</span></span>'+
+        (c.state==='run'? '<span class="intk-cksub">Running…</span>' :
+          '<button class="intk-run" data-i="'+i+'">Run</button>')+
+        '<button class="intk-chev" data-d="'+i+'">&#8250;</button></div>'; }).join(''); }).join('') +
+    '<div class="intk-ckfoot"><button class="intk-ghost" id="intkRunAll">☰ Run all</button>'+
+    '<button class="intk-ghost" id="intkNewCheck">+ Create</button></div>';
+  W.querySelectorAll('.intk-run').forEach(function(b){ b.onclick=function(){ runCheck(+b.dataset.i); }; });
+  W.querySelectorAll('.intk-chev').forEach(function(b){ b.onclick=function(){ showDetail(+b.dataset.d); }; });
+  var ra=el('intkRunAll'); if(ra) ra.onclick=function(){ CK.forEach(function(c,i){ if(!c.slow) runCheck(i,i>0); });
+    var s1=CK.findIndex(function(c){return c.slow;}); if(s1>=0) runCheck(s1,true); };
+  var nc=el('intkNewCheck'); if(nc) nc.onclick=function(){ showNewCheck(); }; }
+function showDetail(i){ K.detail=i; var c=CK[i]; var W=el('intkChecks');
+  W.innerHTML = '<div class="intk-dhead"><button class="intk-back" id="intkDBack">&#8249;</button><b>'+c.name+'</b>'+
+    (c.state==='run'? '<span class="intk-cksub">Running…</span>':'<button class="intk-run" id="intkDRun">Run</button>')+'</div>'+
+    '<div class="intk-lbl">Title</div><input class="intk-dinput" value="'+c.name+'">'+
+    '<div class="intk-lbl">Prompt <span class="hint">Instructions for what the assistant should look out for.</span></div>'+
+    '<textarea class="intk-dta">'+c.prompt+'</textarea>'+
+    '<div class="intk-lbl">Runs</div>'+
+    (c.log? '<div class="intk-runrow" id="intkRunLog"><span class="intk-dot '+(c.state==='run'?'run':c.state)+'"></span>'+
+      '<span>Today — by Scott</span><span style="margin-left:auto;color:#767676">&#8250;</span></div>' :
+      '<div class="intk-cksub" style="margin-top:8px">No runs completed</div>');
+  el('intkDBack').onclick=function(){ K.detail=null; renderChecks(); };
+  var r=el('intkDRun'); if(r) r.onclick=function(){ K.detail=null; runCheck(i); showDetail(i); };
+  var lg=el('intkRunLog'); if(lg) lg.onclick=function(){ showLog(i); }; }
+function showLog(i){ var c=CK[i]; var W=el('intkChecks');
+  W.innerHTML = '<div class="intk-dhead"><button class="intk-back" id="intkLBack">&#8249;</button><b>Run — today, by Scott</b></div>'+
+    '<div class="intk-log">'+ (c.log||[]).map(function(e){ return '<div class="ts">'+e.t+'</div><p class="ln">'+e.l+'</p>'; }).join('') +'</div>';
+  el('intkLBack').onclick=function(){ showDetail(i); }; }
+function showNewCheck(){ K.detail=-1; var W=el('intkChecks');
+  W.innerHTML = '<div class="intk-dhead"><button class="intk-back" id="intkNBack">&#8249;</button><b>New check</b></div>'+
+    '<div class="intk-lbl">Title</div><input class="intk-dinput" id="intkNTitle" placeholder="Enter check title">'+
+    '<div class="intk-lbl">Prompt <span class="hint">Instructions for what the assistant should look out for.</span></div>'+
+    '<textarea class="intk-dta" id="intkNPrompt"></textarea>'+
+    '<div class="intk-mfoot"><button class="intk-pri" id="intkNCreate">Create</button></div>';
+  el('intkNBack').onclick=function(){ K.detail=null; renderChecks(); };
+  el('intkNCreate').onclick=function(){ var t=el('intkNTitle').value.trim()||'Custom check';
+    ck('Custom',t,pass); K.detail=null; renderChecks();
+    if(typeof ssToast==='function') ssToast('Check created','“'+t+'” added under Custom.'); }; }
+el('intkTabChat').onclick=function(){ K.tab='chat';
+  el('intkTabChat').classList.add('on'); el('intkTabChecks').classList.remove('on');
+  el('intkFeed').style.display=''; el('intkComposeBar').style.display='';
+  el('intkChecks').style.display='none'; };
+el('intkTabChecks').onclick=function(){ K.tab='checks';
+  el('intkTabChecks').classList.add('on'); el('intkTabChat').classList.remove('on');
+  el('intkFeed').style.display='none'; el('intkComposeBar').style.display='none';
+  el('intkChecks').style.display=''; K.detail=null; renderChecks(); };
+
+/* ── open ── */
+K.open = function(mode){ K.mode=mode;
+  el('intkOv').classList.remove('on'); el('intkScr').classList.add('on');
+  if(K.opened) return; K.opened=1;
+  renderDoc(); renderChecks();
+  if(mode==='paste'){ K.stage='paste'; K.spec.origin='new';
+    el('intkIn').placeholder='Paste the job description here…';
+    botMsg('Paste the job description you’ve got — the whole thing. I’ll pull the title, pay, location and skills out of it, then we’ll fill whatever’s missing.'); }
+  else { K.stage='origin';
+    botMsg('Hey Scott — let’s get this position built. Want to start from one of your previous agents (Registered Nurse, CNA, Warehouse Associate, RN Care Manager), or build this one fresh? If you’ve got the basics in your head — title, location, pay — just throw them at me in one go and I’ll sort them.'); } };
+})();
+</script>
 </body>
 </html>
