@@ -20118,5 +20118,74 @@ setTimeout(function(){ clearInterval(t0); setInterval(FU.sync, 1500); }, 12000);
 FU.sync();
 })();
 </script>
+<style>
+/* ═══ SSPROF — profile split view to measured values (build75) ══════════ */
+
+/* split list narrows to 356; the open card gets the blue ring + shadow */
+#view-sourcing .ss-list.split{flex:0 0 356px}
+#view-sourcing .ss-list.split .ss-res.sel{border:2px solid #004fcb;border-radius:20px;
+  box-shadow:rgba(45,45,45,.16) 0 0 2px 0,rgba(45,45,45,.08) 0 4px 8px 0,
+  rgba(45,45,45,.04) 0 8px 16px 0;padding:16px}
+
+/* header outline buttons (SP pane, b-era profile module): white, 1px
+   #e4e2e0, #004fcb 700; icon buttons blue */
+#view-sourcing .sp-actions .ss-btn-ghost{background:#fff;border:1px solid #e4e2e0;
+  border-radius:12px;color:#004fcb;font-weight:700}
+#view-sourcing .sp-actions .ss-thumb{color:#004fcb}
+#view-sourcing .sp-actions .ss-thumb svg{stroke:#004fcb}
+/* today's DOM: the pane name renders 14px, the content tabs inherit the
+   13.33px button default */
+#view-sourcing .sp-name{font-size:14px}
+#view-sourcing .sp-tab{font-size:13.3333px}
+
+/* insights card to measured values */
+#view-sourcing .ss-insights{padding:16px}
+#view-sourcing .ss-insights h3{font-size:24px;font-weight:700}
+#view-sourcing .ss-insights h4{font-size:16px;font-weight:400;color:#2d2d2d}
+#view-sourcing .ss-ins-chip{background:#f3f2f1;color:#595959;border-radius:8px;
+  padding:3px 9px;font-size:12px;font-weight:700}
+#view-sourcing .ss-seemore{background:none;border:0;color:#004fcb;font-size:16px;
+  font-weight:700;cursor:pointer;font-family:inherit;padding:9px 0;height:44px}
+
+/* sections: 20/700 heads; matched terms green + dotted underline */
+#view-sourcing .ss-sec h3{font-size:20px}
+.ss-hl{background:#e4f7e6;border-bottom:1px dotted #2d2d2d;color:#2d2d2d}
+</style>
+<script>
+/* ═══ SSPROF — build75 ═════════════════════════════════════════════ */
+(function(){
+'use strict';
+var PR = window.SSPROF = {};
+
+/* matched query terms inside insight chips get the green highlight —
+   the same term list ssHighlight uses, applied idempotently per render */
+/* same list ssHighlight uses (the AI highlighter matches job-derived
+   terms, not just the query string) */
+PR.TERMS = ['web developer', 'full stack', 'full-stack', 'developer', 'web',
+            'JavaScript', 'React', 'RESTful APIs', 'Git'];
+PR.chips = function(){
+  var det = document.getElementById('ssDetail');
+  if(!det) return;
+  det.querySelectorAll('.ss-ins-chip').forEach(function(chip){
+    if(chip.__ssprof || chip.querySelector('.ss-hl')) { chip.__ssprof = 1; return; }
+    chip.__ssprof = 1;
+    var t = chip.textContent;
+    for(var i = 0; i < PR.TERMS.length; i++){
+      var re = new RegExp('(' + PR.TERMS[i].replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'i');
+      if(re.test(t)){
+        chip.innerHTML = t.replace(/&/g,'&amp;').replace(/</g,'&lt;')
+                          .replace(re, '<span class="ss-hl">$1</span>');
+        break;
+      }
+    }
+  });
+};
+
+var t0 = setInterval(PR.chips, 450);
+setTimeout(function(){ clearInterval(t0); setInterval(PR.chips, 1400); }, 13000);
+document.addEventListener('click', function(){ setTimeout(PR.chips, 120); }, true);
+PR.chips();
+})();
+</script>
 </body>
 </html>
