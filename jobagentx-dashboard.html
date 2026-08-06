@@ -19497,5 +19497,252 @@ setTimeout(function(){ clearInterval(t0); setInterval(function(){ function wrapT
 wrap(); wrapToast(); A.build(); }, 1500); }, 12000);
 })();
 </script>
+<style>
+/* ═══ SSRP — results page to measured values (build71) ══════════════════ */
+
+/* filter pills: h36, 5x15, 1px #595959, 16/400 #595959 */
+#view-sourcing .ss-fbtn{height:36px;padding:5px 15px;border:1px solid #595959;
+  font-weight:400;color:#595959;gap:8px}
+#view-sourcing .ss-fbtn .v{font-weight:400}
+/* the retired chrome is display-gated (runtime adds .ssrp-x); global — the
+   subnav lives outside #view-sourcing */
+.ssrp-x{display:none !important}
+
+/* menus: pad 12, items 44h #595959, measured shadow trio */
+.ss-menu{padding:12px;box-shadow:rgba(45,45,45,.16) 0 0 2px 0,
+  rgba(45,45,45,.08) 0 4px 8px 0,rgba(45,45,45,.04) 0 8px 16px 0}
+.ss-menu button{height:44px;padding:10px 12px;color:#595959;border-radius:8px}
+.ss-menu button:hover{background:#f7f6f5}
+.ss-menu .ssrp-check{display:inline-block;width:22px;font-weight:700;color:#2d2d2d}
+.ss-menu .ssrp-foot{display:flex;justify-content:flex-end;gap:16px;align-items:center;
+  border-top:1px solid #e4e2e0;margin-top:8px;padding:12px 4px 0}
+.ss-menu .ssrp-foot .rs{background:none;border:0;color:#004fcb;font-weight:700;
+  width:auto;height:44px;padding:9px 8px;cursor:pointer;font-size:16px;font-family:inherit}
+.ss-menu .ssrp-foot .vw{background:#004fcb;color:#fff;border:0;border-radius:12px;
+  height:44px;padding:9px 16px;font-weight:700;width:auto;font-size:16px;cursor:pointer;font-family:inherit}
+.ss-menu label.ssrp-ck{display:flex;align-items:center;gap:12px;height:44px;
+  padding:0 12px;font-size:16px;color:#595959;cursor:pointer;border-radius:8px}
+.ss-menu label.ssrp-ck:hover{background:#f7f6f5}
+.ss-menu label.ssrp-ck input{width:24px;height:24px;accent-color:#004fcb}
+
+/* result cards: 2px border, r20, pad 18; checkbox 24 r8 #595959 */
+#view-sourcing .ss-res{border-width:2px;border-radius:20px;padding:18px}
+#view-sourcing .ss-cb{width:24px;height:24px;flex:0 0 24px;border-radius:8px;
+  border-color:#595959}
+/* contacted: blue card ring + pale-blue label (measured live post-send) */
+#view-sourcing .ss-res.ssrp-contacted{border-color:#004fcb}
+#view-sourcing .ss-res.ssrp-contacted .ss-contacted{color:#bfd3ff}
+#view-sourcing .ss-res.ssrp-contacted .ss-contacted svg{stroke:#bfd3ff}
+
+/* toast to measured shell */
+.ss-toast{border-radius:20px;padding:16px;width:348px;
+  box-shadow:rgba(45,45,45,.16) 0 0 2px 0,rgba(45,45,45,.08) 0 4px 8px 0,
+  rgba(45,45,45,.04) 0 8px 16px 0}
+.ss-toast b{display:block;color:#1f662c;font-size:14px;font-weight:700}
+.ss-toast span{font-size:14px;color:#2d2d2d;line-height:21px}
+
+/* save-search dialog fields (rebuilt at runtime) */
+.ssrp-radio{display:flex;align-items:center;gap:12px;font-size:16px;color:#2d2d2d;
+  padding:6px 0;cursor:pointer}
+.ssrp-radio input{width:20px;height:20px;accent-color:#2d2d2d}
+.ssrp-h{font-size:16px;font-weight:700;color:#2d2d2d;margin:16px 0 2px}
+.ssrp-sub{font-size:14px;color:#595959;margin:0 0 6px}
+
+/* in-list assistant card (after 3rd result) */
+.ssrp-strip{border:2px solid #e4e2e0;border-radius:20px;background:#fff;
+  padding:18px;display:flex;align-items:center;gap:12px;font-size:16px;color:#2d2d2d}
+.ssrp-strip b{font-weight:700}
+.ssrp-strip a{color:#004fcb;font-weight:700;text-decoration:none;white-space:nowrap;
+  margin-left:auto;cursor:pointer}
+
+/* pagination: text Previous / Next */
+#view-sourcing .ss-pager button{border:0;background:none;min-width:0;height:44px;
+  color:#004fcb;font-weight:700;border-radius:12px;padding:9px 12px}
+#view-sourcing .ss-pager button:disabled{color:#b9b7b3;cursor:default}
+</style>
+<script>
+/* ═══ SSRP — build71 ═══════════════════════════════════════════════ */
+(function(){
+'use strict';
+var R = window.SSRP = {yoe:[], upd:'Show all'};
+
+/* ── 1. filter row: retire Distance / rule / New, add Years of experience ── */
+R.row = function(){
+  var scr = document.getElementById('ssScrSearch');
+  if(!scr) return;
+  var f = scr.querySelector('.ss-filters');
+  if(!f) return;
+  f.querySelectorAll('.ss-vrule,.ss-newpill').forEach(function(e){ e.classList.add('ssrp-x'); });
+  f.querySelectorAll('.ss-fbtn').forEach(function(b){
+    if(b.textContent.indexOf('Distance') === 0) b.classList.add('ssrp-x');
+  });
+  if(!f.querySelector('[data-ssrp="yoe"]')){
+    var upd = Array.prototype.slice.call(f.querySelectorAll('.ss-fbtn')).filter(function(b){
+      return b.textContent.indexOf('Resume last updated') === 0; })[0];
+    if(upd){
+      var y = document.createElement('button');
+      y.className = 'ss-fbtn'; y.setAttribute('data-ssrp','yoe');
+      y.innerHTML = 'Years of experience <span style="font-size:12px">&#9662;</span>';
+      y.onclick = function(ev){ R.menu(ev,'yoe'); };
+      upd.parentNode.insertBefore(y, upd.nextSibling);
+      upd.onclick = function(ev){ R.menu(ev,'upd'); };
+    }
+  }
+};
+
+/* ── 2. measured menus for upd / yoe ── */
+R.menu = function(ev,kind){
+  ev.stopPropagation();
+  if(window.ssKillMenu) ssKillMenu();
+  var m = document.createElement('div');
+  m.className = 'ss-menu'; m.id = 'ssActiveMenu';
+  m.addEventListener('click', function(e){ e.stopPropagation(); });
+  var h = '';
+  if(kind === 'upd'){
+    ['Show all','Within last day','Within last 3 days','Within last week',
+     'Within last month','Within last 3 months','Within last 6 months'].forEach(function(o){
+      h += '<button onclick="SSRP.updPick(\''+o+'\')"><span class="ssrp-check">'+
+           (R.upd===o?'&#10003;':'')+'</span>'+o+'</button>';
+    });
+  }else{
+    ['Less than 1 year','1-2 years','3-5 years','6-10 years','More than 10 years'].forEach(function(o){
+      h += '<label class="ssrp-ck"><input type="checkbox" '+(R.yoe.indexOf(o)>=0?'checked ':'')+
+           'onchange="SSRP.yoePick(this,\''+o+'\')">'+o+'</label>';
+    });
+  }
+  var n = (window.SS && SS.mode!=='empty') ? '7,000' : '0';
+  h += '<div class="ssrp-foot"><button class="rs" onclick="SSRP.reset(\''+kind+'\')">Reset</button>'+
+       '<button class="vw" onclick="SSRP.view()">View '+n+' results</button></div>';
+  m.innerHTML = h;
+  document.body.appendChild(m);
+  var r = ev.currentTarget.getBoundingClientRect();
+  var left = r.left + window.scrollX;
+  if(left + m.offsetWidth > window.innerWidth - 12) left = window.innerWidth - m.offsetWidth - 12;
+  m.style.position = 'absolute';
+  m.style.top = (r.bottom + window.scrollY + 6) + 'px';
+  m.style.left = left + 'px';
+};
+R.updPick = function(v){ R.upd = v; if(window.ssPick) ssPick('upd', v); };
+R.yoePick = function(cb,v){
+  var i = R.yoe.indexOf(v);
+  if(cb.checked && i<0) R.yoe.push(v);
+  if(!cb.checked && i>=0) R.yoe.splice(i,1);
+  if(window.SS){ SS.filters.yrs = R.yoe.slice(); if(window.ssApply) ssApply(); }
+};
+R.reset = function(kind){
+  if(kind==='upd'){ R.upd='Show all'; if(window.SS) delete SS.filters.upd; }
+  else{ R.yoe=[]; if(window.SS) delete SS.filters.yrs; }
+  if(window.ssKillMenu) ssKillMenu();
+  if(window.ssApply) ssApply();
+};
+R.view = function(){ if(window.ssKillMenu) ssKillMenu(); if(window.ssApply) ssApply(); };
+
+/* ── 3. save-search dialog to "Create a saved search" ── */
+R.modal = function(){
+  var ov = document.getElementById('ssMdSaveSearch');
+  if(!ov || ov.__ssrp) return;
+  ov.__ssrp = 1;
+  var h3 = ov.querySelector('.ss-mhead h3');
+  if(h3) h3.textContent = 'Create a saved search';
+  var body = ov.querySelector('.ss-mbody');
+  if(body) body.innerHTML =
+    '<label style="font-size:16px;font-weight:700;display:block;margin-bottom:8px">Search name *</label>'+
+    '<input class="ss-noteinput" id="ssSaveName" style="min-height:0;height:42px">'+
+    '<p class="ssrp-h">Resume Alert frequency</p>'+
+    '<p class="ssrp-sub">You can pause alerts at any time</p>'+
+    '<label class="ssrp-radio"><input type="radio" name="ssrpFreq" id="ssSaveAlert" checked>Daily</label>'+
+    '<label class="ssrp-radio"><input type="radio" name="ssrpFreq">Never</label>'+
+    '<p class="ssrp-h">Search query</p>'+
+    '<p style="font-size:16px;color:#2d2d2d;margin:0" id="ssrpQEcho"></p>';
+  var foot = ov.querySelector('.ss-mfoot .ss-btn-pri');
+  if(foot) foot.textContent = 'Save';
+};
+
+/* wrap ssSaveSearch to echo the query + prefill the plain query text */
+if(window.ssSaveSearch && !window.ssSaveSearch.__ssrp){
+  var _open = window.ssSaveSearch;
+  window.ssSaveSearch = function(){
+    R.modal();
+    _open.apply(this, arguments);
+    var q = document.getElementById('ssQ');
+    var nm = document.getElementById('ssSaveName');
+    if(nm && q) nm.value = q.value || 'web developer';
+    var echo = document.getElementById('ssrpQEcho');
+    if(echo && q) echo.textContent = q.value || 'web developer';
+  };
+  window.ssSaveSearch.__ssrp = 1;
+}
+
+/* wrap ssSaveSearchGo: measured toast copy + header button flip */
+if(window.ssSaveSearchGo && !window.ssSaveSearchGo.__ssrp){
+  var _go = window.ssSaveSearchGo;
+  window.ssSaveSearchGo = function(){
+    _go.apply(this, arguments);
+    R.saved = true; R.flip();
+    var t = document.querySelector('.ss-toast div');
+    if(t){
+      var n = (document.getElementById('ssSaveName')||{}).value || 'Untitled search';
+      t.innerHTML = '<b>Success!</b><span>This search &quot;<b style="color:#2d2d2d;display:inline">'+
+        n.replace(/&/g,'&amp;').replace(/</g,'&lt;')+
+        '</b>&quot; was successfully saved. Manage this search in saved searches.</span>';
+    }
+  };
+  window.ssSaveSearchGo.__ssrp = 1;
+}
+R.flip = function(){
+  if(!R.saved) return;
+  var scr = document.getElementById('ssScrSearch');
+  if(!scr) return;
+  scr.querySelectorAll('.ss-btn-out').forEach(function(b){
+    if(b.textContent.indexOf('Save search') >= 0)
+      b.innerHTML = '<svg viewBox="0 0 24 24" width="20" height="20" fill="#004fcb"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>Edit saved search';
+  });
+};
+
+/* ── 4. sync pass: card states + in-list assistant card ── */
+R.sync = function(){
+  R.row(); R.flip();
+  /* b65 hides Projects/Templates via [data-ss] CSS; a subnav rebuild can
+     recreate the tabs without that attribute — re-tag by label so the
+     retirement holds (same wording rule, no data change) */
+  document.querySelectorAll('#ssSubnav .ss-tab').forEach(function(t){
+    var x = t.textContent.trim();
+    if(x === 'Projects' || x === 'Templates') t.classList.add('ssrp-x');
+  });
+  var list = document.getElementById('ssList');
+  if(list){
+    list.querySelectorAll('.ss-res').forEach(function(card){
+      var got = !!card.querySelector('.ss-contacted');
+      card.classList.toggle('ssrp-contacted', got);
+    });
+    /* in-list waiting card after the 3rd result (active mode, not split view) */
+    if(!list.classList.contains('split') && !list.querySelector('.ssrp-strip')){
+      var cards = list.querySelectorAll('.ss-res');
+      if(cards.length >= 4){
+        var s = document.createElement('div');
+        s.className = 'ssrp-strip';
+        s.innerHTML = '<svg viewBox="0 0 24 24" width="20" height="20" fill="#2d2d2d">'+
+          '<path d="M12 2l1.8 5.2L19 9l-5.2 1.8L12 16l-1.8-5.2L5 9l5.2-1.8zM19 14l.9 2.6L22.5 17l-2.6.9L19 20.5l-.9-2.6-2.6-.9 2.6-.9z"/></svg>'+
+          '<span><b>Sourcing Assistant is waiting for assignments.</b> Assign a job, and your Assistant '+
+          'will find and message top matches, even when you’re offline.</span>'+
+          '<a onclick="ssGo(\'welcome\')">Select a job</a>';
+        cards[2].parentNode.insertBefore(s, cards[2].nextSibling);
+      }
+    }
+  }
+  /* pager: text Previous / Next */
+  var pg = document.querySelector('#ssScrSearch .ss-pager');
+  if(pg) pg.querySelectorAll('button').forEach(function(b){
+    var t = b.textContent.trim();
+    if(t === '‹' || t === '&lsaquo;' || t.toLowerCase() === 'prev') b.textContent = 'Previous';
+    if(t === '›' || t.toLowerCase() === 'next') b.textContent = 'Next';
+  });
+};
+
+var t0 = setInterval(R.sync, 450);
+setTimeout(function(){ clearInterval(t0); setInterval(R.sync, 1400); }, 13000);
+R.sync();
+})();
+</script>
 </body>
 </html>
