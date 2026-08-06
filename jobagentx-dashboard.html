@@ -20375,5 +20375,178 @@ setTimeout(function(){ clearInterval(t0); setInterval(V.side, 1500); }, 12000);
 V.side();
 })();
 </script>
+<style>
+/* ═══ SSRM — remove/re-assign lifecycle (build77) ═══════════════════════ */
+
+/* remove dialog to measured anatomy */
+#ssMdRemove .ss-modal{max-width:400px;border-radius:20px;border:1px solid #e4e2e0}
+.ssrm-survey{background:#f3f2f1;border-radius:12px;padding:16px;margin-top:16px}
+.ssrm-survey b{display:block;font-weight:700;color:#2d2d2d;margin-bottom:6px}
+.ssrm-survey a{color:#004fcb;text-decoration:underline;cursor:pointer}
+#ssMdRemove .ss-btn-pri{background:#004fcb !important}
+
+/* previously-assigned section */
+.ssrm-prevh{font-size:16px;font-weight:700;color:#2d2d2d;margin:28px 0 0;flex-basis:100%}
+.ss-badge.unassigned{background:#f3f2f1;color:#595959}
+
+/* working page: Train Assistant is back, and header buttons are grey */
+#ssSetupRight2 .ss-btn-ghost.sswz-hide{display:inline-flex !important}
+#ssSetupRight2 .sswz-rm,#ssSetupRight2 .ss-btn-ghost.sswz-hide{
+  background:#f3f2f1;border:0;color:#2d2d2d;font-weight:700}
+
+/* reassign dialog plus-icon title */
+.ssrm-plus{display:inline-flex;vertical-align:-4px;margin-right:10px}
+</style>
+<script>
+/* ═══ SSRM — build77 ═══════════════════════════════════════════════ */
+(function(){
+'use strict';
+var RM = window.SSRM = {removed:{}};
+
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
+function jobs(){ return (window.SSFULL && SSFULL.JOBS) || []; }
+
+/* ── remove dialog to measured copy (rebuilt once) ── */
+RM.dialog = function(){
+  var ov = document.getElementById('ssMdRemove');
+  if(!ov || ov.__ssrm) return;
+  ov.__ssrm = 1;
+  var h3 = ov.querySelector('.ss-mhead h3');
+  if(h3) h3.textContent = 'Remove assignment?';
+  var body = ov.querySelector('.ss-mbody');
+  if(body) body.innerHTML =
+    '<p style="font-size:16px;line-height:24px;margin:0">Your Sourcing Assistant will no longer find or reach out to matches for you. All its work is saved. Reassign it to this job any time.</p>' +
+    '<div class="ssrm-survey"><b>Tell us why you unassigned it</b>' +
+    '<a onclick="ssToast(\'Thanks\',\'Survey opens in a new tab on the live product.\')">Quick 1-minute survey &#8599;</a></div>';
+  var foot = ov.querySelector('.ss-mfoot');
+  if(foot) foot.innerHTML =
+    '<button class="ss-btn ss-btn-ghost" onclick="ssClose(\'ssMdRemove\')">Cancel</button>' +
+    '<button class="ss-btn ss-btn-pri" onclick="SSRM.confirm()">Yes, remove assignment</button>';
+};
+
+RM.pendingIdx = null;
+RM.open = function(i){ RM.pendingIdx = i; RM.dialog(); if(window.ssOpen) ssOpen('ssMdRemove'); };
+RM.confirm = function(){
+  if(RM.pendingIdx !== null) RM.removed[RM.pendingIdx] = true;
+  RM.pendingIdx = null;
+  if(window.ssClose) ssClose('ssMdRemove');
+  if(window.ssRenderHub) ssRenderHub();
+  if(window.ssToast) ssToast('Job unassigned successfully', '');
+};
+RM.reassign = function(i){
+  if(window.ssKillMenu) ssKillMenu();
+  var ov = document.getElementById('ssMdRemove');
+  RM.dialog();
+  var h3 = ov.querySelector('.ss-mhead h3');
+  var body = ov.querySelector('.ss-mbody');
+  var foot = ov.querySelector('.ss-mfoot');
+  h3.innerHTML = '<span class="ssrm-plus"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#2d2d2d" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg></span>Assign this job again?';
+  body.innerHTML = '<p style="font-size:16px;line-height:24px;margin:0">Your Assistant uses the same instructions and settings as the last time it was assigned.</p>';
+  foot.innerHTML =
+    '<button class="ss-btn ss-btn-ghost" onclick="SSRM.restoreDialog();ssClose(\'ssMdRemove\')">Cancel</button>' +
+    '<button class="ss-btn ss-btn-pri" onclick="SSRM.doReassign(' + i + ')">Yes, assign</button>';
+  if(window.ssOpen) ssOpen('ssMdRemove');
+};
+RM.doReassign = function(i){
+  delete RM.removed[i];
+  RM.restoreDialog();
+  if(window.ssClose) ssClose('ssMdRemove');
+  if(window.ssRenderHub) ssRenderHub();
+  if(window.ssToast) ssToast('Assigned', jobs()[i] ? '"' + jobs()[i].nm + '" is assigned to your Assistant again.' : 'Job assigned.');
+};
+RM.restoreDialog = function(){
+  var ov = document.getElementById('ssMdRemove');
+  if(ov){ ov.__ssrm = 0; RM.dialog(); }
+};
+
+/* ── hub: layer removal state over b74's full render ── */
+if(window.ssRenderHub && !window.ssRenderHub.__ssrm){
+  var _hub = window.ssRenderHub;
+  window.ssRenderHub = function(){
+    _hub.apply(this, arguments);
+    if(!window.SS || SS.assistant === 'none') return;
+    var w = document.getElementById('ssHubCards');
+    if(!w) return;
+    var J = jobs();
+    var removedIdx = Object.keys(RM.removed).map(Number);
+    if(!J.length) return;
+    var n = document.getElementById('ssHubN');
+    var live = J.length - removedIdx.length;
+    if(n) n.textContent = String(live);
+    var h = '';
+    J.forEach(function(j, i){
+      if(RM.removed[i]) return;
+      var st = j.st || (SS.assistant === 'working' ? 'working' : 'pending');
+      var badge = st === 'working'
+        ? '<span class="ss-badge working">Working</span>'
+        : '<span class="ss-badge pending">Pending</span>';
+      h += '<div class="ss-hubcard">' + badge + '<h4>' + esc(j.nm) + '</h4>' +
+        '<div class="m">' + j.meta + '<br>Tesla</div>' +
+        '<div class="used">Contacts used: <b>' + j.used + '</b> of <b>30</b></div>' +
+        '<button class="ss-kebab" data-ssrm="assigned" data-i="' + i + '" data-st="' + st + '">&#8943;</button></div>';
+    });
+    for(var s = live; s < 3; s++)
+      h += '<div class="ss-hubcard empty" onclick="ssGo(\'welcome\')"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#004fcb" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>Assign a job</div>';
+    if(removedIdx.length){
+      h += '<div class="ssrm-prevh">Previously assigned jobs</div>';
+      removedIdx.forEach(function(i){
+        var j = J[i];
+        h += '<div class="ss-hubcard"><span class="ss-badge unassigned">Unassigned</span>' +
+          '<h4>' + esc(j.nm) + '</h4><div class="m">' + j.meta + '<br>Tesla</div>' +
+          '<button class="ss-kebab" data-ssrm="unassigned" data-i="' + i + '">&#8943;</button></div>';
+      });
+    }
+    w.innerHTML = h;
+  };
+  window.ssRenderHub.__ssrm = 1;
+}
+
+/* ── state-aware kebab menus (replaces b72's fixed pair) ── */
+if(window.SSWZ && SSWZ.kebab && !SSWZ.kebab.__ssrm){
+  SSWZ.kebab = function(ev){
+    ev.stopPropagation();
+    if(window.ssKillMenu) ssKillMenu();
+    var k = ev.currentTarget;
+    var kind = k.getAttribute('data-ssrm') || 'assigned';
+    var i = +(k.getAttribute('data-i') || 0);
+    var st = k.getAttribute('data-st') || 'working';
+    var m = document.createElement('div');
+    m.className = 'ss-menu'; m.id = 'ssActiveMenu';
+    var items = '';
+    if(kind === 'unassigned'){
+      items = '<button onclick="ssKillMenu();ssGo(\'setup\');ssOpenSummary&&ssOpenSummary()">View outreaches</button>' +
+              '<button onclick="SSRM.reassign(' + i + ')">Assign job</button>';
+    } else if(st === 'working'){
+      items = '<button onclick="ssKillMenu();ssGo(\'setup\');ssOpenSummary&&ssOpenSummary()">View outreaches</button>' +
+              '<button onclick="ssKillMenu();SSRM.open(' + i + ')">Remove assignment</button>';
+    } else {
+      items = '<button onclick="ssKillMenu();SSRM.open(' + i + ')">Remove assignment</button>';
+    }
+    m.innerHTML = items;
+    document.body.appendChild(m);
+    var r = k.getBoundingClientRect();
+    var left = r.left + window.scrollX - m.offsetWidth + r.width;
+    m.style.position = 'absolute';
+    m.style.top = (r.bottom + window.scrollY + 6) + 'px';
+    m.style.left = Math.max(12, left) + 'px';
+  };
+  SSWZ.kebab.__ssrm = 1;
+}
+
+/* the base remove path (working page button) routes through the new dialog */
+if(window.ssRemoveAssign && !window.ssRemoveAssign.__ssrm){
+  window.ssRemoveAssign = function(){
+    /* legacy callers land here only if the old footer button survives a
+       render — normalize to the measured flow on job 2 (Web Developer) */
+    RM.pendingIdx = 2;
+    RM.confirm();
+  };
+  window.ssRemoveAssign.__ssrm = 1;
+}
+RM.dialog();
+var t0 = setInterval(RM.dialog, 600);
+setTimeout(function(){ clearInterval(t0); }, 12000);
+})();
+</script>
 </body>
 </html>
