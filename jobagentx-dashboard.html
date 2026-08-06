@@ -20008,5 +20008,115 @@ var t0 = setInterval(X.fix, 500);
 setTimeout(function(){ clearInterval(t0); setInterval(X.fix, 1500); }, 12000);
 })();
 </script>
+<style>
+/* ═══ SSFULL — 3/3 full-assistant state (build74) ═══════════════════════ */
+/* home slot cards: working/pending variants share the b70 card shell */
+#ssScrHome .ssa-pend .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:118px}
+/* hub h2 is a flex row — kill the gap that pads the (N/3) text apart */
+#ssScrHub h2{gap:0 !important}
+#ssScrHub h2 svg{margin-left:8px}
+/* three across like the live source; shrink gracefully instead of wrapping */
+.ss-hubcard{flex:1 1 340px;max-width:403px}
+</style>
+<script>
+/* ═══ SSFULL — build74 ═════════════════════════════════════════════ */
+(function(){
+'use strict';
+var FU = window.SSFULL = {};
+
+FU.JOBS = [
+  {nm:'Technical Sales Representative', meta:'Open • Remote • Aug 5, 2026', used:'0', st:'pending'},
+  {nm:'Test Engineer',                  meta:'Open • Remote • Mar 25, 2023', used:'10', st:'working'},
+  {nm:'Web Developer',                  meta:'Open • Remote • Aug 2, 2026', used:'0',  st:null}   /* follows SS.assistant */
+];
+FU.TIP = 'Assistant can handle up to 3 jobs at once. Previously assigned jobs are saved for you to easily assign again later.';
+
+function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
+
+/* ── hub: full 3/3 when an assignment exists ── */
+if(window.ssRenderHub && !window.ssRenderHub.__ssfull){
+  var _hub = window.ssRenderHub;
+  window.ssRenderHub = function(){
+    if(!window.SS || SS.assistant === 'none') return _hub.apply(this, arguments);
+    var w = document.getElementById('ssHubCards');
+    if(!w) return;
+    var n = document.getElementById('ssHubN');
+    if(n) n.textContent = '3';
+    w.innerHTML = FU.JOBS.map(function(j){
+      var st = j.st || (SS.assistant === 'working' ? 'working' : 'pending');
+      var badge = st === 'working'
+        ? '<span class="ss-badge working">Working</span>'
+        : '<span class="ss-badge pending">Pending</span>';
+      return '<div class="ss-hubcard">' + badge + '<h4>' + esc(j.nm) + '</h4>' +
+        '<div class="m">' + j.meta + '<br>Tesla</div>' +
+        '<div class="used">Contacts used: <b>' + j.used + '</b> of <b>30</b></div>' +
+        '<button class="ss-kebab" onclick="ssOpen(\'ssMdRemove\')">&#8943;</button></div>';
+    }).join('');
+    /* no Assign-a-job slot at 3/3 — mirrors the live source exactly */
+  };
+  window.ssRenderHub.__ssfull = 1;
+}
+
+/* ── the (i) explains the cap (measured tooltip copy) ── */
+FU.tip = function(){
+  var h2 = document.querySelector('#ssScrHub h2');
+  if(!h2 || h2.__ssfull) return;
+  h2.__ssfull = 1;
+  var svg = h2.querySelector('svg');
+  if(svg){
+    svg.style.cursor = 'pointer';
+    svg.setAttribute('role', 'button');
+    svg.addEventListener('click', function(){
+      if(window.ssToast) ssToast('Assigned jobs', FU.TIP);
+    });
+  }
+};
+
+/* ── home: all three slot cards filled, no dashed slot ── */
+FU.slots = function(){
+  if(!window.SS || SS.assistant === 'none') return;
+  var slots = document.getElementById('ssSlots');
+  if(!slots || document.body.classList.contains('sse')) return;
+  var full = slots.querySelectorAll('.ssa-full');
+  var intact = full.length === 3 && Array.prototype.every.call(full, function(c){
+    return !!c.querySelector('.st'); });      /* the strip refresher can flatten a card */
+  if(intact){
+    /* keep statuses in step: fixed for slots 0/1, WD follows the assistant */
+    full.forEach(function(c, i){
+      var j = FU.JOBS[+c.getAttribute('data-j')] || FU.JOBS[i];
+      var st = j.st || (SS.assistant === 'working' ? 'working' : 'pending');
+      c.classList.toggle('work', st === 'working');
+      var lbl = c.querySelector('.st');
+      if(lbl) lbl.textContent = st === 'working' ? 'Working' : 'Pending';
+    });
+    return;
+  }
+  slots.innerHTML = FU.JOBS.map(function(j, i){
+    var st = j.st || (SS.assistant === 'working' ? 'working' : 'pending');
+    return '<button class="ssa-pend ssa-full' + (st === 'working' ? ' work' : '') + '" data-j="' + i + '">' +
+      '<span class="st">' + (st === 'working' ? 'Working' : 'Pending') + '</span>' +
+      '<span class="nm">' + esc(j.nm) + '</span><i class="dot"></i></button>';
+  }).join('');
+  slots.querySelectorAll('.ssa-full').forEach(function(b){
+    b.onclick = function(){ if(window.ssGo){ ssGo('setup'); if(window.ssRenderSetup) ssRenderSetup(); } };
+  });
+};
+
+/* b72's single-slot updater must stand down once the full set renders */
+if(window.SSWZ && SSWZ.slot && !SSWZ.slot.__ssfull){
+  var _slot = SSWZ.slot;
+  SSWZ.slot = function(){
+    if(document.querySelector('#ssSlots .ssa-full')) return;
+    return _slot.apply(this, arguments);
+  };
+  SSWZ.slot.__ssfull = 1;
+}
+
+FU.sync = function(){ FU.tip(); FU.slots(); };
+var t0 = setInterval(FU.sync, 500);
+setTimeout(function(){ clearInterval(t0); setInterval(FU.sync, 1500); }, 12000);
+FU.sync();
+})();
+</script>
 </body>
 </html>
