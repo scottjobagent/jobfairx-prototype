@@ -19323,5 +19323,179 @@ setTimeout(function(){ clearInterval(t0); setInterval(R.sync, 1200); }, 15000);
 R.sync();
 })();
 </script>
+<style>
+/* ═══ SSAA — Sourcing active home to measured values (build70) ══════════ */
+
+/* the assistant strip already exists (#ssStripLbl + #ssStripLink with its own
+   state machine) — first pass duplicated it; corrected to reuse it. */
+
+/* chips: joined pill pair, 22 tall 12/700 */
+body:not(.sse) .ss-contacts{display:inline-flex;align-items:center;gap:0}
+body:not(.sse) .ss-contacts b{background:#ecf2ff;color:#004fcb;font-size:12px;line-height:18px;
+  font-weight:700;padding:2px 8px;border-radius:8px 0 0 8px;height:22px;box-sizing:border-box}
+body:not(.sse) .ss-contacts .ss-acbal{background:#e4f7e6;color:#1f662c;font-size:12px;
+  line-height:18px;font-weight:700;padding:2px 8px;border-radius:0 8px 8px 0;height:22px;
+  box-sizing:border-box;display:inline-flex;align-items:center;gap:3px;margin:0}
+body:not(.sse) .ss-trial{color:#004fcb;font-size:16px;line-height:24px;text-decoration:none}
+body:not(.sse) .ss-trial:hover{text-decoration:underline}
+
+/* hero: active is white; type to measure */
+body:not(.sse) #ssScrHome .ss-hero{background:#fff}
+body:not(.sse) #ssScrHome .ss-hero-l h1{font-size:36px;line-height:45px;font-weight:700;color:#2d2d2d}
+body:not(.sse) #ssScrHome .ss-hero-l p{font-size:16px;line-height:24px;color:#595959}
+body:not(.sse) #ssScrHome .ss-hero-r .cap{font-size:14px;line-height:21px;font-weight:700;color:#2d2d2d}
+
+/* slots */
+body:not(.sse) #ssScrHome .ss-slot{width:155px;min-width:0;flex:0 0 155px;height:67px;border:1px dashed #2d2d2d;
+  border-radius:12px;background:rgba(255,255,255,.35);padding:16px 0 16px 12px;box-sizing:border-box;
+  font-size:14px;line-height:21px;color:#2d2d2d;display:inline-flex;align-items:center;gap:8px;
+  cursor:pointer;font-family:inherit}
+.ssa-pend{width:155px;height:67px;background:#fff;border-radius:12px;padding:12px;box-sizing:border-box;
+  text-align:left;cursor:default;position:relative;border:0;font-family:inherit;
+  box-shadow:0 0 2px rgba(45,45,45,.16),0 4px 8px rgba(45,45,45,.08),0 8px 16px rgba(45,45,45,.04)}
+.ssa-pend .st{font-size:12px;line-height:18px;color:#b16300;display:block}
+.ssa-pend .nm{font-size:14px;line-height:21px;font-weight:700;color:#2d2d2d;display:block;margin-top:4px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ssa-pend .dot{position:absolute;top:14px;right:12px;width:8px;height:8px;border-radius:50%;
+  background:#b16300}
+
+/* search card */
+body:not(.sse) #ssScrHome .ss-searchrow{display:flex;flex-wrap:nowrap;align-items:center;gap:12px}
+body:not(.sse) #ssScrHome .ss-searchcard{background:#fff;border-radius:12px;padding:24px;max-width:1200px;
+  box-sizing:border-box;border:0;
+  box-shadow:0 0 2px rgba(45,45,45,.16),0 4px 8px rgba(45,45,45,.08),0 8px 16px rgba(45,45,45,.04)}
+body:not(.sse) #ssScrHome .ss-qwrap,
+body:not(.sse) #ssScrHome .ss-lwrap{height:44px;border:1px solid #595959;border-radius:12px;
+  background:#fff;box-sizing:border-box;display:flex;align-items:center;gap:8px;padding:0 12px}
+body:not(.sse) #ssScrHome .ss-qwrap{flex:1 1 698px}
+body:not(.sse) #ssScrHome .ss-lwrap{flex:0 1 320px}
+body:not(.sse) #ssScrHome .ss-qwrap input,
+body:not(.sse) #ssScrHome .ss-lwrap input{border:0;outline:0;flex:1;font-family:inherit;
+  font-size:16px;color:#2d2d2d;background:none}
+body:not(.sse) #ssScrHome .ss-addjob{background:#f3f2f1;border:0;border-radius:999px;height:24px;
+  padding:0 8px;font-family:inherit;font-size:14px;line-height:21px;color:#2d2d2d;cursor:pointer;
+  display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+body:not(.sse) #ssScrHome .ss-btn-pri{height:44px;background:#004fcb;color:#fff;border:0;
+  border-radius:12px;padding:9px 16px;font-size:16px;line-height:24px;font-weight:700}
+body:not(.sse) #ssScrHome .ss-icobtn{width:44px;height:44px;background:#fff;border:1px solid #e4e2e0;
+  border-radius:12px;color:#2d2d2d;cursor:pointer}
+/* validation */
+#ssScrHome .ssa-err .ss-qwrap,#ssScrHome .ssa-err .ss-lwrap{border-color:#a9252b}
+#ssaMsg{display:none;font-size:14px;line-height:21px;color:#a9252b;margin:10px 0 0 2px}
+.ssa-err #ssaMsg{display:block}
+
+/* active jobs */
+body:not(.sse) #ssScrHome .ss-jobs h2{font-size:20px;line-height:30px;font-weight:700;color:#2d2d2d}
+body:not(.sse) #ssScrHome .ss-jobs .lead{font-size:14px;line-height:21px;color:#2d2d2d}
+body:not(.sse) #ssScrHome .ss-jobcard{width:368px;background:#fff;border:1px solid #e4e2e0;
+  border-radius:20px}
+body:not(.sse) #ssScrHome .ss-jobcard h3{font-size:16px;line-height:24px;font-weight:700;color:#2d2d2d}
+body:not(.sse) #ssScrHome .ss-jobcard p{font-size:14px;line-height:21px;color:#595959}
+body:not(.sse) #ssScrHome .ss-carr{width:42px;height:44px;border-radius:12px}
+</style>
+<script>
+/* ═══ SSAA — build70 ═══════════════════════════════════════════════ */
+(function(){
+'use strict';
+var A = window.SSAA = {};
+
+A.build = function(){
+  var home = document.getElementById('ssScrHome');
+  if(!home) return;
+  /* first slot becomes the pending card, named after the first active position */
+  var slots = home.querySelectorAll('#ssSlots .ss-slot');
+  if(slots.length && !home.querySelector('.ssa-pend')){
+    var name = (home.querySelector('.ss-jobcard h3')||{textContent:'Registered Nurse'}).textContent.trim();
+    var card = document.createElement('div');
+    card.className = 'ssa-pend';
+    card.innerHTML = '<span class="st">Pending</span><span class="dot"></span>'+
+      '<span class="nm">'+name+'</span>';
+    slots[0].replaceWith(card);
+  }
+  /* the walkthrough data carried the demo account's address — swap to ours
+     wherever the sourcing view renders it */
+  var tw = document.createTreeWalker(document.getElementById('view-sourcing')||home, NodeFilter.SHOW_TEXT);
+  while(tw.nextNode()){
+    var nd = tw.currentNode;
+    if(nd.textContent.indexOf('kat@lincolndynamic.org') >= 0)
+      nd.textContent = nd.textContent.split('kat@lincolndynamic.org').join('scott@jobfairx.com');
+  }
+  document.querySelectorAll('#view-sourcing option').forEach(function(o){
+    if(o.textContent.indexOf('kat@lincolndynamic.org') >= 0)
+      o.textContent = o.textContent.split('kat@lincolndynamic.org').join('scott@jobfairx.com');
+    if(o.textContent.indexOf('Lincoln Dynamic Group') >= 0)
+      o.textContent = o.textContent.split('Lincoln Dynamic Group').join('Tesla');
+  });
+  /* validation message node under the search row */
+  var scard = home.querySelector('.ss-searchcard');
+  if(scard && !document.getElementById('ssaMsg')){
+    var m = document.createElement('div');
+    m.id = 'ssaMsg';
+    m.textContent = 'Select a position or add keywords to search.';
+    scard.appendChild(m);
+  }
+};
+
+/* wrap ssRunSearch keep-outermost: empty query blocks with the red state */
+function wrap(){
+  if(typeof window.ssRunSearch !== 'function' || window.ssRunSearch.__ssaa) return;
+  var base = window.ssRunSearch;
+  window.ssRunSearch = function(q, l){
+    var scard = document.querySelector('#ssScrHome .ss-searchcard');
+    if(q === undefined && document.body.classList.contains('sse') === false){
+      var kw = document.getElementById('ssHomeQ');
+      if(kw && !kw.value.trim()){
+        if(scard) scard.classList.add('ssa-err');
+        return;
+      }
+    }
+    if(scard) scard.classList.remove('ssa-err');
+    return base.apply(this, arguments);
+  };
+  window.ssRunSearch.__ssaa = 1;
+}
+
+document.addEventListener('input', function(e){
+  if(e.target && e.target.id === 'ssHomeQ' && e.target.value.trim()){
+    var c = document.querySelector('#ssScrHome .ss-searchcard');
+    if(c) c.classList.remove('ssa-err');
+  }
+}, true);
+
+function wrapToast(){
+  if(typeof window.ssToast !== 'function' || window.ssToast.__ssaa) return;
+  var base = window.ssToast;
+  window.ssToast = function(t, m){
+    if(typeof m === 'string') m = m.split('kat@lincolndynamic.org').join('scott@jobfairx.com');
+    return base.call(this, t, m);
+  };
+  window.ssToast.__ssaa = 1;
+}
+
+wrap(); wrapToast(); A.build();
+var t0 = setInterval(function(){ function wrapToast(){
+  if(typeof window.ssToast !== 'function' || window.ssToast.__ssaa) return;
+  var base = window.ssToast;
+  window.ssToast = function(t, m){
+    if(typeof m === 'string') m = m.split('kat@lincolndynamic.org').join('scott@jobfairx.com');
+    return base.call(this, t, m);
+  };
+  window.ssToast.__ssaa = 1;
+}
+
+wrap(); wrapToast(); A.build(); }, 500);
+setTimeout(function(){ clearInterval(t0); setInterval(function(){ function wrapToast(){
+  if(typeof window.ssToast !== 'function' || window.ssToast.__ssaa) return;
+  var base = window.ssToast;
+  window.ssToast = function(t, m){
+    if(typeof m === 'string') m = m.split('kat@lincolndynamic.org').join('scott@jobfairx.com');
+    return base.call(this, t, m);
+  };
+  window.ssToast.__ssaa = 1;
+}
+
+wrap(); wrapToast(); A.build(); }, 1500); }, 12000);
+})();
+</script>
 </body>
 </html>
