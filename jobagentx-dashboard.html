@@ -19744,5 +19744,195 @@ setTimeout(function(){ clearInterval(t0); setInterval(R.sync, 1400); }, 13000);
 R.sync();
 })();
 </script>
+<style>
+/* ═══ SSWZ — assistant wizard to measured values (build72) ══════════════ */
+
+/* ── welcome ── */
+#ssScrWelcome .ss-page{background:
+  linear-gradient(rgba(255,255,255,0) 0.88%, #fff 55.44%),
+  linear-gradient(112.07deg, #ecf2ff 5.54%, #e6f5f1 71.35%) !important;
+  border-radius:20px;padding-top:32px !important}
+#ssScrWelcome h1{font-size:28px !important;font-weight:700 !important}
+#ssScrWelcome .ss-page>p{font-size:16px !important}
+#ssScrWelcome #ssLearnBar{border:1px solid #e4e2e0;border-radius:20px;padding:16px !important}
+#ssScrWelcome .ss-card{border-radius:8px}
+#ssScrWelcome #ssLearnBar+.ss-card h3{font-size:16px !important}
+#ssScrWelcome .ss-fbtn{color:#004fcb;font-weight:700}
+#ssScrWelcome .ss-jobpick>div>div:first-child{color:#2d2d2d}
+
+/* ── setup shared ── */
+.ss-eyebrow{color:#595959}
+#ssSetupRight2 h1{font-size:28px !important;font-weight:700 !important}
+#ssSetupRight2 h2{font-size:16px !important;font-weight:700 !important}
+.ss-actcard{border:0;border-radius:20px;
+  box-shadow:rgba(45,45,45,.16) 0 0 2px 0,rgba(45,45,45,.08) 0 8px 16px 0,
+  rgba(45,45,45,.04) 0 16px 24px 0}
+
+/* ── stepper: 24px circles; done=✓, passed=✕, both filled #2d2d2d ── */
+.ss-stepdot{width:24px;height:24px;border:1px solid #595959;font-size:14px;color:#595959}
+.ss-step.on .ss-stepdot{border:2px solid #2d2d2d;color:#2d2d2d;font-weight:400}
+.ss-stepdot.done{background:#2d2d2d;border-color:#2d2d2d;color:#fff}
+.ss-step .lb{font-size:14px;font-weight:700;color:#595959}
+.ss-step.on .lb{color:#2d2d2d}
+.ss-stepbar{background:#2d2d2d;margin-bottom:24px}
+
+/* ── candidate card ── */
+.ss-tcard{max-width:720px;border-radius:20px;padding:12px 24px 20px}
+.ss-tcard .nm{text-decoration:underline}
+.ss-tcard .acts button{height:36px;border:1px solid #e4e2e0;border-radius:12px;
+  padding:5px 15px;background:#fff;color:#004fcb;font-size:16px;font-weight:700;
+  display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-family:inherit}
+.ss-tcard .acts button:first-child svg{stroke:#1f662c}
+.ss-tcard .acts button:nth-child(2) svg{stroke:#a9252b}
+#ssMdPass .ss-noteinput{border:2px solid #004fcb;border-radius:12px}
+
+/* ── outreach rows ── */
+.ss-dl .r{border-bottom:1px solid #e4e2e0}
+.ss-dl .k{font-size:14px;font-weight:700;color:#2d2d2d}
+.ss-dl .v{font-size:16px;color:#595959}
+.ss-dl .k.u{text-decoration:underline dotted 1px}
+#ssSetupRight2 .sswz-edit{background:#fff;border:1px solid #e4e2e0;border-radius:12px;color:#004fcb}
+#ssSetupRight2 .sswz-edit svg{stroke:#004fcb}
+
+/* ── working page ── */
+.ss-infocard{background:#ecf2ff;border:1px solid #7461e7;border-radius:12px;padding:16px}
+.ss-infocard h3{font-weight:700}
+.ss-infocard u{text-decoration:underline dotted 1px}
+.ss-autoinv{border-radius:20px}
+#ssSetupRight2 .sswz-rm{background:#f3f2f1;border:0;color:#2d2d2d;font-weight:700}
+#ssSetupRight2 .sswz-hide{display:none !important}
+.b-working{color:#1f662c}
+
+/* ── hub ── */
+#ssScrHub h1{font-size:28px !important;font-weight:700 !important}
+#ssScrHub h2{font-size:16px !important}
+.ss-hubcard{flex:0 0 403px;min-height:125px;box-sizing:border-box}
+.ss-hubcard.empty{border:1px dashed #595959;border-radius:20px;display:flex;
+  align-items:center;justify-content:center;gap:10px;color:#004fcb;font-weight:700;
+  font-size:16px;cursor:pointer}
+.ss-badge{position:absolute;top:20px;right:20px;color:#fff;font-size:12px;
+  font-weight:700;border-radius:8px;padding:3px 9px}
+.ss-badge.working{background:#1f662c;color:#fff}
+.ss-badge.pending{background:#b16300;color:#fff}
+.ss-hubcard h4{font-size:16px;font-weight:700;margin:0 0 4px}
+.ss-hubcard .m{font-size:14px;color:#595959;line-height:21px}
+.ss-hubcard .used{font-size:12px;color:#595959;margin-top:10px}
+.ss-hubcard .ss-kebab{position:absolute;right:16px;bottom:12px;border:0;background:none;
+  font-size:18px;cursor:pointer;color:#2d2d2d;width:36px;height:36px;border-radius:50%}
+.ss-hubcard .ss-kebab:hover{background:#f3f2f1}
+
+/* ── home slot: working variant of the b70 pending card ── */
+.ssa-pend.work .st{color:#1f662c}
+.ssa-pend.work .dot{background:#1f662c}
+</style>
+<script>
+/* ═══ SSWZ — build72 ═══════════════════════════════════════════════ */
+(function(){
+'use strict';
+var W = window.SSWZ = {passed:{}};
+
+/* ── stepper: remember which train steps were PASSED (✕ not ✓) ── */
+if(window.ssPassConfirm && !window.ssPassConfirm.__sswz){
+  var _pass = window.ssPassConfirm;
+  window.ssPassConfirm = function(){
+    if(window.SS) W.passed[SS.trainIdx] = true;
+    return _pass.apply(this, arguments);
+  };
+  window.ssPassConfirm.__sswz = 1;
+}
+W.marks = function(){
+  var dots = document.querySelectorAll('#ssSetupRight2 .ss-step');
+  dots.forEach(function(st, n){
+    if(W.passed[n]){
+      var d = st.querySelector('.ss-stepdot.done');
+      if(d && d.innerHTML.indexOf('✕') < 0) d.innerHTML = '&#10005;';
+    }
+  });
+};
+
+/* ── page post-processing after each wizard render ── */
+W.fix = function(){
+  var r2 = document.getElementById('ssSetupRight2');
+  if(r2){
+    W.marks();
+    r2.querySelectorAll('.ss-btn-ghost').forEach(function(b){
+      var t = b.textContent.trim();
+      if(t === 'Train Assistant') b.classList.add('sswz-hide');       /* not on their working page */
+      else if(t === 'Remove assignment') b.classList.add('sswz-rm');
+      else if(t === 'Edit settings') b.classList.add('sswz-edit');
+      else if(b.querySelector('svg') && t === '') b.classList.add('sswz-rm'); /* chart icon button */
+    });
+    /* auto-invite status row to the live wording */
+    var ft = r2.querySelector('.ss-autoinv .ft');
+    if(ft && ft.textContent.indexOf('No outreaches sent yet') >= 0){
+      ft.innerHTML = '<span class="ss-spin"></span> Getting the latest outreach data '+
+        '<a onclick="ssOpenSummary()" style="margin-left:auto;color:#004fcb;font-weight:700;cursor:pointer">View &rarr;</a>';
+      ft.style.display = 'flex'; ft.style.alignItems = 'center'; ft.style.gap = '10px';
+    }
+  }
+  /* hub: kebab opens the measured 2-item menu */
+  document.querySelectorAll('#ssHubCards .ss-kebab').forEach(function(k){
+    if(k.__sswz) return;
+    k.__sswz = 1;
+    k.onclick = function(ev){ W.kebab(ev); };
+  });
+};
+
+/* hub kebab menu: View outreaches / Remove assignment */
+W.kebab = function(ev){
+  ev.stopPropagation();
+  if(window.ssKillMenu) ssKillMenu();
+  var m = document.createElement('div');
+  m.className = 'ss-menu'; m.id = 'ssActiveMenu';
+  m.innerHTML =
+    '<button onclick="ssKillMenu();ssGo(\'setup\');ssOpenSummary()">View outreaches</button>'+
+    '<button onclick="ssKillMenu();ssOpen(\'ssMdRemove\')">Remove assignment</button>';
+  document.body.appendChild(m);
+  var r = ev.currentTarget.getBoundingClientRect();
+  var left = r.left + window.scrollX - m.offsetWidth + r.width;
+  m.style.position = 'absolute';
+  m.style.top = (r.bottom + window.scrollY + 6) + 'px';
+  m.style.left = Math.max(12, left) + 'px';
+};
+
+/* ── strip + home slot: green "working" state ── */
+if(window.ssRefreshStrip && !window.ssRefreshStrip.__sswz){
+  var _strip = window.ssRefreshStrip;
+  window.ssRefreshStrip = function(){
+    _strip.apply(this, arguments);
+    if(window.SS && SS.assistant === 'working'){
+      var lbl = document.getElementById('ssStripLbl');
+      if(lbl) lbl.innerHTML = 'Sourcing Assistant is <b class="b-working">working</b>';
+      var lnk = document.getElementById('ssStripLink');
+      if(lnk) lnk.innerHTML = 'View all assistant jobs <svg viewBox="0 0 24 24" fill="none" stroke="#004fcb" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>';
+    }
+  };
+  window.ssRefreshStrip.__sswz = 1;
+}
+W.slot = function(){
+  var card = document.querySelector('#ssScrHome .ssa-pend');
+  if(!card || !window.SS) return;
+  var working = SS.assistant === 'working';
+  card.classList.toggle('work', working);
+  var st = card.querySelector('.st');
+  if(!st){
+    /* the base strip refresh flattens the card to a bare name span when the
+       Assistant starts — rebuild the slot-card anatomy around that name */
+    var nm = card.textContent.trim() || 'Web Developer';
+    card.innerHTML = '<span class="st"></span><span class="nm"></span><i class="dot"></i>';
+    card.querySelector('.nm').textContent = nm;
+    st = card.querySelector('.st');
+  }
+  var want = working ? 'Working' : 'Pending';
+  if(st.textContent !== want) st.textContent = want;
+};
+
+W.sync = function(){ W.fix(); W.slot(); };
+document.addEventListener('click', function(){ setTimeout(W.sync, 90); }, true);
+var t0 = setInterval(W.sync, 450);
+setTimeout(function(){ clearInterval(t0); setInterval(W.sync, 1400); }, 13000);
+W.sync();
+})();
+</script>
 </body>
 </html>
