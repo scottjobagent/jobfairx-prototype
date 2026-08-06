@@ -21093,5 +21093,287 @@ K.open = function(mode){ K.mode=mode;
     botMsg('Hey Scott — let’s get this position built. Want to start from one of your previous agents (Registered Nurse, CNA, Warehouse Associate, RN Care Manager), or build this one fresh? If you’ve got the basics in your head — title, location, pay — just throw them at me in one go and I’ll sort them.'); } };
 })();
 </script>
+<style>
+/* ═══ INTK2 — Metaview-exact conversation (build79) ═════════════════════ */
+.intk-sug .old{color:#767676;text-decoration:line-through;font-size:12.5px;line-height:1.5;margin-top:6px}
+.intk-sug .oldcap{font-size:11px;font-weight:700;letter-spacing:.4px;color:#a9a8a6;margin-top:10px}
+.intk-sug .rep .addq{color:#1f662c}
+.intk-gap{margin:6px 0 0;padding-left:18px}
+.intk-gap li{margin:4px 0;font-size:14px;line-height:1.5}
+.intk-gap b{font-weight:700}
+.intk-msg.bot p{margin:0 0 8px}
+.intk-msg.bot p:last-child{margin:0}
+</style>
+<script>
+(function(){
+'use strict';
+/* ═══ INTK2 (build79) ═══ */
+var K = window.INTK; if(!K) return;
+var K2 = window.INTK2 = { pend:[], gapShown:false, drafted:false, done:false };
+var el = function(id){ return document.getElementById(id); };
+function h(html){ var d=document.createElement('div'); d.innerHTML=html; return d.firstElementChild; }
+function feed(){ return el('intkFeed'); }
+function scrollFeed(){ var f=feed(); f.scrollTop=f.scrollHeight; }
+function userMsg(t){ feed().appendChild(h('<div class="intk-who me">Scott <span class="intk-av">S</span></div>'));
+  var m=h('<div class="intk-msg user"></div>'); m.textContent=t; feed().appendChild(m); scrollFeed(); }
+function botMsg(html){ feed().appendChild(h('<div class="intk-who"><span class="intk-av bot">J</span> Intake Assistant</div>'));
+  var m=h('<div class="intk-msg bot"></div>'); m.innerHTML=html; feed().appendChild(m); scrollFeed(); return m; }
+function stamp(label){ K.versions.push({n:K.versions.length+1,label:label});
+  el('intkVer').textContent='v'+K.versions.length; }
+
+/* ── formatting ── */
+function money(n){ return '$'+(n*1000).toLocaleString('en-US'); }
+function salText(){ var s=K.spec.sal; if(!s.structure) return null;
+  var per={annual:'per year',hourly:'per hour',monthly:'per month',weekly:'per week'}[K.spec.period||'annual'];
+  if(s.structure==='range') return money(s.min)+'–'+money(s.max)+' '+per;
+  return ({starting:'From ',maximum:'Up to ',exact:''}[s.structure]||'')+money(s.amount)+' '+per; }
+function locText(){ var L=K.spec.loc;
+  if(L.model==='remote') return 'fully remote'+(L.resReq? ' ('+L.resWhere+' residents)':'');
+  if(L.model==='hybrid') return 'hybrid, with '+(L.cadence||'3')+' days a week at '+(L.address||'the office');
+  if(L.model==='inperson') return 'on-site at '+(L.address||'the office');
+  if(L.model==='road') return 'on the road'; return null; }
+function arrangeSentence(){ var L=K.spec.loc, st=salText(); if(!L.model&&!st) return null;
+  var a = L.model==='remote' ? 'This is a fully remote role.' :
+    L.model==='hybrid' ? 'This is a hybrid role based at '+(L.address||'our office')+', with '+(L.cadence||'3')+' days per week in the office.' :
+    L.model==='inperson' ? 'This role is on-site at '+(L.address||'our office')+'.' :
+    L.model==='road' ? 'This role is on the road.' : '';
+  var c = st? ' The base salary range is '+st.replace(' per year','')+(K.spec.period==='hourly'?' per hour':'')+
+    (st.indexOf('–')>=0? ', plus benefits where noted.':'.') : '';
+  return (a+c).trim(); }
+
+/* ── parser: everything in one pass; touch only what the message mentions ── */
+function parseAll(t){ var s=K.spec, low=t.toLowerCase(), got=[], corr=[];
+  var m=t.match(/([A-Za-z][A-Za-z ]{2,34}?(?:developer|designer|engineer|nurse|manager|technician|assistant|representative|rep|analyst|instructor|associate|specialist|coordinator))/i);
+  if(m && !s.title){ s.title=m[1].trim().replace(/\b\w/g,function(c){return c.toUpperCase();}); got.push('the '+s.title+' title'); }
+  else if(!s.title && t.length<45 && /^[A-Za-z ,'-]+$/.test(t.trim()) && !/help|write|post|hi|hey/i.test(low)){
+    s.title=t.trim().replace(/\b\w/g,function(c){return c.toUpperCase();}); got.push('the '+s.title+' title'); }
+  var newModel = /hybrid/i.test(t)?'hybrid': /fully[- ]?remote|(^|\W)remote/i.test(t)?'remote':
+    /in[- ]?person|on[- ]?site/i.test(t)?'inperson': /on the road/i.test(t)?'road':null;
+  if(newModel){ if(s.loc.model && s.loc.model!==newModel) corr.push('arrangement');
+    var keep=s.loc; s.loc={model:newModel,address:null,cadence:null,
+      resReq:(newModel==='remote'? false:null),resWhere:null};
+    if(newModel==='hybrid'||newModel==='inperson'){ s.loc.address=keep.address; s.loc.cadence=keep.cadence; }
+    got.push(newModel==='remote'?'the fully remote arrangement':'the '+newModel+' arrangement'); }
+  var am=t.match(/(\d+[^,]{3,40}(?:ave|avenue|st|street|rd|road|blvd|way|congress|lane|ln)[^,]*(?:,\s*[A-Za-z .]{2,25})?)/i);
+  if(am && (s.loc.model==='hybrid'||s.loc.model==='inperson')){ s.loc.address=am[1].trim(); }
+  else if(/dallas|austin|houston|pittsburgh/i.test(t) && s.loc.model&&s.loc.model!=='remote' && !s.loc.address){
+    s.loc.address = t.match(/dallas|austin|houston|pittsburgh/i)[0].replace(/\b\w/g,function(c){return c.toUpperCase();}); }
+  var dm=t.match(/(\d)\s*days/i); if(dm && s.loc.model==='hybrid') s.loc.cadence=dm[1];
+  if(/full[- ]?time/i.test(t)){ s.etype='full_time'; got.push('full-time'); }
+  else if(/part[- ]?time/i.test(t)){ s.etype='part_time'; got.push('part-time'); }
+  else if(/contract to hire/i.test(t)){ s.etype='cth'; got.push('contract-to-hire'); }
+  else if(/contract/i.test(t)){ s.etype='contract'; got.push('contract'); }
+  var sm=t.match(/(\d{2,3})\s*(?:k)?\s*(?:-|–|to)\s*(\d{2,3})\s*k?/i);
+  var hourly=/\/\s*(?:hr|hour)|per hour|hourly/i.test(t);
+  if(sm && +sm[1]>=10 && +sm[2]>+sm[1]){ if(s.sal.structure) corr.push('compensation');
+    s.sal={structure:'range',min:+sm[1],max:+sm[2],amount:null}; s.period=hourly?'hourly':'annual';
+    got.push('the '+money(+sm[1])+'–'+money(+sm[2])+(hourly?' hourly':' base salary')+' range'+(/bonus/i.test(t)?' plus bonus':'')); }
+  else { var one=t.match(/\$?(\d{2,3})k\b/i); if(one){ if(s.sal.structure) corr.push('compensation');
+    s.sal={structure:'exact',min:null,max:null,amount:+one[1]}; s.period='annual';
+    got.push('the '+money(+one[1])+' salary'); } }
+  var sk=[]; ['React','TypeScript','Node','JavaScript','HTML','CSS','Python','SQL','Figma','Java','HubSpot','Salesforce','Excel'].forEach(function(k){
+    if(new RegExp('\\b'+k+'\\b','i').test(t)) sk.push(k); });
+  if(sk.length){ s.skills=(s.skills||[]).concat(sk.filter(function(k){return (s.skills||[]).indexOf(k)<0;}));
+    got.push(sk.join(', ')+(sk.length>1?' as core skills':' as a core skill')); }
+  var ben=[]; if(/health|medical/i.test(t)) ben.push('Health insurance');
+  if(/401k|401\(k\)/i.test(t)) ben.push('401(k)');
+  if(/dental/i.test(t)) ben.push('Dental insurance');
+  if(/pto|paid time off|vacation/i.test(t)) ben.push('Paid time off');
+  if(ben.length){ s.benefits=(s.benefits||[]).concat(ben.filter(function(b){return (s.benefits||[]).indexOf(b)<0;}));
+    got.push(ben.join(' and ')); }
+  else if(/standard benefits|benefits.*standard|no benefits/i.test(low) && !s.benefits){ s.benefits=[]; got.push('standard benefits'); }
+  if(/night shift/i.test(low)){ s.sched.shift='Night shift'; got.push('night shift'); }
+  else if(/day shift|9\s*(?:to|-)\s*5/i.test(low)){ s.sched.shift='Day shift'; got.push('day shift'); }
+  if(/m\s*[-–]?\s*f\b|monday to friday|monday through friday/i.test(low)){ s.sched.week='Monday to Friday';
+    if(!s.sched.shift) s.sched.shift='Day shift'; got.push('a Monday-to-Friday schedule'); }
+  if(/video/i.test(low) && /interview|call|15|30|60/i.test(low)){ s.iv.format='video'; }
+  else if(/phone/i.test(low) && /interview|call|screen|15|30|60/i.test(low)){ s.iv.format='phone'; }
+  if(s.iv.format){ var d=low.match(/\b(15|30|60)\b/); if(d) s.iv.dur=d[1];
+    if(got.indexOf('iv')<0 && (d||/video|phone/i.test(low)))
+      got.push((s.iv.format==='video'?'video':'phone')+' interviews'+(s.iv.dur? ' at '+s.iv.dur+' minutes':'')); }
+  if(/auto.?accept/i.test(low)){ s.iv.auto=!/no auto|don.?t auto|manual|review/i.test(low);
+    got.push('auto-accept '+(s.iv.auto?'on':'off')); }
+  if(/resume/i.test(low)){ s.iv.resume=!/no resume|resume optional|without.*resume/i.test(low);
+    got.push('resume '+(s.iv.resume?'required':'optional')); }
+  var em=t.match(/[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/gi);
+  if(em){ s.iv.emails=em; got.push(em.join(', ')+' for interviews and updates'); }
+  if(/^(no|none|nope|skip)\b.*(screen|question)|no screening/i.test(low.trim())){ s.screening=[]; got.push('no custom screening'); }
+  else if(/screen|ask (them|if|whether)|dealbreak|disqualif|must have.*\?/i.test(low)){
+    var q=t.replace(/.*?(ask (them )?(if (they )?|whether )?)/i,'').replace(/[.?!]?\s*(dealbreaker|disqualif)[a-z]*.*$/i,'').trim();
+    if(q.length>4){ s.screening=(s.screening||[]).concat([{q:q.charAt(0).toUpperCase()+q.slice(1), disq:/dealbreak|disqualif|must/i.test(low)}]);
+      got.push('the screening question'+(/dealbreak|disqualif|must/i.test(low)?' (dealbreaker)':'')); } }
+  return {got:got, corr:corr}; }
+
+/* ── gap list (their exact format, our fields) ── */
+function gaps(){ var s=K.spec, g=[];
+  if(!s.loc.model || ((s.loc.model==='hybrid'||s.loc.model==='inperson')&&!s.loc.address))
+    g.push(['Location','In person, remote, hybrid, or on the road—and the address if there’s an office.']);
+  if(!s.sal.structure) g.push(['Compensation','A range or an exact number, and whether that’s annual or hourly.']);
+  if(!s.etype||!s.sched.shift) g.push(['Schedule','Full-time, part-time, or contract—plus shift and days, like day shift, Monday to Friday.']);
+  if(!s.skills||!s.skills.length) g.push(['Skills','The 3–5 that actually matter for this one.']);
+  if(!s.iv.format||!s.iv.dur) g.push(['Interviews','Phone or video, and 15, 30, or 60 minutes.']);
+  if(s.iv.auto===null||s.iv.resume===null) g.push(['Booking','Auto-accept interview requests? Resume required before booking?']);
+  if(!s.iv.emails||!s.iv.emails.length) g.push(['Contacts','Which email addresses get the interviews and updates.']);
+  if(s.screening===null) g.push(['Screening','Any questions candidates must answer first—and which are dealbreakers.']);
+  return g; }
+function gapMsg(intro){ var g=gaps(); if(!g.length) return null;
+  var top = !K.spec.sal.structure? 'compensation' : (!K.spec.iv.format? 'the interview setup' : 'the contact email');
+  return '<p>'+intro+'</p><ul class="intk-gap">'+
+    g.map(function(x){return '<li><b>'+x[0]+':</b> '+x[1]+'</li>';}).join('')+
+    '</ul><p>Rough notes are fine. If you only answer one thing, give me '+top+'—that improves the position most.</p>'; }
+
+/* ── doc renderer (owns #intkPage/#intkRail) ── */
+var DUTIES=['Own the core day-to-day work of the role and see it through',
+  'Turn requirements into reliable, finished work',
+  'Spot problems early and coordinate the follow-up',
+  'Work with teammates across the process to keep things moving',
+  'Keep notes, plans, and records accurate and current'];
+function esc(x){ return String(x).replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
+function markPend(txt,key){ var out=txt;
+  K2.pend.forEach(function(p){ if(p.key!==key||p.resolved) return;
+    if(p.del) out=out.replace(p.ins,'<span class="intk-del">'+esc(p.del)+'</span> <span class="intk-ins">'+esc(p.ins)+'</span>');
+    else out=out.replace(p.ins,'<span class="intk-ins">'+esc(p.ins)+'</span>'); });
+  return out; }
+function renderDoc(){ var s=K.spec, P=el('intkPage'), R=el('intkRail'); P.innerHTML=''; R.innerHTML='';
+  if(!s.title){ P.innerHTML='<div class="intk-empty"><div class="big">Share a bit more information in the chat</div>'+
+    'The first draft of your position will be written once you’ve shared more information in the chat.</div>';
+    el('intkCrumb').textContent='New position'; el('intkResolve').style.display='none';
+    el('intkCreate').disabled=true; return; }
+  el('intkCrumb').textContent=s.title;
+  var html='<h1>'+esc(s.title)+'</h1>';
+  var arr=arrangeSentence();
+  html+='<div class="intk-sec"><h3>About the role</h3><p>We’re looking for a '+esc(s.title)+
+    ' to own this work end to end. You’ll turn goals into results, work with the team to keep quality high, and grow the role as you go.</p>'+
+    (arr? '<p>'+markPend(arr,'arrangement')+'</p>':'')+'</div>';
+  html+='<div class="intk-sec"><h3>What you’ll do</h3><ul>'+DUTIES.map(function(d){return '<li>'+d+'</li>';}).join('')+'</ul></div>';
+  html+='<div class="intk-sec"><h3>What you’ll bring</h3><ul>'+
+    ((s.skills&&s.skills.length)? s.skills.map(function(k){return '<li>'+markPend('Proficiency with '+k,'skills')+'</li>';}).join('') :
+      '<li>Experience in this or a closely related role</li>')+
+    '<li>Clear written and verbal communication skills</li>'+
+    '<li>An organized, proactive working style</li></ul></div>';
+  if(s.etype||s.loc.model) html+='<div class="intk-sec"><h3>Working arrangement</h3><ul>'+
+    (s.etype? '<li>'+({full_time:'Full-time',part_time:'Part-time',contract:'Contract',cth:'Contract to hire'}[s.etype])+'</li>':'')+
+    (locText()? '<li>'+markPend(locText().charAt(0).toUpperCase()+locText().slice(1),'arrangement2')+'</li>':'')+
+    (s.sched.shift? '<li>'+s.sched.shift+(s.sched.week? ', '+s.sched.week:'')+'</li>':'')+'</ul></div>';
+  if(salText()) html+='<div class="intk-sec"><h3>Compensation</h3><ul><li>'+markPend(salText(),'comp')+'</li></ul></div>';
+  if(s.benefits&&s.benefits.length) html+='<div class="intk-sec"><h3>Benefits</h3><ul>'+
+    s.benefits.map(function(b){return '<li>'+esc(b)+'</li>';}).join('')+'</ul></div>';
+  if(s.iv.format) html+='<div class="intk-sec"><h3>Interview process</h3><ul>'+
+    '<li>'+(s.iv.format==='video'?'Video':'Phone')+' interview'+(s.iv.dur? ', '+s.iv.dur+' minutes':'')+', self-scheduled by the candidate</li>'+
+    (s.iv.resume!==null? '<li>Resume '+(s.iv.resume?'required':'optional')+' before booking</li>':'')+
+    (s.iv.auto!==null? '<li>Interview requests are '+(s.iv.auto?'accepted automatically':'reviewed before accepting')+'</li>':'')+
+    (s.iv.emails? '<li>Interviews and updates go to '+s.iv.emails.join(', ')+'</li>':'')+'</ul></div>';
+  if(s.screening&&s.screening.length) html+='<div class="intk-sec"><h3>Screening</h3><ul>'+
+    s.screening.map(function(q){return '<li>'+esc(q.q)+(q.disq? ' <i>(disqualifying)</i>':'')+'</li>';}).join('')+'</ul></div>';
+  html+='<div class="intk-sec"><h3>Hiring process</h3><p>We’ll share more about the interview process, working arrangements, and role expectations with candidates as they progress.</p></div>';
+  P.innerHTML=html;
+  K2.pend.forEach(function(p){ if(p.resolved||!p.card) return;
+    R.appendChild(h('<div class="intk-sug"><div class="who"><span class="intk-av bot">J</span> Intake Assistant <span class="ago">just now</span></div>'+
+      '<div class="body">'+p.card+'</div>'+
+      (p.oldEdit? '<div class="oldcap">OLD SUGGESTION</div><div class="old">'+esc(p.oldEdit)+'</div>':'')+
+      '<div class="cap">SUGGESTION</div><div class="rep">'+p.edit+'</div></div>')); });
+  var open=K2.pend.some(function(p){return !p.resolved;});
+  el('intkResolve').style.display=open? '':'none';
+  el('intkCreate').disabled=!K.isComplete(); }
+
+/* ── suggestion helpers ── */
+function addCard(key,card,edit,del,ins){ var ex=K2.pend.find(function(p){return p.key===key&&!p.resolved;});
+  if(ex){ ex.oldEdit=ex.editPlain||ex.edit.replace(/<[^>]+>/g,''); ex.card=card; ex.edit=edit; ex.editPlain=edit.replace(/<[^>]+>/g,''); ex.del=del; ex.ins=ins; return ex; }
+  var p={key:key,card:card,edit:edit,editPlain:edit.replace(/<[^>]+>/g,''),del:del,ins:ins,resolved:false};
+  K2.pend.push(p); return p; }
+function addQ(txt){ return 'Add <span class="rep"><span class="addq">“'+esc(txt)+'”</span></span>'; }
+
+/* ── the engine ── */
+function firstDraft(){ K2.drafted=true; el('intkIn').placeholder='Ask me to improve this position...';
+  var s0=K.spec; s0.origin=s0.origin||'new'; s0.jd=true;
+  if(s0.benefits===null) s0.benefits=[];
+  stamp('First draft'); renderDoc();
+  var s=K.spec, missing=[];
+  if(!s.loc.model) missing.push('location');
+  if(!s.sal.structure) missing.push('compensation');
+  if(!s.benefits) missing.push('benefits');
+  if(!s.iv.format) missing.push('interview settings');
+  botMsg('I drafted a complete <b>'+esc(s.title)+'</b> position using a general scope.'+
+    (missing.length? ' I left out '+missing.join(', ').replace(/, ([^,]*)$/,', and $1')+' because those details weren’t provided.':''));
+  if(!K2.gapShown){ K2.gapShown=true;
+    var g=gapMsg('To make this position ready to launch, the most useful remaining details are:');
+    if(g) botMsg(g); } }
+function threads(descs){ if(!descs.length) return '';
+  return '<div class="intk-threads">&#128488; '+descs.length+' new thread'+(descs.length>1?'s':'')+'</div>'+
+    descs.map(function(d){return '<button class="intk-thread">'+d.slice(0,52)+'… <span class="arr">&#8594;</span></button>';}).join(''); }
+function turn(t){ var low=t.toLowerCase(), s=K.spec;
+  /* sourcing ask → redirect (ours starts at agent creation) */
+  if(/(find|get|source|send|show).{0,26}(candidates|people|matches)|candidates (for this|right now)/i.test(t)){
+    var g=gapMsg('That’s exactly what this position kicks off. Your Assistant starts sourcing and booking event-day interviews the moment it’s live—the only things left are:');
+    botMsg(g || 'That’s exactly what this position kicks off—and it’s ready. Hit <b>Create agent</b> up top and sourcing starts.');
+    return; }
+  /* gap ask */
+  if(/what else|what do you need|anything else|what.?s (left|missing)/i.test(low)){
+    var g2=gapMsg('You’ve covered the essentials. To make this position ready to launch, the most useful remaining details are:');
+    botMsg(g2 || 'Nothing—this position is ready. Hit <b>Create agent</b> up top and sourcing starts.');
+    return; }
+  var hadTitle=!!s.title, prevArr=arrangeSentence();
+  var r=parseAll(t);
+  if(!s.title){ botMsg('What role are you hiring for? Share the job title and anything you already know—location, pay, schedule, must-have skills—rough notes are perfect. I’ll turn them into a complete position and set up your hiring agent as we go.'); return; }
+  if(!hadTitle){ /* first draft moment — fold any extra captured details in */
+    firstDraft();
+    var extras=r.got.filter(function(x){return x.indexOf('title')<0;});
+    if(extras.length){ applyCards(r); stamp('Details added'); renderDoc();
+      botMsg('I also added '+extras.join(', ').replace(/, ([^,]*)$/,', and $1')+'.'); }
+    checkDone(); return; }
+  if(!r.got.length){ botMsg('Tell me anything else about the role—or ask “what else do you need?” and I’ll list what’s left.'); return; }
+  /* correction path */
+  if(r.corr.indexOf('arrangement')>=0){
+    var newArr=arrangeSentence();
+    addCard('arrangement',
+      'Updated this recommendation to make the role '+locText()+', while keeping the other details.',
+      addQ(newArr), null, newArr);
+    stamp('Arrangement updated'); renderDoc();
+    botMsg('Updated the work-arrangement suggestion: the role is now '+locText()+'.'+
+      (salText()? ' The '+salText()+' compensation remains unchanged.':''));
+    checkDone(); return; }
+  /* normal enumerate-ack */
+  applyCards(r); stamp('Details added'); renderDoc();
+  var descs=K2.lastCards||[];
+  var m=botMsg('I added '+r.got.join(', ').replace(/, ([^,]*)$/,', and $1')+'.');
+  if(descs.length){ m.innerHTML+=threads(descs); scrollFeed(); }
+  checkDone(); }
+function applyCards(r){ var s=K.spec, descs=[];
+  var arr=arrangeSentence();
+  if(arr && (r.got.some(function(x){return /arrangement|salary|remote|hybrid/.test(x);}))){
+    addCard('arrangement','I’d add the work arrangement and compensation near the top so candidates can quickly assess the practical fit.', addQ(arr), null, arr);
+    descs.push('I’d add the work arrangement and compensation near the top'); }
+  if(s.skills&&s.skills.length && r.got.some(function(x){return /core skill/.test(x);})){
+    addCard('skills','I’d make the required skills explicit so the right candidates self-select.',
+      addQ('Proficiency with '+s.skills.join(', ')), null, 'Proficiency with '+s.skills[0]);
+    descs.push('I’d make the required skills explicit'); }
+  K2.lastCards=descs; }
+function checkDone(){ if(K.isComplete() && !K2.done){ K2.done=true; var s=K.spec;
+    el('intkCreate').disabled=false;
+    botMsg('This position is ready. <b>'+esc(s.title)+'</b>, '+locText()+', '+salText()+
+      (s.sched.shift? ', '+s.sched.shift.toLowerCase()+(s.sched.week? ' '+s.sched.week:''):'')+
+      '; interviews are '+(s.iv.format==='video'?'video':'phone')+', '+s.iv.dur+' minutes, auto-accept '+
+      (s.iv.auto?'on':'off')+', resume '+(s.iv.resume?'required':'optional')+', going to '+s.iv.emails.join(', ')+
+      '. <b>Create agent</b> is unlocked up top—hit it and sourcing starts.');
+    if(typeof ssToast==='function') ssToast('Position ready','Create agent is unlocked.'); } }
+
+/* ── wire in (keep-outermost) ── */
+el('intkSend').onclick = function(){ var v=el('intkIn').value.trim(); if(!v) return;
+  el('intkIn').value=''; userMsg(v); setTimeout(function(){ turn(v); },350); };
+el('intkSend').onclick.__intk2 = 1;
+el('intkResolve').onclick = function(){ K2.pend.forEach(function(p){p.resolved=true;}); renderDoc();
+  if(typeof ssToast==='function') ssToast('Suggestions resolved','All tracked changes accepted.'); };
+if(!K.open.__intk2){ var _open=K.open;
+  K.open = function(mode){ K.mode=mode;
+    el('intkOv').classList.remove('on'); el('intkScr').classList.add('on');
+    if(K2.opened) return; K2.opened=1; K.opened=1; /* suppress b78 greeting */
+    renderDoc();
+    if(mode==='paste'){ el('intkIn').placeholder='Paste the job description here…';
+      botMsg('Paste the job description you’ve got—the whole thing. I’ll pull the title, pay, location, and skills out of it and draft the position from there.');
+      K2.pasteMode=1; }
+    else botMsg('What role are you hiring for? Share the job title and anything you already know—location, pay, schedule, must-have skills—rough notes are perfect. I’ll turn them into a complete position and set up your hiring agent as we go.'); };
+  K.open.__intk2 = 1; }
+})();
+</script>
 </body>
 </html>
