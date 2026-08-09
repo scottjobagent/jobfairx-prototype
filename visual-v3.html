@@ -4928,20 +4928,42 @@ var tpl=document.getElementById('autoViewTpl');var main=document.querySelector('
 .rn-legal { font-size: 13px; line-height: 20px; color: rgb(118, 118, 118); margin: 24px 0px 8px; max-width: 1240px; }
 .anx-evsel{display:flex;flex-direction:column;gap:4px;background:#fff;border:1.5px solid #2d2d2d;border-radius:10px;padding:8px 14px;}.anx-evsel label{font-size:12px;font-weight:700;color:#2d2d2d;}.anx-evsel select{border:none;background:transparent;font-family:inherit;font-size:15px;font-weight:600;color:#2d2d2d;outline:none;min-width:260px;}#anxFly{position:fixed;background:#fff;border:1px solid #d4d2d0;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.14);padding:6px;z-index:500;display:none;}#anxFly.show{display:block;}#anxFly button{display:block;width:100%;text-align:left;background:none;border:none;font-family:inherit;font-size:14px;font-weight:600;color:#2d2d2d;padding:9px 14px;border-radius:7px;cursor:pointer;}#anxFly button:hover{background:#f3f2ef;}
 </style>
-<template id="anxViewTpl"><div class="view" id="view-analytics"><div class="rn-head" id="rnHead"><div class="l"><div class="rn-h1row"><h1>Interviews</h1></div><p class="rn-sub">See how your interviews and hiring events are performing</p></div><div class="r"><div class="anx-evsel"><label>Event</label><select id="anxSel" onchange="ANLX.set(this.selectedIndex)"><option>All events</option><option>Dallas Healthcare Hiring Event</option><option>Chicago Technology Hiring Event</option><option>Atlanta Diversity Hiring Event</option></select></div></div></div><div class="an-page"><div class="an-h2">Interviews</div><div class="an-lead">Scheduling, attendance and outcomes for your hiring events.</div><div class="an-kpis" id="anxKpis"></div><div class="an-card full"><h3>Interviews scheduled<span class="sp"></span></h3><div class="sub" id="anxChartSub">Across the event day · 11:00 AM – 3:00 PM.</div><svg id="anxChart" viewBox="0 0 760 220" width="100%"></svg></div><div class="an-card full"><h3>Events<span class="sp"></span><button class="an-ctl">Export</button></h3><table class="an-tbl"><thead><tr><th>Event</th><th>Date</th><th class="num">Registered</th><th>Attended</th><th class="num">Interviews</th><th class="num">Hires</th></tr></thead><tbody id="anxTbody"></tbody></table></div></div></div></template>
+<template id="anxViewTpl"><div class="view" id="view-analytics"><div class="rn-head" id="rnHead"><div class="l"><div class="rn-h1row"><h1>Interviews</h1></div><p class="rn-sub">See how your interviews and hiring events are performing</p></div><div class="r"><div class="anx-evsel"><label>Event</label><select id="anxSel" onchange="ANLX.set(this.selectedIndex)"><option>All events</option><option>Dallas Healthcare Hiring Event</option><option>Chicago Technology Hiring Event</option><option>Atlanta Diversity Hiring Event</option></select></div></div></div><div class="an-page"><div class="an-h2">Interviews</div><div class="an-lead">Scheduling, attendance and outcomes for your hiring events.</div><div class="an-kpis" id="anxKpis"></div><div class="an-card full"><h3>Interviews scheduled<span class="sp"></span></h3><div class="sub" id="anxChartSub">Across the event day · 11:00 AM – 3:00 PM.</div><svg id="anxChart" viewBox="0 0 760 220" width="100%"></svg></div><div class="an-card full"><h3><span id="anxTT">Events</span><span class="sp"></span><button class="an-ctl">Export</button></h3><table class="an-tbl" id="anxTable"></table></div></div></div></template>
 <script>
 var ANLX=(function(){
-var EV=[{n:"All events",sched:90,att:"66%",ns:31,h:12,bars:[6,11,14,16,13,11,9,6,4],rows:[0,1,2]},{n:"Dallas Healthcare Hiring Event",sched:41,att:"71%",ns:12,h:6,bars:[3,5,6,7,6,5,4,3,2],rows:[0]},{n:"Chicago Technology Hiring Event",sched:30,att:"63%",ns:11,h:4,bars:[2,4,5,5,4,4,3,2,1],rows:[1]},{n:"Atlanta Diversity Hiring Event",sched:19,att:"58%",ns:8,h:2,bars:[1,2,3,4,3,2,2,1,1],rows:[2]}];
-var ROWS=["<tr style=\"cursor:pointer\" onclick=\"ieOpenEvent('Dallas Healthcare Hiring Event')\"><td class=\"name\">Dallas Healthcare Hiring Event<div class=\"sub\">Virtual · 4 hours</div></td><td>Apr 22, 2026</td><td class=\"num\">112</td><td><div style=\"display:flex;align-items:center;gap:10px\"><div class=\"an-bar\" style=\"flex:1\"><i style=\"width:66%\"></i></div><b>74</b></div></td><td class=\"num\">41</td><td class=\"num\">6</td></tr>","<tr style=\"cursor:pointer\" onclick=\"ieOpenEvent('Chicago Technology Hiring Event')\"><td class=\"name\">Chicago Technology Hiring Event<div class=\"sub\">Virtual · 4 hours</div></td><td>May 6, 2026</td><td class=\"num\">88</td><td><div style=\"display:flex;align-items:center;gap:10px\"><div class=\"an-bar\" style=\"flex:1\"><i style=\"width: 59%;\"></i></div><b>52</b></div></td><td class=\"num\">30</td><td class=\"num\">4</td></tr>","<tr style=\"cursor:pointer\" onclick=\"ieOpenEvent('Atlanta Diversity Hiring Event')\"><td class=\"name\">Atlanta Diversity Hiring Event<div class=\"sub\">Virtual · 4 hours</div></td><td>Apr 5, 2026</td><td class=\"num\">64</td><td><div style=\"display:flex;align-items:center;gap:10px\"><div class=\"an-bar\" style=\"flex:1\"><i style=\"width: 61%;\"></i></div><b>39</b></div></td><td class=\"num\">19</td><td class=\"num\">2</td></tr>"];
+var EV=[
+{n:"All events",sched:90,att:"66%",ns:31,h:12,bars:[6,11,14,16,13,11,9,6,4]},
+{n:"Dallas Healthcare Hiring Event",sched:41,att:"71%",ns:12,h:6,bars:[3,5,6,7,6,5,4,3,2]},
+{n:"Chicago Technology Hiring Event",sched:30,att:"63%",ns:11,h:4,bars:[2,4,5,5,4,4,3,2,1]},
+{n:"Atlanta Diversity Hiring Event",sched:19,att:"58%",ns:8,h:2,bars:[1,2,3,4,3,2,2,1,1]}];
+var EVROWS=[
+["Dallas Healthcare Hiring Event","Apr 22, 2026",58,41,29,12,6],
+["Chicago Technology Hiring Event","May 6, 2026",47,30,19,11,4],
+["Atlanta Diversity Hiring Event","Apr 5, 2026",33,19,11,8,2]];
+var JOBS={1:[["Registered Nurse",58,41,29,12,6]],
+2:[["Software Engineer",24,15,10,5,2],["DevOps Engineer",14,9,6,3,1],["UX Designer",9,6,3,3,1]],
+3:[["Operations Coordinator",21,12,7,5,1],["Customer Support Specialist",12,7,4,3,1]]};
 var LB=["11:00","11:30","12:00","12:30","1:00","1:30","2:00","2:30","3:00"];
-function kpis(e){document.getElementById("anxKpis").innerHTML='<div class="an-kpi"><div class="k">Interviews scheduled</div><div class="v">'+e.sched+'</div></div>'+'<div class="an-kpi"><div class="k">Attendance rate</div><div class="v">'+e.att+'</div></div>'+'<div class="an-kpi"><div class="k">No-shows</div><div class="v">'+e.ns+'</div></div>'+'<div class="an-kpi"><div class="k">Hires</div><div class="v">'+e.h+'</div></div>';}
-function chart(e){var W=760,H=220,L2=48,R2=750,B=192,T=18;var max=Math.max.apply(null,e.bars);var step=Math.ceil(max/4)||1;max=step*4;
-var s="";for(var g=0;g<=4;g++){var val=g*step;var y=B-(val/max)*(B-T);s+='<line x1="'+L2+'" y1="'+y+'" x2="'+R2+'" y2="'+y+'" stroke="#eceae8"/>';s+='<text x="36" y="'+(y+4)+'" font-size="11" fill="#767676" text-anchor="end">'+val+'</text>';}
+function kpis(e){document.getElementById("anxKpis").innerHTML=
+'<div class="an-kpi"><div class="k">Interviews scheduled</div><div class="v">'+e.sched+'</div></div>'
++'<div class="an-kpi"><div class="k">Attendance rate</div><div class="v">'+e.att+'</div></div>'
++'<div class="an-kpi"><div class="k">No-shows</div><div class="v">'+e.ns+'</div></div>'
++'<div class="an-kpi"><div class="k">Hires</div><div class="v">'+e.h+'</div></div>';}
+function chart(e){var L2=48,R2=750,B=192,T=18;var max=Math.max.apply(null,e.bars);var step=Math.ceil(max/4)||1;max=step*4;var s="";
+for(var g=0;g<=4;g++){var val=g*step;var y=B-(val/max)*(B-T);s+='<line x1="'+L2+'" y1="'+y+'" x2="'+R2+'" y2="'+y+'" stroke="#eceae8"/>';s+='<text x="36" y="'+(y+4)+'" font-size="11" fill="#767676" text-anchor="end">'+val+'</text>';}
 var bw=(R2-L2)/e.bars.length;
 e.bars.forEach(function(vv,i){var bh=(vv/max)*(B-T);var x=L2+i*bw+(bw-34)/2;s+='<rect x="'+x.toFixed(1)+'" y="'+(B-bh).toFixed(1)+'" width="34" height="'+bh.toFixed(1)+'" rx="3" fill="#004fcb"/>';s+='<text x="'+(L2+i*bw+bw/2).toFixed(1)+'" y="212" font-size="11" fill="#767676" text-anchor="middle">'+LB[i]+'</text>';});
 document.getElementById("anxChart").innerHTML=s;}
-function table(e){document.getElementById("anxTbody").innerHTML=e.rows.map(function(i){return ROWS[i];}).join("");}
-function set(i){var e=EV[i];kpis(e);chart(e);table(e);}
+function num(v,b){return '<td class="num">'+(b?("<b>"+v+"</b>"):v)+'</td>';}
+function table(i){var h,b="";
+if(i===0){document.getElementById("anxTT").textContent="Events";
+h='<tr><th>Event</th><th>Date</th><th class="num">Requests</th><th class="num">Scheduled</th><th class="num">Completed</th><th class="num">No-shows</th><th class="num">Hires</th></tr>';
+EVROWS.forEach(function(r){b+='<tr><td><b>'+r[0]+'</b></td><td>'+r[1]+'</td>'+num(r[2])+num(r[3],1)+num(r[4])+num(r[5])+num(r[6],1)+'</tr>';});}
+else{document.getElementById("anxTT").textContent="Jobs \u2014 "+EV[i].n;
+h='<tr><th>Job</th><th class="num">Requests</th><th class="num">Scheduled</th><th class="num">Completed</th><th class="num">No-shows</th><th class="num">Hires</th></tr>';
+JOBS[i].forEach(function(r){b+='<tr><td><b>'+r[0]+'</b></td>'+num(r[1])+num(r[2],1)+num(r[3])+num(r[4])+num(r[5],1)+'</tr>';});}
+document.getElementById("anxTable").innerHTML="<thead>"+h+"</thead><tbody>"+b+"</tbody>";}
+function set(i){var e=EV[i];kpis(e);chart(e);table(i);}
 return {set:set};
 })();
 (function(){var nav=document.getElementById("nav-tools");if(nav){var a=document.createElement("a");a.className="nav-item";a.id="nav-analytics";a.setAttribute("onclick","showView(\'analytics\')");a.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 15l4-6 4 3 5-8"/></svg><span class="nav-text">Analytics</span>';nav.parentNode.insertBefore(a,nav.nextSibling);
