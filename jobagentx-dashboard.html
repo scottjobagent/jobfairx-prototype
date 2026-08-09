@@ -21458,5 +21458,131 @@ el('intkStEmpty').onclick=function(){ if(!playing) toEmpty(); };
 el('intkStData').onclick=toData;
 })();
 </script>
+<script>
+(function(){
+'use strict';
+/* ═══ SCHALL — one scheduler everywhere (build81) ═══ */
+if (window.SCHALL) return; window.SCHALL = { last:null };
+
+function vis(el){ return !!(el && el.offsetParent !== null); }
+function patchName(name){ if(!name) return;
+  var tries=0; (function p(){ var ov=document.getElementById('agschOv');
+    if(!ov || !ov.classList.contains('on')){ if(++tries<12) return setTimeout(p,60); return; }
+    var t=ov.querySelector('.agsch-t span');
+    if(t) t.textContent='Schedule with '+name;
+    Array.prototype.forEach.call(ov.querySelectorAll('.agsch-fl'),function(l){
+      if(/^Message to /.test(l.textContent)) l.textContent='Message to '+name; });
+  })(); }
+function fire(){ var b=document.querySelector('[data-mdact^="setup|"]')||
+                       document.querySelector('[data-mdact^="resched|"]');
+  if(!b) return false; b.click(); return true; }
+function openScheduler(name){
+  window.SCHALL.last = name || null;
+  if(fire()){ patchName(name); return; }
+  /* one-time silent render of the interviews pending screen, then restore */
+  var act=document.querySelector('.view.active');
+  var prev=act? act.id.replace('view-','') : 'overview';
+  if(typeof showView==='function') showView('interviews');
+  var btns=Array.prototype.slice.call(document.querySelectorAll('#view-interviews button'));
+  var bA=btns.find(function(b){return b.textContent.trim()==='Active';});
+  var bE=btns.find(function(b){return b.textContent.trim()==='Empty';});
+  var wasEmpty=!!(bE && bE.classList.contains('active'));
+  var tries=0;
+  setTimeout(start, 550);           /* let the view's own wiring attach first */
+  function start(){
+    bA=Array.prototype.slice.call(document.querySelectorAll('#view-interviews button'))
+      .find(function(b){return b.textContent.trim()==='Active';}) || bA;
+    bA && bA.click(); poll(); }
+  function poll(){
+    tries++;
+    var tab=Array.prototype.slice.call(document.querySelectorAll('#view-interviews .iv-tab'))
+      .find(function(x){return x.textContent.indexOf('Pending')>=0;});
+    tab && tab.click();
+    setTimeout(function(){
+      if(fire()){ patchName(name);
+        if(wasEmpty && bE) bE.click();
+        if(typeof showView==='function') showView(prev);
+        return; }
+      if(tries<10) return poll();
+      /* give up gracefully: restore and leave a toast */
+      if(wasEmpty && bE) bE.click();
+      if(typeof showView==='function') showView(prev);
+      if(typeof ssToast==='function') ssToast('Scheduler unavailable','Open Interviews and try again.');
+    }, 420);
+  }
+}
+window.openScheduler = openScheduler;
+
+/* #6 #7 #8 — candidates profile paths (CD.schedule feeds all three) */
+if(window.CD && typeof CD.schedule==='function' && !CD.schedule.__schall){
+  CD.schedule = function(id){
+    if(typeof cdKillPop==='function') try{ cdKillPop(); }catch(e){}
+    var c=(CD.ALL||[]).find(function(x){return x.id===id;});
+    openScheduler(c? c.n : null);
+  };
+  CD.schedule.__schall=1;
+}
+
+/* #9 — candidates list row kebab */
+if(window.CX && typeof CX.rowAction==='function' && !CX.rowAction.__schall){
+  var _cxRow = CX.rowAction;
+  CX.rowAction = function(a){
+    if(a==='Set up interview'){
+      var name=null, m=document.querySelector('.cx-menu');
+      if(m){ var row=m.closest('tr')||m.closest('[class*=row]');
+        var nc=row && row.querySelector('.cx-name'); if(nc) name=nc.textContent.trim(); }
+      CX.close && CX.close();
+      openScheduler(name); return; }
+    return _cxRow.apply(this, arguments);
+  };
+  CX.rowAction.__schall=1;
+}
+
+/* #10 — messaging thread calendar icon */
+if(window.MG && typeof MG.schedule==='function' && !MG.schedule.__schall){
+  MG.schedule = function(){
+    var n=(MG.cur && (MG.cur.n||MG.cur.name))||null;
+    if(!n){ var h=document.querySelector('.mg-right .mg-name, .mg-right [class*=name]');
+      if(vis(h)) n=h.textContent.trim(); }
+    openScheduler(n);
+  };
+  MG.schedule.__schall=1;
+}
+
+/* #12 — messaging thread ... > Reschedule Interview (was a fake toast) */
+if(typeof window.rescheduleMsgThread==='function' && !window.rescheduleMsgThread.__schall){
+  window.rescheduleMsgThread = function(e){
+    if(e && e.stopPropagation) e.stopPropagation();
+    var dm=document.getElementById('msgDotsMenu'); dm && dm.classList.remove('open');
+    var n=null, at=document.querySelector('.msg-thread.active .msg-thread-name');
+    if(at) n=at.textContent.trim();
+    if(!n){ var hn=document.querySelector('.msg-chat-header [class*=name], .msg-chat-name');
+      if(vis(hn)) n=hn.textContent.trim(); }
+    openScheduler(n);
+  };
+  window.rescheduleMsgThread.__schall=1;
+}
+
+/* #11 — dead iv2 kebab calendar items (Reschedule / Schedule follow-up
+   interview / Rebook / Propose a different time) — delegated wiring */
+var CAL_ITEMS=['Reschedule','Schedule follow-up interview','Rebook','Propose a different time'];
+document.addEventListener('click', function(e){
+  var mi=e.target.closest && e.target.closest('.iv2-mi');
+  if(!mi) return;
+  var label=mi.textContent.trim();
+  if(CAL_ITEMS.indexOf(label)<0) return;
+  var menu=mi.closest('.iv2-menu'); menu && menu.classList.remove('on');
+  var name=null;
+  var row=mi.closest('tr')||mi.closest('[class*=iv2-row]')||mi.closest('[class*=row]');
+  var nm=row && row.querySelector('.iv2-nm'); if(nm) name=nm.textContent.trim();
+  /* only act if nothing else opened a modal for this click */
+  setTimeout(function(){
+    var ov=document.getElementById('agschOv');
+    if(ov && ov.classList.contains('on')) { patchName(name); return; }
+    openScheduler(name);
+  }, 60);
+}, true);
+})();
+</script>
 </body>
 </html>
