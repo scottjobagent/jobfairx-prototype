@@ -21375,5 +21375,88 @@ if(!K.open.__intk2){ var _open=K.open;
   K.open.__intk2 = 1; }
 })();
 </script>
+<style>
+/* ═══ SCHFIT — schedule modals fit the viewport (build80) ═══════════════ */
+
+/* overlay: center the panel, sit above the candidate dock (10500) */
+.agsch-ov{z-index:11000 !important}
+.agsch-ov.on{display:flex !important;align-items:center;justify-content:center;
+  padding:24px;overflow:hidden}
+
+/* panel: viewport-capped column — pinned header, scrolling body, pinned footer */
+.agsch-p{margin:0 !important;width:1117px;max-width:100%;
+  max-height:calc(100vh - 48px);display:flex;flex-direction:column;
+  overflow:hidden !important}
+.agsch-h{flex:0 0 64px}
+.agsch-body{flex:1 1 auto;min-height:0;overflow-y:auto}
+.agsch-l{border-bottom-left-radius:0}
+.agsch-f{flex:0 0 auto}
+
+/* classic dialogs get the same safety cap */
+.modal-box{max-height:92vh;display:flex;flex-direction:column}
+.modal-box .modal-body{flex:1 1 auto;min-height:0;overflow-y:auto}
+.modal-box .modal-header,.modal-box .modal-footer,.modal-box .modal-divider{flex:0 0 auto}
+
+/* ── INTAKE dev state toggle (Data | Empty), Loaders-chip style ── */
+.intk-devtog{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;
+  letter-spacing:.4px;color:#767676;text-transform:uppercase}
+.intk-devtog button{border:0;background:#f3f2f1;color:#595959;border-radius:8px;
+  padding:4px 10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;
+  text-transform:none;letter-spacing:0}
+.intk-devtog button.on{background:#2d2d2d;color:#fff}
+</style>
+<script>
+(function(){
+'use strict';
+/* ═══ INTKSTATE (build80) — Data / Empty dev states for the intake screen ═══ */
+var K = window.INTK, K2 = window.INTK2; if(!K || !K2) return;
+var el = function(id){ return document.getElementById(id); };
+var head = document.querySelector('#intkScr .intk-crumb');
+if(!head || el('intkStateTog')) return;
+head.insertAdjacentHTML('afterend',
+  '<span class="intk-devtog" id="intkStateTog" style="margin-left:14px">Intake:'+
+  '<button id="intkStData">Data</button><button id="intkStEmpty" class="on">Empty</button></span>');
+
+function blankSpec(){ return { origin:null, title:null,
+  loc:{model:null,address:null,cadence:null,resReq:null,resWhere:null},
+  etype:null, sal:{structure:null,min:null,max:null,amount:null}, period:null,
+  benefits:null, sched:{shift:null,week:null}, skills:null, jd:false,
+  iv:{format:null,dur:null,auto:null,resume:null,emails:null}, screening:null }; }
+
+function toEmpty(){
+  el('intkStEmpty').classList.add('on'); el('intkStData').classList.remove('on');
+  var s=blankSpec(); Object.keys(s).forEach(function(k){ K.spec[k]=s[k]; });
+  K2.pend.length=0; K2.gapShown=false; K2.drafted=false; K2.done=false; K2.lastCards=[];
+  K.versions.length=0; el('intkVer').textContent='v1';
+  el('intkFeed').innerHTML=''; el('intkRail').innerHTML='';
+  el('intkPage').innerHTML='<div class="intk-empty"><div class="big">Share a bit more information in the chat</div>'+
+    'The first draft of your position will be written once you’ve shared more information in the chat.</div>';
+  el('intkCrumb').textContent='New position';
+  el('intkResolve').style.display='none'; el('intkCreate').disabled=true;
+  el('intkIn').placeholder='Tell me about the role...';
+  /* re-post the opener through the engine's own greeting */
+  el('intkFeed').appendChild((function(){var d=document.createElement('div');
+    d.className='intk-who'; d.innerHTML='<span class="intk-av bot">J</span> Intake Assistant'; return d;})());
+  var m=document.createElement('div'); m.className='intk-msg bot';
+  m.textContent='What role are you hiring for? Share the job title and anything you already know—location, pay, schedule, must-have skills—rough notes are perfect. I’ll turn them into a complete position and set up your hiring agent as we go.';
+  el('intkFeed').appendChild(m);
+}
+var SCRIPT=[ 'Web Developer',
+  'hybrid at 401 Congress Ave, Austin, 3 days a week, full time, 90-110k plus bonus, React and TypeScript',
+  'video interviews 30 minutes, auto accept on, resume required, day shift monday to friday',
+  'send interviews to scott@jobfairx.com',
+  'screen: ask if they have 3+ years of React, dealbreaker' ];
+var playing=false;
+function toData(){ if(playing) return; playing=true;
+  el('intkStData').classList.add('on'); el('intkStEmpty').classList.remove('on');
+  toEmpty(); el('intkStData').classList.add('on'); el('intkStEmpty').classList.remove('on');
+  var i=0;
+  (function step(){ if(i>=SCRIPT.length){ playing=false; return; }
+    el('intkIn').value=SCRIPT[i++]; el('intkSend').onclick();
+    setTimeout(step, 900); })(); }
+el('intkStEmpty').onclick=function(){ if(!playing) toEmpty(); };
+el('intkStData').onclick=toData;
+})();
+</script>
 </body>
 </html>
