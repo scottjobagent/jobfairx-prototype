@@ -4555,6 +4555,8 @@ document.addEventListener('keydown', function(e) {
 .nx-tr > div { padding: 16px; font-size: 16px; color: #2d2d2d; }
 .nx-pill { display: inline-flex; align-items: center; gap: 6px; background: #e4f7e6; color: #1f662c; font-size: 12px; font-weight: 700; line-height: 18px; border-radius: 8px; padding: 3px 9px; }
 .nx-pill::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #1f662c; }
+.nx-pill.off { background: #f3f2f1; color: #595959; }
+.nx-pill.off::before { background: #767676; }
 .nx-scope { font-weight: 400; }
 .nx-av { width: 32px; height: 32px; border-radius: 50%; background: #595959; color: #fff; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; letter-spacing: .3px; }
 .nx-pencil { width: 44px; height: 44px; border: 0; background: none; border-radius: 12px; cursor: pointer; color: #2d2d2d; display: inline-flex; align-items: center; justify-content: center; }
@@ -4721,8 +4723,10 @@ var P=[
 var ROWS=[
  {name:"Message new candidates — Registered Nurse",preset:0,all:false,jobs:[0],msg:MSG0,modified:"Aug 2, 2026"},
  {name:"Missed interview follow-up — Chicago Technology Hiring Event",preset:2,all:false,jobs:[1,2,3],msg:MSG2,modified:"Aug 4, 2026"},
- {name:"Post-interview follow-up — All jobs",preset:3,all:true,jobs:[],msg:MSG3,modified:"Jul 28, 2026"}
+ {name:"Post-interview follow-up — All jobs",preset:3,all:true,jobs:[],msg:MSG3,modified:"Jul 28, 2026"},
+ {name:"Email declined candidates — Atlanta Diversity Hiring Event",preset:1,all:false,jobs:[4,5],msg:MSG1,modified:"Jul 21, 2026",on:false}
 ];
+ROWS.forEach(function(r){if(r.on===undefined)r.on=true;});
 var st={mode:0,editing:-1,preset:0,all:false,jobs:[],nameTouched:false,pendingRow:null};
 /* ---------- scope helpers ---------- */
 function countText(r){if(r.all)return "All jobs";var n=r.jobs.length;return n+" job"+(n===1?"":"s");}
@@ -4739,7 +4743,7 @@ function autoName(pi,all,jobs){
 }
 function toast(tt,ts){var d=document.createElement("div");d.className="nxjt";d.innerHTML='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="10" fill="#bbf7d0" stroke="none"/><path d="M8 12.5l2.6 2.6L16 9.5" stroke="#15803d" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><div><div class="tt">'+esc(tt)+'</div><div class="ts">'+ts+'</div></div><button class="nxjt-x" onclick="this.parentNode.remove()">×</button>';document.body.appendChild(d);setTimeout(function(){if(d.parentNode)d.remove();},3500);}
 /* ---------- table ---------- */
-function rowsHtml(list){var h="";list.forEach(function(r){var i=ROWS.indexOf(r);h+='<div class="nx-tr"><div><span class="nx-pill">On</span></div><div>'+esc(r.name)+'</div><div class="nx-scope">'+esc(countText(r))+'</div><div><span class="nx-av">SL</span></div><div>'+esc(r.modified)+'</div><div><button class="nx-pencil" title="Edit automation" onclick="AUTOX.edit('+i+')">'+PENCIL+'</button></div></div>';});return h;}
+function rowsHtml(list){var h="";list.forEach(function(r){var i=ROWS.indexOf(r);h+='<div class="nx-tr"><div><span class="nx-pill'+(r.on?"":" off")+'">'+(r.on?"On":"Off")+'</span></div><div>'+esc(r.name)+'</div><div class="nx-scope">'+esc(countText(r))+'</div><div><span class="nx-av">SL</span></div><div>'+esc(r.modified)+'</div><div><button class="nx-pencil" title="Edit automation" onclick="AUTOX.edit('+i+')">'+PENCIL+'</button></div></div>';});return h;}
 function visibleRows(){var q=($("#nxSearch")?$("#nxSearch").value:"").trim().toLowerCase();var jf=$("#nxJobsFil")?$("#nxJobsFil").value:"";return ROWS.filter(function(r){if(q&&r.name.toLowerCase().indexOf(q)<0)return false;if(jf!==""&&!(r.all||r.jobs.indexOf(parseInt(jf,10))>-1))return false;return true;});}
 function render(){
  var rows=$("#nxRows"),emp=$("#nxEmpty"),nom=$("#nxNoMatch");
@@ -4808,7 +4812,7 @@ function setupHtml(edit){
  h+=editorBlockHtml(p);
  h+='<div class="nx-namewrap"><div class="nx-lbl">Automation name *</div><input id="nxName" maxlength="100" oninput="AUTOX.nameEdit()"><div class="nx-count" id="nxCount"></div></div>';
  h+="</div></div>";
- if(edit){h+='<div class="nx-dfoot"><button class="nx-btn nx-dghost nx-left" onclick="AUTOX.askOff()">Turn off</button><button class="nx-btn nx-pri" onclick="AUTOX.save()">Save</button></div>';}
+ if(edit){var er=ROWS[st.editing];var lft=(er&&er.on===false)?'<button class="nx-btn nx-ghost nx-left" onclick="AUTOX.turnBackOn()">Turn on</button>':'<button class="nx-btn nx-dghost nx-left" onclick="AUTOX.askOff()">Turn off</button>';h+='<div class="nx-dfoot">'+lft+'<button class="nx-btn nx-pri" onclick="AUTOX.save()">Save</button></div>';}
  else{h+='<div class="nx-dfoot"><button class="nx-btn nx-pri" id="nxTurnOn" onclick="AUTOX.turnOn()">Turn on</button></div>';}
  return h;
 }
@@ -4840,14 +4844,15 @@ window.AUTOX={
  count:count,
  turnOn:function(){
   if(!gateOK())return;
-  var row={name:(curName()||autoName(st.preset,st.all,st.jobs)).trim(),preset:st.preset,all:st.all,jobs:st.jobs.slice(),msg:curMsg(),modified:TODAY};
+  var row={name:(curName()||autoName(st.preset,st.all,st.jobs)).trim(),preset:st.preset,all:st.all,jobs:st.jobs.slice(),msg:curMsg(),modified:TODAY,on:true};
   st.pendingRow=row;
   openDlg('<div class="nx-dhead"><h2>Run automation for existing candidates</h2><button class="nx-x" onclick="AUTOX.finishOn(false)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div><div class="nx-confbody">Would you like to also run the <b>'+esc(P[st.preset].name)+'</b> automation for candidates who already requested an interview for <b>'+esc(scopeText(row))+'</b> within the last 4 weeks?</div><div class="nx-dfoot"><button class="nx-btn nx-ghost" onclick="AUTOX.finishOn(false)">Don’t run</button><button class="nx-btn nx-pri" onclick="AUTOX.finishOn(true)">Run automation for existing candidates</button></div>',true);
  },
  finishOn:function(run){var row=st.pendingRow;st.pendingRow=null;closeDlg();if(!row)return;ROWS.unshift(row);render();toast("Automation turned on","<b>"+esc(row.name)+"</b> is turned on for <b>"+esc(scopeText(row))+"</b>."+(run?" It will also run for existing candidates.":""));},
  save:function(){var r=ROWS[st.editing];if(!r||!gateOK())return;r.name=(curName()||r.name).trim();r.msg=curMsg();r.all=st.all;r.jobs=st.jobs.slice();r.modified=TODAY;closeDlg();render();toast("Changes saved","<b>"+esc(r.name)+"</b> is updated.");},
  askOff:function(){var r=ROWS[st.editing];if(!r)return;openDlg('<div class="nx-dhead"><h2>Turn off automation</h2><button class="nx-x" onclick="AUTOX.closeDlg()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div><div class="nx-confbody">Are you sure you want to turn off the automation <b>'+esc(r.name)+'</b> for <b>'+esc(scopeText(r))+'</b>?</div><div class="nx-dfoot"><button class="nx-btn nx-ghost" onclick="AUTOX.closeDlg()">Cancel</button><button class="nx-btn nx-danger" onclick="AUTOX.doOff()">Turn off</button></div>',true);},
- doOff:function(){var r=ROWS[st.editing];closeDlg();if(!r)return;ROWS.splice(st.editing,1);st.editing=-1;render();toast("Automation turned off","<b>"+esc(r.name)+"</b> is turned off for <b>"+esc(scopeText(r))+"</b>. It will not run again.");},
+ doOff:function(){var r=ROWS[st.editing];closeDlg();if(!r)return;r.on=false;r.modified=TODAY;st.editing=-1;render();toast("Automation turned off","<b>"+esc(r.name)+"</b> is turned off for <b>"+esc(scopeText(r))+"</b>. It won’t run until you turn it back on.");},
+ turnBackOn:function(){var r=ROWS[st.editing];if(!r)return;r.on=true;r.modified=TODAY;closeDlg();render();toast("Automation turned on","<b>"+esc(r.name)+"</b> is turned on for <b>"+esc(scopeText(r))+"</b>.");},
  openReq:function(){openDlg('<div class="nx-dhead"><h2>Request an automation</h2><button class="nx-x" onclick="AUTOX.closeDlg()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div><div class="nx-confbody"><div class="nx-lbl">What steps would you like to automate in your hiring process?</div><textarea class="nx-reqta" id="nxReqTa" oninput="document.getElementById(\'nxReqBtn\').disabled=!this.value.trim()"></textarea></div><div class="nx-dfoot"><button class="nx-btn nx-ghost" onclick="AUTOX.closeDlg()">Close</button><button class="nx-btn nx-pri" id="nxReqBtn" disabled onclick="AUTOX.sendReq()">Request automation</button></div>',true);},
  sendReq:function(){closeDlg();toast("Request sent","Thanks — we’ll take a look.");}
 };
