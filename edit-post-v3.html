@@ -223,6 +223,35 @@ body.setup-jobs-incomplete .add-job-row { display: none; }
 .sl-warn.err { background: #fdf1f1; border-color: #f0c8c9; color: #a9252b; }
 .sl-warn[hidden] { display: none; }
 
+/* ═══ Automation settings ═══ */
+.aus-list { border: 1px solid #e4e2e0; border-radius: 12px; overflow: hidden; }
+.aus-row { display: grid; grid-template-columns: 44px 1fr auto; gap: 16px; align-items: start; padding: 16px 18px; border-bottom: 1px solid #eceae8; }
+.aus-row:last-child { border-bottom: 0; }
+.aus-row.off { background: #fbfbfa; }
+.aus-ico { width: 40px; height: 40px; border-radius: 10px; background: #eef3fb; color: #0044B3; display: flex; align-items: center; justify-content: center; }
+.aus-row.off .aus-ico { background: #f3f2f1; color: #a8a8a8; }
+.aus-ico svg { width: 20px; height: 20px; }
+.aus-name { font-size: 16px; font-weight: 700; margin: 0 0 3px; color: #2d2d2d; }
+.aus-row.off .aus-name { color: #8d8b89; }
+.aus-trig { font-size: 14px; color: #767676; margin: 0; }
+.aus-jobs { font-size: 13px; color: #767676; margin: 7px 0 0; }
+.aus-right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+.aus-mixed { font-size: 13px; font-weight: 700; color: #0044B3; text-align: right; max-width: 170px; line-height: 1.5; }
+.aus-prev { background: none; border: 0; padding: 0; font-family: inherit; font-size: 13.5px; font-weight: 700; color: #0044B3; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
+.aus-msg { background: #faf9f8; border: 1px solid #eceae8; border-radius: 10px; padding: 14px 16px; font-size: 14px; line-height: 1.65; color: #2d2d2d; white-space: pre-wrap; margin: 10px 0 0; }
+.aus-msg[hidden] { display: none; }
+.aus-tok { background: #eef3fb; color: #0044B3; border-radius: 4px; padding: 1px 4px; font-weight: 700; font-size: 13px; }
+.aus-count { font-size: 15px; color: #595959; margin: 16px 0 0; }
+.aus-count b { color: #2d2d2d; font-weight: 800; }
+.aus-empty { border: 1px dashed #d4d2d0; border-radius: 12px; padding: 34px 26px; text-align: center; background: #fbfbfa; }
+.aus-empty[hidden] { display: none; }
+.aus-empty svg { width: 40px; height: 40px; color: #c3c1bd; margin-bottom: 10px; }
+.aus-empty .t { font-size: 17px; font-weight: 800; margin: 0 0 6px; color: #2d2d2d; }
+.aus-empty .s { font-size: 15px; color: #595959; margin: 0 0 18px; line-height: 1.6; }
+.aus-choose { display: inline-flex; align-items: center; gap: 8px; border: none; border-radius: 8px; padding: 12px 20px; background: #0044B3; font-family: inherit; font-size: 15px; font-weight: 700; cursor: pointer; color: #fff; }
+.aus-choose:hover { background: #003a99; }
+.aus-badge[hidden] { display: none !important; }
+
 /* ═══ Interview Details Expandable Section ═══ */
 .id-expand { display: none; }
 .id-expand.open { display: block; }
@@ -1002,6 +1031,39 @@ setTimeout(function() {
           <button class="ce-btn-update" onclick="toggleInterviewSettings(false);showToast()">Update</button>
         </div>
 
+      </div>
+    </div>
+  </div>
+
+
+  <!-- SECTION: AUTOMATION SETTINGS -->
+  <div class="section" id="automationSettingsSection">
+    <div class="section-header">
+      <div class="section-header-left" style="display:flex;align-items:center;gap:12px;">
+        <h2>Automation settings</h2>
+        <span class="section-incomplete-badge aus-badge" id="ausBadge" style="display:inline-flex;" hidden>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v5"/><path d="M12 17h.01"/></svg>
+          Not set up
+        </span>
+      </div>
+      <button class="section-pencil" title="Edit automation settings" onclick="toggleAutomationSettings(true)"><svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button>
+    </div>
+    <div class="section-divider"></div>
+    <div class="section-body">
+      <p class="summary-text" id="automationSettingsSummary"></p>
+      <div class="aus-empty" id="ausEmpty" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M13 2L4.09 12.11a1 1 0 00.76 1.64h5.65l-1.5 8.25L19.91 11.9a1 1 0 00-.76-1.65H13.5L15 2z"/></svg>
+        <p class="t">You don't have any automations set up yet</p>
+        <p class="s">Get started by choosing one of the presets below. They send on their own as candidates move through your hiring process.</p>
+        <button type="button" class="aus-choose" onclick="toggleAutomationSettings(true)">Choose automations</button>
+      </div>
+      <div class="id-expand" id="automationSettingsExpand">
+        <div class="aus-list" id="ausList"></div>
+        <p class="aus-count" id="ausCount"></p>
+        <div class="id-actions">
+          <button class="ce-btn-cancel" onclick="toggleAutomationSettings(false)">Cancel</button>
+          <button class="ce-btn-update" onclick="ausSave()">Update</button>
+        </div>
       </div>
     </div>
   </div>
@@ -2116,6 +2178,7 @@ function applySetupState(jobsOk, interviewOk) {
   document.body.classList.toggle('setup-jobs-incomplete', !jobsOk);
   document.body.classList.toggle('setup-interview-incomplete', !interviewOk);
   if (typeof slotApplySetup === 'function') slotApplySetup(interviewOk);
+  if (typeof ausApplySetup === 'function') ausApplySetup(interviewOk);
 
   // Banner copy adapts to which gaps exist.
   var title = document.getElementById('incompleteBannerTitle');
@@ -2537,8 +2600,125 @@ document.getElementById('purchaseModal').addEventListener('click', function(e) {
   if (e.target === this) closePurchaseModal();
 });
 
+// ── Automation settings ────────────────────────────────────────────────
+// Same five presets as the Automations tab, scoped to this event's jobs.
+// Turning one on here creates a real automation in the tab (event-following
+// scope: new jobs added to this event are covered automatically). Rows that
+// were scoped to individual jobs in the tab show a mixed state here instead
+// of a toggle, so the switch never lies.
+var AUS_JOBS = 'Registered Nurse, Medical Assistant';
+var AUS_ICO = {
+ req:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>',
+ cal:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>',
+ dec:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 6l-10 7L2 6"/></svg>',
+ miss:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 7v5l3 2"/></svg>',
+ done:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>'
+};
+var AUS_P = [
+ {ico:'req', name:'Message new candidates', trig:'When a candidate requests an interview', act:'send them a message',
+  msg:"Hi {CANDIDATE_FIRSTNAME},\n\nThanks for requesting an interview for the {JOB_TITLE} role at {COMPANY}. We’re reviewing requests now and will be in touch very soon.\n\nRegards,\n{RECRUITER_NAME}"},
+ {ico:'cal', name:'Message scheduled candidates', trig:'When an interview is scheduled', act:'send them a message',
+  msg:"Hi {CANDIDATE_FIRSTNAME},\n\nYour interview for {JOB_TITLE} at {COMPANY} is set for {INTERVIEW_TIME}. Looking forward to meeting you.\n\nIf something comes up before then, reply here and we’ll find another time.\n\nRegards,\n{RECRUITER_NAME}"},
+ {ico:'dec', name:'Email declined candidates', trig:'When an interview request is declined', act:'send them an email 3 days later',
+  msg:"Hi {CANDIDATE_FIRSTNAME},\n\nThank you for your interest in the {JOB_TITLE} role at {COMPANY}. We aren’t able to move forward with an interview this time, but we wish you the best in your search.\n\nRegards,\n{RECRUITER_NAME}"},
+ {ico:'miss', name:'Missed interview follow-up', trig:'When a candidate misses their interview', act:'send them a message',
+  msg:"Hi {CANDIDATE_FIRSTNAME},\n\nSorry we missed you for your {JOB_TITLE} interview at {COMPANY} today. Things come up — if you’d still like to interview, pick a new time and we’ll get you rescheduled.\n\nRegards,\n{RECRUITER_NAME}"},
+ {ico:'done', name:'Post-interview follow-up', trig:'When an interview is completed', act:'send them a message',
+  msg:"Hi {CANDIDATE_FIRSTNAME},\n\nThanks for interviewing for {JOB_TITLE} at {COMPANY} today. We enjoyed meeting you and will be in touch on next steps soon.\n\nRegards,\n{RECRUITER_NAME}"}
+];
+var AUS_ON = [false, false, false, false, false];
+var AUS_MIXED = [null, null, null, null, null];   // e.g. "On for 1 of 2 jobs"
+var AUS_OPEN = [false, false, false, false, false];
+var AUS_SETUP = false;                             // has this event ever saved automations?
+
+function ausEsc(t) { return t.replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
+function ausTok(t) { return ausEsc(t).replace(/\{[A-Z_]+\}/g, function (m) { return '<span class="aus-tok">' + m + '</span>'; }); }
+
+function ausRender() {
+  var list = document.getElementById('ausList');
+  if (!list) return;
+  var h = '';
+  AUS_P.forEach(function (p, i) {
+    var mixed = AUS_MIXED[i];
+    var right;
+    if (mixed) {
+      right = '<div class="aus-mixed">' + mixed + '<br><span style="font-weight:400;color:#767676">Manage in Automations</span></div>';
+    } else {
+      right = '<label class="toggle-switch"><input type="checkbox"' + (AUS_ON[i] ? ' checked' : '') +
+              ' onchange="ausFlip(' + i + ', this.checked)"><span class="toggle-slider"></span></label>';
+    }
+    h += '<div class="aus-row' + ((AUS_ON[i] || mixed) ? '' : ' off') + '">' +
+         '<div class="aus-ico">' + AUS_ICO[p.ico] + '</div>' +
+         '<div><p class="aus-name">' + p.name + '</p>' +
+         '<p class="aus-trig">' + p.trig + ' &middot; ' + p.act + '</p>' +
+         '<p class="aus-jobs">All jobs on this event &middot; ' + AUS_JOBS + '</p>' +
+         '<div class="aus-msg"' + (AUS_OPEN[i] ? '' : ' hidden') + '>' + ausTok(p.msg) + '</div></div>' +
+         '<div class="aus-right">' + right +
+         '<button type="button" class="aus-prev" onclick="ausPrev(' + i + ')">' + (AUS_OPEN[i] ? 'Hide message' : 'View message') + '</button></div></div>';
+  });
+  list.innerHTML = h;
+  var n = AUS_ON.filter(Boolean).length + AUS_MIXED.filter(Boolean).length;
+  document.getElementById('ausCount').innerHTML = '<b>' + n + '</b> of ' + AUS_P.length + ' automations on for this event';
+  ausSummary();
+}
+function ausSummary() {
+  var sum = document.getElementById('automationSettingsSummary');
+  var empty = document.getElementById('ausEmpty');
+  var badge = document.getElementById('ausBadge');
+  if (!sum) return;
+  var expanded = document.getElementById('automationSettingsExpand').classList.contains('open');
+  if (!AUS_SETUP) {
+    sum.style.display = 'none';
+    if (empty) empty.hidden = expanded;
+    if (badge) badge.hidden = false;
+    return;
+  }
+  if (empty) empty.hidden = true;
+  if (badge) badge.hidden = true;
+  sum.style.display = expanded ? 'none' : '';
+  var parts = [];
+  AUS_P.forEach(function (p, i) {
+    if (AUS_MIXED[i]) parts.push(p.name + ' — ' + AUS_MIXED[i].toLowerCase());
+    else if (AUS_ON[i]) parts.push(p.name);
+  });
+  sum.textContent = parts.length ? parts.join(' | ') + ' | All jobs on this event' : 'No automations are on for this event';
+}
+function ausFlip(i, v) { AUS_ON[i] = v; ausRender(); }
+function ausPrev(i) { AUS_OPEN[i] = !AUS_OPEN[i]; ausRender(); }
+function toggleAutomationSettings(show) {
+  var expand = document.getElementById('automationSettingsExpand');
+  if (!expand) return;
+  expand.classList.toggle('open', show);
+  ausRender();
+}
+function ausSave() {
+  AUS_SETUP = true;
+  toggleAutomationSettings(false);
+  if (typeof showToast === 'function') showToast();
+}
+// Driven by the setup-state toggle: a fresh event has nothing on and the
+// section reads Not set up; the seeded complete event has three running,
+// one of them scoped down in the Automations tab (mixed state).
+function ausApplySetup(interviewOk) {
+  if (interviewOk) {
+    AUS_ON = [true, true, false, true, false];
+    AUS_MIXED = [null, null, 'On for 1 of 2 jobs', null, null];
+    AUS_SETUP = true;
+  } else {
+    AUS_ON = [false, false, false, false, false];
+    AUS_MIXED = [null, null, null, null, null];
+    AUS_SETUP = false;
+  }
+  AUS_OPEN = [false, false, false, false, false];
+  var expand = document.getElementById('automationSettingsExpand');
+  if (expand) expand.classList.remove('open');
+  ausRender();
+}
+
 document.addEventListener('DOMContentLoaded', renderSlots);
 if (document.readyState !== 'loading') renderSlots();
+document.addEventListener('DOMContentLoaded', ausRender);
+if (document.readyState !== 'loading') ausRender();
 </script>
 
 </body>
