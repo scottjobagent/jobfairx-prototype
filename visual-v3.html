@@ -4555,7 +4555,7 @@ document.addEventListener('keydown', function(e) {
 .nx-tr > div { padding: 16px; font-size: 16px; color: #2d2d2d; }
 .nx-pill { display: inline-flex; align-items: center; gap: 6px; background: #e4f7e6; color: #1f662c; font-size: 12px; font-weight: 700; line-height: 18px; border-radius: 8px; padding: 3px 9px; }
 .nx-pill::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #1f662c; }
-.nx-scope { font-weight: 700; }
+.nx-scope { font-weight: 400; }
 .nx-av { width: 32px; height: 32px; border-radius: 50%; background: #595959; color: #fff; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; letter-spacing: .3px; }
 .nx-pencil { width: 44px; height: 44px; border: 0; background: none; border-radius: 12px; cursor: pointer; color: #2d2d2d; display: inline-flex; align-items: center; justify-content: center; }
 .nx-pencil:hover { background: #f3f2f1; }
@@ -4672,7 +4672,7 @@ document.addEventListener('keydown', function(e) {
       <select class="nx-fsel" id="nxJobsFil" onchange="AUTOX.filter()"><option value="">All jobs and events</option></select>
     </div>
     <div class="nx-tbl">
-      <div class="nx-thead"><div>Status</div><div>Automation name</div><div>Requested interview</div><div>Creator</div><div>Date modified</div><div></div></div>
+      <div class="nx-thead"><div>Status</div><div>Automation name</div><div>Jobs included</div><div>Creator</div><div>Date modified</div><div></div></div>
       <div id="nxRows"></div>
       <div class="nx-empty" id="nxEmpty" hidden>
         <svg width="130" height="96" viewBox="0 0 130 96" fill="none"><ellipse cx="65" cy="78" rx="52" ry="14" fill="#f3f2f1"></ellipse><rect x="46" y="8" width="38" height="66" rx="8" fill="#fff" stroke="#2d2d2d" stroke-width="2"></rect><rect x="52" y="2" width="26" height="10" rx="3" fill="#cfe0ff" stroke="#004fcb" stroke-width="1.5"></rect><circle cx="65" cy="42" r="13" fill="#f3f2f1"></circle><path d="M67 34l-6 8h4l-1 6 6-8h-4l1-6z" fill="#767676" stroke="none"></path><path d="M84 62c8-2 14 2 16 8" stroke="#e0a87e" stroke-width="6" stroke-linecap="round"></path></svg>
@@ -4689,12 +4689,11 @@ document.addEventListener('keydown', function(e) {
 </div>
 <div class="nx-ovl" id="nxOvl" hidden><div class="nx-dlg" id="nxDlg" role="dialog"></div></div>
 </template>
-<script>
-(function(){
+<script>(function(){
 var $=function(s,r){return (r||document).querySelector(s);};
 var esc=function(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");};
 var TODAY="Aug 9, 2026";
-try{TODAY=new Date().toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}).replace(/(\w+) (\d+), (\d+)/,"$1 $2, $3");}catch(e){}
+try{TODAY=new Date().toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});}catch(e){}
 var JOBS=[
  {job:"Registered Nurse",ev:"Dallas Healthcare Hiring Event",date:"Apr 22, 2026"},
  {job:"Software Engineer",ev:"Chicago Technology Hiring Event",date:"May 6, 2026"},
@@ -4712,21 +4711,36 @@ var ICO_REQ='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-w
 var ICO_DEC='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8 12h8"/></svg>';
 var ICO_MISS='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>';
 var ICO_DONE='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8 12l3 3 5-6"/></svg>';
+var PENCIL='<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M16.7 2.6a2.7 2.7 0 0 1 3.8 3.8l-1.2 1.2-3.8-3.8 1.2-1.2zM14.2 5.1l3.8 3.8L7.4 19.5l-4.6 1.3 1.3-4.6L14.2 5.1z"/></svg>';
 var P=[
- {name:"Message new candidates",chip:"Included with hiring events",gray:false,ico:ICO_REQ,trig:"When a candidate requests an interview",act:"Send them a message",kind:"message",tip:"These candidates get a message the moment they request an interview for one of your jobs.",msg:MSG0},
- {name:"Email declined candidates",chip:"Included with all jobs",gray:true,ico:ICO_DEC,trig:"When an interview request is declined",act:"Send them an email 3 days later",kind:"email",tip:"Candidates whose interview request you decline get this email 3 days later.",msg:MSG1},
- {name:"Missed interview follow-up",chip:"Included with hiring events",gray:false,ico:ICO_MISS,trig:"When a candidate misses their interview",act:"Send them a message",kind:"message",tip:"Candidates who miss their interview get this message so you can rebook them.",msg:MSG2},
- {name:"Post-interview follow-up",chip:"Included with hiring events",gray:false,ico:ICO_DONE,trig:"When an interview is completed",act:"Send them a message",kind:"message",tip:"Candidates get this message after their interview is completed.",msg:MSG3}
+ {name:"Message new candidates",ico:ICO_REQ,trig:"When a candidate requests an interview",act:"Send them a message",kind:"message",tip:"These candidates get a message the moment they request an interview for one of your jobs.",msg:MSG0},
+ {name:"Email declined candidates",ico:ICO_DEC,trig:"When an interview request is declined",act:"Send them an email 3 days later",kind:"email",tip:"Candidates whose interview request you decline get this email 3 days later.",msg:MSG1},
+ {name:"Missed interview follow-up",ico:ICO_MISS,trig:"When a candidate misses their interview",act:"Send them a message",kind:"message",tip:"Candidates who miss their interview get this message so you can rebook them.",msg:MSG2},
+ {name:"Post-interview follow-up",ico:ICO_DONE,trig:"When an interview is completed",act:"Send them a message",kind:"message",tip:"Candidates get this message after their interview is completed.",msg:MSG3}
 ];
 var ROWS=[
- {name:"Message new candidates Aug 2, 2026",preset:0,all:false,job:"Registered Nurse",ev:"Dallas Healthcare Hiring Event",msg:MSG0,modified:"Aug 2, 2026"},
- {name:"Missed interview follow-up Jul 28, 2026",preset:2,all:true,job:"",ev:"",msg:MSG2,modified:"Jul 28, 2026"}
+ {name:"Message new candidates — Registered Nurse",preset:0,all:false,jobs:[0],msg:MSG0,modified:"Aug 2, 2026"},
+ {name:"Missed interview follow-up — Chicago Technology Hiring Event",preset:2,all:false,jobs:[1,2,3],msg:MSG2,modified:"Aug 4, 2026"},
+ {name:"Post-interview follow-up — All jobs",preset:3,all:true,jobs:[],msg:MSG3,modified:"Jul 28, 2026"}
 ];
-var st={mode:0,editing:-1,preset:0,all:false,job:null,dlg:null};
-function scopeText(r){return r.all?"All jobs":r.job+" — "+r.ev;}
+var st={mode:0,editing:-1,preset:0,all:false,jobs:[],nameTouched:false,pendingRow:null};
+/* ---------- scope helpers ---------- */
+function countText(r){if(r.all)return "All jobs";var n=r.jobs.length;return n+" job"+(n===1?"":"s");}
+function scopeText(r){if(r.all)return "All jobs";if(r.jobs.length===1){var j=JOBS[r.jobs[0]];return j.job+" — "+j.ev;}return r.jobs.length+" jobs";}
+function autoName(pi,all,jobs){
+ var base=P[pi].name;
+ if(all)return base+" — All jobs";
+ if(!jobs.length)return base;
+ if(jobs.length===1)return base+" — "+JOBS[jobs[0]].job;
+ var evs={};jobs.forEach(function(i){evs[JOBS[i].ev]=1;});
+ var keys=Object.keys(evs);
+ if(keys.length===1)return base+" — "+keys[0];
+ return base+" — Multiple events";
+}
 function toast(tt,ts){var d=document.createElement("div");d.className="nxjt";d.innerHTML='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="10" fill="#bbf7d0" stroke="none"/><path d="M8 12.5l2.6 2.6L16 9.5" stroke="#15803d" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><div><div class="tt">'+esc(tt)+'</div><div class="ts">'+ts+'</div></div><button class="nxjt-x" onclick="this.parentNode.remove()">×</button>';document.body.appendChild(d);setTimeout(function(){if(d.parentNode)d.remove();},3500);}
-function rowsHtml(list){var h="";list.forEach(function(r){var i=ROWS.indexOf(r);h+='<div class="nx-tr"><div><span class="nx-pill">On</span></div><div>'+esc(r.name)+'</div><div class="nx-scope">'+esc(scopeText(r))+'</div><div><span class="nx-av">SL</span></div><div>'+esc(r.modified)+'</div><div><button class="nx-pencil" title="Edit automation" onclick="AUTOX.edit('+i+')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg></button></div></div>';});return h;}
-function visibleRows(){var q=($("#nxSearch")?$("#nxSearch").value:"").trim().toLowerCase();var jf=$("#nxJobsFil")?$("#nxJobsFil").value:"";return ROWS.filter(function(r){if(q&&r.name.toLowerCase().indexOf(q)<0)return false;if(jf&&!(r.all||r.job===jf))return false;return true;});}
+/* ---------- table ---------- */
+function rowsHtml(list){var h="";list.forEach(function(r){var i=ROWS.indexOf(r);h+='<div class="nx-tr"><div><span class="nx-pill">On</span></div><div>'+esc(r.name)+'</div><div class="nx-scope">'+esc(countText(r))+'</div><div><span class="nx-av">SL</span></div><div>'+esc(r.modified)+'</div><div><button class="nx-pencil" title="Edit automation" onclick="AUTOX.edit('+i+')">'+PENCIL+'</button></div></div>';});return h;}
+function visibleRows(){var q=($("#nxSearch")?$("#nxSearch").value:"").trim().toLowerCase();var jf=$("#nxJobsFil")?$("#nxJobsFil").value:"";return ROWS.filter(function(r){if(q&&r.name.toLowerCase().indexOf(q)<0)return false;if(jf!==""&&!(r.all||r.jobs.indexOf(parseInt(jf,10))>-1))return false;return true;});}
 function render(){
  var rows=$("#nxRows"),emp=$("#nxEmpty"),nom=$("#nxNoMatch");
  if(!rows)return;
@@ -4738,34 +4752,46 @@ function render(){
  emp.hidden=true;nom.hidden=true;rows.innerHTML=rowsHtml(list);
 }
 function grid(){var g=$("#nxGrid");if(!g)return;var h="";P.forEach(function(p,i){h+='<div class="nx-card"><h3>'+esc(p.name)+'</h3><div class="nx-flow"><div class="nx-step"><span class="nx-ico">'+p.ico+'</span><span>'+esc(p.trig)+'</span></div><div class="nx-conn"></div><div class="nx-step"><span class="nx-ico">'+ICO_MSG+'</span><span>'+esc(p.act)+'</span></div></div><button class="nx-btn nx-ghost nx-setup" onclick="AUTOX.setup('+i+')">Set up</button></div>';});g.innerHTML=h;}
-function jobsFilterOpts(){var s=$("#nxJobsFil");if(!s)return;JOBS.forEach(function(j){var o=document.createElement("option");o.value=j.job;o.textContent=j.job+" — "+j.ev;s.appendChild(o);});}
-/* ---------- modal ---------- */
+function jobsFilterOpts(){var s=$("#nxJobsFil");if(!s)return;JOBS.forEach(function(j,i){var o=document.createElement("option");o.value=String(i);o.textContent=j.job+" — "+j.ev;s.appendChild(o);});}
+/* ---------- modal shell ---------- */
 function openDlg(html,small){var o=$("#nxOvl"),d=$("#nxDlg");d.className="nx-dlg"+(small?" sm":"");d.innerHTML=html;o.hidden=false;}
-function closeDlg(){$("#nxOvl").hidden=true;st.dlg=null;}
-function gateOK(){return st.all||!!st.job;}
-function applyGate(){var g=$("#nxGate");if(g){g.classList.toggle("off",!gateOK());}var b=$("#nxTurnOn");if(b)b.disabled=!gateOK();}
-function selJobHtml(){if(!st.job)return "";var j=st.job;return '<div class="nx-selrow"><span class="jt">'+esc(j.job)+'</span><span class="dot">·</span><span>'+esc(j.ev)+'</span><span class="dot">·</span><span>'+esc(j.date)+'</span><button class="nx-x" onclick="AUTOX.clearJob()" title="Remove job"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>';}
-function pickerHtml(q){var list=JOBS.filter(function(j){return !q||(j.job+" "+j.ev).toLowerCase().indexOf(q.toLowerCase())>-1;});var h='<div class="nx-pop" id="nxPicker"><input id="nxPickQ" placeholder="Search by job title or event" oninput="AUTOX.pickQ(this.value)"><div class="nx-jcount"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>'+list.length+" job"+(list.length===1?"":"s")+"</div>";list.forEach(function(j){var idx=JOBS.indexOf(j);h+='<div class="nx-jrow" onclick="AUTOX.pickJob('+idx+')"><div class="t">'+esc(j.job)+'</div><div class="m">'+esc(j.ev)+" · "+esc(j.date)+"</div></div>";});h+="</div>";return h;}
+function closeDlg(){$("#nxOvl").hidden=true;}
+function gateOK(){return st.all||st.jobs.length>0;}
+function applyGate(){var g=$("#nxGate");if(g)g.classList.toggle("off",!gateOK());var b=$("#nxTurnOn");if(b)b.disabled=!gateOK();}
+function selJobsHtml(){
+ if(st.all||!st.jobs.length)return "";
+ var h="";
+ st.jobs.forEach(function(idx,n){var j=JOBS[idx];h+='<div class="nx-selrow"><span class="jt">'+esc(j.job)+'</span><span class="dot">·</span><span>'+esc(j.ev)+'</span><span class="dot">·</span><span>'+esc(j.date)+'</span><button class="nx-x" onclick="AUTOX.clearJob('+n+')" title="Remove job"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>';});
+ h+='<div style="font-size:14px;color:#595959;margin-top:10px">'+st.jobs.length+" job"+(st.jobs.length===1?"":"s")+" included</div>";
+ return h;
+}
+function pickerHtml(q){
+ var avail=[];
+ JOBS.forEach(function(j,i){if(st.jobs.indexOf(i)>-1)return;if(q&&(j.job+" "+j.ev).toLowerCase().indexOf(q.toLowerCase())<0)return;avail.push(i);});
+ var h='<div class="nx-pop" id="nxPicker"><input id="nxPickQ" placeholder="Search by job title or event" oninput="AUTOX.pickQ(this.value)"><div class="nx-jcount"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>'+avail.length+" job"+(avail.length===1?"":"s")+"</div>";
+ if(!avail.length){h+='<div style="padding:16px 8px;font-size:15px;color:#767676">'+(q?"No jobs match that search.":"Every job is already included.")+"</div>";}
+ avail.forEach(function(i){var j=JOBS[i];h+='<div class="nx-jrow" onclick="AUTOX.pickJob('+i+')"><div class="t">'+esc(j.job)+'</div><div class="m">'+esc(j.ev)+" · "+esc(j.date)+"</div></div>";});
+ h+="</div>";return h;
+}
 function scopeBlockHtml(edit){
- var h='<div class="nx-lbl" style="margin-top:2px">Requested interview *</div>';
- var showRadios=!edit||st.all;
- if(showRadios){
-  h+='<label class="nx-radio"><input type="radio" name="nxScope" '+(st.all?"checked":"")+' onclick="AUTOX.scopeAll()"><span>Turn on automation for all jobs at all events</span></label>';
-  h+='<label class="nx-radio"><input type="radio" name="nxScope" '+(!st.all?"checked":"")+' onclick="AUTOX.scopeInd()"><span>Turn on automation for individual jobs</span></label>';
- }
+ var h='<div class="nx-lbl" style="margin-top:2px">Jobs included *</div>';
+ h+='<label class="nx-radio"><input type="radio" name="nxScope" '+(st.all?"checked":"")+' onclick="AUTOX.scopeAll()"><span>Turn on automation for all jobs at all events</span></label>';
+ h+='<label class="nx-radio"><input type="radio" name="nxScope" '+(!st.all?"checked":"")+' onclick="AUTOX.scopeInd()"><span>Turn on automation for individual jobs</span></label>';
  if(!st.all){
   h+='<div class="nx-seljob"><button class="nx-btn nx-ghost" onclick="AUTOX.togglePicker()" id="nxSelBtn"><span style="color:#004fcb;font-weight:700">+&nbsp; Select a job</span></button><span id="nxPickerHost"></span></div>';
-  h+='<div id="nxSelRow">'+selJobHtml()+"</div>";
+  h+='<div id="nxSelRow">'+selJobsHtml()+"</div>";
  }
  return h;
 }
 function editorBlockHtml(p){
+ var TOK=["{CANDIDATE_FIRSTNAME}","{JOB_TITLE}","{COMPANY}","{RECRUITER_NAME}","{INTERVIEW_TIME}"];
+ var enc=function(t){return t.replace(/\{/g,"&#123;").replace(/\}/g,"&#125;");};
  var h='<div class="nx-tmplrow"><div class="nx-lbl" style="margin:0">Message template *</div>';
  if(p.kind==="message"&&st.editing<0){h+='<button class="nx-btn nx-ghost" id="nxTmplBtn" onclick="AUTOX.toggleTmpl()">Templates <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px"><path d="M6 9l6 6 6-6"/></svg></button><span id="nxTmplHost"></span>';}
  h+="</div>";
  h+='<div class="nx-edbox"><div class="nx-edbar"><button title="Bold" style="font-weight:800" onclick="AUTOX.fmt(\'bold\')">B</button><button title="Italic" style="font-style:italic" onclick="AUTOX.fmt(\'italic\')">I</button><button title="Bulleted list" onclick="AUTOX.fmt(\'insertUnorderedList\')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1.4" fill="currentColor" stroke="none"/><circle cx="4.5" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="4.5" cy="18" r="1.4" fill="currentColor" stroke="none"/></svg></button><button title="Insert a variable" style="font-family:inherit;font-weight:700" onclick="AUTOX.toggleTok()">{&nbsp;}</button><span id="nxTokHost" style="position:relative"></span><span class="nx-help" title="Formatting help"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.4 2.3c-.8.3-.9 1-.9 1.7"/><circle cx="12" cy="17" r=".5" fill="currentColor"/></svg></span></div>';
  h+='<div class="nx-ed" id="nxEd" contenteditable="true"></div>';
- h+='<div class="nx-toks">'+["{CANDIDATE_FIRSTNAME}","{JOB_TITLE}","{COMPANY}","{RECRUITER_NAME}","{INTERVIEW_TIME}"].map(function(t){return '<button class="nx-tok" onclick="AUTOX.ins(\''+t.replace(/[{}]/g,function(c){return c==="{"?"&#123;":"&#125;";})+'\')">'+t+"</button>";}).join("")+"</div>";
+ h+='<div class="nx-toks">'+TOK.map(function(t){return '<button class="nx-tok" onclick="AUTOX.ins(\''+enc(t)+'\')">'+t+"</button>";}).join("")+"</div>";
  if(p.kind==="email"){h+='<div class="nx-emailnote">This message will be sent as an email.</div>';}
  h+="</div>";
  if(p.kind==="message"){h+='<div class="nx-respline">Responses will be sent to <b>scott@jobfairx.com</b></div>';}
@@ -4780,28 +4806,33 @@ function setupHtml(edit){
  h+=scopeBlockHtml(edit);
  h+='<div class="nx-gate" id="nxGate">';
  h+=editorBlockHtml(p);
- h+='<div class="nx-namewrap"><div class="nx-lbl">Automation name *</div><input id="nxName" maxlength="100" oninput="AUTOX.count()"><div class="nx-count" id="nxCount"></div></div>';
+ h+='<div class="nx-namewrap"><div class="nx-lbl">Automation name *</div><input id="nxName" maxlength="100" oninput="AUTOX.nameEdit()"><div class="nx-count" id="nxCount"></div></div>';
  h+="</div></div>";
  if(edit){h+='<div class="nx-dfoot"><button class="nx-btn nx-dghost nx-left" onclick="AUTOX.askOff()">Turn off</button><button class="nx-btn nx-pri" onclick="AUTOX.save()">Save</button></div>';}
  else{h+='<div class="nx-dfoot"><button class="nx-btn nx-pri" id="nxTurnOn" onclick="AUTOX.turnOn()">Turn on</button></div>';}
  return h;
 }
-function fillCommon(name,msg){var n=$("#nxName");if(n){n.value=name;}count();var ed=$("#nxEd");if(ed){ed.textContent=msg;}applyGate();}
 function count(){var n=$("#nxName"),c=$("#nxCount");if(n&&c)c.textContent=n.value.length+"/100";}
+function fillCommon(name,msg){var n=$("#nxName");if(n)n.value=name;count();var ed=$("#nxEd");if(ed)ed.textContent=msg;applyGate();}
+function curMsg(){var ed=$("#nxEd");return ed?ed.innerText:P[st.preset].msg;}
+function curName(){var n=$("#nxName");return n?n.value:"";}
+function refreshName(){if(st.nameTouched)return;var n=$("#nxName");if(n){n.value=autoName(st.preset,st.all,st.jobs);count();}}
+function rerender(edit){var keepM=curMsg();var keepN=st.nameTouched?curName():autoName(st.preset,st.all,st.jobs);$("#nxDlg").innerHTML=setupHtml(edit);fillCommon(keepN,keepM);}
 /* ---------- public API ---------- */
 window.AUTOX={
  mode:function(m){st.mode=m;["nxTgD","nxTgE","nxTgN"].forEach(function(id,i){var b=$("#"+id);if(b)b.classList.toggle("on",i===m);});render();},
  filter:function(){if(st.mode===0)render();},
- setup:function(i){st.preset=i;st.editing=-1;st.all=false;st.job=null;openDlg(setupHtml(false));fillCommon(P[i].name+" "+TODAY,P[i].msg);},
- edit:function(i){var r=ROWS[i];st.preset=r.preset;st.editing=i;st.all=r.all;st.job=r.all?null:(JOBS.filter(function(j){return j.job===r.job&&j.ev===r.ev;})[0]||null);openDlg(setupHtml(true));fillCommon(r.name,r.msg);},
+ setup:function(i){st.preset=i;st.editing=-1;st.all=false;st.jobs=[];st.nameTouched=false;openDlg(setupHtml(false));fillCommon(autoName(i,false,[]),P[i].msg);},
+ edit:function(i){var r=ROWS[i];st.preset=r.preset;st.editing=i;st.all=r.all;st.jobs=r.jobs.slice();st.nameTouched=true;openDlg(setupHtml(true));fillCommon(r.name,r.msg);},
  closeDlg:closeDlg,
- scopeAll:function(){var keepN=$("#nxName")?$("#nxName").value:(P[st.preset].name+" "+TODAY);var keepM=curMsg();st.all=true;st.job=null;var edit=st.editing>-1;$("#nxDlg").innerHTML=setupHtml(edit);fillCommon(keepN,keepM);},
- scopeInd:function(){var keepN=$("#nxName")?$("#nxName").value:(P[st.preset].name+" "+TODAY);var keepM=curMsg();st.all=false;var edit=st.editing>-1;$("#nxDlg").innerHTML=setupHtml(edit);fillCommon(keepN,keepM);},
+ nameEdit:function(){st.nameTouched=true;count();},
+ scopeAll:function(){st.all=true;st.jobs=[];rerender(st.editing>-1);},
+ scopeInd:function(){st.all=false;rerender(st.editing>-1);},
  togglePicker:function(){var host=$("#nxPickerHost");if(!host)return;host.innerHTML=host.innerHTML?"":pickerHtml("");var q=$("#nxPickQ");if(q)q.focus();},
- pickQ:function(v){var host=$("#nxPickerHost");if(host){var pos=$("#nxPickQ");host.innerHTML=pickerHtml(v);$("#nxPickQ").value=v;$("#nxPickQ").focus();$("#nxPickQ").setSelectionRange(v.length,v.length);}},
- pickJob:function(i){st.job=JOBS[i];var host=$("#nxPickerHost");if(host)host.innerHTML="";var sr=$("#nxSelRow");if(sr)sr.innerHTML=selJobHtml();applyGate();},
- clearJob:function(){st.job=null;var sr=$("#nxSelRow");if(sr)sr.innerHTML="";applyGate();},
- toggleTok:function(){var host=$("#nxTokHost");if(!host)return;if(host.innerHTML){host.innerHTML="";return;}host.innerHTML='<div class="nx-menu" style="left:0;right:auto;top:40px">'+["{CANDIDATE_FIRSTNAME}","{JOB_TITLE}","{COMPANY}","{RECRUITER_NAME}","{INTERVIEW_TIME}"].map(function(t){return "<button onclick=\"AUTOX.ins('"+t.replace("{","&#123;").replace("}","&#125;")+"')\">"+t+"</button>";}).join("")+"</div>";},
+ pickQ:function(v){var host=$("#nxPickerHost");if(!host)return;host.innerHTML=pickerHtml(v);var q=$("#nxPickQ");if(q){q.value=v;q.focus();q.setSelectionRange(v.length,v.length);}},
+ pickJob:function(i){if(st.jobs.indexOf(i)<0)st.jobs.push(i);var host=$("#nxPickerHost");if(host)host.innerHTML="";var sr=$("#nxSelRow");if(sr)sr.innerHTML=selJobsHtml();refreshName();applyGate();},
+ clearJob:function(n){st.jobs.splice(n,1);var sr=$("#nxSelRow");if(sr)sr.innerHTML=selJobsHtml();refreshName();applyGate();},
+ toggleTok:function(){var host=$("#nxTokHost");if(!host)return;if(host.innerHTML){host.innerHTML="";return;}var TOK=["{CANDIDATE_FIRSTNAME}","{JOB_TITLE}","{COMPANY}","{RECRUITER_NAME}","{INTERVIEW_TIME}"];host.innerHTML='<div class="nx-menu" style="left:0;right:auto;top:40px">'+TOK.map(function(t){return '<button onclick="AUTOX.ins(\''+t.replace(/\{/g,"&#123;").replace(/\}/g,"&#125;")+'\')">'+t+"</button>";}).join("")+"</div>";},
  toggleTmpl:function(){var host=$("#nxTmplHost");if(!host)return;if(host.innerHTML){host.innerHTML="";return;}host.innerHTML='<div class="nx-menu">'+P.map(function(p,i){return '<button onclick="AUTOX.useTmpl('+i+')">'+esc(p.name)+"</button>";}).join("")+"</div>";},
  useTmpl:function(i){var ed=$("#nxEd");if(ed)ed.textContent=P[i].msg;var host=$("#nxTmplHost");if(host)host.innerHTML="";},
  ins:function(tok){var ed=$("#nxEd");if(!ed)return;var sel=window.getSelection();var inside=sel&&sel.rangeCount>0&&ed.contains(sel.anchorNode);ed.focus();if(inside){try{document.execCommand("insertText",false,tok);}catch(e){ed.textContent+=tok;}}else{ed.textContent+=tok;}var host=$("#nxTokHost");if(host)host.innerHTML="";},
@@ -4809,21 +4840,17 @@ window.AUTOX={
  count:count,
  turnOn:function(){
   if(!gateOK())return;
-  var name=($("#nxName").value||P[st.preset].name+" "+TODAY).trim();
-  var msg=$("#nxEd").innerText;
-  var row={name:name,preset:st.preset,all:st.all,job:st.all?"":st.job.job,ev:st.all?"":st.job.ev,msg:msg,modified:TODAY};
-  var scope=scopeText(row);
-  openDlg('<div class="nx-dhead"><h2>Run automation for existing candidates</h2><button class="nx-x" onclick="AUTOX.finishOn(false)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div><div class="nx-confbody">Would you like to also run the <b>'+esc(P[st.preset].name)+"</b> automation for candidates who already requested an interview for <b>"+esc(scope)+'</b> within the last 4 weeks?</div><div class="nx-dfoot"><button class="nx-btn nx-ghost" onclick="AUTOX.finishOn(false)">Don’t run</button><button class="nx-btn nx-pri" onclick="AUTOX.finishOn(true)">Run automation for existing candidates</button></div>',true);
+  var row={name:(curName()||autoName(st.preset,st.all,st.jobs)).trim(),preset:st.preset,all:st.all,jobs:st.jobs.slice(),msg:curMsg(),modified:TODAY};
   st.pendingRow=row;
+  openDlg('<div class="nx-dhead"><h2>Run automation for existing candidates</h2><button class="nx-x" onclick="AUTOX.finishOn(false)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div><div class="nx-confbody">Would you like to also run the <b>'+esc(P[st.preset].name)+'</b> automation for candidates who already requested an interview for <b>'+esc(scopeText(row))+'</b> within the last 4 weeks?</div><div class="nx-dfoot"><button class="nx-btn nx-ghost" onclick="AUTOX.finishOn(false)">Don’t run</button><button class="nx-btn nx-pri" onclick="AUTOX.finishOn(true)">Run automation for existing candidates</button></div>',true);
  },
  finishOn:function(run){var row=st.pendingRow;st.pendingRow=null;closeDlg();if(!row)return;ROWS.unshift(row);render();toast("Automation turned on","<b>"+esc(row.name)+"</b> is turned on for <b>"+esc(scopeText(row))+"</b>."+(run?" It will also run for existing candidates.":""));},
- save:function(){var r=ROWS[st.editing];if(!r)return;if(!gateOK())return;r.name=($("#nxName").value||r.name).trim();r.msg=$("#nxEd").innerText;r.all=st.all;r.job=st.all?"":(st.job?st.job.job:r.job);r.ev=st.all?"":(st.job?st.job.ev:r.ev);r.modified=TODAY;closeDlg();render();toast("Changes saved","<b>"+esc(r.name)+"</b> is updated.");},
- askOff:function(){var r=ROWS[st.editing];if(!r)return;openDlg('<div class="nx-dhead"><h2>Turn off automation</h2><button class="nx-x" onclick="AUTOX.closeDlg()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div><div class="nx-confbody">Are you sure you want to turn off the automation <b>'+esc(r.name)+"</b> for <b>"+esc(scopeText(r))+'</b>?</div><div class="nx-dfoot"><button class="nx-btn nx-ghost" onclick="AUTOX.closeDlg()">Cancel</button><button class="nx-btn nx-danger" onclick="AUTOX.doOff()">Turn off</button></div>',true);},
+ save:function(){var r=ROWS[st.editing];if(!r||!gateOK())return;r.name=(curName()||r.name).trim();r.msg=curMsg();r.all=st.all;r.jobs=st.jobs.slice();r.modified=TODAY;closeDlg();render();toast("Changes saved","<b>"+esc(r.name)+"</b> is updated.");},
+ askOff:function(){var r=ROWS[st.editing];if(!r)return;openDlg('<div class="nx-dhead"><h2>Turn off automation</h2><button class="nx-x" onclick="AUTOX.closeDlg()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div><div class="nx-confbody">Are you sure you want to turn off the automation <b>'+esc(r.name)+'</b> for <b>'+esc(scopeText(r))+'</b>?</div><div class="nx-dfoot"><button class="nx-btn nx-ghost" onclick="AUTOX.closeDlg()">Cancel</button><button class="nx-btn nx-danger" onclick="AUTOX.doOff()">Turn off</button></div>',true);},
  doOff:function(){var r=ROWS[st.editing];closeDlg();if(!r)return;ROWS.splice(st.editing,1);st.editing=-1;render();toast("Automation turned off","<b>"+esc(r.name)+"</b> is turned off for <b>"+esc(scopeText(r))+"</b>. It will not run again.");},
  openReq:function(){openDlg('<div class="nx-dhead"><h2>Request an automation</h2><button class="nx-x" onclick="AUTOX.closeDlg()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div><div class="nx-confbody"><div class="nx-lbl">What steps would you like to automate in your hiring process?</div><textarea class="nx-reqta" id="nxReqTa" oninput="document.getElementById(\'nxReqBtn\').disabled=!this.value.trim()"></textarea></div><div class="nx-dfoot"><button class="nx-btn nx-ghost" onclick="AUTOX.closeDlg()">Close</button><button class="nx-btn nx-pri" id="nxReqBtn" disabled onclick="AUTOX.sendReq()">Request automation</button></div>',true);},
  sendReq:function(){closeDlg();toast("Request sent","Thanks — we’ll take a look.");}
 };
-function curMsg(){var ed=$("#nxEd");return ed?ed.innerText:P[st.preset].msg;}
 /* ---------- bootstrap ---------- */
 try{
  var tpl=document.getElementById("nxViewTpl");
