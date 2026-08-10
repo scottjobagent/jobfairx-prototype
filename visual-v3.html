@@ -5119,56 +5119,221 @@ try{
 .ia-fly a.active { background: rgb(118, 118, 118); color: rgb(255, 255, 255); }
 .ia-fly a .ia-ext { color: rgb(181, 179, 174); }
 </style>
-<template id="anxViewTpl"><div class="view" id="view-analytics"><div class="rn-head" id="rnHead"><div class="l"><div class="rn-h1row"><div style="display:flex;align-items:center;gap:16px;"><h1>Interviews</h1><span class="pgt"><span class="pgt-g"><span class="pgt-sw"><button type="button" class="pgt-btn on" id="anxTgD" onclick="ANLX.mode(0)">Data</button><button type="button" class="pgt-btn" id="anxTgE" onclick="ANLX.mode(1)">Empty</button></span></span></span></div></div><p class="rn-sub">See how your interviews and hiring events are performing</p></div><div class="r"><select class="tl-sel" id="anxSel" onchange="ANLX.set(this.selectedIndex)"><option>All events</option><option>Dallas Healthcare Event</option><option>Chicago Technology Event</option><option>Atlanta Diversity Event</option></select></div></div><div class="an-page"><div class="an-h2">Interviews</div><div class="an-lead">Scheduling, attendance and outcomes for your hiring events.</div><div class="an-kpis" id="anxKpis"></div><div class="an-card full"><h3>Interviews scheduled<span class="sp"></span></h3><div class="sub" id="anxChartSub">Across the event day · 11:00 AM – 3:00 PM.</div><svg id="anxChart" viewBox="0 0 760 220" width="100%"></svg></div><div class="an-card full"><h3><span id="anxTT">Events</span><span class="sp"></span></h3><table class="an-tbl" id="anxTable"></table></div></div></div></template>
+<style>
+.anx-r{display:flex;align-items:center;gap:0}
+.anx-drwrap{position:relative}
+.anx-drbtn{display:flex;align-items:center;gap:14px;background:#fff;border:1px solid #2d2d2d;border-radius:12px;padding:8px 14px;cursor:pointer;font-family:inherit;text-align:left;min-width:262px}
+.anx-drbtn .lab{font-size:14px;font-weight:700;color:#2d2d2d;display:block}
+.anx-drbtn .val{font-size:16px;color:#2d2d2d;display:block;margin-top:2px}
+.anx-drbtn svg{flex:none;margin-left:auto}
+.anx-cmplink{display:inline-flex;align-items:center;gap:6px;color:#004fcb;font-size:14px;font-weight:700;margin-left:16px;cursor:not-allowed;opacity:.55;white-space:nowrap}
+.anx-pop{position:absolute;right:0;top:calc(100% + 8px);width:345px;background:#fff;border-radius:12px;z-index:9400;box-shadow:0 0 2px rgba(45,45,45,.16),0 4px 8px rgba(45,45,45,.08),0 8px 16px rgba(45,45,45,.04);padding:18px;text-align:left}
+.anx-pop[hidden]{display:none}
+.anx-pop .fl{font-size:13px;font-weight:700;margin:0 0 6px;color:#2d2d2d}
+.anx-pop select,.anx-pop input{width:100%;box-sizing:border-box;height:40px;border:1px solid #767676;border-radius:8px;padding:0 10px;font-family:inherit;font-size:14px;background:#fff;color:#2d2d2d}
+.anx-pop select{appearance:none;-webkit-appearance:none;padding-right:30px;cursor:pointer;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%232d2d2d' stroke-width='2'><path d='M6 9l6 6 6-6'/></svg>");background-repeat:no-repeat;background-position:right 9px center}
+.anx-hint{font-size:12px;color:#767676;margin:14px 0 6px}
+.anx-two{display:grid;grid-template-columns:1fr 22px 1fr;align-items:end;gap:6px;margin:0 0 14px}
+.anx-two .to{text-align:center;font-size:13px;color:#595959;padding-bottom:11px}
+.anx-my{display:grid;grid-template-columns:1.4fr 1fr;gap:10px;margin:0 0 12px}
+table.anx-cal{width:100%;border-collapse:collapse}
+table.anx-cal th{font-size:12px;font-weight:400;color:#595959;padding:6px 0;text-transform:none;letter-spacing:0;border:0}
+table.anx-cal td{padding:1px 0;text-align:center;border:0}
+table.anx-cal button{width:100%;height:34px;border:0;background:none;font-family:inherit;font-size:13px;font-weight:700;color:#2d2d2d;cursor:pointer}
+table.anx-cal button:disabled{color:#c9c7c5;cursor:default}
+table.anx-cal button.mid{background:#f3f2f1}
+table.anx-cal button.end{background:#2d2d2d;color:#fff;border-radius:6px}
+.anx-popfoot{display:flex;justify-content:flex-end;gap:10px;margin:14px 0 0}
+.anx-popfoot button{font-family:inherit;font-size:15px;font-weight:700;height:40px;padding:0 18px;border-radius:12px;cursor:pointer}
+.anx-bcancel{background:#fff;border:0;color:#2d2d2d}
+.anx-bapply{background:#004fcb;border:0;color:#fff}
+.anx-crow{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:0 0 4px}
+.anx-tf{display:flex;align-items:center;gap:14px}
+.anx-gran{display:inline-flex;background:#f3f2f1;border-radius:10px;padding:3px}
+.anx-gran button{border:0;background:none;font-family:inherit;font-size:14px;font-weight:700;color:#595959;padding:7px 14px;border-radius:8px;cursor:pointer}
+.anx-gran button.on{background:#fff;color:#2d2d2d;box-shadow:0 1px 2px rgba(45,45,45,.12)}
+.anx-metricrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 6px}
+.anx-mpick{display:inline-flex;align-items:center;border:1px solid #e4e2e0;border-radius:12px;overflow:hidden;background:#fff}
+.anx-mpick .sw{width:16px;height:3px;border-radius:2px;margin:0 0 0 12px;flex:none}
+.anx-mpick select{border:0;height:42px;padding:0 34px 0 10px;font-family:inherit;font-size:15px;background:#fff;cursor:pointer;appearance:none;-webkit-appearance:none;outline:none;color:#2d2d2d;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%232d2d2d' stroke-width='2'><path d='M6 9l6 6 6-6'/></svg>");background-repeat:no-repeat;background-position:right 12px center}
+.anx-vs{font-size:15px;color:#595959}
+.anx-ssel{height:42px;border:1px solid #e4e2e0;border-radius:12px;padding:0 34px 0 12px;font-family:inherit;font-size:15px;background:#fff;cursor:pointer;appearance:none;-webkit-appearance:none;outline:none;color:#2d2d2d;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%232d2d2d' stroke-width='2'><path d='M6 9l6 6 6-6'/></svg>");background-repeat:no-repeat;background-position:right 12px center}
+.anx-legend{display:flex;gap:20px;font-size:13px;color:#595959;margin:8px 0 0;flex-wrap:wrap}
+.anx-legend i{display:inline-block;width:18px;height:3px;border-radius:2px;margin-right:7px;vertical-align:4px}
+.anx-foot{font-size:13px;color:#767676;margin:12px 0 0;font-style:italic}
+.anx-none{padding:26px 12px;text-align:center;color:#767676;font-size:14.5px}
+.anx-dev{background:#fffbea;border:1px solid #f2e2a8;border-radius:12px;padding:16px 18px;margin:0 0 18px;font-size:14px;line-height:1.6;color:#4a3c00}
+.anx-dev[hidden]{display:none}
+.anx-dev h4{margin:0 0 6px;font-size:14px;font-weight:700}
+.anx-dev code{background:#fff3cd;border-radius:4px;padding:1px 5px;font-size:13px}
+#view-analytics .an-card h3{margin:0}
+</style>
+<template id="anxViewTpl"><div class="view" id="view-analytics"><div class="rn-head" id="rnHead"><div class="l"><div class="rn-h1row"><div style="display:flex;align-items:center;gap:16px;"><h1>Interviews</h1><span class="pgt"><span class="pgt-g"><span class="pgt-sw"><button type="button" class="pgt-btn on" id="anxTgD" onclick="ANLX.mode(0)">Data</button><button type="button" class="pgt-btn" id="anxTgE" onclick="ANLX.mode(1)">Empty</button><button type="button" class="pgt-btn" id="anxTgN" onclick="ANLX.mode(2)">Dev note</button></span></span></span></div></div><p class="rn-sub">See how your interviews and hiring events are performing</p></div><div class="r"><div class="anx-r"><div class="anx-drwrap"><button type="button" class="anx-drbtn" id="anxDrBtn"><span><span class="lab">Date range</span><span class="val" id="anxDrVal">04/01/2026 &ndash; 05/20/2026</span></span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2d2d2d" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M3 10h18M8 3v4M16 3v4"></path></svg></button><div class="anx-pop" id="anxPop" hidden><div class="fl">Set date range to</div><select id="anxPreset"><option value="7">Last 7 days</option><option value="30">Last 30 days</option><option value="90">Last 90 days</option><option value="mtd">Month to date</option><option value="ytd">This year</option><option value="all" selected>All time</option><option value="custom">Custom</option></select><div class="anx-hint">Use format MM/DD/YYYY</div><div class="anx-two"><div><div class="fl">Start date</div><input id="anxInA" value="04/01/2026"></div><div class="to">to</div><div><div class="fl">End date</div><input id="anxInB" value="05/20/2026"></div></div><div class="anx-my"><div><div class="fl">Month</div><select id="anxCalM"></select></div><div><div class="fl">Year</div><select id="anxCalY"><option>2025</option><option selected>2026</option></select></div></div><div id="anxCalWrap"></div><div class="anx-popfoot"><button type="button" class="anx-bcancel" id="anxBCancel">Cancel</button><button type="button" class="anx-bapply" id="anxBApply">Apply</button></div></div></div><span class="anx-cmplink" title="Not in v1"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#004fcb" stroke-width="2"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v8M8 12h8"></path></svg>Compare to date range</span></div></div></div><div class="an-page"><div class="anx-dev" id="anxDev" hidden><h4>Developer note</h4><b>Date range is page-level.</b> It scopes the four cards, the chart and the Events table together. Granularity is chart-level and changes no card. An event appears in the table when its event date falls inside the range; day-level series are clipped to the range.<br><br><b>Future dates are disabled.</b> Analytics is retrospective &mdash; upcoming events belong on the Events page.<br><br><b>Open question:</b> how far back do we retain analytics? Indeed states 25 months in their picker. We need a number, printed in the popover the same way.<br><br><b>We do not track hires.</b> The outcome measure is the recruiter's own rating &mdash; Yes / Maybe / No &mdash; recorded after the interview. Every completed interview carries exactly one rating, so <code>yes + maybe + no = completed</code> in every scope.<br><br>Both metrics render identically: 2.5px line, 3.5px joint dots, shared axis. Metric A is <code>#004fcb</code>, metric B is <code>#9c2a6b</code>. No bars &mdash; weight never encodes meaning, only colour does.<br><br>The y-axis is derived from the data, never fixed. Step size is the smallest of <code>1, 2, 3, 4, 5, 10, 15, 20, 25, 50</code> that keeps the axis to about four gridlines; the top is the peak of both series rounded up to that step. <b>Never fractional</b> &mdash; Indeed's own chart draws 0.25 / 0.5 / 0.75 on low-volume days, which is meaningless for whole interviews. With no data the axis falls back to 0&ndash;4 with no lines.<br><br><b>Event day</b> buckets by half hour across 11:00 AM &ndash; 3:00 PM and includes only interviews still held on the event date. On a single event it is that event's day; on All events the events stack on a shared 11:00&ndash;3:00 axis, so the shape is the typical event day. <b>Day / Week / Month</b> bucket by calendar date and include every interview, rescheduled ones included, on the date it was actually held.</div><div class="an-kpis" id="anxKpis"></div><div class="an-card full"><div class="anx-crow"><div><h3>Interviews over time</h3><div class="sub" id="anxChartSub" style="margin:2px 0 0"></div></div><div class="anx-gran" id="anxGran"><button type="button" data-g="eventday">Event day</button><button type="button" data-g="day">Day</button><button type="button" data-g="week" class="on">Week</button><button type="button" data-g="month">Month</button></div></div><div class="anx-metricrow" style="margin-top:14px"><span class="anx-mpick"><span class="sw" style="background:#004fcb"></span><select id="anxMA"></select></span><span class="anx-vs">vs.</span><span class="anx-mpick"><span class="sw" style="background:#9c2a6b"></span><select id="anxMB"></select></span></div><div id="anxChart"></div><div class="anx-legend" id="anxLegend"></div><div class="anx-foot" id="anxFoot"></div></div><div class="an-card full"><div class="anx-crow"><div class="anx-tf"><h3>Events</h3><select class="anx-ssel" id="anxEvSel"></select></div></div><div style="overflow-x:auto;margin-top:12px"><table class="an-tbl" id="anxTable"></table></div><div class="anx-foot">Rescheduled counts interviews that moved off the event day. They are inside Scheduled, not added to it &mdash; so Scheduled still equals Completed plus Missed.</div></div></div></div></template>
 <script>
 var ANLX=(function(){
-var MODE=0,IDX=0;
+var MODE=0;
+var MONTHS=[{name:"April",num:4,days:30,dow:3,base:0},{name:"May",num:5,days:31,dow:5,base:30},{name:"June",num:6,days:30,dow:1,base:61}];
+var LAST=49;
+function ymd(i){for(var k=MONTHS.length-1;k>=0;k--){var d=i-MONTHS[k].base+1;if(d>=1&&d<=MONTHS[k].days)return{m:k,d:d};}return null;}
+function idxOf(m,d){return MONTHS[m].base+d-1;}
+function pad(n){return (n<10?"0":"")+n;}
+function shortLbl(i){var o=ymd(i);return o?MONTHS[o.m].name.slice(0,3)+" "+o.d:"";}
+function usLbl(i){var o=ymd(i);return o?pad(MONTHS[o.m].num)+"/"+pad(o.d)+"/2026":"";}
+function parseUS(s){var m=/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(String(s).trim());if(!m)return null;var mo=+m[1],d=+m[2];for(var k=0;k<MONTHS.length;k++){if(MONTHS[k].num===mo&&d>=1&&d<=MONTHS[k].days){var i=idxOf(k,d);return (i>=0&&i<=LAST)?i:null;}}return null;}
+var METRICS=[{id:"scheduled",label:"Interviews scheduled"},{id:"completed",label:"Interviews completed"},{id:"missed",label:"Missed interviews"},{id:"yes",label:"Marked yes"},{id:"maybe",label:"Marked maybe"},{id:"no",label:"Marked no"},{id:"requests",label:"Interview requests"}];
 var EV=[
-{n:"All events",sched:90,att:"66%",ns:31,h:12,bars:[6,11,14,16,13,11,9,6,4]},
-{n:"Dallas Healthcare Event",sched:41,att:"71%",ns:12,h:6,bars:[3,5,6,7,6,5,4,3,2]},
-{n:"Chicago Technology Event",sched:30,att:"63%",ns:11,h:4,bars:[2,4,5,5,4,4,3,2,1]},
-{n:"Atlanta Diversity Event",sched:19,att:"58%",ns:8,h:2,bars:[1,2,3,4,3,2,2,1,1]}];
-var EVROWS=[
-["Dallas Healthcare Event","Apr 22, 2026",58,41,29,12,6],
-["Chicago Technology Event","May 6, 2026",47,30,19,11,4],
-["Atlanta Diversity Event","Apr 5, 2026",33,19,11,8,2]];
-var JOBS={1:[["Registered Nurse",58,41,29,12,6]],
-2:[["Software Engineer",24,15,10,5,2],["DevOps Engineer",14,9,6,3,1],["UX Designer",9,6,3,3,1]],
-3:[["Operations Coordinator",21,12,7,5,1],["Customer Support Specialist",12,7,4,3,1]]};
-var LB=["11:00","11:30","12:00","12:30","1:00","1:30","2:00","2:30","3:00"];
+{name:"Dallas Healthcare Event",date:"Apr 22, 2026",offset:19,evIdx:21,resc:5,
+ day:{scheduled:[0,0,36,2,1,0,0,2,0,0,0],completed:[0,0,25,2,1,0,0,1,0,0,0],missed:[0,0,11,0,0,0,0,1,0,0,0],yes:[0,0,8,1,0,0,0,0,0,0,0],maybe:[0,0,8,0,1,0,0,1,0,0,0],no:[0,0,9,1,0,0,0,0,0,0,0],requests:[9,14,21,6,4,2,1,1,0,0,0]},
+ hour:{scheduled:[3,5,6,7,5,4,3,2,1],completed:[2,4,4,5,4,3,2,1,0],missed:[1,1,2,2,1,1,1,1,1],yes:[0,1,2,3,1,1,0,0,0],maybe:[1,1,2,2,1,1,0,0,0],no:[1,2,0,0,2,1,2,1,0],requests:[0,0,0,0,0,0,0,0,0]}},
+{name:"Chicago Technology Event",date:"May 6, 2026",offset:33,evIdx:35,resc:3,
+ day:{scheduled:[0,0,27,1,1,0,0,1,0,0,0],completed:[0,0,17,1,1,0,0,0,0,0,0],missed:[0,0,10,0,0,0,0,1,0,0,0],yes:[0,0,5,1,0,0,0,0,0,0,0],maybe:[0,0,6,0,1,0,0,0,0,0,0],no:[0,0,6,0,0,0,0,0,0,0,0],requests:[7,12,17,5,3,2,1,0,0,0,0]},
+ hour:{scheduled:[2,4,5,5,4,3,2,1,1],completed:[1,3,3,4,3,2,1,0,0],missed:[1,1,2,1,1,1,1,1,1],yes:[0,1,1,2,1,0,0,0,0],maybe:[1,1,2,1,1,0,0,0,0],no:[0,1,0,1,1,2,1,0,0],requests:[0,0,0,0,0,0,0,0,0]}},
+{name:"Atlanta Diversity Event",date:"Apr 5, 2026",offset:2,evIdx:4,resc:1,
+ day:{scheduled:[0,0,18,0,1,0,0,0,0,0,0],completed:[0,0,10,0,1,0,0,0,0,0,0],missed:[0,0,8,0,0,0,0,0,0,0,0],yes:[0,0,4,0,0,0,0,0,0,0,0],maybe:[0,0,4,0,0,0,0,0,0,0,0],no:[0,0,2,0,1,0,0,0,0,0,0],requests:[6,9,11,4,2,1,0,0,0,0,0]},
+ hour:{scheduled:[1,2,3,4,3,2,2,1,0],completed:[1,1,2,2,2,1,1,0,0],missed:[0,1,1,2,1,1,1,1,0],yes:[0,0,1,1,1,0,0,0,0],maybe:[0,1,1,1,1,0,0,0,0],no:[1,0,0,0,0,1,1,0,0],requests:[0,0,0,0,0,0,0,0,0]}}];
+var HOURLBL=["11:00","11:30","12:00","12:30","1:00","1:30","2:00","2:30","3:00"];
+var ST={A:0,B:LAST,dA:0,dB:LAST,calM:0};
+function $(id){return document.getElementById(id);}
+function presetRange(p){
+ if(p==="7")return [LAST-6,LAST];
+ if(p==="30")return [LAST-29,LAST];
+ if(p==="90")return [Math.max(0,LAST-89),LAST];
+ if(p==="mtd")return [MONTHS[1].base,LAST];
+ return [0,LAST];}
+function scopeIdx(){var s=$("anxEvSel");if(!s)return -1;return s.value==="all"?-1:parseInt(s.value,10);}
+function eventsInScope(){if(MODE===1)return [];var s=scopeIdx();return (s<0?[0,1,2]:[s]).filter(function(i){return EV[i].evIdx>=ST.A&&EV[i].evIdx<=ST.B;});}
+function baseDay(id){var a=[],i;for(i=0;i<=LAST;i++)a.push(0);
+ eventsInScope().forEach(function(k){EV[k].day[id].forEach(function(v,j){var p=EV[k].offset+j;if(p>=0&&p<=LAST)a[p]+=v;});});return a;}
+function tot(id,i){var s=0;EV[i].day[id].forEach(function(v,j){var k=EV[i].offset+j;if(k>=ST.A&&k<=ST.B)s+=v;});return s;}
+function series(id,gran){
+ if(id==="none")return null;
+ if(gran==="eventday"){var b=[0,0,0,0,0,0,0,0,0];eventsInScope().forEach(function(i){EV[i].hour[id].forEach(function(v,j){b[j]+=v;});});return b;}
+ var base=baseDay(id),sl=base.slice(ST.A,ST.B+1),i,j,s;
+ if(gran==="day")return sl;
+ if(gran==="week"){var o=[];for(i=0;i<sl.length;i+=7){s=0;for(j=i;j<Math.min(i+7,sl.length);j++)s+=sl[j];o.push(s);}return o;}
+ var o2=[];MONTHS.forEach(function(m){var a=Math.max(m.base,ST.A),b=Math.min(m.base+m.days-1,ST.B);if(a>b)return;var t=0;for(var j2=a;j2<=b;j2++)t+=base[j2];o2.push(t);});
+ return o2.length?o2:[0];}
+function labels(gran){
+ if(gran==="eventday")return HOURLBL;
+ var o=[],i;
+ if(gran==="day"){for(i=ST.A;i<=ST.B;i++)o.push(shortLbl(i));return o;}
+ if(gran==="week"){for(i=ST.A;i<=ST.B;i+=7)o.push(shortLbl(i)+" – "+shortLbl(Math.min(i+6,ST.B)));return o;}
+ MONTHS.forEach(function(x){var a=Math.max(x.base,ST.A),b=Math.min(x.base+x.days-1,ST.B);if(a<=b)o.push(x.name.slice(0,3)+" 2026");});
+ return o.length?o:["—"];}
+var NICE=[1,2,3,4,5,10,15,20,25,50,100];
+function scale(max){if(!max||max<0)return{top:4,step:1};var s=Math.ceil(max/4);for(var i=0;i<NICE.length;i++){if(NICE[i]>=s){s=NICE[i];break;}}return{top:Math.ceil(max/s)*s,step:s};}
+function poly(vals,top,color,left,slot,yBase,plot){
+ var h="",pts=vals.map(function(d,i){return (left+slot*i+slot/2)+","+(yBase-(d/top)*plot);}).join(" ");
+ if(vals.length>1)h+='<polyline points="'+pts+'" fill="none" stroke="'+color+'" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>';
+ vals.forEach(function(d,i){h+='<circle cx="'+(left+slot*i+slot/2)+'" cy="'+(yBase-(d/top)*plot)+'" r="3.5" fill="'+color+'"/>';});
+ return h;}
 function kcard(k,v){return '<div class="an-kpi"><div class="k">'+k+'</div><div class="v">'+v+'</div></div>';}
-function kpis(e){document.getElementById("anxKpis").innerHTML=kcard("Interviews scheduled",e?e.sched:0)+kcard("Attendance rate",e?e.att:"0%")+kcard("No-shows",e?e.ns:0)+kcard("Hires",e?e.h:0);}
-function chart(bars){var L2=48,R2=750,B=192,T=18;var max=bars.length?Math.max.apply(null,bars):4;var step=Math.ceil(max/4)||1;max=step*4;var s="";
-for(var g=0;g<=4;g++){var val=g*step;var y=B-(val/max)*(B-T);s+='<line x1="'+L2+'" y1="'+y+'" x2="'+R2+'" y2="'+y+'" stroke="#eceae8"/>';s+='<text x="36" y="'+(y+4)+'" font-size="11" fill="#767676" text-anchor="end">'+val+'</text>';}
-var bw=(R2-L2)/LB.length;
-LB.forEach(function(lb,i){s+='<text x="'+(L2+i*bw+bw/2).toFixed(1)+'" y="212" font-size="11" fill="#767676" text-anchor="middle">'+lb+'</text>';});
-bars.forEach(function(vv,i){var bh=(vv/max)*(B-T);var x=L2+i*bw+(bw-34)/2;s+='<rect x="'+x.toFixed(1)+'" y="'+(B-bh).toFixed(1)+'" width="34" height="'+bh.toFixed(1)+'" rx="3" fill="#004fcb"/>';});
-document.getElementById("anxChart").innerHTML=s;}
-function num(v,b){return '<td class="num">'+(b?("<b>"+v+"</b>"):v)+'</td>';}
-var EH='<tr><th>Event</th><th>Date</th><th class="num">Requests</th><th class="num">Scheduled</th><th class="num">Completed</th><th class="num">No-shows</th><th class="num">Hires</th></tr>';
-function table(i){var b="";
-if(i===0){document.getElementById("anxTT").textContent="Events";
-EVROWS.forEach(function(r){b+='<tr><td><b>'+r[0]+'</b></td><td>'+r[1]+'</td>'+num(r[2])+num(r[3],1)+num(r[4])+num(r[5])+num(r[6],1)+'</tr>';});
-document.getElementById("anxTable").innerHTML="<thead>"+EH+"</thead><tbody>"+b+"</tbody>";}
-else{document.getElementById("anxTT").textContent="Jobs \u2014 "+EV[i].n;
-var h='<tr><th>Job</th><th class="num">Requests</th><th class="num">Scheduled</th><th class="num">Completed</th><th class="num">No-shows</th><th class="num">Hires</th></tr>';
-JOBS[i].forEach(function(r){b+='<tr><td><b>'+r[0]+'</b></td>'+num(r[1])+num(r[2],1)+num(r[3])+num(r[4])+num(r[5],1)+'</tr>';});
-document.getElementById("anxTable").innerHTML="<thead>"+h+"</thead><tbody>"+b+"</tbody>";}}
-function tableEmpty(){document.getElementById("anxTT").textContent="Events";
-var cell='<tr><td colspan="7"><div class="anx-empty">'
-+'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6" rx="1"/><rect x="12" y="8" width="3" height="10" rx="1"/><rect x="17" y="14" width="3" height="4" rx="1"/></svg>'
-+'<div class="t">No interview data yet</div>'
-+'<div class="s">Analytics will show up here after your first hiring event.</div>'
-+'<button class="an-ctl pri" onclick="showView(\'events\')">Register for an event</button>'
-+'</div></td></tr>';
-document.getElementById("anxTable").innerHTML="<thead>"+EH+"</thead><tbody>"+cell+"</tbody>";}
+function emptyTable(){
+ return '<thead><tr><th>Event</th><th>Date</th><th class="num">Requests</th><th class="num">Scheduled</th><th class="num">Rescheduled</th><th class="num">Completed</th><th class="num">Missed</th><th class="num">Marked yes</th></tr></thead><tbody><tr><td colspan="8"><div class="anx-empty">'
+ +'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6" rx="1"/><rect x="12" y="8" width="3" height="10" rx="1"/><rect x="17" y="14" width="3" height="4" rx="1"/></svg>'
+ +'<div class="t">No interview data yet</div><div class="s">Analytics will show up here after your first hiring event.</div>'
+ +'<button class="an-ctl pri" onclick="showView(\'events\')">Register for an event</button></div></td></tr></tbody>';}
 function render(){
-if(MODE===1){kpis(null);chart([]);tableEmpty();}
-else{var e=EV[IDX];kpis(e);chart(e.bars);table(IDX);}}
-function set(i){IDX=i;render();}
-function mode(m){MODE=m;var d=document.getElementById("anxTgD"),ee=document.getElementById("anxTgE");
-if(d)d.classList.toggle("on",m===0);if(ee)ee.classList.toggle("on",m===1);render();}
-return {set:set,mode:mode};
+ var granBtn=document.querySelector("#anxGran button.on");
+ var gran=granBtn?granBtn.dataset.g:"week";
+ var idA=$("anxMA").value,idB=$("anxMB").value;
+ var A=series(idA,gran)||[0],B=series(idB,gran),L=labels(gran);
+ if(!A.length)A=[0];
+ var peak=Math.max.apply(null,A.concat(B&&B.length?B:[0]));
+ var sc=scale(peak),top=sc.top,yTop=18,yBase=196,plot=yBase-yTop;
+ var W=980,left=48,right=W-14,span=right-left,v,y;
+ var h='<svg viewBox="0 0 '+W+' 232" style="width:100%;height:auto">';
+ for(v=0;v<=top;v+=sc.step){y=yBase-(v/top)*plot;
+  h+='<line x1="'+left+'" y1="'+y+'" x2="'+right+'" y2="'+y+'" stroke="#eceae8"/>';
+  h+='<text x="'+(left-10)+'" y="'+(y+4)+'" text-anchor="end" font-size="11" fill="#767676">'+v+'</text>';}
+ var slot=span/A.length,every=Math.ceil(A.length/13);
+ h+=poly(A,top,"#004fcb",left,slot,yBase,plot);
+ if(B&&B.length)h+=poly(B,top,"#9c2a6b",left,slot,yBase,plot);
+ A.forEach(function(d,i){if(i%every===0&&L[i])h+='<text x="'+(left+slot*i+slot/2)+'" y="218" text-anchor="middle" font-size="11" fill="#767676">'+L[i]+'</text>';});
+ $("anxChart").innerHTML=h+"</svg>";
+ function lbl(id){var m=METRICS.filter(function(x){return x.id===id;})[0];return m?m.label:"";}
+ var leg='<span><i style="background:#004fcb"></i>'+lbl(idA)+"</span>";
+ if(B&&B.length)leg+='<span><i style="background:#9c2a6b"></i>'+lbl(idB)+"</span>";
+ $("anxLegend").innerHTML=leg;
+ var s=scopeIdx(),inR=eventsInScope();
+ var who=s<0?"All events":EV[s].name;
+ var rng=usLbl(ST.A)+" – "+usLbl(ST.B);
+ var subs={eventday:(s<0?"All events combined":who)+" · event day only · 11:00 AM – 3:00 PM",day:who+" · "+rng,week:who+" · by week · "+rng,month:who+" · by month · "+rng};
+ $("anxChartSub").textContent=subs[gran];
+ var rescTotal=inR.reduce(function(a,i){return a+EV[i].resc;},0);
+ $("anxFoot").textContent = MODE===1 ? "" : (!inR.length ? "No events fall inside this date range."
+  : (gran==="eventday" ? rescTotal+" interview"+(rescTotal===1?" was":"s were")+" rescheduled to a later date and "+(rescTotal===1?"is":"are")+" not shown in this view. Switch to Day to see "+(rescTotal===1?"it":"them")+"."
+    : "Includes interviews rescheduled off the event day, shown on the date they were actually held."));
+ var sch=0,comp=0,mis=0,yes=0;
+ inR.forEach(function(i){sch+=tot("scheduled",i);comp+=tot("completed",i);mis+=tot("missed",i);yes+=tot("yes",i);});
+ $("anxKpis").innerHTML=kcard("Interviews scheduled",sch)+kcard("Attendance rate",sch?Math.round(comp/sch*100)+"%":"—")+kcard("Missed interviews",mis)+kcard("Marked yes",yes);
+ if(MODE===1){$("anxTable").innerHTML=emptyTable();}
+ else if(!inR.length){
+  $("anxTable").innerHTML='<thead><tr><th>Event</th><th>Date</th><th class="num">Requests</th><th class="num">Scheduled</th><th class="num">Rescheduled</th><th class="num">Completed</th><th class="num">Missed</th><th class="num">Marked yes</th></tr></thead><tbody><tr><td colspan="8"><div class="anx-none">No events in this date range. Try widening it.</div></td></tr></tbody>';}
+ else{
+  var rows="";
+  inR.forEach(function(i){var e=EV[i];
+   rows+='<tr><td><b>'+e.name+'</b></td><td>'+e.date+'</td><td class="num">'+tot("requests",i)+'</td><td class="num"><b>'+tot("scheduled",i)+'</b></td><td class="num" style="color:#004fcb">'+e.resc+'</td><td class="num">'+tot("completed",i)+'</td><td class="num">'+tot("missed",i)+'</td><td class="num"><b>'+tot("yes",i)+'</b></td></tr>';});
+  $("anxTable").innerHTML='<thead><tr><th>Event</th><th>Date</th><th class="num">Requests</th><th class="num">Scheduled</th><th class="num">Rescheduled</th><th class="num">Completed</th><th class="num">Missed</th><th class="num">Marked yes</th></tr></thead><tbody>'+rows+'</tbody>';}
+ $("anxDrVal").textContent=usLbl(ST.A)+" – "+usLbl(ST.B);
+}
+function renderCal(){
+ var m=MONTHS[ST.calM],d,i2,dis,cls;
+ var lo=Math.min(ST.dA,ST.dB),hi=Math.max(ST.dA,ST.dB);
+ var h='<table class="anx-cal"><tr><th>Su</th><th>Mo</th><th>Tu</th><th>We</th><th>Th</th><th>Fr</th><th>Sa</th></tr><tr>';
+ for(var i=0;i<m.dow;i++)h+="<td></td>";
+ var col=m.dow;
+ for(d=1;d<=m.days;d++){
+  if(col===7){h+="</tr><tr>";col=0;}
+  i2=idxOf(ST.calM,d);dis=(i2<0||i2>LAST);
+  cls=(i2===ST.dA||i2===ST.dB)?"end":((i2>lo&&i2<hi)?"mid":"");
+  h+='<td><button type="button" data-i="'+i2+'" class="'+cls+'"'+(dis?" disabled":"")+">"+d+"</button></td>";
+  col++;}
+ while(col<7){h+="<td></td>";col++;}
+ $("anxCalWrap").innerHTML=h+"</tr></table>";
+ [].forEach.call($("anxCalWrap").querySelectorAll("button"),function(b){
+  b.onclick=function(){var i=parseInt(b.getAttribute("data-i"),10);
+   if(ST.dA!==ST.dB||i<ST.dA){ST.dA=i;ST.dB=i;}else{ST.dB=i;}
+   if(ST.dB<ST.dA){var t=ST.dA;ST.dA=ST.dB;ST.dB=t;}
+   $("anxPreset").value="custom";syncInputs();renderCal();};});}
+function syncInputs(){$("anxInA").value=usLbl(ST.dA);$("anxInB").value=usLbl(ST.dB);}
+function openPop(){ST.dA=ST.A;ST.dB=ST.B;var o=ymd(ST.dA);ST.calM=o?o.m:0;$("anxCalM").value=String(ST.calM);syncInputs();renderCal();$("anxPop").hidden=false;}
+function mode(m){MODE=m;
+ var d=$("anxTgD"),e=$("anxTgE"),n=$("anxTgN");
+ if(d)d.classList.toggle("on",m===0);
+ if(e)e.classList.toggle("on",m===1);
+ if(n)n.classList.toggle("on",m===2);
+ var dev=$("anxDev");if(dev)dev.hidden=(m!==2);
+ render();}
+function set(i){var s=$("anxEvSel");if(s&&s.options.length)s.selectedIndex=i;render();}
+function wire(){
+ var cm=$("anxCalM");if(!cm)return;
+ MONTHS.forEach(function(m,i){cm.add(new Option(m.name,String(i)));});
+ cm.onchange=function(){ST.calM=parseInt(cm.value,10);renderCal();};
+ var es=$("anxEvSel");
+ es.add(new Option("All events","all"));
+ EV.forEach(function(e,i){es.add(new Option(e.name,String(i)));});
+ es.value="all";es.onchange=render;
+ var a=$("anxMA"),b=$("anxMB");
+ METRICS.forEach(function(m){a.add(new Option(m.label,m.id));b.add(new Option(m.label,m.id));});
+ b.add(new Option("None (remove metric)","none"),0);
+ a.value="scheduled";b.value="completed";
+ a.onchange=b.onchange=render;
+ [].forEach.call(document.querySelectorAll("#anxGran button"),function(btn){
+  btn.onclick=function(){[].forEach.call(document.querySelectorAll("#anxGran button"),function(x){x.classList.remove("on");});btn.classList.add("on");render();};});
+ $("anxDrBtn").onclick=function(ev){ev.stopPropagation();var p=$("anxPop");if(p.hidden)openPop();else p.hidden=true;};
+ $("anxPop").onclick=function(ev){ev.stopPropagation();};
+ document.addEventListener("click",function(){var p=$("anxPop");if(p)p.hidden=true;});
+ $("anxPreset").onchange=function(){var v=this.value;if(v==="custom")return;var r=presetRange(v);ST.dA=r[0];ST.dB=r[1];var o=ymd(ST.dA);ST.calM=o?o.m:0;$("anxCalM").value=String(ST.calM);syncInputs();renderCal();};
+ ["anxInA","anxInB"].forEach(function(id){$(id).onchange=function(){var i=parseUS(this.value);if(i===null){syncInputs();return;}
+  if(id==="anxInA")ST.dA=i;else ST.dB=i;
+  if(ST.dB<ST.dA){var t=ST.dA;ST.dA=ST.dB;ST.dB=t;}
+  $("anxPreset").value="custom";syncInputs();renderCal();};});
+ $("anxBCancel").onclick=function(){$("anxPop").hidden=true;};
+ $("anxBApply").onclick=function(){ST.A=ST.dA;ST.B=ST.dB;$("anxPop").hidden=true;render();};
+}
+var wired=false;
+return {set:function(i){if(!wired){wired=true;wire();}set(i);},mode:mode};
 })();
 var ANLXNAV=(function(){var open=false,t;
 function pos(){var row=document.getElementById("anxNavRow");var fly=document.getElementById("anxFlyMenu");var r=row.getBoundingClientRect();fly.style.left=(r.right+12)+"px";fly.style.top=r.top+"px";}
