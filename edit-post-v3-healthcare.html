@@ -192,6 +192,36 @@ body.setup-jobs-incomplete .add-job-row { display: none; }
 .ce-btn-update { background: #0044B3; border: none; font-size: 16px; font-weight: 700; color: #fff; cursor: pointer; font-family: inherit; padding: 14px 28px; border-radius: 8px; transition: background 0.15s; }
 .ce-btn-update:hover { background: #003399; }
 
+/* ═══ Interview capacity per time slot ═══ */
+.sl-st { display: inline-flex; align-items: center; border: 2px solid #a8a8a8; border-radius: 8px; overflow: hidden; flex: none; vertical-align: middle; }
+.sl-st button { width: 36px; height: 38px; border: 0; background: #f3f2ef; cursor: pointer; font-size: 17px; font-weight: 700; color: #2d2d2d; font-family: inherit; line-height: 1; }
+.sl-st button:hover { background: #e7e5e2; }
+.sl-st button:disabled { color: #c3c1bd; cursor: default; background: #f8f7f6; }
+.sl-st input { width: 48px; height: 38px; border: 0; border-left: 2px solid #a8a8a8; border-right: 2px solid #a8a8a8; text-align: center; font-size: 16px; font-weight: 700; font-family: inherit; outline: none; background: #fff; color: #2d2d2d; }
+.sl-st.closed input { color: #a8a8a8; }
+.sl-bulk { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 0 0 18px; font-size: 15px; color: #2d2d2d; }
+.sl-apply { background: #fff; border: 1px solid #2d2d2d; border-radius: 8px; font-family: inherit; font-size: 14px; font-weight: 700; padding: 9px 14px; cursor: pointer; color: #2d2d2d; }
+.sl-apply:hover { background: #f7f6f5; }
+.sl-grid { border: 1px solid #e4e2e0; border-radius: 12px; overflow: hidden; max-width: 560px; }
+.sl-row { display: grid; grid-template-columns: 186px auto 1fr; align-items: center; gap: 14px; padding: 9px 18px; border-bottom: 1px solid #eceae8; }
+.sl-row:last-child { border-bottom: 0; }
+.sl-row.head { background: #faf9f8; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .3px; padding: 10px 18px; color: #2d2d2d; }
+.sl-row.closed { background: #fbfbfa; }
+.sl-t { font-size: 16px; font-weight: 700; white-space: nowrap; color: #2d2d2d; }
+.sl-row.closed .sl-t { color: #a8a8a8; }
+.sl-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.sl-tag { font-size: 12px; font-weight: 700; border-radius: 8px; padding: 3px 9px; background: #f3f2f1; color: #767676; white-space: nowrap; }
+.sl-tag.full { background: #eef3fb; color: #0044B3; }
+.sl-booked { font-size: 13px; color: #767676; white-space: nowrap; }
+.sl-math { background: #f7f6f5; border: 1px solid #e4e2e0; border-radius: 12px; padding: 16px 20px; margin: 18px 0 0; max-width: 560px; }
+.sl-eq { font-size: 17px; color: #2d2d2d; line-height: 1.6; }
+.sl-eq b { font-weight: 800; }
+.sl-eq .big { font-size: 26px; font-weight: 800; vertical-align: -2px; }
+.sl-sub { font-size: 14px; color: #767676; margin-top: 6px; }
+.sl-warn { display: block; background: #fff8e8; border: 1px solid #f0d9a0; border-radius: 12px; padding: 13px 16px; margin: 14px 0 0; font-size: 14.5px; line-height: 1.6; color: #5c4413; max-width: 560px; }
+.sl-warn.err { background: #fdf1f1; border-color: #f0c8c9; color: #a9252b; }
+.sl-warn[hidden] { display: none; }
+
 /* ═══ Interview Details Expandable Section ═══ */
 .id-expand { display: none; }
 .id-expand.open { display: block; }
@@ -794,37 +824,37 @@ setTimeout(function() {
     </div>
     <div class="section-divider"></div>
     <div class="section-body">
-      <p class="summary-text" id="interviewDetailsSummary">2 spots available for each 30-minute time slot | Start Advertising Date: 04/07/2026 | Attendance instructions added</p>
+      <p class="summary-text" id="interviewDetailsSummary">21 interviews across 6 time slots | Start Advertising Date: 04/07/2026 | Attendance instructions added</p>
 
       <!-- Expandable Interview Details Edit -->
       <div class="id-expand" id="interviewDetailsExpand">
 
-        <!-- Interview time slot duration (locked) -->
+        <!-- Interviews per time slot -->
         <div class="id-field">
           <div class="id-field-label">
-            Interview time slot duration
-            <svg class="id-lock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+            How many interviews can your team run in each time slot? <span class="required">*</span>
           </div>
-          <p class="id-field-hint">This allows job seekers to select from multiple scheduling options.</p>
-          <p class="id-field-value">30 min</p>
-        </div>
+          <p class="id-field-hint">Your event runs 11:00 AM &ndash; 3:00 PM, so candidates book 30-minute slots across that window. Set a slot to 0 and candidates won't be able to book that time.</p>
 
-        <!-- How many interviews per time slot (editable) -->
-        <div class="id-field">
-          <div class="id-field-label">
-            How many interviews is your team able to conduct during each time slot? <span class="required">*</span>
+          <div class="sl-bulk">
+            <span>Set every slot to</span>
+            <span class="sl-st">
+              <button type="button" onclick="slotBulk(-1)">&minus;</button>
+              <input id="slotBulkVal" value="3" readonly>
+              <button type="button" onclick="slotBulk(1)">+</button>
+            </span>
+            <button type="button" class="sl-apply" onclick="slotApplyAll()">Apply to all slots</button>
           </div>
-          <p class="id-field-hint">This cap can help optimize the distribution of interviews across time slots. Interview volume may vary based on the roles you post.</p>
-          <div class="id-number-wrap">
-            <button class="id-number-btn" onclick="adjustSlotCount(-1)">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            </button>
-            <input type="number" class="id-number-input" id="interviewsPerSlot" value="3" min="1" max="20" readonly>
-            <button class="id-number-btn" onclick="adjustSlotCount(1)">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            </button>
+
+          <div class="sl-grid" id="slotGrid"></div>
+
+          <div class="sl-math">
+            <div class="sl-eq" id="slotEq"></div>
+            <div class="sl-sub" id="slotSub"></div>
           </div>
-          <p class="id-recommendation">Based on your selection, you can expect to plan for <strong id="candidateCount">3</strong> candidates to show up per time slot. We recommend staffing 1 interviewer for each expected candidate, so if you don't think you'll be able to staff <strong id="staffCount">3</strong> interviewers at the event, we suggest setting a lower number here.</p>
+
+          <div class="sl-warn err" id="slotWarnZero" hidden>Every slot is set to 0, so no one can book an interview. Open at least one slot before you publish.</div>
+          <div class="sl-warn" id="slotWarnStaff" hidden></div>
         </div>
 
         <!-- Cancel / Update buttons -->
@@ -1138,15 +1168,93 @@ function toggleInterviewDetails(show) {
   }
 }
 
-// Interview count spinner
-function adjustSlotCount(delta) {
-  var input = document.getElementById('interviewsPerSlot');
-  var val = parseInt(input.value) + delta;
-  if (val < 1) val = 1;
-  if (val > 20) val = 20;
-  input.value = val;
-  document.getElementById('candidateCount').textContent = val;
-  document.getElementById('staffCount').textContent = val;
+// ── Interview capacity per 30-minute slot ──────────────────────────────
+// Slots are generated from the event window, not typed in. 0 closes a slot.
+// A slot can never go below the number of interviews already booked in it:
+// setting it equal to the booked count means the slot is full and no one
+// else can book it. Setting it to 0 is only possible when nothing is booked.
+var SLOT_START = 11 * 60;   // 11:00 AM — from the event
+var SLOT_END   = 15 * 60;   // 3:00 PM  — from the event
+var SLOT_STEP  = 30;
+var SLOT_TIMES = [];
+for (var _t = SLOT_START; _t < SLOT_END; _t += SLOT_STEP) SLOT_TIMES.push(_t);
+// value = seats offered, booked = interviews already scheduled in that slot
+var SLOT_VALS  = [3, 4, 4, 4, 3, 3, 0, 0];
+var SLOT_BOOKED= [0, 2, 3, 1, 0, 0, 0, 0];
+
+function slotFmt(m) {
+  var h = Math.floor(m / 60), mm = m % 60, ap = h >= 12 ? 'PM' : 'AM', hh = h % 12;
+  if (hh === 0) hh = 12;
+  return hh + ':' + (mm < 10 ? '0' : '') + mm + ' ' + ap;
+}
+function slotRange(i) { return slotFmt(SLOT_TIMES[i]) + ' – ' + slotFmt(SLOT_TIMES[i] + SLOT_STEP); }
+
+function renderSlots() {
+  var h = '<div class="sl-row head"><div>Time slot</div><div>Interviews</div><div></div></div>';
+  SLOT_VALS.forEach(function (v, i) {
+    var bk = SLOT_BOOKED[i], atFloor = (v <= bk && bk > 0), closed = (v === 0);
+    var tags = '';
+    if (closed) tags += '<span class="sl-tag">Closed</span>';
+    else if (atFloor) tags += '<span class="sl-tag full">Full</span>';
+    if (bk > 0) tags += '<span class="sl-booked">' + bk + ' booked</span>';
+    h += '<div class="sl-row' + (closed ? ' closed' : '') + '">' +
+           '<div class="sl-t">' + slotRange(i) + '</div>' +
+           '<div><span class="sl-st' + (closed ? ' closed' : '') + '">' +
+             '<button type="button" onclick="slotAdj(' + i + ',-1)"' + ((v <= Math.max(0, bk)) ? ' disabled' : '') + '>&minus;</button>' +
+             '<input value="' + v + '" readonly>' +
+             '<button type="button" onclick="slotAdj(' + i + ',1)">+</button>' +
+           '</span></div>' +
+           '<div class="sl-meta">' + tags + '</div>' +
+         '</div>';
+  });
+  document.getElementById('slotGrid').innerHTML = h;
+
+  var total = SLOT_VALS.reduce(function (a, b) { return a + b; }, 0);
+  var open  = SLOT_VALS.filter(function (v) { return v > 0; }).length;
+  var shut  = SLOT_VALS.length - open;
+  var ov    = SLOT_VALS.filter(function (v) { return v > 0; });
+  var uniform = ov.length > 0 && ov.every(function (v) { return v === ov[0]; });
+  var eq = uniform
+    ? '<b>' + ov[0] + '</b> interview' + (ov[0] === 1 ? '' : 's') + ' &times; <b>' + open + '</b> open slot' + (open === 1 ? '' : 's') + ' = <span class="big">' + total + '</span> interviews'
+    : '<span class="big">' + total + '</span> interviews across <b>' + open + '</b> open slot' + (open === 1 ? '' : 's');
+  if (total === 0) eq = '<span class="big">0</span> interviews &mdash; every slot is closed';
+  document.getElementById('slotEq').innerHTML = eq;
+  document.getElementById('slotSub').textContent = shut > 0
+    ? shut + ' slot' + (shut === 1 ? '' : 's') + ' closed. Candidates cannot book those times.'
+    : 'All ' + SLOT_VALS.length + ' slots are open.';
+
+  document.getElementById('slotWarnZero').hidden = total > 0;
+  var peak = Math.max.apply(null, SLOT_VALS);
+  var ws = document.getElementById('slotWarnStaff');
+  ws.hidden = (total === 0 || peak < 4);
+  ws.innerHTML = 'Your busiest slot takes <b>' + peak + '</b> interviews at once. Plan on <b>' + peak + '</b> interviewers signed in at that time, or lower the number on that slot.';
+
+  var sum = document.getElementById('interviewDetailsSummary');
+  if (sum) {
+    sum.textContent = (total === 0)
+      ? 'No interview capacity set | Start Advertising Date: 04/07/2026 | Attendance instructions added'
+      : total + ' interviews across ' + open + ' time slot' + (open === 1 ? '' : 's') + ' | Start Advertising Date: 04/07/2026 | Attendance instructions added';
+  }
+}
+function slotAdj(i, d) {
+  var floor = Math.max(0, SLOT_BOOKED[i]);
+  var v = SLOT_VALS[i] + d;
+  if (v < floor) v = floor;
+  if (v > 20) v = 20;
+  SLOT_VALS[i] = v;
+  renderSlots();
+}
+function slotBulk(d) {
+  var el = document.getElementById('slotBulkVal');
+  var v = parseInt(el.value, 10) + d;
+  if (v < 0) v = 0;
+  if (v > 20) v = 20;
+  el.value = v;
+}
+function slotApplyAll() {
+  var v = parseInt(document.getElementById('slotBulkVal').value, 10);
+  SLOT_VALS = SLOT_VALS.map(function (_, i) { return Math.max(v, SLOT_BOOKED[i]); });
+  renderSlots();
 }
 
 function toggleInterviewSettings(show) {
@@ -2370,6 +2478,9 @@ function completePurchase() {
 document.getElementById('purchaseModal').addEventListener('click', function(e) {
   if (e.target === this) closePurchaseModal();
 });
+
+document.addEventListener('DOMContentLoaded', renderSlots);
+if (document.readyState !== 'loading') renderSlots();
 </script>
 
 </body>
