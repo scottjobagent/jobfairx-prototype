@@ -200,8 +200,9 @@ body.setup-jobs-incomplete .add-job-row { display: none; }
 .sl-st input { width: 48px; height: 38px; border: 0; border-left: 2px solid #a8a8a8; border-right: 2px solid #a8a8a8; text-align: center; font-size: 16px; font-weight: 700; font-family: inherit; outline: none; background: #fff; color: #2d2d2d; }
 .sl-st.closed input { color: #a8a8a8; }
 .sl-bulk { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 0 0 18px; font-size: 15px; color: #2d2d2d; }
-.sl-apply { background: #fff; border: 1px solid #2d2d2d; border-radius: 8px; font-family: inherit; font-size: 14px; font-weight: 700; padding: 9px 14px; cursor: pointer; color: #2d2d2d; }
-.sl-apply:hover { background: #f7f6f5; }
+.sl-undo { background: none; border: 0; padding: 0 0 0 4px; font-family: inherit; font-size: 14px; font-weight: 700; color: #0044B3; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
+.sl-undo:hover { color: #003288; }
+.sl-undo[hidden] { display: none; }
 .sl-grid { border: 1px solid #e4e2e0; border-radius: 12px; overflow: hidden; max-width: 560px; }
 .sl-row { display: grid; grid-template-columns: 186px auto 1fr; align-items: center; gap: 14px; padding: 9px 18px; border-bottom: 1px solid #eceae8; }
 .sl-row:last-child { border-bottom: 0; }
@@ -857,7 +858,7 @@ setTimeout(function() {
               <input id="slotBulkVal" value="3" readonly>
               <button type="button" onclick="slotBulk(1)">+</button>
             </span>
-            <button type="button" class="sl-apply" onclick="slotApplyAll()">Apply to all slots</button>
+            <button type="button" class="sl-undo" id="slotUndo" onclick="slotUndoApply()" hidden>Undo</button>
           </div>
 
           <div class="sl-grid" id="slotGrid"></div>
@@ -1258,16 +1259,60 @@ function slotAdj(i, d) {
   SLOT_VALS[i] = v;
   renderSlots();
 }
+// The bar is live — there is no Apply. Every press writes that number into
+// every slot. A slot holding booked interviews stays at its booked count
+// instead of dropping below it. Undo restores the previous eight values and
+// disappears on its own after a few seconds.
+var SLOT_UNDO = null, SLOT_UNDO_T = null;
+function slotShowUndo(show) {
+  var u = document.getElementById('slotUndo');
+  if (!u) return;
+  u.hidden = !show;
+  if (SLOT_UNDO_T) { clearTimeout(SLOT_UNDO_T); SLOT_UNDO_T = null; }
+  if (show) {
+    SLOT_UNDO_T = setTimeout(function () {
+      var x = document.getElementById('slotUndo');
+      if (x) x.hidden = true;
+      SLOT_UNDO = null;
+    }, 6000);
+  }
+}
 function slotBulk(d) {
   var el = document.getElementById('slotBulkVal');
-  var v = parseInt(el.value, 10) + d;
+  var was = parseInt(el.value, 10);
+  var v = was + d;
   if (v < 0) v = 0;
   if (v > 20) v = 20;
+  if (v === was) return;
+  SLOT_UNDO = { vals: SLOT_VALS.slice(), bulk: was };
   el.value = v;
-}
-function slotApplyAll() {
-  var v = parseInt(document.getElementById('slotBulkVal').value, 10);
   SLOT_VALS = SLOT_VALS.map(function (_, i) { return Math.max(v, SLOT_BOOKED[i]); });
+  slotShowUndo(true);
+  renderSlots();
+}
+function slotUndoApply() {
+  if (!SLOT_UNDO) return;
+  SLOT_VALS = SLOT_UNDO.vals.slice();
+  var el = document.getElementById('slotBulkVal');
+  if (el) el.value = SLOT_UNDO.bulk;
+  SLOT_UNDO = null;
+  slotShowUndo(false);
+  renderSlots();
+}
+// Driven by the setup-state toggle. Interview details not set up yet means no
+// capacity and no bookings; complete means the seeded event.
+function slotApplySetup(interviewOk) {
+  if (interviewOk) {
+    SLOT_BOOKED = [0, 2, 3, 1, 0, 0, 0, 0];
+    SLOT_VALS   = [3, 4, 4, 4, 3, 3, 0, 0];
+  } else {
+    SLOT_BOOKED = [0, 0, 0, 0, 0, 0, 0, 0];
+    SLOT_VALS   = [0, 0, 0, 0, 0, 0, 0, 0];
+  }
+  var el = document.getElementById('slotBulkVal');
+  if (el) el.value = interviewOk ? 3 : 0;
+  SLOT_UNDO = null;
+  slotShowUndo(false);
   renderSlots();
 }
 
@@ -2072,6 +2117,7 @@ function getEventKey() {
 function applySetupState(jobsOk, interviewOk) {
   document.body.classList.toggle('setup-jobs-incomplete', !jobsOk);
   document.body.classList.toggle('setup-interview-incomplete', !interviewOk);
+  if (typeof slotApplySetup === 'function') slotApplySetup(interviewOk);
 
   // Banner copy adapts to which gaps exist.
   var title = document.getElementById('incompleteBannerTitle');
