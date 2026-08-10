@@ -4548,7 +4548,7 @@ document.addEventListener('keydown', function(e) {
 .nx-fsel { height: 44px; min-width: 200px; border: 1px solid #2d2d2d; border-radius: 12px; padding: 9px 36px 9px 12px; font-family: inherit; font-size: 16px; color: #2d2d2d; background: #fff; cursor: pointer; appearance: none; background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%232d2d2d' stroke-width='2'><path d='M6 9l6 6 6-6'/></svg>"); background-repeat: no-repeat; background-position: right 12px center; }
 /* table */
 .nx-tbl { width: 100%; }
-.nx-thead, .nx-tr { display: grid; grid-template-columns: 110px 1fr 340px 110px 160px 56px; align-items: center; }
+.nx-thead, .nx-tr { display: grid; grid-template-columns: 104px 1fr 118px 288px 140px 56px; align-items: center; }
 .nx-thead { background: #faf9f8; }
 .nx-thead > div { font-size: 16px; font-weight: 700; color: #2d2d2d; padding: 12px 16px; }
 .nx-tr { border-bottom: 1px solid #eceae8; background: #fff; }
@@ -4655,7 +4655,7 @@ document.addEventListener('keydown', function(e) {
 .nxjt .tt { font-size: 15px; font-weight: 700; color: #14532d; }
 .nxjt .ts { font-size: 14px; color: #166534; margin-top: 2px; }
 .nxjt .nxjt-x { margin-left: auto; background: none; border: 0; cursor: pointer; color: #166534; font-size: 16px; padding: 0 2px; }
-@media (max-width: 1100px) { .nx-grid { grid-template-columns: 1fr 1fr; } .nx-thead, .nx-tr { grid-template-columns: 100px 1fr 220px 90px 130px 48px; } }
+@media (max-width: 1100px) { .nx-grid { grid-template-columns: 1fr 1fr; } .nx-thead, .nx-tr { grid-template-columns: 92px 1fr 96px 200px 120px 48px; } }
 </style>
 <template id="nxViewTpl">
 <div class="view" id="view-tools">
@@ -4674,7 +4674,7 @@ document.addEventListener('keydown', function(e) {
       <select class="nx-fsel" id="nxJobsFil" onchange="AUTOX.filter()"><option value="">All jobs and events</option></select>
     </div>
     <div class="nx-tbl">
-      <div class="nx-thead"><div>Status</div><div>Automation name</div><div>Jobs included</div><div>Creator</div><div>Date modified</div><div></div></div>
+      <div class="nx-thead"><div>Status</div><div>Automation name</div><div>Jobs included</div><div>Hiring event</div><div>Date modified</div><div></div></div>
       <div id="nxRows"></div>
       <div class="nx-empty" id="nxEmpty" hidden>
         <svg width="130" height="96" viewBox="0 0 130 96" fill="none"><ellipse cx="65" cy="78" rx="52" ry="14" fill="#f3f2f1"></ellipse><rect x="46" y="8" width="38" height="66" rx="8" fill="#fff" stroke="#2d2d2d" stroke-width="2"></rect><rect x="52" y="2" width="26" height="10" rx="3" fill="#cfe0ff" stroke="#004fcb" stroke-width="1.5"></rect><circle cx="65" cy="42" r="13" fill="#f3f2f1"></circle><path d="M67 34l-6 8h4l-1 6 6-8h-4l1-6z" fill="#767676" stroke="none"></path><path d="M84 62c8-2 14 2 16 8" stroke="#e0a87e" stroke-width="6" stroke-linecap="round"></path></svg>
@@ -4722,9 +4722,9 @@ var P=[
 ];
 var ROWS=[
  {name:"Message new candidates — Registered Nurse",preset:0,all:false,jobs:[0],msg:MSG0,modified:"Aug 2, 2026"},
- {name:"Missed interview follow-up — Chicago Technology Hiring Event",preset:2,all:false,jobs:[1,2,3],msg:MSG2,modified:"Aug 4, 2026"},
- {name:"Post-interview follow-up — All jobs",preset:3,all:true,jobs:[],msg:MSG3,modified:"Jul 28, 2026"},
- {name:"Email declined candidates — Atlanta Diversity Hiring Event",preset:1,all:false,jobs:[4,5],msg:MSG1,modified:"Jul 21, 2026",on:false}
+ {name:"Missed interview follow-up",preset:2,all:false,jobs:[1,2,3],msg:MSG2,modified:"Aug 4, 2026"},
+ {name:"Post-interview follow-up",preset:3,all:true,jobs:[],msg:MSG3,modified:"Jul 28, 2026"},
+ {name:"Email declined candidates",preset:1,all:false,jobs:[4,5],msg:MSG1,modified:"Jul 21, 2026",on:false}
 ];
 ROWS.forEach(function(r){if(r.on===undefined)r.on=true;});
 var st={mode:0,editing:-1,preset:0,all:false,jobs:[],nameTouched:false,pendingRow:null};
@@ -4733,17 +4733,19 @@ function countText(r){if(r.all)return "All jobs";var n=r.jobs.length;return n+" 
 function scopeText(r){if(r.all)return "All jobs";if(r.jobs.length===1){var j=JOBS[r.jobs[0]];return j.job+" — "+j.ev;}return r.jobs.length+" jobs";}
 function autoName(pi,all,jobs){
  var base=P[pi].name;
- if(all)return base+" — All jobs";
- if(!jobs.length)return base;
- if(jobs.length===1)return base+" — "+JOBS[jobs[0]].job;
- var evs={};jobs.forEach(function(i){evs[JOBS[i].ev]=1;});
+ if(all||jobs.length!==1)return base;
+ return base+" — "+JOBS[jobs[0]].job;
+}
+function eventText(r){
+ if(r.all)return "All events";
+ if(!r.jobs.length)return "—";
+ var evs={};r.jobs.forEach(function(i){evs[JOBS[i].ev]=1;});
  var keys=Object.keys(evs);
- if(keys.length===1)return base+" — "+keys[0];
- return base+" — Multiple events";
+ return keys.length===1?keys[0]:"Multiple events";
 }
 function toast(tt,ts){var d=document.createElement("div");d.className="nxjt";d.innerHTML='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="10" fill="#bbf7d0" stroke="none"/><path d="M8 12.5l2.6 2.6L16 9.5" stroke="#15803d" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><div><div class="tt">'+esc(tt)+'</div><div class="ts">'+ts+'</div></div><button class="nxjt-x" onclick="this.parentNode.remove()">×</button>';document.body.appendChild(d);setTimeout(function(){if(d.parentNode)d.remove();},3500);}
 /* ---------- table ---------- */
-function rowsHtml(list){var h="";list.forEach(function(r){var i=ROWS.indexOf(r);h+='<div class="nx-tr"><div><span class="nx-pill'+(r.on?"":" off")+'">'+(r.on?"On":"Off")+'</span></div><div>'+esc(r.name)+'</div><div class="nx-scope">'+esc(countText(r))+'</div><div><span class="nx-av">SL</span></div><div>'+esc(r.modified)+'</div><div><button class="nx-pencil" title="Edit automation" onclick="AUTOX.edit('+i+')">'+PENCIL+'</button></div></div>';});return h;}
+function rowsHtml(list){var h="";list.forEach(function(r){var i=ROWS.indexOf(r);h+='<div class="nx-tr"><div><span class="nx-pill'+(r.on?"":" off")+'">'+(r.on?"On":"Off")+'</span></div><div>'+esc(r.name)+'</div><div class="nx-scope">'+esc(countText(r))+'</div><div>'+esc(eventText(r))+'</div><div>'+esc(r.modified)+'</div><div><button class="nx-pencil" title="Edit automation" onclick="AUTOX.edit('+i+')">'+PENCIL+'</button></div></div>';});return h;}
 function visibleRows(){var q=($("#nxSearch")?$("#nxSearch").value:"").trim().toLowerCase();var jf=$("#nxJobsFil")?$("#nxJobsFil").value:"";return ROWS.filter(function(r){if(q&&r.name.toLowerCase().indexOf(q)<0)return false;if(jf!==""&&!(r.all||r.jobs.indexOf(parseInt(jf,10))>-1))return false;return true;});}
 function render(){
  var rows=$("#nxRows"),emp=$("#nxEmpty"),nom=$("#nxNoMatch");
