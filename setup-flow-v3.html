@@ -539,6 +539,10 @@ body.collapsed .progress-bar-track { left: 60px; }
 .jfx-toast-msg { font-size: 14px; font-weight: 400; color: #595959; line-height: 1.4; margin-top: 2px; }
 .jfx-toast-close { flex-shrink: 0; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; background: none; border: none; cursor: pointer; color: #767676; font-size: 18px; border-radius: 6px; transition: background 0.15s; margin: -4px -4px 0 0; }
 .jfx-toast-close:hover { background: #f3f2ef; color: #2d2d2d; }
+.rvm-trig { display: block; font-size: 13px; font-weight: 400; color: #767676; margin-top: 3px; }
+.rvm-manage { font-size: 13px; color: #767676; line-height: 1.6; margin: 10px 0 0; }
+.rvm-manage a { color: #0044B3; font-weight: 700; text-decoration: underline; text-underline-offset: 2px; }
+.rvm-tok { background: #eef3fb; color: #0044B3; border-radius: 4px; padding: 1px 5px; font-weight: 700; font-size: 13px; }
 </style>
 </head>
 <body>
@@ -1596,14 +1600,14 @@ body.collapsed .progress-bar-track { left: 60px; }
 
       <div class="rv-divider"></div>
 
-      <!-- Custom messaging -->
+      <!-- Automations -->
       <div class="rv-section">
         <div class="rv-section-header">
-          <div class="rv-section-title">Custom messaging</div>
+          <div class="rv-section-title">Automations</div>
           <button class="rv-pencil" title="Edit" onclick="openRvModal('customMessaging')"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button>
         </div>
         <div class="rv-section-body">
-          <div class="rv-item"><em>Custom messaging is off</em></div>
+          <div class="rv-item"><em>No automations are on</em></div>
         </div>
       </div>
 
@@ -1911,7 +1915,7 @@ function handleRvmBlur(input, boxId) {
   if (email) addRvmEmail(input, boxId);
 }
 
-// Custom messaging
+// Automations
 function toggleRvmLink() {
   var linkField = document.getElementById('rvmLinkField');
   if (document.getElementById('rvmLinkYes').checked) {
@@ -1927,11 +1931,11 @@ function updateRvmPreview() {
   var role = document.getElementById('rvmRole').value || '[Your Role]';
   var showLink = document.getElementById('rvmLinkYes').checked;
   var linkUrl = document.getElementById('rvmLinkUrl').value || 'jobfairx.com/jobs';
-  var companyName = 'American States Utility Services, Inc';
-  var jobTitle = 'Associate Project Engineer';
+  var jobTitle = '<span class="rvm-tok">{JOB_TITLE}</span>';
+  var companyName = '<span class="rvm-tok">{COMPANY}</span>';
 
   var html = '<p>Thank you for expressing interest in the ' + jobTitle + ' position.</p>';
-  html += '<p>My name is ' + name + ', and I\'m a ' + role + ' at ' + companyName + '</p>';
+  html += '<p>My name is ' + name + ', and I\'m a ' + role + ' at ' + companyName + '.</p>';
   if (showLink) {
     html += '<p>Before your scheduled interview, please ensure you have completed the application process. You can complete the necessary application steps at the following link: <a href="#" style="color:#0044B3;text-decoration:none;font-weight:500;" onclick="event.preventDefault()">' + linkUrl + '</a></p>';
   }
@@ -1945,10 +1949,10 @@ function saveRvmCustomMsg() {
   var enabled = document.getElementById('rvmMsgEnabled').checked;
   var statusEl = document.querySelector('#step7 .rv-section:last-child .rv-item');
   if (statusEl) {
-    statusEl.innerHTML = enabled ? '<em>Custom messaging is on</em>' : '<em>Custom messaging is off</em>';
+    statusEl.innerHTML = enabled ? 'Message new candidates is on' : '<em>No automations are on</em>';
   }
   closeRvModal('rvCustomMsgModal');
-  fbToast('Custom messaging updated');
+  fbToast('Automations updated');
 }
 
 // Step navigation
@@ -3545,13 +3549,14 @@ function populateStep7Review() {
 <div class="rv-modal-backdrop" id="rvCustomMsgModal" onclick="if(event.target===this)closeRvModal('rvCustomMsgModal')">
   <div class="rv-modal-card" style="max-width:600px;">
     <div class="rv-modal-header">
-      <div class="rv-modal-title">Custom messaging</div>
+      <div class="rv-modal-title">Automations</div>
       <button class="rv-modal-close" onclick="closeRvModal('rvCustomMsgModal')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
     <div class="rv-modal-body">
       <div class="rvm-checkbox-row">
         <input type="checkbox" id="rvmMsgEnabled" checked onchange="updateRvmPreview()">
-        <label class="rvm-checkbox-label" for="rvmMsgEnabled">Send a custom email to all candidates</label>
+        <label class="rvm-checkbox-label" for="rvmMsgEnabled">Message new candidates<span class="rvm-trig">When a candidate requests an interview &middot; send them a message</span></label>
+<p class="rvm-manage">This is one of five automations. <a href="visual-v3.html?view=automations" target="_blank">Manage the rest in Automations</a></p>
       </div>
 
       <div class="rvm-fields-row">
