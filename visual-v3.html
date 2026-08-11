@@ -5442,5 +5442,784 @@ var tpl=document.getElementById("anxViewTpl");var main=document.querySelector(".
   if (!go()) document.addEventListener('DOMContentLoaded', go);
 })();
 </script>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     CANDIDATES TAB
+
+     Self-contained: one style block, one template, one IIFE, appended at the
+     end of the document. Nothing above this line is modified. The nav row is injected at
+     runtime after #iarow-events, so the rail reads Events · Candidates ·
+     Interviews · Messages · Automations · Analytics.
+
+     DESIGN SOURCE. The chrome is JobAgentX's Candidates module, taken from its
+     own stylesheet rather than re-measured — 340 rules, every .cx- (list) and
+     .cd- (profile) selector, scoped under #view-candidates so nothing leaks.
+     Two blues are deliberate and theirs: #004fcb for actions, #336cf6 for the
+     qualification meter and chip bullets.
+
+     WHAT IS OURS, NOT THEIRS:
+       · No Recruiting Assistant / Find candidates / Manage candidates sub-tabs.
+         We do not source; candidates come to the event and book a slot.
+       · Scope selector picks the EVENT, not a job.
+       · Pipeline pills are hiring-event stages, not a job-board funnel:
+         All · Requested · Scheduled · Interviewed · No-show · Declined.
+         No Hired stage — we do not track hires.
+       · Toolbar is Sort by / Job / Rating / Search. Job replaces their Location
+         (an event can carry 1, 3 or 6 jobs and the scope selector is taken by
+         the event). Rating replaces Interest marked, and includes "Not rated",
+         which is the who-still-needs-a-decision list.
+       · "Applied to" reads "Requested:".
+       · The Interviews section stacks a candidate's interviews GROUPED BY EVENT,
+         with repeat attempts nested inside an event. JobAgentX renders one
+         interview only; this part is new.
+       · Screener answers are compared against the employer's requirement.
+       · Declining sets the stage and keeps the record. Nothing is deleted, and
+         Reinstate returns them to Requested.
+
+     Message opens the bottom-right dock (.cxdk) rather than a tab, matching
+     how messaging works everywhere else in the product.
+
+     NOT BUILT: this view holds its own demo data. It is not wired to the
+     Interviews tab, the Lobby or the Event Report — in the real build those
+     surfaces link every candidate name here.
+     ═══════════════════════════════════════════════════════════════════════ -->
+<style>
+#view-candidates .cd-titlerow { display:flex; align-items:center; justify-content:space-between; height:54px; }
+#view-candidates .cd-scope { display:inline-flex; align-items:center; gap:8px; background:none; border:0; padding:9px 0; border-radius:12px; font-family:inherit; font-size:24px; line-height:36px; font-weight:700; color:#2d2d2d; cursor:pointer; }
+#view-candidates .cd-scope svg { width:24px; height:24px; color:#2d2d2d; transition:transform .15s; }
+#view-candidates .cd-scope.open svg { transform:rotate(180deg); }
+#view-candidates .cd-addbtn { background:none; border:0; font-family:inherit; font-size:16px; line-height:24px; font-weight:700; color:#004fcb; cursor:pointer; padding:5px 0; border-radius:12px; }
+#view-candidates .cd-tabs { display:flex; align-items:flex-end; gap:8px; border-bottom:1px solid #e4e2e0; }
+#view-candidates .cd-tab { position:relative; border:0; background:none; font-family:inherit; padding:16px; cursor:pointer; font-size:16px; line-height:24px; font-weight:400; color:#767676; }
+#view-candidates .cd-tab.on { font-weight:700; color:#2d2d2d; }
+#view-candidates .cd-tab:after { content:""; position:absolute; left:0; right:0; bottom:0; height:3px; border-radius:2px 2px 0 0; background:transparent; }
+#view-candidates .cd-tab.on:after { background:#2d2d2d; }
+#view-candidates .cd-pills { display:flex; align-items:flex-end; gap:16px; border-bottom:0; margin-top:8px; }
+#view-candidates .cd-pills .cd-tab { padding:16px; }
+#view-candidates .cd-toolbar { display:flex; align-items:center; gap:8px; margin:16px 0; }
+#view-candidates .cd-ctl { height:36px; border:1px solid #e4e2e0; border-radius:12px; background:#fff; display:inline-flex; align-items:center; gap:8px; padding:0 12px; font-family:inherit; font-size:16px; line-height:24px; color:#2d2d2d; cursor:pointer; }
+#view-candidates .cd-ctl.open { border:2px solid #004fcb; padding:0 11px; }
+#view-candidates .cd-ctl b { font-weight:700; }
+#view-candidates .cd-ctl .v { font-weight:400; }
+#view-candidates .cd-ctl svg { width:20px; height:20px; flex:0 0 20px; color:#2d2d2d; }
+#view-candidates .cd-ctl.sort { width:297px; justify-content:space-between; }
+#view-candidates .cd-ctl.loc { width:288px; }
+#view-candidates .cd-ctl.int { width:175px; justify-content:space-between; }
+#view-candidates .cd-search { flex:1 1 auto; height:36px; border:1px solid #e4e2e0; border-radius:12px; background:#fff; display:flex; align-items:center; gap:4px; padding:0 12px; }
+#view-candidates .cd-search input { flex:1 1 auto; border:0; outline:0; font-family:inherit; font-size:16px; line-height:24px; color:#2d2d2d; background:transparent; padding:5px 0; }
+#view-candidates .cd-search svg { width:20px; height:20px; color:#595959; flex:0 0 20px; }
+#view-candidates .cd-search.focus { border:2px solid #004fcb; padding:0 11px; }
+#view-candidates .cd-pop { position:fixed; z-index:1020; background:#fff; border:1px solid #e4e2e0; border-radius:12px; padding:12px; box-shadow:rgba(45,45,45,.16) 0 0 2px 0, rgba(45,45,45,.08) 0 4px 8px 0, rgba(45,45,45,.04) 0 8px 16px 0; max-height:340px; overflow-y:auto; display:none; }
+#view-candidates .cd-pop.open { display:block; }
+#view-candidates .cd-pop ul { list-style:none; margin:0; padding:0; }
+#view-candidates .cd-pop li { height:44px; border-radius:8px; padding:10px 12px; font-size:16px; line-height:24px; color:#2d2d2d; cursor:pointer; display:flex; align-items:center; gap:8px; box-sizing:border-box; }
+#view-candidates .cd-pop li:hover { background:#f7f6f5; }
+#view-candidates .cd-pop li.on { background:#f7f6f5; }
+#view-candidates .cd-pop li .ck { width:24px; height:24px; flex:0 0 24px; color:#2d2d2d; visibility:hidden; }
+#view-candidates .cd-pop li.on .ck { visibility:visible; }
+#view-candidates .cd-pop li.dis { color:#a6a4a2; cursor:default; }
+#view-candidates .cd-bulk { display:flex; align-items:center; gap:8px; height:44px; padding:0 16px; }
+#view-candidates .cd-bulk .cnt { font-size:16px; line-height:24px; font-weight:700; color:#2d2d2d; margin-right:24px; }
+#view-candidates .cd-bulk button { height:36px; border-radius:12px; font-family:inherit; font-size:16px; line-height:24px; font-weight:700; cursor:pointer; }
+#view-candidates .cd-bulk .sec { background:#fff; border:1px solid #e4e2e0; color:#004fcb; padding:5px 15px; }
+#view-candidates .cd-bulk .pri { background:#004fcb; border:0; color:#fff; padding:5px 16px; display:inline-flex; align-items:center; gap:8px; }
+#view-candidates .cd-bulk .pri.dis { background:rgba(0,79,203,.4); cursor:default; }
+#view-candidates .cd-table { width:100%; border-collapse:collapse; table-layout:fixed; }
+#view-candidates .cd-table thead tr { background:#f7f6f5; height:46px; }
+#view-candidates .cd-table th { font-size:14px; font-weight:400; color:#595959; text-align:left; padding:1px 64px 1px 0; vertical-align:middle; }
+#view-candidates .cd-table th:first-child { width:52px; padding:1px 12px 1px 16px; }
+#view-candidates .cd-table th:last-child { padding:1px 16px 1px 0; width:226px; }
+#view-candidates .cd-table td { padding:16px 64px 16px 0; vertical-align:top; border:0; }
+#view-candidates .cd-table td:first-child { padding:16px 12px 16px 16px; }
+#view-candidates .cd-table td:last-child { padding:16px 16px 16px 0; }
+#view-candidates .cd-table tbody tr { background:transparent; border-bottom:1px solid #e4e2e0; }
+#view-candidates .cd-wexp-hd { background:none; border:0; padding:0; font-family:inherit; font-size:14px; color:#595959; cursor:pointer; text-decoration:underline 1px dotted #2d2d2d; }
+#view-candidates .cd-cb { width:24px; height:24px; border-radius:8px; border:1px solid #595959; background:#fff; cursor:pointer; display:inline-block; position:relative; flex:0 0 24px; }
+#view-candidates .cd-cb.on { background:#2d2d2d; border-color:#2d2d2d; }
+#view-candidates .cd-cb.on:after { content:""; position:absolute; left:8px; top:4px; width:6px; height:11px; border:solid #fff; border-width:0 2px 2px 0; transform:rotate(45deg); }
+#view-candidates .cd-cb.ind:after { content:""; position:absolute; left:5px; top:10px; width:12px; height:2px; background:#fff; border:0; transform:none; }
+#view-candidates .cd-name { font-size:16px; line-height:24px; font-weight:700; color:#2d2d2d; text-decoration:none; cursor:pointer; border-radius:12px; }
+#view-candidates .cd-name:hover { color:#003a9b; }
+#view-candidates .cd-name.seen { color:#004fcb; }
+#view-candidates .cd-cloc { font-size:14px; line-height:21px; color:#2d2d2d; }
+#view-candidates .cd-cstage { font-size:14px; line-height:21px; font-weight:500; color:#2d2d2d; }
+#view-candidates .cd-cdot { font-size:12px; line-height:18px; color:#2d2d2d; padding:0 4px; }
+#view-candidates .cd-capp { font-size:14px; line-height:21px; color:#2d2d2d; }
+#view-candidates .cd-cjob { font-size:14px; line-height:21px; color:#004fcb; text-decoration:underline; cursor:pointer; }
+#view-candidates .cd-wexp { list-style:none; margin:0; padding:0; }
+#view-candidates .cd-wexp li { position:relative; padding-left:14px; padding-bottom:10px; }
+#view-candidates .cd-wexp li:before { content:""; position:absolute; left:2px; top:8px; width:2px; height:42px; background:#d4d2d0; }
+#view-candidates .cd-wexp li:after { content:""; position:absolute; left:0; top:0; width:6px; height:6px; border-radius:9999px; background:#d4d2d0; }
+#view-candidates .cd-wexp .t { font-size:14px; line-height:21px; font-weight:700; color:#2d2d2d; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+#view-candidates .cd-wexp .c { font-size:14px; line-height:21px; color:#2d2d2d; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+#view-candidates .cd-wexp .c span { color:#767676; }
+#view-candidates .cd-act { font-size:14px; line-height:21px; color:#595959; }
+#view-candidates .cd-badge { display:inline-block; border-radius:8px; padding:3px 9px; font-size:12px; line-height:18px; font-weight:700; }
+#view-candidates .cd-badge.ok { background:#e4f7e6; color:#1f662c; }
+#view-candidates .cd-badge.wait { background:#fdefe9; color:#844b17; }
+#view-candidates .cd-viewdet { background:none; border:0; font-family:inherit; font-size:16px; line-height:24px; font-weight:700; color:#004fcb; cursor:pointer; padding:5px 0; border-radius:12px; }
+#view-candidates .cd-notestrip { display:flex; align-items:center; gap:8px; background:#ecf2ff; border-radius:8px; padding:4px 12px; margin-top:12px; }
+#view-candidates .cd-notestrip .lb { font-size:14px; line-height:21px; font-weight:700; color:#2d2d2d; padding-right:8px; }
+#view-candidates .cd-notestrip .bd { font-size:14px; line-height:21px; color:#595959; flex:1 1 auto; }
+#view-candidates .cd-notestrip button { background:none; border:0; font-family:inherit; font-size:14px; line-height:21px; font-weight:700; color:#004fcb; cursor:pointer; }
+#view-candidates .cd-int { display:inline-flex; align-items:center; }
+#view-candidates .cd-int button { width:56px; height:44px; background:#fff; border:1px solid #e4e2e0; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; padding:9px 15px; color:#2d2d2d; }
+#view-candidates .cd-int button:first-child { border-radius:12px 0 0 12px; }
+#view-candidates .cd-int button:nth-child(3) { border-radius:0 12px 12px 0; }
+#view-candidates .cd-int button + button { margin-left:-1px; }
+#view-candidates .cd-int button svg { width:20px; height:20px; }
+#view-candidates .cd-int button[aria-pressed="true"] { background:#2d2d2d; border-color:#2d2d2d; color:#fff; }
+#view-candidates .cd-more { width:44px; height:44px; border:0; background:none; border-radius:12px; padding:9px; cursor:pointer; color:#2d2d2d; margin-left:8px; }
+#view-candidates .cd-more:hover { background:#f3f2f1; }
+#view-candidates .cd-pager { display:flex; align-items:center; justify-content:center; gap:17px; padding:16px 0 8px; }
+#view-candidates .cd-pgbtns { display:flex; }
+#view-candidates .cd-pgbtns button { height:44px; border:0; background:#fff; font-family:inherit; font-size:16px; line-height:24px; font-weight:700; color:#004fcb; cursor:pointer; padding:9px 15px; display:inline-flex; align-items:center; gap:8px; }
+#view-candidates .cd-pgbtns button:first-child { border-radius:12px 0 0 12px; }
+#view-candidates .cd-pgbtns button:last-child { border-radius:0 12px 12px 0; }
+#view-candidates .cd-pgbtns button:hover:not([aria-disabled=true]) { background:#f7f6f5; color:#003a9b; }
+#view-candidates .cd-pgbtns button[aria-disabled=true] { color:rgba(0,79,203,.4); cursor:default; }
+#view-candidates .cd-count { border:1px solid #e4e2e0; border-radius:12px; padding:11px 16px; font-size:16px; line-height:24px; color:#595959; background:#fff; }
+#view-candidates .cd-zero { text-align:center; padding:64px 0; }
+#view-candidates .cd-zero svg { width:320px; height:135px; }
+#view-candidates .cd-zero p { font-size:16px; line-height:24px; font-weight:700; color:#595959; margin:38px 0 0; }
+#view-candidates .cd-pf { display:grid; grid-template-columns:255px minmax(0,1019px); background:#fff; padding:8px; }
+#view-candidates .cd-pfsticky { grid-column:1/-1; position:sticky; top:0; z-index:9; background:#fff; padding-top:12px; display:flex; align-items:center; height:70px; }
+#view-candidates .cd-back { display:inline-flex; align-items:center; gap:8px; background:none; border:0; font-family:inherit; font-size:16px; line-height:24px; font-weight:700; color:#004fcb; cursor:pointer; padding:9px 24px; border-radius:12px; }
+#view-candidates .cd-pfnav { margin-left:auto; display:flex; align-items:center; gap:8px; }
+#view-candidates .cd-pfnav button { width:42px; height:42px; border:1px solid #e4e2e0; border-radius:12px; background:#fff; cursor:pointer; padding:8px; color:#004fcb; }
+#view-candidates .cd-pfnav button[aria-disabled=true] { color:rgba(0,79,203,.4); cursor:default; }
+#view-candidates .cd-pfnav .of { font-size:16px; line-height:24px; color:#595959; margin-left:8px; }
+#view-candidates .cd-rail { padding-right:16px; max-height:720px; overflow-y:auto; }
+#view-candidates .cd-railcard { padding:12px; border-bottom:1px solid #e4e2e0; cursor:pointer; }
+#view-candidates .cd-railcard.on { border:1px solid #2d2d2d; border-radius:12px; background:#fff; }
+#view-candidates .cd-railcard .n { font-size:16px; line-height:24px; font-weight:700; color:#2d2d2d; }
+#view-candidates .cd-railcard .s { font-size:14px; line-height:21px; color:#2d2d2d; }
+#view-candidates .cd-railcard .a { font-size:14px; line-height:21px; color:#595959; }
+#view-candidates .cd-pfmain { border-radius:12px; padding:0 24px; max-height:720px; overflow-y:auto; }
+#view-candidates .cd-pfname { font-size:36px; line-height:45px; font-weight:700; color:#2d2d2d; margin:0; }
+#view-candidates .cd-pfmeta { display:flex; align-items:center; gap:6px; font-size:16px; line-height:24px; color:#595959; margin-top:8px; }
+#view-candidates .cd-pfmeta svg { width:16px; height:16px; flex:0 0 16px; }
+#view-candidates .cd-pfhead { display:flex; align-items:flex-start; gap:16px; }
+#view-candidates .cd-pfhead .r { margin-left:auto; display:flex; align-items:center; }
+#view-candidates .cd-pfacts { display:flex; align-items:center; gap:8px; margin:24px 0 0; }
+#view-candidates .cd-btn { height:44px; border-radius:12px; font-family:inherit; font-size:16px; line-height:24px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:8px; }
+#view-candidates .cd-btn.pri { background:#004fcb; border:0; color:#fff; padding:9px 16px; }
+#view-candidates .cd-btn.sec { background:#fff; border:1px solid #e4e2e0; color:#004fcb; padding:9px 15px; }
+#view-candidates .cd-btn svg { width:20px; height:20px; }
+#view-candidates .cd-status { margin-left:auto; height:42px; border:1px solid #e4e2e0; border-radius:12px; background:#fff; display:inline-flex; align-items:center; gap:8px; padding:0 12px; font-family:inherit; cursor:pointer; }
+#view-candidates .cd-status.open { border:2px solid #004fcb; }
+#view-candidates .cd-status b { font-size:16px; line-height:24px; font-weight:700; color:#2d2d2d; }
+#view-candidates .cd-status .v { font-size:16px; line-height:24px; color:#2d2d2d; }
+#view-candidates .cd-sec { border-top:1px solid #e4e2e0; }
+#view-candidates .cd-sechead { width:100%; display:flex; align-items:center; background:none; border:0; padding:24px 0 12px; font-family:inherit; cursor:pointer; text-align:left; }
+#view-candidates .cd-sechead h2 { font-size:20px; line-height:30px; font-weight:700; color:#2d2d2d; margin:0; }
+#view-candidates .cd-sechead .cv { margin-left:auto; width:24px; height:24px; color:#2d2d2d; transition:transform .2s; }
+#view-candidates .cd-sechead[aria-expanded=false] .cv { transform:rotate(180deg); }
+#view-candidates .cd-secbody { padding-bottom:24px; }
+#view-candidates .cd-secbody[hidden] { display:none; }
+#view-candidates .cd-ivcard { background:#f7f6f5; border-radius:12px; padding:16px; font-size:14px; line-height:21px; color:#595959; display:flex; align-items:center; gap:8px; }
+#view-candidates .cd-ivcard b { color:#2d2d2d; }
+#view-candidates .cd-ivcard button { margin-left:auto; background:none; border:0; font-family:inherit; font-size:16px; font-weight:700; color:#004fcb; cursor:pointer; border-radius:12px; }
+#view-candidates .cd-meter { display:flex; gap:8px; margin-left:auto; }
+#view-candidates .cd-meter i { width:15px; height:15px; border-radius:50%; background:#d4d2d0; display:block; }
+#view-candidates .cd-meter i.on { background:#336cf6; }
+#view-candidates .cd-qsub { font-size:16px; line-height:24px; font-weight:700; color:#2d2d2d; margin:0 0 8px; }
+#view-candidates .cd-chips { display:flex; flex-wrap:wrap; gap:9px; }
+#view-candidates .cd-chip { display:inline-flex; align-items:center; gap:8px; height:29px; background:#f3f2f1; border-radius:12px; padding:4px 9px; font-size:12px; line-height:18px; font-weight:700; color:#595959; box-sizing:border-box; }
+#view-candidates .cd-chip:before { content:"\2022"; color:#336cf6; }
+#view-candidates .cd-q { font-size:16px; line-height:24px; font-weight:700; color:#2d2d2d; margin:0 0 8px; }
+#view-candidates .cd-ans { display:inline-flex; align-items:center; gap:6px; background:#e4f7e6; border-radius:8px; padding:3px 9px; font-size:14px; font-weight:700; color:#1f662c; }
+#view-candidates .cd-req { font-size:12px; color:#767676; margin-left:8px; }
+#view-candidates .cd-exp { display:flex; gap:16px; margin-bottom:24px; }
+#view-candidates .cd-exptile { width:48px; height:48px; border-radius:12px; background:#ecf2ff; display:flex; align-items:center; justify-content:center; color:#004fcb; flex:0 0 48px; }
+#view-candidates .cd-exp .t { font-size:16px; line-height:24px; color:#2d2d2d; }
+#view-candidates .cd-exp .t b { font-weight:700; }
+#view-candidates .cd-exp .d { font-size:14px; line-height:21px; color:#595959; }
+#view-candidates .cd-exp .bul { margin-top:8px; padding-left:24px; border-left:2px solid #d4d2d0; }
+#view-candidates .cd-exp .bul p { font-size:14px; line-height:21px; color:#2d2d2d; margin:0 0 6px; }
+#view-candidates .cd-resbar { display:flex; align-items:center; gap:8px; margin-bottom:12px; }
+#view-candidates .cd-zoom { width:36px; height:36px; border:1px solid #e4e2e0; border-radius:12px; background:#fff; cursor:pointer; color:#2d2d2d; }
+#view-candidates .cd-zoomlvl { border:1px solid #e4e2e0; border-radius:12px; padding:6px 12px; font-size:14px; color:#2d2d2d; }
+#view-candidates .cd-dl { margin-left:auto; background:none; border:0; font-family:inherit; font-size:16px; font-weight:700; color:#004fcb; cursor:pointer; display:inline-flex; align-items:center; gap:8px; }
+#view-candidates .cd-resume { border-top:1px solid #e4e2e0; padding:32px; background:#fff; }
+#view-candidates .cd-resume h3 { font-size:26px; font-weight:700; color:#004fcb; margin:0; }
+#view-candidates .cd-resume .role { font-size:13px; letter-spacing:.14em; text-transform:uppercase; color:#595959; margin:4px 0 10px; }
+#view-candidates .cd-resume .contact { font-size:13px; color:#2d2d2d; margin-bottom:18px; }
+#view-candidates .cd-resume .contact a { color:#004fcb; }
+#view-candidates .cd-resume h4 { font-size:12px; letter-spacing:.1em; text-transform:uppercase; color:#2d2d2d; border-bottom:1px solid #d4d2d0; padding-bottom:4px; margin:18px 0 8px; }
+#view-candidates .cd-resume p { font-size:13px; line-height:20px; color:#2d2d2d; margin:0 0 8px; }
+#view-candidates .cd-notecomp label { display:block; font-size:16px; line-height:24px; font-weight:700; color:#2d2d2d; margin-bottom:8px; }
+#view-candidates .cd-notecomp textarea { width:100%; min-height:150px; border:1px solid #e4e2e0; border-radius:12px; padding:5px 11px; font-family:inherit; font-size:16px; line-height:24px; resize:vertical; box-sizing:border-box; }
+#view-candidates .cd-notecomp .save { margin-top:16px; height:36px; background:#fff; border:1px solid #e4e2e0; border-radius:12px; padding:5px 15px; font-family:inherit; font-size:16px; font-weight:700; color:#004fcb; cursor:pointer; }
+#view-candidates .cd-notecomp .save:disabled { color:#a6a4a2; cursor:default; }
+#view-candidates .cd-feedh { font-size:16px; line-height:24px; font-weight:700; color:#2d2d2d; margin:0 0 16px; }
+#view-candidates .cd-feedday { font-size:12px; line-height:18px; font-weight:700; color:#2d2d2d; margin:16px 0 4px; }
+#view-candidates .cd-feeditem { font-size:14px; line-height:21px; color:#595959; }
+#view-candidates .cd-chat { position:fixed; right:24px; bottom:0; width:500px; height:600px; background:#fff; border:1px solid #e4e2e0; border-radius:12px 12px 0 0; box-shadow:0 -2px 16px rgba(45,45,45,.14); z-index:5000; display:none; flex-direction:column; }
+#view-candidates .cd-chat.open { display:flex; }
+#view-candidates .cd-chat .hd { display:flex; align-items:center; gap:8px; padding:16px; border-bottom:1px solid #e4e2e0; }
+#view-candidates .cd-chat .hd h3 { font-size:16px; line-height:24px; font-weight:700; color:#2d2d2d; margin:0; }
+#view-candidates .cd-chat .hd button { margin-left:auto; background:none; border:0; font-size:22px; cursor:pointer; color:#2d2d2d; }
+#view-candidates .cd-chat .bd { flex:1 1 auto; overflow-y:auto; padding:16px; }
+#view-candidates .cd-sugg { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px; }
+#view-candidates .cd-sugg button { border:1px solid #e4e2e0; border-radius:20px; background:#fff; padding:6px 12px; font-family:inherit; font-size:14px; color:#004fcb; cursor:pointer; }
+#view-candidates .cd-chat .ft { border-top:1px solid #e4e2e0; padding:12px 16px; }
+#view-candidates .cd-chat textarea { width:100%; min-height:72px; border:1px solid #e4e2e0; border-radius:12px; padding:8px 12px; font-family:inherit; font-size:15px; resize:vertical; box-sizing:border-box; }
+#view-candidates .cd-chat .ftrow { display:flex; align-items:center; gap:8px; margin-top:8px; }
+#view-candidates .cd-chat .ftrow .send { margin-left:auto; background:#004fcb; color:#fff; border:0; border-radius:12px; height:36px; padding:5px 16px; font-family:inherit; font-size:16px; font-weight:700; cursor:pointer; }
+#view-candidates .cd-chat .ftrow .send:disabled { background:rgba(0,79,203,.4); cursor:default; }
+#view-candidates .cd-bub { max-width:80%; border-radius:12px; padding:10px 14px; font-size:14px; line-height:21px; margin-bottom:10px; }
+#view-candidates .cd-bub.out { margin-left:auto; background:#ecf2ff; color:#2d2d2d; }
+#view-candidates .cd-bub .ts { display:block; font-size:12px; color:#767676; margin-top:4px; }
+#view-candidates .cd-toast { position:fixed; left:50%; bottom:24px; transform:translateX(-50%) translateY(8px); background:#2d2d2d; color:#fff; border-radius:12px; padding:12px 20px; font-size:14px; line-height:21px; z-index:9999; opacity:0; pointer-events:none; transition:opacity .18s, transform .18s; max-width:520px; }
+#view-candidates .cd-toast.on { opacity:1; transform:translateX(-50%) translateY(0); }
+#view-candidates .cd-tip { position:fixed; z-index:9999; background:#2d2d2d; color:#fff; border-radius:12px; padding:8px 16px; font-size:14px; line-height:21px; max-width:294px; display:none; }
+#view-candidates .cd-tip.on { display:block; }
+#view-candidates .cd-devbar { display:flex; align-items:center; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
+#view-candidates { background:#fff!important }
+#view-candidates .cx-titlerow { display:flex;align-items:flex-start;gap:16px;min-height:54px }
+#view-candidates .cx-title { border:0;background:none;padding:0;cursor:pointer;display:flex;align-items:center;gap:10px; font-size:32px;line-height:40px;font-weight:700;color:#2d2d2d;position:relative }
+#view-candidates .cx-title svg { width:24px;height:24px;color:#2d2d2d }
+#view-candidates .cx-sub { font-size:16px;line-height:24px;color:#2d2d2d;margin-top:2px }
+#view-candidates .cx-titleacts { margin-left:auto;display:flex;align-items:center;gap:16px;padding-top:6px }
+#view-candidates .cx-auto { height:36px;border:1px solid #e4e2e0;background:#fff;border-radius:12px;padding:5px 15px; color:#004fcb;font-size:16px;line-height:24px;font-weight:700;cursor:pointer;display:inline-flex; align-items:center;gap:8px }
+#view-candidates .cx-addlink { border:0;background:none;padding:5px 0;color:#004fcb;font-size:16px;line-height:24px; font-weight:700;cursor:pointer;border-radius:12px }
+#view-candidates .cx-tabs { display:flex;border-bottom:1px solid #e4e2e0;margin-top:8px }
+#view-candidates .cx-tab { height:56px;padding:16px;border:0;background:none;cursor:pointer;position:relative; font-size:20px;line-height:normal;font-weight:400;color:#767676 }
+#view-candidates .cx-tab.on { font-weight:700;color:#2d2d2d }
+#view-candidates .cx-tab.on:after { content:"";position:absolute;left:0;right:0;bottom:-1px;height:3px;background:#2d2d2d }
+#view-candidates .cx-pills { display:flex;border-bottom:1px solid #e4e2e0 }
+#view-candidates .cx-pill { height:53px;padding:16px;border:0;background:none;cursor:pointer;position:relative; font-size:16px;line-height:normal;font-weight:400;color:#767676;white-space:nowrap }
+#view-candidates .cx-pill.on { font-weight:700;color:#2d2d2d }
+#view-candidates .cx-pill.on:after { content:"";position:absolute;left:0;right:0;bottom:-1px;height:3px;background:#2d2d2d }
+#view-candidates .cx-tools { display:flex;align-items:center;gap:12px;padding:16px 0 }
+#view-candidates .cx-ctl { height:44px;border:1px solid #595959;background:#fff;border-radius:12px;padding:9px 12px; box-sizing:border-box; font-size:16px;line-height:24px;color:#2d2d2d;cursor:pointer;display:inline-flex;align-items:center; gap:8px;position:relative }
+#view-candidates .cx-ctl b { font-weight:700 }
+#view-candidates .cx-ctl svg { width:24px;height:24px;flex:0 0 24px;margin-left:auto }
+#view-candidates .cx-search { flex:1;height:44px;border:1px solid #595959;background:#fff;border-radius:12px; padding:9px 12px;display:flex;align-items:center;gap:8px;color:#767676 }
+#view-candidates .cx-search svg { width:20px;height:20px;flex:0 0 20px }
+#view-candidates .cx-search input { border:0;outline:none;flex:1;font-family:inherit;font-size:16px;line-height:24px;color:#2d2d2d;background:none }
+#view-candidates .cx-menu { position:absolute;top:48px;left:0;min-width:260px;background:#fff;border:1px solid #e4e2e0; border-radius:12px;padding:8px;z-index:40;box-shadow:0 0 2px rgba(45,45,45,.16),0 4px 12px rgba(45,45,45,.08); text-align:left;font-weight:400 }
+#view-candidates .cx-menu button { display:flex;align-items:center;gap:10px;width:100%;text-align:left;border:0;background:none; border-radius:8px;padding:10px 12px;font-size:16px;line-height:24px;color:#2d2d2d;cursor:pointer }
+#view-candidates .cx-menu button:hover { background:#f3f2f1 }
+#view-candidates .cx-menu button[disabled] { opacity:.4;cursor:default }
+#view-candidates .cx-menu .tick { width:20px;flex:0 0 20px;color:#2d2d2d }
+#view-candidates .cx-bulk { display:flex;align-items:center;gap:16px;height:36px;margin-bottom:16px;position:relative }
+#view-candidates .cx-bulklbl { font-size:16px;line-height:24px;font-weight:700;color:#2d2d2d }
+#view-candidates .cx-b { height:36px;border-radius:12px;font-size:16px;line-height:24px;font-weight:700;cursor:pointer; display:inline-flex;align-items:center;gap:6px;position:relative }
+#view-candidates .cx-b.out { background:#fff;border:1px solid #e4e2e0;color:#004fcb;padding:5px 15px }
+#view-candidates .cx-b.pri { background:#004fcb;border:0;color:#fff;padding:5px 16px }
+#view-candidates .cx-b.dim { background:rgba(0,79,203,.4);border:0;color:#fff;padding:5px 16px }
+#view-candidates .cx-b svg { width:20px;height:20px }
+#view-candidates .cx-tbl { width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed }
+#view-candidates .cx-tbl col.c1 { width:52px }
+#view-candidates .cx-tbl col.c2 { width:26% }
+#view-candidates .cx-tbl col.c3 { width:26% }
+#view-candidates .cx-tbl col.c4 { width:26% }
+#view-candidates .cx-tbl col.c5 { width:200px }
+#view-candidates .cx-tbl td { overflow-wrap:anywhere }
+#view-candidates .cx-act { min-height:72px }
+#view-candidates .cx-tbl thead tr { background:#f7f6f5;height:46px;border-radius:12px }
+#view-candidates .cx-tbl thead th { font-size:14px;line-height:21px;font-weight:400;color:#595959;text-align:left; padding:1px 12px 1px 16px;white-space:nowrap;text-transform:none;letter-spacing:normal }
+#view-candidates .cx-tbl thead th:first-child { border-radius:12px 0 0 0;width:52px }
+#view-candidates .cx-tbl thead th:last-child { border-radius:0 12px 0 0 }
+#view-candidates .cx-tbl thead th.u { text-decoration:underline;text-underline-offset:3px }
+#view-candidates .cx-tbl tbody td { padding:16px 12px 16px 16px;vertical-align:top;background:none }
+#view-candidates .cx-tbl tbody tr { height:132px }
+#view-candidates .cx-tbl tbody tr + tr td { border-top:1px solid #e4e2e0 }
+#view-candidates .cx-cb { width:24px;height:24px;border:1px solid #2d2d2d;border-radius:8px;background:#fff;cursor:pointer; display:inline-grid;place-items:center;padding:0;flex:0 0 24px }
+#view-candidates .cx-cb.on { background:#2d2d2d;border-color:#2d2d2d }
+#view-candidates .cx-cb svg { width:16px;height:16px;color:#fff;display:none }
+#view-candidates .cx-cb.on svg { display:block }
+#view-candidates .cx-name { font-size:16px;line-height:24px;font-weight:700;color:#2d2d2d;background:none;border:0;padding:0; cursor:pointer;text-align:left }
+#view-candidates .cx-name:hover { text-decoration:underline }
+#view-candidates .cx-meta { font-size:14px;line-height:21px;color:#595959;margin-top:2px }
+#view-candidates .cx-meta b { font-weight:700;color:#2d2d2d }
+#view-candidates .cx-applied { font-size:14px;line-height:21px;color:#595959;margin-top:6px }
+#view-candidates .cx-applied a { color:#004fcb;text-decoration:underline;cursor:pointer }
+#view-candidates .cx-exp { border-left:2px solid #e4e2e0;padding-left:12px;margin-bottom:12px }
+#view-candidates .cx-exp .r { font-size:14px;line-height:21px;font-weight:700;color:#2d2d2d }
+#view-candidates .cx-exp .c { font-size:14px;line-height:21px;color:#595959 }
+#view-candidates .cx-act { font-size:14px;line-height:21px;color:#595959 }
+#view-candidates .cx-iv { display:inline-flex }
+#view-candidates .cx-iv button { width:56px;height:44px;background:#fff;cursor:pointer;color:#2d2d2d; border:1px solid #e4e2e0;display:grid;place-items:center;padding:9px 15px;margin-left:-1px }
+#view-candidates .cx-iv button:first-child { border-radius:12px 0 0 12px;margin-left:0 }
+#view-candidates .cx-iv button:last-child { border-radius:0 12px 12px 0 }
+#view-candidates .cx-iv button svg { width:20px;height:20px }
+#view-candidates .cx-iv button.on { color:#fff }
+#view-candidates .cx-iv button.on.sl { background:#1f662c;border-color:#1f662c }
+#view-candidates .cx-iv button.on.ud { background:#595959;border-color:#595959 }
+#view-candidates .cx-iv button.on.rj { background:#a9252b;border-color:#a9252b }
+#view-candidates .cx-act .aq { color:#2d2d2d;font-weight:700 }
+#view-candidates .cx-act .body { color:#595959;margin-top:4px }
+#view-candidates .cx-act .lnk { color:#004fcb;text-decoration:underline;cursor:pointer;display:inline-block;margin-top:4px }
+#view-candidates .cx-more { width:44px;height:44px;border:0;background:none;border-radius:12px;cursor:pointer;color:#2d2d2d; display:grid;place-items:center;margin-left:8px;position:relative }
+#view-candidates .cx-more:hover { background:#f3f2f1 }
+#view-candidates .cx-banner { background-image:linear-gradient(rgb(249,222,197),rgba(0,0,0,0));border-radius:20px;padding:16px; display:flex;align-items:center;gap:16px;margin:24px 0 0 }
+#view-candidates .cx-banner h3 { font-size:20px;line-height:30px;font-weight:700;color:#2d2d2d;margin:0 }
+#view-candidates .cx-banner p { font-size:16px;line-height:24px;color:#595959;margin:2px 0 0 }
+#view-candidates .cx-banner .sp { margin-left:auto;display:flex;align-items:center;gap:8px }
+#view-candidates .cx-learn { height:44px;border:0;background:none;padding:9px 0;color:#2d2d2d;font-size:16px;line-height:24px; font-weight:700;border-radius:12px;cursor:pointer }
+#view-candidates .cx-gold { height:44px;border:0;background:rgb(224,169,97);color:#2d2d2d;font-size:16px;line-height:24px; font-weight:700;border-radius:12px;padding:9px 16px;cursor:pointer }
+#view-candidates .cx-countrow { display:flex;align-items:center;margin:24px 0 16px }
+#view-candidates .cx-count { font-size:16px;line-height:24px;color:#595959 }
+#view-candidates .cx-goal { margin-left:auto;color:#004fcb;font-size:16px;line-height:24px;font-weight:700;text-align:right;padding:0 24px }
+#view-candidates .cx-goal span { display:block }
+#view-candidates .cx-grid { display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:0 0 24px;list-style:none;margin:0 }
+#view-candidates .cx-card { border:1px solid #e4e2e0;border-radius:12px;padding:16px }
+#view-candidates .cx-card .nm { font-size:16px;line-height:24px;font-weight:700;color:#2d2d2d;text-decoration:underline; background:none;border:0;padding:0;cursor:pointer }
+#view-candidates .cx-card .lo { font-size:16px;line-height:24px;color:#767676 }
+#view-candidates .cx-card h4 { font-size:14px;line-height:21px;font-weight:700;color:#2d2d2d;margin:12px 0 4px }
+#view-candidates .cx-card .role { font-size:14px;line-height:21px;font-weight:700;color:#2d2d2d }
+#view-candidates .cx-card .sub { font-size:12px;line-height:18px;color:#595959 }
+#view-candidates .cx-card .cert { font-size:12px;line-height:18px;font-weight:700;color:#595959 }
+#view-candidates .cx-card ul { margin:0;padding-left:18px }
+#view-candidates .cx-ra { display:flex;gap:24px;align-items:flex-start;margin-top:24px }
+#view-candidates .cx-racol { flex:1;min-width:0 }
+#view-candidates .cx-gate { background-image:linear-gradient(rgb(249,222,197) 0%,rgb(255,255,255) 128px);border-radius:20px; padding:24px 24px 24px 16px }
+#view-candidates .cx-gate h3 { font-size:20px;line-height:30px;font-weight:700;color:#2d2d2d;margin:0 }
+#view-candidates .cx-gate .s { font-size:14px;line-height:21px;color:#595959;margin:4px 0 24px }
+#view-candidates .cx-gate h4 { font-size:16px;line-height:24px;font-weight:700;color:#2d2d2d;margin:0 0 10px }
+#view-candidates .cx-how { display:flex;align-items:center;gap:16px;height:36px;font-size:14px;line-height:21px;color:#595959 }
+#view-candidates .cx-how svg { width:20px;height:20px;flex:0 0 20px;color:#2d2d2d }
+#view-candidates .cx-plus { margin-top:8px;height:44px;border:0;background:rgb(245,203,157);color:#2d2d2d;font-size:16px; line-height:24px;font-weight:700;border-radius:12px;padding:9px 16px;cursor:pointer }
+#view-candidates .cx-rail { width:408px;flex:0 0 408px;background:#fff;border:1px solid #e4e2e0;border-radius:12px;padding:16px }
+#view-candidates .cx-railhd { display:flex;align-items:center;gap:8px;font-size:16px;line-height:24px;font-weight:700;color:#2d2d2d }
+#view-candidates .cx-railhd svg { width:18px;height:18px }
+#view-candidates .cx-railhd .cv { margin-left:auto;width:20px;height:20px }
+#view-candidates .cx-tl { margin-top:16px;position:relative;padding-left:24px }
+#view-candidates .cx-tl .st { font-size:14px;line-height:21px;color:#595959 }
+#view-candidates .cx-tl .it { position:relative;padding-bottom:16px }
+#view-candidates .cx-tl .it:before { content:"";position:absolute;left:-24px;top:5px;width:10px;height:10px;border-radius:50%; border:2px solid #767676;background:#fff }
+#view-candidates .cx-tl .it.done:before { background:#2d2d2d;border-color:#2d2d2d }
+#view-candidates .cx-tl .nx { font-size:16px;line-height:24px;font-weight:700;color:#595959 }
+#view-candidates .cx-tl .nx b { color:#2d2d2d }
+#view-candidates .cx-tl .ds { font-size:12px;line-height:18px;color:#595959 }
+#view-candidates .cx-tl .wk { font-size:16px;line-height:24px;color:#2d2d2d }
+#view-candidates .cx-matches { margin-top:24px;border:1px solid #e4e2e0;border-radius:12px;background:#fff }
+#view-candidates .cx-matchhd { display:flex;align-items:center;padding:16px;font-size:14px;line-height:21px;font-weight:700;color:#595959 }
+#view-candidates .cx-matchhd svg { margin-left:auto;width:20px;height:20px }
+#view-candidates .cx-matchrow { display:flex;padding:12px 16px;border-top:1px solid #e4e2e0;filter:blur(6px); pointer-events:none;user-select:none;font-size:16px;line-height:24px }
+#view-candidates .cx-matchrow .n { font-weight:700;color:#595959 }
+#view-candidates .cx-matchrow .d { margin-left:auto;color:#595959 }
+#view-candidates .cx-jobgate { display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center; padding:80px 24px }
+#view-candidates .cx-jobgate svg { width:200px;height:130px }
+#view-candidates .cx-jobgate h3 { font-size:24px;line-height:32px;font-weight:700;color:#2d2d2d;margin:24px 0 8px }
+#view-candidates .cx-jobgate p { font-size:16px;line-height:24px;color:#595959;margin:0 }
+#view-candidates .cx-none { padding:64px 24px;text-align:center;color:#595959;font-size:16px;line-height:24px }
+#view-candidates .cx-jobsel { position:absolute;top:56px;left:0;width:540px;background:#fff;border:1px solid #e4e2e0; border-radius:12px;z-index:60;box-shadow:0 0 2px rgba(45,45,45,.16),0 6px 20px rgba(45,45,45,.12); font-size:16px;font-weight:400;text-align:left;overflow:hidden }
+#view-candidates .cx-jobsel .pad { padding:16px }
+#view-candidates .cx-jsearch { width:100%;height:48px;border:1px solid #595959;border-radius:12px;padding:9px 12px 9px 40px; font-family:inherit;font-size:16px;color:#2d2d2d;outline:none }
+#view-candidates .cx-jfilters { display:flex;gap:12px;flex-wrap:wrap;margin-top:12px }
+#view-candidates .cx-jf { height:36px;border:1px solid #595959;background:#fff;border-radius:12px;padding:5px 12px; font-size:16px;line-height:24px;color:#2d2d2d;cursor:pointer;display:inline-flex;align-items:center;gap:6px }
+#view-candidates .cx-jf b { color:#004fcb;font-weight:700 }
+#view-candidates .cx-jcount { display:flex;align-items:center;gap:8px;padding:12px 16px;font-size:16px;line-height:24px; font-weight:700;color:#2d2d2d }
+#view-candidates .cx-jrow { display:flex;gap:12px;width:100%;text-align:left;border:0;background:none;padding:12px 16px; cursor:pointer;font-size:16px;line-height:24px;color:#2d2d2d }
+#view-candidates .cx-jrow:hover { background:#f7f6f5 }
+#view-candidates .cx-jrow.on { background:#f3f2f1 }
+#view-candidates .cx-jrow .tick { width:20px;flex:0 0 20px }
+#view-candidates .cx-jrow .t { font-weight:400 }
+#view-candidates .cx-jrow .m { font-size:14px;line-height:21px;color:#595959 }
+#view-candidates .cx-jrow .ref { font-size:14px;line-height:21px;color:#595959;font-style:italic }
+#view-candidates .cx-typeahead { border:0;outline:none;background:none;font-family:inherit;font-size:16px;line-height:24px; color:#2d2d2d;width:100%;min-width:0 }
+#view-candidates .cx-act .body.clamp { display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical; overflow:hidden;font-size:14px;line-height:21px }
+#view-candidates .cd-devbar { display:none !important }
+/* the message dock lives outside the view, so it is prefixed cxdk- */
+.cxdk{position:fixed;right:20px;bottom:0;width:380px;background:#fff;border-radius:12px 12px 0 0;box-shadow:0 4px 24px rgba(0,0,0,.18),0 0 0 1px #e4e2e0;z-index:600;display:none;overflow:hidden;font-family:inherit}
+.cxdk.open{display:block}
+.cxdk-h{padding:12px 16px;border-bottom:1px solid #e4e2e0;display:flex;align-items:center;gap:10px}
+.cxdk-h .n{font-size:16px;line-height:24px;font-weight:700;color:#2d2d2d}
+.cxdk-h .s{font-size:13px;color:#595959}
+.cxdk-h .x{margin-left:auto;background:none;border:0;font-size:20px;cursor:pointer;color:#767676;line-height:1}
+.cxdk-b{padding:16px;max-height:280px;overflow-y:auto}
+.cxdk-b .bub{max-width:80%;padding:10px 13px;border-radius:14px;margin-bottom:10px;font-size:15px;line-height:1.5}
+.cxdk-b .bub.us{background:#ecf2ff;margin-left:auto}
+.cxdk-b .bub.them{background:#f3f2f1}
+.cxdk-b .bub .t{font-size:12px;color:#767676;margin-top:4px}
+.cxdk-f{padding:12px 16px 16px;border-top:1px solid #e4e2e0}
+.cxdk-f textarea{width:100%;min-height:64px;border:1px solid #767676;border-radius:12px;padding:10px;font-family:inherit;font-size:15px;resize:vertical;color:#2d2d2d}
+#view-candidates{padding:0}
+#view-candidates .cx{margin:0 !important}
+#view-candidates .cx-ivwrap{display:flex;align-items:center}
+#view-candidates .cx-tbl col.c5{width:236px}
+#view-candidates .cx-bulk{display:flex;align-items:center;gap:12px;padding:12px 0;flex-wrap:wrap}
+#view-candidates .cd-status{white-space:nowrap}
+</style>
+
+<template id="cxViewTpl">
+<div class="view" id="view-candidates"><div class="cx" id="cxRoot"></div></div>
+</template>
+<div class="cxdk" id="cxdk">
+  <div class="cxdk-h"><div><div class="n" id="cxdkN"></div><div class="s" id="cxdkS"></div></div>
+    <button type="button" class="x" onclick="CXX.closeDock()">&times;</button></div>
+  <div class="cxdk-b" id="cxdkB"></div>
+  <div class="cxdk-f"><textarea placeholder="Write a message&hellip;"></textarea></div>
+</div>
+<script>
+(function(){
+
+var EVS={dallas:{n:'Dallas Healthcare Event',d:'Apr 22, 2026'},atlanta:{n:'Atlanta Diversity Event',d:'Apr 5, 2026'},chicago:{n:'Chicago Technology Event',d:'May 6, 2026'}};
+var TODAY='dallas';
+var C=[
+ {id:1,n:'Tamara Williams',job:'Registered Nurse',loc:'Dallas, TX',em:'t.williams@email.com',ph:'(214) 555-0132',stage:'requested',int:null,act:'Requested an interview · 2 days ago',
+  sk:[['Med-Surg',1],['EPIC',1],['BLS/ACLS',1],['Telemetry',0],['ICU',0]],
+  sc:[['Do you hold an active RN license in Texas?','Yes','Yes'],['How many years of acute care experience do you have?','2','3']],
+  w:[['Staff Nurse','Baylor Scott & White','2023–Present',['Med-surg floor at a 1:5 ratio.','Precepts new graduate nurses.']]],
+  ed:[['BSN','Texas Woman’s University','2019 – 2023']],
+  iv:[{ev:'dallas',k:'req',t:'Apr 22 · 9:00 AM CT',by:'Not assigned',st:'Awaiting your response'}]},
+ {id:2,n:'Marcus Johnson',job:'Web Developer',loc:'Remote',em:'marcus.johnson@gmail.com',ph:'(214) 555-0193',stage:'interviewed',int:'sl',act:'Interviewed · 2 days ago',
+  sk:[['React',1],['Java',1],['Microservices',1],['AWS',1],['Kubernetes',0]],
+  sc:[['How many years of web development experience do you have?','9','3']],
+  w:[['Java Full Stack Developer','Molina Healthcare','2025–Present',['RESTful APIs for claims processing and member eligibility.','Spring Boot microservices.']],
+     ['Web Developer','U.S. Bank','2023–2025',['Angular and React front ends.']]],
+  ed:[['B.S. Computer Science','UT Arlington','2010 – 2014']],
+  iv:[{ev:'dallas',k:'attempt',t:'Apr 22 · 11:38 AM CT',by:'Dana Whitfield',st:'Returned to lobby',label:'Attempt 1'},
+      {ev:'dallas',k:'done',t:'Apr 22 · 11:53 AM CT',by:'Dana Whitfield',st:'Interviewed',rate:'yes',label:'Attempt 2'},
+      {ev:'chicago',k:'req',t:'May 6 · 12:05 PM CT',by:'Not assigned',st:'Awaiting your response'}]},
+ {id:3,n:'Rachel Foster',job:'Registered Nurse',loc:'Houston, TX',em:'r.foster@email.com',ph:'(713) 555-0140',stage:'scheduled',int:'sl',act:'Interview confirmed · 3 days ago',
+  sk:[['Med-Surg',1],['ICU',1],['BLS/ACLS',1],['EPIC',0],['Telemetry',0]],
+  sc:[['Do you hold an active RN license in Texas?','Yes','Yes'],['How many years of acute care experience do you have?','5','3']],
+  w:[['Staff Nurse','Memorial Hermann','2021–Present',['ICU rotation at a 1:2 ratio.']]],
+  ed:[['BSN','University of Houston','2017 – 2021']],
+  iv:[{ev:'atlanta',k:'done',t:'Apr 5 · 11:56 AM CT',by:'Dana Whitfield',st:'Interviewed',rate:'yes'},
+      {ev:'dallas',k:'soon',t:'Apr 22 · 2:00 PM CT',by:'Emily Chen',st:'Confirmed'}]},
+ {id:4,n:'Priya Patel',job:'Frontend Developer',loc:'Remote',em:'p.patel@email.com',ph:'(469) 555-0155',stage:'requested',int:null,act:'Requested an interview · yesterday',
+  sk:[['React',1],['TypeScript',1],['CSS',1],['Testing',0]],
+  sc:[['How many years of web development experience do you have?','4','3']],
+  w:[['Frontend Developer','Freelance','2022–Present',['React builds for small business clients.']]],
+  ed:[['B.S. Information Technology','UT Dallas','2018 – 2022']],
+  iv:[{ev:'dallas',k:'req',t:'Apr 22 · 10:00 AM CT',by:'Not assigned',st:'Awaiting your response'}]},
+ {id:5,n:'Priya Sharma',job:'Physical Therapist',loc:'Dallas, TX',em:'p.sharma@email.com',ph:'(469) 555-0177',stage:'interviewed',int:null,act:'Interviewed · needs a rating',
+  sk:[['Outpatient',1],['Manual Therapy',1],['Dry Needling',0]],
+  sc:[['Are you licensed to practise in Texas?','Yes','Yes']],
+  w:[['Physical Therapist','Select Physical Therapy','2020–Present',['Outpatient orthopaedic caseload.']]],
+  ed:[['DPT','Texas State University','2016 – 2020']],
+  iv:[{ev:'dallas',k:'done',t:'Apr 22 · 11:40 AM CT',by:'Dana Whitfield',st:'Interviewed',rate:null}]},
+ {id:6,n:'Jordan Lee',job:'Registered Nurse',loc:'Dallas, TX',em:'j.lee@email.com',ph:'(214) 555-0166',stage:'noshow',int:null,act:'Did not attend · 2 days ago',
+  sk:[['Med-Surg',1],['BLS/ACLS',1],['EPIC',0]],
+  sc:[['Do you hold an active RN license in Texas?','Yes','Yes']],
+  w:[['Staff Nurse','Parkland','2022–Present',['Night shift med-surg.']]],
+  ed:[['ADN','El Centro College','2020 – 2022']],
+  iv:[{ev:'dallas',k:'noshow',t:'Apr 22 · 10:00 AM CT',by:'Emily Chen',st:'No-show'}]},
+ {id:7,n:'Babar Nawaz',job:'Web Developer',loc:'Remote',em:'b.nawaz@email.com',ph:'(469) 555-0188',stage:'declined',int:'rj',act:'You declined · 4 days ago',
+  sk:[['React',1],['TypeScript',1],['Node',0]],
+  sc:[['How many years of web development experience do you have?','2','3']],
+  w:[['Frontend Developer','Freelance','2024–Present',['React and TypeScript builds.']]],
+  ed:[['Associate’s','Collin College','2021 – 2023']],
+  iv:[{ev:'dallas',k:'dec',t:'Apr 22 · 10:30 AM CT',by:'Not assigned',st:'Declined'}]}
+];
+var PILLS=[{k:'',l:'All'},{k:'requested',l:'Requested'},{k:'scheduled',l:'Scheduled'},{k:'interviewed',l:'Interviewed'},{k:'noshow',l:'No-show'},{k:'declined',l:'Declined'}];
+var STAGEL={requested:'Requested',scheduled:'Scheduled',interviewed:'Interviewed',noshow:'No-show',declined:'Declined'};
+var pill='', sel=null, evScope='', secOpen={iv:1,q:1,sq:1,ex:1,ed:1,res:0}, ptab='app', menu=false, stpop=false, scopeOpen=false;
+var sortBy='Interview time (earliest first)', jobFil='', rateFil='', openMenu='', selRows=[];
+var SORTS=['Interview time (earliest first)','Interview time (latest first)','Request date (newest first)','Request date (oldest first)','Name (A to Z)','Name (Z to A)'];
+var RATES=[['','Any rating'],['yes','Yes'],['maybe','Maybe'],['no','No'],['none','Not rated']];
+function jobsList(){var o=[];C.forEach(function(c){if(o.indexOf(c.job)<0)o.push(c.job);});return o.sort();}
+function rateOf(c){var r=null;c.iv.forEach(function(x){if(x.rate)r=x.rate;});return r;}
+function tOf(c){var x=c.iv[c.iv.length-1];return x?x.t:'';}
+
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');}
+function get(id){for(var i=0;i<C.length;i++)if(C[i].id===id)return C[i];return null;}
+function inScope(c){return !evScope||c.iv.some(function(x){return EVS[x.ev].n===evScope;});}
+function list(){
+  var r=C.filter(function(c){
+    if(pill&&c.stage!==pill)return false;
+    if(!inScope(c))return false;
+    if(jobFil&&c.job!==jobFil)return false;
+    if(rateFil){var rr=rateOf(c);if(rateFil==='none'){if(rr)return false;}else if(rr!==rateFil)return false;}
+    return true;});
+  var s=sortBy;
+  r.sort(function(a,b){
+    if(s.indexOf('Name')===0)return s.indexOf('A to Z')>0?a.n.localeCompare(b.n):b.n.localeCompare(a.n);
+    if(s.indexOf('Interview time')===0){var x=tOf(a),y=tOf(b);return s.indexOf('earliest')>0?x.localeCompare(y):y.localeCompare(x);}
+    return s.indexOf('newest')>0?b.id-a.id:a.id-b.id;});
+  return r;}
+function countFor(k){return C.filter(function(c){return (!k||c.stage===k)&&inScope(c);}).length;}
+function ico(n){
+  var m={
+   chev:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>',
+   search:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>',
+   tick:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6L9 17l-5-5"/></svg>',
+   q:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.3 2.4c-.8.3-.9 1-.9 1.6"/><circle cx="12" cy="17" r=".6" fill="currentColor"/></svg>',
+   x:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+   dots:'<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>',
+   back:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>',
+   arrL:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>',
+   arrR:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>',
+   pin:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-5.5 7-11a7 7 0 1 0-14 0c0 5.5 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>',
+   bag:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>',
+   cal:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/></svg>',
+   msg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
+   doc:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>',
+   cv:'<svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 15l6-6 6 6"/></svg>'
+  };
+  return m[n]||'';
+}
+
+/* ── list view ── */
+function listHtml(){
+  var rows=list();
+  var h='<div class="cx-titlerow"><div><button class="cx-title" onclick="CXX.toggleScope(event)">'+esc(evScope||'All events')+ico('chev')
+    + (scopeOpen?'<span class="cx-menu" style="display:block;left:0;top:48px">'
+        +['','Dallas Healthcare Event','Atlanta Diversity Event','Chicago Technology Event'].map(function(e){
+            return '<button onclick="CXX.setScope(event,\''+e+'\')">'+(evScope===e?'<span class="tick">'+ico('tick')+'</span>':'')+(e||'All events')+'</button>';}).join('')
+      +'</span>':'')
+    +'</button>'
+    +'<div class="cx-sub">'+rows.length+' candidate'+(rows.length===1?'':'s')+' across your hiring events</div></div></div>';
+
+  h+='<div class="cx-pills">'+PILLS.map(function(p){
+    return '<button class="cx-pill'+(pill===p.k?' on':'')+'" onclick="CXX.setPill(\''+p.k+'\')">'+p.l+' &bull; '+countFor(p.k)+'</button>';
+  }).join('')+'</div>';
+
+  h+='<div class="cx-tools">'
+    +ctl('sort','<b>Sort by:</b> '+sortBy, SORTS.map(function(o){return [o,o,sortBy===o];}), 'setSort')
+    +ctl('job', jobFil||'Job', [['','All jobs',!jobFil]].concat(jobsList().map(function(j){return [j,j,jobFil===j];})), 'setJob')
+    +ctl('rate', rateFil?(RATES.filter(function(r){return r[0]===rateFil;})[0][1]):'Rating', RATES.map(function(r){return [r[0],r[1],rateFil===r[0]];}), 'setRate')
+    +'<div class="cx-search">'+ico('search')+'<input placeholder="Search candidates"></div></div>';
+  if(selRows.length) h+='<div class="cx-bulk"><span class="cx-bulklbl">'+selRows.length+' candidate'+(selRows.length===1?' is':'s are')+' selected</span>'
+    +(selRows.length<rows.length?'<button class="cx-b out" onclick="CXX.selAll()">Select all '+rows.length+' candidates</button>':'')
+    +'<button class="cx-b out" onclick="CXX.clearSel()">Clear selected</button>'
+    +'<button class="cx-b pri">Export candidates'+ico('chev')+'</button></div>';
+
+  h+='<table class="cx-tbl"><colgroup><col class="c1"><col class="c2"><col class="c3"><col class="c4"><col class="c5"></colgroup>'
+    +'<thead><tr><th><span class="cx-cb'+(selRows.length&&selRows.length===rows.length?' on':'')+'" onclick="'+(selRows.length===rows.length?'clearSel()':'selAll()')+'">'+ico('tick')+'</span></th><th>Candidates</th><th class="u">Work experience</th><th>Activity</th><th>Interest</th></tr></thead><tbody>';
+  rows.forEach(function(c){
+    h+='<tr><td><span class="cx-cb'+(selRows.indexOf(c.id)>-1?' on':'')+'" onclick="CXX.togSel('+c.id+')">'+ico('tick')+'</span></td>'
+      +'<td><button class="cx-name" onclick="CXX.open_('+c.id+')">'+esc(c.n)+'</button>'
+      +'<div class="cx-meta">'+esc(c.loc)+'</div>'
+      +'<div class="cx-meta"><b>'+STAGEL[c.stage]+'</b> &bull; '+esc(c.act.split(' · ').pop())+'</div>'
+      +'<div class="cx-applied">Requested: <a onclick="return false">'+esc(c.job)+'</a></div></td>'
+      +'<td>'+c.w.slice(0,2).map(function(w){return '<div class="cx-exp"><div class="r">'+esc(w[0])+'</div><div class="c">'+esc(w[1])+' ('+esc(w[2])+')</div></div>';}).join('')+'</td>'
+      +'<td><div class="cx-act">'+esc(c.act)+'</div></td>'
+      +'<td><span class="cx-ivwrap"><span class="cx-iv">'
+        +'<button class="sl'+(c.int==='sl'?' on':'')+'" onclick="CXX.setInt('+c.id+',\'sl\')" title="Shortlist">'+ico('tick')+'</button>'
+        +'<button class="ud'+(c.int==='ud'?' on':'')+'" onclick="CXX.setInt('+c.id+',\'ud\')" title="Undecided">'+ico('q')+'</button>'
+        +'<button class="rj'+(c.int==='rj'?' on':'')+'" onclick="CXX.setInt('+c.id+',\'rj\')" title="Not a fit">'+ico('x')+'</button>'
+      +'</span><span style="position:relative"><button class="cd-more" onclick="CXX.om(event,\'row'+c.id+'\')">'+ico('dots')+'</button>'
+      +(openMenu==='row'+c.id?rowMenu(c):'')+'</span></span></td></tr>';
+  });
+  h+='</tbody></table>';
+  if(!rows.length) h+='<div style="padding:56px 0;text-align:center;color:#767676">No candidates in this filter.</div>';
+  return h;
+}
+
+function ctl(key,label,opts,fn){
+  return '<span style="position:relative"><button class="cx-ctl" onclick="CXX.om(event,\''+key+'\')">'+label+ico('chev')+'</button>'
+    +(openMenu===key?'<span class="cx-menu" onclick="event.stopPropagation()">'
+      +opts.map(function(o){return '<button onclick="'+fn+'(\''+String(o[0]).replace(/'/g,"\\'")+'\')"><span class="tick">'+(o[2]?ico('tick'):'')+'</span>'+o[1]+'</button>';}).join('')
+      +'</span>':'')+'</span>';
+}
+function om(e,k){e.stopPropagation();openMenu=(openMenu===k)?'':k;render();}
+function setSort(v){sortBy=v;openMenu='';render();}
+function setJob(v){jobFil=v;openMenu='';render();}
+function setRate(v){rateFil=v;openMenu='';render();}
+function selAll(){selRows=list().map(function(c){return c.id;});render();}
+function clearSel(){selRows=[];render();}
+function togSel(id){var i=selRows.indexOf(id);if(i<0)selRows.push(id);else selRows.splice(i,1);render();}
+function rowMenu(c){
+  var top=[];
+  if(c.stage==='requested')top=['Accept interview','Decline request','Reschedule'];
+  else if(c.stage==='scheduled')top=['Reschedule','Cancel interview','Mark as no-show'];
+  else if(c.stage==='interviewed')top=[(rateOf(c)?'Update rating':'Add rating'),'Schedule follow-up'];
+  else if(c.stage==='noshow')top=['Schedule follow-up'];
+  else if(c.stage==='declined')top=['Reinstate candidate'];
+  var all=top.concat(['View resume','Message','Download resume','Download application data']);
+  return '<span class="cx-menu" style="right:0;left:auto" onclick="event.stopPropagation()">'
+    +all.map(function(a){return '<button onclick="CXX.rowAct('+c.id+',\''+a+'\')">'+a+'</button>';}).join('')+'</span>';
+}
+function rowAct(id,a){
+  openMenu='';
+  if(a==='Accept interview')return accept(id);
+  if(a==='Decline request')return decline(id);
+  if(a==='Reinstate candidate')return reinstate(id);
+  if(a==='Mark as no-show')return noshow(id);
+  if(a==='Message')return (render(),openDock(id));
+  if(a==='View resume'){sel=id;ptab='app';secOpen.res=1;render();return;}
+  render();
+}
+/* ── profile ── */
+function sec(key,title,bodyHtml,right){
+  var open=!!secOpen[key];
+  return '<div class="cd-sec"><button class="cd-sechead" aria-expanded="'+open+'" onclick="CXX.toggleSec(\''+key+'\')">'
+    +'<h2>'+title+'</h2>'+(right||'')+ico('cv')+'</button>'
+    +'<div class="cd-secbody"'+(open?'':' hidden')+'>'+bodyHtml+'</div></div>';
+}
+function actsFor(c){
+  var h='', today=c.iv.some(function(x){return x.k==='soon'&&x.ev===TODAY;});
+  if(c.stage==='requested') h+='<button class="cd-btn pri" onclick="CXX.accept('+c.id+')">'+ico('cal')+'Accept</button>'
+    +'<button class="cd-btn sec" onclick="CXX.decline('+c.id+')" style="color:#a9252b">'+ico('x')+'Decline</button>'
+    +'<button class="cd-btn sec" onclick="return false">'+ico('cal')+'Reschedule</button>';
+  else if(c.stage==='scheduled') h+='<button class="cd-btn pri" onclick="return false">'+ico('cal')+(today?'Go to lobby':'Reschedule')+'</button>'
+    +'<button class="cd-btn sec" onclick="return false">'+ico('x')+'Cancel interview</button>';
+  else if(c.stage==='interviewed'||c.stage==='noshow') h+='<button class="cd-btn pri" onclick="return false">'+ico('cal')+'Schedule follow-up</button>';
+  else if(c.stage==='declined') h+='<button class="cd-btn pri" onclick="CXX.reinstate('+c.id+')">'+ico('cal')+'Reinstate</button>';
+  h+='<button class="cd-btn sec" onclick="CXX.openDock('+c.id+')">'+ico('msg')+'Message</button>'
+    +'<button class="cd-btn sec" onclick="return false">'+ico('doc')+'View resume</button>';
+  return h;
+}
+function profileHtml(){
+  var c=get(sel), rows=list(), i=rows.findIndex(function(x){return x.id===sel;});
+  var met=c.sk.filter(function(s){return s[1];}).length;
+
+  var ivBody='';
+  var order=[],byEv={};
+  c.iv.forEach(function(x){if(!byEv[x.ev]){byEv[x.ev]=[];order.push(x.ev);}byEv[x.ev].push(x);});
+  order.forEach(function(k){
+    ivBody+='<p class="cd-qsub" style="margin-top:4px">'+esc(EVS[k].n)+' &middot; '+esc(EVS[k].d)+'</p>';
+    byEv[k].forEach(function(x){
+      ivBody+='<div class="cd-ivcard" style="margin-bottom:12px"><div><b>'+esc(x.label||'Interview')+'</b> &middot; '+esc(x.st)
+        +'<div style="margin-top:2px">'+esc(x.t)+' &middot; Interviewer: '+esc(x.by)+'</div>'
+        +(x.rate?'<div style="margin-top:6px"><span class="cd-ans">'+ico('tick')+x.rate.charAt(0).toUpperCase()+x.rate.slice(1)+'</span></div>':'')
+        +'</div>'
+        +(x.k==='req'?'<button onclick="CXX.accept('+c.id+')">Accept</button>':(x.k==='done'?'<button onclick="return false">'+(x.rate?'Update rating':'Add rating')+'</button>':''))
+        +'</div>';
+    });
+  });
+
+  var qBody='<p class="cd-qsub">Preferred</p><div class="cd-chips">'
+    + c.sk.map(function(s){return '<span class="cd-chip">'+esc(s[0])+'</span>';}).join('')+'</div>';
+
+  var sqBody = c.sc.map(function(s){
+    var ok=(s[1]===s[2])||(!isNaN(+s[1])&&!isNaN(+s[2])&&+s[1]>=+s[2]);
+    return '<p class="cd-q">'+esc(s[0])+'</p><div style="margin-bottom:18px">'
+      +(ok?'<span class="cd-ans">'+ico('tick')+esc(s[1])+'</span>'
+          :'<span class="cd-ans" style="background:#fdecec;color:#a9252b">'+ico('x')+esc(s[1])+'</span>')
+      +'<span class="cd-req">Your requirement: '+esc(s[2])+'</span></div>';
+  }).join('');
+
+  var exBody = c.w.map(function(w){
+    return '<div class="cd-exp"><div class="cd-exptile">'+ico('bag')+'</div><div><div class="t"><b>'+esc(w[0])+'</b></div>'
+      +'<div class="d">'+esc(w[1])+' &middot; '+esc(w[2])+'</div>'
+      +'<div class="bul">'+w[3].map(function(b){return '<p>'+esc(b)+'</p>';}).join('')+'</div></div></div>';
+  }).join('');
+
+  var edBody = c.ed.map(function(e){
+    return '<div class="cd-exp"><div class="cd-exptile">'+ico('doc')+'</div><div><div class="t"><b>'+esc(e[0])+'</b></div>'
+      +'<div class="d">'+esc(e[1])+' &middot; '+esc(e[2])+'</div></div></div>';
+  }).join('');
+
+  var resBody='<div class="cd-resbar"><button class="cd-zoom">&minus;</button><span class="cd-zoomlvl">100%</span><button class="cd-zoom">+</button>'
+    +'<button class="cd-dl">'+ico('doc')+'Download resume</button></div>'
+    +'<div class="cd-resume"><h3>'+esc(c.n)+'</h3><div class="role">'+esc(c.job)+'</div>'
+    +'<div class="contact">'+esc(c.loc)+' &middot; <a>'+esc(c.em)+'</a> &middot; '+esc(c.ph)+'</div>'
+    +'<h4>Experience</h4>'+c.w.map(function(w){return '<p><b>'+esc(w[0])+'</b>, '+esc(w[1])+' ('+esc(w[2])+')</p>'+w[3].map(function(b){return '<p>'+esc(b)+'</p>';}).join('');}).join('')
+    +'<h4>Education</h4>'+c.ed.map(function(e){return '<p>'+esc(e[0])+', '+esc(e[1])+' ('+esc(e[2])+')</p>';}).join('')
+    +'</div>';
+
+  var h='<div class="cd-pf"><div class="cd-pfsticky">'
+    +'<button class="cd-back" onclick="CXX.back()">'+ico('back')+'Back to list</button>'
+    +'<div class="cd-pfnav"><button onclick="CXX.step(-1)">'+ico('arrL')+'</button><button onclick="CXX.step(1)">'+ico('arrR')+'</button>'
+    +'<span class="of">'+(i+1)+' of '+rows.length+'</span></div></div>';
+
+  h+='<div class="cd-rail">'+rows.map(function(x){
+    return '<div class="cd-railcard'+(x.id===sel?' on':'')+'" onclick="CXX.open_('+x.id+')">'
+      +'<div class="n">'+esc(x.n)+'</div><div class="s">'+esc(x.job)+(x.loc?' &bull; '+esc(x.loc):'')+'</div>'
+      +'<div class="a">'+esc(x.act)+'</div></div>';
+  }).join('')+'</div>';
+
+  h+='<div class="cd-pfmain"><div class="cd-pfhead"><div>'
+    +'<h1 class="cd-pfname">'+esc(c.n)+'</h1>'
+    +'<div class="cd-pfmeta">'+ico('bag')+esc(c.job)+' &middot; '+esc(c.w[0][1])+'</div>'
+    +'<div class="cd-pfmeta">'+ico('pin')+esc(c.loc)+'</div></div>'
+    +'<div class="r"><span class="cd-int">'
+      +'<button aria-pressed="'+(c.int==='sl')+'" onclick="CXX.setInt('+c.id+',\'sl\')" title="Shortlist">'+ico('tick')+'</button>'
+      +'<button aria-pressed="'+(c.int==='ud')+'" onclick="CXX.setInt('+c.id+',\'ud\')" title="Undecided">'+ico('q')+'</button>'
+      +'<button aria-pressed="'+(c.int==='rj')+'" onclick="CXX.setInt('+c.id+',\'rj\')" title="Not a fit">'+ico('x')+'</button>'
+    +'</span><span style="position:relative"><button class="cd-more" onclick="CXX.toggleMenu(event)">'+ico('dots')+'</button>'
+    +(menu?'<span class="cx-menu" style="display:block;right:0;top:48px;left:auto">'
+        +'<button onclick="return false">Download resume</button>'
+        +'<button onclick="return false">Download application data</button>'
+        +(c.stage==='scheduled'?'<button onclick="CXX.noshow('+c.id+')">Mark as no-show</button>':'')
+        +(c.stage!=='declined'?'<button onclick="CXX.decline('+c.id+')">Decline candidate</button>':'<button onclick="CXX.reinstate('+c.id+')">Reinstate candidate</button>')
+      +'</span>':'')+'</span></div></div>';
+
+  h+='<div class="cd-pfacts">'+actsFor(c)
+    +'<span style="position:relative;margin-left:auto"><button class="cd-status'+(stpop?' open':'')+'" onclick="CXX.toggleSt(event)"><b>Stage:</b><span class="v">'+STAGEL[c.stage]+'</span>'+ico('chev')+'</button>'
+    +(stpop?'<span class="cx-menu" style="display:block;right:0;top:48px;left:auto">'
+      +PILLS.filter(function(p){return p.k;}).map(function(p){
+        return '<button onclick="CXX.setStage('+c.id+',\''+p.k+'\')">'+(c.stage===p.k?'<span class="tick">'+ico('tick')+'</span>':'')+p.l+'</button>';}).join('')
+      +'</span>':'')+'</span></div>';
+
+  h+='<div class="cd-tabs" style="margin-top:24px">'
+    +'<button class="cd-tab'+(ptab==='app'?' on':'')+'" onclick="CXX.setPTab(\'app\')">Application</button>'
+    +'<button class="cd-tab'+(ptab==='act'?' on':'')+'" onclick="CXX.setPTab(\'act\')">Activity &amp; notes</button></div>';
+
+  if(ptab==='app'){
+    h+=sec('iv','Interviews',ivBody);
+    h+=sec('q','Qualifications',qBody,'<span class="cd-meter">'+c.sk.map(function(s){return '<i class="'+(s[1]?'on':'')+'"></i>';}).join('')+'</span>');
+    h+=sec('sq','Screener questions',sqBody);
+    h+=sec('ex','Experience',exBody);
+    h+=sec('ed','Education',edBody);
+    h+=sec('res','Resume',resBody);
+  } else {
+    h+='<div class="cd-sec"><div style="padding:24px 0 12px"><h2 style="font-size:20px;line-height:30px;margin:0">Activity feed</h2></div>'
+      + c.iv.slice().reverse().map(function(x){
+          return '<div style="padding:14px 0;border-top:1px solid #e4e2e0"><div style="font-size:14px;color:#767676">'+esc(x.t)+'</div>'
+            +'<div style="font-size:16px;margin-top:3px">'+esc(x.st)+' &middot; '+esc(EVS[x.ev].n)+'</div></div>';}).join('')
+      +'<div style="padding:14px 0;border-top:1px solid #e4e2e0"><div style="font-size:14px;color:#767676">Apr 20, 9:12 AM</div><div style="font-size:16px;margin-top:3px">Automation sent <b>Message new candidates</b></div></div>'
+      +'<div style="padding:14px 0;border-top:1px solid #e4e2e0"><div style="font-size:14px;color:#767676">Apr 20, 9:11 AM</div><div style="font-size:16px;margin-top:3px">'+esc(c.n)+' requested an interview for '+esc(c.job)+'</div></div>'
+      +'<div style="padding:24px 0 12px"><h2 style="font-size:20px;line-height:30px;margin:0">Write a private note</h2></div>'
+      +'<textarea style="width:100%;min-height:120px;border:1px solid #767676;border-radius:12px;padding:12px;font-family:inherit;font-size:16px"></textarea>'
+      +'<div style="margin-top:12px"><button class="cd-btn sec">Save note</button></div></div>';
+  }
+  h+='</div></div>';
+  return h;
+}
+
+function render(){document.getElementById('cxRoot').innerHTML = sel? profileHtml() : listHtml();}
+function setPill(k){pill=k;var r=list();if(sel&&!r.some(function(c){return c.id===sel;}))sel=r.length?r[0].id:null;render();}
+function open_(id){sel=id;ptab='app';menu=false;stpop=false;render();}
+function back(){sel=null;menu=false;stpop=false;render();}
+function step(d){var r=list(),i=r.findIndex(function(x){return x.id===sel;});if(i<0)return;i=(i+d+r.length)%r.length;sel=r[i].id;menu=false;stpop=false;render();}
+function setPTab(t){ptab=t;menu=false;stpop=false;render();}
+function toggleSec(k){secOpen[k]=!secOpen[k];render();}
+function toggleMenu(e){e.stopPropagation();menu=!menu;stpop=false;render();}
+function toggleSt(e){e.stopPropagation();stpop=!stpop;menu=false;render();}
+function toggleScope(e){e.stopPropagation();scopeOpen=!scopeOpen;render();}
+function setScope(e,v){e.stopPropagation();evScope=v;scopeOpen=false;var r=list();if(sel&&!r.some(function(c){return c.id===sel;}))sel=r.length?r[0].id:null;render();}
+function setInt(id,v){var c=get(id);c.int=(c.int===v)?null:v;render();}
+function setStage(id,k){var c=get(id);c.stage=k;stpop=false;render();}
+function accept(id){var c=get(id);c.stage='scheduled';c.iv.forEach(function(x){if(x.k==='req'){x.k='soon';x.st='Confirmed';x.by='Emily Chen';}});c.act='Interview confirmed · just now';render();}
+function decline(id){var c=get(id);c.stage='declined';c.int='rj';c.iv.forEach(function(x){if(x.k==='req'){x.k='dec';x.st='Declined';}});c.act='You declined · just now';menu=false;render();}
+function reinstate(id){var c=get(id);c.stage='requested';c.int=null;c.iv.forEach(function(x){if(x.k==='dec'){x.k='req';x.st='Awaiting your response';}});c.act='Reinstated · just now';menu=false;render();}
+function noshow(id){var c=get(id);c.stage='noshow';c.iv.forEach(function(x){if(x.k==='soon'){x.k='noshow';x.st='No-show';}});c.act='Did not attend · just now';menu=false;render();}
+function openDock(id){var c=get(id);
+  document.getElementById('cxdkN').textContent=c.n;
+  document.getElementById('cxdkS').textContent=c.job+' · '+EVS[c.iv[0].ev].n;
+  document.getElementById('cxdkB').innerHTML='<div class="bub us">Hi '+esc(c.n.split(' ')[0])+', thanks for requesting an interview for the '+esc(c.job)+' role. We&rsquo;re reviewing requests now and will be in touch very soon.<div class="t">Automation · Apr 20, 9:12 AM</div></div>'
+    +'<div class="bub them">Thank you! Is the interview virtual?<div class="t">Apr 20, 2:41 PM</div></div>'
+    +'<div class="bub us">It is &mdash; you&rsquo;ll get a link on the day.<div class="t">Apr 20, 3:05 PM</div></div>';
+  document.getElementById('cxdk').classList.add('open');}
+function closeDock(){document.getElementById('cxdk').classList.remove('open');}
+document.addEventListener('click',function(e){
+  if(!e.target||!e.target.closest)return;
+  if(menu||stpop||scopeOpen||openMenu){
+    if(e.target.closest('.cx-menu')||e.target.closest('.cd-more')||e.target.closest('.cd-status')||e.target.closest('.cx-title')||e.target.closest('.cx-ctl'))return;
+    menu=false;stpop=false;scopeOpen=false;openMenu='';render();
+  }
+},true);
+window.CXX={accept:accept,back:back,clearSel:clearSel,decline:decline,noshow:noshow,om:om,openDock:openDock,open_:open_,reinstate:reinstate,rowAct:rowAct,selAll:selAll,setInt:setInt,setPTab:setPTab,setPill:setPill,setScope:setScope,setStage:setStage,step:step,togSel:togSel,toggleMenu:toggleMenu,toggleScope:toggleScope,toggleSec:toggleSec,toggleSt:toggleSt,setSort:setSort,setJob:setJob,setRate:setRate,closeDock:closeDock,render:render};
+
+/* ---------- bootstrap ---------- */
+try {
+  var tpl = document.getElementById('cxViewTpl');
+  var main = document.querySelector('.main');
+  if (tpl && main) main.appendChild(tpl.content.cloneNode(true));
+  var evRow = document.getElementById('iarow-events');
+  if (evRow && !document.getElementById('iarow-candidates')) {
+    var row = document.createElement('div');
+    row.className = 'ia-row'; row.id = 'iarow-candidates';
+    row.innerHTML = '<a href="javascript:void(0)" class="nav-item ia-item" id="nav-candidates" onclick="showView(\'candidates\')">'
+      + '<svg class="ia-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">'
+      + '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>'
+      + '<path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>'
+      + '<span class="nav-text ia-lbl">Candidates</span></a>';
+    evRow.insertAdjacentElement('afterend', row);
+  }
+  render();
+} catch (e) { console.error('CXX bootstrap', e); }
+})();
+</script>
+
 </body>
 </html>
