@@ -217,6 +217,24 @@ body.setup-jobs-incomplete .add-job-row { display: none; }
 .nx-namewrap { margin-top: 20px; }
 .nx-namewrap input { width: 100%; box-sizing: border-box; height: 42px; border: 1px solid #2d2d2d; border-radius: 12px; padding: 9px 12px; font-family: inherit; font-size: 16px; color: #2d2d2d; }
 .nx-count { font-size: 12px; color: #595959; margin-top: 4px; }
+.nx-gate { transition: opacity .15s; }
+.nx-gate.off { opacity: .4; pointer-events: none; }
+.nx-x { width: 44px; height: 44px; border: 0; background: none; border-radius: 12px; cursor: pointer; color: #2d2d2d; display: flex; align-items: center; justify-content: center; }
+.nx-x:hover { background: #f3f2f1; }
+.nx-seljob { position: relative; display: inline-block; margin: 2px 0 6px; }
+.nx-selrow { display: flex; align-items: center; gap: 8px; font-size: 16px; color: #2d2d2d; margin: 10px 0 2px; }
+.nx-selrow .jt { color: #2d2d2d; }
+.nx-selrow .dot { color: #767676; }
+.nx-selrow .nx-x { width: 36px; height: 36px; margin-left: auto; }
+.nx-pop { position: absolute; left: 0; top: calc(100% + 8px); background: #fff; border: 1px solid #e4e2e0; border-radius: 12px; padding: 12px; width: 560px; max-width: 70vw; box-shadow: 0 0 2px rgba(45,45,45,.16), 0 4px 8px rgba(45,45,45,.08); z-index: 50; }
+.nx-pop input { width: 100%; box-sizing: border-box; height: 42px; border: 1px solid #2d2d2d; border-radius: 12px; padding: 9px 12px; font-family: inherit; font-size: 16px; }
+.nx-jcount { display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 700; color: #2d2d2d; padding: 12px 4px 8px; border-bottom: 1px solid #d4d2d0; }
+.nx-jrow { padding: 12px 8px; border-bottom: 1px solid #eceae8; cursor: pointer; }
+.nx-jrow:last-child { border-bottom: 0; }
+.nx-jrow:hover { background: #faf9f8; }
+.nx-jrow .t { font-size: 16px; color: #2d2d2d; }
+.nx-jrow .m { font-size: 14px; color: #595959; margin-top: 2px; }
+.nx-selcount { font-size: 14px; color: #595959; margin-top: 10px; }
 .am-jobs { margin: 0 0 4px; }
 .am-jobs-j { font-size: 16px; color: #2d2d2d; line-height: 1.6; }
 .am-jobs-m { font-size: 14px; color: #595959; margin-top: 6px; line-height: 1.5; }
@@ -713,6 +731,31 @@ setTimeout(function() {
     </div>
   </div>
 
+
+  <!-- ═══════════════════════════════════════════════════════════════════════════
+       DEVELOPER NOTE — Automations on the posting flow
+
+       This section is the SAME automation object as "Message new candidates" on
+       the Automations tab (visual-v3.html). Turning it on here creates that
+       automation scoped to the jobs picked below; editing it on either surface
+       edits the same record. Turning it off here turns off that record.
+
+       Two deliberate differences from the tab, both because you are inside one
+       event here and standing above everything there:
+
+         1. No "Turn on automation for all jobs at all events" radio. From this
+            screen that would silently cover other events the page never names.
+            Running an automation across events is a tab-only action.
+
+         2. The job picker lists only the jobs on THIS event. The tab's picker
+            spans every job in the account. Same control, different pool.
+
+       Job count per event follows the package: Starter 1, Growth 3, Pro 6.
+
+       NOT BUILT IN THE PROTOTYPE: automations turned on here do not appear on
+       the Automations tab — that tab keeps its own fixed demo list. Wire the two
+       together in the real build.
+       ═══════════════════════════════════════════════════════════════════════ -->
   <!-- SECTION: AUTOMATIONS -->
   <div class="section">
     <div class="section-header">
@@ -738,9 +781,10 @@ setTimeout(function() {
           <div class="nx-step"><span class="nx-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span><b>Send them a message</b></div>
         </div>
 
-        <div class="nx-lbl">Jobs included</div>
-        <div class="am-jobs" id="amJobs"></div>
+        <div class="nx-lbl">Jobs included <span class="req">*</span></div>
+        <div id="amScope"></div>
 
+        <div class="nx-gate" id="amGate">
         <div class="nx-tmplrow">
           <div class="nx-lbl" style="margin:0">Message template <span class="req">*</span></div>
           <button class="nx-btn nx-ghost" id="amTmplBtn" onclick="amToggleTmpl()">Templates <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px"><path d="M6 9l6 6 6-6"/></svg></button>
@@ -783,6 +827,8 @@ setTimeout(function() {
           <div class="nx-lbl">Automation name <span class="req">*</span></div>
           <input id="amName" maxlength="100" oninput="amNameEdit()">
           <div class="nx-count" id="amCount"></div>
+        </div>
+
         </div>
 
         <div class="am-actions">
@@ -1386,7 +1432,8 @@ var AM_LEAD = "Before your interview, finish your application here: ";
 /* Candidates who already requested an interview for this event's jobs in the last 4 weeks.
    The run-for-existing-candidates prompt only shows when this is above zero — on a brand
    new event the answer is always none, so we don't ask. */
-var AM_EXISTING = { dallas: 14, chicago: 0, atlanta: 0 };
+var AM_EXISTING = { dallas: [14, 5], chicago: [0, 0], atlanta: [0, 0] };
+var AM_JOBS = [];
 var AM_TPL = [
   { n: "Message new candidates",     m: "Hi {CANDIDATE_FIRSTNAME},\n\nThanks for requesting an interview for the {JOB_TITLE} role at {COMPANY}. We’re reviewing requests now and will be in touch very soon.\n\nRegards,\n{RECRUITER_NAME}" },
   { n: "Message scheduled candidates", m: "Hi {CANDIDATE_FIRSTNAME},\n\nYour interview for {JOB_TITLE} at {COMPANY} is set for {INTERVIEW_TIME}. Looking forward to meeting you.\n\nIf something comes up before then, reply here and we’ll find another time.\n\nRegards,\n{RECRUITER_NAME}" },
@@ -1394,7 +1441,7 @@ var AM_TPL = [
   { n: "Missed interview follow-up", m: "Hi {CANDIDATE_FIRSTNAME},\n\nSorry we missed you for your {JOB_TITLE} interview at {COMPANY} today. Things come up — if you’d still like to interview, pick a new time and we’ll get you rescheduled.\n\nRegards,\n{RECRUITER_NAME}" },
   { n: "Post-interview follow-up",   m: "Hi {CANDIDATE_FIRSTNAME},\n\nThanks for interviewing for {JOB_TITLE} at {COMPANY} today. We enjoyed meeting you and will be in touch on next steps soon.\n\nRegards,\n{RECRUITER_NAME}" }
 ];
-var amS = { live: false, nameTouched: false, snap: null };
+var amS = { live: false, nameTouched: false, snap: null, jobs: [] };
 
 function amEd() { return document.getElementById('amEd'); }
 function amEsc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
@@ -1499,33 +1546,114 @@ function amSyncUrl() {
 }
 
 /* ---- jobs / name ---- */
-function amJobNames() {
-  if (document.body.classList.contains('setup-jobs-incomplete')) return [];
-  var out = [], n = document.querySelectorAll('#editJobsWrap .job-name');
-  for (var i = 0; i < n.length; i++) out.push((n[i].textContent || '').trim());
-  return out;
-}
 function amMeta() {
   try { return EVENT_META[getEventKey()]; } catch (e) { return null; }
 }
-function amRenderJobs() {
-  var wrap = document.getElementById('amJobs');
-  if (!wrap) return;
-  var names = amJobNames(), meta = amMeta();
-  if (!names.length) {
-    wrap.innerHTML = '<div class="am-jobs-m">No jobs posted yet. Add a job and this automation will cover it.</div>';
-    return;
+/* ---- jobs included: the Automations tab's picker, scoped to this event ---- */
+function amJobList() {
+  if (document.body.classList.contains('setup-jobs-incomplete')) return [];
+  var meta = amMeta(), out = [], n = document.querySelectorAll('#editJobsWrap .job-card');
+  for (var i = 0; i < n.length; i++) {
+    if (n[i].style.display === 'none') continue;
+    var t = n[i].querySelector('.job-name');
+    if (!t) continue;
+    out.push({
+      job: (t.textContent || '').trim(),
+      ev: meta ? meta.name : '',
+      date: amShortDate(),
+      recent: amRecentFor(out.length)
+    });
   }
-  var h = '';
-  for (var i = 0; i < names.length; i++) h += '<div class="am-jobs-j">' + amEsc(names[i]) + '</div>';
-  var when = meta ? (' &middot; ' + meta.name + ' &middot; ' + String(meta.date).split('&middot;')[0].trim()) : '';
-  h += '<div class="am-jobs-m">' + names.length + ' job' + (names.length === 1 ? '' : 's') + when + '</div>';
-  wrap.innerHTML = h;
+  return out;
 }
-function amAutoName() {
+function amShortDate() {
   var m = amMeta();
-  return 'Message new candidates' + (m ? ' — ' + m.name : '');
+  if (!m) return '';
+  var d = String(m.date).split('&middot;')[0].replace(/&nbsp;/g, ' ').trim();
+  return d.replace(/^([A-Z][a-z]{2})[a-z]*/, '$1');
 }
+function amRecentFor(i) {
+  try { var a = AM_EXISTING[getEventKey()]; return (a && a[i]) || 0; } catch (e) { return 0; }
+}
+function amSelRowsHtml() {
+  if (!amS.jobs.length) return '';
+  var h = '';
+  for (var n = 0; n < amS.jobs.length; n++) {
+    var j = AM_JOBS[amS.jobs[n]];
+    if (!j) continue;
+    h += '<div class="nx-selrow"><span class="jt">' + amEsc(j.job) + '</span><span class="dot">&middot;</span><span>'
+      + amEsc(j.ev) + '</span><span class="dot">&middot;</span><span>' + amEsc(j.date)
+      + '</span><button type="button" class="nx-x" title="Remove job" onclick="amClearJob(' + n + ')">'
+      + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>';
+  }
+  h += '<div class="nx-selcount">' + amS.jobs.length + ' job' + (amS.jobs.length === 1 ? '' : 's') + ' included</div>';
+  return h;
+}
+function amPickerHtml(q) {
+  var avail = [];
+  for (var i = 0; i < AM_JOBS.length; i++) {
+    if (amS.jobs.indexOf(i) > -1) continue;
+    if (q && (AM_JOBS[i].job + ' ' + AM_JOBS[i].ev).toLowerCase().indexOf(q.toLowerCase()) < 0) continue;
+    avail.push(i);
+  }
+  var h = '<div class="nx-pop" id="amPicker"><input id="amPickQ" placeholder="Search by job title" value="' + amEsc(q || '') + '" oninput="amPickQ(this.value)">'
+    + '<div class="nx-jcount"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>'
+    + avail.length + ' job' + (avail.length === 1 ? '' : 's') + '</div>';
+  if (!avail.length) {
+    h += '<div style="padding:16px 8px;font-size:15px;color:#767676">'
+      + (q ? 'No jobs match that search.' : (AM_JOBS.length ? 'Every job on this event is already included.' : 'No jobs posted on this event yet.')) + '</div>';
+  }
+  for (var k = 0; k < avail.length; k++) {
+    var j = AM_JOBS[avail[k]];
+    h += '<div class="nx-jrow" onclick="amPickJob(' + avail[k] + ')"><div class="t">' + amEsc(j.job)
+      + '</div><div class="m">' + amEsc(j.ev) + ' &middot; ' + amEsc(j.date) + '</div></div>';
+  }
+  return h + '</div>';
+}
+function amRenderScope() {
+  var host = document.getElementById('amScope');
+  if (!host) return;
+  AM_JOBS = amJobList();
+  for (var n = amS.jobs.length - 1; n >= 0; n--) { if (!AM_JOBS[amS.jobs[n]]) amS.jobs.splice(n, 1); }
+  host.innerHTML = '<div class="nx-seljob"><button type="button" class="nx-btn nx-ghost" id="amSelBtn" onclick="amTogglePicker()">'
+    + '<span style="color:#004fcb;font-weight:700">+&nbsp; Select a job</span></button><span id="amPickerHost"></span></div>'
+    + '<div id="amSelRow">' + amSelRowsHtml() + '</div>';
+  amApplyGate();
+}
+function amTogglePicker() {
+  var host = document.getElementById('amPickerHost');
+  if (!host) return;
+  if (host.innerHTML) { host.innerHTML = ''; return; }
+  host.innerHTML = amPickerHtml('');
+  var q = document.getElementById('amPickQ');
+  if (q) q.focus();
+}
+function amPickQ(v) {
+  var host = document.getElementById('amPickerHost');
+  if (!host) return;
+  host.innerHTML = amPickerHtml(v);
+  var q = document.getElementById('amPickQ');
+  if (q) { q.focus(); q.setSelectionRange(v.length, v.length); }
+}
+function amPickJob(i) {
+  if (amS.jobs.indexOf(i) < 0) amS.jobs.push(i);
+  var host = document.getElementById('amPickerHost');
+  if (host) host.innerHTML = '';
+  var sr = document.getElementById('amSelRow');
+  if (sr) sr.innerHTML = amSelRowsHtml();
+  amApplyGate();
+}
+function amClearJob(n) {
+  amS.jobs.splice(n, 1);
+  var sr = document.getElementById('amSelRow');
+  if (sr) sr.innerHTML = amSelRowsHtml();
+  amApplyGate();
+}
+function amScopeText() {
+  if (amS.jobs.length === 1) { var j = AM_JOBS[amS.jobs[0]]; return j ? j.job : 'this job'; }
+  return amS.jobs.length + ' jobs';
+}
+function amAutoName() { return 'Message new candidates'; }
 function amCount() {
   var n = document.getElementById('amName'), c = document.getElementById('amCount');
   if (n && c) c.textContent = n.value.length + '/100';
@@ -1534,6 +1662,7 @@ function amNameEdit() { amS.nameTouched = true; amCount(); amApplyGate(); }
 
 /* ---- gate ---- */
 function amGateOK() {
+  if (!amS.jobs.length) return false;
   var ed = amEd();
   if (!ed || !(ed.innerText || '').trim()) return false;
   var n = document.getElementById('amName');
@@ -1546,6 +1675,8 @@ function amGateOK() {
   return true;
 }
 function amApplyGate() {
+  var g = document.getElementById('amGate');
+  if (g) g.classList.toggle('off', !amS.jobs.length);
   var b = document.getElementById('amCommit');
   if (b) b.disabled = !amGateOK();
 }
@@ -1558,7 +1689,8 @@ function amSnap() {
     name: document.getElementById('amName').value,
     yes: document.getElementById('amLinkYes').checked,
     url: document.getElementById('amLinkUrl').value,
-    touched: amS.nameTouched
+    touched: amS.nameTouched,
+    jobs: amS.jobs.slice()
   };
 }
 function amRestore(s) {
@@ -1571,6 +1703,8 @@ function amRestore(s) {
   document.getElementById('amLinkUrl').value = s.url;
   document.getElementById('amLinkField').classList.toggle('visible', !!s.yes);
   amS.nameTouched = s.touched;
+  amS.jobs = (s.jobs || []).slice();
+  amRenderScope();
   amCount();
   amApplyGate();
 }
@@ -1581,7 +1715,7 @@ function amSetCommitLabel() {
 function amOpenPanel() {
   var sec = document.getElementById('autoMsgSection');
   if (!sec) return;
-  amRenderJobs();
+  amRenderScope();
   if (!amS.nameTouched) { document.getElementById('amName').value = amAutoName(); amCount(); }
   amS.snap = amSnap();
   sec.classList.add('open');
@@ -1606,8 +1740,9 @@ function amSwitch(on) {
   amClosePanel();
 }
 function amExistingCount() {
-  if (!amJobNames().length) return 0;
-  try { return AM_EXISTING[getEventKey()] || 0; } catch (e) { return 0; }
+  var t = 0;
+  for (var i = 0; i < amS.jobs.length; i++) { var j = AM_JOBS[amS.jobs[i]]; if (j) t += j.recent || 0; }
+  return t;
 }
 function amCommit() {
   if (!amGateOK()) return;
@@ -1643,7 +1778,7 @@ function amCloseConfirm() {
 }
 function amOpenConfirm(n) {
   amOverlay('<div class="modal-title">Run automation for existing candidates</div>'
-    + '<div class="modal-title-sub">' + n + ' candidate' + (n === 1 ? '' : 's') + ' already requested an interview for these jobs in the last 4 weeks. Send them this message too?</div>'
+    + '<div class="modal-title-sub">' + n + ' candidate' + (n === 1 ? '' : 's') + ' already requested an interview for <b>' + amEsc(amScopeText()) + '</b> in the last 4 weeks. Send them this message too?</div>'
     + '<div class="modal-actions"><button type="button" class="modal-btn-cancel" onclick="amCloseConfirm();amFinishOn(false)">Don’t run</button>'
     + '<button type="button" class="modal-btn-save" onclick="amCloseConfirm();amFinishOn(true)">Run for existing candidates</button></div>');
 }
@@ -1651,7 +1786,7 @@ function amAskOff() {
   var t = document.getElementById('autoMsgToggle');
   if (t) t.checked = true;
   amOverlay('<div class="modal-title">Turn off automation</div>'
-    + '<div class="modal-title-sub">Message new candidates will stop running for these jobs until you turn it back on.</div>'
+    + '<div class="modal-title-sub">Message new candidates will stop running for <b>' + amEsc(amScopeText()) + '</b> until you turn it back on.</div>'
     + '<div class="modal-actions"><button type="button" class="modal-btn-cancel" onclick="amCloseConfirm()">Cancel</button>'
     + '<button type="button" class="modal-btn-save" style="background:#991b1b" onclick="amCloseConfirm();amDoOff()">Turn off</button></div>');
 }
@@ -1670,7 +1805,7 @@ function amInit() {
   if (!amEd()) return;
   amRenderToks();
   amEd().innerHTML = amTextToHtml(AM_TPL[0].m);
-  amRenderJobs();
+  amRenderScope();
   var n = document.getElementById('amName');
   if (n) n.value = amAutoName();
   amCount();
@@ -1684,6 +1819,8 @@ document.addEventListener('click', function (e) {
   if (th && th.innerHTML && !e.target.closest('#amTmplHost') && !e.target.closest('#amTmplBtn')) th.innerHTML = '';
   var kh = document.getElementById('amTokHost');
   if (kh && kh.innerHTML && !e.target.closest('#amTokHost') && !e.target.closest('.nx-edbar')) kh.innerHTML = '';
+  var ph = document.getElementById('amPickerHost');
+  if (ph && ph.innerHTML && !e.target.closest('#amPicker') && !e.target.closest('#amSelBtn')) ph.innerHTML = '';
 }, true);
 
 /* ═══ Screening Functions ═══ */
@@ -2409,7 +2546,7 @@ function applySetupState(jobsOk, interviewOk) {
   document.body.classList.toggle('setup-jobs-incomplete', !jobsOk);
   document.body.classList.toggle('setup-interview-incomplete', !interviewOk);
   if (typeof slotApplySetup === 'function') slotApplySetup(interviewOk);
-  if (typeof amRenderJobs === 'function') amRenderJobs();
+  if (typeof amRenderScope === 'function') amRenderScope();
 
   // Banner copy adapts to which gaps exist.
   var title = document.getElementById('incompleteBannerTitle');

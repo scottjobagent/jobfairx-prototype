@@ -575,6 +575,24 @@ body.collapsed .progress-bar-track { left: 60px; }
 .am-xl { margin-top: 20px; padding-top: 18px; border-top: 1px solid #e8e6e3; }
 .am-xl-hint { font-size: 13px; color: #767676; margin-top: 8px; line-height: 1.55; max-width: 560px; }
 .nx-lbl .req, .nx-tmplrow .req { color: #991b1b; }
+.nx-gate { transition: opacity .15s; }
+.nx-gate.off { opacity: .4; pointer-events: none; }
+.nx-x { width: 44px; height: 44px; border: 0; background: none; border-radius: 12px; cursor: pointer; color: #2d2d2d; display: flex; align-items: center; justify-content: center; }
+.nx-x:hover { background: #f3f2f1; }
+.nx-seljob { position: relative; display: inline-block; margin: 2px 0 6px; }
+.nx-selrow { display: flex; align-items: center; gap: 8px; font-size: 16px; color: #2d2d2d; margin: 10px 0 2px; }
+.nx-selrow .jt { color: #2d2d2d; }
+.nx-selrow .dot { color: #767676; }
+.nx-selrow .nx-x { width: 36px; height: 36px; margin-left: auto; }
+.nx-pop { position: absolute; left: 0; top: calc(100% + 8px); background: #fff; border: 1px solid #e4e2e0; border-radius: 12px; padding: 12px; width: 560px; max-width: 70vw; box-shadow: 0 0 2px rgba(45,45,45,.16), 0 4px 8px rgba(45,45,45,.08); z-index: 50; }
+.nx-pop input { width: 100%; box-sizing: border-box; height: 42px; border: 1px solid #2d2d2d; border-radius: 12px; padding: 9px 12px; font-family: inherit; font-size: 16px; }
+.nx-jcount { display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 700; color: #2d2d2d; padding: 12px 4px 8px; border-bottom: 1px solid #d4d2d0; }
+.nx-jrow { padding: 12px 8px; border-bottom: 1px solid #eceae8; cursor: pointer; }
+.nx-jrow:last-child { border-bottom: 0; }
+.nx-jrow:hover { background: #faf9f8; }
+.nx-jrow .t { font-size: 16px; color: #2d2d2d; }
+.nx-jrow .m { font-size: 14px; color: #595959; margin-top: 2px; }
+.nx-selcount { font-size: 14px; color: #595959; margin-top: 10px; }
 .rvm-gate { transition: opacity .15s; }
 .rvm-gate.off { opacity: .4; pointer-events: none; }
 .rvm-manage { font-size: 13px; color: #767676; line-height: 1.6; margin: 10px 0 0; }
@@ -1936,7 +1954,7 @@ var RVM_TPL = [
   { n: "Missed interview follow-up",   m: "Hi {CANDIDATE_FIRSTNAME},\n\nSorry we missed you for your {JOB_TITLE} interview at {COMPANY} today. Things come up — if you’d still like to interview, pick a new time and we’ll get you rescheduled.\n\nRegards,\n{RECRUITER_NAME}" },
   { n: "Post-interview follow-up",     m: "Hi {CANDIDATE_FIRSTNAME},\n\nThanks for interviewing for {JOB_TITLE} at {COMPANY} today. We enjoyed meeting you and will be in touch on next steps soon.\n\nRegards,\n{RECRUITER_NAME}" }
 ];
-var rvmS = { live: false, nameTouched: false, seeded: false };
+var rvmS = { live: false, nameTouched: false, seeded: false, jobs: [] };
 
 function rvmEd() { return document.getElementById('rvmEd'); }
 function rvmEsc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
@@ -2033,19 +2051,86 @@ function rvmSyncUrl() {
   }
   rvmApplyGate();
 }
-function rvmJobNames() {
-  var out = ['Frontend Developer'];
+/* ---- jobs included: the Automations tab's picker, scoped to this event ---- */
+var RVM_JOBS = [];
+function rvmEvent() {
+  try { if (IS_ADD_JOB_MODE && ADD_JOB_EVENT && ADD_JOB_EVENTS[ADD_JOB_EVENT]) return ADD_JOB_EVENTS[ADD_JOB_EVENT].name; } catch (e) {}
+  return 'Dallas Healthcare Hiring Event';
+}
+function rvmJobList() {
+  var ev = rvmEvent(), out = [{ job: 'Frontend Developer', ev: ev }];
   var t = document.getElementById('jobTitle');
-  out.push((t && t.value.trim()) || 'Sales Associate');
+  out.push({ job: (t && t.value.trim()) || 'Sales Associate', ev: ev });
   return out;
 }
-function rvmRenderJobs() {
-  var wrap = document.getElementById('rvmJobs');
-  if (!wrap) return;
-  var names = rvmJobNames(), h = '';
-  for (var i = 0; i < names.length; i++) h += '<div class="am-jobs-j">' + rvmEsc(names[i]) + '</div>';
-  h += '<div class="am-jobs-m">' + names.length + ' job' + (names.length === 1 ? '' : 's') + ' on this event</div>';
-  wrap.innerHTML = h;
+function rvmSelRowsHtml() {
+  if (!rvmS.jobs.length) return '';
+  var h = '';
+  for (var n = 0; n < rvmS.jobs.length; n++) {
+    var j = RVM_JOBS[rvmS.jobs[n]];
+    if (!j) continue;
+    h += '<div class="nx-selrow"><span class="jt">' + rvmEsc(j.job) + '</span><span class="dot">&middot;</span><span>' + rvmEsc(j.ev)
+      + '</span><button type="button" class="nx-x" title="Remove job" onclick="rvmClearJob(' + n + ')">'
+      + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>';
+  }
+  h += '<div class="nx-selcount">' + rvmS.jobs.length + ' job' + (rvmS.jobs.length === 1 ? '' : 's') + ' included</div>';
+  return h;
+}
+function rvmPickerHtml(q) {
+  var avail = [];
+  for (var i = 0; i < RVM_JOBS.length; i++) {
+    if (rvmS.jobs.indexOf(i) > -1) continue;
+    if (q && RVM_JOBS[i].job.toLowerCase().indexOf(q.toLowerCase()) < 0) continue;
+    avail.push(i);
+  }
+  var h = '<div class="nx-pop" id="rvmPicker"><input id="rvmPickQ" placeholder="Search by job title" value="' + rvmEsc(q || '') + '" oninput="rvmPickQ(this.value)">'
+    + '<div class="nx-jcount"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>'
+    + avail.length + ' job' + (avail.length === 1 ? '' : 's') + '</div>';
+  if (!avail.length) h += '<div style="padding:16px 8px;font-size:15px;color:#767676">' + (q ? 'No jobs match that search.' : 'Every job on this event is already included.') + '</div>';
+  for (var k = 0; k < avail.length; k++) {
+    var j = RVM_JOBS[avail[k]];
+    h += '<div class="nx-jrow" onclick="rvmPickJob(' + avail[k] + ')"><div class="t">' + rvmEsc(j.job) + '</div><div class="m">' + rvmEsc(j.ev) + '</div></div>';
+  }
+  return h + '</div>';
+}
+function rvmRenderScope() {
+  var host = document.getElementById('rvmScope');
+  if (!host) return;
+  RVM_JOBS = rvmJobList();
+  for (var n = rvmS.jobs.length - 1; n >= 0; n--) { if (!RVM_JOBS[rvmS.jobs[n]]) rvmS.jobs.splice(n, 1); }
+  host.innerHTML = '<div class="nx-seljob"><button type="button" class="nx-btn nx-ghost" id="rvmSelBtn" onclick="rvmTogglePicker()">'
+    + '<span style="color:#004fcb;font-weight:700">+&nbsp; Select a job</span></button><span id="rvmPickerHost"></span></div>'
+    + '<div id="rvmSelRow">' + rvmSelRowsHtml() + '</div>';
+  rvmApplyGate();
+}
+function rvmTogglePicker() {
+  var host = document.getElementById('rvmPickerHost');
+  if (!host) return;
+  if (host.innerHTML) { host.innerHTML = ''; return; }
+  host.innerHTML = rvmPickerHtml('');
+  var q = document.getElementById('rvmPickQ');
+  if (q) q.focus();
+}
+function rvmPickQ(v) {
+  var host = document.getElementById('rvmPickerHost');
+  if (!host) return;
+  host.innerHTML = rvmPickerHtml(v);
+  var q = document.getElementById('rvmPickQ');
+  if (q) { q.focus(); q.setSelectionRange(v.length, v.length); }
+}
+function rvmPickJob(i) {
+  if (rvmS.jobs.indexOf(i) < 0) rvmS.jobs.push(i);
+  var host = document.getElementById('rvmPickerHost');
+  if (host) host.innerHTML = '';
+  var sr = document.getElementById('rvmSelRow');
+  if (sr) sr.innerHTML = rvmSelRowsHtml();
+  rvmApplyGate();
+}
+function rvmClearJob(n) {
+  rvmS.jobs.splice(n, 1);
+  var sr = document.getElementById('rvmSelRow');
+  if (sr) sr.innerHTML = rvmSelRowsHtml();
+  rvmApplyGate();
 }
 function rvmCount() {
   var n = document.getElementById('rvmName2'), c = document.getElementById('rvmCount');
@@ -2055,6 +2140,7 @@ function rvmNameEdit() { rvmS.nameTouched = true; rvmCount(); rvmApplyGate(); }
 function rvmGateOK() {
   var on = document.getElementById('rvmMsgEnabled');
   if (!on || !on.checked) return true;   /* leaving it off is always allowed */
+  if (!rvmS.jobs.length) return false;
   var ed = rvmEd();
   if (!ed || !(ed.innerText || '').trim()) return false;
   var n = document.getElementById('rvmName2');
@@ -2071,6 +2157,8 @@ function rvmApplyGate() {
   var g = document.getElementById('rvmGate');
   var checked = !!(on && on.checked);
   if (g) g.classList.toggle('off', !checked);
+  var g2 = document.getElementById('rvmGate2');
+  if (g2) g2.classList.toggle('off', !rvmS.jobs.length);
   var b = document.getElementById('rvmCommit');
   if (b) {
     b.disabled = !rvmGateOK();
@@ -2086,7 +2174,7 @@ function updateRvmPreview() {
     if (n) n.value = 'Message new candidates';
     rvmS.seeded = true;
   }
-  rvmRenderJobs();
+  rvmRenderScope();
   rvmCount();
   rvmApplyGate();
 }
@@ -2096,6 +2184,8 @@ document.addEventListener('click', function (e) {
   if (th && th.innerHTML && !e.target.closest('#rvmTmplHost') && !e.target.closest('#rvmTmplBtn')) th.innerHTML = '';
   var kh = document.getElementById('rvmTokHost');
   if (kh && kh.innerHTML && !e.target.closest('#rvmTokHost') && !e.target.closest('.nx-edbar')) kh.innerHTML = '';
+  var ph = document.getElementById('rvmPickerHost');
+  if (ph && ph.innerHTML && !e.target.closest('#rvmPicker') && !e.target.closest('#rvmSelBtn')) ph.innerHTML = '';
 }, true);
 
 function saveRvmCustomMsg() {
@@ -3704,7 +3794,30 @@ function populateStep7Review() {
   </div>
 </div>
 
-<!-- ═══ REVIEW MODAL: Custom Messaging ═══ -->
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     DEVELOPER NOTE — Automations in the posting wizard
+
+     Same automation object as "Message new candidates" on the Automations tab
+     (visual-v3.html). Turning it on here creates that automation scoped to the
+     jobs picked below.
+
+     Two deliberate differences from the tab:
+       1. No "Turn on automation for all jobs at all events" radio — from inside
+          one event that would silently cover events this screen never names.
+          Running an automation across events is a tab-only action.
+       2. The picker lists only the jobs on THIS event. The tab's picker spans
+          every job in the account.
+
+     No "run for existing candidates" prompt here: the post does not exist yet,
+     so nobody has requested an interview for it.
+
+     Job count per event follows the package: Starter 1, Growth 3, Pro 6.
+
+     NOT BUILT IN THE PROTOTYPE: automations turned on here do not appear on the
+     Automations tab — that tab keeps its own fixed demo list.
+     ═══════════════════════════════════════════════════════════════════════ -->
+<!-- ═══ REVIEW MODAL: Automations ═══ -->
 <div class="rv-modal-backdrop" id="rvCustomMsgModal" onclick="if(event.target===this)closeRvModal('rvCustomMsgModal')">
   <div class="rv-modal-card" style="max-width:600px;">
     <div class="rv-modal-header">
@@ -3720,9 +3833,10 @@ function populateStep7Review() {
 
       <div class="rvm-gate" id="rvmGate">
 
-        <div class="nx-lbl">Jobs included</div>
-        <div class="am-jobs" id="rvmJobs"></div>
+        <div class="nx-lbl">Jobs included <span class="req">*</span></div>
+        <div id="rvmScope"></div>
 
+        <div class="nx-gate" id="rvmGate2">
         <div class="nx-tmplrow">
           <div class="nx-lbl" style="margin:0">Message template <span class="req">*</span></div>
           <button class="nx-btn nx-ghost" id="rvmTmplBtn" onclick="rvmToggleTmpl()">Templates <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px"><path d="M6 9l6 6 6-6"/></svg></button>
@@ -3767,6 +3881,7 @@ function populateStep7Review() {
           <div class="nx-count" id="rvmCount"></div>
         </div>
 
+        </div>
       </div>
     </div>
     <div class="rv-modal-footer">
