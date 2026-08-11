@@ -188,6 +188,42 @@ body.setup-jobs-incomplete .add-job-row { display: none; }
 .am-btn-close:hover { background: #f3f2ef; }
 .am-btn-done { background: #0044B3; border: none; font-size: 14px; font-weight: 700; color: #fff; cursor: pointer; font-family: inherit; padding: 10px 28px; border-radius: 8px; transition: background 0.15s; }
 .am-btn-done:hover { background: #003399; }
+/* ── Automations editor (matched to the Automations tab, prefix nx-) ── */
+.nx-step { display: flex; gap: 16px; align-items: flex-start; }
+.nx-ico { width: 32px; height: 32px; border-radius: 50%; background: #f3f2f1; color: #2d2d2d; display: flex; align-items: center; justify-content: center; flex: none; }
+.nx-ico svg { width: 16px; height: 16px; }
+.nx-step b { font-size: 16px; font-weight: 700; padding-top: 5px; color: #2d2d2d; }
+.nx-conn { width: 1px; height: 16px; background: #d4d2d0; margin: 2px 0 2px 16px; }
+.nx-btn { font-family: inherit; font-size: 16px; font-weight: 700; line-height: 24px; height: 44px; border-radius: 12px; padding: 9px 16px; cursor: pointer; border: 0; }
+.nx-ghost { background: #fff; color: #004fcb; border: 1px solid #e4e2e0; padding: 9px 15px; }
+.nx-btn[disabled] { opacity: .4; cursor: default; }
+.nx-recap { border-bottom: 1px solid #e4e2e0; padding-bottom: 18px; margin-bottom: 18px; }
+.nx-lbl { font-size: 16px; font-weight: 700; color: #2d2d2d; margin: 0 0 10px; }
+.nx-tmplrow { display: flex; align-items: center; justify-content: space-between; margin: 20px 0 4px; position: relative; }
+.nx-menu { position: absolute; right: 0; top: calc(100% + 6px); background: #fff; border: 1px solid #e4e2e0; border-radius: 12px; padding: 12px; box-shadow: 0 0 2px rgba(45,45,45,.16), 0 4px 8px rgba(45,45,45,.08); z-index: 60; min-width: 220px; }
+.nx-menu button { display: block; width: 100%; text-align: left; background: none; border: 0; font-family: inherit; font-size: 14px; color: #2d2d2d; padding: 10px 12px; border-radius: 8px; cursor: pointer; }
+.nx-menu button:hover { background: #f3f2f1; }
+.nx-edbox { border: 1px solid #767676; border-radius: 12px; overflow: hidden; margin-top: 6px; }
+.nx-edbar { display: flex; align-items: center; background: #f3f2f1; border-bottom: 1px solid #595959; padding: 2px; position: relative; }
+.nx-edbar button { width: 44px; height: 44px; border: 0; background: none; border-radius: 12px; cursor: pointer; color: #2d2d2d; font-family: Georgia, serif; font-size: 17px; display: inline-flex; align-items: center; justify-content: center; }
+.nx-edbar button:hover { background: #e9e7e4; }
+.nx-edbar .nx-help { margin-left: auto; color: #595959; display: inline-flex; padding-right: 8px; }
+.nx-ed { min-height: 150px; max-height: 320px; overflow-y: auto; padding: 12px; font-size: 16px; line-height: 24px; color: #2d2d2d; white-space: pre-wrap; outline: none; }
+.nx-ed a { color: #0044B3; }
+.nx-toks { background: #faf9f8; border-top: 1px solid #e4e2e0; padding: 12px; display: flex; flex-wrap: wrap; gap: 10px; }
+.nx-tok { background: #fff; border: 1px solid #e4e2e0; border-radius: 12px; color: #004fcb; font-size: 15px; font-weight: 700; font-family: inherit; height: 42px; padding: 8px 14px; cursor: pointer; }
+.nx-respline { font-size: 16px; color: #595959; margin: 16px 0 0; }
+.nx-respline b { color: #2d2d2d; }
+.nx-namewrap { margin-top: 20px; }
+.nx-namewrap input { width: 100%; box-sizing: border-box; height: 42px; border: 1px solid #2d2d2d; border-radius: 12px; padding: 9px 12px; font-family: inherit; font-size: 16px; color: #2d2d2d; }
+.nx-count { font-size: 12px; color: #595959; margin-top: 4px; }
+.am-jobs { margin: 0 0 4px; }
+.am-jobs-j { font-size: 16px; color: #2d2d2d; line-height: 1.6; }
+.am-jobs-m { font-size: 14px; color: #595959; margin-top: 6px; line-height: 1.5; }
+.am-xl { margin-top: 20px; padding-top: 18px; border-top: 1px solid #e8e6e3; }
+.am-xl-hint { font-size: 13px; color: #767676; margin-top: 8px; line-height: 1.55; max-width: 560px; }
+.nx-lbl .req, .nx-tmplrow .req { color: #991b1b; }
+
 
 /* ═══ Shared Section Action Buttons ═══ */
 .ce-actions { display: flex; align-items: center; justify-content: flex-end; gap: 16px; margin-top: 28px; padding-top: 24px; }
@@ -677,72 +713,81 @@ setTimeout(function() {
     </div>
   </div>
 
-  <!-- SECTION: AUTO MESSAGING -->
+  <!-- SECTION: AUTOMATIONS -->
   <div class="section">
     <div class="section-header">
       <h2>Automations</h2>
-      <button class="section-pencil" title="Edit automations" onclick="toggleAutoMessaging(true)"><svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button>
+      <button class="section-pencil" title="Edit automations" onclick="amOpenPanel()"><svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button>
     </div>
     <div class="section-divider"></div>
     <div class="section-body">
       <div class="toggle-row" id="autoMsgToggleRow">
         <label class="toggle-switch">
-          <input type="checkbox" id="autoMsgToggle" onchange="toggleAutoMessaging(this.checked)">
+          <input type="checkbox" id="autoMsgToggle" onchange="amSwitch(this.checked)">
           <span class="toggle-slider"></span>
         </label>
         <span class="toggle-label">Message new candidates<span class="am-trig">When a candidate requests an interview &middot; send them a message</span></span>
       </div>
-      <p class="am-manage">This is one of five automations. <a href="visual-v3.html?view=automations">Manage the rest in Automations</a></p>
+      <p class="am-manage">This is one of five automations. Manage the rest on the Automations tab.</p>
 
-      <!-- Expandable Auto Messaging Form -->
       <div class="am-section" id="autoMsgSection">
 
-        <!-- Name / Role fields -->
-        <div class="am-fields-row">
-          <div class="am-field">
-            <div class="am-field-label">Your Name <span class="req">*</span></div>
-            <input class="am-field-input" type="text" id="amName" value="Joe" oninput="updateAutoMsgPreview()">
-          </div>
-          <div class="am-field">
-            <div class="am-field-label">Your Role at the Company <span class="req">*</span></div>
-            <input class="am-field-input" type="text" id="amRole" value="Recruiting Manager" oninput="updateAutoMsgPreview()">
-          </div>
+        <div class="nx-recap">
+          <div class="nx-step"><span class="nx-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg></span><b>When a candidate requests an interview</b></div>
+          <div class="nx-conn"></div>
+          <div class="nx-step"><span class="nx-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span><b>Send them a message</b></div>
         </div>
 
-        <!-- External link radio -->
-        <div class="am-radio-group">
+        <div class="nx-lbl">Jobs included</div>
+        <div class="am-jobs" id="amJobs"></div>
+
+        <div class="nx-tmplrow">
+          <div class="nx-lbl" style="margin:0">Message template <span class="req">*</span></div>
+          <button class="nx-btn nx-ghost" id="amTmplBtn" onclick="amToggleTmpl()">Templates <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px"><path d="M6 9l6 6 6-6"/></svg></button>
+          <span id="amTmplHost"></span>
+        </div>
+        <div class="nx-edbox">
+          <div class="nx-edbar">
+            <button type="button" title="Bold" style="font-weight:800" onclick="amFmt('bold')">B</button>
+            <button type="button" title="Italic" style="font-style:italic" onclick="amFmt('italic')">I</button>
+            <button type="button" title="Bulleted list" onclick="amFmt('insertUnorderedList')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1.4" fill="currentColor" stroke="none"/><circle cx="4.5" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="4.5" cy="18" r="1.4" fill="currentColor" stroke="none"/></svg></button>
+            <button type="button" title="Insert a variable" style="font-family:inherit;font-weight:700" onclick="amToggleTok()">{&nbsp;}</button>
+            <span id="amTokHost" style="position:relative"></span>
+            <span class="nx-help" title="Formatting help"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.4 2.3c-.8.3-.9 1-.9 1.7"/><circle cx="12" cy="17" r=".5" fill="currentColor"/></svg></span>
+          </div>
+          <div class="nx-ed" id="amEd" contenteditable="true" oninput="amApplyGate()"></div>
+          <div class="nx-toks" id="amToks"></div>
+        </div>
+        <div class="nx-respline">Responses will be sent to <b>scott@jobfairx.com</b></div>
+
+        <div class="am-xl">
           <div class="am-radio-question">Would you like to add an external application link?</div>
           <div class="am-radio-options">
             <div class="am-radio-option">
-              <input type="radio" name="amLink" id="amLinkYes" value="yes" onchange="toggleAmLink()">
+              <input type="radio" name="amLink" id="amLinkYes" value="yes" onchange="amSetLink(true)">
               <label for="amLinkYes">Yes</label>
             </div>
             <div class="am-radio-option">
-              <input type="radio" name="amLink" id="amLinkNo" value="no" checked onchange="toggleAmLink()">
+              <input type="radio" name="amLink" id="amLinkNo" value="no" checked onchange="amSetLink(false)">
               <label for="amLinkNo">No</label>
             </div>
           </div>
+          <div class="am-link-field" id="amLinkField">
+            <div class="am-field-label" style="margin-top:14px">Link <span class="req">*</span></div>
+            <input class="am-field-input" type="url" id="amLinkUrl" placeholder="https://" oninput="amSyncUrl()">
+            <div class="am-xl-hint">Added as a line in the message above. Edit or move it like any other text.</div>
+          </div>
         </div>
 
-        <!-- Link field (hidden by default) -->
-        <div class="am-link-field" id="amLinkField">
-          <div class="am-field-label">Link <span class="req">*</span></div>
-          <input class="am-field-input" type="url" id="amLinkUrl" placeholder="https://" oninput="updateAutoMsgPreview()">
+        <div class="nx-namewrap">
+          <div class="nx-lbl">Automation name <span class="req">*</span></div>
+          <input id="amName" maxlength="100" oninput="amNameEdit()">
+          <div class="nx-count" id="amCount"></div>
         </div>
 
-        <!-- Message preview -->
-        <div class="am-preview">
-          <div class="am-preview-label">Message preview</div>
-          <div class="am-preview-body" id="amPreviewBody"></div>
-          <textarea class="am-preview-editor" id="amPreviewEditor"></textarea>
-        </div>
-
-        <button class="am-edit-link" onclick="toggleAmEdit()">Edit message</button>
-
-        <!-- Close / Done buttons -->
         <div class="am-actions">
-          <button class="am-btn-close" onclick="toggleAutoMessaging(false)">Close</button>
-          <button class="am-btn-done" onclick="toggleAutoMessaging(false);showToast()">Save</button>
+          <button class="am-btn-close" onclick="amCancel()">Cancel</button>
+          <button class="am-btn-done" id="amCommit" onclick="amCommit()">Turn on</button>
         </div>
 
       </div>
@@ -1332,72 +1377,314 @@ function toggleInterviewSettings(show) {
   }
 }
 
-function toggleAutoMessaging(show) {
-  var section = document.getElementById('autoMsgSection');
-  var toggle = document.getElementById('autoMsgToggle');
-  if (show) {
-    section.classList.add('open');
-    toggle.checked = true;
-    updateAutoMsgPreview();
-  } else {
-    section.classList.remove('open');
-    toggle.checked = false;
+/* ═══ Automations: Message new candidates ═══
+   Editor matched to the Automations tab (visual-v3.html, AUTOX block):
+   same toolbar, same contenteditable body, same variable chips, same template list.
+   Toggle = intent only. Nothing is live until the commit button is pressed. */
+var AM_TOK  = ["{CANDIDATE_FIRSTNAME}","{JOB_TITLE}","{COMPANY}","{RECRUITER_NAME}","{INTERVIEW_TIME}"];
+var AM_LEAD = "Before your interview, finish your application here: ";
+/* Candidates who already requested an interview for this event's jobs in the last 4 weeks.
+   The run-for-existing-candidates prompt only shows when this is above zero — on a brand
+   new event the answer is always none, so we don't ask. */
+var AM_EXISTING = { dallas: 14, chicago: 0, atlanta: 0 };
+var AM_TPL = [
+  { n: "Message new candidates",     m: "Hi {CANDIDATE_FIRSTNAME},\n\nThanks for requesting an interview for the {JOB_TITLE} role at {COMPANY}. We’re reviewing requests now and will be in touch very soon.\n\nRegards,\n{RECRUITER_NAME}" },
+  { n: "Message scheduled candidates", m: "Hi {CANDIDATE_FIRSTNAME},\n\nYour interview for {JOB_TITLE} at {COMPANY} is set for {INTERVIEW_TIME}. Looking forward to meeting you.\n\nIf something comes up before then, reply here and we’ll find another time.\n\nRegards,\n{RECRUITER_NAME}" },
+  { n: "Email declined candidates",  m: "Hi {CANDIDATE_FIRSTNAME},\n\nThank you for your interest in the {JOB_TITLE} role at {COMPANY}. We aren’t able to move forward with an interview this time, but we wish you the best in your search.\n\nRegards,\n{RECRUITER_NAME}" },
+  { n: "Missed interview follow-up", m: "Hi {CANDIDATE_FIRSTNAME},\n\nSorry we missed you for your {JOB_TITLE} interview at {COMPANY} today. Things come up — if you’d still like to interview, pick a new time and we’ll get you rescheduled.\n\nRegards,\n{RECRUITER_NAME}" },
+  { n: "Post-interview follow-up",   m: "Hi {CANDIDATE_FIRSTNAME},\n\nThanks for interviewing for {JOB_TITLE} at {COMPANY} today. We enjoyed meeting you and will be in touch on next steps soon.\n\nRegards,\n{RECRUITER_NAME}" }
+];
+var amS = { live: false, nameTouched: false, snap: null };
+
+function amEd() { return document.getElementById('amEd'); }
+function amEsc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
+function amEncTok(t) { return t.replace(/\{/g, '&#123;').replace(/\}/g, '&#125;'); }
+
+/* Plain text -> editor HTML. The last block is tagged as the sign-off so the
+   application-link line can be inserted above it. */
+function amTextToHtml(t) {
+  var blocks = String(t).split('\n\n'), h = '';
+  for (var i = 0; i < blocks.length; i++) {
+    var inner = amEsc(blocks[i]).replace(/\n/g, '<br>');
+    if (i > 0) inner = '<br>' + inner;
+    var open = (i === blocks.length - 1) ? '<div data-signoff="1">' : '<div>';
+    h += open + inner + '</div>';
   }
+  return h;
 }
 
-function toggleAmLink() {
-  var linkField = document.getElementById('amLinkField');
-  var isYes = document.getElementById('amLinkYes').checked;
-  if (isYes) {
-    linkField.classList.add('visible');
-  } else {
-    linkField.classList.remove('visible');
-  }
-  updateAutoMsgPreview();
+function amRenderToks() {
+  var host = document.getElementById('amToks');
+  if (!host) return;
+  host.innerHTML = AM_TOK.map(function (t) {
+    return '<button type="button" class="nx-tok" onclick="amIns(\'' + amEncTok(t) + '\')">' + t + '</button>';
+  }).join('');
+}
+function amIns(tok) {
+  var ed = amEd();
+  if (!ed) return;
+  var sel = window.getSelection();
+  var inside = sel && sel.rangeCount > 0 && ed.contains(sel.anchorNode);
+  ed.focus();
+  if (inside) { try { document.execCommand('insertText', false, tok); } catch (e) { ed.appendChild(document.createTextNode(tok)); } }
+  else { ed.appendChild(document.createTextNode(tok)); }
+  var h = document.getElementById('amTokHost');
+  if (h) h.innerHTML = '';
+  amApplyGate();
+}
+function amFmt(cmd) {
+  var ed = amEd();
+  if (!ed) return;
+  ed.focus();
+  try { document.execCommand(cmd, false, null); } catch (e) {}
+}
+function amToggleTok() {
+  var host = document.getElementById('amTokHost');
+  if (!host) return;
+  if (host.innerHTML) { host.innerHTML = ''; return; }
+  host.innerHTML = '<div class="nx-menu" style="left:0;right:auto;top:40px">' + AM_TOK.map(function (t) {
+    return '<button type="button" onclick="amIns(\'' + amEncTok(t) + '\')">' + t + '</button>';
+  }).join('') + '</div>';
+}
+function amToggleTmpl() {
+  var host = document.getElementById('amTmplHost');
+  if (!host) return;
+  if (host.innerHTML) { host.innerHTML = ''; return; }
+  host.innerHTML = '<div class="nx-menu">' + AM_TPL.map(function (p, i) {
+    return '<button type="button" onclick="amUseTpl(' + i + ')">' + amEsc(p.n) + '</button>';
+  }).join('') + '</div>';
+}
+function amUseTpl(i) {
+  var ed = amEd();
+  if (ed) ed.innerHTML = amTextToHtml(AM_TPL[i].m);
+  var host = document.getElementById('amTmplHost');
+  if (host) host.innerHTML = '';
+  var yes = document.getElementById('amLinkYes');
+  if (yes && yes.checked) amSetLink(true);
+  amApplyGate();
 }
 
-function toggleAmEdit() {
-  var preview = document.querySelector('.am-preview');
-  var editor = document.getElementById('amPreviewEditor');
-  var link = document.querySelector('.am-edit-link');
-  var isEditing = preview.classList.contains('editing');
-  if (isEditing) {
-    preview.classList.remove('editing');
-    link.textContent = 'Edit message';
-    // Update preview from editor text
-    var lines = editor.value.split('\n\n');
-    var html = lines.map(function(l) { return '<p>' + l.replace(/\n/g, '<br>') + '</p>'; }).join('');
-    document.getElementById('amPreviewBody').innerHTML = html;
-  } else {
-    // Populate editor with plain text from preview
-    var body = document.getElementById('amPreviewBody');
-    var text = body.innerText || body.textContent;
-    editor.value = text;
-    preview.classList.add('editing');
-    link.textContent = 'Done editing';
-    editor.focus();
+/* ---- external application link ---- */
+function amUrl() {
+  var i = document.getElementById('amLinkUrl');
+  var v = i ? i.value.trim() : '';
+  return v || 'https://';
+}
+function amSetLink(on) {
+  var f = document.getElementById('amLinkField');
+  if (f) f.classList.toggle('visible', !!on);
+  var ed = amEd();
+  if (!ed) { amApplyGate(); return; }
+  var ex = ed.querySelector('[data-applink]');
+  if (!on) {
+    if (ex && ex.parentNode) ex.parentNode.removeChild(ex);
+    amApplyGate();
+    return;
   }
+  if (ex) { amSyncUrl(); return; }
+  var d = document.createElement('div');
+  d.setAttribute('data-applink', '1');
+  d.innerHTML = '<br>' + AM_LEAD + '<a href="#" onclick="return false">' + amEsc(amUrl()) + '</a>';
+  var sign = ed.querySelector('[data-signoff]');
+  if (sign) ed.insertBefore(d, sign); else ed.appendChild(d);
+  amApplyGate();
+}
+function amSyncUrl() {
+  var ed = amEd();
+  if (ed) {
+    var a = ed.querySelector('[data-applink] a');
+    if (a) a.textContent = amUrl();
+  }
+  amApplyGate();
 }
 
-
-function updateAutoMsgPreview() {
-  var name = document.getElementById('amName').value || '[Your Name]';
-  var role = document.getElementById('amRole').value || '[Your Role]';
-  var showLink = document.getElementById('amLinkYes').checked;
-  var linkUrl = document.getElementById('amLinkUrl').value || 'jobfairx.com/jobs';
-
-  var JOB = '<span class="am-tok">{JOB_TITLE}</span>';
-  var CO  = '<span class="am-tok">{COMPANY}</span>';
-  var html = '<p>Thank you for expressing interest in the ' + JOB + ' position.</p>';
-  html += '<p>My name is ' + name + ', and I\'m a ' + role + ' at ' + CO + '.</p>';
-  if (showLink) {
-    html += '<p>Before your scheduled interview, please ensure you have completed the application process. You can complete the necessary application steps at the following link: <a href="#" style="color:#0044B3;text-decoration:none;font-weight:500;" onclick="event.preventDefault()">' + linkUrl + '</a></p>';
-  }
-  html += '<p>If you have any questions, feel free to reply to this message. I am looking forward to our conversation.</p>';
-  html += '<p>Best regards,<br>' + name + '<br>' + CO + '</p>';
-
-  document.getElementById('amPreviewBody').innerHTML = html;
+/* ---- jobs / name ---- */
+function amJobNames() {
+  if (document.body.classList.contains('setup-jobs-incomplete')) return [];
+  var out = [], n = document.querySelectorAll('#editJobsWrap .job-name');
+  for (var i = 0; i < n.length; i++) out.push((n[i].textContent || '').trim());
+  return out;
 }
+function amMeta() {
+  try { return EVENT_META[getEventKey()]; } catch (e) { return null; }
+}
+function amRenderJobs() {
+  var wrap = document.getElementById('amJobs');
+  if (!wrap) return;
+  var names = amJobNames(), meta = amMeta();
+  if (!names.length) {
+    wrap.innerHTML = '<div class="am-jobs-m">No jobs posted yet. Add a job and this automation will cover it.</div>';
+    return;
+  }
+  var h = '';
+  for (var i = 0; i < names.length; i++) h += '<div class="am-jobs-j">' + amEsc(names[i]) + '</div>';
+  var when = meta ? (' &middot; ' + meta.name + ' &middot; ' + String(meta.date).split('&middot;')[0].trim()) : '';
+  h += '<div class="am-jobs-m">' + names.length + ' job' + (names.length === 1 ? '' : 's') + when + '</div>';
+  wrap.innerHTML = h;
+}
+function amAutoName() {
+  var m = amMeta();
+  return 'Message new candidates' + (m ? ' — ' + m.name : '');
+}
+function amCount() {
+  var n = document.getElementById('amName'), c = document.getElementById('amCount');
+  if (n && c) c.textContent = n.value.length + '/100';
+}
+function amNameEdit() { amS.nameTouched = true; amCount(); amApplyGate(); }
+
+/* ---- gate ---- */
+function amGateOK() {
+  var ed = amEd();
+  if (!ed || !(ed.innerText || '').trim()) return false;
+  var n = document.getElementById('amName');
+  if (!n || !n.value.trim()) return false;
+  var yes = document.getElementById('amLinkYes');
+  if (yes && yes.checked) {
+    var u = document.getElementById('amLinkUrl');
+    if (!u || !u.value.trim()) return false;
+  }
+  return true;
+}
+function amApplyGate() {
+  var b = document.getElementById('amCommit');
+  if (b) b.disabled = !amGateOK();
+}
+
+/* ---- open / cancel / commit ---- */
+function amSnap() {
+  var ed = amEd();
+  return {
+    html: ed ? ed.innerHTML : '',
+    name: document.getElementById('amName').value,
+    yes: document.getElementById('amLinkYes').checked,
+    url: document.getElementById('amLinkUrl').value,
+    touched: amS.nameTouched
+  };
+}
+function amRestore(s) {
+  if (!s) return;
+  var ed = amEd();
+  if (ed) ed.innerHTML = s.html;
+  document.getElementById('amName').value = s.name;
+  document.getElementById('amLinkYes').checked = s.yes;
+  document.getElementById('amLinkNo').checked = !s.yes;
+  document.getElementById('amLinkUrl').value = s.url;
+  document.getElementById('amLinkField').classList.toggle('visible', !!s.yes);
+  amS.nameTouched = s.touched;
+  amCount();
+  amApplyGate();
+}
+function amSetCommitLabel() {
+  var b = document.getElementById('amCommit');
+  if (b) b.textContent = amS.live ? 'Update' : 'Turn on';
+}
+function amOpenPanel() {
+  var sec = document.getElementById('autoMsgSection');
+  if (!sec) return;
+  amRenderJobs();
+  if (!amS.nameTouched) { document.getElementById('amName').value = amAutoName(); amCount(); }
+  amS.snap = amSnap();
+  sec.classList.add('open');
+  document.getElementById('autoMsgToggle').checked = true;
+  amSetCommitLabel();
+  amApplyGate();
+}
+function amClosePanel() {
+  var sec = document.getElementById('autoMsgSection');
+  if (sec) sec.classList.remove('open');
+  var t = document.getElementById('autoMsgToggle');
+  if (t) t.checked = amS.live;
+  var th = document.getElementById('amTmplHost');
+  if (th) th.innerHTML = '';
+  var kh = document.getElementById('amTokHost');
+  if (kh) kh.innerHTML = '';
+}
+function amCancel() { amRestore(amS.snap); amClosePanel(); }
+function amSwitch(on) {
+  if (on) { amOpenPanel(); return; }
+  if (amS.live) { amAskOff(); return; }
+  amClosePanel();
+}
+function amExistingCount() {
+  if (!amJobNames().length) return 0;
+  try { return AM_EXISTING[getEventKey()] || 0; } catch (e) { return 0; }
+}
+function amCommit() {
+  if (!amGateOK()) return;
+  var n = amExistingCount();
+  if (!amS.live && n > 0) { amOpenConfirm(n); return; }
+  amFinishOn(false);
+}
+function amFinishOn(alsoExisting) {
+  var wasLive = amS.live;
+  amS.live = true;
+  amS.snap = amSnap();
+  amSetCommitLabel();
+  amClosePanel();
+  if (wasLive) showToast('Message new candidates updated');
+  else showToast('Message new candidates is on' + (alsoExisting ? ' — it will also run for existing candidates' : ''));
+}
+
+/* ---- confirms ---- */
+function amOverlay(html) {
+  var o = document.getElementById('amConfirm');
+  if (!o) {
+    o = document.createElement('div');
+    o.id = 'amConfirm';
+    o.className = 'modal-overlay';
+    document.body.appendChild(o);
+  }
+  o.innerHTML = '<div class="modal-card">' + html + '</div>';
+  o.classList.add('open');
+}
+function amCloseConfirm() {
+  var o = document.getElementById('amConfirm');
+  if (o) o.classList.remove('open');
+}
+function amOpenConfirm(n) {
+  amOverlay('<div class="modal-title">Run automation for existing candidates</div>'
+    + '<div class="modal-title-sub">' + n + ' candidate' + (n === 1 ? '' : 's') + ' already requested an interview for these jobs in the last 4 weeks. Send them this message too?</div>'
+    + '<div class="modal-actions"><button type="button" class="modal-btn-cancel" onclick="amCloseConfirm();amFinishOn(false)">Don’t run</button>'
+    + '<button type="button" class="modal-btn-save" onclick="amCloseConfirm();amFinishOn(true)">Run for existing candidates</button></div>');
+}
+function amAskOff() {
+  var t = document.getElementById('autoMsgToggle');
+  if (t) t.checked = true;
+  amOverlay('<div class="modal-title">Turn off automation</div>'
+    + '<div class="modal-title-sub">Message new candidates will stop running for these jobs until you turn it back on.</div>'
+    + '<div class="modal-actions"><button type="button" class="modal-btn-cancel" onclick="amCloseConfirm()">Cancel</button>'
+    + '<button type="button" class="modal-btn-save" style="background:#991b1b" onclick="amCloseConfirm();amDoOff()">Turn off</button></div>');
+}
+function amDoOff() {
+  amS.live = false;
+  amSetCommitLabel();
+  var t = document.getElementById('autoMsgToggle');
+  if (t) t.checked = false;
+  var sec = document.getElementById('autoMsgSection');
+  if (sec) sec.classList.remove('open');
+  showToast('Message new candidates is off');
+}
+
+/* ---- init ---- */
+function amInit() {
+  if (!amEd()) return;
+  amRenderToks();
+  amEd().innerHTML = amTextToHtml(AM_TPL[0].m);
+  amRenderJobs();
+  var n = document.getElementById('amName');
+  if (n) n.value = amAutoName();
+  amCount();
+  amSetCommitLabel();
+  amApplyGate();
+}
+document.addEventListener('DOMContentLoaded', function () { setTimeout(amInit, 0); });
+document.addEventListener('click', function (e) {
+  if (!e.target || !e.target.closest) return;
+  var th = document.getElementById('amTmplHost');
+  if (th && th.innerHTML && !e.target.closest('#amTmplHost') && !e.target.closest('#amTmplBtn')) th.innerHTML = '';
+  var kh = document.getElementById('amTokHost');
+  if (kh && kh.innerHTML && !e.target.closest('#amTokHost') && !e.target.closest('.nx-edbar')) kh.innerHTML = '';
+}, true);
 
 /* ═══ Screening Functions ═══ */
 var screeningData = [
@@ -2122,6 +2409,7 @@ function applySetupState(jobsOk, interviewOk) {
   document.body.classList.toggle('setup-jobs-incomplete', !jobsOk);
   document.body.classList.toggle('setup-interview-incomplete', !interviewOk);
   if (typeof slotApplySetup === 'function') slotApplySetup(interviewOk);
+  if (typeof amRenderJobs === 'function') amRenderJobs();
 
   // Banner copy adapts to which gaps exist.
   var title = document.getElementById('incompleteBannerTitle');

@@ -4650,6 +4650,10 @@ document.addEventListener('keydown', function(e) {
 .nx-namewrap { margin-top: 20px; }
 .nx-namewrap input { width: 100%; box-sizing: border-box; height: 42px; border: 1px solid #2d2d2d; border-radius: 12px; padding: 9px 12px; font-family: inherit; font-size: 16px; color: #2d2d2d; }
 .nx-count { font-size: 12px; color: #595959; margin-top: 4px; }
+.nx-xl { margin-top: 18px; padding-top: 16px; border-top: 1px solid #e4e2e0; }
+.nx-linkin { width: 100%; box-sizing: border-box; height: 42px; border: 1px solid #2d2d2d; border-radius: 12px; padding: 9px 12px; font-family: inherit; font-size: 16px; color: #2d2d2d; }
+.nx-linkhint { font-size: 13px; color: #767676; margin-top: 8px; line-height: 1.55; }
+.nx-ed a { color: #0044B3; }
 .nx-confbody { padding: 6px 24px 8px; font-size: 16px; line-height: 24px; color: #2d2d2d; }
 .nx-reqta { width: 100%; box-sizing: border-box; min-height: 92px; border: 1px solid #2d2d2d; border-radius: 12px; padding: 10px 12px; font-family: inherit; font-size: 16px; resize: vertical; }
 /* toast (JobFairX green, top-right — deliberate) */
@@ -4700,12 +4704,12 @@ var esc=function(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").
 var TODAY="Aug 9, 2026";
 try{TODAY=new Date().toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});}catch(e){}
 var JOBS=[
- {job:"Registered Nurse",ev:"Dallas Healthcare Event",date:"Apr 22, 2026"},
- {job:"Software Engineer",ev:"Chicago Technology Event",date:"May 6, 2026"},
- {job:"DevOps Engineer",ev:"Chicago Technology Event",date:"May 6, 2026"},
- {job:"UX Designer",ev:"Chicago Technology Event",date:"May 6, 2026"},
- {job:"Operations Coordinator",ev:"Atlanta Diversity Event",date:"Apr 5, 2026"},
- {job:"Customer Support Specialist",ev:"Atlanta Diversity Event",date:"Apr 5, 2026"}
+ {job:"Registered Nurse",ev:"Dallas Healthcare Event",date:"Apr 22, 2026",recent:14},
+ {job:"Software Engineer",ev:"Chicago Technology Event",date:"May 6, 2026",recent:9},
+ {job:"DevOps Engineer",ev:"Chicago Technology Event",date:"May 6, 2026",recent:6},
+ {job:"UX Designer",ev:"Chicago Technology Event",date:"May 6, 2026",recent:0},
+ {job:"Operations Coordinator",ev:"Atlanta Diversity Event",date:"Apr 5, 2026",recent:0},
+ {job:"Customer Support Specialist",ev:"Atlanta Diversity Event",date:"Apr 5, 2026",recent:3}
 ];
 var MSG0="Hi {CANDIDATE_FIRSTNAME},\n\nThanks for requesting an interview for the {JOB_TITLE} role at {COMPANY}. We’re reviewing requests now and will be in touch very soon.\n\nRegards,\n{RECRUITER_NAME}";
 var MSG1="Hi {CANDIDATE_FIRSTNAME},\n\nThank you for your interest in the {JOB_TITLE} role at {COMPANY}. We aren’t able to move forward with an interview this time, but we wish you the best in your search.\n\nRegards,\n{RECRUITER_NAME}";
@@ -4734,7 +4738,8 @@ var ROWS=[
  {name:"Post-interview follow-up",preset:4,all:false,jobs:[0],msg:MSG3,modified:"Jul 28, 2026",on:false}
 ];
 ROWS.forEach(function(r){if(r.on===undefined)r.on=true;});
-var st={mode:0,editing:-1,preset:0,all:false,jobs:[],nameTouched:false,pendingRow:null};
+var st={mode:0,editing:-1,preset:0,all:false,jobs:[],nameTouched:false,pendingRow:null,link:false,linkUrl:""};
+var LINK_LEAD="Before your interview, finish your application here: ";
 /* ---------- scope helpers ---------- */
 function countText(r){if(r.all)return "All jobs";var n=r.jobs.length;return n+" job"+(n===1?"":"s");}
 function scopeText(r){if(r.all)return "All jobs";if(r.jobs.length===1){var j=JOBS[r.jobs[0]];return j.job+" — "+j.ev;}return r.jobs.length+" jobs";}
@@ -4806,7 +4811,56 @@ function editorBlockHtml(p){
  if(p.kind==="email"){h+='<div class="nx-emailnote">This message will be sent as an email.</div>';}
  h+="</div>";
  if(p.kind==="message"){h+='<div class="nx-respline">Responses will be sent to <b>scott@jobfairx.com</b></div>';}
+ if(st.preset===0){
+  h+='<div class="nx-xl"><div class="nx-lbl">Would you like to add an external application link?</div>';
+  h+='<label class="nx-radio"><input type="radio" name="nxLink" '+(st.link?"checked":"")+' onclick="AUTOX.linkOn()"><span>Yes</span></label>';
+  h+='<label class="nx-radio"><input type="radio" name="nxLink" '+(st.link?"":"checked")+' onclick="AUTOX.linkOff()"><span>No</span></label>';
+  if(st.link){
+   h+='<div class="nx-lbl" style="margin:10px 0 6px">Link *</div>';
+   h+='<input class="nx-linkin" id="nxLinkUrl" type="url" placeholder="https://" value="'+esc(st.linkUrl||"")+'" oninput="AUTOX.linkSet(this.value)">';
+   h+='<div class="nx-linkhint">Added as a line in the message above. Edit or move it like any other text.</div>';
+  }
+  h+="</div>";
+ }
  return h;
+}
+/* message body <-> editor html. The last block is tagged as the sign-off so the
+   application-link line can be inserted above it. */
+function msgHtml(t){
+ var b=String(t).split("\n\n"),h="";
+ for(var i=0;i<b.length;i++){
+  var inner=esc(b[i]).replace(/\n/g,"<br>");
+  if(i>0)inner="<br>"+inner;
+  h+=((i===b.length-1)?'<div data-signoff="1">':'<div>')+inner+"</div>";
+ }
+ return h;
+}
+/* the message without the application-link line, so re-renders never double it */
+function edBaseText(){
+ var ed=$("#nxEd");if(!ed)return P[st.preset].msg;
+ var a=ed.querySelector("[data-applink]"),par=null,nx=null;
+ if(a){par=a.parentNode;nx=a.nextSibling;par.removeChild(a);}
+ var t=ed.innerText;
+ if(a&&par)par.insertBefore(a,nx);
+ return t;
+}
+function applyLinkLine(){
+ var ed=$("#nxEd");if(!ed)return;
+ var ex=ed.querySelector("[data-applink]");
+ if(!st.link){if(ex&&ex.parentNode)ex.parentNode.removeChild(ex);return;}
+ var u=(st.linkUrl||"").trim()||"https://";
+ if(ex){var a=ex.querySelector("a");if(a)a.textContent=u;return;}
+ var d=document.createElement("div");d.setAttribute("data-applink","1");
+ d.innerHTML="<br>"+LINK_LEAD+'<a href="#" onclick="return false">'+esc(u)+"</a>";
+ var s=ed.querySelector("[data-signoff]");
+ if(s)ed.insertBefore(d,s);else ed.appendChild(d);
+}
+/* candidates who already requested an interview for the jobs in scope, last 4 weeks */
+function recentCount(){
+ var t=0;
+ if(st.all){JOBS.forEach(function(j){t+=j.recent||0;});return t;}
+ st.jobs.forEach(function(i){t+=(JOBS[i]&&JOBS[i].recent)||0;});
+ return t;
 }
 function setupHtml(edit){
  var p=P[st.preset];
@@ -4824,17 +4878,17 @@ function setupHtml(edit){
  return h;
 }
 function count(){var n=$("#nxName"),c=$("#nxCount");if(n&&c)c.textContent=n.value.length+"/100";}
-function fillCommon(name,msg){var n=$("#nxName");if(n)n.value=name;count();var ed=$("#nxEd");if(ed)ed.textContent=msg;applyGate();}
+function fillCommon(name,msg){var n=$("#nxName");if(n)n.value=name;count();var ed=$("#nxEd");if(ed)ed.innerHTML=msgHtml(msg);applyLinkLine();applyGate();}
 function curMsg(){var ed=$("#nxEd");return ed?ed.innerText:P[st.preset].msg;}
 function curName(){var n=$("#nxName");return n?n.value:"";}
 function refreshName(){if(st.nameTouched)return;var n=$("#nxName");if(n){n.value=autoName(st.preset,st.all,st.jobs);count();}}
-function rerender(edit){var keepM=curMsg();var keepN=st.nameTouched?curName():autoName(st.preset,st.all,st.jobs);$("#nxDlg").innerHTML=setupHtml(edit);fillCommon(keepN,keepM);}
+function rerender(edit){var keepM=edBaseText();var keepN=st.nameTouched?curName():autoName(st.preset,st.all,st.jobs);$("#nxDlg").innerHTML=setupHtml(edit);fillCommon(keepN,keepM);}
 /* ---------- public API ---------- */
 window.AUTOX={
  mode:function(m){st.mode=m;["nxTgD","nxTgE","nxTgN"].forEach(function(id,i){var b=$("#"+id);if(b)b.classList.toggle("on",i===m);});render();},
  filter:function(){if(st.mode===0)render();},
- setup:function(i){st.preset=i;st.editing=-1;st.all=false;st.jobs=[];st.nameTouched=false;openDlg(setupHtml(false));fillCommon(autoName(i,false,[]),P[i].msg);},
- edit:function(i){var r=ROWS[i];st.preset=r.preset;st.editing=i;st.all=r.all;st.jobs=r.jobs.slice();st.nameTouched=true;openDlg(setupHtml(true));fillCommon(r.name,r.msg);},
+ setup:function(i){st.preset=i;st.editing=-1;st.all=false;st.jobs=[];st.nameTouched=false;st.link=false;st.linkUrl="";openDlg(setupHtml(false));fillCommon(autoName(i,false,[]),P[i].msg);},
+ edit:function(i){var r=ROWS[i];st.preset=r.preset;st.editing=i;st.all=r.all;st.jobs=r.jobs.slice();st.nameTouched=true;st.link=!!r.link;st.linkUrl=r.linkUrl||"";openDlg(setupHtml(true));fillCommon(r.name,r.msg);},
  closeDlg:closeDlg,
  nameEdit:function(){st.nameTouched=true;count();},
  scopeAll:function(){st.all=true;st.jobs=[];rerender(st.editing>-1);},
@@ -4845,18 +4899,24 @@ window.AUTOX={
  clearJob:function(n){st.jobs.splice(n,1);var sr=$("#nxSelRow");if(sr)sr.innerHTML=selJobsHtml();refreshName();applyGate();},
  toggleTok:function(){var host=$("#nxTokHost");if(!host)return;if(host.innerHTML){host.innerHTML="";return;}var TOK=["{CANDIDATE_FIRSTNAME}","{JOB_TITLE}","{COMPANY}","{RECRUITER_NAME}","{INTERVIEW_TIME}"];host.innerHTML='<div class="nx-menu" style="left:0;right:auto;top:40px">'+TOK.map(function(t){return '<button onclick="AUTOX.ins(\''+t.replace(/\{/g,"&#123;").replace(/\}/g,"&#125;")+'\')">'+t+"</button>";}).join("")+"</div>";},
  toggleTmpl:function(){var host=$("#nxTmplHost");if(!host)return;if(host.innerHTML){host.innerHTML="";return;}host.innerHTML='<div class="nx-menu">'+P.map(function(p,i){return '<button onclick="AUTOX.useTmpl('+i+')">'+esc(p.name)+"</button>";}).join("")+"</div>";},
- useTmpl:function(i){var ed=$("#nxEd");if(ed)ed.textContent=P[i].msg;var host=$("#nxTmplHost");if(host)host.innerHTML="";},
+ useTmpl:function(i){var ed=$("#nxEd");if(ed)ed.innerHTML=msgHtml(P[i].msg);applyLinkLine();var host=$("#nxTmplHost");if(host)host.innerHTML="";},
+ linkOn:function(){st.link=true;rerender(st.editing>-1);var u=$("#nxLinkUrl");if(u)u.focus();},
+ linkOff:function(){st.link=false;st.linkUrl="";rerender(st.editing>-1);},
+ linkSet:function(v){st.linkUrl=v;applyLinkLine();},
  ins:function(tok){var ed=$("#nxEd");if(!ed)return;var sel=window.getSelection();var inside=sel&&sel.rangeCount>0&&ed.contains(sel.anchorNode);ed.focus();if(inside){try{document.execCommand("insertText",false,tok);}catch(e){ed.textContent+=tok;}}else{ed.textContent+=tok;}var host=$("#nxTokHost");if(host)host.innerHTML="";},
  fmt:function(cmd){var ed=$("#nxEd");if(ed){ed.focus();try{document.execCommand(cmd,false,null);}catch(e){}}},
  count:count,
  turnOn:function(){
   if(!gateOK())return;
-  var row={name:(curName()||autoName(st.preset,st.all,st.jobs)).trim(),preset:st.preset,all:st.all,jobs:st.jobs.slice(),msg:curMsg(),modified:TODAY,on:true};
+  var row={name:(curName()||autoName(st.preset,st.all,st.jobs)).trim(),preset:st.preset,all:st.all,jobs:st.jobs.slice(),msg:edBaseText(),link:st.link,linkUrl:st.linkUrl,modified:TODAY,on:true};
   st.pendingRow=row;
-  openDlg('<div class="nx-dhead"><h2>Run automation for existing candidates</h2><button class="nx-x" onclick="AUTOX.finishOn(false)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div><div class="nx-confbody">Would you like to also run the <b>'+esc(P[st.preset].name)+'</b> automation for candidates who already requested an interview for <b>'+esc(scopeText(row))+'</b> within the last 4 weeks?</div><div class="nx-dfoot"><button class="nx-btn nx-ghost" onclick="AUTOX.finishOn(false)">Don’t run</button><button class="nx-btn nx-pri" onclick="AUTOX.finishOn(true)">Run automation for existing candidates</button></div>',true);
+  var n=recentCount();
+  /* Nothing to ask about on a brand new event — just turn it on. */
+  if(n<=0){AUTOX.finishOn(false);return;}
+  openDlg('<div class="nx-dhead"><h2>Run automation for existing candidates</h2><button class="nx-x" onclick="AUTOX.finishOn(false)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div><div class="nx-confbody">'+n+' candidate'+(n===1?"":"s")+' already requested an interview for <b>'+esc(scopeText(row))+'</b> in the last 4 weeks. Would you like to run <b>'+esc(P[st.preset].name)+'</b> for them too?</div><div class="nx-dfoot"><button class="nx-btn nx-ghost" onclick="AUTOX.finishOn(false)">Don’t run</button><button class="nx-btn nx-pri" onclick="AUTOX.finishOn(true)">Run automation for existing candidates</button></div>',true);
  },
  finishOn:function(run){var row=st.pendingRow;st.pendingRow=null;closeDlg();if(!row)return;ROWS.unshift(row);render();toast("Automation turned on","<b>"+esc(row.name)+"</b> is turned on for <b>"+esc(scopeText(row))+"</b>."+(run?" It will also run for existing candidates.":""));},
- save:function(){var r=ROWS[st.editing];if(!r||!gateOK())return;r.name=(curName()||r.name).trim();r.msg=curMsg();r.all=st.all;r.jobs=st.jobs.slice();r.modified=TODAY;closeDlg();render();toast("Changes saved","<b>"+esc(r.name)+"</b> is updated.");},
+ save:function(){var r=ROWS[st.editing];if(!r||!gateOK())return;r.name=(curName()||r.name).trim();r.msg=edBaseText();r.link=st.link;r.linkUrl=st.linkUrl;r.all=st.all;r.jobs=st.jobs.slice();r.modified=TODAY;closeDlg();render();toast("Changes saved","<b>"+esc(r.name)+"</b> is updated.");},
  askOff:function(){var r=ROWS[st.editing];if(!r)return;openDlg('<div class="nx-dhead"><h2>Turn off automation</h2><button class="nx-x" onclick="AUTOX.closeDlg()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div><div class="nx-confbody">Are you sure you want to turn off the automation <b>'+esc(r.name)+'</b> for <b>'+esc(scopeText(r))+'</b>?</div><div class="nx-dfoot"><button class="nx-btn nx-ghost" onclick="AUTOX.closeDlg()">Cancel</button><button class="nx-btn nx-danger" onclick="AUTOX.doOff()">Turn off</button></div>',true);},
  doOff:function(){var r=ROWS[st.editing];closeDlg();if(!r)return;r.on=false;r.modified=TODAY;st.editing=-1;render();toast("Automation turned off","<b>"+esc(r.name)+"</b> is turned off for <b>"+esc(scopeText(r))+"</b>. It won’t run until you turn it back on.");},
  turnBackOn:function(){var r=ROWS[st.editing];if(!r)return;r.on=true;r.modified=TODAY;closeDlg();render();toast("Automation turned on","<b>"+esc(r.name)+"</b> is turned on for <b>"+esc(scopeText(r))+"</b>.");},
