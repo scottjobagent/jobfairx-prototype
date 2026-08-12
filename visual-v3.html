@@ -5469,7 +5469,9 @@ var tpl=document.getElementById("anxViewTpl");var main=document.querySelector(".
          the event). Rating replaces Interest marked, and includes "Not rated",
          which is the who-still-needs-a-decision list.
        · "Applied to" reads "Requested:".
-       · Action row holds three controls max (Indeed pattern); overflow goes to the kebab.
+       · Action row is stage-aware: Decline answers a request, Cancel ends a booking.
+       · No-show is set by the system, never by a button. Rating is Yes/Maybe/No only.
+       · Profile is three tabs: Application, Interviews (upcoming then past), Activity & notes.
        · Button labels are wrapped in .lbl so they can be dropped for icon-only at
          narrow widths and whenever the profile header is stuck.
        · The Interviews section stacks a candidate's interviews GROUPED BY EVENT,
@@ -5608,6 +5610,7 @@ var tpl=document.getElementById("anxViewTpl");var main=document.querySelector(".
 #view-candidates .cd-btn { height:44px; border-radius:12px; font-family:inherit; font-size:16px; line-height:24px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:8px; }
 #view-candidates .cd-btn.pri { background:#004fcb; border:0; color:#fff; padding:9px 16px; }
 #view-candidates .cd-btn.sec { background:#fff; border:1px solid #e4e2e0; color:#004fcb; padding:9px 15px; }
+#view-candidates .cd-btn.sec.dgr { color:#a9252b; }
 #view-candidates .cd-btn svg { width:20px; height:20px; }
 #view-candidates .cd-status { margin-left:auto; height:42px; border:1px solid #e4e2e0; border-radius:12px; background:#fff; display:inline-flex; align-items:center; gap:8px; padding:0 12px; font-family:inherit; cursor:pointer; }
 #view-candidates .cd-status.open { border:2px solid #004fcb; }
@@ -5846,6 +5849,22 @@ var tpl=document.getElementById("anxViewTpl");var main=document.querySelector(".
 #view-candidates .cx-tbl col.c5{width:236px}
 #view-candidates .cx-bulk{display:flex;align-items:center;gap:12px;padding:12px 0;flex-wrap:wrap}
 #view-candidates .cd-status{white-space:nowrap}
+/* one plain line for a proposed time or an automatic no-show — no filled box */
+#view-candidates .cx-info{flex:1 0 100%;display:flex;align-items:center;gap:7px;margin-top:14px;font-size:14px;line-height:21px;color:#595959}
+#view-candidates .cx-info svg{width:16px;height:16px;flex:0 0 16px;color:#767676}
+#view-candidates .cx-info b{font-weight:700;color:#2d2d2d}
+/* Interviews tab — upcoming first, one weight throughout */
+#view-candidates .cx-ivgrp{padding:22px 0 6px;border-top:1px solid #e4e2e0}
+#view-candidates .cx-ivgrp:first-of-type{border-top:0}
+#view-candidates .cx-ivgrp h3{font-size:14px;line-height:21px;font-weight:400;color:#767676;margin:0 0 12px}
+#view-candidates .cx-ivev{font-size:16px;line-height:24px;font-weight:400;color:#2d2d2d;margin:0 0 4px}
+#view-candidates .cx-ivev span{color:#595959;margin-left:8px}
+#view-candidates .cx-ivlist{margin:0 0 20px;padding:0;list-style:none}
+#view-candidates .cx-ivlist li{display:flex;align-items:baseline;gap:10px;padding:8px 0;border-top:1px solid #f0efed}
+#view-candidates .cx-ivlist li:first-child{border-top:0}
+#view-candidates .cx-ivlist .t1{font-size:16px;line-height:24px;color:#2d2d2d}
+#view-candidates .cx-ivlist .by{font-size:16px;line-height:24px;color:#767676;margin-left:auto}
+#view-candidates .cd-tab .ct{color:#767676;font-weight:400;margin-left:6px}
 /* scope dropdown: the menu must be a SIBLING of the button. A menu nested inside
    the button element is discarded by the HTML parser (nested interactive content). */
 #view-candidates .cx-titlewrap{position:relative;display:inline-flex;align-items:center}
@@ -5889,7 +5908,7 @@ var tpl=document.getElementById("anxViewTpl");var main=document.querySelector(".
 var EVS={dallas:{n:'Dallas Healthcare Event',d:'Apr 22, 2026'},atlanta:{n:'Atlanta Diversity Event',d:'Apr 5, 2026'},chicago:{n:'Chicago Technology Event',d:'May 6, 2026'}};
 var TODAY='dallas';
 var C=[
- {id:1,n:'Tamara Williams',job:'Registered Nurse',loc:'Dallas, TX',em:'t.williams@email.com',ph:'(214) 555-0132',stage:'requested',int:null,act:'Requested an interview · 2 days ago',
+ {id:1,n:'Tamara Williams',job:'Registered Nurse',loc:'Dallas, TX',em:'t.williams@email.com',ph:'(214) 555-0132',stage:'requested',int:null,prop:'Apr 22 &middot; 3:00 – 3:30 PM CT',act:'Requested an interview · 2 days ago',
   sk:[['Med-Surg',1],['EPIC',1],['BLS/ACLS',1],['Telemetry',0],['ICU',0]],
   sc:[['Do you hold an active RN license in Texas?','Yes','Yes'],['How many years of acute care experience do you have?','2','3']],
   w:[['Staff Nurse','Baylor Scott & White','2023–Present',['Med-surg floor at a 1:5 ratio.','Precepts new graduate nurses.']]],
@@ -6049,10 +6068,10 @@ function togSel(id){var i=selRows.indexOf(id);if(i<0)selRows.push(id);else selRo
 function rowMenu(c){
   var top=[];
   if(c.stage==='requested')top=['Accept interview','Decline request','Reschedule'];
-  else if(c.stage==='scheduled')top=['Reschedule','Cancel interview','Mark as no-show'];
-  else if(c.stage==='interviewed')top=[(rateOf(c)?'Update rating':'Add rating'),'Schedule follow-up'];
-  else if(c.stage==='noshow')top=['Schedule follow-up'];
-  else if(c.stage==='declined')top=['Reinstate candidate'];
+  else if(c.stage==='scheduled')top=['Reschedule','Cancel interview'];
+  else if(c.stage==='interviewed')top=[(rateOf(c)?'Update rating':'Add rating'),'Schedule interview'];
+  else if(c.stage==='noshow')top=['Schedule interview'];
+  else if(c.stage==='declined')top=['Accept'];
   var all=top.concat(['View resume','Message','Download resume','Download application data']);
   return '<span class="cx-menu" style="right:0;left:auto" onclick="event.stopPropagation()">'
     +all.map(function(a){return '<button onclick="CXX.rowAct('+c.id+',\''+a+'\')">'+a+'</button>';}).join('')+'</span>';
@@ -6061,8 +6080,7 @@ function rowAct(id,a){
   openMenu='';
   if(a==='Accept interview')return accept(id);
   if(a==='Decline request')return decline(id);
-  if(a==='Reinstate candidate')return reinstate(id);
-  if(a==='Mark as no-show')return noshow(id);
+  if(a==='Accept')return reinstate(id);
   if(a==='Message')return (render(),openDock(id));
   if(a==='View resume'){sel=id;ptab='app';secOpen.res=1;render();return;}
   render();
@@ -6076,20 +6094,36 @@ function sec(key,title,bodyHtml,right){
 }
 function lbl(t){return '<span class="lbl">'+t+'</span>';}
 function btn(kind,click,text,icon){
+  if(kind==='dgr')kind='sec dgr';
   return '<button class="cd-btn '+kind+'" onclick="'+click+'" title="'+text+'">'+ico(icon)+lbl(text)+'</button>';
 }
 function actsFor(c){
-  /* Indeed holds this row to three controls; the rest lives in the kebab. */
+  /* Decline answers a request; Cancel ends something already booked. Never both. */
   var today=c.iv.some(function(x){return x.k==='soon'&&x.ev===TODAY;});
   var msg=btn('sec','CXX.openDock('+c.id+')','Message','msg');
   var res=btn('sec','CXX.rowAct('+c.id+',&quot;View resume&quot;)','View resume','doc');
-  if(c.stage==='requested')
-    return btn('pri','CXX.accept('+c.id+')','Accept','cal')+msg+btn('sec','return false','Reschedule','clock');
+  if(c.stage==='requested'){
+    if(c.prop) return btn('sec','return false','Cancel proposal','x')+msg;
+    return btn('pri','CXX.accept('+c.id+')','Accept','cal')
+      +btn('dgr','CXX.decline('+c.id+')','Decline','x')
+      +btn('sec','return false','Reschedule','clock')+msg;
+  }
   if(c.stage==='scheduled')
-    return btn('pri','return false',(today?'Go to lobby':'Reschedule'),(today?'cal':'clock'))+msg+btn('sec','return false','Cancel interview','x');
+    return btn('pri','return false',(today?'Go to lobby':'Reschedule'),(today?'vid':'clock'))
+      +btn('dgr','return false','Cancel interview','x')+msg;
   if(c.stage==='declined')
-    return btn('pri','CXX.reinstate('+c.id+')','Reinstate','undo')+msg+res;
-  return btn('pri','return false','Schedule follow-up','cal')+msg+res;
+    return btn('pri','CXX.reinstate('+c.id+')','Accept','cal')+msg+res;
+  return btn('pri','return false','Schedule interview','cal')+msg+res;
+}
+function infoLine(c){
+  if(c.stage==='requested'&&c.prop)
+    return '<div class="cx-info">'+ico('clock')+'<b>Proposed</b> &middot; awaiting candidate &mdash; '+c.prop+'</div>';
+  if(c.stage==='noshow'){
+    var d=(c.iv.filter(function(x){return x.k==='noshow';})[0]||{}).t||'';
+    return '<div class="cx-info">'+ico('info')+'Marked no-show automatically &mdash; did not join the interview room'
+      +(d?' on '+esc(d.split(' &middot; ')[0].split(' \u00b7 ')[0]):'')+'.</div>';
+  }
+  return '';
 }
 function condHtml(c){
   /* Shown only when the top bar sticks. Mirrors Indeed's condensed bar:
@@ -6113,20 +6147,43 @@ function headHtml(c){
       +'<button aria-pressed="'+(c.int==='rj')+'" onclick="CXX.setInt('+c.id+',\'rj\')" title="Not a fit">'+ico('x')+'</button>'
     +'</span><span style="position:relative"><button class="cd-more" onclick="CXX.toggleMenu(event)">'+ico('dots')+'</button>'
     +(menu?'<span class="cx-menu" style="display:block;right:0;top:48px;left:auto">'
-        +(c.stage==='requested'?'<button onclick="CXX.decline('+c.id+')">Decline request</button>':'')
+        +(c.stage==='scheduled'&&c.iv.some(function(x){return x.k==='soon'&&x.ev===TODAY;})?'<button onclick="return false">Reschedule</button>':'')
         +(c.stage==='requested'||c.stage==='scheduled'?'<button onclick="CXX.rowAct('+c.id+',\'View resume\')">View resume</button>':'')
         +'<button onclick="return false">Download resume</button>'
         +'<button onclick="return false">Download application data</button>'
-        +(c.stage==='scheduled'?'<button onclick="CXX.noshow('+c.id+')">Mark as no-show</button>':'')
-        +(c.stage!=='declined'&&c.stage!=='requested'?'<button onclick="CXX.decline('+c.id+')">Decline candidate</button>':'')
-        +(c.stage==='declined'?'<button onclick="CXX.reinstate('+c.id+')">Reinstate candidate</button>':'')
-      +'</span>':'')+'</span></div></div>'
+      +'</span>':'')+'</span></div>'
+    +infoLine(c)
     +'<div class="cd-pfacts">'+actsFor(c)
     +'<span style="position:relative;margin-left:auto"><button class="cd-status'+(stpop?' open':'')+'" onclick="CXX.toggleSt(event)"><b>Stage:</b><span class="v">'+STAGEL[c.stage]+'</span>'+ico('chev')+'</button>'
     +(stpop?'<span class="cx-menu" style="display:block;right:0;top:48px;left:auto">'
       +PILLS.filter(function(p){return p.k;}).map(function(p){
         return '<button onclick="CXX.setStage('+c.id+',\''+p.k+'\')">'+(c.stage===p.k?'<span class="tick">'+ico('tick')+'</span>':'')+p.l+'</button>';}).join('')
-      +'</span>':'')+'</span></div>';
+      +'</span>':'')+'</span></div></div>';
+}
+function ivTabHtml(c){
+  var UP={soon:1,req:1};
+  function group(list,title){
+    if(!list.length) return '';
+    var order=[],byEv={};
+    list.forEach(function(x){if(!byEv[x.ev]){byEv[x.ev]=[];order.push(x.ev);}byEv[x.ev].push(x);});
+    var h='<div class="cx-ivgrp"><h3>'+title+'</h3>';
+    order.forEach(function(k){
+      var rows=byEv[k];
+      h+='<div class="cx-ivev">'+esc(EVS[k].n)+'<span>'+esc(EVS[k].d)+'</span></div><ul class="cx-ivlist">';
+      rows.forEach(function(x,i){
+        var t=String(x.t).split(' \u00b7 ').pop();
+        var lbl=(rows.length>1?'Interview '+(i+1)+' \u00b7 ':'')+esc(t);
+        var by=(x.by&&x.by!=='Not assigned')?'<span class="by">'+esc(x.by)+'</span>':'';
+        h+='<li><span class="t1">'+lbl+'</span>'+by+'</li>';
+      });
+      h+='</ul>';
+    });
+    return h+'</div>';
+  }
+  var up=c.iv.filter(function(x){return UP[x.k];});
+  var past=c.iv.filter(function(x){return !UP[x.k];});
+  var out=group(up,'Upcoming')+group(past,'Past');
+  return out||'<div class="cx-ivgrp"><h3>No interviews yet</h3></div>';
 }
 function profileHtml(){
   var c=get(sel), rows=list(), i=rows.findIndex(function(x){return x.id===sel;});
@@ -6194,10 +6251,12 @@ function profileHtml(){
 
   h+='<div class="cd-tabs" style="margin-top:24px">'
     +'<button class="cd-tab'+(ptab==='app'?' on':'')+'" onclick="CXX.setPTab(\'app\')">Application</button>'
+    +'<button class="cd-tab'+(ptab==='iv'?' on':'')+'" onclick="CXX.setPTab(\'iv\')">Interviews<span class="ct">'+c.iv.length+'</span></button>'
     +'<button class="cd-tab'+(ptab==='act'?' on':'')+'" onclick="CXX.setPTab(\'act\')">Activity &amp; notes</button></div>';
 
-  if(ptab==='app'){
-    h+=sec('iv','Interviews',ivBody);
+  if(ptab==='iv'){
+    h+=ivTabHtml(c);
+  } else if(ptab==='app'){
     h+=sec('q','Qualifications',qBody,'<span class="cd-meter">'+c.sk.map(function(s){return '<i class="'+(s[1]?'on':'')+'"></i>';}).join('')+'</span>');
     h+=sec('sq','Screener questions',sqBody);
     h+=sec('ex','Experience',exBody);
