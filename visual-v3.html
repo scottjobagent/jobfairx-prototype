@@ -5846,7 +5846,15 @@ var tpl=document.getElementById("anxViewTpl");var main=document.querySelector(".
 #view-candidates{padding:0}
 #view-candidates .cx{margin:0 !important}
 #view-candidates .cx-ivwrap{display:flex;align-items:center}
-#view-candidates .cx-tbl col.c5{width:236px}
+#view-candidates .cx-req{display:inline-flex;flex:0 0 auto;border:1px solid #d4d2d0;border-radius:7px;overflow:hidden;height:36px}
+#view-candidates .cx-req button{height:36px;border:0;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;color:#2d2d2d;font-family:inherit;font-size:14px;padding:0 14px;white-space:nowrap}
+#view-candidates .cx-req button.accept{border-right:1px solid #d4d2d0;background:#0044B3;color:#fff;font-weight:700}
+#view-candidates .cx-req button.accept:hover{background:#003399}
+#view-candidates .cx-req button.decline{border-right:1px solid #d4d2d0}
+#view-candidates .cx-req button.decline:last-child{border-right:0}
+#view-candidates .cx-req button.decline:hover{background:#fef2f2;color:#991b1b}
+#view-candidates .cx-req button.propose:hover{background:#e8f0fe;color:#0044B3}
+#view-candidates .cx-tbl col.c2,#view-candidates .cx-tbl col.c3,#view-candidates .cx-tbl col.c4{width:auto}#view-candidates .cx-tbl col.c5{width:336px}
 #view-candidates .cx-bulk{display:flex;align-items:center;gap:12px;padding:12px 0;flex-wrap:wrap}
 #view-candidates .cd-status{white-space:nowrap}
 /* one plain line for a proposed time or an automatic no-show — no filled box */
@@ -6031,7 +6039,7 @@ function listHtml(){
     +'<button class="cx-b pri" onclick="CXX.exportSel()">Export candidates'+ico('chev')+'</button></div>';
 
   h+='<table class="cx-tbl"><colgroup><col class="c1"><col class="c2"><col class="c3"><col class="c4"><col class="c5"></colgroup>'
-    +'<thead><tr><th><span class="cx-cb'+(selRows.length&&selRows.length===rows.length?' on':'')+'" onclick="CXX.'+(selRows.length===rows.length?'clearSel()':'selAll()')+'">'+ico('tick')+'</span></th><th>Candidates</th><th>Work experience</th><th>Activity</th><th>Interest</th></tr></thead><tbody>';
+    +'<thead><tr><th><span class="cx-cb'+(selRows.length&&selRows.length===rows.length?' on':'')+'" onclick="CXX.'+(selRows.length===rows.length?'clearSel()':'selAll()')+'">'+ico('tick')+'</span></th><th>Candidates</th><th>Work experience</th><th>Activity</th><th>'+colHead()+'</th></tr></thead><tbody>';
   rows.forEach(function(c){
     h+='<tr><td><span class="cx-cb'+(selRows.indexOf(c.id)>-1?' on':'')+'" onclick="CXX.togSel('+c.id+')">'+ico('tick')+'</span></td>'
       +'<td><button class="cx-name" onclick="CXX.open_('+c.id+')">'+esc(c.n)+'</button>'
@@ -6040,11 +6048,8 @@ function listHtml(){
       +'<div class="cx-applied">Requested: <span class="j">'+esc(c.job)+'</span></div></td>'
       +'<td>'+c.w.slice(0,2).map(function(w){return '<div class="cx-exp"><div class="r">'+esc(w[0])+'</div><div class="c">'+esc(w[1])+' ('+esc(w[2])+')</div></div>';}).join('')+'</td>'
       +'<td><div class="cx-act">'+esc(c.act)+'</div></td>'
-      +'<td><span class="cx-ivwrap"><span class="cx-iv">'
-        +'<button class="sl'+(c.int==='sl'?' on':'')+'" onclick="CXX.setInt('+c.id+',\'sl\')" title="Shortlist">'+ico('tick')+'</button>'
-        +'<button class="ud'+(c.int==='ud'?' on':'')+'" onclick="CXX.setInt('+c.id+',\'ud\')" title="Undecided">'+ico('q')+'</button>'
-        +'<button class="rj'+(c.int==='rj'?' on':'')+'" onclick="CXX.setInt('+c.id+',\'rj\')" title="Not a fit">'+ico('x')+'</button>'
-      +'</span><span style="position:relative"><button class="cd-more" onclick="CXX.om(event,\'row'+c.id+'\')">'+ico('dots')+'</button>'
+      +'<td><span class="cx-ivwrap">'+rowCtl(c)
+      +'<span style="position:relative"><button class="cd-more" onclick="CXX.om(event,\'row'+c.id+'\')">'+ico('dots')+'</button>'
       +(openMenu==='row'+c.id?rowMenu(c):'')+'</span></span></td></tr>';
   });
   h+='</tbody></table>';
@@ -6065,9 +6070,33 @@ function setRate(v){rateFil=v;openMenu='';render();}
 function selAll(){selRows=list().map(function(c){return c.id;});render();}
 function clearSel(){selRows=[];render();}
 function togSel(id){var i=selRows.indexOf(id);if(i<0)selRows.push(id);else selRows.splice(i,1);render();}
+/* Audit item 13: the action column holds whatever decision the stage is waiting on.
+   Requested -> Accept/Decline/Reschedule. Interviewed & no-show -> rating trio.
+   Scheduled and declined are waiting on nothing, so kebab only. */
+function colHead(){
+  return (pill==='interviewed'||pill==='noshow') ? 'Rating' : 'Actions';
+}
+function rowCtl(c){
+  if(c.stage==='requested'){
+    if(c.prop) return '<span class="cx-req"><button class="decline" onclick="return false">Cancel proposal</button></span>';
+    return '<span class="cx-req">'
+      +'<button class="accept" onclick="CXX.accept('+c.id+')">Accept</button>'
+      +'<button class="decline" onclick="CXX.decline('+c.id+')">Decline</button>'
+      +'<button class="propose" onclick="return false">Reschedule</button>'
+      +'</span>';
+  }
+  if(c.stage==='interviewed'||c.stage==='noshow'){
+    return '<span class="cx-iv">'
+      +'<button class="sl'+(c.int==='sl'?' on':'')+'" onclick="CXX.setInt('+c.id+',\'sl\')" title="Yes">'+ico('tick')+'</button>'
+      +'<button class="ud'+(c.int==='ud'?' on':'')+'" onclick="CXX.setInt('+c.id+',\'ud\')" title="Maybe">'+ico('q')+'</button>'
+      +'<button class="rj'+(c.int==='rj'?' on':'')+'" onclick="CXX.setInt('+c.id+',\'rj\')" title="No">'+ico('x')+'</button>'
+      +'</span>';
+  }
+  return '';
+}
 function rowMenu(c){
   var top=[];
-  if(c.stage==='requested')top=['Accept interview','Decline request','Reschedule'];
+  if(c.stage==='requested')top=[];
   else if(c.stage==='scheduled')top=['Reschedule','Cancel interview'];
   else if(c.stage==='interviewed')top=[(rateOf(c)?'Update rating':'Add rating'),'Schedule interview'];
   else if(c.stage==='noshow')top=['Schedule interview'];
