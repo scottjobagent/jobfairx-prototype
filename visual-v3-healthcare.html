@@ -3224,6 +3224,7 @@ function ivChangeDisposition(option, value) {
 // ── Notes modal (Past interviews tab) ──
 var ivNotesCurrentBtn = null;
 function ivOpenNotesModal(candidateName, btn) {
+  window.__cxNotesId = null;
   ivNotesCurrentBtn = btn;
   document.getElementById('ivNotesModalName').textContent = candidateName;
   var existing = btn.getAttribute('data-notes') || '';
@@ -3239,6 +3240,7 @@ function ivSaveNotes() {
   if (ivNotesCurrentBtn) {
     var text = document.getElementById('ivNotesModalText').value;
     ivNotesCurrentBtn.setAttribute('data-notes', text);
+    if (window.__cxNotesId && window.CXX && CXX._noteSave) CXX._noteSave(text);
   }
   ivCloseNotesModal();
   showToast('success', 'Notes saved.');
@@ -6448,7 +6450,7 @@ var tpl=document.getElementById("anxViewTpl");var main=document.querySelector(".
 #view-candidates .cx-req button.decline:last-child{border-right:0}
 #view-candidates .cx-req button.decline:hover{background:#fef2f2;color:#991b1b}
 #view-candidates .cx-req button.propose:hover{background:#e8f0fe;color:#0044B3}
-#view-candidates .cx-tbl col.c2,#view-candidates .cx-tbl col.c3{width:auto}#view-candidates .cx-tbl col.c4{width:132px}#view-candidates .cx-tbl col.c5{width:176px}#view-candidates .cx-tbl col.c6{width:336px}#view-candidates .cx-cell{font-size:14px;line-height:21px;color:#2d2d2d}#view-candidates .cx-cell.sub{color:#595959}#view-candidates .cx-ivwrap > span:last-child{margin-left:auto}
+#view-candidates .cx-tbl col.c2,#view-candidates .cx-tbl col.c3{width:auto}#view-candidates .cx-tbl col.c4{width:132px}#view-candidates .cx-tbl col.c5{width:176px}#view-candidates .cx-tbl col.c6{width:336px}#view-candidates .cx-cell{font-size:14px;line-height:21px;color:#2d2d2d}#view-candidates .cx-cell.sub{color:#595959}#view-candidates .cx-ivwrap > span:last-child{margin-left:auto}#view-candidates .proposed-action{display:flex;flex-direction:column;gap:3px}#view-candidates .proposed-action-top{display:flex;align-items:center;gap:10px}#view-candidates .proposed-action-label{font-size:12px;font-weight:600;color:#0044B3;white-space:nowrap}#view-candidates .proposed-cancel{font-size:12px;font-weight:500;color:#767676;cursor:pointer;background:none;border:none;padding:0;font-family:inherit;text-decoration:underline;text-underline-offset:2px;transition:color .15s;white-space:nowrap}#view-candidates .proposed-cancel:hover{color:#991b1b}#view-candidates .proposed-action-times{font-size:13px;font-weight:500;color:#2d2d2d}#view-candidates .iv-live-table{margin-top:4px}#view-candidates .iv-live-table .cx-name{font-size:14px}
 #view-candidates .cx-bulk{display:flex;align-items:center;gap:12px;padding:12px 0;flex-wrap:wrap}
 #view-candidates .cd-status{white-space:nowrap}
 /* one plain line for a proposed time or an automatic no-show — no filled box */
@@ -6516,7 +6518,7 @@ var C=[
   w:[['Staff Nurse','Baylor Scott & White','2023–Present',['Med-surg floor at a 1:5 ratio.','Precepts new graduate nurses.']]],
   ed:[['BSN','Texas Woman’s University','2019 – 2023']],
   iv:[{ev:'dallas',k:'req',t:'Apr 22 · 9:00 AM CT',by:'Not assigned',st:'Awaiting your response'}]},
- {id:2,n:'Marcus Johnson',job:'Web Developer',loc:'Remote',em:'marcus.johnson@gmail.com',ph:'(214) 555-0193',stage:'interviewed',int:'sl',act:'Interviewed · 2 days ago',
+ {id:2,n:'Marcus Johnson',job:'Web Developer',loc:'Remote',em:'marcus.johnson@gmail.com',ph:'(214) 555-0193',stage:'interviewed',int:'sl',notes:'Strong React fundamentals. First attempt cut short; second went smoother — solid communicator.',act:'Interviewed · 2 days ago',
   sk:[['React',1],['Java',1],['Microservices',1],['AWS',1],['Kubernetes',0]],
   sc:[['How many years of web development experience do you have?','9','3']],
   w:[['Java Full Stack Developer','Molina Healthcare','2025–Present',['RESTful APIs for claims processing and member eligibility.','Spring Boot microservices.']],
@@ -6632,6 +6634,11 @@ function listHtml(){
     +'<button class="cx-b out" onclick="CXX.clearSel()">Clear selected</button>'
     +'<button class="cx-b pri" onclick="CXX.exportSel()">Export candidates'+ico('chev')+'</button></div>';
 
+  if(pill){
+    h+=fltHtml(rows);
+    if(!rows.length) h+='<div style="padding:56px 0;text-align:center;color:#767676">No candidates in this filter.</div>';
+    return h;
+  }
   h+='<table class="cx-tbl"><colgroup><col class="c1"><col class="c2"><col class="c3"><col class="c4"><col class="c5"><col class="c6"></colgroup>'
     +'<thead><tr><th><span class="cx-cb'+(selRows.length&&selRows.length===rows.length?' on':'')+'" onclick="CXX.'+(selRows.length===rows.length?'clearSel()':'selAll()')+'">'+ico('tick')+'</span></th><th>Candidates</th><th>Job</th><th>Location</th><th>'+timeHead()+'</th><th>'+colHead()+'</th></tr></thead><tbody>';
   rows.forEach(function(c){
@@ -6641,9 +6648,7 @@ function listHtml(){
       +'<td><div class="cx-cell">'+esc(c.job)+'</div></td>'
       +'<td><div class="cx-cell sub">'+esc(c.loc)+'</div></td>'
       +'<td><div class="cx-cell sub">'+esc(timeOf(c))+'</div></td>'
-      +'<td><span class="cx-ivwrap">'+rowCtl(c)
-      +'<span style="position:relative"><button class="cd-more" onclick="CXX.om(event,\'row'+c.id+'\')">'+ico('dots')+'</button>'
-      +(openMenu==='row'+c.id?rowMenu(c):'')+'</span></span></td></tr>';
+      +'<td><span class="cx-ivwrap">'+rowCtl(c)+moreBtn(c)+'</span></td></tr>';
   });
   h+='</tbody></table>';
   if(!rows.length) h+='<div style="padding:56px 0;text-align:center;color:#767676">No candidates in this filter.</div>';
@@ -6684,49 +6689,154 @@ function timeOf(c){
   if(!hit) (c.iv||[]).forEach(function(x){ if(!hit) hit=x; });
   return hit?hit.t:'\u2014';
 }
+/* Each stage reuses the component it has elsewhere in the app:
+   Requested/Declined -> the Lobby pending capsule. Scheduled -> Interviews
+   Upcoming. Interviewed -> the Interviews feedback chip. No-show -> kebab only. */
+var FBL={yes:'Yes',no:'No',maybe:'Maybe'};
+var FBMAP={sl:'yes',ud:'maybe',rj:'no'};
+function fbOf(c){return FBMAP[c.int]||'';}
+function pendCap(c,withDecline){
+  return '<div class="iv-pending-actions">'
+    +'<button class="iv-pending-btn accept" onclick="CXX.'+(withDecline?'accept':'reAccept')+'('+c.id+')">Accept<span class="iv-btn-tooltip">Accept interview request</span></button>'
+    +(withDecline?'<button class="iv-pending-btn decline" onclick="CXX.decline('+c.id+')">Decline<span class="iv-btn-tooltip">Decline interview request</span></button>':'')
+    +'<button class="iv-pending-btn propose" onclick="CXX.sched('+c.id+')">Reschedule<span class="iv-btn-tooltip">Propose new interview time</span></button></div>';
+}
+function upCap(c){
+  return '<div class="iv-upcoming-actions">'
+    +'<button class="iv-upcoming-btn reschedule" onclick="CXX.sched('+c.id+')">Reschedule<span class="iv-btn-tooltip">Reschedule interview</span></button>'
+    +'<button class="iv-upcoming-btn cancel" onclick="CXX.cancelIv('+c.id+')">Cancel<span class="iv-btn-tooltip">Cancel interview</span></button></div>';
+}
+function propCell(c,withTimes){
+  return '<div class="proposed-action"><div class="proposed-action-top">'
+    +'<span class="proposed-action-label">Proposed &middot; awaiting candidate</span>'
+    +'<button class="proposed-cancel" title="Cancel proposed interview time" onclick="return false">Cancel</button></div>'
+    +(withTimes?'<div class="proposed-action-times">'+esc(timeOf(c))+'</div>':'')+'</div>';
+}
+function fbChip(c){
+  var f=fbOf(c);
+  return '<div class="iv-disposition-wrapper"><div class="iv-disposition-actions">'
+    +'<button class="iv-disposition-btn status'+(f?' '+f:'')+'" onclick="CXX.om(event,\'fb'+c.id+'\')">'+(f?FBL[f]:'Select')
+      +'<span class="iv-btn-tooltip">'+(f?'You marked the candidate as '+FBL[f]:'Select feedback')+'</span></button>'
+    +'<button class="iv-disposition-btn change" onclick="CXX.om(event,\'fb'+c.id+'\')">Update<span class="iv-btn-tooltip">Update feedback</span></button></div>'
+    +'<div class="iv-disposition-dropdown'+(openMenu==='fb'+c.id?' open':'')+'" onclick="event.stopPropagation()">'
+    +'<div class="iv-disposition-option" onclick="CXX.setFb('+c.id+',\'yes\')"><span class="iv-dot green"></span>Yes</div>'
+    +'<div class="iv-disposition-option" onclick="CXX.setFb('+c.id+',\'no\')"><span class="iv-dot red"></span>No</div>'
+    +'<div class="iv-disposition-option" onclick="CXX.setFb('+c.id+',\'maybe\')"><span class="iv-dot yellow"></span>Maybe</div>'
+    +'</div></div>';
+}
+function moreBtn(c){
+  if(c.stage!=='interviewed'&&c.stage!=='noshow')return '';
+  var items=c.stage==='interviewed'?['Schedule follow-up interview','Send a Message']:['Schedule interview','Send a Message'];
+  return '<span class="iv-row-actions" style="margin-left:auto"><button class="iv-row-dots" onclick="CXX.om(event,\'row'+c.id+'\')">'+ico('dots')+'</button>'
+    +'<div class="iv-row-menu'+(openMenu==='row'+c.id?' open':'')+'">'
+    +items.map(function(a){return '<div class="iv-row-menu-item" onclick="CXX.rowAct('+c.id+',\''+a+'\')">'+a+'</div>';}).join('')
+    +'</div></span>';
+}
 function rowCtl(c){
-  if(c.stage==='requested'){
-    if(c.prop) return '<span class="cx-req"><button class="decline" onclick="return false">Cancel proposal</button></span>';
-    return '<span class="cx-req">'
-      +'<button class="accept" onclick="CXX.accept('+c.id+')">Accept</button>'
-      +'<button class="decline" onclick="CXX.decline('+c.id+')">Decline</button>'
-      +'<button class="propose" onclick="return false">Reschedule</button>'
-      +'</span>';
-  }
-  if(c.stage==='scheduled'){
-    return '<span class="cx-req">'
-      +'<button class="propose" onclick="return false">Reschedule</button>'
-      +'<button class="decline" onclick="return false">Cancel</button>'
-      +'</span>';
-  }
-  if(c.stage==='interviewed'||c.stage==='noshow'){
-    return '<span class="cx-iv">'
-      +'<button class="sl'+(c.int==='sl'?' on':'')+'" onclick="CXX.setInt('+c.id+',\'sl\')" title="Yes">'+ico('tick')+'</button>'
-      +'<button class="ud'+(c.int==='ud'?' on':'')+'" onclick="CXX.setInt('+c.id+',\'ud\')" title="Maybe">'+ico('q')+'</button>'
-      +'<button class="rj'+(c.int==='rj'?' on':'')+'" onclick="CXX.setInt('+c.id+',\'rj\')" title="No">'+ico('x')+'</button>'
-      +'</span>';
-  }
+  if(c.stage==='requested') return c.prop?propCell(c,false):pendCap(c,true);
+  if(c.stage==='scheduled') return upCap(c);
+  if(c.stage==='interviewed') return fbChip(c);
+  if(c.stage==='declined') return pendCap(c,false);
   return '';
 }
-function rowMenu(c){
-  var top=[];
-  if(c.stage==='requested')top=[];
-  else if(c.stage==='scheduled')top=[];
-  else if(c.stage==='interviewed')top=['Schedule interview'];
-  else if(c.stage==='noshow')top=['Schedule interview'];
-  else if(c.stage==='declined')top=['Accept'];
-  var all=top.concat(['View resume','Message','Download resume','Download application data']);
-  return '<span class="cx-menu" style="right:0;left:auto" onclick="event.stopPropagation()">'
-    +all.map(function(a){return '<button onclick="CXX.rowAct('+c.id+',\''+a+'\')">'+a+'</button>';}).join('')+'</span>';
+function nameCell(c,tag,withMsg){
+  var h='<td><button class="cx-name" onclick="CXX.open_('+c.id+')">'+esc(c.n)+'</button>';
+  if(tag)h+='<div style="font-size:12px;color:#767676;margin-top:1px;">'+tag+'</div>';
+  h+='<div class="iv-review-actions" style="margin-top:2px"><a onclick="CXX.rowAct('+c.id+',\'View resume\')" style="cursor:pointer">View resume</a>'
+    +(withMsg?' <a onclick="CXX.openDock('+c.id+')" style="cursor:pointer">Message</a>':'')+'</div></td>';
+  return h;
+}
+function ivHist(c){
+  var e=c.iv.filter(function(x){return x.k==='attempt'||x.k==='done';});
+  if(!e.length)return '\u2014';
+  if(e.length===1)return '<div class="iv-time-group"><div class="iv-time-date">'+esc(e[0].t)+'</div></div>';
+  var h='<div class="iv-time-group">';
+  e.forEach(function(x,i){h+=(i?'<div style="margin-top:6px;">':'<div>')+'<span class="iv-time-label">Interview '+(i+1)+'</span></div><div class="iv-time-date">'+esc(x.t)+'</div>';});
+  return h+'</div>';
+}
+function interviewerOf(c){var b='';c.iv.forEach(function(x){if(x.k==='done'||x.k==='attempt')b=x.by||b;});return b||'\u2014';}
+function notesBtn(c){
+  return '<button class="iv-notes-link" data-notes="'+esc(c.notes||'').replace(/"/g,'&quot;')+'" onclick="CXX.openNotes('+c.id+',this)">'
+    +'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> Notes</button>';
+}
+/* Filtered pills copy the table each stage lives in elsewhere:
+   Requested -> Lobby awaiting-response (incl. proposed rows).
+   Scheduled -> Interviews Upcoming. Interviewed -> Interviews interviewed table.
+   No-show -> Lobby event-ended list. Declined -> capsule minus Decline. */
+function fltHtml(rows){
+  var h='<table class="iv-live-table"><thead><tr>';
+  if(pill==='interviewed'){
+    h+='<th style="width:14%;">Name</th><th style="width:13%;">Desired job</th><th style="width:11%;">Desired location</th>'
+      +'<th style="width:18%;">Interviews</th><th style="width:15%;">Feedback</th><th style="width:11%;">Interviewer</th><th style="width:11%;">Notes</th><th style="width:7%;">Action</th>';
+  }else if(pill==='noshow'){
+    h+='<th style="width:25%;">Name</th><th style="width:22%;">Desired job</th><th style="width:20%;">Desired location</th><th style="width:25%;">Interview time</th><th style="width:8%;">Action</th>';
+  }else{
+    h+='<th style="width:20%;">Name</th><th style="width:18%;">Desired job</th><th style="width:15%;">Desired location</th>'
+      +'<th style="width:18%;">'+(pill==='scheduled'?'Interview time':'Requested time')+'</th><th style="width:29%;">Action</th>';
+  }
+  h+='</tr></thead><tbody>';
+  rows.forEach(function(c){
+    h+='<tr>';
+    if(pill==='interviewed'){
+      var tag=c.iv.some(function(x){return x.k==='attempt';})?'Returned to lobby':'';
+      h+=nameCell(c,tag,false)
+        +'<td>'+esc(c.job)+'</td><td>'+esc(c.loc)+'</td>'
+        +'<td>'+ivHist(c)+'</td>'
+        +'<td>'+fbChip(c)+'</td>'
+        +'<td>'+esc(interviewerOf(c))+'</td>'
+        +'<td>'+notesBtn(c)+'</td>'
+        +'<td><span class="cx-ivwrap">'+moreBtn(c)+'</span></td>';
+    }else if(pill==='noshow'){
+      h+=nameCell(c,'',false)
+        +'<td>'+esc(c.job)+'</td><td>'+esc(c.loc)+'</td>'
+        +'<td>'+esc(timeOf(c))+'</td>'
+        +'<td><span class="cx-ivwrap">'+moreBtn(c)+'</span></td>';
+    }else{
+      var tag2=(pill==='declined')?esc(c.act):'';
+      h+=nameCell(c,tag2,true)
+        +'<td>'+esc(c.job)+'</td><td>'+esc(c.loc)+'</td>'
+        +'<td>'+esc(timeOf(c))+'</td>'
+        +'<td>'+(pill==='requested'&&c.prop?propCell(c,true):rowCtl(c))+'</td>';
+    }
+    h+='</tr>';
+  });
+  return h+'</tbody></table>';
 }
 function rowAct(id,a){
   openMenu='';
-  if(a==='Accept interview')return accept(id);
-  if(a==='Decline request')return decline(id);
   if(a==='Accept')return reinstate(id);
-  if(a==='Message')return (render(),openDock(id));
+  if(a==='Send a Message'||a==='Message')return (render(),openDock(id));
+  if(a==='Schedule follow-up interview'||a==='Schedule interview')return (render(),sched(id));
   if(a==='View resume'){sel=id;ptab='app';secOpen.res=1;render();return;}
   render();
+}
+/* Reuse the existing schedule / cancel / notes modals. They live inside a
+   hidden view container, so hop them to <body> the first time we open one. */
+function unhide(id){var m=document.getElementById(id);if(m&&m.closest('.view'))document.body.appendChild(m);return m;}
+function sched(id){
+  var c=get(id);if(!unhide('scheduleModal')||typeof openScheduleModal!=='function')return;
+  openScheduleModal(null);
+  document.getElementById('scheduleTitle').textContent='Schedule with '+c.n;
+  document.getElementById('scheduleMsgLabel').textContent='Message to '+c.n;
+}
+function cancelIv(id){
+  var c=get(id);var m=unhide('cancelInterviewModal');if(!m)return;
+  document.getElementById('cancelInterviewTitle').textContent='Cancel interview with '+c.n+'?';
+  document.getElementById('cancelInterviewText').textContent='Are you sure you want to cancel your interview with '+c.n+'?';
+  m.classList.add('open');
+}
+function reAccept(id){reinstate(id);accept(id);}
+function setFb(id,v){var c=get(id);c.int={yes:'sl',maybe:'ud',no:'rj'}[v]||null;openMenu='';render();}
+function openNotes(id,btn){
+  var c=get(id);if(!unhide('ivNotesModal')||typeof ivOpenNotesModal!=='function')return;
+  ivOpenNotesModal(c.n,btn);
+  document.getElementById('ivNotesModalText').value=c.notes||'';
+  window.__cxNotesId=id;
+}
+function _noteSave(text){
+  var c=get(window.__cxNotesId);
+  if(c){c.notes=text;render();}
+  window.__cxNotesId=null;
 }
 /* ── profile ── */
 function sec(key,title,bodyHtml,right){
@@ -6966,13 +7076,13 @@ function closeDock(){document.getElementById('cxdk').classList.remove('open');}
 document.addEventListener('click',function(e){
   if(!e.target||!e.target.closest)return;
   if(menu||stpop||scopeOpen||openMenu){
-    if(e.target.closest('.cx-menu')||e.target.closest('.cd-more')||e.target.closest('.cd-status')||e.target.closest('.cx-title')||e.target.closest('.cx-ctl'))return;
+    if(e.target.closest('.cx-menu')||e.target.closest('.cd-more')||e.target.closest('.cd-status')||e.target.closest('.cx-title')||e.target.closest('.cx-ctl')||e.target.closest('.iv-row-actions')||e.target.closest('.iv-disposition-wrapper'))return;
     var inQ=!!e.target.closest('.cx-search');
     menu=false;stpop=false;scopeOpen=false;openMenu='';render();
     if(inQ)focusQ();
   }
 },true);
-window.CXX={accept:accept,back:back,clearSel:clearSel,decline:decline,noshow:noshow,om:om,openDock:openDock,open_:open_,reinstate:reinstate,rowAct:rowAct,selAll:selAll,setInt:setInt,setPTab:setPTab,setPill:setPill,setScope:setScope,setStage:setStage,step:step,togSel:togSel,toggleMenu:toggleMenu,toggleScope:toggleScope,toggleSec:toggleSec,toggleSt:toggleSt,setSort:setSort,setJob:setJob,setRate:setRate,closeDock:closeDock,render:render,setQ:setQ,exportSel:exportSel};
+window.CXX={accept:accept,back:back,sched:sched,cancelIv:cancelIv,reAccept:reAccept,setFb:setFb,openNotes:openNotes,_noteSave:_noteSave,clearSel:clearSel,decline:decline,noshow:noshow,om:om,openDock:openDock,open_:open_,reinstate:reinstate,rowAct:rowAct,selAll:selAll,setInt:setInt,setPTab:setPTab,setPill:setPill,setScope:setScope,setStage:setStage,step:step,togSel:togSel,toggleMenu:toggleMenu,toggleScope:toggleScope,toggleSec:toggleSec,toggleSt:toggleSt,setSort:setSort,setJob:setJob,setRate:setRate,closeDock:closeDock,render:render,setQ:setQ,exportSel:exportSel};
 
 /* ---------- bootstrap ---------- */
 try {
