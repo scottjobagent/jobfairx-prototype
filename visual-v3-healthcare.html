@@ -6481,7 +6481,7 @@ var tpl=document.getElementById("anxViewTpl");var main=document.querySelector(".
 #view-candidates .cd-cond .cd-btn{width:56px;padding:9px 0;justify-content:center;gap:0}
 #view-candidates .cd-pfid{flex:1 1 auto;min-width:0}
 #view-candidates .cd-pfhead .r{margin-left:auto;display:flex;align-items:center;flex:0 0 auto}
-#view-candidates .cd-pfacts{display:flex;align-items:center;gap:12px;margin:16px 0 0;flex:1 0 100%;padding-bottom:12px}
+#view-candidates .cd-pfacts{display:flex;align-items:center;gap:12px;margin:16px 0 0;flex:1 0 100%;padding-bottom:12px;flex-wrap:wrap}
 #view-candidates .cd-btn{white-space:nowrap}
 /* condensed bar once the header sticks */
 #view-candidates .cd-pfsticky.stuck{padding-top:0;border-bottom:1px solid #e4e2e0}
@@ -6878,27 +6878,41 @@ function infoLine(c){
   }
   return '';
 }
+/* F1: one judgment control app-wide. The profile reuses the Interviews
+   feedback chip; it only renders after an interview happened. */
+function fbInner(c,key,bare){
+  var f=fbOf(c);
+  return '<div class="iv-disposition-wrapper"><div class="iv-disposition-actions"'+(bare?'':' style="border:0"')+'>'
+    +'<button class="iv-disposition-btn status'+(f?' '+f:'')+'" onclick="CXX.om(event,\''+key+'\')">'+(f?FBL[f]:'Select')
+      +'<span class="iv-btn-tooltip">'+(f?'You marked the candidate as '+FBL[f]:'Select feedback')+'</span></button>'
+    +'<button class="iv-disposition-btn change" onclick="CXX.om(event,\''+key+'\')">Update<span class="iv-btn-tooltip">Update feedback</span></button></div>'
+    +'<div class="iv-disposition-dropdown'+(openMenu===key?' open':'')+'" onclick="event.stopPropagation()">'
+    +'<div class="iv-disposition-option" onclick="CXX.setFb('+c.id+',\'yes\')"><span class="iv-dot green"></span>Yes</div>'
+    +'<div class="iv-disposition-option" onclick="CXX.setFb('+c.id+',\'no\')"><span class="iv-dot red"></span>No</div>'
+    +'<div class="iv-disposition-option" onclick="CXX.setFb('+c.id+',\'maybe\')"><span class="iv-dot yellow"></span>Maybe</div>'
+    +'</div></div>';
+}
+function fbProf(c){
+  if(c.stage!=='interviewed') return '';
+  return '<span class="cd-status" style="margin-left:auto;cursor:default"><b>Feedback:</b>'+fbInner(c,'fbp'+c.id,false)+'</span>';
+}
+function condFb(c){
+  if(c.stage!=='interviewed') return '';
+  return fbInner(c,'fbc'+c.id,true);
+}
 function condHtml(c){
-  /* Shown only when the top bar sticks. Mirrors Indeed's condensed bar:
-     three icon-only actions, stage, rating trio. */
+  /* Shown only when the top bar sticks. Mirrors the full action row:
+     icon-only actions, stage, and the feedback chip after an interview. */
   return '<div class="cd-cond">'+actsFor(c)
     +'<span style="position:relative;margin-left:auto"><button class="cd-status" onclick="CXX.toggleSt(event)"><b>Stage:</b><span class="v">'+STAGEL[c.stage]+'</span>'+ico('chev')+'</button></span>'
-    +'<span class="cd-int">'
-      +'<button aria-pressed="'+(c.int==='sl')+'" onclick="CXX.setInt('+c.id+',\'sl\')" title="Shortlist">'+ico('tick')+'</button>'
-      +'<button aria-pressed="'+(c.int==='ud')+'" onclick="CXX.setInt('+c.id+',\'ud\')" title="Undecided">'+ico('q')+'</button>'
-      +'<button aria-pressed="'+(c.int==='rj')+'" onclick="CXX.setInt('+c.id+',\'rj\')" title="Not a fit">'+ico('x')+'</button>'
-    +'</span></div>';
+    +condFb(c)+'</div>';
 }
 function headHtml(c){
   return '<div class="cd-pfhead"><div class="cd-pfid">'
     +'<h1 class="cd-pfname">'+esc(c.n)+'</h1>'
     +'<div class="cd-pfmeta">'+ico('bag')+esc(c.job)+' &middot; '+esc(c.w[0][1])+'</div>'
     +'<div class="cd-pfmeta">'+ico('pin')+esc(c.loc)+'</div></div>'
-    +'<div class="r"><span class="cd-int">'
-      +'<button aria-pressed="'+(c.int==='sl')+'" onclick="CXX.setInt('+c.id+',\'sl\')" title="Shortlist">'+ico('tick')+'</button>'
-      +'<button aria-pressed="'+(c.int==='ud')+'" onclick="CXX.setInt('+c.id+',\'ud\')" title="Undecided">'+ico('q')+'</button>'
-      +'<button aria-pressed="'+(c.int==='rj')+'" onclick="CXX.setInt('+c.id+',\'rj\')" title="Not a fit">'+ico('x')+'</button>'
-    +'</span><span style="position:relative"><button class="cd-more" onclick="CXX.toggleMenu(event)">'+ico('dots')+'</button>'
+    +'<div class="r"><span style="position:relative"><button class="cd-more" onclick="CXX.toggleMenu(event)">'+ico('dots')+'</button>'
     +(menu?'<span class="cx-menu" style="display:block;right:0;top:48px;left:auto">'
         +(c.stage==='scheduled'&&c.iv.some(function(x){return x.k==='soon'&&x.ev===TODAY;})?'<button onclick="return false">Reschedule</button>':'')
         +(c.stage==='requested'||c.stage==='scheduled'?'<button onclick="CXX.rowAct('+c.id+',\'View resume\')">View resume</button>':'')
@@ -6906,8 +6920,8 @@ function headHtml(c){
         +'<button onclick="return false">Download application data</button>'
       +'</span>':'')+'</span></div>'
     +infoLine(c)
-    +'<div class="cd-pfacts">'+actsFor(c)
-    +'<span style="position:relative;margin-left:auto"><button class="cd-status'+(stpop?' open':'')+'" onclick="CXX.toggleSt(event)"><b>Stage:</b><span class="v">'+STAGEL[c.stage]+'</span>'+ico('chev')+'</button>'
+    +'<div class="cd-pfacts">'+actsFor(c)+fbProf(c)
+    +'<span style="position:relative;margin-left:'+(c.stage==='interviewed'?'12px':'auto')+'"><button class="cd-status'+(stpop?' open':'')+'" onclick="CXX.toggleSt(event)"><b>Stage:</b><span class="v">'+STAGEL[c.stage]+'</span>'+ico('chev')+'</button>'
     +(stpop?'<span class="cx-menu" style="display:block;right:0;top:48px;left:auto">'
       +PILLS.filter(function(p){return p.k;}).map(function(p){
         return '<button onclick="CXX.setStage('+c.id+',\''+p.k+'\')">'+(c.stage===p.k?'<span class="tick">'+ico('tick')+'</span>':'')+p.l+'</button>';}).join('')
