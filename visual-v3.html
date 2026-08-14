@@ -6050,7 +6050,8 @@ function listHtml(){
   rows.forEach(function(c){
     h+='<tr><td><span class="cx-cb'+(selRows.indexOf(c.id)>-1?' on':'')+'" onclick="CXX.togSel('+c.id+')">'+ico('tick')+'</span></td>'
       +'<td><button class="cx-name" onclick="CXX.open_('+c.id+')">'+esc(c.n)+'</button>'
-      +'<div class="cx-meta"><b>'+STAGEL[c.stage]+'</b> &bull; '+esc(c.act.split(' · ').pop())+'</div></td>'
+      +'<div class="cx-meta"><b>'+STAGEL[c.stage]+'</b> &bull; '+esc(c.act.split(' · ').pop())+'</div>'
+      +'<div class="iv-review-actions" style="margin-top:2px"><a onclick="CXX.rowAct('+c.id+',\'View resume\')" style="cursor:pointer">View resume</a> <a onclick="CXX.openDock('+c.id+')" style="cursor:pointer">Message</a></div></td>'
       +'<td><div class="cx-cell">'+esc(c.job)+'</div></td>'
       +'<td><div class="cx-cell sub">'+esc(c.loc)+'</div></td>'
       +'<td><div class="cx-cell sub">'+esc(timeOf(c))+'</div></td>'
@@ -6132,7 +6133,7 @@ function fbChip(c){
 }
 function moreBtn(c){
   if(c.stage!=='interviewed'&&c.stage!=='noshow')return '';
-  var items=c.stage==='interviewed'?['Schedule follow-up interview','Send a Message']:['Schedule interview','Send a Message'];
+  var items=c.stage==='interviewed'?['Schedule follow-up interview']:['Schedule interview'];
   return '<span class="iv-row-actions" style="margin-left:auto"><button class="iv-row-dots" onclick="CXX.om(event,\'row'+c.id+'\')">'+ico('dots')+'</button>'
     +'<div class="iv-row-menu'+(openMenu==='row'+c.id?' open':'')+'">'
     +items.map(function(a){return '<div class="iv-row-menu-item" onclick="CXX.rowAct('+c.id+',\''+a+'\')">'+a+'</div>';}).join('')
@@ -6185,7 +6186,7 @@ function fltHtml(rows){
     h+='<tr>';
     if(pill==='interviewed'){
       var tag=c.iv.some(function(x){return x.k==='attempt';})?'Returned to lobby':'';
-      h+=nameCell(c,tag,false)
+      h+=nameCell(c,tag,true)
         +'<td>'+esc(c.job)+'</td><td>'+esc(c.loc)+'</td>'
         +'<td>'+ivHist(c)+'</td>'
         +'<td>'+fbChip(c)+'</td>'
@@ -6193,7 +6194,7 @@ function fltHtml(rows){
         +'<td>'+notesBtn(c)+'</td>'
         +'<td><span class="cx-ivwrap">'+moreBtn(c)+'</span></td>';
     }else if(pill==='noshow'){
-      h+=nameCell(c,'',false)
+      h+=nameCell(c,'',true)
         +'<td>'+esc(c.job)+'</td><td>'+esc(c.loc)+'</td>'
         +'<td>'+esc(timeOf(c))+'</td>'
         +'<td><span class="cx-ivwrap">'+moreBtn(c)+'</span></td>';
