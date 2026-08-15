@@ -6601,6 +6601,149 @@ a.jm-cp-num:hover { color:#0044B3; }
     });
   }
 
+
+  /* ═══ D2 — the end-of-interview flow has to actually finish ═══
+     Two defects, both only reachable now that notes are taken during the
+     interview:
+       openEvalModal() ran evalNotes.value = '', wiping the note from view at
+       the moment you were asked to summarise it.
+       submitEval() read the rating into a variable and discarded it — the row
+       stayed in Interviewing forever and the Interviewed tab never learned the
+       interview had happened.
+     Fixed for phone and in-person only. Video's interview room still owns its
+     own copy of this flow and is untouched. */
+  var FBC = { yes:'yes', maybe:'maybe', no:'no' };
+  var FBN = { yes:'Yes', maybe:'Maybe', no:'No' };
+
+  function nowTime() {
+    var d = new Date();
+    var hh = d.getHours() % 12 || 12;
+    return hh + ':' + ('0' + d.getMinutes()).slice(-2) + ' ' + (d.getHours() < 12 ? 'AM' : 'PM');
+  }
+  function bumpTab(prefix, delta) {
+    var t = [].slice.call(document.querySelectorAll('.tab')).filter(function(x){ return x.textContent.indexOf(prefix) === 0; })[0];
+    if (!t) return;
+    t.textContent = t.textContent.replace(/\((\d+)\)/, function(_, n){ return '(' + Math.max(0, parseInt(n, 10) + delta) + ')'; });
+  }
+  function findIvRow(name) {
+    var rows = document.querySelectorAll('#interviewingLive tbody tr');
+    for (var i = 0; i < rows.length; i++) {
+      var d = rows[i].querySelector('td div');
+      if (d && d.textContent.trim() === name) return rows[i];
+    }
+    return null;
+  }
+
+  function fbCell(rating) {
+    var opt = function(k){ return '<div class="fb-dropdown-option" onclick="fbChange(this, \'' + k + '\')"><span class="fb-dot ' +
+      (k === 'yes' ? 'green' : k === 'no' ? 'red' : 'orange') + '"></span>' + FBN[k] + '</div>'; };
+    var status = rating
+      ? '<button class="fb-btn status ' + FBC[rating] + '" onclick="fbToggleDropdown(this)">' + FBN[rating] + '</button>'
+      : '<button class="fb-btn status" onclick="fbToggleDropdown(this)">Select</button>';
+    return '<div class="fb-wrapper"><div class="fb-actions">' + status +
+      '<button class="fb-btn change" onclick="fbToggleDropdown(this)">Update</button></div>' +
+      '<div class="fb-dropdown" onclick="event.stopPropagation()">' + opt('yes') + opt('no') + opt('maybe') + '</div></div>';
+  }
+
+  /* Interviewed keeps the small notes modal — a quick edit after the fact
+     does not need the resume beside it. */
+  function moveToInterviewed(name, rating) {
+    var src = findIvRow(name);
+    var host = document.querySelector('#interviewedLive tbody');
+    if (!src || !host) return;
+    var job = src.children[1] ? src.children[1].innerHTML : '';
+    var loc = src.children[2] ? src.children[2].innerHTML : '';
+    var note = NOTES[name] || '';
+    var ph = host.querySelector('td[colspan]');
+    if (ph && ph.parentNode) ph.parentNode.remove();
+    var tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td><div>' + esc(name) + '</div><div class="review-actions"><a onclick="openResumeModal(this)" style="cursor:pointer">View resume</a></div></td>' +
+      '<td>' + job + '</td><td>' + loc + '</td>' +
+      '<td><div class="iv-time-group"><div class="iv-time-date">' + esc(nowTime()) + '</div></div></td>' +
+      '<td>' + fbCell(rating) + '</td><td>Scott</td>' +
+      '<td><button class="notes-link" onclick="openNotesModal(\'' + name.replace(/'/g, "\\'") + '\', this)" data-notes="' + esc(note) + '">' +
+        NOTE_IC + ' Notes</button></td>' +
+      '<td class="row-actions"><button class="row-dots" onclick="toggleRowMenu(event, this)">' + DOTS + '</button>' +
+        '<div class="row-menu"><button class="row-menu-item" onclick="openScheduleModal(this)">Schedule follow-up interview</button>' +
+        '<button class="row-menu-item" onclick="openMsgModal(this)">Message</button></div></td>';
+    host.appendChild(tr);
+    src.parentNode.removeChild(src);
+    bumpTab('Interviewing', -1);
+    bumpTab('Interviewed', 1);
+  }
+
+  /* "No" now says the candidate goes back to Waiting rooms, so send them there. */
+  function returnToWaiting(name) {
+    var src = findIvRow(name);
+    var wait = document.querySelectorAll('#waitingLive .live-panel-section')[1];
+    var host = wait && wait.querySelector('tbody');
+    if (!src || !host) return;
+    var ph = host.querySelector('td[colspan]');
+    if (ph && ph.parentNode) ph.parentNode.remove();
+    var tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td>' + src.children[0].innerHTML + '</td><td>' + src.children[1].innerHTML + '</td><td>' + src.children[2].innerHTML + '</td>' +
+      '<td>' + src.children[3].innerHTML + '</td><td>0 minutes</td>' +
+      '<td><span class="status-badge waiting">Awaiting available interviewer</span></td>';
+    tr.appendChild(waitingMenu());
+    host.insertBefore(tr, host.firstElementChild);
+    src.parentNode.removeChild(src);
+    bumpTab('Interviewing', -1);
+    bumpTab('Waiting to interview', 1);
+    retitle();
+  }
+
+  function wireEndFlow() {
+    var evalName = null;
+    var oOpen = window.openEvalModal, oSubmit = window.submitEval, oEnd = window.handleEndCall;
+
+    if (typeof oOpen === 'function') {
+      window.openEvalModal = function(nm) {
+        var r = oOpen.apply(this, arguments);
+        evalName = nm;
+        var ta = document.getElementById('evalNotes');
+        var lbl = document.querySelector('.eval-notes-label');
+        if (ta) ta.value = NOTES[nm] || '';
+        if (lbl) {
+          lbl.textContent = 'Interview notes';
+          var hint = document.getElementById('jmEvalHint');
+          if (!hint) {
+            hint = document.createElement('div');
+            hint.id = 'jmEvalHint';
+            hint.style.cssText = 'font-size:12.5px;color:#767676;margin:-4px 0 8px';
+            lbl.parentNode.insertBefore(hint, lbl.nextSibling);
+          }
+          hint.textContent = 'Carried over from what you typed during the interview.';
+          hint.style.display = (NOTES[nm] ? '' : 'none');
+        }
+        return r;
+      };
+    }
+    if (typeof oSubmit === 'function') {
+      window.submitEval = function() {
+        var sel = document.querySelector('.eval-toggle-btn.selected');
+        var txt = sel ? sel.textContent.trim().toLowerCase() : '';
+        var rating = txt.indexOf('yes') > -1 ? 'yes' : txt.indexOf('maybe') > -1 ? 'maybe' : txt.indexOf('no') > -1 ? 'no' : null;
+        var ta = document.getElementById('evalNotes');
+        if (evalName && ta) NOTES[evalName] = ta.value;
+        var r = oSubmit.apply(this, arguments);
+        if (evalName) moveToInterviewed(evalName, rating);
+        evalName = null;
+        return r;
+      };
+    }
+    if (typeof oEnd === 'function') {
+      window.handleEndCall = function() {
+        var choice = (document.querySelector('input[name="endIvChoice"]:checked') || {}).value;
+        var nm = (document.getElementById('endIvName') || {}).textContent || '';
+        var r = oEnd.apply(this, arguments);
+        if (choice === 'no' && nm) returnToWaiting(nm);
+        return r;
+      };
+    }
+  }
+
   function apply() {
     /* The title and breadcrumb are already method-neutral in the markup, so
        they need nothing here. Everything below is a no-op for video. */
@@ -6613,6 +6756,7 @@ a.jm-cp-num:hover { color:#0044B3; }
     fixInterviewing();
     notesColumn();
     fixEndModal();
+    wireEndFlow();
   }
 
   document.addEventListener('click', function(e) {
