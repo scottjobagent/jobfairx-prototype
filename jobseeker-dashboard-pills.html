@@ -1958,5 +1958,111 @@ body.join-live .iv-tip { display:none !important; }
     closeCancel();
   }
 </script>
+
+<!-- ═══════════ DEVELOPER SPEC PANEL ═══════════ -->
+<style>
+.spec-launcher{position:fixed;bottom:18px;right:18px;z-index:9000;background:#1447e6;color:#fff;border:none;border-radius:9999px;padding:11px 18px;font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(20,71,230,.35);display:inline-flex;align-items:center;gap:8px}
+.spec-launcher svg{width:15px;height:15px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.spec-overlay{position:fixed;inset:0;background:rgba(20,20,20,.45);z-index:9500;display:none}
+.spec-overlay.open{display:block}
+.spec-panel{position:fixed;top:0;right:0;bottom:0;width:min(680px,92vw);background:#fff;z-index:9600;box-shadow:-8px 0 30px rgba(0,0,0,.18);transform:translateX(105%);transition:transform .25s ease;display:flex;flex-direction:column}
+.spec-panel.open{transform:translateX(0)}
+.spec-head{display:flex;align-items:center;justify-content:space-between;padding:18px 26px;border-bottom:1px solid #ebebeb}
+.spec-head h2{font-size:17px;font-weight:700;color:#2d2d2d;margin:0}
+.spec-x{background:none;border:none;font-size:20px;color:#767676;cursor:pointer;padding:4px 8px}
+.spec-body{overflow-y:auto;padding:22px 26px 60px;font-size:13.5px;line-height:1.6;color:#2d2d2d}
+.spec-body h3{font-size:15px;font-weight:700;margin:26px 0 10px;padding-top:14px;border-top:1px solid #ebebeb}
+.spec-body h3:first-child{margin-top:0;border-top:none;padding-top:0}
+.spec-body p{margin:0 0 10px;color:#595959}
+.spec-body b{color:#2d2d2d}
+.spec-body code{background:#f3f2ef;border-radius:4px;padding:1px 6px;font-size:12px;font-family:ui-monospace,Menlo,monospace;color:#0c447c}
+.spec-body pre{background:#f6f5f3;border-radius:8px;padding:12px 14px;font-size:12px;font-family:ui-monospace,Menlo,monospace;overflow-x:auto;color:#2d2d2d;margin:0 0 12px;line-height:1.55}
+.spec-tbl{width:100%;border-collapse:collapse;margin:0 0 14px;font-size:12.5px}
+.spec-tbl th{text-align:left;background:#f6f5f3;padding:7px 10px;border:1px solid #ebebeb;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:#767676}
+.spec-tbl td{padding:7px 10px;border:1px solid #ebebeb;vertical-align:top;color:#595959}
+.spec-tbl td:first-child{font-weight:700;color:#2d2d2d;white-space:nowrap}
+.spec-note{background:#f0f5ff;border-left:4px solid #1447e6;border-radius:0 6px 6px 0;padding:10px 14px;margin:0 0 14px;color:#44546b}
+.spec-ul{margin:0 0 12px 18px;color:#595959}
+.spec-ul li{margin-bottom:5px}
+</style>
+<button class="spec-launcher" onclick="document.getElementById('specOverlay').classList.add('open');document.getElementById('specPanel').classList.add('open')"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Developer spec</button>
+<div class="spec-overlay" id="specOverlay" onclick="this.classList.remove('open');document.getElementById('specPanel').classList.remove('open')"></div>
+<div class="spec-panel" id="specPanel">
+  <div class="spec-head"><h2>Dev Spec &mdash; Interview Method &amp; Location</h2><button class="spec-x" onclick="document.getElementById('specOverlay').classList.remove('open');document.getElementById('specPanel').classList.remove('open')">&#10005;</button></div>
+  <div class="spec-body">
+    <div class="spec-note"><b>How to use this page:</b> open <b>Demo states</b> (bottom-left) &mdash; the <b>Interview method</b> group flips every dashboard state between the four methods. Everything you see is the spec; this panel is the written version.</div>
+
+    <h3>1 &middot; Data model</h3>
+    <p>The interview method is set <b>per event</b> by the employer (one method applies to every interview at that event). Captured in the employer flow: <code>edit-post-v3.html</code> &rarr; Interview details, and <code>setup-flow-v3.html</code> step 5.</p>
+    <pre>interviewMethod: 'jfx_video' | 'third_party_video' | 'phone' | 'in_person'   // default: 'jfx_video'
+
+// third_party_video only:
+meetingUrl: string (required, must start with http(s)://)
+
+// in_person only:
+address: { street*, suite, city*, state*, zip* }        // * = required
+parkingInstructions: string (optional, multiline)
+arrivalInstructions: string (optional, multiline)
+
+// phone: no new fields — uses the candidate's profile phone number</pre>
+    <p>All of this must flow to every candidate surface: this dashboard, confirmation email/SMS, and reminders.</p>
+
+    <h3>2 &middot; Method line (STATUS column, all interview states)</h3>
+    <table class="spec-tbl"><tr><th>Method</th><th>Label</th></tr>
+      <tr><td>jfx_video</td><td>Video interview on JobFairX</td></tr>
+      <tr><td>third_party_video</td><td>Video interview &middot; employer&rsquo;s link</td></tr>
+      <tr><td>phone</td><td>Phone interview</td></tr>
+      <tr><td>in_person</td><td>In-person interview &middot; {City}, {State}</td></tr>
+    </table>
+    <p>At the <b>requested</b> stage, in_person shows city/state only plus: <i>&ldquo;You&rsquo;ll get the full address and arrival details when it&rsquo;s confirmed.&rdquo;</i> Full address is revealed on confirmation.</p>
+
+    <h3>3 &middot; ACTIONS column &mdash; confirmed state</h3>
+    <table class="spec-tbl"><tr><th>Method</th><th>Primary</th><th>Details / links</th></tr>
+      <tr><td>jfx_video</td><td>Join interview (disabled until start, camera icon)</td><td>&ldquo;Interviews are on JobFairX&rdquo; &middot; Test camera &amp; mic &middot; Reschedule &middot; Message &middot; Cancel &middot; Unregister</td></tr>
+      <tr><td>third_party_video</td><td>Join interview (external-link icon, opens meetingUrl in new tab)</td><td>&ldquo;Link provided by the employer&rdquo; &middot; <b>no Test camera &amp; mic</b> &middot; Reschedule &middot; Message &middot; Cancel &middot; Unregister</td></tr>
+      <tr><td>phone</td><td>Call-out card: &ldquo;<b>{Employer} will call you</b> at <b>{candidate phone}</b> at your scheduled time. No link needed &mdash; just have your phone ready.&rdquo;</td><td><b>Wrong number? Update it</b> (&rarr; profile) &middot; Reschedule &middot; Message &middot; Cancel &middot; Unregister</td></tr>
+      <tr><td>in_person</td><td>Get directions (maps URL from address)</td><td>Full address block, then collapsible <b>View arrival details</b> &rarr; Parking + When you arrive &middot; Reschedule &middot; Message &middot; Cancel &middot; Unregister</td></tr>
+    </table>
+
+    <h3>4 &middot; Day-of (live) state</h3>
+    <table class="spec-tbl"><tr><th>Method</th><th>State pill</th><th>Actions</th></tr>
+      <tr><td>jfx_video</td><td>It&rsquo;s time for your interview</td><td>Join interview now + Test camera &amp; mic</td></tr>
+      <tr><td>third_party_video</td><td>It&rsquo;s time for your interview</td><td>Join interview now &rarr; meetingUrl</td></tr>
+      <tr><td>phone</td><td>Your interview is starting soon</td><td>&ldquo;<b>Expect a call any minute</b> from {Employer} at {phone}. Keep your phone nearby and your ringer on.&rdquo;</td></tr>
+      <tr><td>in_person</td><td>Today &mdash; head to your interview</td><td>Get directions + address + arrival details <b>expanded by default</b>. No join-style CTA.</td></tr>
+    </table>
+    <p><b>In-interview state:</b> video methods show &ldquo;Return to interview&rdquo; (third-party &rarr; meetingUrl); phone shows &ldquo;You&rsquo;re in your phone interview with {Employer}&rdquo;; in-person same as live.</p>
+
+    <h3>5 &middot; Behavior rules</h3>
+    <ul class="spec-ul">
+      <li>Test camera &amp; mic appears <b>only</b> for jfx_video (it tests the JobFairX room).</li>
+      <li>The phone number shown is the <b>candidate&rsquo;s</b> &mdash; employer calls candidate. &ldquo;Wrong number? Update it&rdquo; routes to profile.</li>
+      <li>Maps link: <code>https://maps.google.com/?q={street}+{city}+{state}+{zip}</code></li>
+      <li>No changes to scheduling, reschedule, cancel, or messaging flows &mdash; method only changes display + primary CTA.</li>
+      <li>Email/SMS parity: confirmations and reminders carry the same per-method content; address/parking/arrival copy comes verbatim from the employer&rsquo;s Interview details.</li>
+    </ul>
+
+    <h3>6 &middot; Where it lives in this file</h3>
+    <ul class="spec-ul">
+      <li><code>METHOD</code> global + <code>MLBL</code>/<code>MICON</code> maps, <code>setMethod()</code> &mdash; search &ldquo;Interview method / location&rdquo;.</li>
+      <li>Row rendering: <code>renderConfirmed()</code> &mdash; method &times; phase (before/live/joined) builds the STATUS + ACTIONS columns.</li>
+      <li>Requested-row line: <code>[data-mreq]</code> / <code>[data-mcaveat]</code> + <code>updateReqM()</code>.</li>
+      <li>CSS: <code>.td-method .td-call .td-addr .td-arr .arr-item .ext-ic .iv-dir</code></li>
+      <li>Employer-side capture UI: <a href="edit-post-v3.html" target="_blank">edit-post-v3.html</a> &middot; <a href="setup-flow-v3.html" target="_blank">setup-flow-v3.html</a></li>
+    </ul>
+
+    <h3>7 &middot; QA checklist</h3>
+    <ul class="spec-ul">
+      <li>Method line shows in requested / confirmed / live / in-interview for all four methods</li>
+      <li>In-person hides street address until confirmed; caveat line shows at request stage</li>
+      <li>jfx_video experience is identical to pre-change behavior</li>
+      <li>Third-party join opens employer URL in new tab; no Test camera &amp; mic</li>
+      <li>Phone shows candidate&rsquo;s number; update-number link routes to profile</li>
+      <li>Get directions opens maps with the correct address; arrival details expand/collapse (auto-expanded day-of)</li>
+      <li>Confirmation email/SMS include per-method details</li>
+    </ul>
+  </div>
+</div>
+<!-- ═══════════ /DEVELOPER SPEC PANEL ═══════════ -->
 </body>
 </html>
