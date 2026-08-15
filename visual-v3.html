@@ -1082,7 +1082,7 @@ tbody tr:last-child td { border-bottom: none; }
           <tr>
             <th style="width:90px;">Actions</th>
             <th class="sortable">Event Details</th>
-            <th>Interview Location</th>
+            <th>Interview method</th>
             <th>Interview Setup</th>
             <th>Job Titles</th>
             <th>Candidates</th>
@@ -1255,7 +1255,7 @@ tbody tr:last-child td { border-bottom: none; }
             <tr>
               <th style="width:90px;">Actions</th>
               <th class="sortable">Event Details</th>
-              <th>Interview Location</th>
+              <th>Interview method</th>
               <th>Job Titles</th>
               <th>Candidates</th>
             </tr>
@@ -6555,6 +6555,104 @@ try {
   }
   render();
 } catch (e) { console.error('CXX bootstrap', e); }
+})();
+</script>
+
+<!-- ═══════════════ INTERVIEW METHOD v3 — dashboard ═══════════════
+     The "Interview Location" column printed the hardcoded string
+     "Virtual interviews" on every row. It now renders from the event's
+     method, and the Interviews tab — the one view that mixes events —
+     gains a Method column so an employer scanning tomorrow's interviews
+     can tell a call from a video room. ═════════════════════════════════ -->
+<style>
+.jm { display:inline-flex; align-items:center; gap:6px; padding:3px 9px; border-radius:12px; font-size:12px; font-weight:600; white-space:nowrap; line-height:1.5; }
+.jm svg { width:13px; height:13px; flex-shrink:0; }
+.jm.video { background:#e8f0fe; color:#0044B3; }
+.jm.phone { background:#eef4ec; color:#166534; }
+.jm.person { background:#f6efe6; color:#8a5a20; }
+.cell-method { display:flex; align-items:center; gap:7px; font-size:14px; color:#2d2d2d; font-weight:400; }
+.cell-method-sub { font-size:13px; color:#595959; margin-top:3px; line-height:1.4; }
+.cell-method-sub a { color:#0044B3; cursor:pointer; text-decoration:underline; }
+</style>
+<script>
+(function(){
+  /* Per event. Dallas stays video so the primary demo path is unchanged. */
+  var EVENT_METHOD = {
+    'dallas-healthcare': 'video',
+    'chicago-technology': 'phone',
+    'atlanta-diversity': 'person',
+    'houston-veteran': 'video'
+  };
+  var NAME_METHOD = {
+    'Dallas Healthcare Event': 'video', 'Dallas Hiring Event': 'video',
+    'Chicago Technology Event': 'phone', 'Chicago Healthcare Hiring Event': 'phone',
+    'Atlanta Diversity Event': 'person', 'Houston Healthcare Event': 'person'
+  };
+  var LABEL = { video:'Video', phone:'Phone', person:'In person' };
+  var SUB = {
+    video: 'JobFairX video call',
+    phone: 'You call each candidate',
+    person: '2200 Ross Ave, Suite 400 &middot; Dallas, TX'
+  };
+  var PATH = {
+    video: '<polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/>',
+    phone: '<path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6A19.8 19.8 0 012.1 4.2 2 2 0 014.1 2h3a2 2 0 012 1.7c.1 1 .4 1.9.7 2.8a2 2 0 01-.5 2.1L8.1 9.9a16 16 0 006 6l1.3-1.3a2 2 0 012.1-.4c.9.3 1.8.6 2.8.7a2 2 0 011.7 2z"/>',
+    person: '<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/>'
+  };
+  function svg(k){ return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + PATH[k] + '</svg>'; }
+  function chip(k){ return '<span class="jm ' + k + '">' + svg(k) + ' ' + LABEL[k] + '</span>'; }
+  function forRow(tr){ return EVENT_METHOD[tr.getAttribute('data-dash-event')] || 'video'; }
+  window.JFXM = { chip: chip, forEvent: function(n){ return NAME_METHOD[n] || 'video'; } };
+
+  /* B1 — the events table cell */
+  function eventsTable() {
+    document.querySelectorAll('.ev-row').forEach(function(tr) {
+      var cell = tr.querySelector('.cell-location');
+      if (!cell) return;
+      var k = forRow(tr);
+      cell.className = 'cell-method';
+      cell.innerHTML = chip(k);   /* the chip carries the label; don't say it twice */
+      var sub = document.createElement('div');
+      sub.className = 'cell-method-sub';
+      sub.innerHTML = SUB[k];
+      cell.parentNode.insertBefore(sub, cell.nextSibling);
+      /* Carry the method through to the lobby, which opens in a new tab. */
+      tr.querySelectorAll('a, button').forEach(function(el) {
+        var h = el.getAttribute('onclick') || '';
+        if (h.indexOf('lobby-v3') === -1) return;
+        el.setAttribute('onclick', h.replace(/lobby-v3(-healthcare)?\.html([^'"]*)/g, function(_, hc, qs) {
+          return 'lobby-v3' + (hc || '') + '.html' + (qs ? qs + '&' : '?') + 'method=' + k;
+        }));
+      });
+    });
+  }
+
+  /* B4 — the Interviews tab is the one view that mixes events, so it is the
+     one view that needs method per row. */
+  function interviewsTab() {
+    document.querySelectorAll('#view-interviews .iv-live-table').forEach(function(tbl) {
+      var hr = tbl.querySelector('thead tr');
+      if (!hr || hr.querySelector('.jm-mcol')) return;
+      var at = hr.children.length - 1;               /* before Action */
+      var th = document.createElement('th');
+      th.className = 'jm-mcol'; th.style.width = '11%'; th.textContent = 'Method';
+      hr.insertBefore(th, hr.children[at]);
+      hr.children[0].style.width = '18%';
+      if (hr.children[1]) hr.children[1].style.width = '15%';
+      if (hr.children[2]) hr.children[2].style.width = '13%';
+      hr.children[hr.children.length - 1].style.width = '26%';
+      tbl.querySelectorAll('tbody tr').forEach(function(tr) {
+        if (tr.querySelector('td[colspan]')) return;
+        var td = document.createElement('td');
+        td.innerHTML = chip(NAME_METHOD[tr.getAttribute('data-event')] || 'video');
+        tr.insertBefore(td, tr.children[at]);
+      });
+    });
+  }
+
+  function apply(){ eventsTable(); interviewsTab(); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', apply);
+  else apply();
 })();
 </script>
 

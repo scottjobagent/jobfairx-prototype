@@ -3118,5 +3118,117 @@ document.addEventListener('DOMContentLoaded', renderSlots);
 if (document.readyState !== 'loading') renderSlots();
 </script>
 
+<!-- ═══════════ CHANGE INTERVIEW METHOD AFTER PUBLISHING ═══════════
+     Changing the method used to take two clicks with no warning and no
+     re-notification — 16 confirmed candidates could be sent to the wrong
+     kind of interview silently. The employer now chooses, for the whole
+     confirmed batch: keep them on their original method, or move everyone
+     and notify them. Built on the End-interview modal pattern, which is
+     already this app's shape for "pick one of two consequences". ═══════ -->
+<style>
+.jmc-ov { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,.5); z-index:99999; align-items:center; justify-content:center; }
+.jmc-ov.open { display:flex; }
+.jmc-modal { background:#fff; border-radius:14px; width:560px; max-width:92vw; box-shadow:0 8px 32px rgba(0,0,0,.2); font-family:inherit; }
+.jmc-head { display:flex; align-items:flex-start; justify-content:space-between; padding:24px 24px 0; }
+.jmc-head h3 { font-size:18px; font-weight:700; color:#2d2d2d; margin:0; line-height:1.4; }
+.jmc-x { width:28px; height:28px; border:none; background:none; cursor:pointer; color:#595959; border-radius:6px; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-left:12px; }
+.jmc-x:hover { background:#f3f2ef; }
+.jmc-warn { display:flex; gap:12px; align-items:flex-start; background:#fdf6ec; border-left:4px solid #b8730f; border-radius:0 6px 6px 0; padding:13px 16px; margin:16px 24px 0; }
+.jmc-warn svg { width:17px; height:17px; flex:0 0 17px; stroke:#b8730f; fill:none; stroke-width:2; margin-top:2px; }
+.jmc-warn p { font-size:13.5px; line-height:1.5; color:#5c4a2e; margin:0; }
+.jmc-opts { padding:20px 24px 0; display:flex; flex-direction:column; gap:16px; }
+.jmc-opt { display:flex; align-items:flex-start; gap:12px; cursor:pointer; }
+.jmc-opt input[type="radio"] { width:18px; height:18px; accent-color:#0044B3; margin-top:2px; flex-shrink:0; cursor:pointer; }
+.jmc-opt label { font-size:14px; color:#2d2d2d; line-height:1.5; cursor:pointer; }
+.jmc-sub { display:block; font-size:13px; color:#767676; margin-top:5px; line-height:1.5; }
+.jmc-acts { display:flex; justify-content:flex-end; gap:12px; padding:24px; }
+.jmc-acts button { padding:10px 20px; border-radius:8px; font-size:14px; font-weight:600; cursor:pointer; font-family:inherit; }
+.jmc-cancel { background:#fff; border:1px solid #d4d2d0; color:#2d2d2d; }
+.jmc-cancel:hover { background:#f3f2ef; }
+.jmc-save { background:#0044B3; border:none; color:#fff; }
+.jmc-save:hover { background:#003399; }
+</style>
+<div class="jmc-ov" id="jmcOv">
+  <div class="jmc-modal">
+    <div class="jmc-head">
+      <h3>Change interview method to <span id="jmcTo"></span>?</h3>
+      <button class="jmc-x" onclick="JMC.close()" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="18" height="18"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div class="jmc-warn">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01" stroke-linecap="round"/></svg>
+      <p><b id="jmcCount">16 candidates</b> have confirmed interviews for this event. Their scheduled times won't change either way.</p>
+    </div>
+    <div class="jmc-opts">
+      <div class="jmc-opt" onclick="document.getElementById('jmcKeep').checked=true">
+        <input type="radio" name="jmcChoice" id="jmcKeep" value="keep" checked>
+        <label for="jmcKeep"><b>Keep their original method.</b> The <span class="jmc-n">16</span> confirmed candidates stay on <span id="jmcFrom"></span>. Only new requests will use <span class="jmc-toi"></span>.
+          <span class="jmc-sub">Nobody is re-notified. Your event will run both methods on the day, and your Lobby will show which is which.</span></label>
+      </div>
+      <div class="jmc-opt" onclick="document.getElementById('jmcAll').checked=true">
+        <input type="radio" name="jmcChoice" id="jmcAll" value="all">
+        <label for="jmcAll"><b>Move everyone to <span class="jmc-toi"></span>.</b> All <span class="jmc-n">16</span> confirmed candidates are notified with the new details.
+          <span class="jmc-sub">Each candidate gets an updated confirmation. This is logged to their activity feed.</span></label>
+      </div>
+    </div>
+    <div class="jmc-acts">
+      <button class="jmc-cancel" onclick="JMC.close()">Cancel</button>
+      <button class="jmc-save" onclick="JMC.go()">Save changes</button>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  var LABEL = { video:'Video', phone:'Phone', person:'In person' };
+  var CONFIRMED = 16;               /* prototype seed — the event's confirmed count */
+  var original = null, pending = null;
+
+  function current(){ return (window.__imState && window.__imState.format) || 'video'; }
+
+  window.JMC = {
+    close: function(){ document.getElementById('jmcOv').classList.remove('open'); pending = null; },
+    go: function() {
+      var choice = document.querySelector('input[name="jmcChoice"]:checked').value;
+      document.getElementById('jmcOv').classList.remove('open');
+      original = current();
+      if (typeof toggleInterviewDetails === 'function') toggleInterviewDetails(false);
+      if (typeof showToast === 'function') showToast();
+      if (choice === 'all') {
+        console.log('[method] all ' + CONFIRMED + ' confirmed candidates moved to ' + current() + ' and notified');
+      } else {
+        console.log('[method] ' + CONFIRMED + ' confirmed candidates kept on ' + original + '; event is now mixed');
+      }
+      pending = null;
+    }
+  };
+
+  function open(from, to) {
+    document.getElementById('jmcTo').textContent = LABEL[to];
+    document.getElementById('jmcFrom').textContent = LABEL[from];
+    document.querySelectorAll('.jmc-toi').forEach(function(e){ e.textContent = LABEL[to]; });
+    document.getElementById('jmcCount').textContent = CONFIRMED + ' candidates';
+    document.querySelectorAll('.jmc-n').forEach(function(e){ e.textContent = CONFIRMED; });
+    document.getElementById('jmcKeep').checked = true;
+    document.getElementById('jmcOv').classList.add('open');
+  }
+
+  function hook() {
+    original = current();
+    var orig = window.imValidateDetailsUpdate;
+    if (typeof orig !== 'function') return;
+    window.imValidateDetailsUpdate = function() {
+      if (!window.imValidate()) return;          /* fields still invalid — no modal */
+      var now = current();
+      if (now === original || !CONFIRMED) return orig.apply(this, arguments);
+      open(original, now);
+    };
+    var ov = document.getElementById('jmcOv');
+    if (ov) ov.addEventListener('click', function(e){ if (e.target === this) JMC.close(); });
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', hook);
+  else hook();
+})();
+</script>
+
 </body>
 </html>

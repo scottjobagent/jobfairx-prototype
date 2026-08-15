@@ -1699,7 +1699,9 @@ body.collapsed .progress-bar-track { left: 60px; }
           <button class="rv-pencil" title="Edit" onclick="openRvModal('interviewSettings')"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button>
         </div>
         <div class="rv-section-body">
-          <div class="rv-sub-title">Interviewers:</div>
+          <div class="rv-sub-title">Interview method:</div>
+          <ul class="rv-list" id="rvMethodList"><li id="rvMethod">JobFairX Video interviews</li></ul>
+          <div class="rv-sub-title" style="margin-top: 16px;">Interviewers:</div>
           <ul class="rv-list" id="rvInterviewersList">
             <li>demo@jobfairx.com</li>
           </ul>
@@ -4321,6 +4323,31 @@ function completePurchase() {
 document.getElementById('purchaseModal').addEventListener('click', function(e) {
   if (e.target === this) closePurchaseModal();
 });
+</script>
+
+<script>
+/* A3 — the review page is the last screen before publishing, and it omitted the
+   one setting with the highest cost of being wrong. Mirror the picker here. */
+(function(){
+  function paint(){
+    var el=document.getElementById('rvMethod'); if(!el) return;
+    var S=window.__imState||{format:'video',videoMode:'native'};
+    var txt;
+    if(S.format==='phone') txt='Phone \u00b7 you call each candidate at their scheduled time';
+    else if(S.format==='person'){
+      var a=['imAddrStreet','imAddrSuite','imAddrCity','imAddrState','imAddrZip']
+        .map(function(id){var i=document.getElementById(id);return i&&i.value.trim();}).filter(Boolean);
+      txt='In person \u00b7 '+(a.length?a.join(', '):'address not set yet');
+    } else if(S.videoMode==='third'){
+      var u=document.getElementById('imMeetUrl');
+      txt='Video \u00b7 third-party'+(u&&u.value.trim()?' \u00b7 '+u.value.trim():'');
+    } else txt='Video \u00b7 JobFairX video call';
+    el.textContent=txt;
+  }
+  document.addEventListener('click',function(e){ if(e.target.closest('.im-seg-btn,.im-vopt')) setTimeout(paint,0); });
+  document.addEventListener('input',function(e){ if(e.target.closest('#imWrap')) paint(); });
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',paint); else paint();
+})();
 </script>
 
 </body>

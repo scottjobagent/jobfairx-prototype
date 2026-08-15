@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Virtual Interview Lobby - JobFairX</title>
+<title>Interview Lobby - JobFairX</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -1108,7 +1108,7 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
   <!-- Breadcrumb -->
   <a class="breadcrumb" href="visual-v3.html">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-    All JobFairX virtual interviews
+    All JobFairX interviews
   </a>
 
   <!-- Event header -->
@@ -5259,12 +5259,12 @@ document.addEventListener('keydown', function(e) {
       </div>
       <div class="end-iv-option" onclick="document.getElementById('endIvNo').checked=true">
         <input type="radio" name="endIvChoice" id="endIvNo" value="no" checked>
-        <label for="endIvNo">No, <span class="end-iv-name-inline"></span> will return to the front of the interview line and be able to join the interview again.</label>
+        <label for="endIvNo">No, <span class="end-iv-name-inline"></span> will return to the front of the interview line<span id="endIvTail"> and be able to join the interview again</span>.</label>
       </div>
     </div>
     <div class="end-iv-actions">
       <button class="end-iv-cancel" onclick="closeEndIvModal()">Cancel</button>
-      <button class="end-iv-endcall" onclick="handleEndCall()">End Call</button>
+      <button class="end-iv-endcall" onclick="handleEndCall()">End interview</button>
     </div>
   </div>
 </div>
@@ -5772,6 +5772,535 @@ function applyCustomBgColor(color) { if (window.__bgPickerContext === "iv") { co
 function initBgCpxDrag() { document.querySelectorAll(".bg-cpx-sl").forEach(sl => { const h = e => { const r = sl.getBoundingClientRect(); const cx = e.touches ? e.touches[0].clientX : e.clientX; const cy = e.touches ? e.touches[0].clientY : e.clientY; const x = Math.max(0, Math.min(r.width, cx - r.left)); const y = Math.max(0, Math.min(r.height, cy - r.top)); window.__bgHsv.s = (x / r.width) * 100; window.__bgHsv.v = (1 - y / r.height) * 100; updateBgCpxVisuals(); }; let d = false; sl.addEventListener("pointerdown", e => { d = true; try { sl.setPointerCapture(e.pointerId); } catch(_){} h(e); }); sl.addEventListener("pointermove", e => { if (d) h(e); }); sl.addEventListener("pointerup", e => { d = false; try { sl.releasePointerCapture(e.pointerId); } catch(_){} }); sl.addEventListener("pointercancel", () => { d = false; }); }); document.querySelectorAll(".bg-cpx-hue").forEach(hue => { const h = e => { const r = hue.getBoundingClientRect(); const cx = e.touches ? e.touches[0].clientX : e.clientX; const x = Math.max(0, Math.min(r.width, cx - r.left)); window.__bgHsv.h = (x / r.width) * 360; updateBgCpxVisuals(); }; let d = false; hue.addEventListener("pointerdown", e => { d = true; try { hue.setPointerCapture(e.pointerId); } catch(_){} h(e); }); hue.addEventListener("pointermove", e => { if (d) h(e); }); hue.addEventListener("pointerup", e => { d = false; try { hue.releasePointerCapture(e.pointerId); } catch(_){} }); hue.addEventListener("pointercancel", () => { d = false; }); }); }
 if (document.readyState !== "loading") initBgCpxDrag();
 else document.addEventListener("DOMContentLoaded", initBgCpxDrag);
+</script>
+
+<!-- ═══════════════ INTERVIEW METHOD v3 — Phone & In-Person ═══════════════
+     Per event: video (default) | phone | person.
+     Set with ?method=phone or ?method=person; carried across window.open via
+     sessionStorage so the dashboard's "Go to lobby" links keep the event's
+     Video keeps its existing behaviour entirely — every transform below
+     returns early for it. The one thing video does gain is the method line in
+     the event header, which states the method once for all three.
+     Rows may carry data-method to override the event default (mixed events,
+     created when an employer edits the method but keeps confirmed candidates
+     on their original one). ═══════════════════════════════════════════════ -->
+<style>
+/* Interview method chip — sized to match .status-badge exactly */
+.jm { display:inline-flex; align-items:center; gap:6px; padding:3px 9px; border-radius:12px; font-size:12px; font-weight:600; white-space:nowrap; line-height:1.5; }
+.jm svg { width:13px; height:13px; flex-shrink:0; }
+.jm.video { background:#e8f0fe; color:#0044B3; }
+.jm.phone { background:#eef4ec; color:#166534; }
+.jm.person { background:#f6efe6; color:#8a5a20; }
+.jm.checked { background:#eef4ec; color:#166534; }
+.jm.late { background:#fdf6ec; color:#8a5a20; }
+.jm.lg { font-size:14px; padding:5px 12px; border-radius:14px; }
+.jm.lg svg { width:15px; height:15px; }
+/* Method line in the event header — matches .event-meta rhythm */
+.jm-line { display:flex; align-items:center; gap:10px; margin-top:10px; font-size:15px; color:#595959; }
+.jm-line a { color:#0044B3; text-decoration:underline; cursor:pointer; font-weight:600; }
+.jm-line b { color:#2d2d2d; font-weight:600; }
+/* Secondary variant of the existing primary button — for rows not yet due */
+.start-interview-btn.jm-sec { background:#fff; color:#0044B3; border:1px solid #d4d2d0; }
+.start-interview-btn.jm-sec:hover { background:#f0f5ff; border-color:#0044B3; }
+.jm-actwrap { display:inline-flex; align-items:center; gap:8px; }
+/* Sub-line under a candidate name — matches the existing "Returned to lobby" treatment */
+.jm-subline { font-size:12px; color:#767676; margin-top:1px; }
+/* ═══ Call panel ═══ */
+.jm-anchor { position:relative; display:inline-block; }
+.jm-cp { position:absolute; top:calc(100% + 8px); right:0; width:344px; background:#fff; border:1px solid #d4d2d0; border-radius:12px; box-shadow:0 8px 28px rgba(0,0,0,.16); z-index:600; text-align:left; display:none; }
+.jm-cp.open { display:block; }
+.jm-cp-h { padding:16px 18px 12px; border-bottom:1px solid #f3f2ef; }
+.jm-cp-name { font-size:16px; font-weight:700; color:#2d2d2d; line-height:1.3; }
+.jm-cp-role { font-size:13px; color:#595959; margin-top:2px; }
+.jm-cp-b { padding:16px 18px; }
+.jm-cp-numrow { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.jm-cp-num { font-size:22px; font-weight:700; color:#2d2d2d; font-variant-numeric:tabular-nums; user-select:all; text-decoration:none; }
+a.jm-cp-num:hover { color:#0044B3; }
+.jm-cp-copy { display:inline-flex; align-items:center; gap:5px; background:#fff; border:1px solid #d4d2d0; border-radius:8px; padding:6px 11px; font-size:12px; font-weight:600; color:#0044B3; cursor:pointer; font-family:inherit; white-space:nowrap; }
+.jm-cp-copy:hover { background:#f0f5ff; border-color:#0044B3; }
+.jm-cp-copy svg { width:13px; height:13px; stroke:currentColor; fill:none; stroke-width:2; }
+.jm-cp-hand { font-size:12.5px; color:#595959; line-height:1.5; margin-top:12px; padding-top:12px; border-top:1px solid #f3f2ef; }
+.jm-cp-when { font-size:12.5px; color:#767676; margin-top:8px; }
+.jm-cp-when b { color:#2d2d2d; font-weight:600; }
+.jm-cp-acts { padding:0 18px 16px; }
+.jm-cp-pri { width:100%; background:#0044B3; color:#fff; border:none; border-radius:8px; padding:11px 16px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; }
+.jm-cp-pri:hover { background:#003399; }
+.jm-cp-sec { display:flex; gap:8px; margin-top:8px; }
+.jm-cp-sec button { flex:1; background:#fff; border:1px solid #d4d2d0; border-radius:8px; padding:9px 12px; font-size:13px; font-weight:600; color:#2d2d2d; cursor:pointer; font-family:inherit; }
+.jm-cp-sec button:hover { background:#f3f2ef; }
+.jm-cp-sec button.warn:hover { background:#fef2f2; color:#991b1b; border-color:#e8c4c4; }
+.jm-cp-wrong { display:block; width:100%; text-align:center; margin-top:10px; font-size:12px; color:#767676; text-decoration:underline; cursor:pointer; background:none; border:none; font-family:inherit; }
+.jm-cp-wrong:hover { color:#0044B3; }
+/* ═══ Small shared modal — reuses the End-interview modal shell ═══ */
+.jm-ov { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,.5); z-index:9999; align-items:center; justify-content:center; }
+.jm-ov.open { display:flex; }
+.jm-fld { padding:0 24px; margin-bottom:16px; }
+.jm-fld label { display:block; font-size:14px; font-weight:700; color:#2d2d2d; margin-bottom:6px; }
+.jm-fld .req { color:#991b1b; }
+.jm-fld select, .jm-fld input { width:100%; height:44px; border:1px solid #d4d2d0; border-radius:10px; padding:10px 14px; font-family:inherit; font-size:15px; color:#2d2d2d; background:#fff; box-sizing:border-box; }
+.jm-fld select:focus, .jm-fld input:focus { outline:none; border-color:#0044b3; box-shadow:0 0 0 3px rgba(0,68,179,.12); }
+.jm-fld .helper { font-size:13px; color:#767676; margin-top:6px; }
+.jm-body { padding:20px 24px 0; font-size:14px; color:#2d2d2d; line-height:1.6; }
+.jm-body p { margin-bottom:12px; }
+.jm-body b { font-weight:700; }
+.jm-prim { background:#0044B3; border:none; color:#fff; }
+.jm-prim:hover { background:#003399; }
+.jm-prim:disabled { background:#cbd5e1; cursor:not-allowed; }
+</style>
+
+<!-- Mark as interviewed — the completion path for interviews the platform can't observe -->
+<div class="jm-ov" id="jmMarkOv">
+  <div class="end-iv-modal">
+    <div class="end-iv-header">
+      <h3>Mark <span id="jmMarkName"></span> as interviewed</h3>
+      <button class="end-iv-close" onclick="JFXM.closeMark()" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div style="height:20px"></div>
+    <div class="jm-fld">
+      <label for="jmMarkWho">Who interviewed them? <span class="req">*</span></label>
+      <select id="jmMarkWho" onchange="JFXM.markCheck()">
+        <option value="">Select an interviewer</option>
+        <option>Emily Chen</option><option>Maria Lopez</option><option>David Park</option><option>Dana Whitfield</option>
+      </select>
+    </div>
+    <div class="jm-fld">
+      <label for="jmMarkTime">Interview time</label>
+      <input type="text" id="jmMarkTime" autocomplete="off" placeholder="e.g. 1:45 PM">
+      <div class="helper">Enter the actual time they interviewed.</div>
+    </div>
+    <div class="end-iv-actions">
+      <button class="end-iv-cancel" onclick="JFXM.closeMark()">Cancel</button>
+      <button class="end-iv-endcall jm-prim" id="jmMarkGo" disabled onclick="JFXM.markGo()">Mark as interviewed</button>
+    </div>
+  </div>
+</div>
+
+<!-- Parking & arrival — shows the employer what their candidates were sent -->
+<div class="jm-ov" id="jmAddrOv">
+  <div class="end-iv-modal">
+    <div class="end-iv-header">
+      <h3>Interview address</h3>
+      <button class="end-iv-close" onclick="JFXM.closeAddr()" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div class="jm-body">
+      <p><b>2200 Ross Avenue, Suite 400</b><br>Dallas, TX 75201</p>
+      <p><b>Parking</b><br>Visitor parking is available in the garage on Pearl Street. Bring your ticket to the front desk for validation.</p>
+      <p><b>Arrival</b><br>Check in with the receptionist on the 4th floor and ask for Talent Acquisition.</p>
+      <p style="color:#767676;font-size:13px">These details are included in every candidate's interview confirmation.</p>
+    </div>
+    <div class="end-iv-actions">
+      <button class="end-iv-cancel" onclick="JFXM.closeAddr()">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var VALID = { video:1, phone:1, person:1 };
+  var LABEL = { video:'Video', phone:'Phone', person:'In person' };
+  var m = 'video';
+  try {
+    var q = (location.search.match(/[?&]method=([a-z]+)/) || [])[1];
+    if (q && VALID[q]) { m = q; sessionStorage.setItem('jfxMethod', q); }
+    else { var st = sessionStorage.getItem('jfxMethod'); if (st && VALID[st]) m = st; }
+  } catch (e) {}
+
+  var PATH = {
+    video: '<polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/>',
+    phone: '<path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6A19.8 19.8 0 012.1 4.2 2 2 0 014.1 2h3a2 2 0 012 1.7c.1 1 .4 1.9.7 2.8a2 2 0 01-.5 2.1L8.1 9.9a16 16 0 006 6l1.3-1.3a2 2 0 012.1-.4c.9.3 1.8.6 2.8.7a2 2 0 011.7 2z"/>',
+    person: '<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/>',
+    tick: '<polyline points="20 6 9 17 4 12"/>'
+  };
+  function svg(k) {
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + PATH[k] + '</svg>';
+  }
+  function chip(k, lg) { return '<span class="jm ' + k + (lg ? ' lg' : '') + '">' + svg(k) + ' ' + LABEL[k] + '</span>'; }
+  function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function rowMethod(tr) { return (tr && tr.getAttribute('data-method')) || m; }
+  function toast(msg) { if (typeof fbToast === 'function') fbToast(msg); }
+
+  /* Phone numbers for the lobby's live-table candidates. resumeData covers a few
+     already; these fill the rest so the Call panel is never a placeholder. */
+  var PHONE = {
+    'Aisha Rahman':'(214) 555-0112', 'James Cooper':'(469) 555-0234', 'Sofia Martinez':'(972) 555-0356',
+    'Derek Washington':'(214) 555-0468', 'Marcus Johnson':'(469) 555-0247', 'Priya Patel':'(972) 555-0391',
+    'Tamara Williams':'(214) 555-0183', 'Michael Sanchez Reyes':'(469) 555-0512', 'Babar Nawaz':'(972) 555-0624',
+    'Michael Duvenary':'(214) 555-0735', 'Jonathan Kleve':'(469) 555-0846', 'Keisha Brown':'(972) 555-0957',
+    'Daniel Ortiz':'(214) 555-0168', 'Jordan Lee':'(469) 555-0279'
+  };
+  function phoneFor(name) {
+    if (PHONE[name]) return PHONE[name];
+    try { if (typeof resumeData !== 'undefined' && resumeData[name] && resumeData[name].phone) return resumeData[name].phone; } catch (e) {}
+    return '(214) 555-0100';
+  }
+  function timeCell(tr) { return tr.children[tr.querySelector('.jm-mcell') ? 4 : 3]; }
+  function nameOf(tr) {
+    var d = tr.querySelector('td div');
+    return d ? d.textContent.trim() : 'Candidate';
+  }
+  /* "Apr 22, 11:00 AM - 11:30 AM PDT" -> "11:00 AM" */
+  function startOf(t) {
+    var s = String(t || '').replace(/^[A-Za-z]{3}\s+\d+,\s*/, '');
+    var mm = s.match(/(\d{1,2}:\d{2}\s*[AP]M)/i);
+    return mm ? mm[1] : s.trim();
+  }
+
+  /* ═══ 1. Event header — state the method once, above every tab ═══ */
+  function headerLine() {
+    var host = document.querySelector('.event-header > div:first-child');
+    if (!host || host.querySelector('.jm-line')) return;
+    var el = document.createElement('div');
+    el.className = 'jm-line';
+    var body;
+    if (m === 'phone') body = '<span>You call each candidate at their scheduled time</span>';
+    else if (m === 'person') body = '<span>2200 Ross Ave, Suite 400, Dallas, TX 75201</span><a onclick="JFXM.addr()">Parking &amp; arrival</a>';
+    else body = '<span>JobFairX video call</span>';
+    el.innerHTML = chip(m, true) + body;
+    host.appendChild(el);
+  }
+
+  /* ═══ 2. Waiting tab — one time-ordered section replaces rooms/waiting ═══
+     The rooms/waiting split encodes a presence signal that only exists inside a
+     video room, so for phone and in-person the two sections collapse into one
+     and the schedule becomes the status. */
+  function actionCell(tr, actionable) {
+    var k = rowMethod(tr);
+    if (k === 'video') {
+      return '<button class="start-interview-btn" onclick="startInterview(this)">' + svg('video') +
+        ' Start interview <svg style="width:12px;height:12px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></button>';
+    }
+    if (k === 'phone') {
+      return '<span class="jm-anchor"><button class="start-interview-btn' + (actionable ? '' : ' jm-sec') +
+        '" onclick="JFXM.call(this)">' + svg('phone') + ' <span class="jm-calllbl">Call candidate</span></button></span>';
+    }
+    return '<span class="jm-actwrap"><button class="start-interview-btn' + (actionable ? '' : ' jm-sec') +
+      '" onclick="JFXM.checkin(this)">Check in</button>' +
+      '<span class="row-actions"><button class="row-dots" onclick="toggleRowMenu(event, this)"><svg viewBox="0 0 24 24" fill="#0044B3"><circle cx="6" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="18" cy="12" r="2"/></svg></button>' +
+      '<div class="row-menu">' +
+        '<button class="row-menu-item" onclick="JFXM.startPerson(this)">Start interview</button>' +
+        '<button class="row-menu-item" onclick="JFXM.mark(this)">Mark as interviewed</button>' +
+        '<button class="row-menu-item" style="color:#991b1b" onclick="JFXM.noshow(this)">Didn\'t show</button>' +
+      '</div></span></span>';
+  }
+
+  function mergeWaiting(host) {
+    if (!host) return;
+    var secs = host.querySelectorAll('.live-panel-section');
+    if (secs.length < 2) return;
+    var keep = secs[0], drop = secs[1];
+    var rows = [];
+    [secs[0], secs[1]].forEach(function(sec) {
+      sec.querySelectorAll('tbody tr').forEach(function(tr) {
+        if (tr.querySelector('td[colspan]')) return;
+        var td = tr.children;
+        var badge = tr.querySelector('.status-badge');
+        rows.push({
+          tr: tr,
+          name: td[0] ? td[0].innerHTML : '',
+          job: td[1] ? td[1].textContent.trim() : '',
+          loc: td[2] ? td[2].textContent.trim() : '',
+          time: td[3] ? td[3].textContent.trim() : '',
+          ready: !!(badge && badge.classList.contains('ready'))
+        });
+      });
+    });
+
+    var mixed = rows.some(function(r) { return rowMethod(r.tr) !== m; });
+    var head = '<tr><th style="width:' + (mixed ? '19%' : '21%') + ';">Name</th><th style="width:' + (mixed ? '14%' : '16%') + ';">Desired job</th>' +
+      '<th style="width:13%;">Desired location</th>' + (mixed ? '<th style="width:11%;">Method</th>' : '') +
+      '<th style="width:' + (mixed ? '16%' : '17%') + ';">Interview time</th><th style="width:15%;">Status</th><th style="width:' + (mixed ? '12%' : '18%') + '; text-align:right;">Action</th></tr>';
+
+    var body = rows.map(function(r) {
+      var k = rowMethod(r.tr);
+      var status = r.ready
+        ? '<span class="status-badge ready">' + (k === 'video' ? 'Ready' : 'Now') + '</span>'
+        : '<span class="status-badge waiting">Scheduled ' + esc(startOf(r.time)) + '</span>';
+      return '<tr data-method="' + k + '"' + (r.ready ? ' data-ready="1"' : '') + '>' +
+        '<td>' + r.name + '</td><td>' + esc(r.job) + '</td><td>' + esc(r.loc) + '</td>' +
+        (mixed ? '<td class="jm-mcell">' + chip(k) + '</td>' : '') +
+        '<td>' + esc(r.time) + '</td><td>' + status + '</td>' +
+        '<td style="text-align:right;">' + actionCell(r.tr, r.ready) + '</td></tr>';
+    }).join('');
+
+    if (!rows.length) {
+      body = '<tr><td colspan="' + (mixed ? 7 : 6) + '" style="text-align:center; padding:20px 14px; color:#595959; background:#f9f8f7;">' +
+        (m === 'phone' ? 'Your scheduled candidates will appear here. Call each one at their scheduled time.'
+                       : 'Your scheduled candidates will appear here in interview order. Start each interview when you meet them.') +
+        '</td></tr>';
+    }
+
+    keep.querySelector('.live-section-title').textContent = 'Ready to interview (' + rows.length + ')';
+    var icon = keep.querySelector('.live-section-header svg:not(.collapsible-chevron)');
+    if (icon) icon.innerHTML = PATH[m];
+    keep.querySelector('thead').innerHTML = head;
+    keep.querySelector('tbody').innerHTML = body;
+    if (drop && drop.parentNode) drop.parentNode.removeChild(drop);
+  }
+
+  /* ═══ 3. Interviewing tab — the action group per method ═══ */
+  function isMixed() {
+    var seen = {};
+    document.querySelectorAll('#waitingLive tbody tr, #interviewingLive tbody tr').forEach(function(tr) {
+      if (!tr.querySelector('td[colspan]')) seen[rowMethod(tr)] = 1;
+    });
+    return Object.keys(seen).length > 1;
+  }
+  function fixInterviewing() {
+    var mixed = isMixed();
+    document.querySelectorAll('#interviewingLive .interview-actions').forEach(function(grp) {
+      var tr = grp.closest('tr');
+      var k = rowMethod(tr);
+      if (k === 'video') return;
+      var name = nameOf(tr);
+      var end = '<button class="interview-btn end" onclick="openEndIvModal(\'' + name.replace(/'/g, "\\'") + '\')">End interview<span class="btn-tooltip">End interview</span></button>';
+      if (k === 'phone') {
+        grp.innerHTML = '<button class="interview-btn" style="border-right:1px solid #d4d2d0" onclick="JFXM.call(this)">' +
+          svg('phone') + '<span style="margin-left:6px">Call again</span><span class="btn-tooltip">Call the candidate again</span></button>' + end;
+        grp.querySelector('svg').style.cssText = 'width:14px;height:14px';
+      } else {
+        grp.style.border = 'none';
+        grp.innerHTML = end.replace('interview-btn end', 'interview-btn end jm-solo');
+        var b = grp.querySelector('.jm-solo');
+        b.style.cssText = 'background:#0044B3;color:#fff;border-radius:7px';
+        b.onmouseover = function(){ this.style.background = '#003399'; };
+        b.onmouseout = function(){ this.style.background = '#0044B3'; };
+      }
+    });
+    if (!mixed) return;
+    document.querySelectorAll('#interviewingLive .live-table thead tr').forEach(function(hr) {
+      if (hr.children.length === 7 && !hr.querySelector('.jm-mcol')) {
+        var th = document.createElement('th');
+        th.className = 'jm-mcol'; th.style.width = '11%'; th.textContent = 'Method';
+        hr.insertBefore(th, hr.children[3]);
+        hr.children[0].style.width = '14%'; hr.children[1].style.width = '12%'; hr.children[2].style.width = '10%';
+      }
+    });
+    document.querySelectorAll('#interviewingLive .live-table tbody tr').forEach(function(tr) {
+      if (tr.children.length === 7 && !tr.querySelector('.jm-mcell')) {
+        var td = document.createElement('td');
+        td.className = 'jm-mcell';
+        td.innerHTML = chip(rowMethod(tr));
+        tr.insertBefore(td, tr.children[3]);
+      }
+    });
+  }
+
+  /* ═══ 4. End-interview modal — the second option describes the wrong
+         mechanism for phone and in-person ═══ */
+  function fixEndModal() {
+    var tail = document.getElementById('endIvTail');
+    if (!tail) return;
+    if (m === 'phone') tail.textContent = ' so you can call again';
+    else if (m === 'person') tail.textContent = '';
+  }
+
+  /* ═══ Public API ═══ */
+  var CP = null;
+  window.JFXM = {
+    get: function(){ return m; },
+    is: function(k){ return m === k; },
+    label: function(k){ return LABEL[k || m]; },
+    chip: chip,
+
+    /* Call panel. Opening it changes nothing — employers open this to copy a
+       number, to check it, or after a voicemail. Only the explicit confirm
+       moves the candidate to Interviewing. */
+    call: function(btn) {
+      var tr = btn.closest('tr'), name = nameOf(tr);
+      var anchor = btn.closest('.jm-anchor') || btn.parentElement;
+      var existing = anchor.querySelector('.jm-cp');
+      if (existing) { existing.classList.remove('open'); existing.remove(); CP = null; return; }
+      document.querySelectorAll('.jm-cp').forEach(function(p){ p.remove(); });
+      var job = tr.children[1] ? tr.children[1].textContent.trim() : '';
+      var loc = tr.children[2] ? tr.children[2].textContent.trim() : '';
+      var when = startOf(timeCell(tr) ? timeCell(tr).textContent : '');
+      var num = phoneFor(name);
+      var el = document.createElement('div');
+      el.className = 'jm-cp open';
+      el.onclick = function(e){ e.stopPropagation(); };
+      el.innerHTML =
+        '<div class="jm-cp-h"><div class="jm-cp-name">' + esc(name) + '</div><div class="jm-cp-role">' + esc(job) + (loc ? ' &middot; ' + esc(loc) : '') + '</div></div>' +
+        '<div class="jm-cp-b"><div class="jm-cp-numrow"><a class="jm-cp-num" href="tel:' + num.replace(/[^0-9]/g, '') + '">' + esc(num) + '</a>' +
+          '<button class="jm-cp-copy" onclick="JFXM.copy(this,\'' + num + '\')"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> Copy</button></div>' +
+          '<div class="jm-cp-hand">Call ' + esc(name.split(' ')[0]) + ' from your phone. JobFairX doesn\'t place the call &mdash; candidates see the number you call from.</div>' +
+          (when ? '<div class="jm-cp-when">Scheduled for <b>' + esc(when) + '</b></div>' : '') +
+        '</div>' +
+        '<div class="jm-cp-acts"><button class="jm-cp-pri" onclick="JFXM.started(this)">I\'ve started the interview</button>' +
+          '<div class="jm-cp-sec"><button class="warn" onclick="JFXM.noanswer(this)">No answer</button><button onclick="JFXM.closeCall()">Close</button></div>' +
+          '<button class="jm-cp-wrong" onclick="JFXM.wrongNumber(this)">Number looks wrong?</button></div>';
+      anchor.appendChild(el);
+      CP = el;
+    },
+    closeCall: function(){ document.querySelectorAll('.jm-cp').forEach(function(p){ p.remove(); }); CP = null; },
+    copy: function(btn, num) {
+      try { navigator.clipboard.writeText(num); } catch (e) {}
+      var t = btn.innerHTML; btn.innerHTML = 'Copied';
+      setTimeout(function(){ btn.innerHTML = t; }, 1400);
+    },
+    wrongNumber: function(btn) {
+      var tr = btn.closest('tr');
+      JFXM.closeCall();
+      var link = tr.querySelector('.review-actions a:last-child');
+      if (link && typeof openMsgModal === 'function') openMsgModal(link);
+    },
+    started: function(btn) {
+      var tr = btn.closest('tr');
+      JFXM.closeCall();
+      toast(nameOf(tr) + ' is now being interviewed.');
+      moveToInterviewing(tr);
+    },
+    noanswer: function(btn) {
+      var tr = btn.closest('tr'), name = nameOf(tr);
+      JFXM.closeCall();
+      var n = (parseInt(tr.getAttribute('data-attempts') || '0', 10)) + 1;
+      tr.setAttribute('data-attempts', n);
+      var nameCell = tr.children[0];
+      var sub = nameCell.querySelector('.jm-subline');
+      if (!sub) {
+        sub = document.createElement('div');
+        sub.className = 'jm-subline';
+        nameCell.insertBefore(sub, nameCell.children[1] || null);
+      }
+      sub.textContent = 'No answer · ' + n + ' attempt' + (n === 1 ? '' : 's');
+      var st = tr.querySelector('.status-badge');
+      if (st) { st.className = 'jm late'; st.textContent = 'No answer'; }
+      var lbl = tr.querySelector('.jm-calllbl');
+      if (lbl) lbl.textContent = 'Call again';
+      if (n >= 2) {
+        var cell = tr.lastElementChild;
+        if (!cell.querySelector('.jm-noshow')) {
+          var b = document.createElement('button');
+          b.className = 'jm-noshow';
+          b.style.cssText = 'display:block;margin:6px 0 0 auto;background:none;border:none;font-family:inherit;font-size:12px;color:#991b1b;text-decoration:underline;cursor:pointer';
+          b.textContent = 'Mark as no-show';
+          b.onclick = function(){ JFXM.noshow(b); };
+          cell.appendChild(b);
+        }
+      }
+      toast(name + ' did not answer. They stay in the queue so you can try again.');
+    },
+
+    /* In-person: check-in is the only presence signal this method can have. */
+    checkin: function(btn) {
+      var tr = btn.closest('tr'), name = nameOf(tr);
+      var st = tr.querySelector('.status-badge') || tr.querySelector('.jm.late');
+      var now = new Date();
+      var hh = now.getHours() % 12 || 12, mm2 = ('0' + now.getMinutes()).slice(-2);
+      if (st) { st.className = 'jm checked'; st.innerHTML = svg('tick') + ' Checked in ' + hh + ':' + mm2; }
+      btn.className = 'start-interview-btn';
+      btn.innerHTML = svg('person') + ' Start interview';
+      btn.onclick = function(){ JFXM.startPerson(btn); };
+      var tbody = tr.parentNode;
+      if (tbody.firstElementChild !== tr) tbody.insertBefore(tr, tbody.firstElementChild);
+      toast(name + ' is checked in.');
+    },
+    startPerson: function(el) {
+      var tr = el.closest('tr');
+      toast(nameOf(tr) + ' is now being interviewed.');
+      moveToInterviewing(tr);
+    },
+    noshow: function(el) {
+      var tr = el.closest('tr'), name = nameOf(tr);
+      if (tr.parentNode) tr.parentNode.removeChild(tr);
+      retitle();
+      toast(name + ' was marked as a no-show.');
+    },
+
+    /* Mark as interviewed — for interviews that happened while nobody
+       touched the app, which is routine for phone and in-person. */
+    mark: function(el) {
+      var tr = el.closest('tr');
+      window.__jmMarkRow = tr;
+      document.getElementById('jmMarkName').textContent = nameOf(tr);
+      document.getElementById('jmMarkWho').value = '';
+      document.getElementById('jmMarkTime').value = startOf(timeCell(tr).textContent);
+      document.getElementById('jmMarkGo').disabled = true;
+      document.getElementById('jmMarkOv').classList.add('open');
+    },
+    markCheck: function(){ document.getElementById('jmMarkGo').disabled = !document.getElementById('jmMarkWho').value; },
+    closeMark: function(){ document.getElementById('jmMarkOv').classList.remove('open'); },
+    markGo: function() {
+      var tr = window.__jmMarkRow;
+      JFXM.closeMark();
+      if (tr && tr.parentNode) tr.parentNode.removeChild(tr);
+      retitle();
+      toast(nameOf(tr) + ' was marked as interviewed.');
+    },
+    addr: function(){ document.getElementById('jmAddrOv').classList.add('open'); },
+    closeAddr: function(){ document.getElementById('jmAddrOv').classList.remove('open'); }
+  };
+
+  function retitle() {
+    document.querySelectorAll('.live-panel-section').forEach(function(sec) {
+      var t = sec.querySelector('.live-section-title');
+      if (!t || t.textContent.indexOf('Ready to interview') !== 0) return;
+      var n = 0;
+      sec.querySelectorAll('tbody tr').forEach(function(r){ if (!r.querySelector('td[colspan]')) n++; });
+      t.textContent = 'Ready to interview (' + n + ')';
+    });
+  }
+
+  /* Move a row out of the queue and into the Interviewing tab. */
+  function moveToInterviewing(tr) {
+    var k = rowMethod(tr), name = nameOf(tr);
+    var host = document.querySelector('#interviewingLive tbody');
+    if (host) {
+      var row = document.createElement('tr');
+      row.setAttribute('data-method', k);
+      var hasM = !!document.querySelector('#interviewingLive .jm-mcol');
+      row.innerHTML = '<td>' + tr.children[0].innerHTML + '</td><td>' + tr.children[1].innerHTML + '</td><td>' + tr.children[2].innerHTML + '</td>' +
+        (hasM ? '<td class="jm-mcell">' + chip(k) + '</td>' : '') +
+        '<td>' + timeCell(tr).innerHTML + '</td>' +
+        '<td><span class="iv-duration" data-start="0">0m 00s</span></td><td>Scott</td>' +
+        '<td style="text-align:right;"><div class="interview-actions"></div></td>';
+      var sub = row.querySelector('.jm-subline');
+      if (sub) sub.remove();
+      host.appendChild(row);
+      fixInterviewing();
+    }
+    if (tr.parentNode) tr.parentNode.removeChild(tr);
+    retitle();
+  }
+
+  /* D1 — the two live CTAs opened the video room for every method. Guard the
+     functions themselves so no call site can reach it on a phone or in-person
+     interview, whatever else changes around them. */
+  function guard(fn) {
+    var orig = window[fn];
+    if (typeof orig !== 'function') return;
+    window[fn] = function(btn) {
+      var tr = btn && btn.closest ? btn.closest('tr') : null;
+      var k = rowMethod(tr);
+      if (k === 'video') return orig.apply(this, arguments);
+      if (k === 'phone') return JFXM.call(btn);
+      return JFXM.startPerson(btn);
+    };
+  }
+
+  function apply() {
+    /* The title and breadcrumb are already method-neutral in the markup, so
+       they need nothing here. Everything below is a no-op for video. */
+    headerLine();
+    guard('startInterview');
+    guard('rejoinInterview');
+    if (m === 'video') return;
+    mergeWaiting(document.getElementById('waitingLive'));
+    mergeWaiting(document.getElementById('waitingLiveEmpty'));
+    fixInterviewing();
+    fixEndModal();
+  }
+
+  document.addEventListener('click', function(e) {
+    if (CP && !e.target.closest('.jm-cp') && !e.target.closest('.jm-anchor')) JFXM.closeCall();
+  });
+  ['jmMarkOv','jmAddrOv'].forEach(function(id) {
+    var ov = document.getElementById(id);
+    if (ov) ov.addEventListener('click', function(e){ if (e.target === this) this.classList.remove('open'); });
+  });
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', apply);
+  else apply();
+})();
 </script>
 
 </body>
