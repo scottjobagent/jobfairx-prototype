@@ -6726,6 +6726,32 @@ a.jm-cp-num:hover { color:#0044B3; }
 .jm-rtabs { display:none; gap:0; border-bottom:1px solid #e8e6e3; padding:0 28px; flex-shrink:0; }
 .jm-rtab { padding:12px 2px; margin-right:24px; font-size:14px; font-weight:600; color:#595959; background:none; border:none; border-bottom:3px solid transparent; cursor:pointer; font-family:inherit; }
 .jm-rtab.on { color:#2d2d2d; border-bottom-color:#0044B3; }
+/* ── Interview workspace refinement. Scoped to .jm-rn, so it can only ever
+   reach phone and in-person; video's resume modal is untouched.
+   Header measured 178px of a 585px modal before this. ── */
+.resume-modal.jm-rn .resume-modal-header { padding:16px 24px 14px; }
+.resume-modal.jm-rn .resume-modal-name { font-size:19px; font-weight:700; line-height:1.25; }
+.resume-modal.jm-rn .jm-rmeta { display:flex; align-items:center; flex-wrap:wrap; gap:0 8px; margin-top:5px; font-size:13px; color:#595959; line-height:1.5; }
+.resume-modal.jm-rn .jm-rmeta .sep { color:#d4d2d0; font-size:11px; }
+.resume-modal.jm-rn .jm-rmeta a { color:#0044B3; text-decoration:none; font-weight:500; }
+.resume-modal.jm-rn .jm-rmeta a:hover { text-decoration:underline; }
+.resume-modal.jm-rn .jm-rmeta .role { color:#2d2d2d; font-weight:600; }
+.resume-modal.jm-rn .resume-modal-body { padding:18px 24px; }
+/* Section labels step back so the job titles — what actually gets scanned — lead. */
+.resume-modal.jm-rn .resume-section-title { font-size:11px; font-weight:700; letter-spacing:.09em; text-transform:uppercase; color:#767676; margin-bottom:10px; gap:7px; }
+.resume-modal.jm-rn .resume-section-title svg { width:14px; height:14px; }
+.resume-modal.jm-rn .resume-job { margin-bottom:14px; }
+.resume-modal.jm-rn .resume-job-title { font-size:14.5px; }
+.resume-modal.jm-rn .resume-job-company { margin-top:1px; }
+.resume-modal.jm-rn .resume-job-dates { margin-top:1px; font-size:12.5px; }
+.resume-modal.jm-rn .resume-job-bullets { margin-top:6px; }
+.resume-modal.jm-rn .resume-job-bullets li { margin-bottom:2px; line-height:1.6; }
+.resume-modal.jm-rn .resume-section-divider { margin:16px 0; }
+.resume-modal.jm-rn .jm-rnotes { flex:0 0 320px; }
+.resume-modal.jm-rn .jm-rnhead { padding:12px 18px 8px; }
+.resume-modal.jm-rn .jm-rntitle { font-size:12px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#767676; }
+.resume-modal.jm-rn .jm-rntitle svg { width:14px; height:14px; }
+.resume-modal.jm-rn .jm-rnbody { padding:12px 18px 14px; }
 @media (max-width:1100px) {
   .resume-modal.jm-rn .jm-rtabs { display:flex; }
   .resume-modal.jm-rn .jm-rsplit { display:block; overflow-y:auto; }
@@ -6789,10 +6815,49 @@ a.jm-cp-num:hover { color:#0044B3; }
       clearTimeout(t); t = setTimeout(function(){ saved.classList.remove('on'); }, 1400);
     });
 
+
+    /* One meta line instead of three rows, and drop the action row when its
+       only contents duplicate the download icon already in the corner.
+       Contexts with real actions (Accept / Decline / Reschedule) keep theirs. */
+    function esc2(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+    function compactHeader(){
+      var sub = document.getElementById('resumeSubtitle');
+      var con = document.getElementById('resumeContact');
+      if (!sub || !con) return;
+      var meta = document.getElementById('jmRMeta');
+      if (!meta) {
+        meta = document.createElement('div');
+        meta.className = 'jm-rmeta'; meta.id = 'jmRMeta';
+        sub.parentNode.insertBefore(meta, sub.nextSibling);
+      }
+      /* role and location come from the subtitle; email and phone from the
+         contact row, whose own location repeat is dropped. */
+      var parts = sub.textContent.split('\u00b7').map(function(x){ return x.trim(); }).filter(Boolean);
+      var email = con.querySelector('a');
+      var spans = [].slice.call(con.querySelectorAll('span')).filter(function(x){ return !x.classList.contains('contact-sep'); });
+      var phone = spans[0] ? spans[0].textContent.trim() : '';
+      var out = [];
+      if (parts[0]) out.push('<span class="role">' + esc2(parts[0]) + '</span>');
+      if (parts[1]) out.push('<span>' + esc2(parts[1]) + '</span>');
+      if (email)    out.push('<a href="' + esc2(email.getAttribute('href') || '#') + '">' + esc2(email.textContent) + '</a>');
+      if (phone)    out.push('<span>' + esc2(phone) + '</span>');
+      meta.innerHTML = out.join('<span class="sep">&middot;</span>');
+      sub.style.display = 'none';
+      con.style.display = 'none';
+
+      var acts = document.getElementById('resumeActions');
+      if (acts) {
+        var btns = acts.querySelectorAll('button');
+        var dupOnly = btns.length === 1 && btns[0].classList.contains('download');
+        acts.style.display = dupOnly ? 'none' : '';
+      }
+    }
+
     /* Load this candidate's note whenever the resume opens. */
     var orig = window.openResumeModal;
     window.openResumeModal = function(link){
       var r = orig.apply(this, arguments);
+      compactHeader();
       var nm = (document.getElementById('resumeName') || {}).textContent || '';
       current = nm;
       ta.value = JFXM.getNote(nm);
