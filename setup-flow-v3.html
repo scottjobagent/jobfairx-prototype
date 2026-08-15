@@ -1375,7 +1375,7 @@ body.collapsed .progress-bar-track { left: 60px; }
     <div class="is-section">
       <div class="is-section-title">Interview details <span class="required">*</span></div>
 
-<!-- ═══════════ INTERVIEW METHOD + TIME SLOT DURATION v2 (shared Interview Settings experience) ═══════════ -->
+<!-- ═══════════ INTERVIEW METHOD v3 (shared Interview Settings experience) ═══════════ -->
 <style>
 .im-wrap{max-width:680px}
 .im-label{font-size:16px;font-weight:700;color:#2d2d2d;margin-bottom:6px}
@@ -1412,15 +1412,6 @@ body.collapsed .progress-bar-track { left: 60px; }
 .im-gap{margin-bottom:16px}
 .im-err{display:none;align-items:center;gap:8px;color:#991b1b;font-size:13.5px;font-weight:600;margin-top:10px}
 .im-err svg{width:15px;height:15px;flex:0 0 15px;fill:#991b1b}
-.im-mini-sel{position:relative;max-width:210px}
-.im-mini-btn{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;height:46px;border:1px solid #d4d2d0;border-radius:10px;background:#fff;padding:10px 14px;font-family:inherit;font-size:15px;color:#2d2d2d;cursor:pointer}
-.im-mini-sel.open .im-mini-btn{border-color:#0044b3;box-shadow:0 0 0 3px rgba(0,68,179,.12)}
-.im-mini-btn svg{width:16px;height:16px;stroke:#595959;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.im-mini-menu{position:absolute;top:calc(100% + 6px);left:0;right:0;background:#fff;border:1px solid #ebebeb;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.1);display:none;z-index:30;overflow:hidden}
-.im-mini-sel.open .im-mini-menu{display:block}
-.im-mini-opt{display:flex;align-items:center;gap:10px;width:100%;padding:12px 14px;background:none;border:none;font-family:inherit;font-size:15px;color:#2d2d2d;cursor:pointer;text-align:left}
-.im-mini-opt:hover{background:#f6f5f3}
-.im-mini-opt .im-ck{width:16px;display:inline-block;color:#2d2d2d;font-weight:700}
 </style>
 <div class="im-wrap" id="imWrap">
   <div class="im-label">How do you want to interview candidates? <span class="im-req">*</span></div>
@@ -1484,32 +1475,21 @@ body.collapsed .progress-bar-track { left: 60px; }
       <p>The address, parking, and arrival details are included in every candidate&rsquo;s interview confirmation.</p>
     </div>
   </div>
-  <div class="im-divider"></div>
-  <div class="im-label">Interview time slot duration</div>
-  <p class="im-hint">This allows candidates to select from multiple scheduling options.</p>
-  <div class="im-mini-sel" id="imDurSel">
-    <button type="button" class="im-mini-btn"><span id="imDurLabel">30 minutes</span><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg></button>
-    <div class="im-mini-menu" id="imDurMenu"></div>
-  </div>
 </div>
 <div class="im-divider"></div>
 <script>
 (function(){
-  var DUR=["15 minutes","30 minutes","60 minutes"];
-  var S={format:"video",videoMode:"native",dur:"30 minutes"};
+  var S={format:"video",videoMode:"native"};
   window.__imState=S;
   function $(id){return document.getElementById(id);}
   window.imErr=function(id,on){var e=$(id);if(e)e.style.display=on?"flex":"none";};
   function imSummary(){
-    var el=$("interviewSettingsSummary");
+    var el=$("interviewDetailsSummary");
     if(!el)return;
     var name=S.format==="phone"?"Phone interviews":S.format==="person"?"In-person interviews":(S.videoMode==="third"?"Third-party video interviews":"JobFairX Video interviews");
-    var parts=el.textContent.split(" | ");
-    if(parts.length>=2){
-      parts[parts.length-2]=name;
-      parts[parts.length-1]=S.dur.split(" ")[0]+"-minute time slots";
-      el.textContent=parts.join(" | ");
-    }
+    window.__imName=name;var parts=el.textContent.split(" | ");
+    parts[0]=name;
+    el.textContent=parts.join(" | ");
   }
   window.imPickFmt=function(m){
     S.format=m;
@@ -1530,15 +1510,6 @@ body.collapsed .progress-bar-track { left: 60px; }
     imErr("imMeetUrlErr",false);
     imSummary();
   };
-  function imDrawDur(){
-    $("imDurLabel").textContent=S.dur;
-    $("imDurMenu").innerHTML=DUR.map(function(v){return '<button type="button" class="im-mini-opt" data-v="'+v+'"><span class="im-ck">'+(S.dur===v?"✓":"")+"</span>"+v+"</button>";}).join("");
-    Array.prototype.forEach.call($("imDurMenu").querySelectorAll(".im-mini-opt"),function(b){
-      b.addEventListener("click",function(){S.dur=b.getAttribute("data-v");$("imDurSel").classList.remove("open");imDrawDur();imSummary();});
-    });
-  }
-  $("imDurSel").querySelector(".im-mini-btn").addEventListener("click",function(e){e.stopPropagation();$("imDurSel").classList.toggle("open");});
-  document.addEventListener("click",function(){$("imDurSel").classList.remove("open");});
   window.imValidate=function(){
     var ok=true;
     if(S.format==="video"&&S.videoMode==="third"){
@@ -1556,11 +1527,11 @@ body.collapsed .progress-bar-track { left: 60px; }
     return ok;
   };
   window.imValidateStep5=function(){if(window.imValidate())goToStep(6);};
-  window.imValidateUpdate=function(){if(window.imValidate()){toggleInterviewSettings(false);showToast();}};
-  imDrawDur();
+  window.imValidateDetailsUpdate=function(){if(window.imValidate()){toggleInterviewDetails(false);showToast();}};
+  imSummary();
 })();
 </script>
-<!-- ═══════════ /INTERVIEW METHOD + TIME SLOT DURATION v2 ═══════════ -->
+<!-- ═══════════ /INTERVIEW METHOD v3 ═══════════ -->
 
 
       <!-- How many interviews per time slot -->
@@ -1594,26 +1565,14 @@ body.collapsed .progress-bar-track { left: 60px; }
         <p style="font-size: 13px; color: #767676; margin-top: 10px; line-height: 1.5;">Candidates are confirmed instantly when they select a time slot. Auto-accept pauses when all interview slots are full.</p>
       </div>
 
-      <div class="is-divider"></div>
-
-      <!-- Resume requirement -->
-      <div class="is-field-group">
-        <div class="is-label">Resume requirement <span class="required">*</span></div>
-        <div class="is-toggle-row">
-          <span class="is-toggle-label">Require candidate to include resume?</span>
-          <label class="toggle-switch">
-            <input type="checkbox" id="setupResumeToggle" checked>
-            <span class="toggle-slider"></span>
-          </label>
-        </div>
-      </div>
+      
     </div>
 
     <div class="section-divider" style="margin: 32px 0;"></div>
 
     <!-- Interview Settings -->
     <div class="is-section">
-      <div class="is-section-title">Interview settings</div>
+      <div class="is-section-title">Interviewers &amp; updates</div>
 
       <!-- Who will be interviewing -->
       <div class="is-field-group">
@@ -1704,6 +1663,17 @@ body.collapsed .progress-bar-track { left: 60px; }
     </div>
 
     <!-- Screen candidates section -->
+    <div class="sc-section" style="margin-bottom:24px;">
+      <div class="is-label">Resume requirement <span class="required">*</span></div>
+      <div class="is-toggle-row">
+          <span class="is-toggle-label">Require candidate to include resume?</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="setupResumeToggle" checked>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+    </div>
+
     <div class="sc-section">
       <h3 class="sc-heading">Screen candidates for your requirements</h3>
       <p class="sc-subtext">Jobseekers will answer your screening questions prior to completing an application and will be filtered out based on your requirements.</p>
