@@ -683,6 +683,24 @@ body.join-live .iv-tip { display:none !important; }
 .jfx-toast-close:hover { background:rgba(0,0,0,.06); color:#2d2d2d; }
 @media (max-width:768px){ .jfx-toast { left:12px; right:12px; top:12px; min-width:0; max-width:none; } }
 </style>
+<style>
+/* ═══ Interview method / location (candidate-facing) ═══ */
+.td-method{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:#595959;margin-top:9px}
+.td-method svg{width:14px;height:14px;flex:0 0 14px;fill:none;stroke:#595959;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.ext-ic{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.td-call{background:#f6f5f3;border-left:4px solid #1447e6;border-radius:0 8px 8px 0;padding:12px 15px;font-size:13.5px;line-height:1.55;color:#595959;max-width:340px}
+.td-call b{color:#2d2d2d}
+.td-addr{font-size:13.5px;line-height:1.55;color:#595959;margin-top:10px}
+.td-addr b{color:#2d2d2d}
+.td-arr{margin-top:8px;font-size:13.5px}
+.td-arr .td-arr-body{display:none;margin-top:8px}
+.td-arr.open .td-arr-body{display:block}
+.td-arr.open .arr-car{display:inline-block;transform:rotate(180deg)}
+.arr-item{font-size:13px;color:#595959;line-height:1.5;margin-bottom:7px}
+.arr-item b{display:block;color:#2d2d2d;font-size:12.5px;margin-bottom:1px}
+.td-mcaveat{max-width:300px}
+.iv-dir svg{fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+</style>
 </head>
 <body>
   <!-- SIDEBAR -->
@@ -775,7 +793,7 @@ body.join-live .iv-tip { display:none !important; }
               <tr data-iv="rnp" data-evt="Dallas Healthcare Hiring Event" data-evtmeta="Apr 22, 2026" data-job="Registered Nurse" data-co="Baylor Scott &amp; White" data-time="Apr 22 · 11:15 AM">
                 <td><div class="td-evt-name">Dallas Healthcare Hiring Event</div><div class="td-evt-meta">Apr 22, 2026</div></td>
                 <td><div class="td-job" onclick="openJob('rnp')">Registered Nurse</div><div class="td-co">Baylor Scott &amp; White</div></td>
-                <td><div class="td-itime">Requested · Apr 22 · 11:15 AM</div><div class="td-state pending">Interview requested<span class="st-tip">Your request was sent. Waiting for the employer to confirm.</span></div><div class="td-substate">Waiting for the employer to confirm.</div></td>
+                <td><div class="td-itime">Requested · Apr 22 · 11:15 AM</div><div class="td-state pending">Interview requested<span class="st-tip">Your request was sent. Waiting for the employer to confirm.</span></div><div class="td-substate">Waiting for the employer to confirm.</div><div class="td-method" data-mreq></div><div class="td-substate td-mcaveat" data-mcaveat style="display:none;">You&rsquo;ll get the full address and arrival details when it&rsquo;s confirmed.</div></td>
                 <td><div class="td-actions"><div class="td-links"><button class="iv-cancel" onclick="askCancel('rnp')">Cancel request</button><span class="iv-link msg-locked">Message employer<span class="iv-tip">You'll be able to message the employer once your interview is confirmed.</span></span><button class="iv-cancel" onclick="openUnregister('Dallas Healthcare Hiring Event',false)">Unregister</button></div></div></td>
               </tr>
             </tbody>
@@ -1215,7 +1233,12 @@ body.join-live .iv-tip { display:none !important; }
   <div class="devsel" id="devSel">
     <div class="devsel-panel" id="devselPanel">
       <div class="devsel-head"><span>Demo states</span><button class="devsel-x" onclick="document.getElementById('devSel').classList.remove('open')">✕</button></div>
-      <div class="devsel-glabel">Dashboard</div>
+      <div class="devsel-glabel">Interview method</div>
+        <button class="devsel-item active" data-m="jfx" onclick="setMethodBtn(this)">JobFairX Video</button>
+        <button class="devsel-item" data-m="third" onclick="setMethodBtn(this)">Third-party video</button>
+        <button class="devsel-item" data-m="phone" onclick="setMethodBtn(this)">Phone</button>
+        <button class="devsel-item" data-m="person" onclick="setMethodBtn(this)">In-Person</button>
+        <div class="devsel-glabel">Dashboard</div>
         <button class="devsel-item" data-v="d:newuser" onclick="devPick(this)">New user</button>
         <button class="devsel-item" data-v="d:notmatched" onclick="devPick(this)">Waiting to be matched</button>
         <button class="devsel-item active" data-v="d:schedule" onclick="devPick(this)">Matched</button>
@@ -1714,18 +1737,87 @@ body.join-live .iv-tip { display:none !important; }
     var linksLive='<div class="td-links">'+testBtn+moreBtn+'<div class="td-more">'+msg+cancelBtn+unreg+'</div></div>';
     var linksBefore='<div class="td-links">'+testBtn+moreBtn+'<div class="td-more">'+reschedBtn+msg+cancelBtn+unreg+'</div></div>';
     var c3, c4;
+    var mline='<div class="td-method">'+MICON[METHOD]+MLBL[METHOD]+'</div>';
+    var linksBeforeNT='<div class="td-links">'+reschedBtn+moreBtn+'<div class="td-more">'+msg+cancelBtn+unreg+'</div></div>';
+    var updNum='<button class="iv-link" onclick="showToast(\'Update your phone number\',\'Go to Profile to change the number employers call.\')">Wrong number? Update it</button>';
+    var phoneLinksBefore='<div class="td-links">'+updNum+moreBtn+'<div class="td-more">'+reschedBtn+msg+cancelBtn+unreg+'</div></div>';
+    var extIc='<svg viewBox="0 0 24 24" class="ext-ic"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>';
+    var thirdJoin=function(label){return '<button class="iv-join-now" onclick="window.open(MEET_URL,\'_blank\')">'+extIc+label+'</button>';};
+    var extCap='<div class="td-jfx">Link provided by the employer</div>';
+    var dirBtn='<button class="iv-join-now iv-dir" onclick="window.open(MAPS_URL,\'_blank\')">'+MICON.person+'Get directions</button>';
+    var addr='<div class="td-addr"><b>Parkland Health &mdash; Building A</b><br>5200 Harry Hines Blvd, Suite 340<br>Dallas, TX 75235</div>';
+    var arr='<div class="td-arr" id="arr-'+key+'"><button class="iv-link" onclick="toggleArr(\''+key+'\')">View arrival details <span class="arr-car">\u25be</span></button><div class="td-arr-body"><div class="arr-item"><b>Parking</b>Visitor parking is available behind Building A.</div><div class="arr-item"><b>When you arrive</b>Check in with the receptionist on the 2nd floor and ask for Human Resources.</div></div></div>';
+    var callBefore='<div class="td-call"><b>'+co+' will call you</b> at <b>'+CAND_PHONE+'</b> at your scheduled time. No link needed &mdash; just have your phone ready.</div>';
+    var callLive='<div class="td-call"><b>Expect a call any minute</b> from '+co+' at <b>'+CAND_PHONE+'</b>. Keep your phone nearby and your ringer on.</div>';
+    var liveLinksNT='<div class="td-links">'+msg+unreg+'</div>';
     if(PHASE==='before'){
-      c3='<td><div class="td-itime">'+time+'</div><div class="td-state confirmed">Interview confirmed<span class="st-tip">Your interview is confirmed. Join from here at your scheduled time.</span></div></td>';
-      c4='<td><div class="td-actions"><button class="iv-join">'+cam+'Join interview<span class="iv-tip">You can join when your interview starts · '+short+'</span></button>'+jfx+linksBefore+'</div></td>';
+      var tipTxt=METHOD==='phone'?'Your interview is confirmed. The employer will call you at your scheduled time.':METHOD==='person'?'Your interview is confirmed. See the address and arrival details here.':'Your interview is confirmed. Join from here at your scheduled time.';
+      c3='<td><div class="td-itime">'+time+'</div><div class="td-state confirmed">Interview confirmed<span class="st-tip">'+tipTxt+'</span></div>'+mline+'</td>';
+      if(METHOD==='jfx'){
+        c4='<td><div class="td-actions"><button class="iv-join">'+cam+'Join interview<span class="iv-tip">You can join when your interview starts \u00b7 '+short+'</span></button>'+jfx+linksBefore+'</div></td>';
+      } else if(METHOD==='third'){
+        c4='<td><div class="td-actions">'+thirdJoin('Join interview')+extCap+linksBeforeNT+'</div></td>';
+      } else if(METHOD==='phone'){
+        c4='<td><div class="td-actions">'+callBefore+phoneLinksBefore+'</div></td>';
+      } else {
+        c4='<td><div class="td-actions">'+dirBtn+addr+arr+linksBeforeNT+'</div></td>';
+      }
     } else if(PHASE==='live'){
-      c3='<td><div class="td-itime">'+time+'</div><div class="td-state livestate">It\'s time for your interview<span class="st-tip">Your interview is starting. Join now.</span></div></td>';
-      c4='<td><div class="td-actions"><button class="iv-join-now">'+cam+'Join interview now</button>'+jfx+linksLive+'</div></td>';
+      var liveLbl=METHOD==='phone'?'Your interview is starting soon':METHOD==='person'?'Today \u2014 head to your interview':'It\'s time for your interview';
+      var liveTip=METHOD==='phone'?'Expect a call from the employer any minute.':METHOD==='person'?'Head to the interview address. Arrival details below.':'Your interview is starting. Join now.';
+      c3='<td><div class="td-itime">'+time+'</div><div class="td-state livestate">'+liveLbl+'<span class="st-tip">'+liveTip+'</span></div>'+mline+'</td>';
+      if(METHOD==='jfx'){
+        c4='<td><div class="td-actions"><button class="iv-join-now">'+cam+'Join interview now</button>'+jfx+linksLive+'</div></td>';
+      } else if(METHOD==='third'){
+        c4='<td><div class="td-actions">'+thirdJoin('Join interview now')+extCap+liveLinksNT+'</div></td>';
+      } else if(METHOD==='phone'){
+        c4='<td><div class="td-actions">'+callLive+liveLinksNT+'</div></td>';
+      } else {
+        c4='<td><div class="td-actions">'+dirBtn+addr+arr+liveLinksNT+'</div></td>';
+      }
     } else {
-      c3='<td><div class="td-itime">'+time+'</div><div class="td-state injoined">In interview<span class="st-tip">You are in your interview.</span></div></td>';
-      c4='<td><div class="td-actions"><button class="iv-join-now">'+cam+'Return to interview</button><div class="td-links">'+msg+unreg+'</div></div></td>';
+      c3='<td><div class="td-itime">'+time+'</div><div class="td-state injoined">In interview<span class="st-tip">You are in your interview.</span></div>'+mline+'</td>';
+      if(METHOD==='third'){
+        c4='<td><div class="td-actions">'+thirdJoin('Return to interview')+extCap+liveLinksNT+'</div></td>';
+      } else if(METHOD==='phone'){
+        c4='<td><div class="td-actions"><div class="td-call"><b>You\u2019re in your phone interview</b> with '+co+'.</div>'+liveLinksNT+'</div></td>';
+      } else if(METHOD==='person'){
+        c4='<td><div class="td-actions">'+dirBtn+addr+arr+liveLinksNT+'</div></td>';
+      } else {
+        c4='<td><div class="td-actions"><button class="iv-join-now">'+cam+'Return to interview</button><div class="td-links">'+msg+unreg+'</div></div></td>';
+      }
     }
     tr.innerHTML=c1+c2+c3+c4;
+    if(METHOD==='person'&&PHASE!=='before'){var ab=tr.querySelector('.td-arr');if(ab)ab.classList.add('open');}
   }
+  /* ═══ Interview method / location ═══ */
+  var METHOD='jfx';
+  var MICON={
+    jfx:'<svg viewBox="0 0 24 24"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>',
+    third:'<svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>',
+    phone:'<svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6A19.8 19.8 0 012.1 4.2 2 2 0 014.1 2h3a2 2 0 012 1.7c.1 1 .4 1.9.7 2.8a2 2 0 01-.5 2.1L8.1 9.9a16 16 0 006 6l1.3-1.3a2 2 0 012.1-.4c.9.3 1.8.6 2.8.7a2 2 0 011.7 2z"/></svg>',
+    person:'<svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>'
+  };
+  var MLBL={jfx:'Video interview on JobFairX',third:'Video interview \u00b7 employer\u2019s link',phone:'Phone interview',person:'In-person interview \u00b7 Dallas, TX'};
+  var CAND_PHONE='(214) 555-0132';
+  var MEET_URL='https://zoom.us/j/5551234567';
+  var MAPS_URL='https://maps.google.com/?q=5200+Harry+Hines+Blvd+Dallas+TX+75235';
+  function updateReqM(){
+    document.querySelectorAll('[data-mreq]').forEach(function(e){e.innerHTML=MICON[METHOD]+MLBL[METHOD];});
+    document.querySelectorAll('[data-mcaveat]').forEach(function(e){e.style.display=METHOD==='person'?'':'none';});
+  }
+  function setMethod(m){
+    METHOD=m;
+    document.querySelectorAll('.iv-confirmed').forEach(renderConfirmed);
+    updateReqM();
+  }
+  function setMethodBtn(el){
+    setMethod(el.getAttribute('data-m'));
+    document.querySelectorAll('[data-m]').forEach(function(b){b.classList.remove('active');});
+    el.classList.add('active');
+  }
+  function toggleArr(key){ var a=document.getElementById('arr-'+key); if(a) a.classList.toggle('open'); }
+  updateReqM();
   function toggleMore(btn){ var m=btn.nextElementSibling; if(!m) return; var open=m.classList.toggle('open'); btn.innerHTML = open ? 'Less \u25b4' : 'More \u25be'; }
   function openTest(){ document.getElementById('testModal').classList.add('open'); }
   function closeTest(){ var m=document.getElementById('testModal'); if(m) m.classList.remove('open'); }
