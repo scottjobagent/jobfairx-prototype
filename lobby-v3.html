@@ -6231,6 +6231,9 @@ a.jm-cp-num:hover { color:#0044B3; }
       retitle();
       toast(nameOf(tr) + ' was marked as interviewed.');
     },
+    /* One note per candidate, whatever surface it was typed in. */
+    getNote: function(n){ return NOTES[n] || ''; },
+    setNote: function(n,v){ if(n) NOTES[n] = v; },
     addr: function(){ document.getElementById('jmAddrOv').classList.add('open'); },
     closeAddr: function(){ document.getElementById('jmAddrOv').classList.remove('open'); }
   };
@@ -6328,8 +6331,9 @@ a.jm-cp-num:hover { color:#0044B3; }
       var nm = nameOf(tr);
       var td = document.createElement('td');
       td.className = 'jm-ncell';
-      td.innerHTML = '<button class="notes-link" data-notes="' + esc(NOTES[nm] || '') +
-        '" onclick="openNotesModal(\'' + nm.replace(/'/g, "\\'") + '\', this)">' + NOTE_IC + ' Notes</button>';
+      /* Opens the resume with the notes panel focused — reading and typing
+         belong together during the interview. */
+      td.innerHTML = '<button class="notes-link" onclick="JFXM.openNotesWithResume(this)">' + NOTE_IC + ' Notes</button>';
       tr.insertBefore(td, tr.lastElementChild);
     });
   }
@@ -6434,6 +6438,122 @@ a.jm-cp-num:hover { color:#0044B3; }
       if (p.f) { var lnk = row.querySelector('.prep-link'); if (lnk) lnk.onclick = p.f; }
       first.parentNode.insertBefore(row, first);
     });
+  });
+})();
+</script>
+
+
+<!-- ═══════════ NOTES BESIDE THE RESUME (phone & in-person) ═══════════
+     Video takes notes inside the interview room, next to the resume and chat.
+     Phone and in-person never open that room, so the resume modal gains the
+     same shape: resume left, notes right. Video's resume modal is untouched —
+     it keeps its 680px width and gets no panel. ═══════════════════════════ -->
+<style>
+/* Only ever applied when the event is phone or in-person. */
+.resume-modal.jm-rn { width:1040px; }
+.jm-rsplit { display:flex; align-items:stretch; min-height:0; flex:1; overflow:hidden; }
+.jm-rsplit > .resume-modal-body { flex:1 1 auto; min-width:0; }
+.jm-rnotes { flex:0 0 340px; border-left:1px solid #e8e6e3; display:flex; flex-direction:column; background:#fbfaf9; }
+.jm-rnhead { padding:16px 20px 10px; border-bottom:1px solid #e8e6e3; display:flex; align-items:center; justify-content:space-between; }
+.jm-rntitle { font-size:15px; font-weight:700; color:#2d2d2d; display:flex; align-items:center; gap:8px; }
+.jm-rntitle svg { width:16px; height:16px; stroke:#767676; fill:none; stroke-width:2; }
+.jm-rnsaved { font-size:12px; color:#166534; font-weight:600; opacity:0; transition:opacity .2s; }
+.jm-rnsaved.on { opacity:1; }
+.jm-rnbody { flex:1; padding:14px 20px 16px; display:flex; flex-direction:column; gap:10px; overflow-y:auto; }
+.jm-rnta { flex:1; min-height:260px; width:100%; border:1px solid #d4d2d0; border-radius:8px; padding:12px; font-size:14px; font-family:inherit; color:#2d2d2d; resize:none; line-height:1.6; box-sizing:border-box; }
+.jm-rnta:focus { outline:none; border-color:#0044B3; box-shadow:0 0 0 3px rgba(0,68,179,.12); }
+.jm-rnpriv { display:flex; align-items:center; gap:6px; font-size:12px; color:#767676; }
+.jm-rnpriv svg { width:13px; height:13px; stroke:#767676; fill:none; stroke-width:2; }
+/* Developer note — prototype only, not product UI */
+.jm-devnote { margin:0 20px 16px; background:#f0efed; border-left:3px solid #767676; border-radius:0 6px 6px 0; padding:10px 12px; }
+.jm-devnote b { display:block; font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#595959; margin-bottom:4px; }
+.jm-devnote p { font-size:11.5px; line-height:1.5; color:#595959; margin:0; }
+/* Tabs — hidden on wide screens, the layout below the breakpoint */
+.jm-rtabs { display:none; gap:0; border-bottom:1px solid #e8e6e3; padding:0 28px; flex-shrink:0; }
+.jm-rtab { padding:12px 2px; margin-right:24px; font-size:14px; font-weight:600; color:#595959; background:none; border:none; border-bottom:3px solid transparent; cursor:pointer; font-family:inherit; }
+.jm-rtab.on { color:#2d2d2d; border-bottom-color:#0044B3; }
+@media (max-width:1100px) {
+  .resume-modal.jm-rn .jm-rtabs { display:flex; }
+  .resume-modal.jm-rn .jm-rsplit { display:block; overflow-y:auto; }
+  .resume-modal.jm-rn .jm-rnotes { flex:none; border-left:none; width:100%; }
+  .resume-modal.jm-rn.jm-tab-resume .jm-rnotes { display:none; }
+  .resume-modal.jm-rn.jm-tab-notes > .jm-rsplit > .resume-modal-body { display:none; }
+}
+</style>
+<script>
+(function(){
+  function ready(fn){ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',fn); else fn(); }
+  ready(function(){
+    var m = (window.JFXM && JFXM.get) ? JFXM.get() : 'video';
+    if (m === 'video') return;                 /* virtual is not changing */
+
+    var modal = document.querySelector('#resumeModal .resume-modal');
+    var body  = document.getElementById('resumeBody');
+    if (!modal || !body || modal.querySelector('.jm-rnotes')) return;
+
+    var LOCK = '<svg viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>';
+    var NIC  = '<svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>';
+
+    modal.classList.add('jm-rn', 'jm-tab-resume');
+
+    var tabs = document.createElement('div');
+    tabs.className = 'jm-rtabs';
+    tabs.innerHTML = '<button class="jm-rtab on" data-t="resume">Resume</button><button class="jm-rtab" data-t="notes">Notes</button>';
+    tabs.addEventListener('click', function(e){
+      var b = e.target.closest('.jm-rtab'); if (!b) return;
+      var t = b.getAttribute('data-t');
+      tabs.querySelectorAll('.jm-rtab').forEach(function(x){ x.classList.toggle('on', x === b); });
+      modal.classList.toggle('jm-tab-resume', t === 'resume');
+      modal.classList.toggle('jm-tab-notes',  t === 'notes');
+    });
+
+    var split = document.createElement('div');
+    split.className = 'jm-rsplit';
+    body.parentNode.insertBefore(tabs, body);
+    body.parentNode.insertBefore(split, body);
+    split.appendChild(body);
+
+    var panel = document.createElement('div');
+    panel.className = 'jm-rnotes';
+    panel.innerHTML =
+      '<div class="jm-rnhead"><span class="jm-rntitle">' + NIC + ' Notes</span>' +
+        '<span class="jm-rnsaved" id="jmRnSaved">Auto-saved</span></div>' +
+      '<div class="jm-rnbody">' +
+        '<textarea class="jm-rnta" id="jmRnTa" placeholder="Type while you interview — this saves as you go."></textarea>' +
+        '<span class="jm-rnpriv">' + LOCK + ' Never visible to the candidate</span>' +
+      '</div>' +
+      '<div class="jm-devnote"><b>Developer note</b><p>Two layouts, one component. At 1100px and above the notes panel sits beside the resume so the interviewer can read and type at once — that simultaneity is the whole point. Below 1100px there is not room for both, so the panel collapses into the Resume / Notes tabs above. Same content and same store either way; only the arrangement changes. Video never gets this panel and its resume modal stays 680px.</p></div>';
+    split.appendChild(panel);
+
+    var ta = panel.querySelector('#jmRnTa');
+    var saved = panel.querySelector('#jmRnSaved');
+    var current = null, t = null;
+    ta.addEventListener('input', function(){
+      if (!current) return;
+      JFXM.setNote(current, ta.value);
+      saved.classList.add('on');
+      clearTimeout(t); t = setTimeout(function(){ saved.classList.remove('on'); }, 1400);
+    });
+
+    /* Load this candidate's note whenever the resume opens. */
+    var orig = window.openResumeModal;
+    window.openResumeModal = function(link){
+      var r = orig.apply(this, arguments);
+      var nm = (document.getElementById('resumeName') || {}).textContent || '';
+      current = nm;
+      ta.value = JFXM.getNote(nm);
+      modal.classList.add('jm-tab-resume'); modal.classList.remove('jm-tab-notes');
+      tabs.querySelectorAll('.jm-rtab').forEach(function(x){ x.classList.toggle('on', x.getAttribute('data-t') === 'resume'); });
+      return r;
+    };
+
+    /* The Interviewing tab's Notes column opens the resume with notes focused. */
+    window.JFXM.openNotesWithResume = function(btn){
+      window.openResumeModal(btn);
+      modal.classList.remove('jm-tab-resume'); modal.classList.add('jm-tab-notes');
+      tabs.querySelectorAll('.jm-rtab').forEach(function(x){ x.classList.toggle('on', x.getAttribute('data-t') === 'notes'); });
+      setTimeout(function(){ ta.focus(); }, 120);
+    };
   });
 })();
 </script>
