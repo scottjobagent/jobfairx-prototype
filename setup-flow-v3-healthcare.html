@@ -1316,6 +1316,209 @@ body.collapsed .progress-bar-track { left: 60px; }
     <div class="is-section">
       <div class="is-section-title">Interview details <span class="required">*</span></div>
 
+<!-- ═══════════ INTERVIEW METHOD + TIME SLOT DURATION (shared Interview Settings experience) ═══════════ -->
+<style>
+.im-wrap{max-width:680px}
+.im-label{font-size:16px;font-weight:700;color:#2d2d2d;margin-bottom:6px}
+.im-hint{font-size:14px;color:#595959;margin-bottom:16px;line-height:1.5}
+.im-req{color:#991b1b}
+.im-divider{border-top:1px solid #ebebeb;margin:28px 0}
+.im-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:640px){.im-grid{grid-template-columns:1fr}}
+.im-card{position:relative;display:flex;gap:12px;align-items:flex-start;border:1px solid #d4d2d0;border-radius:12px;padding:16px;cursor:pointer;background:#fff;transition:border-color .15s,box-shadow .15s}
+.im-card:hover{border-color:#a8a8a8}
+.im-card.on{border-color:#2d2d2d;box-shadow:0 0 0 1px #2d2d2d}
+.im-card .im-dot{width:20px;height:20px;flex:0 0 20px;border:2px solid #a8a8a8;border-radius:50%;position:relative;margin-top:2px}
+.im-card.on .im-dot{border-color:#2d2d2d}
+.im-card.on .im-dot:after{content:"";position:absolute;inset:3px;border-radius:50%;background:#2d2d2d}
+.im-title{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:700;color:#2d2d2d;flex-wrap:wrap}
+.im-title svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:0 0 17px}
+.im-badge{background:#e6f1fb;color:#0c447c;font-size:11px;font-weight:700;border-radius:6px;padding:2px 8px}
+.im-sub{font-size:13px;color:#595959;line-height:1.45;margin-top:4px}
+.im-panel{overflow:hidden;max-height:0;opacity:0;transition:max-height .25s ease,opacity .2s ease}
+.im-panel.open{max-height:900px;opacity:1}
+.im-panel-inner{padding-top:18px}
+.im-note{display:flex;gap:12px;align-items:flex-start;background:#f6f5f3;border-left:4px solid #0044b3;border-radius:0 6px 6px 0;padding:14px 18px}
+.im-note svg{width:18px;height:18px;flex:0 0 18px;stroke:#0044b3;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin-top:1px}
+.im-note p{font-size:14px;line-height:1.55;color:#595959;margin:0}
+.im-note b{color:#2d2d2d}
+.im-fld-label{font-size:14px;font-weight:700;color:#2d2d2d;margin-bottom:6px;display:block}
+.im-fld-hint{font-size:13px;color:#767676;margin-top:6px;line-height:1.5}
+.im-in{width:100%;height:44px;border:1px solid #d4d2d0;border-radius:10px;padding:10px 14px;font-family:inherit;font-size:15px;color:#2d2d2d;background:#fff;box-sizing:border-box}
+.im-in:focus{outline:none;border-color:#0044b3;box-shadow:0 0 0 3px rgba(0,68,179,.12)}
+.im-ta{width:100%;min-height:76px;border:1px solid #d4d2d0;border-radius:10px;padding:10px 14px;font-family:inherit;font-size:14.5px;color:#2d2d2d;resize:vertical;box-sizing:border-box}
+.im-ta:focus{outline:none;border-color:#0044b3;box-shadow:0 0 0 3px rgba(0,68,179,.12)}
+.im-addr2{display:grid;grid-template-columns:2fr 1fr;gap:14px}
+.im-addr3{display:grid;grid-template-columns:2fr 1fr 1fr;gap:14px}
+.im-gap{margin-bottom:16px}
+.im-err{display:none;align-items:center;gap:8px;color:#991b1b;font-size:13.5px;font-weight:600;margin-top:10px}
+.im-err svg{width:15px;height:15px;flex:0 0 15px;fill:#991b1b}
+.im-mini-sel{position:relative;max-width:210px}
+.im-mini-btn{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;height:46px;border:1px solid #d4d2d0;border-radius:10px;background:#fff;padding:10px 14px;font-family:inherit;font-size:15px;color:#2d2d2d;cursor:pointer}
+.im-mini-sel.open .im-mini-btn{border-color:#0044b3;box-shadow:0 0 0 3px rgba(0,68,179,.12)}
+.im-mini-btn svg{width:16px;height:16px;stroke:#595959;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.im-mini-menu{position:absolute;top:calc(100% + 6px);left:0;right:0;background:#fff;border:1px solid #ebebeb;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.1);display:none;z-index:30;overflow:hidden}
+.im-mini-sel.open .im-mini-menu{display:block}
+.im-mini-opt{display:flex;align-items:center;gap:10px;width:100%;padding:12px 14px;background:none;border:none;font-family:inherit;font-size:15px;color:#2d2d2d;cursor:pointer;text-align:left}
+.im-mini-opt:hover{background:#f6f5f3}
+.im-mini-opt .im-ck{width:16px;display:inline-block;color:#2d2d2d;font-weight:700}
+</style>
+<div class="im-wrap" id="imWrap">
+  <div class="im-label">How do you want to interview candidates? <span class="im-req">*</span></div>
+  <p class="im-hint">This applies to every interview scheduled for this event.</p>
+  <div class="im-grid" id="imGrid">
+    <div class="im-card on" data-m="native" onclick="imPick('native')">
+      <span class="im-dot"></span>
+      <div>
+        <div class="im-title"><svg viewBox="0 0 24 24"><path d="M23 7l-7 5 7 5V7z"></path><rect x="1" y="5" width="15" height="14" rx="2"></rect></svg>JobFairX Video <span class="im-badge">Recommended</span></div>
+        <div class="im-sub">We create and send secure video links automatically.</div>
+      </div>
+    </div>
+    <div class="im-card" data-m="third" onclick="imPick('third')">
+      <span class="im-dot"></span>
+      <div>
+        <div class="im-title"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"></path></svg>Third-Party Video</div>
+        <div class="im-sub">Use your own Zoom, Teams, Meet, or Webex link.</div>
+      </div>
+    </div>
+    <div class="im-card" data-m="phone" onclick="imPick('phone')">
+      <span class="im-dot"></span>
+      <div>
+        <div class="im-title"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6A19.8 19.8 0 012.1 4.2 2 2 0 014.1 2h3a2 2 0 012 1.7c.1 1 .4 1.9.7 2.8a2 2 0 01-.5 2.1L8.1 9.9a16 16 0 006 6l1.3-1.3a2 2 0 012.1-.4c.9.3 1.8.6 2.8.7a2 2 0 011.7 2z"></path></svg>Phone</div>
+        <div class="im-sub">Call candidates directly at their scheduled time.</div>
+      </div>
+    </div>
+    <div class="im-card" data-m="person" onclick="imPick('person')">
+      <span class="im-dot"></span>
+      <div>
+        <div class="im-title"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>In-Person</div>
+        <div class="im-sub">Candidates come to your location for their interview.</div>
+      </div>
+    </div>
+  </div>
+  <div class="im-panel open" id="imPnl-native">
+    <div class="im-panel-inner">
+      <div class="im-note">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>
+        <p>JobFairX automatically creates a secure video interview link for every scheduled interview. Candidates receive their link automatically with their confirmation &mdash; <b>no additional setup required.</b></p>
+      </div>
+    </div>
+  </div>
+  <div class="im-panel" id="imPnl-third">
+    <div class="im-panel-inner">
+      <label class="im-fld-label" for="imMeetUrl">Meeting URL <span class="im-req">*</span></label>
+      <input type="text" class="im-in" id="imMeetUrl" placeholder="https://..." oninput="this.value.trim()&&imErr('imMeetUrlErr',false)">
+      <p class="im-fld-hint">Paste your Zoom, Microsoft Teams, Google Meet, Webex, or other video meeting URL. Candidates receive this link with their interview confirmation.</p>
+      <div class="im-err" id="imMeetUrlErr"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4" stroke="#fff" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="16" r="1" fill="#fff"/></svg>Enter a valid meeting URL starting with https://</div>
+    </div>
+  </div>
+  <div class="im-panel" id="imPnl-phone">
+    <div class="im-panel-inner">
+      <div class="im-note">
+        <svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6A19.8 19.8 0 012.1 4.2 2 2 0 014.1 2h3a2 2 0 012 1.7c.1 1 .4 1.9.7 2.8a2 2 0 01-.5 2.1L8.1 9.9a16 16 0 006 6l1.3-1.3a2 2 0 012.1-.4c.9.3 1.8.6 2.8.7a2 2 0 011.7 2z"></path></svg>
+        <p>When a candidate confirms, we send you their phone number. Call them at the scheduled interview time.</p>
+      </div>
+    </div>
+  </div>
+  <div class="im-panel" id="imPnl-person">
+    <div class="im-panel-inner">
+      <div class="im-gap">
+        <label class="im-fld-label">Interview address <span class="im-req">*</span></label>
+        <div class="im-addr2">
+          <input type="text" class="im-in" id="imAddrStreet" placeholder="Street address">
+          <input type="text" class="im-in" id="imAddrSuite" placeholder="Suite / unit (optional)">
+        </div>
+      </div>
+      <div class="im-gap">
+        <div class="im-addr3">
+          <input type="text" class="im-in" id="imAddrCity" placeholder="City">
+          <input type="text" class="im-in" id="imAddrState" placeholder="State">
+          <input type="text" class="im-in" id="imAddrZip" placeholder="ZIP code">
+        </div>
+        <div class="im-err" id="imAddrErr"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4" stroke="#fff" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="16" r="1" fill="#fff"/></svg>Please complete the interview address (street, city, state, and ZIP).</div>
+      </div>
+      <div class="im-gap">
+        <label class="im-fld-label" for="imParking">Parking instructions</label>
+        <textarea class="im-ta" id="imParking" placeholder="e.g., Visitor parking is available behind Building A."></textarea>
+      </div>
+      <div class="im-gap">
+        <label class="im-fld-label" for="imArrival">Arrival instructions</label>
+        <textarea class="im-ta" id="imArrival" placeholder="e.g., Check in with the receptionist on the 2nd floor and ask for Human Resources."></textarea>
+      </div>
+      <div class="im-note">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>
+        <p>The address, parking, and arrival details are included in every candidate&rsquo;s interview confirmation.</p>
+      </div>
+    </div>
+  </div>
+  <div class="im-divider"></div>
+  <div class="im-label">Interview time slot duration</div>
+  <p class="im-hint">This allows candidates to select from multiple scheduling options.</p>
+  <div class="im-mini-sel" id="imDurSel">
+    <button type="button" class="im-mini-btn"><span id="imDurLabel">30 minutes</span><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg></button>
+    <div class="im-mini-menu" id="imDurMenu"></div>
+  </div>
+</div>
+<div class="im-divider"></div>
+<script>
+(function(){
+  var DUR=["15 minutes","30 minutes","60 minutes"];
+  var S={method:"native",dur:"30 minutes"};
+  window.__imState=S;
+  function $(id){return document.getElementById(id);}
+  window.imErr=function(id,on){var e=$(id);if(e)e.style.display=on?"flex":"none";};
+  function imSummary(){
+    var el=$("interviewSettingsSummary");
+    if(!el)return;
+    var names={native:"JobFairX Video interviews",third:"Third-party video interviews",phone:"Phone interviews",person:"In-person interviews"};
+    var parts=el.textContent.split(" | ");
+    if(parts.length>=2){
+      parts[parts.length-2]=names[S.method];
+      parts[parts.length-1]=S.dur.split(" ")[0]+"-minute time slots";
+      el.textContent=parts.join(" | ");
+    }
+  }
+  window.imPick=function(m){
+    S.method=m;
+    var cards=document.querySelectorAll("#imGrid .im-card");
+    Array.prototype.forEach.call(cards,function(c){c.classList.toggle("on",c.getAttribute("data-m")===m);});
+    ["native","third","phone","person"].forEach(function(k){var p=$("imPnl-"+k);if(p)p.classList.toggle("open",k===m);});
+    imErr("imMeetUrlErr",false);imErr("imAddrErr",false);
+    imSummary();
+  };
+  function imDrawDur(){
+    $("imDurLabel").textContent=S.dur;
+    $("imDurMenu").innerHTML=DUR.map(function(v){return '<button type="button" class="im-mini-opt" data-v="'+v+'"><span class="im-ck">'+(S.dur===v?"✓":"")+"</span>"+v+"</button>";}).join("");
+    Array.prototype.forEach.call($("imDurMenu").querySelectorAll(".im-mini-opt"),function(b){
+      b.addEventListener("click",function(){S.dur=b.getAttribute("data-v");$("imDurSel").classList.remove("open");imDrawDur();imSummary();});
+    });
+  }
+  $("imDurSel").querySelector(".im-mini-btn").addEventListener("click",function(e){e.stopPropagation();$("imDurSel").classList.toggle("open");});
+  document.addEventListener("click",function(){$("imDurSel").classList.remove("open");});
+  window.imValidate=function(){
+    var ok=true;
+    if(S.method==="third"){
+      var v=$("imMeetUrl").value.trim();
+      var bad=!v||!/^https?:\/\/.+/i.test(v);
+      imErr("imMeetUrlErr",bad);
+      if(bad)ok=false;
+    }
+    if(S.method==="person"){
+      var missing=["imAddrStreet","imAddrCity","imAddrState","imAddrZip"].some(function(id){return !$(id).value.trim();});
+      imErr("imAddrErr",missing);
+      if(missing)ok=false;
+    }
+    if(!ok)$("imWrap").scrollIntoView({behavior:"smooth",block:"center"});
+    return ok;
+  };
+  window.imValidateStep5=function(){if(window.imValidate())goToStep(6);};
+  window.imValidateUpdate=function(){if(window.imValidate()){toggleInterviewSettings(false);showToast();}};
+  imDrawDur();
+})();
+</script>
+<!-- ═══════════ /INTERVIEW METHOD + TIME SLOT DURATION ═══════════ -->
+
+
       <!-- Interview time slot duration -->
       <div class="is-field-group">
         <div class="is-label">Interview time slot duration</div>
@@ -1438,7 +1641,7 @@ body.collapsed .progress-bar-track { left: 60px; }
     <!-- Back / Continue -->
     <div class="bottom-actions-split">
       <button class="back-btn" onclick="goToStep(4)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><polyline points="12 19 5 12 12 5"/></svg> Back</button>
-      <button class="continue-btn" onclick="goToStep(6)">Continue <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><polyline points="12 5 19 12 12 19"/></svg></button>
+      <button class="continue-btn" onclick="imValidateStep5()">Continue <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><polyline points="12 5 19 12 12 19"/></svg></button>
     </div>
   </div>
   </div>
