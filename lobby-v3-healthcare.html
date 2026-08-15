@@ -6520,6 +6520,7 @@ a.jm-cp-num:hover { color:#0044B3; }
       var ph = host.querySelector('td[colspan]'); if (ph && ph.parentNode) ph.parentNode.remove();
       host.appendChild(row);
       fixInterviewing();
+      notesColumn();   /* a just-started interview needs somewhere to type immediately */
     }
     if (tr.parentNode) tr.parentNode.removeChild(tr);
     retitle();
@@ -6540,6 +6541,53 @@ a.jm-cp-num:hover { color:#0044B3; }
     };
   }
 
+  /* ═══ Notes while the interview is happening ═══
+     Video takes notes inside the interview room, beside the resume and chat.
+     Phone and in-person never open that room, so their only surface today is
+     the Interviewed tab — after the interview is already over. The column goes
+     on Interviewing in the same position and with the same component the
+     Interviewed tab uses. Notes are keyed to the candidate, not the row, so a
+     note taken mid-interview is still there afterwards. */
+  var NOTES = {}, notesRow = null;
+  (function(){
+    var oOpen = window.openNotesModal, oSave = window.saveNotes;
+    if (typeof oOpen === 'function') {
+      window.openNotesModal = function(nm, btn){
+        notesRow = (btn && btn.closest) ? btn.closest('tr') : null;
+        return oOpen.apply(this, arguments);
+      };
+    }
+    if (typeof oSave === 'function') {
+      window.saveNotes = function(){
+        var ta = document.getElementById('notesModalText');
+        if (notesRow && ta) NOTES[nameOf(notesRow)] = ta.value;
+        return oSave.apply(this, arguments);
+      };
+    }
+  })();
+  var NOTE_IC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>';
+  function notesColumn() {
+    if (m === 'video') return;
+    document.querySelectorAll('#interviewingLive .live-table thead tr').forEach(function(hr){
+      if (hr.querySelector('.jm-ncol') || !hr.lastElementChild) return;
+      var th = document.createElement('th');
+      th.className = 'jm-ncol';
+      th.style.width = '11%';
+      th.textContent = 'Notes';
+      hr.insertBefore(th, hr.lastElementChild);
+      hr.lastElementChild.style.width = '16%';
+    });
+    document.querySelectorAll('#interviewingLive .live-table tbody tr').forEach(function(tr){
+      if (tr.querySelector('td[colspan]') || tr.querySelector('.jm-ncell') || !tr.lastElementChild) return;
+      var nm = nameOf(tr);
+      var td = document.createElement('td');
+      td.className = 'jm-ncell';
+      td.innerHTML = '<button class="notes-link" data-notes="' + esc(NOTES[nm] || '') +
+        '" onclick="openNotesModal(\'' + nm.replace(/'/g, "\\'") + '\', this)">' + NOTE_IC + ' Notes</button>';
+      tr.insertBefore(td, tr.lastElementChild);
+    });
+  }
+
   function apply() {
     /* The title and breadcrumb are already method-neutral in the markup, so
        they need nothing here. Everything below is a no-op for video. */
@@ -6550,6 +6598,7 @@ a.jm-cp-num:hover { color:#0044B3; }
     adaptWaiting(document.getElementById('waitingLive'));
     adaptWaiting(document.getElementById('waitingLiveEmpty'));
     fixInterviewing();
+    notesColumn();
     fixEndModal();
   }
 
