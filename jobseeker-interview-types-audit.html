@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Job Seeker — Interview Types Audit</title>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;padding:40px 24px 90px;background:#e9e7e3;
+    font-family:'Noto Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+    color:#2d2d2d;font-size:14px;line-height:1.55}
+  .wrap{max-width:1000px;margin:0 auto}
+  .eyebrow{font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:#0044B3;margin-bottom:10px}
+  h1{font-size:32px;line-height:1.15;font-weight:700;margin:0 0 12px;letter-spacing:-.5px}
+  .stand{font-size:16px;line-height:1.6;color:#595959;max-width:760px;margin:0 0 6px}
+  .meta{font-size:13px;color:#767676;margin-bottom:34px}
+  .card{background:#fff;border:1px solid #b0aeab;border-radius:14px;padding:30px 32px;margin-bottom:22px}
+  .card>*:first-child{margin-top:0}.card>*:last-child{margin-bottom:0}
+  h2{font-size:20px;font-weight:700;margin:0 0 16px;display:flex;align-items:center;gap:12px;letter-spacing:-.2px}
+  .n{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:999px;
+    background:#0044B3;color:#fff;font-size:13px;font-weight:700;flex-shrink:0}
+  h3{font-size:15px;font-weight:700;margin:24px 0 8px}
+  h4{font-size:13.5px;font-weight:700;margin:16px 0 6px;color:#595959}
+  p{margin:0 0 12px}
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;background:#f3f2ef;
+    border:1px solid #e8e6e3;border-radius:4px;padding:1px 5px}
+  table{width:100%;border-collapse:collapse;margin:14px 0 6px;font-size:13px}
+  th{text-align:left;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#767676;
+    padding:0 12px 8px 0;border-bottom:1px solid #d4d2d0;vertical-align:bottom}
+  td{padding:11px 12px 11px 0;border-bottom:1px solid #f3f2ef;vertical-align:top;line-height:1.5}
+  tr:last-child td{border-bottom:none}
+  .box{border-left:4px solid #0044B3;background:#f7f6f5;border-radius:0 8px 8px 0;padding:14px 18px;margin:18px 0;font-size:13.5px;line-height:1.6}
+  .box.warn{border-left-color:#8a5a20;background:#fdf6ec}
+  .box.bad{border-left-color:#991b1b;background:#fef2f2}
+  .box.ok{border-left-color:#166534;background:#eef4ec}
+  .box p:last-child{margin-bottom:0}
+  .lbl{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px;color:#595959}
+  ul{margin:0 0 12px;padding-left:20px}li{margin-bottom:7px}
+  .pill{display:inline-block;padding:2px 9px;border-radius:12px;font-size:11.5px;font-weight:700;white-space:nowrap}
+  .p-done{background:#eef4ec;color:#166534}
+  .p-gap{background:#fef2f2;color:#991b1b}
+  .p-part{background:#fdf6ec;color:#8a5a20}
+  .p-na{background:#f3f2ef;color:#767676}
+  .quote{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;background:#faf9f7;
+    border-left:3px solid #d4d2d0;padding:8px 12px;margin:8px 0;color:#595959;white-space:pre-wrap}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="eyebrow">JobFairX — Job Seeker Experience</div>
+<h1>Interview types audit</h1>
+<p class="stand">What must change on the Job Seeker side now that interviews can be JobFairX video, phone, in person, or on the employer's own meeting link — audited against the shipped Employer implementation.</p>
+<p class="meta">August 16, 2026 · Audit only, nothing implemented · Evidence gathered from the live files, not from documentation</p>
+
+<!-- 1 -->
+<div class="card">
+<h2><span class="n">1</span> Executive summary</h2>
+
+<p><strong>The dashboard is already done.</strong> It shipped on August 15 in two commits and supports all four types, including the employer's external link. The current handoff document says this work is unpushed and blocked; that is stale. I ran the visual QA it says was never done — four methods across three phases, twelve combinations, zero defects.</p>
+
+<p><strong>Everything downstream of the dashboard is not done.</strong> Three surface groups still assume every interview is JobFairX video:</p>
+
+<ul>
+<li><strong>The interview experience</strong> — the largest gap by far. 65 camera/microphone references in <code>interview-flow.html</code>, 19 more in <code>screen-preview.html</code>, and zero type awareness in either. For phone and in person there is no seeker-side day-of experience at all.</li>
+<li><strong>The six seeker emails</strong> — zero type awareness. Two of them are actively wrong for three of the four types.</li>
+<li><strong>Marketing copy</strong> — the "How it works" panel promises "No Zoom, no downloads," which the external-link type now contradicts outright.</li>
+</ul>
+
+<div class="box bad">
+<span class="lbl">The single most important finding</span>
+<p>The seeker side has no answer to a simple question: <em>it is 11:00 AM and my interview is a phone interview — what do I look at?</em> Today the answer is a dashboard row. There is no day-of experience, no arrival screen, no call screen. Video gets a green room, a camera test, a background picker, a waiting room and a feedback flow. The other three types get a table cell.</p>
+</div>
+
+<p>Two structural recommendations sit alongside the type work: a redesign of the Actions area (§7), and a correction to the interview-type control (§8) — where I am recommending something different from what was asked, for a reason I want to put in front of you before anything is built.</p>
+</div>
+
+<!-- 2 -->
+<div class="card">
+<h2><span class="n">2</span> Complete audit</h2>
+
+<h3>Surface by surface</h3>
+<table>
+<tr><th style="width:230px">Surface</th><th style="width:104px">Status</th><th>Evidence</th></tr>
+<tr><td><code>jobseeker-dashboard-pills.html</code></td><td><span class="pill p-done">Done</span></td><td>Four methods live: <code>jfx</code>, <code>third</code>, <code>phone</code>, <code>person</code>. <code>setMethod()</code>, <code>MLBL</code>/<code>MICON</code>, <code>updateReqM()</code>, in-page dev spec panel. QA: 12/12 pass.</td></tr>
+<tr><td><code>interview-flow.html</code></td><td><span class="pill p-gap">Gap</span></td><td>65 camera/mic references. 14 phone frames and 13 desktop cards, all video. No phone, in-person or external-link screens exist.</td></tr>
+<tr><td><code>screen-preview.html</code></td><td><span class="pill p-gap">Gap</span></td><td>19 camera/mic references, zero type awareness. Desktop is frozen (D-7) — see the constraint note below.</td></tr>
+<tr><td><code>get-ready-preview.html</code></td><td><span class="pill p-gap">Gap</span></td><td>Green-room preview. Camera-only by definition. Needs a non-video sibling or an explicit "video only" scoping.</td></tr>
+<tr><td>Seeker emails (6)</td><td><span class="pill p-gap">Gap</span></td><td>Zero type awareness across all six. Detail in §6.</td></tr>
+<tr><td><code>howitworks-mockup.html</code></td><td><span class="pill p-gap">Gap</span></td><td>Step 3: "interview by video right on JobFairX. No Zoom, no downloads." False for three of four types.</td></tr>
+<tr><td><code>interview-requested.html</code></td><td><span class="pill p-part">Check</span></td><td>No camera references, but no type line either. Should state the interview type once known.</td></tr>
+<tr><td><code>interview-reschedule-proposal.html</code></td><td><span class="pill p-part">Check</span></td><td>Type-neutral today. Adding the type line is cheap and prevents a surprise at confirmation.</td></tr>
+<tr><td><code>candidate-preview.html</code></td><td><span class="pill p-part">Check</span></td><td>4 camera references. Employer-facing preview of the candidate; low priority.</td></tr>
+<tr><td><code>search-jobs-*.html</code></td><td><span class="pill p-na">N/A</span></td><td>Aggregated third-party feed, not JobFairX events. No interview type applies. Leave alone.</td></tr>
+<tr><td><code>marketing-candidates.html</code>, <code>nav-mockup.html</code></td><td><span class="pill p-na">N/A</span></td><td>No interview-type claims found.</td></tr>
+</table>
+
+<div class="box warn">
+<span class="lbl">Constraint that shapes the plan</span>
+<p>Decision D-7 froze the desktop interview flow. Any non-video day-of experience is <em>new</em> screens, not modifications of the frozen ones — which is convenient, because a phone interview should never render a video UI anyway. I am treating the freeze as intact and additive-only. Confirm if that has changed.</p>
+</div>
+
+<h3>The concept that should govern all of it</h3>
+<p>The employer side is organised around one idea, and it transfers to the seeker side exactly. What the platform can <em>observe</em> determines what it should <em>display</em>.</p>
+<table>
+<tr><th style="width:200px">Type</th><th>Platform can observe</th><th>Consequence for the seeker UI</th></tr>
+<tr><td>JobFairX video</td><td>Joined, started, ended</td><td>Real-time state. "Join" is meaningful. Waiting room works.</td></tr>
+<tr><td>Employer's link</td><td>Nothing after handoff</td><td>"Join" opens someone else's product. JobFairX cannot know it started or ended.</td></tr>
+<tr><td>Phone</td><td>Nothing</td><td>No join. The seeker waits for a ring. Everything is declared, not detected.</td></tr>
+<tr><td>In person</td><td>Nothing</td><td>No join. The seeker travels. Address and timing are the whole product.</td></tr>
+</table>
+<p>This is why "add a type field to the existing screens" is the wrong shape of fix for the interview experience. Three of the four types don't need a modified video screen — they need a different screen, or no screen.</p>
+</div>
+
+<!-- 3 -->
+<div class="card">
+<h2><span class="n">3</span> Screen-by-screen recommendations</h2>
+
+<h3>Dashboard — upcoming events</h3>
+<p>Type-aware already. Remaining work is the Actions area (§7) and the type control (§8). No changes needed to the method line itself; the labels read well and match the employer vocabulary.</p>
+
+<h3>Day-of experience — the new work</h3>
+<p>Four distinct destinations, not one screen with a type flag.</p>
+<table>
+<tr><th style="width:150px">Type</th><th style="width:180px">Destination</th><th>What it contains</th></tr>
+<tr><td>JobFairX video</td><td>Existing flow, unchanged</td><td>Green room, camera test, backgrounds, waiting room, in-call, feedback. Do not touch.</td></tr>
+<tr><td>Employer's link</td><td><strong>Handoff screen</strong> (new)</td><td>Platform name, the meeting link as a large primary action, "this opens Microsoft Teams," a short "what to expect," and a JobFairX-side <em>Mark as finished</em> — because we cannot observe the end. No camera test: we cannot test someone else's room.</td></tr>
+<tr><td>Phone</td><td><strong>Call screen</strong> (new)</td><td>The number the employer will call, the time, "keep your ringer on," and an explicit <em>wrong number?</em> route to profile. No join. Should be reachable but is mostly a reassurance surface.</td></tr>
+<tr><td>In person</td><td><strong>Arrival screen</strong> (new)</td><td>Map, address, directions as primary, parking, arrival instructions, what to bring, and the time. Must be mobile-first — this is read in a car or on a sidewalk.</td></tr>
+</table>
+
+<div class="box">
+<span class="lbl">A seeker-side gap worth solving properly</span>
+<p>For the three unobservable types, JobFairX never learns the interview happened. The employer declares it on their side. The seeker's dashboard will sit on "Interview confirmed" forever unless something moves it. Recommend a lightweight seeker-side confirmation — one tap, "Did your interview happen?" — which also gives you the feedback hook you already have for video. Without it, Interviewed and Missed become employer-only truth and the seeker's history is wrong.</p>
+</div>
+
+<h3>Green room / get-ready</h3>
+<p>Scope it explicitly to JobFairX video. For the employer's link it is misleading (we would be testing the wrong camera); for phone and in person it is meaningless.</p>
+</div>
+
+<!-- 4 -->
+<div class="card">
+<h2><span class="n">4</span> Workflow changes</h2>
+
+<h3>What does not change</h3>
+<p>Register → matched → request → employer accepts → interview. The type never alters the funnel. Request, accept, decline, propose-new-times and reschedule are all type-neutral and should stay that way. This mirrors the employer side, where Accept / Decline / Reschedule was the one workflow that needed nothing.</p>
+
+<h3>What does change</h3>
+<table>
+<tr><th style="width:180px">Point in flow</th><th>Change</th></tr>
+<tr><td>Match</td><td>The type is already known — it is an event-level setting the employer chooses at setup. Show it from the match email onward, not from confirmation.</td></tr>
+<tr><td>Request submitted</td><td>State the type. In person shows city and state only; the full address is withheld until confirmed.</td></tr>
+<tr><td>Confirmed</td><td>Full details unlock: address plus parking and arrival, or the meeting link, or the callback number.</td></tr>
+<tr><td>Day-of</td><td>Routes to one of four destinations instead of one. Phone and in person have no "join" event at all.</td></tr>
+<tr><td>Completion</td><td>Video self-completes. The other three need a declared end — see the box in §3.</td></tr>
+</table>
+
+<div class="box ok">
+<span class="lbl">Already resolved, carry it forward</span>
+<p>Interview type is set per event by the employer during setup and is overridable per interview. That answers the open question in the current handoff about whether the type is known at match time. It is. Matched and Requested rows should show a real type, never a dash.</p>
+</div>
+</div>
+
+<!-- 5 -->
+<div class="card">
+<h2><span class="n">5</span> UI improvements beyond type support</h2>
+
+<h3>Destructive actions are undifferentiated — fix this first</h3>
+<div class="box bad">
+<p>In the confirmed state, <strong>Cancel interview</strong> and <strong>Unregister</strong> render with identical styling, side by side. One cancels a single interview. The other removes the seeker from the entire hiring event, including every other match at it. A seeker trying to drop one interview can plausibly leave the whole fair. This is a real defect, independent of interview types.</p>
+</div>
+
+<h3>Action density swings 1 → 7</h3>
+<p>Measured across states: <em>Waiting to be matched</em> and <em>Request declined</em> carry one action; <em>Interview confirmed</em> carries seven. The column is sized for the worst case and looks broken at the best case. §7 addresses this.</p>
+
+<h3>Other findings</h3>
+<ul>
+<li><strong>Status column is doing two jobs.</strong> It carries the time, the status pill, and now the method line. It reads well today but will not absorb a fourth thing. Worth watching, not fixing yet.</li>
+<li><strong>Mobile.</strong> The table collapses to a card layout and holds up — I verified it. The in-person day-of case is the one to design for explicitly: it is the only screen read while physically moving.</li>
+<li><strong>Accessibility.</strong> Actions are a mix of <code>&lt;a&gt;</code> and <code>&lt;button&gt;</code> with no consistent semantics, and the overflow uses a text link with a glyph rather than a real disclosure control. Fix as part of §7 rather than separately.</li>
+<li><strong>Em dashes.</strong> The no-dash rule is unenforceable as stated — this page has 12 em dashes in shipped copy, and Search Jobs and the employer emails have more. Recommend scoping the rule to the interview flow, where it originated.</li>
+</ul>
+</div>
+
+<!-- 6 -->
+<div class="card">
+<h2><span class="n">6</span> Copy updates</h2>
+
+<h3>The six seeker emails</h3>
+<table>
+<tr><th style="width:180px">Email</th><th style="width:96px">Verdict</th><th>What is wrong and what it becomes</th></tr>
+<tr><td>1 · Job match</td><td><span class="pill p-part">Edit</span></td><td>Carries a hardcoded <code>INTERVIEW: on JobFairX</code> field. Becomes type-aware — this is the seeker's first exposure to the type and it should be honest from the start.</td></tr>
+<tr><td>2 · Message received</td><td><span class="pill p-na">Leave</span></td><td>Type-neutral. No change.</td></tr>
+<tr><td>3 · Request submitted</td><td><span class="pill p-part">Add line</span></td><td>Add the type. In person: city and state only, plus "full address when it's confirmed."</td></tr>
+<tr><td>4 · Reschedule request</td><td><span class="pill p-part">Add line</span></td><td>Add the type so a changed time never arrives without context.</td></tr>
+<tr><td>5 · Accepted / confirmed</td><td><span class="pill p-gap">Rewrite</span></td><td>Two wrong strings today.</td></tr>
+<tr><td>6 · Interview starting now</td><td><span class="pill p-gap">Rewrite</span></td><td>The worst offender. Video-only end to end.</td></tr>
+</table>
+
+<h4>Email 5 — verbatim, and why it fails</h4>
+<div class="quote">INTERVIEW LOCATION    on JobFairX
+Interview opens in your browser. No download needed.</div>
+<p>The label is right — it already says "Interview location," matching the employer app. The value is hardcoded, and the browser promise is false for phone, in person, and the employer's link. Each type needs its own confirmation payload: address plus parking and arrival, or the meeting link and platform, or the callback number.</p>
+
+<h4>Email 6 — verbatim, and why it fails</h4>
+<div class="quote">Subject:  Your Nike interview is starting. Join now
+CTA:      Join interview →
+Footnote: Opens in your browser. No download needed.</div>
+<p>For phone there is nothing to join — the seeker's phone rings, and an email telling them to click is actively confusing. For in person they are already at the venue and this email arrives too late to be useful. For the employer's link, "opens in your browser" is technically true but points at Teams, not JobFairX.</p>
+<p>Recommended per type: <strong>video</strong> keeps it as-is; <strong>employer's link</strong> becomes "Your interview is starting — open Microsoft Teams" with the link as the CTA; <strong>phone</strong> becomes "Nike is calling you now — keep your phone nearby," no CTA; <strong>in person</strong> should send <em>earlier</em> as a leave-now nudge rather than a start-now alert, or not send at all.</p>
+
+<div class="box warn">
+<span class="lbl">Sequencing note</span>
+<p>The seeker emails are the phase after the seeker app in your stated order. The findings are here so the audit is complete, but I would not build them until the day-of experience exists — email 6 has to point somewhere, and for three of the four types that destination does not exist yet.</p>
+</div>
+
+<h3>Marketing</h3>
+<div class="quote">"When the employer accepts, you get a confirmed time and interview by video
+ right on JobFairX. No Zoom, no downloads."</div>
+<p>Now false. External-link events run on Zoom, Teams, Meet or Webex by design. Recommended: "When the employer accepts, you get a confirmed time and everything you need — whether that's a video call on JobFairX, a phone call, or directions to the door." Keeps the reassurance, drops the promise we break.</p>
+</div>
+
+<!-- 7 -->
+<div class="card">
+<h2><span class="n">7</span> Action area redesign</h2>
+
+<h3>What is there now, measured</h3>
+<table>
+<tr><th style="width:210px">State</th><th style="width:70px">Actions</th><th>Composition</th></tr>
+<tr><td>Waiting to be matched</td><td>1</td><td>Unregister</td></tr>
+<tr><td>Matched</td><td>2</td><td>Schedule interview · Unregister</td></tr>
+<tr><td>Interview requested</td><td>2</td><td>Cancel request · Unregister</td></tr>
+<tr><td><strong>Interview confirmed</strong></td><td><strong>7</strong></td><td>Join interview · Test camera &amp; mic · More ▾ · Reschedule interview · Message employer · Cancel interview · Unregister</td></tr>
+<tr><td>New times proposed</td><td>6</td><td>3 time chips · Decline · Message employer · Unregister</td></tr>
+<tr><td>Request declined</td><td>1</td><td>Unregister</td></tr>
+</table>
+<p>Six of the seven confirmed-state actions are undifferentiated text links. One button, then a flat list in which "Message employer" and "Unregister from the event" carry identical visual weight.</p>
+
+<h3>Recommendation — three tiers, and reuse the employer pattern</h3>
+<table>
+<tr><th style="width:120px">Tier</th><th style="width:200px">Treatment</th><th>Contents</th></tr>
+<tr><td><strong>Primary</strong></td><td>One filled button, type-aware</td><td>Join interview (video) · Open Microsoft Teams (link) · Get directions (in person) · <em>none</em> (phone — a reassurance card instead, which is already how it works)</td></tr>
+<tr><td><strong>Supporting</strong></td><td>At most two inline links</td><td>Type-dependent: Test camera &amp; mic for JobFairX video only; Message employer once confirmed</td></tr>
+<tr><td><strong>Overflow</strong></td><td>Icon button opening a menu</td><td>Reschedule · Cancel interview · Unregister — with the destructive pair visually separated and <em>scope-labelled</em></td></tr>
+</table>
+
+<div class="box ok">
+<span class="lbl">Why an overflow menu rather than cards or split buttons</span>
+<p><strong>Reuse, not invention.</strong> The employer lobby solved this exact problem: a primary action plus a kebab menu sitting side by side in one row. Adopting the same shape is the single biggest consistency win available between the two products, and it comes with a tested interaction rather than a new one.</p>
+<p><strong>Split buttons are wrong here</strong> — the primary action differs per type and for phone there is no primary action at all. A split button whose main half is empty is broken by construction.</p>
+<p><strong>Action cards are too heavy</strong> for a table row that already carries an event, a job, a status, a time and a method line. They would win on a detail page, not here.</p>
+</div>
+
+<p><strong>The destructive-scope fix belongs in this redesign.</strong> Inside the menu, Cancel interview and Unregister get separated by a divider, and Unregister reads with its scope attached — it removes you from the event, not the interview. That is a one-line copy change that closes the defect in §5.</p>
+
+<p>Net effect on the confirmed state: seven flat items become <strong>one button, up to two links, and one menu</strong>. The 1-action states stay clean because the menu only appears when there is something in it.</p>
+</div>
+
+<!-- 8 -->
+<div class="card">
+<h2><span class="n">8</span> Dashboard and the interview-type control</h2>
+
+<div class="box bad">
+<span class="lbl">I am recommending against what was asked — here is why</span>
+<p>The brief asks to move the interview-type control out of Demo States and onto the dashboard "so it feels like part of the product rather than a development/testing feature."</p>
+<p><strong>It cannot become part of the product.</strong> The job seeker has no authority over their interview type — the employer sets it per event during setup. A control that looks like product UI tells the seeker they can switch a video interview to a phone interview. They cannot. The best case is that they try and nothing happens; the worst case is that they believe they changed it and turn up to the wrong thing.</p>
+</div>
+
+<h3>What I recommend instead</h3>
+<p>Keep it a preview control, but fix the two real problems with it — it is buried, and it is in the wrong place conceptually.</p>
+<ul>
+<li><strong>Move it to the top of the dashboard</strong>, above the table, where you will actually find it. This satisfies the discoverability half of the ask.</li>
+<li><strong>Label it as a preview, not a setting.</strong> "Preview as: JobFairX video / Employer's link / Phone / In person." The word <em>preview</em> does the work.</li>
+<li><strong>Style it as scaffolding</strong> — the muted, obviously-not-product treatment the employer prototype already uses for its prototype-only strip. Same convention across both products.</li>
+<li><strong>Remove it from Demo States</strong> so there is exactly one place it lives.</li>
+</ul>
+<p>This gets you everything the brief actually wants — easy to find, sensibly placed, no longer buried in a dev panel — without shipping a control that lies about who is in charge.</p>
+
+<div class="box">
+<span class="lbl">If you want it to feel like product anyway</span>
+<p>There is an honest version: a read-only <em>type filter</em> — "show me only my in-person interviews" — which is a real seeker need once someone has several interviews across several events. That is a genuine product feature and it is discoverable in the same position. It just does not do what the demo toggle does. Say the word and I will spec it separately.</p>
+</div>
+
+<h3>Other dashboard recommendations</h3>
+<ul>
+<li><strong>Leave the method line in the Status column.</strong> It works, it is verified, and moving it to its own column now would break a shipped design for no user benefit.</li>
+<li><strong>Past events should keep the type.</strong> "How did I interview for that one?" is a real question when a seeker is comparing three employers.</li>
+<li><strong>The multi-interview scenario is where type visibility pays off most</strong> — one event, several interviews, potentially different types. Worth QA-ing explicitly once the action redesign lands.</li>
+</ul>
+</div>
+
+<!-- 9 -->
+<div class="card">
+<h2><span class="n">9</span> Implementation plan</h2>
+
+<table>
+<tr><th style="width:40px">#</th><th style="width:250px">Work</th><th style="width:80px">Impact</th><th style="width:80px">Effort</th><th>Why here</th></tr>
+<tr><td>1</td><td>Action area redesign, including the destructive-scope fix</td><td>High</td><td>Med</td><td>Closes a real defect, and every later change lands in this structure. Do it before adding anything else to the row.</td></tr>
+<tr><td>2</td><td>Move and relabel the type control (§8)</td><td>Med</td><td>Low</td><td>Cheap, and it makes everything after this reviewable by you without opening a dev panel.</td></tr>
+<tr><td>3</td><td>In-person arrival screen</td><td>High</td><td>Med</td><td>The type with the highest cost of failure. Getting lost means missing the interview.</td></tr>
+<tr><td>4</td><td>Phone call screen</td><td>High</td><td>Low</td><td>Small surface, removes the "what do I even look at" gap. Mostly reassurance.</td></tr>
+<tr><td>5</td><td>External-link handoff screen</td><td>Med</td><td>Low</td><td>Structurally simple. Mostly the link, the platform name and expectations.</td></tr>
+<tr><td>6</td><td>Seeker-declared completion</td><td>Med</td><td>Med</td><td>Without it the seeker's own history is wrong for three of four types.</td></tr>
+<tr><td>7</td><td>Marketing copy fix</td><td>Med</td><td>Low</td><td>One paragraph. Currently states something untrue.</td></tr>
+<tr><td>8</td><td>Seeker emails 1, 3, 4, 5, 6</td><td>High</td><td>Med</td><td>Deliberately last — email 6 must point at destinations that exist. This is your next phase anyway.</td></tr>
+<tr><td>9</td><td>Scope the em-dash rule</td><td>Low</td><td>Low</td><td>A decision, not a build.</td></tr>
+</table>
+
+<div class="box">
+<span class="lbl">Suggested first move</span>
+<p>Items 1 and 2 together. They are one pass over the dashboard, they are independently reviewable, and they leave the product better even if the day-of screens slip. I would mock both before writing anything, as usual.</p>
+</div>
+
+<h3>Decisions I need from you</h3>
+<ul>
+<li><strong>§8 — the type control.</strong> Preview-labelled scaffolding as I recommend, or product-styled as originally asked?</li>
+<li><strong>The desktop freeze (D-7).</strong> I am assuming it holds and the new day-of screens are additive. Confirm.</li>
+<li><strong>Seeker-declared completion.</strong> Real feature or out of scope for now?</li>
+<li><strong>The em-dash rule.</strong> Interview flow only, or global?</li>
+</ul>
+</div>
+
+</div>
+</body>
+</html>
