@@ -7088,7 +7088,7 @@ a.jm-cp-num:hover { color:#0044B3; }
 
 
 <!-- ═══════════════════════════════════════════════════════════════════════
-     YOUR STATUS — VIDEO ONLY
+     YOUR STATUS — JOBFAIRX VIDEO ONLY
      Phone and in-person have no promotion event for the availability pill to
      gate. The candidate checks in, lands in Waiting rooms, and the next thing
      that happens is physical: the recruiter walks out and collects them, or
@@ -7097,16 +7097,22 @@ a.jm-cp-num:hover { color:#0044B3; }
      and the "Ready to start interviewing?" card exists only to prompt you out
      of Away, so it goes with it.
 
-     Video is untouched: same control, same defaults, same copy, same code
-     path. Both setLobbyMode() and setUserStatus() write to these elements, so
-     both are wrapped rather than edited — a one-shot hide leaks the card back
-     on the next call.
+     An event running on the employer's own meeting link is the same case. The
+     interview happens in Teams or Zoom, so nothing on this screen decides when
+     a candidate is admitted and nothing here reaches them. The pill would be
+     reporting availability to a queue that another application is running.
+
+     JobFairX video is untouched: same control, same defaults, same copy, same
+     code path. Both setLobbyMode() and setUserStatus() write to these
+     elements, so both are wrapped rather than edited — a one-shot hide leaks
+     the card back on the next call.
      ═══════════════════════════════════════════════════════════════════════ -->
 <script>
 (function () {
   function statusGate() {
     var m = (window.JFXM && JFXM.get) ? JFXM.get() : 'video';
-    if (m === 'video') return;
+    var external = !!(window.JFXM && JFXM.meetUrl && JFXM.meetUrl());
+    if (m === 'video' && !external) return;
     var wrap = document.querySelector('.status-dropdown-wrap');
     if (wrap) wrap.style.display = 'none';
     document.querySelectorAll('.away-cta-card').forEach(function (card) {
