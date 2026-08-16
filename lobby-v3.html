@@ -333,6 +333,8 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
 
 /* Prepare section — full width gray bg */
 .prepare-wrapper { width: 100%; background: #f3f2ef; padding: 20px 32px 60px; }
+/* Prototype-only strip beneath the prepare card — same chrome as the top dev bar. */
+.jm-autodev { display: flex; align-items: center; gap: 10px; margin-top: 12px; padding: 0 4px; }
 .prepare-section { }
 .prep-card { background: #fff; border-radius: 16px; overflow: hidden; }
 .prep-card-header { padding: 32px 36px 0; font-size: 22px; font-weight: 800; color: #2d2d2d; }
@@ -7170,6 +7172,39 @@ a.jm-cp-num:hover { color:#0044B3; }
       if (a) a.textContent = c.a;
     });
   }
+  /* ── Prototype-only state switcher ───────────────────────────────────
+     The three variants are the whole point of this row, and a URL parameter
+     hides two of them. This strip sits under the card in the same chrome as
+     the toggles in the top bar, so it reads as scaffolding rather than
+     product. It does not ship. ────────────────────────────────────────── */
+  function devStrip() {
+    document.querySelectorAll('.prep-card').forEach(function (card) {
+      if (card.parentNode.querySelector('.jm-autodev')) return;
+      var wrap = document.createElement('div');
+      wrap.className = 'jm-autodev';
+      wrap.innerHTML =
+        '<span class="dev-toggle-label">Prototype only &middot; automations</span>' +
+        '<div class="dev-toggle-switch">' +
+          '<button type="button" class="dev-toggle-btn" data-n="0">None on</button>' +
+          '<button type="button" class="dev-toggle-btn" data-n="2">2 of 5 on</button>' +
+          '<button type="button" class="dev-toggle-btn" data-n="5">All 5 on</button>' +
+        '</div>';
+      wrap.querySelectorAll('.dev-toggle-btn').forEach(function (b) {
+        b.onclick = function () { on = parseInt(b.getAttribute('data-n'), 10); paint(); };
+      });
+      card.parentNode.insertBefore(wrap, card.nextSibling);
+    });
+  }
+
+  function syncStrip() {
+    document.querySelectorAll('.jm-autodev .dev-toggle-btn').forEach(function (b) {
+      b.classList.toggle('active', parseInt(b.getAttribute('data-n'), 10) === on);
+    });
+  }
+
+  var basePaint = paint;
+  paint = function () { basePaint(); devStrip(); syncStrip(); };
+
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', paint);
   else paint();
 })();
