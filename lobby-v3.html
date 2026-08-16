@@ -5833,6 +5833,7 @@ else document.addEventListener("DOMContentLoaded", initBgCpxDrag);
 .jm-subline { font-size:12px; color:#767676; margin-top:1px; }
 /* ═══ Call panel ═══ */
 .jm-anchor { position:relative; display:inline-block; }
+.jm-actrow { display:flex; align-items:center; justify-content:flex-end; gap:8px; position:relative; }
 .jm-cp { position:absolute; top:calc(100% + 8px); right:0; width:344px; background:#fff; border:1px solid #d4d2d0; border-radius:12px; box-shadow:0 8px 28px rgba(0,0,0,.16); z-index:600; text-align:left; display:none; }
 .jm-cp.open { display:block; }
 .jm-cp-h { padding:16px 18px 12px; border-bottom:1px solid #f3f2ef; }
@@ -6040,10 +6041,6 @@ a.jm-cp-num:hover { color:#0044B3; }
      without being interviewed. */
   var DOTS = '<svg viewBox="0 0 24 24" fill="#0044B3"><circle cx="6" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="18" cy="12" r="2"/></svg>';
 
-  function setIcon(sec, k) {
-    var ic = sec.querySelector('.live-section-header svg:not(.collapsible-chevron)');
-    if (ic) ic.innerHTML = PATH[k];
-  }
   function roomsAction(tr) {
     var k = rowMethod(tr);
     if (k === 'phone') {
@@ -6055,55 +6052,96 @@ a.jm-cp-num:hover { color:#0044B3; }
        Only what the button does changes. */
     return '<button class="start-interview-btn" onclick="JFXM.startPerson(this)">' + svg(k) + ' Start interview</button>';
   }
-  /* "Entering interview room" describes a video transition and nothing else. */
-  function normalizeStatus(tr) {
-    var b = tr.querySelector('.status-badge.entering');
-    if (b) { b.className = 'status-badge waiting'; b.textContent = 'Awaiting available interviewer'; }
-  }
-  function waitingMenu() {
+
+  /* ═══ One list, not two rooms ═══
+     There is no room to enter here and nothing computes a promotion, so the
+     two sections were carrying the same meaning: this person is here and
+     waiting for you. Splitting them put the primary action on one card and
+     the only escape hatch on the other, and buried whoever had waited longest
+     underneath people who had just arrived.
+
+     One list instead, ordered by how long someone has been waiting, with every
+     row carrying both the action and the menu. No section header — the tab
+     above already reads "Waiting to interview".
+
+     JobFairX video keeps both sections untouched. There the rooms are literal
+     and the promotion is computed from two facts the platform can actually
+     see. ═══ */
+  function rowActions(tr) {
     var td = document.createElement('td');
-    td.className = 'row-actions jm-wmenu';
-    td.style.textAlign = 'right';
-    td.innerHTML = '<button class="row-dots" onclick="toggleRowMenu(event, this)">' + DOTS + '</button>' +
-      '<div class="row-menu">' +
-      (m === 'person' ? '<button class="row-menu-item" onclick="JFXM.next(this)">Interview next</button>' : '') +
-      '<button class="row-menu-item" onclick="JFXM.mark(this)">Mark as interviewed</button>' +
-      '<button class="row-menu-item" style="color:#991b1b" onclick="JFXM.noshow(this)">Didn\'t show</button>' +
+    td.className = 'row-actions jm-wcell';
+    /* .row-dots is display:flex — block-level — so it takes its own line if it
+       simply sits next to the button. It was always alone in its cell before.
+       A flex row here keeps them side by side without touching the shared rule,
+       which the Interviewed tab also uses. */
+    td.innerHTML =
+      '<div class="jm-actrow">' + roomsAction(tr) +
+        '<button class="row-dots jm-kebab" onclick="toggleRowMenu(event, this)">' + DOTS + '</button>' +
+        '<div class="row-menu">' +
+          '<button class="row-menu-item" onclick="JFXM.mark(this)">Mark as interviewed</button>' +
+          '<button class="row-menu-item" style="color:#991b1b" onclick="JFXM.noshow(this)">Didn\'t show</button>' +
+        '</div>' +
       '</div>';
     return td;
   }
-  function bumpColspan(tr) {
-    var td = tr.querySelector('td[colspan]');
-    if (td) td.setAttribute('colspan', String(parseInt(td.getAttribute('colspan'), 10) + 1));
+
+  /* Minutes waited, for ordering. Anything unparseable sorts last. */
+  function waited(tr) {
+    var c = tr.children[4];
+    var n = c && c.textContent.match(/(\d+)/);
+    return n ? parseInt(n[1], 10) : -1;
   }
 
   function adaptWaiting(host) {
     if (!host) return;
     var secs = host.querySelectorAll('.live-panel-section');
     if (!secs.length) return;
-    var rooms = secs[0], waiting = secs[1];
+    var rooms = secs[0], waiting = secs[1], body = rooms.querySelector('tbody');
+    if (!body) return;
 
-    setIcon(rooms, m);
-    rooms.querySelectorAll('tbody tr').forEach(function(tr) {
+    if (waiting) {
+      waiting.querySelectorAll('tbody tr').forEach(function(tr) {
+        if (tr.querySelector('td[colspan]')) return;
+        body.appendChild(tr);
+      });
+      if (waiting.parentNode) waiting.parentNode.removeChild(waiting);
+    }
+
+    body.querySelectorAll('tr').forEach(function(tr) {
       if (tr.querySelector('td[colspan]')) return;
-      var cell = tr.lastElementChild;
-      if (cell) cell.innerHTML = roomsAction(tr);
+      /* Every row means the same thing now. "Ready" and "Awaiting available
+         interviewer" had nothing left to tell apart, and "Entering interview
+         room" described a video transition. A row that has been through the
+         no-answer flow keeps its own badge — that is the one exception left
+         worth saying out loud. */
+      var b = tr.querySelector('.status-badge');
+      if (b) { b.className = 'status-badge waiting'; b.textContent = 'Checked in'; }
+      if (tr.querySelector('.jm-wcell')) return;
+      var cell = tr.children[6];
+      if (cell) tr.replaceChild(rowActions(tr), cell);
+      else tr.appendChild(rowActions(tr));
     });
 
-    if (!waiting) return;
-    waiting.querySelectorAll('tbody tr').forEach(function(tr) {
-      if (tr.querySelector('td[colspan]')) { bumpColspan(tr); return; }
-      normalizeStatus(tr);
-      if (!tr.querySelector('.jm-wmenu')) tr.appendChild(waitingMenu());
+    /* Longest wait first — at a venue that is the number that matters. */
+    var rows = [].slice.call(body.children).filter(function(tr) {
+      return !tr.querySelector('td[colspan]');
     });
-    var hr = waiting.querySelector('thead tr');
-    if (hr && !hr.querySelector('.jm-wcol')) {
-      var th = document.createElement('th');
-      th.className = 'jm-wcol';
-      th.style.cssText = 'width:7%;text-align:right';
-      th.textContent = 'Action';
-      hr.appendChild(th);
-      if (hr.children[5]) hr.children[5].style.width = '17%';
+    rows.sort(function(a, b) { return waited(b) - waited(a); });
+    rows.forEach(function(tr) { body.appendChild(tr); });
+
+    var hd = rooms.querySelector('.live-section-header');
+    if (hd && hd.parentNode) hd.parentNode.removeChild(hd);
+    var cb = rooms.querySelector('.collapsible-body');
+    if (cb) { cb.classList.remove('collapsed'); cb.style.padding = '20px'; }
+
+    var hr = rooms.querySelector('thead tr');
+    if (hr && hr.children[4]) hr.children[4].textContent = 'Waiting';
+    /* The action cell now holds the button and the menu side by side, so it
+       needs more room than it did when it held one or the other. */
+    if (hr && hr.children[6]) {
+      hr.children[6].style.width = '19%';
+      if (hr.children[3]) hr.children[3].style.width = '16%';
+      if (hr.children[5]) hr.children[5].style.width = '9%';
     }
   }
 
@@ -6505,18 +6543,21 @@ a.jm-cp-num:hover { color:#0044B3; }
   /* "No" now says the candidate goes back to Waiting rooms, so send them there. */
   function returnToWaiting(name) {
     var src = findIvRow(name);
-    var wait = document.querySelectorAll('#waitingLive .live-panel-section')[1];
+    var wait = document.querySelectorAll('#waitingLive .live-panel-section')[0];
     var host = wait && wait.querySelector('tbody');
     if (!src || !host) return;
     var ph = host.querySelector('td[colspan]');
     if (ph && ph.parentNode) ph.parentNode.remove();
     var tr = document.createElement('tr');
+    tr.setAttribute('data-method', src.getAttribute('data-method') || m);
     tr.innerHTML =
       '<td>' + src.children[0].innerHTML + '</td><td>' + src.children[1].innerHTML + '</td><td>' + src.children[2].innerHTML + '</td>' +
       '<td>' + src.children[3].innerHTML + '</td><td>0 minutes</td>' +
-      '<td><span class="status-badge waiting">Awaiting available interviewer</span></td>';
-    tr.appendChild(waitingMenu());
-    host.insertBefore(tr, host.firstElementChild);
+      '<td><span class="status-badge waiting">Checked in</span></td>';
+    tr.appendChild(rowActions(tr));
+    /* Appended, not prepended: the list runs longest wait first and this
+       person has just restarted their wait. */
+    host.appendChild(tr);
     src.parentNode.removeChild(src);
     bumpTab('Interviewing', -1);
     bumpTab('Waiting to interview', 1);
