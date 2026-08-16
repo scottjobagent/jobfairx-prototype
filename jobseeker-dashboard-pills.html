@@ -725,6 +725,14 @@ body.join-live .iv-tip { display:none !important; }
        border:none; border-radius:8px; padding:14px 28px; cursor:pointer; font-family:inherit; }
 .evx .evx-cta button:hover { background:#003399; }
 
+.tlm{margin:12px 0 14px}
+.tlm-bar{display:flex;gap:3px}
+.tlm-seg{flex:1 1 0;min-width:0;height:4px;border-radius:2px;background:#e6e3df}
+.tlm-seg.done{background:#186a3b}
+.tlm-seg.now{background:#0044B3}
+.tlm-cap{font-size:12px;color:#6e6e6e;margin-top:8px;line-height:1.4}
+.tlm.dead .tlm-seg{background:#e6e3df}
+
 </style>
 <style>
 /* ═══ Interview method / location (candidate-facing) ═══ */
@@ -2454,20 +2462,22 @@ arrivalInstructions: string (optional, multiline)
 (function(){
   var JOURNEY='confirmed', RESUME=false, PROFILE=false, IVTAB='upcoming';
   var STEPS=['Registered','Waiting to be Matched','Invited to Request an Interview',
-             'Interview Requested','Interview Confirmed','Interview Complete'];
-  var STAGE={waiting:1,invited:2,requested:3,proposed:3,confirmed:4,joinnow:4,injoined:4,complete:5,declined:3};
+               'Interview Requested','Interview Confirmed','Join Now','In Interview','Interview Complete'];
+  var STAGE={waiting:1,invited:2,requested:3,proposed:3,confirmed:4,joinnow:5,injoined:6,complete:7,declined:3};
   function m(){ return (typeof METHOD!=='undefined')?METHOD:'jfx'; }
 
   function timeline(stage,dead){
-    var h='<div class="tl">';
+    /* Segmented meter: segments flex, so it fits any step count at any width.
+       The stage NAME is carried by the status pill, not repeated here. */
+    var h='<div class="tlm'+(dead?' dead':'')+'"><div class="tlm-bar">';
     for(var i=0;i<STEPS.length;i++){
-      var st = i<stage ? 'done' : (i===stage ? 'now' : 'todo');
-      if(dead && i>stage) st='todo';
-      h+='<div class="tl-s '+st+'"><div class="tl-m">'+(st==='done'?'✓':'')+'</div>'
-        +'<div class="tl-l">'+STEPS[i]+'</div></div>';
-      if(i<STEPS.length-1) h+='<div class="tl-b '+(i<stage?'done':'')+'"></div>';
+      var st = dead ? '' : (i<stage ? 'done' : (i===stage ? 'now' : ''));
+      h+='<span class="tlm-seg '+st+'"></span>';
     }
-    return h+'</div>';
+    var cap = dead
+      ? 'This event did not progress further'
+      : ('Step '+Math.min(stage+1,STEPS.length)+' of '+STEPS.length);
+    return h+'</div><div class="tlm-cap">'+cap+'</div></div>';
   }
   function comp(kind,ok){
     /* One readiness item: the resume is the only thing an employer reviews. */
@@ -2477,7 +2487,7 @@ arrivalInstructions: string (optional, multiline)
       +'<div class="cmp-d">'+L.d+'</div></div><button class="pbtn" style="min-width:0;" onclick="setView(\'profile\')">'+L.c+'</button></div>';
   }
   function evCard(name,date,fmt,stage,status,dead){
-    return '<div class="evc">'+KEB(['View event details','-','!Unregister from this event'])
+    return '<div class="evc">'+KEB(['!Unregister from this event'])
      +'<div class="evc-h"><div><div class="evc-n">'+name+'</div>'
      +'<div class="evc-m">'+date+' · '+fmt+'</div></div>'
      +'<span class="pill '+(dead?'p-none':(stage>=2?'p-match':'p-wait'))+'">'+status+'</span></div>'
