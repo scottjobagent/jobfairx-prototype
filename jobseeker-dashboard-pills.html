@@ -697,6 +697,34 @@ body.join-live .iv-tip { display:none !important; }
 .jfx-toast-close { flex-shrink:0; width:28px; height:28px; display:flex; align-items:center; justify-content:center; background:none; border:none; cursor:pointer; color:#767676; font-size:18px; border-radius:6px; transition:background 0.15s; margin:-4px -4px 0 0; }
 .jfx-toast-close:hover { background:rgba(0,0,0,.06); color:#2d2d2d; }
 @media (max-width:768px){ .jfx-toast { left:12px; right:12px; top:12px; min-width:0; max-width:none; } }
+/* ===== Prototype control bar (topbar-resident, never product UI) ===== */
+.topbar { justify-content:space-between; gap:16px; }
+.pctl { display:flex; align-items:center; gap:6px; min-width:0; overflow-x:auto;
+        padding:4px 7px; border:1px dashed #d9d5cf; border-radius:6px; background:#faf9f7;
+        scrollbar-width:thin; }
+.pctl::-webkit-scrollbar { height:4px; }
+.pctl::-webkit-scrollbar-thumb { background:#d9d5cf; border-radius:2px; }
+.pctl-lbl { font-size:10px; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
+            color:#8a8580; white-space:nowrap; flex:none; }
+.pctl-s { font-size:12px; height:26px; padding:0 4px; border:1px solid #d4d0ca; border-radius:6px;
+          background:#fff; color:#2d2d2d; flex:none; max-width:170px; }
+.pctl-w { min-width:150px; }
+.pctl-chk { display:inline-flex; align-items:center; gap:5px; font-size:12px; color:#2d2d2d;
+            white-space:nowrap; cursor:pointer; flex:none; }
+.pctl-chk input { width:13px; height:13px; accent-color:#0044B3; margin:0; }
+@media (max-width:1240px){ .pctl-lbl { display:none; } }
+@media (max-width:900px){ .pctl-s { max-width:120px; } .pctl-w { min-width:120px; } }
+@media (max-width:640px){ .pctl { display:none; } }
+/* Job fairs empty state */
+.evx { background:#fff; border:1px solid #d4d2d0; border-radius:12px; padding:56px 40px; text-align:center;
+       display:flex; flex-direction:column; align-items:center; }
+.evx h2 { font-size:20px; font-weight:700; color:#2d2d2d; margin:16px 0 8px; }
+.evx p { font-size:14px; color:#6e6e6e; margin:0 0 8px; max-width:430px; line-height:1.6; }
+.evx .evx-cta { margin-top:16px; }
+.evx .evx-cta button { font-size:14px; font-weight:700; color:#fff; background:#0044B3;
+       border:none; border-radius:8px; padding:10px 20px; cursor:pointer; font-family:inherit; }
+.evx .evx-cta button:hover { background:#003399; }
+
 </style>
 <style>
 /* ═══ Interview method / location (candidate-facing) ═══ */
@@ -757,6 +785,38 @@ body.join-live .iv-tip { display:none !important; }
 
   <!-- TOPBAR -->
   <div class="topbar">
+    <div class="pctl" id="pctl">
+      <span class="pctl-lbl">Preview</span>
+      <select class="pctl-s" id="pcMethod" aria-label="Interview type" onchange="PCTL.method(this.value)">
+        <option value="jfx">Virtual</option>
+        <option value="phone">Phone</option>
+        <option value="person">In-person</option>
+        <option value="third">External link</option>
+      </select>
+      <select class="pctl-s pctl-w" id="pcJourney" aria-label="Journey stage" onchange="PCTL.journey(this.value)">
+        <option value="notreg">Not registered</option>
+        <option value="waiting">Waiting to be matched</option>
+        <option value="invited">Invited to request interview</option>
+        <option value="requested">Interview requested</option>
+        <option value="confirmed" selected>Interview confirmed</option>
+        <option value="joinnow">Join now</option>
+        <option value="injoined">In interview</option>
+        <option value="complete">Interview complete</option>
+        <optgroup label="Other states">
+          <option value="proposed">New times proposed</option>
+          <option value="declined">Request declined</option>
+        </optgroup>
+      </select>
+      <select class="pctl-s" id="pcEv" aria-label="Events state" onchange="PCTL.ev(this.value)">
+        <option value="active">Job fairs: active</option>
+        <option value="empty">Job fairs: empty</option>
+      </select>
+      <select class="pctl-s" id="pcIv" aria-label="Interviews state" onchange="PCTL.iv(this.value)">
+        <option value="active">Interviews: active</option>
+        <option value="empty">Interviews: empty</option>
+      </select>
+      <label class="pctl-chk"><input type="checkbox" id="pcResume" onchange="PCTL.resume(this.checked)"> Resume complete</label>
+    </div>
     <div class="user-trigger" onclick="toggleUserMenu(event)">
       <span class="u-avatar"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg></span>
       <span>demo@jobfairx.com</span>
@@ -774,43 +834,7 @@ body.join-live .iv-tip { display:none !important; }
   <!-- MAIN -->
   <div class="main">
 
-      <div id="prevBar"><div class="mprev">
-        <div class="mprev-lbl">Preview as &middot; prototype controls</div>
-        <div class="mprev-seg">
-          <button class="active" data-m="jfx" onclick="setMethodBtn(this)">JobFairX video</button>
-          <button data-m="phone" onclick="setMethodBtn(this)">Phone</button>
-          <button data-m="person" onclick="setMethodBtn(this)">In person</button>
-          <button data-m="third" onclick="setMethodBtn(this)">External link</button>
-        </div>
-
-        <div class="mprev-row">
-          <div class="mprev-rowlbl">Journey</div>
-          <div class="mprev-chips">
-            <button class="mprev-st" data-s="waiting" onclick="setStateBtn(this)">Waiting to be matched</button>
-            <button class="mprev-st" data-s="invited" onclick="setStateBtn(this)">Invited to request</button>
-            <button class="mprev-st" data-s="requested" onclick="setStateBtn(this)">Interview requested</button>
-            <button class="mprev-st active" data-s="confirmed" onclick="setStateBtn(this)">Interview confirmed</button>
-            <button class="mprev-st" data-s="joinnow" onclick="setStateBtn(this)">Join now</button>
-            <button class="mprev-st" data-s="injoined" onclick="setStateBtn(this)">In interview</button>
-            <button class="mprev-st" data-s="complete" onclick="setStateBtn(this)">Interview complete</button>
-          </div>
-        </div>
-        <div class="mprev-row">
-          <div class="mprev-rowlbl">Other states</div>
-          <div class="mprev-chips">
-            <button class="mprev-st" data-s="proposed" onclick="setStateBtn(this)">New times proposed</button>
-            <button class="mprev-st" data-s="declined" onclick="setStateBtn(this)">Request declined</button>
-          </div>
-        </div>
-        <div class="mprev-row">
-          <div class="mprev-rowlbl">Resume / profile</div>
-          <div class="mprev-chips">
-            <button class="active" onclick="IVW.setCompletion(false,false,this)">Both incomplete</button>
-            <button onclick="IVW.setCompletion(true,false,this)">Resume done</button>
-            <button onclick="IVW.setCompletion(true,true,this)">Both complete</button>
-          </div>
-        </div>
-      </div></div>
+      <div id="prevBar"></div>
 
 
     <!-- ============ DASHBOARD VIEW ============ -->
@@ -2537,6 +2561,74 @@ arrivalInstructions: string (optional, multiline)
   };
   window.addEventListener('load',function(){ setTimeout(function(){ IVW.render(); },160); });
   IVW.render();
+})();
+
+/* ===== Prototype control bar controller ===== */
+(function(){
+  function evHost(){ return document.getElementById('evCards'); }
+  function evEmptyHost(){ return document.getElementById('evEmpty'); }
+  var EVX = '<div class="evx">'
+    + '<h2>You are not registered for any Job Fairs</h2>'
+    + '<p>Register for a Job Fair to be considered for employer matching.</p>'
+    + '<p>If an employer matches you to one of their jobs, you will be invited to request an interview.</p>'
+    + '<div class="evx-cta"><button class="btn-primary" onclick="openEvents()">Browse Job Fairs</button></div>'
+    + '</div>';
+  var EV_EMPTY = false;
+  function paintEvents(){
+    var host = evHost(), ex = evEmptyHost();
+    if(!host) return;
+    if(EV_EMPTY){
+      host.classList.add('hidden'); host.style.display = 'none';
+      if(ex){ ex.innerHTML = EVX; ex.classList.remove('hidden'); ex.style.display = 'block'; }
+      else { host.classList.remove('hidden'); host.style.display = ''; host.innerHTML = EVX; }
+    } else {
+      host.classList.remove('hidden'); host.style.display = '';
+      if(ex){ ex.innerHTML = ''; ex.classList.add('hidden'); ex.style.display = 'none'; }
+      if(window.IVW) IVW.render();
+    }
+    if(window.jfxUpgradeA11y) jfxUpgradeA11y();
+  }
+  window.PCTL = {
+    method: function(v){
+      if(typeof setMethod === 'function') setMethod(v);
+      var seg = document.querySelector('[data-m="' + v + '"]');
+      if(seg && typeof setMethodBtn === 'function') setMethodBtn(seg);
+      if(window.CARD) CARD.render();
+      if(window.IVW) IVW.render();
+      if(window.jfxUpgradeA11y) jfxUpgradeA11y();
+    },
+    journey: function(v){
+      if(v === 'notreg'){ EV_EMPTY = true; paintEvents(); return; }
+      if(EV_EMPTY){ EV_EMPTY = false; }
+      if(window.IVW) IVW.journey(v);
+      paintEvents();
+    },
+    ev: function(v){ EV_EMPTY = (v === 'empty'); paintEvents();
+      var j = document.getElementById('pcJourney');
+      if(EV_EMPTY && j) j.value = 'notreg';
+      else if(!EV_EMPTY && j && j.value === 'notreg') j.value = 'waiting';
+      if(!EV_EMPTY && window.IVW) IVW.journey(j ? j.value : 'confirmed');
+    },
+    iv: function(v){
+      /* An interview only exists once the candidate has requested one, so an
+         empty Interviews list is a real journey stage, not a DOM state. Drive
+         the journey rather than blanking the container. */
+      var stage = (v === 'empty') ? 'waiting' : 'confirmed';
+      var j = document.getElementById('pcJourney');
+      if(j) j.value = stage;
+      if(EV_EMPTY){ EV_EMPTY = false; var e = document.getElementById('pcEv'); if(e) e.value = 'active'; }
+      if(window.IVW) IVW.journey(stage);
+      paintEvents();
+    },
+    resume: function(on){ if(window.IVW) IVW.setCompletion(on, on, null); }
+  };
+  /* honour ?method= / ?state= on load, and mirror them into the bar */
+  try{
+    var q = new URLSearchParams(location.search);
+    var qm = q.get('method'), qs = q.get('state');
+    if(qm){ var em = document.getElementById('pcMethod'); if(em) em.value = qm; PCTL.method(qm); }
+    if(qs){ var ej = document.getElementById('pcJourney'); if(ej) ej.value = qs; PCTL.journey(qs); }
+  }catch(e){}
 })();
 </script>
 
