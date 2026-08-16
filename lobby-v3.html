@@ -334,7 +334,9 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
 /* Prepare section — full width gray bg */
 .prepare-wrapper { width: 100%; background: #f3f2ef; padding: 20px 32px 60px; }
 /* Prototype-only strip beneath the prepare card — same chrome as the top dev bar. */
-.jm-autodev { display: flex; align-items: center; gap: 10px; margin-top: 12px; padding: 0 4px; }
+.jm-autodev { display: flex; align-items: center; gap: 16px; margin-top: 12px; padding: 0 4px; flex-wrap: wrap; }
+.jm-devgrp { display: inline-flex; align-items: center; gap: 6px; }
+.jm-devgrp-l { font-size: 11px; font-weight: 600; color: #767676; text-transform: uppercase; letter-spacing: 0.5px; }
 .prepare-section { }
 .prep-card { background: #fff; border-radius: 16px; overflow: hidden; }
 .prep-card-header { padding: 32px 36px 0; font-size: 22px; font-weight: 800; color: #2d2d2d; }
@@ -3003,7 +3005,7 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
         <span class="tm-email-chip">scott@jobfairx.com <button class="tm-email-chip-x" onclick="removeTmChip(this)" title="Remove">&times;</button></span>
         <input type="email" placeholder="Add email..." class="tm-email-box-input" id="tmInterviewerInput" onkeydown="handleTmKeydown(event)" onblur="handleTmBlur(this)">
       </div>
-      <div class="tm-seat-indicator" id="tmSeatIndicator">Growth package · 1 of 5 interviewer seats used</div>
+      <div class="tm-seat-indicator" id="tmSeatIndicator">Starter · 1 of 2 interviewer seats used</div>
       <div class="tm-email-error" id="tmEmailError">Enter a valid email address.</div>
       <div class="tm-email-error" id="tmDupeError">This email has already been added.</div>
       <div class="tm-seat-limit" id="tmSeatLimit">
@@ -4240,7 +4242,11 @@ function toggleCmEdit() {
 // ═══ PREP SECTION STATE MANAGEMENT ═══
 var prepCandidateCount = 10;
 var prepInterviewerCount = 1;
-var prepSeatLimit = 5;
+/* Starter plan. One constant for the whole file: the prepare card and the
+   Interview settings modal used to hold this number separately, 120 lines
+   apart, which let them drift. */
+var PREP_PLAN = 'Starter';
+var prepSeatLimit = 2;
 
 function updatePrepStates() {
   // Update both prepare sections (empty + active state)
@@ -4263,17 +4269,23 @@ function updatePrepStates() {
       candBtn.setAttribute('onclick', "document.querySelectorAll('.tab')[3].click()");
     }
 
+    /* Full seats is not a dead end. This used to hide the button outright, so
+       an employer was told the seats were filled and given no way to see who
+       was on the list or remove anyone to make room. The button stays; only
+       the verb changes — the same rule the other two rows use, where an
+       outstanding task gets an action verb and a finished one gets "View". */
+    var intTitle = document.querySelector('#prepInterviewers' + n + ' .prep-title');
+    intDesc.textContent = PREP_PLAN + ' \u00b7 ' + prepInterviewerCount + ' of ' + prepSeatLimit +
+      ' interviewer seat' + (prepSeatLimit !== 1 ? 's' : '') + ' used.';
     if (prepInterviewerCount >= prepSeatLimit) {
-      intDesc.textContent = 'All interviewer seats are filled.';
-      intBtn.textContent = 'Add interviewers';
-      intBtn.classList.add('disabled');
-      intBtn.removeAttribute('onclick');
+      if (intTitle) intTitle.textContent = 'Interviewers for this event';
+      intBtn.textContent = 'View interviewers';
     } else {
-      intDesc.textContent = 'You added ' + prepInterviewerCount + ' interviewer' + (prepInterviewerCount !== 1 ? 's' : '') + '.';
+      if (intTitle) intTitle.textContent = 'Add interviewers to the event';
       intBtn.textContent = 'Add interviewers';
-      intBtn.classList.remove('disabled');
-      intBtn.setAttribute('onclick', 'openTeamModal()');
     }
+    intBtn.classList.remove('disabled');
+    intBtn.setAttribute('onclick', 'openTeamModal()');
   });
 }
 
@@ -4360,7 +4372,7 @@ document.getElementById('dn-modal-overlay').addEventListener('click', function(e
 
 
 // Interview Settings Modal
-var tmSeatLimit = 5;
+var tmSeatLimit = prepSeatLimit;
 
 function openTeamModal() {
   document.getElementById('team-modal-overlay').classList.add('open');
@@ -4384,7 +4396,7 @@ function updateTmSeatCount() {
   var count = getTmChipCount();
   var indicator = document.getElementById('tmSeatIndicator');
   var limitMsg = document.getElementById('tmSeatLimit');
-  indicator.textContent = 'Growth package · ' + count + ' of ' + tmSeatLimit + ' interviewer seat' + (tmSeatLimit !== 1 ? 's' : '') + ' used';
+  indicator.textContent = PREP_PLAN + ' · ' + count + ' of ' + tmSeatLimit + ' interviewer seat' + (tmSeatLimit !== 1 ? 's' : '') + ' used';
   if (count >= tmSeatLimit) {
     limitMsg.classList.add('show');
   } else {
@@ -7183,23 +7195,60 @@ a.jm-cp-num:hover { color:#0044B3; }
       var wrap = document.createElement('div');
       wrap.className = 'jm-autodev';
       wrap.innerHTML =
-        '<span class="dev-toggle-label">Prototype only &middot; automations</span>' +
-        '<div class="dev-toggle-switch">' +
-          '<button type="button" class="dev-toggle-btn" data-n="0">None on</button>' +
-          '<button type="button" class="dev-toggle-btn" data-n="2">2 of 5 on</button>' +
-          '<button type="button" class="dev-toggle-btn" data-n="5">All 5 on</button>' +
-        '</div>';
-      wrap.querySelectorAll('.dev-toggle-btn').forEach(function (b) {
+        '<span class="dev-toggle-label">Prototype only</span>' +
+        '<span class="jm-devgrp"><span class="jm-devgrp-l">Automations</span>' +
+          '<div class="dev-toggle-switch">' +
+            '<button type="button" class="dev-toggle-btn" data-n="0">None on</button>' +
+            '<button type="button" class="dev-toggle-btn" data-n="2">2 of 5 on</button>' +
+            '<button type="button" class="dev-toggle-btn" data-n="5">All 5 on</button>' +
+          '</div></span>' +
+        '<span class="jm-devgrp"><span class="jm-devgrp-l">Interviewers</span>' +
+          '<div class="dev-toggle-switch">' +
+            '<button type="button" class="dev-toggle-btn" data-i="0">0 of 2</button>' +
+            '<button type="button" class="dev-toggle-btn" data-i="1">1 of 2</button>' +
+            '<button type="button" class="dev-toggle-btn" data-i="2">2 of 2</button>' +
+          '</div></span>';
+      wrap.querySelectorAll('[data-n]').forEach(function (b) {
         b.onclick = function () { on = parseInt(b.getAttribute('data-n'), 10); paint(); };
+      });
+      wrap.querySelectorAll('[data-i]').forEach(function (b) {
+        b.onclick = function () {
+          window.prepInterviewerCount = parseInt(b.getAttribute('data-i'), 10);
+          seatChips(window.prepInterviewerCount);
+          if (typeof updatePrepStates === 'function') updatePrepStates();
+          paint();
+        };
       });
       card.parentNode.insertBefore(wrap, card.nextSibling);
     });
   }
 
   function syncStrip() {
-    document.querySelectorAll('.jm-autodev .dev-toggle-btn').forEach(function (b) {
+    document.querySelectorAll('.jm-autodev [data-n]').forEach(function (b) {
       b.classList.toggle('active', parseInt(b.getAttribute('data-n'), 10) === on);
     });
+    document.querySelectorAll('.jm-autodev [data-i]').forEach(function (b) {
+      b.classList.toggle('active', parseInt(b.getAttribute('data-i'), 10) === window.prepInterviewerCount);
+    });
+  }
+
+  /* The modal counts chips, so the seeded chip list has to follow the toggle —
+     otherwise the card says 2 of 2 and the modal opens showing one. */
+  function seatChips(n) {
+    var box = document.getElementById('tmInterviewerBox');
+    if (!box) return;
+    var seeds = ['scott@jobfairx.com', 'dana.reyes@jobfairx.com'];
+    var chips = box.querySelectorAll('.tm-email-chip');
+    for (var k = chips.length - 1; k >= n; k--) chips[k].remove();
+    var input = box.querySelector('.tm-email-box-input');
+    for (var j = box.querySelectorAll('.tm-email-chip').length; j < n; j++) {
+      var c = document.createElement('span');
+      c.className = 'tm-email-chip';
+      c.innerHTML = (seeds[j] || ('interviewer' + (j + 1) + '@jobfairx.com')) +
+        ' <button class="tm-email-chip-x" onclick="removeTmChip(this)" title="Remove">&times;</button>';
+      box.insertBefore(c, input);
+    }
+    if (typeof updateTmSeatCount === 'function') updateTmSeatCount();
   }
 
   var basePaint = paint;
