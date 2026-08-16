@@ -7027,5 +7027,45 @@ a.jm-cp-num:hover { color:#0044B3; }
 })();
 </script>
 
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     YOUR STATUS — VIDEO ONLY
+     Phone and in-person have no promotion event for the availability pill to
+     gate. The candidate checks in, lands in Waiting rooms, and the next thing
+     that happens is physical: the recruiter walks out and collects them, or
+     dials them. Nothing is pushed to the candidate either way, so a
+     self-reported "Available / Away" flag has no job on those two methods —
+     and the "Ready to start interviewing?" card exists only to prompt you out
+     of Away, so it goes with it.
+
+     Video is untouched: same control, same defaults, same copy, same code
+     path. Both setLobbyMode() and setUserStatus() write to these elements, so
+     both are wrapped rather than edited — a one-shot hide leaks the card back
+     on the next call.
+     ═══════════════════════════════════════════════════════════════════════ -->
+<script>
+(function () {
+  function statusGate() {
+    var m = (window.JFXM && JFXM.get) ? JFXM.get() : 'video';
+    if (m === 'video') return;
+    var wrap = document.querySelector('.status-dropdown-wrap');
+    if (wrap) wrap.style.display = 'none';
+    document.querySelectorAll('.away-cta-card').forEach(function (card) {
+      card.style.display = 'none';
+    });
+  }
+  ['setLobbyMode', 'setUserStatus'].forEach(function (fn) {
+    var orig = window[fn];
+    if (typeof orig !== 'function') return;
+    window[fn] = function () {
+      var r = orig.apply(this, arguments);
+      statusGate();
+      return r;
+    };
+  });
+  statusGate();
+})();
+</script>
+
 </body>
 </html>
