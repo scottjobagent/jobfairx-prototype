@@ -19,6 +19,12 @@
   .view-toggle-btn.active { background: #0044B3; color: #fff; }
   .view-toggle-btn:hover:not(.active) { background: #f0f6ff; color: #0044B3; }
 
+  .loc-row { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+  .loc-row-label { font-size: 11px; font-weight: 600; color: #767676; text-transform: uppercase; letter-spacing: 0.8px; }
+  .loc-btn { padding: 7px 13px; font-size: 12px; font-weight: 600; border: none; background: #fff; color: #767676; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+  .loc-btn.active { background: #0044B3; color: #fff; }
+  .loc-btn:hover:not(.active) { background: #f0f6ff; color: #0044B3; }
+
   /* Layout */
   .layout { display: flex; }
 
@@ -213,6 +219,17 @@
         </div>
       </div>
 
+      <!-- Interview location (prototype only) -->
+      <div class="loc-row" id="locRow">
+        <span class="loc-row-label">Interview location</span>
+        <div class="view-toggle">
+          <button class="loc-btn active" onclick="setLoc('video', this)">JobFairX video</button>
+          <button class="loc-btn" onclick="setLoc('phone', this)">Phone</button>
+          <button class="loc-btn" onclick="setLoc('person', this)">In person</button>
+          <button class="loc-btn" onclick="setLoc('external', this)">External link</button>
+        </div>
+      </div>
+
       <!-- Email render -->
       <div class="email-render" id="emailRender">
         <iframe id="emailIframe" src="email-account-creation-preview.html?v=21" title="Email preview"></iframe>
@@ -226,6 +243,8 @@
 <script>
 var currentView = 'recruiter';
 var currentEmail = 0;
+var currentLoc = 'video';
+var LOC_NONE = ['One Time Password', 'Account Creation'];
 
 var emails = [
   {
@@ -367,10 +386,17 @@ var emails = [
 
 function setView(view) {
   currentView = view;
-  document.querySelectorAll('.view-toggle-btn').forEach(function(btn) {
+  document.querySelectorAll('.top-bar-right .view-toggle-btn').forEach(function(btn) {
     btn.classList.remove('active');
   });
   event.target.classList.add('active');
+  loadEmail(currentEmail);
+}
+
+function setLoc(loc, el) {
+  currentLoc = loc;
+  document.querySelectorAll('.loc-btn').forEach(function(b) { b.classList.remove('active'); });
+  el.classList.add('active');
   loadEmail(currentEmail);
 }
 
@@ -409,11 +435,15 @@ function loadEmail(index) {
     infoStatus.innerHTML = '<span style="color:#a8a29e; font-weight:600;">Pending</span>';
   }
 
+  // Location toggle only where the email actually carries a location
+  var locRow = document.getElementById('locRow');
+  if (locRow) locRow.style.display = (LOC_NONE.indexOf(email.name) < 0 && email.previewFile) ? 'flex' : 'none';
+
   // Load email in iframe
   var file = currentView === 'developer' ? email.devFile : email.previewFile;
   if (file) {
     iframe.style.display = 'block';
-    iframe.src = file + '?v=21';
+    iframe.src = file + '?v=21&loc=' + currentLoc;
     // Remove empty state if present
     var emptyEl = document.getElementById('emailEmpty');
     if (emptyEl) emptyEl.style.display = 'none';
