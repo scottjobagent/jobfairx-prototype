@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Job Seeker Dashboard — Card Redesign Mock</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;padding:0;background:#f4f2ef;font-family:'Noto Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#2d2d2d;font-size:14px;line-height:1.5}
+  .top{background:#fff;border-bottom:1px solid #e6e3df;padding:14px 26px}
+  .top b{font-size:15px;font-weight:700}
+  .top span{font-size:12.5px;color:#6e6e6e;margin-left:10px}
+  .wrap{max-width:940px;margin:0 auto;padding:22px 22px 80px}
+
+  /* prototype controls */
+  .ctl{border:1px dashed #d9d5cf;background:#faf9f7;border-radius:9px;padding:11px 14px;margin-bottom:18px}
+  .ctl-l{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#8a8580;margin-bottom:8px}
+  .seg{display:inline-flex;flex-wrap:wrap;border:1px solid #d4d0ca;border-radius:8px;overflow:hidden;background:#fff}
+  .seg button{border:none;background:#fff;color:#767676;font-size:12.5px;font-weight:600;padding:8px 14px;cursor:pointer;font-family:inherit}
+  .seg button+button{border-left:1px solid #e6e3df}
+  .seg button.on{background:#0044B3;color:#fff}
+  .row2{display:flex;gap:10px;align-items:flex-start;margin-top:10px;flex-wrap:wrap}
+  .row2 .lbl{font-size:11px;font-weight:700;color:#8a8580;text-transform:uppercase;letter-spacing:.06em;min-width:92px;padding-top:7px}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;flex:1}
+  .chips button{border:1px solid #d4d0ca;background:#fff;color:#595959;font-size:12px;font-weight:600;padding:6px 11px;border-radius:7px;cursor:pointer;font-family:inherit}
+  .chips button.on{background:#0044B3;border-color:#0044B3;color:#fff}
+
+  /* event group */
+  .evt{border:1px solid #e0ddd8;border-radius:13px;background:#faf9f7;padding:15px;margin-bottom:16px}
+  .evt-h{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:12px}
+  .evt-n{font-size:14.5px;font-weight:700}
+  .evt-s{font-size:12px;color:#6e6e6e;margin-top:2px}
+  .evt-d{font-size:12px;color:#6e6e6e;white-space:nowrap;padding-top:2px}
+
+  /* interview card */
+  .iv{position:relative;background:#fff;border:1px solid #e6e3df;border-radius:10px;padding:16px 18px}
+  .iv+.iv{margin-top:11px}
+  .iv.empty{border-style:dashed;border-color:#d9d5cf}
+  .kebab{position:absolute;top:13px;right:14px;border:1.5px solid #0044B3;background:#fff;color:#0044B3;
+    border-radius:7px;padding:4px 9px;font-size:15px;line-height:1;cursor:pointer;font-weight:700;font-family:inherit}
+  .kebab:hover{background:#f0f6ff}
+  .kebab.stat{position:static}
+  .menu.stat{top:34px;right:0}
+  .kebab:focus-visible,.seg button:focus-visible,.chips button:focus-visible,.pa:focus-visible,.lk:focus-visible,.mi:focus-visible{outline:2px solid #0044B3;outline-offset:2px}
+  .menu{position:absolute;top:44px;right:14px;background:#fff;border:1px solid #d4d2d0;border-radius:9px;
+    box-shadow:0 8px 24px rgba(0,0,0,.13);min-width:212px;padding:5px;z-index:20;display:none}
+  .menu.open{display:block}
+  .mi{display:block;width:100%;text-align:left;border:none;background:none;font-family:inherit;font-size:13px;
+    color:#2d2d2d;padding:8px 11px;border-radius:6px;cursor:pointer}
+  .mi:hover{background:#f3f2ef}
+  .mi.danger{color:#991b1b}
+  .msep{height:1px;background:#ebebeb;margin:5px 0}
+
+  .pill{display:inline-block;font-size:11.5px;font-weight:700;padding:4px 11px;border-radius:9999px}
+  .p-conf{background:#e8f3ec;color:#186a3b}.p-wait{background:#faf0dc;color:#8a5c00}
+  .p-match{background:#eef2fb;color:#0044B3}.p-live{background:#e8f3ec;color:#186a3b}
+  .p-none{background:#f0efec;color:#595959}
+  .head{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:9px;padding-right:52px}
+  .time{font-size:13px;font-weight:600}
+  .job{font-size:17px;font-weight:700;line-height:1.25}
+  .co{font-size:13px;color:#595959;margin-top:1px}
+  .mrow{display:flex;gap:8px;margin-top:11px;padding-top:11px;border-top:1px solid #f0efec;font-size:13px;line-height:1.5}
+  .mrow svg{width:16px;height:16px;stroke:#8a5c00;fill:none;stroke-width:2;flex:0 0 auto;margin-top:2px}
+  .mk{font-weight:600}.ms{color:#595959}
+  .next{background:#f7f6f5;border-radius:7px;padding:10px 13px;margin-top:11px;font-size:13px;line-height:1.55}
+  .next b{font-weight:700}
+  .call{border-left:3px solid #0044B3;background:#f7f6f5;border-radius:0 7px 7px 0;padding:10px 13px;margin-top:11px;font-size:13px;line-height:1.55}
+  .acts{display:flex;align-items:center;gap:12px;margin-top:14px;flex-wrap:wrap}
+  .pa{background:#0044B3;color:#fff;border:none;font-size:13.5px;font-weight:700;padding:10px 17px;border-radius:8px;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:7px}
+  .pa svg{width:16px;height:16px;stroke:#fff;fill:none;stroke-width:2}
+  .lk{background:none;border:none;color:#0044B3;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;padding:0}
+  .tchip{border:1px solid #d4d0ca;background:#fff;border-radius:8px;padding:8px 13px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;color:#2d2d2d}
+  .tchip.soon{border-color:#0044B3;color:#0044B3}
+  .tsoon{font-size:11px;color:#0044B3;font-weight:700;margin-left:5px}
+
+  /* prep */
+  .prep{margin-top:13px;border-top:1px solid #f0efec;padding-top:11px}
+  .prep-t{background:none;border:none;padding:0;font-family:inherit;font-size:13px;font-weight:700;color:#0044B3;cursor:pointer}
+  .prep-b{display:none;margin-top:11px}
+  .prep-b.open{display:block}
+  .prow{display:flex;gap:13px;align-items:center;padding:12px 0;border-bottom:1px solid #f0efec}
+  .prow:last-child{border-bottom:none}
+  .prow .pi{width:34px;height:34px;border-radius:8px;background:#f3f2ef;flex:0 0 auto;display:flex;align-items:center;justify-content:center}
+  .prow .pi svg{width:17px;height:17px;stroke:#595959;fill:none;stroke-width:2}
+  .prow .pt{flex:1;min-width:0}
+  .prow .ph{font-size:13px;font-weight:700}
+  .prow .ps{font-size:12.5px;color:#595959;margin-top:1px;line-height:1.45}
+  .pbtn{border:2px solid #0044B3;background:#fff;color:#0044B3;font-size:12.5px;font-weight:700;padding:7px 13px;border-radius:8px;cursor:pointer;font-family:inherit;white-space:nowrap}
+  .note{font-size:12.5px;color:#595959;line-height:1.6;margin:16px 2px 0}
+  @media (max-width:700px){ .seg{width:100%} .seg button{flex:1 1 auto} .row2 .lbl{min-width:0;padding-top:0} }
+</style>
+</head>
+<body>
+<div class="top"><b>JobFairX</b><span>Job seeker dashboard &mdash; card redesign mock</span></div>
+<div class="wrap">
+
+  <div class="ctl">
+    <div class="ctl-l">Preview as &middot; prototype controls</div>
+    <div class="seg" id="mseg">
+      <button class="on" data-m="jfx">JobFairX video</button>
+      <button data-m="phone">Phone</button>
+      <button data-m="person">In person</button>
+      <button data-m="third">External link</button>
+    </div>
+    <div class="row2">
+      <div class="lbl">Journey</div>
+      <div class="chips" id="jseg">
+        <button data-s="notmatched">Waiting to be matched</button>
+        <button data-s="matched">Matched</button>
+        <button data-s="requested">Interview requested</button>
+        <button class="on" data-s="confirmed">Interview confirmed</button>
+        <button data-s="joinnow">Join now</button>
+        <button data-s="injoined">In interview</button>
+      </div>
+    </div>
+    <div class="row2">
+      <div class="lbl">Other states</div>
+      <div class="chips" id="oseg">
+        <button data-s="proposed">New times proposed</button>
+        <button data-s="declined">Request declined</button>
+        <button data-s="multi">Two interviews</button>
+        <button data-s="newuser">New user</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="stage"></div>
+  <p class="note" id="note"></p>
+</div>
+
+<script>
+(function(){
+var IC={
+ jfx:'<path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/>',
+ third:'<path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/>',
+ phone:'<path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6A19.8 19.8 0 012.1 4.2 2 2 0 014.1 2h3a2 2 0 012 1.7c.1 1 .4 1.9.7 2.8a2 2 0 01-.5 2.1L8.1 9.9a16 16 0 006 6l1.3-1.3a2 2 0 012.1-.4c.9.3 1.8.6 2.8.7a2 2 0 011.7 2z"/>',
+ person:'<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/>'
+};
+var MLBL={jfx:'Video interview on JobFairX',third:'Video interview &middot; employer&rsquo;s link',phone:'Phone interview',person:'In person'};
+var MSUB={jfx:'',third:'Microsoft Teams',phone:'(214) 555-0132',person:'Parkland Health, Building A &middot; 5200 Harry Hines Blvd, Dallas, TX 75235'};
+var M='jfx', S='confirmed', KID=0;
+
+function svg(m){return '<svg viewBox="0 0 24 24">'+IC[m]+'</svg>';}
+function kebab(items,stat){
+  if(!items.length) return '';
+  var id='mn'+(++KID);
+  var c = stat ? ' stat' : '';
+  var h='<button class="kebab'+c+'" aria-haspopup="true" aria-label="More options" onclick="JFX.tog(\''+id+'\',event)">&#8943;</button>'
+       +'<div class="menu'+c+'" id="'+id+'">';
+  items.forEach(function(it){
+    if(it==='-') h+='<div class="msep"></div>';
+    else h+='<button class="mi'+(/^!/.test(it)?' danger':'')+'">'+it.replace(/^!/,'')+'</button>';
+  });
+  return h+'</div>';
+}
+function mrow(){
+  var sub=MSUB[M]?'<div class="ms">'+MSUB[M]+'</div>':'';
+  return '<div class="mrow">'+svg(M)+'<div><span class="mk">'+MLBL[M]+'</span>'+sub+'</div></div>';
+}
+function prep(open){
+  var mid={
+    jfx:{h:'Test your camera and mic',s:'Make sure you are seen and heard before you join.',b:'Test now'},
+    third:{h:'Check you can open Microsoft Teams',s:'The employer hosts this interview on their own link.',b:'Open Teams'},
+    phone:{h:'Confirm your phone number',s:'We will give the employer (214) 555-0132.',b:'Update number'},
+    person:{h:'Plan your route',s:'5200 Harry Hines Blvd, Dallas, TX 75235. Arrive 10 minutes early with photo ID.',b:'Get directions'}
+  }[M];
+  return '<div class="prep">'
+   +'<button class="prep-t" onclick="JFX.prep(this)">Prepare for your interview '+(open?'&#9652;':'&#9662;')+'</button>'
+   +'<div class="prep-b'+(open?' open':'')+'">'
+   + prow('<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>','Review the job','Patient Care Tech at Texas Health.','View job details')
+   + prow(IC[M],mid.h,mid.s,mid.b)
+   + prow('<path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>','Message the employer','Ask anything before the day.','Send a message')
+   +'</div></div>';
+}
+function prow(icon,h,s,b){
+  return '<div class="prow"><div class="pi"><svg viewBox="0 0 24 24">'+icon+'</svg></div>'
+   +'<div class="pt"><div class="ph">'+h+'</div><div class="ps">'+s+'</div></div>'
+   +'<button class="pbtn">'+b+'</button></div>';
+}
+function primary(kind){
+  var lbl={confirmed:{jfx:'Join interview',third:'Open Microsoft Teams',person:'Get directions'},
+           live:{jfx:'Join interview now',third:'Open Microsoft Teams',person:'Get directions'},
+           inj:{jfx:'Return to interview',third:'Return to Teams',person:'Get directions'}}[kind];
+  if(M==='phone') return '';
+  return '<button class="pa">'+svg(M==='person'?'person':M)+lbl[M]+'</button>';
+}
+function support(){
+  if(M==='jfx') return '<button class="lk">Test camera &amp; mic</button>';
+  if(M==='person') return '<button class="lk">View arrival details</button>';
+  if(M==='phone') return '<button class="lk">Wrong number? Update it</button>';
+  return '';
+}
+function card(state){
+  var K=kebab, body='', pill='', time='Wed 22 Apr &middot; 12:30 PM', menu=[], next='', acts='', pr='';
+  if(state==='matched'){
+    pill='<span class="pill p-match">Matched</span>'; time='';
+    menu=['View job details'];
+    next='<div class="next">An employer matched you to this role. <b>Request an interview to lock in a time.</b></div>';
+    acts='<button class="pa">Request interview</button>';
+  } else if(state==='requested'){
+    pill='<span class="pill p-wait">Interview requested</span>'; time='Requested Apr 22 &middot; 11:15 AM';
+    menu=['View job details','-','!Cancel request'];
+    next='<div class="next">Sent to Texas Health. <b>They will confirm, propose another time, or decline.</b> We will email you either way.</div>';
+  } else if(state==='confirmed'){
+    pill='<span class="pill p-conf">Interview confirmed</span>';
+    menu=['Message employer','Reschedule interview','View job details','-','!Cancel interview'];
+    acts=primary('confirmed')+support();
+    if(M==='phone') next='<div class="call"><b>Texas Health will call you</b> at <b>(214) 555-0132</b> at your scheduled time. No link needed.</div>';
+    pr=prep(false);
+  } else if(state==='joinnow'){
+    pill='<span class="pill p-live">It is time for your interview</span>';
+    menu=['Message employer','View job details'];
+    acts=primary('live')+support();
+    if(M==='phone') next='<div class="call"><b>Expect a call any minute</b> from Texas Health at <b>(214) 555-0132</b>. Keep your ringer on.</div>';
+    pr=prep(true);
+  } else if(state==='injoined'){
+    pill='<span class="pill p-live">In interview</span>';
+    menu=['Message employer'];
+    acts=primary('inj');
+    if(M==='phone') next='<div class="call">You are in your phone interview with Texas Health.</div>';
+  } else if(state==='proposed'){
+    pill='<span class="pill p-wait">New times proposed</span>'; time='Original time no longer available';
+    menu=['Message employer','View job details','-','!Decline all times'];
+    next='<div class="next">Texas Health proposed three new times. <b>Pick the one that works.</b></div>';
+    acts='<button class="tchip soon">Thu 24 Apr &middot; 1:00 PM<span class="tsoon">SOONEST</span></button>'
+        +'<button class="tchip">Thu 24 Apr &middot; 2:30 PM</button><button class="tchip">Fri 25 Apr &middot; 10:00 AM</button>';
+  } else if(state==='declined'){
+    pill='<span class="pill p-none">Request declined</span>'; time='';
+    menu=['View job details'];
+    next='<div class="next">Texas Health did not accept this request. <b>You are still registered for this event</b> and can still be matched to other roles.</div>';
+  }
+  var head='<div class="head">'+pill+(time?'<span class="time">'+time+'</span>':'')+'</div>';
+  var showM = state!=='matched' && state!=='requested' && state!=='declined' ? mrow() : (state==='requested'?mrow():'');
+  return '<div class="iv">'+K(menu)+head
+    +'<div class="job">Patient Care Tech</div><div class="co">Texas Health</div>'
+    +showM+next+(acts?'<div class="acts">'+acts+'</div>':'')+pr+'</div>';
+}
+function waitCard(){
+  return '<div class="iv empty">'+kebab([])
+   +'<div class="head"><span class="pill p-wait">Waiting to be matched</span></div>'
+   +'<div class="next" style="margin-top:2px;">You are registered for this event. <b>An employer has to match you to one of their roles before you can interview.</b> Not everyone who registers is matched.</div>'
+   +'<div style="font-size:13px;color:#595959;margin-top:9px;line-height:1.55;">Nothing to do right now &mdash; we will email you if you are matched.</div></div>';
+}
+function evt(name,date,sub,inner){
+  return '<div class="evt"><div class="evt-h"><div><div class="evt-n">'+name+'</div><div class="evt-s">'+sub+'</div></div>'
+   +'<div style="display:flex;gap:10px;align-items:flex-start;"><div class="evt-d">'+date+'</div>'
+   +'<div style="position:relative;">'+kebab(['View event details','-','!Unregister from this event'],true)+'</div></div></div>'+inner+'</div>';
+}
+var NOTES={
+ notmatched:'No interview exists, so no card actions and no menu. The event says plainly that matching is required first.',
+ matched:'One primary action. The menu holds only what does not compete with it.',
+ requested:'Nothing to do but wait, so no primary button. The card says what happens next instead of offering only destructive actions.',
+ confirmed:'Type-aware primary, one supporting link, everything else behind the menu. Prep section collapsed.',
+ joinnow:'Prep auto-expands on the day. No destructive actions in the menu at all.',
+ injoined:'Menu reduced to Message employer. Nothing destructive while the interview is running.',
+ proposed:'The soonest time is marked. Decline moved into the menu so it stops competing with picking a time.',
+ declined:'Terminal, but not a dead end &mdash; it says the registration still stands.',
+ multi:'Two interviews under one event, each with its own card, menu and type.',
+ newuser:'No events yet. The only moment where pointing at more events is the right thing to do.'
+};
+function render(){
+  var st=document.getElementById('stage'), n=document.getElementById('note');
+  if(S==='newuser'){
+    st.innerHTML='<div class="evt"><div class="iv empty" style="text-align:center;padding:34px 18px;">'
+     +'<div style="font-size:17px;font-weight:700;">You are not registered for any events yet</div>'
+     +'<div style="font-size:13px;color:#595959;margin-top:6px;line-height:1.55;max-width:430px;margin-left:auto;margin-right:auto;">'
+     +'Register for a hiring event and build your resume. Employers match candidates to their open roles and invite them to interview.</div>'
+     +'<button class="pa" style="margin-top:15px;">Browse upcoming events</button></div></div>';
+    n.textContent=NOTES[S]; return;
+  }
+  var inner;
+  if(S==='multi'){
+    var a=card('confirmed'); var save=M; M=({jfx:'phone',phone:'person',person:'third',third:'jfx'})[M];
+    var b=card('confirmed'); M=save;
+    inner=a+b;
+  } else inner=card(S);
+  var sub = S==='multi' ? 'Registered &middot; 2 interviews' : (S==='notmatched'?'Registered &middot; waiting to be matched':'Registered &middot; 1 interview');
+  st.innerHTML = evt('Dallas Healthcare Hiring Event','Wed 22 Apr 2026',sub, S==='notmatched'?waitCard():inner)
+    + evt('Houston Tech Hiring Event','Sat 9 May 2026','Registered &middot; waiting to be matched', waitCard());
+  n.textContent=NOTES[S]||'';
+}
+window.JFX={
+  tog:function(id,e){ e.stopPropagation();
+    var m=document.getElementById(id), was=m.classList.contains('open');
+    document.querySelectorAll('.menu.open').forEach(function(x){x.classList.remove('open');});
+    if(!was) m.classList.add('open');
+  },
+  prep:function(b){ var p=b.nextElementSibling; var o=p.classList.toggle('open');
+    b.innerHTML='Prepare for your interview '+(o?'▴':'▾'); }
+};
+document.addEventListener('click',function(){document.querySelectorAll('.menu.open').forEach(function(x){x.classList.remove('open');});});
+document.addEventListener('keydown',function(e){if(e.key==='Escape')document.querySelectorAll('.menu.open').forEach(function(x){x.classList.remove('open');});});
+document.getElementById('mseg').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;
+  M=b.getAttribute('data-m');[].forEach.call(this.children,function(x){x.classList.toggle('on',x===b);});render();});
+function chipHandler(e){var b=e.target.closest('button');if(!b)return;
+  S=b.getAttribute('data-s');
+  document.querySelectorAll('.chips button').forEach(function(x){x.classList.toggle('on',x===b);});render();}
+document.getElementById('jseg').addEventListener('click',chipHandler);
+document.getElementById('oseg').addEventListener('click',chipHandler);
+render();
+})();
+</script>
+</body>
+</html>
