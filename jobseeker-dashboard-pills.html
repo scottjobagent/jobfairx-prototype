@@ -1240,7 +1240,7 @@ body.join-live .iv-tip { display:none !important; }
     </div>
   </div>
 
-  <!-- RESCHEDULE INTERVIEW MODAL -->
+  <!-- JOB DETAILS MODAL -->
   
 
   <div class="jm-ov" id="jobModal" onclick="if(event.target===this)JFX.jobClose()">
@@ -1556,7 +1556,7 @@ body.join-live .iv-tip { display:none !important; }
     var _tu=document.getElementById('tab-upcoming'); if(_tu) _tu.classList.toggle('hidden', t!=='upcoming');
     var _tp=document.getElementById('tab-past'); if(_tp) _tp.classList.toggle('hidden', t!=='past');
     document.querySelectorAll('#dashFilter .tab-pill').forEach(p=>p.classList.remove('active'));
-    el.classList.add('active');
+    if(el) el.classList.add('active');
   }
   function openThread(el, who){
     document.querySelectorAll('.msg-thread').forEach(t=>t.classList.remove('active'));
@@ -1612,25 +1612,6 @@ body.join-live .iv-tip { display:none !important; }
   function closeChatMobile(){ document.getElementById('msgChatPanel').classList.add('hidden'); document.querySelectorAll('.msg-thread').forEach(function(t){t.classList.remove('active');}); }
   function archiveActiveThread(){ var a=document.querySelector('.msg-thread.active'); if(a){ var b=a.querySelector('.msg-thread-del'); if(b) archiveThread(b); } }
   refreshMsgLists();
-  function setState(s, el){
-    STATE=s; var empty = s==='empty';
-    // dashboard
-    document.getElementById('dashFilter').classList.toggle('hidden', empty);
-    document.getElementById('tab-upcoming').classList.toggle('hidden', empty);
-    document.getElementById('tab-past').classList.add('hidden');
-    document.getElementById('dash-empty').classList.toggle('hidden', !empty);
-    document.body.classList.toggle('acct-empty', empty);
-    document.getElementById('cUp').textContent = empty?'0':'2';
-    document.getElementById('cPast').textContent = empty?'0':'1';
-    if(!empty){ setTab('upcoming', document.querySelector('#dashFilter .tab-pill')); }
-    // messages
-    document.getElementById('msg-populated').classList.toggle('hidden', empty);
-    document.getElementById('msg-empty').classList.toggle('hidden', !empty);
-    document.getElementById('navMsgBadge').style.display = empty?'none':''; var _mb=document.getElementById('mnavMsgBadge'); if(_mb) _mb.style.display = empty?'none':'';
-    // dev buttons
-    el.closest('.dev-group').querySelectorAll('button').forEach(b=>b.classList.remove('active'));
-    el.classList.add('active');
-  }
   function setJoin(j, el){
     document.body.classList.toggle('join-live', j==='live');
     el.closest('.dev-group').querySelectorAll('button').forEach(b=>b.classList.remove('active'));
@@ -1646,12 +1627,14 @@ body.join-live .iv-tip { display:none !important; }
     pctm:{t:'Patient Care Tech', c:'Texas Health', ev:'dallas', job:'pct'}
   };
   function openJob(k){
+    // Legacy stub: superseded by CARD.job(). Its title/co/link nodes were removed
+    // with the table, so guard every lookup until the old renderer goes.
     var j=JOBMETA[k]||{t:'',c:'',ev:'',job:''};
-    document.getElementById('jobModalTitle').textContent=j.t;
-    document.getElementById('jobModalCo').textContent=j.c;
+    var _t=document.getElementById('jobModalTitle'); if(_t) _t.textContent=j.t;
+    var _c=document.getElementById('jobModalCo'); if(_c) _c.textContent=j.c;
     var url='https://scottjobagent.github.io/jobfairx-prototype/share-preview.html?event='+j.ev+'&job='+j.job;
-    var a=document.getElementById('jobModalLink'); a.href=url; a.textContent=url;
-    document.getElementById('jobModal').classList.add('open');
+    var a=document.getElementById('jobModalLink'); if(a){ a.href=url; a.textContent=url; }
+    var _m=document.getElementById('jobModal'); if(_m) _m.classList.add('open');
   }
   function closeJob(){ var m=document.getElementById('jobModal'); if(m) m.classList.remove('open'); }
   var REQ_KEY=null;
@@ -1806,15 +1789,6 @@ body.join-live .iv-tip { display:none !important; }
   function toggleMore(btn){ var m=btn.nextElementSibling; if(!m) return; var open=m.classList.toggle('open'); btn.innerHTML = open ? 'Less \u25b4' : 'More \u25be'; }
   function openTest(){ document.getElementById('testModal').classList.add('open'); }
   function closeTest(){ var m=document.getElementById('testModal'); if(m) m.classList.remove('open'); }
-  var RESCHED_KEY=null;
-  function openReschedule(key){ RESCHED_KEY=key; document.getElementById('reschedModal').classList.add('open'); }
-  function closeResched(){ var m=document.getElementById('reschedModal'); if(m) m.classList.remove('open'); RESCHED_KEY=null; }
-  function confirmResched(){
-    var sel=document.querySelector('input[name="reschedslot"]:checked');
-    var tr=document.querySelector('[data-iv="'+RESCHED_KEY+'"]');
-    if(sel && tr){ tr.setAttribute('data-time', sel.value); renderConfirmed(tr); }
-    closeResched();
-  }
   function acceptProposed(key, time){
     var tr=document.querySelector('[data-iv="'+key+'"]'); if(!tr) return;
     tr.setAttribute('data-time', time||'');
@@ -1836,17 +1810,19 @@ body.join-live .iv-tip { display:none !important; }
     var card=t.querySelector('.table-card'); if(card) card.classList.toggle('hidden', !anyRow);
   }
   function applyAccount(empty){
-    document.getElementById('dashFilter').classList.toggle('hidden', empty);
-    document.getElementById('tab-upcoming').classList.toggle('hidden', empty);
-    document.getElementById('tab-past').classList.add('hidden');
-    document.getElementById('dash-empty').classList.toggle('hidden', !empty);
+    // The dashboard table chrome (dashFilter, tab-upcoming, tab-past, dash-empty,
+    // cUp, cPast) was removed with the Events/Interviews split. Guard every lookup.
+    var _df=document.getElementById('dashFilter'); if(_df) _df.classList.toggle('hidden', empty);
+    var _tu=document.getElementById('tab-upcoming'); if(_tu) _tu.classList.toggle('hidden', empty);
+    var _tp=document.getElementById('tab-past'); if(_tp) _tp.classList.add('hidden');
+    var _de=document.getElementById('dash-empty'); if(_de) _de.classList.toggle('hidden', !empty);
     document.body.classList.toggle('acct-empty', empty);
-    document.getElementById('cUp').textContent = empty?'0':'1';
-    document.getElementById('cPast').textContent = empty?'0':'2';
-    if(!empty){ setTab('upcoming', document.querySelector('#dashFilter .tab-pill')); }
-    document.getElementById('msg-populated').classList.toggle('hidden', empty);
-    document.getElementById('msg-empty').classList.toggle('hidden', !empty);
-    document.getElementById('navMsgBadge').style.display = empty?'none':''; var _mb=document.getElementById('mnavMsgBadge'); if(_mb) _mb.style.display = empty?'none':'';
+    var _cu=document.getElementById('cUp'); if(_cu) _cu.textContent = empty?'0':'1';
+    var _cp=document.getElementById('cPast'); if(_cp) _cp.textContent = empty?'0':'2';
+    if(!empty){ var _p=document.querySelector('#dashFilter .tab-pill'); if(_p) setTab('upcoming', _p); }
+    var _mp=document.getElementById('msg-populated'); if(_mp) _mp.classList.toggle('hidden', empty);
+    var _me=document.getElementById('msg-empty'); if(_me) _me.classList.toggle('hidden', !empty);
+    var _nb=document.getElementById('navMsgBadge'); if(_nb) _nb.style.display = empty?'none':''; var _mb=document.getElementById('mnavMsgBadge'); if(_mb) _mb.style.display = empty?'none':'';
   }
   function openMsgEmployer(co, sub){
     document.getElementById('msgWidgetName').textContent = co || 'Employer';
