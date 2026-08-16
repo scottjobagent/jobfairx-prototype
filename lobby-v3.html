@@ -6148,6 +6148,7 @@ a.jm-cp-num:hover { color:#0044B3; }
   /* ═══ Public API ═══ */
   var CP = null;
   window.JFXM = {
+    meetUrl: function () { return VURL; },
     copyMeet: function (btn) {
       try { navigator.clipboard.writeText(VURL); } catch (e) {}
       if (btn.dataset.busy) return;
@@ -6598,12 +6599,21 @@ a.jm-cp-num:hover { color:#0044B3; }
 
     /* ═══ C10 — the A/V test has no meaning without JobFairX video ═══
        Update display name goes with it. The name exists to label you inside
-       the video room, and phone and in-person never open one — the candidate
-       is sitting in your lobby or on the end of a call, looking at no screen
-       at all. Hidden in every lobby state, matching the A/V item beside it: a
-       kebab that changes shape partway through an event is worse than one
-       item fewer. Video keeps both. */
-    if (m !== 'video') {
+       the JobFairX video room, and phone and in-person never open one — the
+       candidate is sitting in your lobby or on the end of a call, looking at
+       no screen at all.
+
+       An event running on the employer's own meeting link is the same case.
+       The interview happens in Teams or Zoom, so the display name never
+       reaches the candidate and the A/V test exercises a video stack the
+       interview will not use. That leaves the kebab with the two things that
+       are still true: add interviewers, and end the event for everyone.
+
+       Hidden in every lobby state, matching the A/V item beside it: a kebab
+       that changes shape partway through an event is worse than one item
+       fewer. Only JobFairX video keeps both. */
+    var jmExternal = !!(window.JFXM && JFXM.meetUrl && JFXM.meetUrl());
+    if (m !== 'video' || jmExternal) {
       var VIDEO_ONLY_ITEMS = ['Test video and audio', 'Update display name'];
       document.querySelectorAll('.dots-menu-item').forEach(function(b){
         var t = b.textContent;
