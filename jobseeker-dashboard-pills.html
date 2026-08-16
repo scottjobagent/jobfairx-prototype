@@ -77,6 +77,14 @@ body.collapsed .main { margin-left:60px; }
 .tab-pill .count { font-weight:400; margin-left:2px; }
 .tab-pill.active .count { color:rgba(255,255,255,.6); }
 
+.mprev { border:1px dashed #d9d5cf; background:#faf9f7; border-radius:9px; padding:10px 14px; margin:0 0 14px; }
+.mprev-lbl { font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#8a8580; margin-bottom:8px; }
+.mprev-seg { display:inline-flex; flex-wrap:wrap; border:1px solid #d4d0ca; border-radius:8px; overflow:hidden; background:#fff; }
+.mprev-seg button { border:none; background:#fff; color:#767676; font-size:12.5px; font-weight:600; padding:8px 14px; cursor:pointer; font-family:inherit; transition:background .12s,color .12s; }
+.mprev-seg button + button { border-left:1px solid #e6e3df; }
+.mprev-seg button.active { background:#0044B3; color:#fff; }
+.mprev-seg button:hover:not(.active) { background:#f0f6ff; color:#0044B3; }
+@media (max-width:700px){ .mprev-seg { display:grid; grid-template-columns:1fr 1fr; width:100%; } .mprev-seg button { padding:9px 8px; font-size:12px; } .mprev-seg button + button { border-left:none; } .mprev-seg button:nth-child(even) { border-left:1px solid #e6e3df; } .mprev-seg button:nth-child(n+3) { border-top:1px solid #e6e3df; } }
 .table-card { background:#fff; border-radius:12px; border:1px solid #d4d2d0; overflow:visible; }
 table { width:100%; border-collapse:collapse; }
 thead th { padding:16px 22px; text-align:left; font-size:12px; font-weight:700; color:#595959; text-transform:uppercase; letter-spacing:.5px; border-bottom:1px solid #d4d2d0; background:#fafaf8; }
@@ -774,6 +782,16 @@ body.join-live .iv-tip { display:none !important; }
         </div>
       </div>
 
+      <div class="mprev">
+        <div class="mprev-lbl">Preview as &middot; prototype control</div>
+        <div class="mprev-seg">
+          <button class="active" data-m="jfx" onclick="setMethodBtn(this)">JobFairX video</button>
+          <button data-m="phone" onclick="setMethodBtn(this)">Phone</button>
+          <button data-m="person" onclick="setMethodBtn(this)">In person</button>
+          <button data-m="third" onclick="setMethodBtn(this)">External link</button>
+        </div>
+      </div>
+
       <!-- UPCOMING -->
       <div id="tab-upcoming">
         <div class="table-card">
@@ -1233,11 +1251,6 @@ body.join-live .iv-tip { display:none !important; }
   <div class="devsel" id="devSel">
     <div class="devsel-panel" id="devselPanel">
       <div class="devsel-head"><span>Demo states</span><button class="devsel-x" onclick="document.getElementById('devSel').classList.remove('open')">✕</button></div>
-      <div class="devsel-glabel">Interview method</div>
-        <button class="devsel-item active" data-m="jfx" onclick="setMethodBtn(this)">JobFairX Video</button>
-        <button class="devsel-item" data-m="third" onclick="setMethodBtn(this)">Third-party video</button>
-        <button class="devsel-item" data-m="phone" onclick="setMethodBtn(this)">Phone</button>
-        <button class="devsel-item" data-m="person" onclick="setMethodBtn(this)">In-Person</button>
         <div class="devsel-glabel">Dashboard</div>
         <button class="devsel-item" data-v="d:newuser" onclick="devPick(this)">New user</button>
         <button class="devsel-item" data-v="d:notmatched" onclick="devPick(this)">Waiting to be matched</button>
@@ -1906,7 +1919,7 @@ body.join-live .iv-tip { display:none !important; }
     else if(k==='v'){ setDevice(v); }
   }
   function toggleDevBar(){ document.getElementById('devBar').classList.toggle('collapsed'); }
-  window.addEventListener('load', function(){ setTimeout(function(){ var m=(location.search.match(/[?&]state=([a-z]+)/)||[])[1]; if(m){ try{ devSelect('d:'+m); var it=document.querySelector('.devsel-item[data-v="d:'+m+'"]'); if(it){ document.querySelectorAll('.devsel-item').forEach(function(b){b.classList.remove('active');}); it.classList.add('active'); } }catch(e){} } }, 80); });
+  window.addEventListener('load', function(){ setTimeout(function(){ var m=(location.search.match(/[?&]state=([a-z]+)/)||[])[1]; if(m){ try{ devSelect('d:'+m); var it=document.querySelector('.devsel-item[data-v="d:'+m+'"]'); if(it){ document.querySelectorAll('.devsel-item').forEach(function(b){b.classList.remove('active');}); it.classList.add('active'); } }catch(e){} } var mm=(location.search.match(/[?&]method=([a-z]+)/)||[])[1]; if(mm && ['jfx','third','phone','person'].indexOf(mm)>=0){ try{ var mb=document.querySelector('.mprev-seg button[data-m="'+mm+'"]'); if(mb) setMethodBtn(mb); }catch(e){} } }, 80); });
   function profileState(state, el){
     setView('profile'); showProfileSub('main');
     var has = state==='hasresume';
