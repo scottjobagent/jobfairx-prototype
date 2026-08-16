@@ -6786,7 +6786,7 @@ a.jm-cp-num:hover { color:#0044B3; }
      whole proposal rather than per suggested time. ══════════════════════ -->
 <style>
 .sfx-split { display:flex; align-items:stretch; gap:0; }
-.sfx-l { width:420px; flex:0 0 420px; background:#f7f6f5; padding:22px 22px 8px; border-right:1px solid #e8e6e3; }
+.sfx-l { width:420px; flex:0 0 420px; background:#f7f6f5; padding:22px 22px 8px; border-right:1px solid #e8e6e3; overflow-y:auto; }
 .sfx-r { flex:1; padding:22px 22px 8px; min-width:0; }
 .sfx-lbl { font-size:15px; font-weight:700; color:#2d2d2d; display:block; margin-bottom:8px; }
 .sfx-lbl .rq { color:#991b1b; margin-left:2px; }
@@ -6820,6 +6820,11 @@ a.jm-cp-num:hover { color:#0044B3; }
    bottom and nothing you are looking at moves. Scoped so no other modal
    changes. */
 #scheduleModal { align-items: flex-start; }
+/* A flex child will not scroll unless it is allowed to be smaller than its
+   content, so the whole chain needs min-height:0 before .sfx-l can scroll. */
+#scheduleModal .sched-modal-body, #scheduleModal .modal-body { flex:1 1 auto; min-height:0; overflow:hidden; }
+#scheduleModal .sfx-split { height:100%; min-height:0; }
+#scheduleModal .sfx-l, #scheduleModal .sfx-r { min-height:0; }
 #scheduleModal .sched-modal-box, #scheduleModal .modal-box { margin-top: 40px; margin-bottom: 40px; max-height: calc(100vh - 96px); }
 @media (max-width:900px){ .sfx-split{ display:block } .sfx-l{ width:auto; flex:none; border-right:none; border-bottom:1px solid #e8e6e3 } }
 </style>
@@ -6869,6 +6874,7 @@ a.jm-cp-num:hover { color:#0044B3; }
         '<button type="button" class="sg" data-f="phone">' + ic('phone') + 'Phone</button>' +
         '<button type="button" class="sg" data-f="person">' + ic('person') + 'In-Person</button>' +
       '</div>' +
+      '<div id="sfxPanes">' +
       '<div class="sfx-pane on" id="sfxPaneVideo">' +
         '<label class="sfx-rad on" data-v="native"><span class="dot"></span><span>' +
           '<span class="ttl">JobFairX video call <span class="sfx-badge">Recommended</span></span>' +
@@ -6897,6 +6903,7 @@ a.jm-cp-num:hover { color:#0044B3; }
         '<textarea class="sfx-ta" id="sfxArrival" placeholder="e.g., Check in with the receptionist on the 2nd floor and ask for Human Resources."></textarea>' +
         '<div class="sfx-hint" id="sfxAddrHint">The address, parking, and arrival details are included in the candidate’s interview confirmation.</div>' +
         '<div class="sfx-err" id="sfxAddrErr">Please complete the interview address (street, city, state, and ZIP).</div>' +
+      '</div>' +
       '</div>';
 
     body.insertBefore(split, slots);
@@ -6918,6 +6925,36 @@ a.jm-cp-num:hover { color:#0044B3; }
       r.addEventListener('click', function(){ setVideoMode(r.getAttribute('data-v')); });
     });
     return true;
+  }
+
+  /* Pinning the top stopped the modal drifting upward, but the three panes are
+     still different heights, so the bottom edge and the buttons moved instead.
+     Measure all three once the modal is first rendered and hold the tallest, so
+     the modal is one constant size whichever format is selected. */
+  var sized = false;
+  function equalisePanes() {
+    if (sized) return;
+    var box = document.querySelector('#scheduleModal .sched-modal-box, #scheduleModal .modal-box');
+    var col = document.querySelector('#scheduleModal .sfx-l');
+    var split = document.getElementById('sfxSplit');
+    if (!box || !col || !split || !col.offsetParent) return;   /* not rendered yet */
+    /* Fix the BOX height, not the column. Holding the column instead pushes
+       whatever sits below the pane — the Message field — past the modal edge
+       with no way to reach it. Measure every format, take the tallest, cap it
+       to the viewport, and let the column scroll when in-person overflows. */
+    var keep = S.fmt, max = 0;
+    box.style.height = ''; split.style.height = '';
+    ['video','phone','person'].forEach(function(f){
+      setFmt(f);
+      max = Math.max(max, col.scrollHeight);
+    });
+    setFmt(keep);
+    if (!max) return;
+    var chrome = box.offsetHeight - split.offsetHeight;        /* header + footer */
+    var want = max + chrome;
+    var cap = window.innerHeight - 96;
+    box.style.height = Math.min(want, cap) + 'px';
+    sized = true;
   }
 
   function setFmt(f) {
@@ -6954,6 +6991,7 @@ a.jm-cp-num:hover { color:#0044B3; }
         var row = (el && el.closest) ? el.closest('tr') : null;
         setFmt(eventMethod(row));
         setVideoMode('native');
+        equalisePanes();
         ['sfxUrl','sfxStreet','sfxSuite','sfxCity','sfxState','sfxZip','sfxParking','sfxArrival'].forEach(function(id){
           var e2 = document.getElementById(id); if (e2) e2.value = '';
         });
