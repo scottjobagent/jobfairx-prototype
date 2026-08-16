@@ -6207,6 +6207,16 @@ a.jm-cp-num:hover { color:#0044B3; }
     for (var i = 0; i < VHOSTS.length; i++) if (VHOSTS[i][0].test(host)) return VHOSTS[i][1];
     return 'External video link';
   }
+  /* An event on the employer's own meeting link is a video interview that
+     JobFairX cannot watch. Nobody here can see who joined the Teams meeting,
+     when it started or when it ended — exactly as with a phone call or a
+     handshake. So the queue behaves the way it does for in-person: the
+     employer declares each transition, the row moves in place rather than
+     opening a JobFairX room, and there has to be somewhere to take notes.
+     Only the chip, the icon and the label stay video, because the method is
+     still video. */
+  function roomless(k) { return k !== 'video' || !!VURL; }
+
   function shortUrl(url) {
     var s = String(url).replace(/^https?:\/\//, '');
     return s.length > 46 ? s.slice(0, 46) + '\u2026' : s;
@@ -6294,7 +6304,10 @@ a.jm-cp-num:hover { color:#0044B3; }
       return '<span class="jm-anchor"><button class="start-interview-btn" onclick="JFXM.call(this)">' +
         svg('phone') + ' <span class="jm-calllbl">Call candidate</span></button></span>';
     }
-    return '<button class="start-interview-btn" onclick="JFXM.startPerson(this)">' + svg('person') + ' Start interview</button>';
+    /* svg(k), not svg('person') — an external-link event is still a video
+       interview, so it keeps the camcorder and the words "Start interview".
+       Only what the button does changes. */
+    return '<button class="start-interview-btn" onclick="JFXM.startPerson(this)">' + svg(k) + ' Start interview</button>';
   }
   /* "Entering interview room" describes a video transition and nothing else. */
   function normalizeStatus(tr) {
@@ -6376,7 +6389,7 @@ a.jm-cp-num:hover { color:#0044B3; }
     document.querySelectorAll('#interviewingLive .interview-actions').forEach(function(grp) {
       var tr = grp.closest('tr');
       var k = rowMethod(tr);
-      if (k === 'video') return;
+      if (!roomless(k)) return;
       var name = nameOf(tr);
       var end = '<button class="interview-btn end" onclick="openEndIvModal(\'' + name.replace(/'/g, "\\'") + '\')">End interview<span class="btn-tooltip">End interview</span></button>';
       if (k === 'phone') {
@@ -6617,7 +6630,7 @@ a.jm-cp-num:hover { color:#0044B3; }
     window[fn] = function(btn) {
       var tr = btn && btn.closest ? btn.closest('tr') : null;
       var k = rowMethod(tr);
-      if (k === 'video') return orig.apply(this, arguments);
+      if (!roomless(k)) return orig.apply(this, arguments);
       if (k === 'phone') return JFXM.call(btn);
       return JFXM.startPerson(btn);
     };
@@ -6649,7 +6662,7 @@ a.jm-cp-num:hover { color:#0044B3; }
   })();
   var NOTE_IC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>';
   function notesColumn() {
-    if (m === 'video') return;
+    if (!roomless(m)) return;
     document.querySelectorAll('#interviewingLive .live-table thead tr').forEach(function(hr){
       if (hr.querySelector('.jm-ncol') || !hr.lastElementChild) return;
       var th = document.createElement('th');
@@ -6821,7 +6834,7 @@ a.jm-cp-num:hover { color:#0044B3; }
     guard('startInterview');
     guard('rejoinInterview');
     methodColumn();          /* permanent, every method */
-    if (m === 'video') return;
+    if (!roomless(m)) return;
     adaptWaiting(document.getElementById('waitingLive'));
     adaptWaiting(document.getElementById('waitingLiveEmpty'));
     fixInterviewing();
@@ -6977,7 +6990,11 @@ a.jm-cp-num:hover { color:#0044B3; }
   function ready(fn){ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',fn); else fn(); }
   ready(function(){
     var m = (window.JFXM && JFXM.get) ? JFXM.get() : 'video';
-    if (m === 'video') return;                 /* virtual is not changing */
+    var external = !!(window.JFXM && JFXM.meetUrl && JFXM.meetUrl());
+    /* JobFairX video is not changing — it takes notes inside its own room.
+       Phone, in-person and external-link events never open that room, so the
+       resume modal is where their notes live. */
+    if (m === 'video' && !external) return;
 
     var modal = document.querySelector('#resumeModal .resume-modal');
     var body  = document.getElementById('resumeBody');
