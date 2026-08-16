@@ -2472,17 +2472,20 @@ arrivalInstructions: string (optional, multiline)
     /* No progress bar. The pill carries the status; this says what it means
        and what happens next. Invite-only is stated, not implied. */
     var TXT = [
-      'You are registered for this job fair.',
-      'Employers are reviewing candidates for their open roles. Job fairs are invite-only \u2014 you can only interview if an employer matches you and invites you to request a time.',
-      'An employer invited you to request an interview. Request a time to move forward.',
-      'Your request is with the employer. They will accept it or propose times that work for them.',
-      'Your interview is confirmed. You will find the time and joining details under Interviews.',
-      'It is time for your interview. Go to Interviews to join.',
-      'You are in your interview.',
-      'You have completed your interview for this job fair.'
+      'You\u2019re registered for this job fair.',
+      'Employers post jobs for this job fair, and we match candidates to the ones that fit. If you\u2019re matched, you\u2019ll be invited to request an interview. Interviews are invite-only.',
+      'You\u2019ve been matched to a job and invited to request an interview. Send your request to move forward.',
+      'Your interview request has been sent. The employer is reviewing it now \u2014 we\u2019ll let you know as soon as they respond.',
+      'Your interview is confirmed. The details are below.',
+      'It\u2019s time for your interview.',
+      'You\u2019re in your interview.',
+      'You\u2019ve completed your interview for this job fair.'
     ];
-    if(dead) return '<div class="evc-next">The employer did not move forward with your request this time. You stay registered for this job fair and can still be matched to another role.</div>';
+    if(dead) return '<div class="evc-next">The employer declined your interview request. You\u2019re still registered for this job fair and can be matched to another job.</div>';
     var t = TXT[Math.min(stage, TXT.length-1)] || TXT[0];
+    if(typeof JOURNEY!=='undefined' && JOURNEY==='proposed'){
+      t = 'The employer suggested different interview times. Accept one or decline under Interviews.';
+    }
     var h = '<div class="evc-next">'+t+'</div>';
     /* Once there is a real interview, show it here rather than making them hunt. */
     if(stage>=4 && stage<=6){
