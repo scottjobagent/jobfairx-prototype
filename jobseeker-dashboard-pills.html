@@ -774,9 +774,7 @@ body.join-live .iv-tip { display:none !important; }
   <!-- MAIN -->
   <div class="main">
 
-    <!-- ============ DASHBOARD VIEW ============ -->
-    <div id="view-dashboard">
-      <div class="mprev">
+      <div id="prevBar"><div class="mprev">
         <div class="mprev-lbl">Preview as &middot; prototype controls</div>
         <div class="mprev-seg">
           <button class="active" data-m="jfx" onclick="setMethodBtn(this)">JobFairX video</button>
@@ -812,7 +810,12 @@ body.join-live .iv-tip { display:none !important; }
             <button onclick="IVW.setCompletion(true,true,this)">Both complete</button>
           </div>
         </div>
-      </div>
+      </div></div>
+
+
+    <!-- ============ DASHBOARD VIEW ============ -->
+    <div id="view-dashboard">
+      
 
       <div id="evEmpty" class="hidden"></div>
       <div id="evCards"></div>
@@ -1506,6 +1509,8 @@ body.join-live .iv-tip { display:none !important; }
     ['mnav-dashboard','mnav-messages','mnav-profile'].forEach(function(id){var e=document.getElementById(id); if(e) e.classList.toggle('active', mn[v]===id);});
     var _ne=document.getElementById('nav-events'); if(_ne) _ne.classList.remove('active');
     var _mne=document.getElementById('mnav-events'); if(_mne) _mne.classList.remove('active');
+    var _pb=document.getElementById('prevBar');
+    if(_pb) _pb.classList.toggle('hidden', v==='messages' || v==='profile');
     if(v==='profile'){ showProfileSub('main'); }
     if(v==='messages'){
       document.querySelectorAll('.msg-thread').forEach(t=>t.classList.remove('active'));
@@ -2515,11 +2520,24 @@ arrivalInstructions: string (optional, multiline)
     if(!list.length){
       host.innerHTML='';
       emp.classList.remove('hidden');
-      emp.innerHTML='<div class="ivx"><div class="ivx-t">You do not have any interviews yet</div>'
-       +'<div class="ivx-d">Interviews become available after an employer matches you to one of their open roles and invites you to request one. '
-       +'Registering for an event does not guarantee an interview.</div>'
-       +'<button class="pa" onclick="openEvents()">Browse events</button>'
-       +'<button class="lk" style="margin-left:10px;" onclick="setView(\'dashboard\')">View my events</button></div>';
+      var total=b.upcoming.length+b.pending.length+b.past.length;
+      if(total===0){
+        emp.innerHTML='<div class="ivx"><div class="ivx-t">You do not have any interviews yet</div>'
+         +'<div class="ivx-d">Interviews become available after an employer matches you to one of their open roles and invites you to request one. '
+         +'Registering for an event does not guarantee an interview.</div>'
+         +'<button class="pa" onclick="openEvents()">Browse events</button>'
+         +'<button class="lk" style="margin-left:10px;" onclick="setView(\'dashboard\')">View my events</button></div>';
+      } else {
+        var LBL={upcoming:'upcoming',pending:'pending',past:'past'}[IVTAB];
+        var where=[]; 
+        if(IVTAB!=='upcoming'&&b.upcoming.length) where.push({t:'upcoming',n:b.upcoming.length});
+        if(IVTAB!=='pending'&&b.pending.length) where.push({t:'pending',n:b.pending.length});
+        if(IVTAB!=='past'&&b.past.length) where.push({t:'past',n:b.past.length});
+        var w=where.map(function(x){return '<button class="lk" style="display:inline-flex;" onclick="IVW.tab(\''+x.t+'\',document.querySelector(\'#ivTabs .tab-pill[data-t=\\\''+x.t+'\\\']\'))">'
+          +x.n+' '+x.t+'</button>';}).join(' ');
+        emp.innerHTML='<div class="ivx"><div class="ivx-t">No '+LBL+' interviews</div>'
+         +'<div class="ivx-d">Nothing sits in '+LBL+' right now.</div>'+w+'</div>';
+      }
       return;
     }
     emp.classList.add('hidden');
