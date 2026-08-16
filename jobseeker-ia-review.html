@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Job Seeker — Navigation & IA Review</title>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;padding:40px 24px 90px;background:#e9e7e3;
+    font-family:'Noto Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+    color:#2d2d2d;font-size:14px;line-height:1.55}
+  .wrap{max-width:1020px;margin:0 auto}
+  .eyebrow{font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:#0044B3;margin-bottom:10px}
+  h1{font-size:33px;line-height:1.14;font-weight:700;margin:0 0 12px;letter-spacing:-.5px}
+  .stand{font-size:16.5px;line-height:1.6;color:#595959;max-width:790px;margin:0 0 6px}
+  .meta{font-size:13px;color:#767676;margin-bottom:34px}
+  .card{background:#fff;border:1px solid #b0aeab;border-radius:14px;padding:30px 32px;margin-bottom:22px}
+  .card>*:first-child{margin-top:0}.card>*:last-child{margin-bottom:0}
+  h2{font-size:21px;font-weight:700;margin:0 0 16px;display:flex;align-items:center;gap:12px;letter-spacing:-.2px}
+  .n{display:inline-flex;align-items:center;justify-content:center;width:27px;height:27px;border-radius:999px;
+    background:#0044B3;color:#fff;font-size:13px;font-weight:700;flex-shrink:0}
+  h3{font-size:15.5px;font-weight:700;margin:26px 0 8px}
+  p{margin:0 0 12px}
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;background:#f3f2ef;
+    border:1px solid #e8e6e3;border-radius:4px;padding:1px 5px}
+  table{width:100%;border-collapse:collapse;margin:14px 0 6px;font-size:13px}
+  th{text-align:left;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#767676;
+    padding:0 12px 8px 0;border-bottom:1px solid #d4d2d0;vertical-align:bottom}
+  td{padding:11px 12px 11px 0;border-bottom:1px solid #f3f2ef;vertical-align:top;line-height:1.5}
+  tr:last-child td{border-bottom:none}
+  .box{border-left:4px solid #0044B3;background:#f7f6f5;border-radius:0 8px 8px 0;padding:14px 18px;margin:18px 0;font-size:13.5px;line-height:1.6}
+  .box.warn{border-left-color:#8a5c00;background:#fdf6ec}
+  .box.bad{border-left-color:#991b1b;background:#fef2f2}
+  .box.ok{border-left-color:#166534;background:#eef4ec}
+  .box p:last-child{margin-bottom:0}
+  .lbl{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px;color:#595959}
+  ul{margin:0 0 12px;padding-left:20px}li{margin-bottom:7px}
+  .pill{display:inline-block;padding:2px 9px;border-radius:12px;font-size:11.5px;font-weight:700;white-space:nowrap}
+  .p-bad{background:#fef2f2;color:#991b1b}.p-mid{background:#fdf6ec;color:#8a5c00}
+  .p-ok{background:#eef4ec;color:#166534}.p-na{background:#f3f2ef;color:#767676}
+  .nav{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0 4px}
+  .nv{background:#f3f2ef;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600}
+  .nv.new{background:#eef2fb;color:#0044B3}
+  .nv.gone{background:#fef2f2;color:#991b1b;text-decoration:line-through}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="eyebrow">JobFairX — Job Seeker Experience</div>
+<h1>Navigation and information architecture review</h1>
+<p class="stand">Whether Events and Interviews should become separate workspaces — reviewed against the Employer application's own IA and the patterns used by Indeed, LinkedIn, Greenhouse, Lever and Ashby.</p>
+<p class="meta">August 16, 2026 · Review only, nothing implemented · Measured from both running applications</p>
+
+<!-- 1 -->
+<div class="card">
+<h2><span class="n">1</span> Executive summary</h2>
+
+<p><strong>Your instinct is right, and the Employer application already proves it.</strong> I read its navigation directly rather than assuming — the employer app runs on <strong>Events · Candidates · Interviews · Messages · Automations · Analytics</strong>, with <strong>no Dashboard at all</strong>, and its Interviews section already uses <strong>Upcoming / Pending / Past</strong> — the exact three categories you proposed. The seeker app is the outlier, not the thing that needs inventing.</p>
+
+<div class="box bad">
+<span class="lbl">The specific defect underneath the confusion</span>
+<p>The seeker dashboard's tabs read <strong>"Upcoming events"</strong> and <strong>"Past events"</strong> — but the content is <strong>interviews</strong>. The labels say one object and the rows show another. That single mislabel is most of the cognitive load you are feeling, and no amount of visual polish fixes it.</p>
+</div>
+
+<p>There is also a half-built Events concept already: the sidebar's <strong>Job fairs</strong> item calls <code>openEvents()</code>, which opens a <em>modal</em>, while a <code>view-events</code> section exists in the markup. Events are simultaneously a nav item, a modal, and a column inside the interviews table.</p>
+
+<h3>The insight that reorganises everything</h3>
+<div class="box ok">
+<p><strong>"Waiting to be matched" and "Matched" are not interview states. They are event states.</strong> No interview exists yet — that is precisely why those rows have empty Job details and, until recently, offered nothing but Unregister. They were being forced into an interviews table because there was nowhere else to put them.</p>
+<p>Split Events from Interviews and they land naturally: an <strong>Interview object only exists once the candidate has requested one.</strong> Everything before that belongs to the event registration.</p>
+</div>
+</div>
+
+<!-- 2 -->
+<div class="card">
+<h2><span class="n">2</span> Navigation recommendation</h2>
+
+<h3>Today</h3>
+<div class="nav">
+  <span class="nv">Dashboard</span><span class="nv">Messages</span><span class="nv">Job fairs</span><span class="nv">Profile</span><span class="nv">JobAgentX</span>
+</div>
+
+<h3>Recommended</h3>
+<div class="nav">
+  <span class="nv new">Events</span><span class="nv new">Interviews</span><span class="nv">Messages</span><span class="nv">Profile</span><span class="nv">JobAgentX</span>
+  <span class="nv gone">Dashboard</span>
+</div>
+
+<p><strong>Drop Dashboard.</strong> You asked whether it still adds value — it does not, for three reasons:</p>
+<ul>
+<li><strong>The employer app already dropped it</strong> and is the more complex product. If an employer managing five events and eighty candidates does not need a summary screen, a candidate with one to three interviews certainly does not.</li>
+<li><strong>It would only ever restate Events and Interviews.</strong> A dashboard earns its place when it aggregates across many objects. Here it would show the same two cards you are one click from anyway.</li>
+<li><strong>It is the thing causing the conflation.</strong> "Dashboard" is what allowed events, interviews, matching states and invitations to pile into one table.</li>
+</ul>
+
+<div class="box">
+<span class="lbl">Where the candidate lands on sign-in</span>
+<p>Not a fixed page — <strong>route on state</strong>. Any interviews at all → <strong>Interviews</strong>, because that is what they logged in for. No interviews → <strong>Events</strong>, which is where the next useful action is. This is what LinkedIn does with My Jobs and what Ashby does with a candidate's interview list.</p>
+</div>
+
+<p><strong>Keep Messages and Profile</strong> as they are — both match the employer app. <strong>JobAgentX</strong> stays as an external link, visually separated.</p>
+</div>
+
+<!-- 3 -->
+<div class="card">
+<h2><span class="n">3</span> Information architecture</h2>
+
+<h3>Two objects, cleanly separated</h3>
+<table>
+<tr><th style="width:130px">Object</th><th style="width:220px">Exists when</th><th>Carries</th></tr>
+<tr><td><strong>Event</strong></td><td>The candidate registers</td><td>Registration status, date, format, location, employers attending, match status, invitations to request an interview</td></tr>
+<tr><td><strong>Interview</strong></td><td>The candidate <em>requests</em> one</td><td>Employer, job, date, time, interview type, status, actions</td></tr>
+</table>
+
+<div class="box warn">
+<span class="lbl">The consequence to be deliberate about</span>
+<p>Under this model, <strong>"Matched" produces no interview row.</strong> It is an invitation sitting on the event. Only once the candidate requests does an interview appear, in <em>Pending</em>. This is cleaner, but it means the Events page must make invitations impossible to miss — otherwise a match could sit unnoticed. My recommendation is a count badge on the Events nav item and an accent-bordered invitation block on the event card.</p>
+</div>
+
+<h3>State mapping</h3>
+<table>
+<tr><th style="width:210px">Current state</th><th style="width:140px">Lives in</th><th>Under</th></tr>
+<tr><td>Not registered</td><td>Events</td><td>Empty state</td></tr>
+<tr><td>Waiting to be matched</td><td>Events</td><td>Registered event card</td></tr>
+<tr><td>Matched</td><td>Events</td><td>Invitation block on the event card</td></tr>
+<tr><td>Interview requested</td><td>Interviews</td><td><strong>Pending</strong></td></tr>
+<tr><td>New times proposed</td><td>Interviews</td><td><strong>Pending</strong> — needs the candidate to act</td></tr>
+<tr><td>Interview confirmed</td><td>Interviews</td><td><strong>Upcoming</strong></td></tr>
+<tr><td>It is time / In interview</td><td>Interviews</td><td><strong>Upcoming</strong>, pinned to the top</td></tr>
+<tr><td>Interviewed · Missed · Declined</td><td>Interviews</td><td><strong>Past</strong></td></tr>
+</table>
+<p>Upcoming / Pending / Past is confirmed as the right structure — it is what the employer app already runs, so the two products stay legible to each other. The only judgement call is <em>New times proposed</em>, which I have put in <strong>Pending</strong> because the defining question is "does this need me?", not "is it confirmed?"</p>
+</div>
+
+<!-- 4 -->
+<div class="card">
+<h2><span class="n">4</span> Events workspace</h2>
+
+<h3>Empty state</h3>
+<p>Headline <strong>"You are not registered for any hiring events yet"</strong>, a short explanation that JobFairX runs invite-only events where employers choose who they interview, the six-step explainer (§7), and one primary CTA: <strong>Browse events</strong>. No secondary actions competing with it.</p>
+
+<h3>Registered state</h3>
+<p>One card per event, mirroring the employer's event row. Beyond what you listed, these are worth adding:</p>
+<table>
+<tr><th style="width:210px">Addition</th><th>Why</th></tr>
+<tr><td><strong>Employers attending</strong></td><td>The single strongest reason to register, and the thing candidates most want to know. Even logos or a count beats nothing.</td></tr>
+<tr><td><strong>Roles being hired for</strong></td><td>Lets a candidate judge fit before the event. Employers already post job titles, so the data exists.</td></tr>
+<tr><td><strong>Interview format for the event</strong></td><td>Video, phone, in person or the employer's link — knowable at registration and it sets expectations early.</td></tr>
+<tr><td><strong>Match status</strong></td><td>"Waiting to be matched" or "1 invitation" — the whole reason to open this page.</td></tr>
+<tr><td><strong>Countdown as the date nears</strong></td><td>"In 3 days." The employer lobby already does this.</td></tr>
+<tr><td><strong>Resume completeness prompt</strong></td><td>The one thing a candidate can actually control before matching. Currently surfaced nowhere.</td></tr>
+</table>
+
+<div class="box">
+<span class="lbl">The one action, and where it goes</span>
+<p><strong>Unregister from this event</strong> belongs here, in the event card's overflow menu — not on an interview, which is what we corrected earlier. This page is where it finally has a natural home.</p>
+</div>
+</div>
+
+<!-- 5 -->
+<div class="card">
+<h2><span class="n">5</span> Interviews workspace</h2>
+
+<p>Three tabs — <strong>Upcoming · Pending · Past</strong> — with counts, matching the employer app exactly.</p>
+
+<h3>Empty state</h3>
+<p>Headline <strong>"You do not have any interviews yet"</strong>, then the causal explanation: interviews become available only after an employer matches you and invites you to request one. Primary CTA <strong>Browse events</strong>, plus a quiet secondary link to your registered events if any exist — because if they are registered and waiting, "browse more events" is not actually their next step.</p>
+
+<h3>Interview card</h3>
+<p>The card built in the current redesign already carries employer, job title, date, time, interview type, status and contextual next steps across all four interview types. It ports over unchanged. Two additions for this context:</p>
+<ul>
+<li><strong>Event name on the card</strong> — necessary once interviews are no longer grouped under events.</li>
+<li><strong>Group by day inside Upcoming</strong> once there are several, the way Ashby and Greenhouse do. Below three, a flat list is fine.</li>
+</ul>
+
+<div class="box bad">
+<span class="lbl">A defect in what I shipped this session</span>
+<p>You have specified that <strong>candidates cannot reschedule</strong> — they only accept one of the employer's proposed times or decline. The interview card I built includes <strong>"Reschedule interview"</strong> in its overflow menu. That is wrong and needs removing. Cancel stays; reschedule goes.</p>
+</div>
+
+<h3>Actions, and where each belongs</h3>
+<table>
+<tr><th style="width:220px">Action</th><th style="width:150px">Placement</th><th>Notes</th></tr>
+<tr><td>Choose a proposed time</td><td>Primary, on the card</td><td>Time chips with the soonest marked</td></tr>
+<tr><td>Decline proposed times</td><td>Overflow</td><td>Should not compete with choosing one</td></tr>
+<tr><td>Cancel interview request</td><td>Overflow, destructive</td><td>Pending only</td></tr>
+<tr><td>Cancel confirmed interview</td><td>Overflow, destructive</td><td>Upcoming only, and gone once live</td></tr>
+<tr><td>Message employer</td><td>Overflow</td><td>Unlocked from confirmation onward</td></tr>
+<tr><td>View job details</td><td>Overflow + job title click</td><td>Modal — see §6</td></tr>
+<tr><td>View event details</td><td>Overflow</td><td>Routes to the event on the Events page</td></tr>
+<tr><td><strong>Reschedule</strong></td><td><span class="pill p-bad">Remove</span></td><td>Not a candidate capability</td></tr>
+<tr><td><strong>Unregister</strong></td><td><span class="pill p-bad">Move to Events</span></td><td>Event-scoped, not interview-scoped</td></tr>
+</table>
+</div>
+
+<!-- 6 -->
+<div class="card">
+<h2><span class="n">6</span> Job details — keep the modal, add a second door</h2>
+<p>The overflow menu should stay, but it should not be the <em>only</em> way in. A menu is where you look for actions, not for information — which is why "View job details" hiding behind ⋯ tests poorly.</p>
+<p><strong>Recommendation: make the job title itself the primary affordance</strong>, and keep the menu item as a secondary path. Clicking a job title to read the job is the pattern in every product in the benchmark set. The modal built this session already carries the description, employer information, event, interview type, interview details and the requested or scheduled time, and it is state-aware and type-aware. It needs no redesign — only a second entry point, which is already wired on the job title in the current build.</p>
+</div>
+
+<!-- 7 -->
+<div class="card">
+<h2><span class="n">7</span> Explaining the invite-only process</h2>
+<p>Your six steps are right. The failure today is not the wording, it is that the explanation appears <em>after</em> registration, when the expectation has already been set wrongly.</p>
+
+<table>
+<tr><th style="width:210px">Surface</th><th style="width:96px">Priority</th><th>Treatment</th></tr>
+<tr><td>Events empty state</td><td><span class="pill p-bad">Critical</span></td><td>Full six steps. This is the moment before they commit, and the only place the expectation can be set correctly from the start.</td></tr>
+<tr><td>Event registration confirmation</td><td><span class="pill p-bad">Critical</span></td><td>Condensed: "You are registered. Employers now review candidates and choose who to interview." Currently the moment of highest false confidence.</td></tr>
+<tr><td>Registered event card, unmatched</td><td><span class="pill p-mid">High</span></td><td>The three-step version already built, plus the constraint line.</td></tr>
+<tr><td>Interviews empty state</td><td><span class="pill p-mid">High</span></td><td>The causal version — why there is nothing here yet.</td></tr>
+<tr><td>Marketing "How it works"</td><td><span class="pill p-mid">High</span></td><td>Pre-signup. Also still says "No Zoom, no downloads", which the external-link type now contradicts.</td></tr>
+<tr><td>Match notification email</td><td><span class="pill p-na">Medium</span></td><td>"An employer matched you — request an interview."</td></tr>
+</table>
+
+<div class="box warn">
+<span class="lbl">Wording worth being careful with</span>
+<p>Step 3 of your list says "JobFairX matches candidates to employer job openings" and step 4 says "Employers review matched candidates." Those describe two different actors deciding. Candidates will read "JobFairX matched me" as a guarantee and then feel misled when nothing follows. I would phrase it as: <em>JobFairX suggests candidates who fit each role, and the employer decides who they want to interview.</em> Same process, no implied promise.</p>
+</div>
+</div>
+
+<!-- 8 -->
+<div class="card">
+<h2><span class="n">8</span> UX concerns with the current design</h2>
+<ul>
+<li><strong>Tabs mislabelled.</strong> "Upcoming events" lists interviews. Resolved by the split.</li>
+<li><strong>Events exist in three forms</strong> — a nav item, a modal (<code>openEvents()</code>), and a column. Resolved by making Events a real page.</li>
+<li><strong>Reschedule is offered to candidates</strong> and should not be. Live defect.</li>
+<li><strong>Non-interview states rendered as interviews</strong>, which is why they look broken.</li>
+<li><strong>No way to see who is attending an event.</strong> The main thing a candidate wants before registering is absent.</li>
+<li><strong>Resume completeness is invisible</strong> — the only lever the candidate controls.</li>
+<li><strong>Design system debt persists</strong> — 18 font sizes, 66 colours, 13 radii. Worth folding into this rebuild rather than doing separately.</li>
+</ul>
+</div>
+
+<!-- 9 -->
+<div class="card">
+<h2><span class="n">9</span> Screen by screen</h2>
+<table>
+<tr><th style="width:180px">Screen</th><th>What it becomes</th></tr>
+<tr><td><strong>Events — empty</strong></td><td>Headline, six-step explainer, <em>Browse events</em>. The most important screen in the product for expectation-setting.</td></tr>
+<tr><td><strong>Events — registered</strong></td><td>Event cards: status, date, format, employers attending, roles, countdown, match status. Invitations shown as accent-bordered blocks. Unregister in the overflow.</td></tr>
+<tr><td><strong>Events — invited</strong></td><td>Invitation block with <em>Request interview</em> as primary. The moment the funnel turns.</td></tr>
+<tr><td><strong>Interviews — empty</strong></td><td>Causal explanation, <em>Browse events</em>, secondary link to registered events.</td></tr>
+<tr><td><strong>Interviews — Pending</strong></td><td>Requested and proposed-times interviews. Proposed times get chips; requested gets an expectation line.</td></tr>
+<tr><td><strong>Interviews — Upcoming</strong></td><td>Confirmed, day-of and in-progress. Type-aware primary action and the prep section as built.</td></tr>
+<tr><td><strong>Interviews — Past</strong></td><td>Interviewed, missed, declined. Read-only with job details available.</td></tr>
+<tr><td><strong>Messages · Profile</strong></td><td>Unchanged.</td></tr>
+</table>
+</div>
+
+<!-- 10 -->
+<div class="card">
+<h2><span class="n">10</span> Implementation plan</h2>
+<table>
+<tr><th style="width:36px">#</th><th style="width:280px">Work</th><th style="width:130px">Impact / effort</th><th>Notes</th></tr>
+<tr><td>1</td><td>Remove <em>Reschedule interview</em> from the interview menu</td><td><span class="pill p-ok">High / trivial</span></td><td>Live defect against your stated rule. Minutes.</td></tr>
+<tr><td>2</td><td>Split the nav: Events · Interviews · Messages · Profile</td><td><span class="pill p-ok">High / med</span></td><td>The structural change everything else depends on.</td></tr>
+<tr><td>3</td><td>Interviews workspace with Upcoming / Pending / Past</td><td><span class="pill p-ok">High / med</span></td><td>Cards already built — mostly re-homing them.</td></tr>
+<tr><td>4</td><td>Events workspace, both states</td><td><span class="pill p-ok">High / med</span></td><td>Includes moving Waiting and Matched out of Interviews.</td></tr>
+<tr><td>5</td><td>Six-step explainer on the two critical surfaces</td><td><span class="pill p-ok">High / low</span></td><td>Copy plus a small component.</td></tr>
+<tr><td>6</td><td>Both empty states</td><td><span class="pill p-mid">Med / low</span></td><td>Cheap once the pages exist.</td></tr>
+<tr><td>7</td><td>Employers attending, roles, countdown</td><td><span class="pill p-mid">Med / med</span></td><td>Needs data confirmation — see below.</td></tr>
+<tr><td>8</td><td>Sign-in routing on state</td><td><span class="pill p-mid">Med / low</span></td><td>Interviews if any exist, else Events.</td></tr>
+<tr><td>9</td><td>Design system cleanup</td><td><span class="pill p-na">Med / med</span></td><td>Best done during the rebuild.</td></tr>
+</table>
+
+<div class="box">
+<span class="lbl">Recommended first cut</span>
+<p>Item <strong>1</strong> immediately — it contradicts a rule you have stated and it is a few minutes' work. Then <strong>2, 3 and 4</strong> together as one pass, because splitting the nav without both workspaces existing leaves the app broken in between.</p>
+</div>
+
+<h3>What I need from you before building</h3>
+<ul>
+<li><strong>Employers attending</strong> — is that list available to candidates before the event, or is it deliberately withheld? It is my strongest recommendation for the Events page but I will not invent the rule.</li>
+<li><strong>Does Dashboard go entirely?</strong> My recommendation is yes. It is the biggest single change to what exists.</li>
+<li><strong>Matched as an event state</strong> — confirm you are happy that a match produces no interview row until the candidate requests one.</li>
+<li><strong>Past interviews</strong> — should declined requests sit in Past, or be hidden once resolved?</li>
+</ul>
+</div>
+
+</div>
+</body>
+</html>
