@@ -151,53 +151,64 @@ tr:last-child td{border-bottom:none}
 <h2 id="s4"><span class="num">4</span>The lobby</h2>
 
 <h3>Event header</h3>
-<p>A line under the date range: the chip plus a description, shown for all three locations. In person adds a <b>Parking &amp; arrival</b> link opening a modal with the address, parking and arrival instructions — the first place the employer can read back what they entered in Edit Post.</p>
-<p>For external-link video this line is where the meeting URL and <b>Copy link</b> belong. <span class="pill spec">designed</span></p>
+<p>A line under the date range: the chip plus a description, shown for every location. In person adds a <b>Parking &amp; arrival</b> link opening a modal with the address, parking and arrival instructions — the first place the employer can read back what they entered in Edit Post.</p>
+<p>An external-link event shows the platform name, the meeting URL and a <b>Copy link</b> control here. That is where the employer gets the link on the day.</p>
 
-<h3>Waiting to interview — two sections</h3>
+<h3>Waiting to interview</h3>
 <div class="box stop">
-  <b>Do not merge these.</b> The split isn't video presence detection — it's the <b>arrival model</b>, and it means the same thing for every location.
+  <b>One list for phone, in person and external link. Two sections for JobFairX video.</b> The split is only meaningful where the platform can compute it — where it can see both that a candidate is present and that an interviewer is free. Nowhere else can, so nowhere else has a second state to show.
 </div>
 <table>
-  <tr><th style="width:24%">Section</th><th style="width:32%">Means</th><th>Row carries</th></tr>
-  <tr><td><b>Interview rooms</b></td><td>Candidate is present and actionable. Status <b>Ready</b>.</td><td>The primary action — <b>Start interview</b> for video and in person, <b>Call candidate</b> for phone.</td></tr>
-  <tr><td><b>Waiting rooms</b></td><td>Candidate is checked in but not yet actionable. Status <b>Awaiting available interviewer</b>.</td><td>A kebab menu, on phone and in person only.</td></tr>
+  <tr><th style="width:22%">Location</th><th style="width:30%">Waiting tab holds</th><th>Status reads</th></tr>
+  <tr><td><b>JobFairX video</b></td><td><b>Interview rooms</b> — in a room, an interviewer free<br><b>Waiting rooms</b> — in a room, nobody free yet</td><td><b>Ready</b><br><b>Awaiting available interviewer</b></td></tr>
+  <tr><td><b>Phone</b></td><td rowspan="3">One list of everyone checked in, ordered longest wait first. The column is headed <b>Waiting</b>.</td><td rowspan="3"><b>Checked in</b> — with <b>No answer · N attempts</b> as the one exception, on phone</td></tr>
+  <tr><td><b>In person</b></td></tr>
+  <tr><td><b>External link</b></td></tr>
 </table>
+<p>On the single list, <b>every row carries both</b> the primary action and the row menu. On JobFairX video the primary action is on the Interview-rooms rows and there is no row menu at all.</p>
 
-<h4>The Waiting-rooms kebab isn't a convenience</h4>
-<p>Nothing tells the app that a phone or in-person candidate has left. This menu is the <b>only way</b> they ever leave that section without being interviewed.</p>
+<h4>The row menu isn't a convenience</h4>
+<p>Nothing tells the app that a phone, in-person or external-link candidate has left. This menu is the <b>only way</b> they ever leave the list without being interviewed.</p>
 <ul>
-  <li><b>Interview next</b> — in person only. Pulls someone forward out of queue order, because the physical queue and the system queue drift apart.</li>
   <li><b>Mark as interviewed</b> — records an interview the app never saw. Asks for the interviewer and the actual time; the confirm button stays disabled until both are filled.</li>
   <li><b>Didn't show</b> — the manual no-show.</li>
 </ul>
-
-<h4>Status wording</h4>
-<p>“Entering interview room” describes a video transition and nothing else. On phone and in person those rows read <b>Awaiting available interviewer</b>.</p>
+<p>There is no out-of-order override, because with one list there is no order to override — the recruiter starts whoever they want.</p>
 
 <h3>Interviewing tab</h3>
 <p>Columns: Name | Desired job | Desired location | <b>Interview location</b> | Interview time | Interview duration | Interviewer | <i>Notes</i> | Action.</p>
 <table>
-  <tr><th style="width:22%">Location</th><th>Action group</th></tr>
-  <tr><td>Video</td><td>Rejoin · End interview</td></tr>
+  <tr><th style="width:26%">Location</th><th>Action group</th></tr>
+  <tr><td>JobFairX video</td><td>Rejoin · End interview</td></tr>
   <tr><td>Phone</td><td><b>Call again</b> · End interview. “Call again” replaces Rejoin — a different action with a real use case, styled secondary.</td></tr>
-  <tr><td>In person</td><td><b>End interview</b> alone, promoted to primary. No Join, no Rejoin, no video controls.</td></tr>
+  <tr><td>In person</td><td><b>End interview</b> alone, promoted to primary.</td></tr>
+  <tr><td>External link</td><td><b>End interview</b> alone. No Rejoin — there is no JobFairX room to rejoin.</td></tr>
 </table>
-<p>The <b>Notes</b> column appears on phone and in person only, between Interviewer and Action.</p>
+<p>The <b>Notes</b> column appears on phone, in person and external link, between Interviewer and Action. JobFairX video takes notes inside its own room, so it has no Notes column.</p>
 
-<h3>Your status — video only</h3>
-<p>The <b>Your status: Available / Away</b> control in the live header, and the “Ready to start interviewing?” card it drives, appear on <b>video events only</b>.</p>
-<p>The reason, so it doesn't look like an oversight: phone and in person have no promotion step for an availability flag to gate. The candidate checks in, lands in Waiting rooms, and the next thing that happens is physical — the recruiter walks out and collects them, or dials them. Nothing is pushed to the candidate either way.</p>
+<h3>Your status — JobFairX video only</h3>
+<p>The <b>Your status: Available / Away</b> control in the live header, and the “Ready to start interviewing?” card it drives, appear on <b>JobFairX video events only</b>.</p>
+<p>The reason, so it doesn't look like an oversight: the other three have no promotion step for an availability flag to gate. The candidate checks in, lands in the list, and the next thing that happens is physical — the recruiter walks out and collects them, or dials them, or opens Teams. Nothing on this screen decides when a candidate is admitted, and nothing here reaches them.</p>
 
 <h3>Lobby kebab</h3>
 <table>
-  <tr><th style="width:38%">Item</th><th style="width:24%">Video</th><th>Phone &amp; in person</th></tr>
+  <tr><th style="width:38%">Item</th><th style="width:24%">JobFairX video</th><th>Phone, in person &amp; external link</th></tr>
   <tr><td>Add interviewers</td><td>shown</td><td>shown</td></tr>
   <tr><td>Update display name</td><td>shown</td><td><b>hidden, in every state</b></td></tr>
   <tr><td>Test video and audio</td><td>shown</td><td><b>hidden, in every state</b></td></tr>
   <tr><td>End event for all interviewers</td><td>live only</td><td>live only</td></tr>
 </table>
-<p>Display name exists to label the interviewer inside the video room, and phone and in person never open one. Both items are hidden in every state rather than only when live — a menu that changes shape partway through an event is worse than one item fewer.</p>
+<p>Display name labels the interviewer inside the JobFairX room and the A/V test exercises the JobFairX video stack — neither reaches a candidate on a phone call, in your lobby, or in a Teams meeting. Both are hidden in every state rather than only when live: a menu that changes shape partway through an event is worse than one item fewer.</p>
+
+<h3>Prepare for your interview</h3>
+<p>The pre-event card, shown before the event starts. <b>Three rows, identical for every location</b> — it is the first prep surface that stopped branching.</p>
+<table>
+  <tr><th style="width:30%">Row</th><th>Behaviour</th></tr>
+  <tr><td><b>Review your candidates</b></td><td>States how many are waiting to be reviewed.</td></tr>
+  <tr><td><b>Add interviewers to the event</b></td><td>States seats used against the plan. When the seats are full the heading becomes <b>Interviewers for this event</b> and the button becomes <b>View interviewers</b> — never hidden, so there is always a way in to see the list or remove someone.</td></tr>
+  <tr><td><b>Automations</b></td><td><b>Set up automations</b> when none are on, <b>Update automations</b> with a count when some are. Routes to the Automations tab rather than opening a single-automation modal.</td></tr>
+</table>
+<p>The location-specific tip that used to sit at the top of this card is gone. It told employers things they can already see elsewhere — the A/V test is in the header and on the dashboard, the calling note is on the dashboard row, the address is in the header behind Parking &amp; arrival.</p>
 
 <!-- ═══ 5 ═══ -->
 <h2 id="s5"><span class="num">5</span>Phone</h2>
@@ -223,7 +234,6 @@ tr:last-child td{border-bottom:none}
 <h2 id="s6"><span class="num">6</span>In person</h2>
 <ul>
   <li><b>Start interview</b> moves the row in place. No new window, no modal.</li>
-  <li><b>Interview next</b> on the Waiting-rooms kebab pulls a candidate forward out of order.</li>
   <li><b>Mark as interviewed</b> records an interview the app never saw.</li>
   <li>The <b>Parking &amp; arrival</b> modal in the lobby header shows the address, parking instructions and arrival instructions entered in Edit Post.</li>
   <li>The schedule modal blocks Send until street, city, state and ZIP are complete.</li>
@@ -231,12 +241,12 @@ tr:last-child td{border-bottom:none}
 
 <!-- ═══ 7 ═══ -->
 <h2 id="s7"><span class="num">7</span>Notes</h2>
-<p>Video takes notes inside the interview room. Phone and in person never open that room, so before this work their only surface was the Interviewed tab — <i>after</i> the interview had ended. An employer interviewing in person with a laptop had nowhere to write.</p>
+<p>JobFairX video takes notes inside its interview room. Phone, in person and external-link events never open that room, so before this work their only surface was the Interviewed tab — <i>after</i> the interview had ended. An employer interviewing in person with a laptop had nowhere to write.</p>
 <ul>
   <li>A <b>Notes</b> column on the Interviewing tab opens the <b>resume with a notes panel beside it</b>.</li>
   <li>Side by side is the primary layout, because being able to read and write at once is the entire point. Tabs alone would cut clicks without letting you see both.</li>
   <li>Below <b>1100px</b> the panel collapses into <b>Resume / Notes tabs</b> as the responsive fallback.</li>
-  <li><b>Video is untouched</b> — no panel, no tabs.</li>
+  <li><b>JobFairX video is untouched</b> — no panel, no tabs. It keeps its in-room notes.</li>
   <li>The small notes modal is <b>kept</b> for the Interviewed tab. A quick after-the-fact edit doesn't need the resume.</li>
   <li>The resume modal header was reduced from <b>178px to 79px</b>, taking resume visibility from 60% to 82% of the modal.</li>
 </ul>
@@ -251,7 +261,7 @@ tr:last-child td{border-bottom:none}
 <table>
   <tr><th style="width:14%">Answer</th><th>Result</th></tr>
   <tr><td><b>Yes</b></td><td>The row moves to Interviewed carrying the rating, the interviewer, the actual time, and the note. Tab counts follow.</td></tr>
-  <tr><td><b>No</b></td><td>The candidate goes back to <b>Waiting rooms</b>.</td></tr>
+  <tr><td><b>No</b></td><td>The candidate goes back to <b>Waiting to interview</b>, rejoining the list with their wait reset. On JobFairX video the original wording and destination are unchanged.</td></tr>
 </table>
 <p>The rating modal <b>pre-fills whatever note already exists</b> for that candidate, relabelled <b>Interview notes</b>, with a line saying where it came from. It must never open with the notes field blank — that destroys notes taken during the interview.</p>
 <p>Ratings are <b>Yes / Maybe / No</b>. JobFairX doesn't track hires, so the recruiter's rating is the outcome measure.</p>
@@ -301,10 +311,9 @@ tr:last-child td{border-bottom:none}
   <tr><th style="width:15%">Where</th><th style="width:28%">Video</th><th style="width:28%">Phone</th><th>In person</th></tr>
   <tr><td>Primary action</td><td>Start interview</td><td><b>Call candidate</b></td><td>Start interview</td></tr>
   <tr><td>In progress</td><td>Rejoin</td><td><b>Call again</b></td><td><i>none</i></td></tr>
-  <tr><td>End modal, second option</td><td>…return to the front of the interview line and be able to join the interview again.</td><td>…goes back to Waiting rooms so you can call again.</td><td>…goes back to Waiting rooms. Start again when you're ready.</td></tr>
+  <tr><td>End modal, second option</td><td>…return to the front of the interview line and be able to join the interview again.</td><td>…goes back to Waiting to interview so you can call again.</td><td>…goes back to Waiting to interview. Start again when you're ready.</td></tr>
   <tr><td>No-show reason</td><td>Marked no-show automatically — did not join the interview room.</td><td>Marked no-show — no answer.</td><td>Marked no-show — did not arrive.</td></tr>
   <tr><td>Pre-event empty state</td><td>…waiting for you to join.</td><td>Your scheduled candidates will appear here. Call each one at their scheduled time.</td><td>…in interview order. Start each interview when you meet them.</td></tr>
-  <tr><td>Prep card</td><td>Test your audio and video</td><td>Confirm your calling setup</td><td>Check your interview address</td></tr>
   <tr><td>Feedback descriptor</td><td>Audio, video, scheduling and reliability during interviews</td><td>Audio, scheduling, reliability during interviews</td><td>Scheduling and reliability during interviews</td></tr>
 </table>
 
@@ -356,8 +365,7 @@ tr:last-child td{border-bottom:none}
 <h2 id="s13"><span class="num">13</span>Designed, not yet built</h2>
 <table>
   <tr><th style="width:30%">Item</th><th>Where it stands</th></tr>
-  <tr><td><b>External video link surface</b></td><td>Designed. The dashboard cell shows the platform name only; the URL and <b>Copy link</b> live in the lobby header, which is where the employer is on event day.</td></tr>
-  <tr><td><b>Candidate check-in</b></td><td>Designed, candidate side not built. The candidate checks in → <b>Waiting rooms</b>; when an interviewer is free they move to Interview rooms; the employer then starts. Identical across all three locations. In person means “I'm here”; phone means “I'm ready for your call.” This is what makes Waiting rooms populate.</td></tr>
+  <tr><td><b>Candidate check-in</b></td><td>Designed, candidate side not built. The candidate checks in and lands in <b>Waiting to interview</b>; the employer starts when ready. In person this means “I'm here”; on phone and external link, “I'm ready.” It is the candidate's only action in the whole flow, and it is what makes the list populate.</td></tr>
   <tr><td><b>Job seeker app</b></td><td>Untouched for phone and in person.</td></tr>
   <tr><td><b>Emails</b></td><td>Four employer templates still say “test your microphone and camera.” Held deliberately until both sides are settled.</td></tr>
   <tr><td><b>Troubleshooting page</b></td><td>Entirely camera and mic content. Needs phone and in-person sections.</td></tr>

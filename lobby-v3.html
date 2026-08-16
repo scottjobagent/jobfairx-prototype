@@ -4305,6 +4305,12 @@ function setPrepDevMode(mode, btn) {
   updatePrepStates();
 }
 
+/* The prepare card ships with seeded copy in the markup, so without this the
+   seat states never applied until someone touched a dev toggle — the row read
+   "You added 1 interviewer" instead of the plan and seat count. */
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', updatePrepStates);
+else updatePrepStates();
+
 var creditsDevMode = 'has-credits';
 function setCreditsDevMode(mode, btn) {
   var parent = btn.closest('.dev-toggle-switch');
@@ -5798,9 +5804,11 @@ else document.addEventListener("DOMContentLoaded", initBgCpxDrag);
      Rows may carry data-method to override the event default (mixed events,
      created when an employer edits the method but keeps confirmed candidates
      on their original one).
-     The live view's two sections are NOT restructured: Interview rooms means an
-     interviewer is free and you can start now; Waiting rooms means checked in
-     and waiting their turn. That holds for every method. ══════════════════ -->
+     The live view's two sections survive on JobFairX video only, where they are
+     literal: Interview rooms means the candidate is in a room and an
+     interviewer is free; Waiting rooms means in a room, waiting their turn.
+     Phone, in-person and external-link events show one list — nothing there
+     computes a promotion, so there is no second state to show. ═══════════ -->
 <style>
 /* Interview method chip — sized to match .status-badge exactly */
 .jm { display:inline-flex; align-items:center; gap:6px; padding:3px 9px; border-radius:12px; font-size:12px; font-weight:600; white-space:nowrap; line-height:1.5; }
@@ -6032,13 +6040,15 @@ a.jm-cp-num:hover { color:#0044B3; }
     host.appendChild(el);
   }
 
-  /* ═══ 2. Waiting tab — both sections stay ═══
-     Interview rooms = an interviewer is free and you can start now.
-     Waiting rooms  = checked in, waiting their turn.
-     Identical structure across all three methods; only the Action column
-     differs. Nothing detects that a phone or in-person candidate has left,
-     so the Waiting-rooms menu is the only way anyone exits that section
-     without being interviewed. */
+  /* ═══ 2. Waiting tab — one list ═══
+     JobFairX video keeps two sections, where they are literal and the
+     promotion between them is computed from two facts the platform can see.
+     Here there is no room and nothing computes a promotion, so both sections
+     meant the same thing: this person is here and waiting for you.
+
+     One list instead. Nothing detects that a phone or in-person candidate has
+     left, so every row carries the menu as well as the action — that menu is
+     the only way anyone leaves the list without being interviewed. */
   var DOTS = '<svg viewBox="0 0 24 24" fill="#0044B3"><circle cx="6" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="18" cy="12" r="2"/></svg>';
 
   function roomsAction(tr) {
@@ -6199,14 +6209,16 @@ a.jm-cp-num:hover { color:#0044B3; }
      can push someone back into. That is true for video, where the candidate
      leaves your room and could be picked up by another interviewer. It reads
      oddly to someone sitting across a table from you. Name the real
-     destination instead: they go back to Waiting rooms — checked in, not
-     interviewed, ready to start again. Video keeps its original wording. */
+     destination instead: they go back to Waiting to interview — checked in,
+     not interviewed, ready to start again. That is the tab they return to, and
+     with one list there is no section beneath it to name. JobFairX video keeps
+     its original wording. */
   function fixEndModal() {
     var lbl = document.querySelector('label[for="endIvNo"]');
     if (!lbl) return;
     var tail = m === 'phone'
-      ? ' goes back to Waiting rooms so you can call again.'
-      : ' goes back to Waiting rooms. Start again when you\'re ready.';
+      ? ' goes back to Waiting to interview so you can call again.'
+      : ' goes back to Waiting to interview. Start again when you\'re ready.';
     lbl.innerHTML = 'No &mdash; <span class="end-iv-name-inline"></span>' + tail;
   }
 
@@ -6540,7 +6552,8 @@ a.jm-cp-num:hover { color:#0044B3; }
     bumpTab('Interviewed', 1);
   }
 
-  /* "No" now says the candidate goes back to Waiting rooms, so send them there. */
+  /* "No" says the candidate goes back to Waiting to interview, so send them
+     to the single list and let it re-sort around them. */
   function returnToWaiting(name) {
     var src = findIvRow(name);
     var wait = document.querySelectorAll('#waitingLive .live-panel-section')[0];
@@ -7148,9 +7161,9 @@ a.jm-cp-num:hover { color:#0044B3; }
 <!-- ═══════════════════════════════════════════════════════════════════════
      YOUR STATUS — JOBFAIRX VIDEO ONLY
      Phone and in-person have no promotion event for the availability pill to
-     gate. The candidate checks in, lands in Waiting rooms, and the next thing
-     that happens is physical: the recruiter walks out and collects them, or
-     dials them. Nothing is pushed to the candidate either way, so a
+     gate. The candidate checks in, lands in the waiting list, and the next
+     thing that happens is physical: the recruiter walks out and collects them,
+     or dials them. Nothing is pushed to the candidate either way, so a
      self-reported "Available / Away" flag has no job on those two methods —
      and the "Ready to start interviewing?" card exists only to prompt you out
      of Away, so it goes with it.
