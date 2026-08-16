@@ -1553,8 +1553,8 @@ body.join-live .iv-tip { display:none !important; }
     row.appendChild(inp); row.appendChild(btn); l.appendChild(row);
   }
   function setTab(t, el){
-    document.getElementById('tab-upcoming').classList.toggle('hidden', t!=='upcoming');
-    document.getElementById('tab-past').classList.toggle('hidden', t!=='past');
+    var _tu=document.getElementById('tab-upcoming'); if(_tu) _tu.classList.toggle('hidden', t!=='upcoming');
+    var _tp=document.getElementById('tab-past'); if(_tp) _tp.classList.toggle('hidden', t!=='past');
     document.querySelectorAll('#dashFilter .tab-pill').forEach(p=>p.classList.remove('active'));
     el.classList.add('active');
   }
@@ -2412,14 +2412,18 @@ arrivalInstructions: string (optional, multiline)
   // take over state + method switching
   var _setDemo=window.setDemo;
   window.setDemo=function(val,el){
-    if(val==='newuser'){ if(_setDemo) _setDemo(val,el); return; }
-    SSTATE=val;
-    if(typeof PHASE!=='undefined') PHASE=(val==='joinnow')?'live':(val==='injoined')?'joined':'before';
-    if(typeof applyAccount==='function') applyAccount(false);
-    CARD.render();
-    if(typeof setTab==='function'){ var tp=document.querySelector('#dashFilter .tab-pill'); if(tp) setTab('upcoming',tp); }
+    if(val==='newuser'){ if(_setDemo) try{ _setDemo(val,el); }catch(e){} return; }
+    var MAPJ={notmatched:'waiting',schedule:'invited',pending:'requested',confirmed:'confirmed',
+              joinnow:'joinnow',injoined:'injoined',proposed:'proposed',declined:'declined',multi:'confirmed'};
+    var j = MAPJ[val] || val;
+    SSTATE=j;
+    if(typeof PHASE!=='undefined') PHASE=(j==='joinnow')?'live':(j==='injoined')?'joined':'before';
+    if(typeof applyAccount==='function') try{ applyAccount(false); }catch(e){}
+    if(window.IVW) IVW.journey(j);
+    var chip=document.querySelector('.mprev-st[data-s="'+j+'"]');
+    if(chip){ document.querySelectorAll('.mprev-st').forEach(function(b){b.classList.remove('active');}); chip.classList.add('active'); }
     if(el){ var d=el.closest('.dev'); if(d) d.querySelectorAll('button:not(.dev-msg-btn):not(.dev-prof-btn):not(.dev-dev-btn)').forEach(function(b){b.classList.remove('active');}); el.classList.add('active'); }
-  };
+  };;
   var _setMethod=window.setMethodBtn;
   window.setMethodBtn=function(el){ if(_setMethod) _setMethod(el); if(window.IVW) IVW.render(); };
   var _setState=window.setStateBtn;
