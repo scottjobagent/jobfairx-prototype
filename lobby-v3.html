@@ -6036,15 +6036,30 @@ a.jm-cp-num:hover { color:#0044B3; }
   }
 
   /* ═══ 3. Interviewing tab — the action group per method ═══ */
-  function isMixed() {
-    var seen = {};
-    document.querySelectorAll('#waitingLive tbody tr, #interviewingLive tbody tr').forEach(function(tr) {
-      if (!tr.querySelector('td[colspan]')) seen[rowMethod(tr)] = 1;
+  /* Method is a permanent column, not a conditional one. A column that appears
+     and disappears depending on whether an event happens to be mixed is more
+     confusing than one that is simply always there — so this runs for every
+     method, video included. */
+  function methodColumn() {
+    document.querySelectorAll('#interviewingLive .live-table thead tr').forEach(function(hr) {
+      if (hr.children.length === 7 && !hr.querySelector('.jm-mcol')) {
+        var th = document.createElement('th');
+        th.className = 'jm-mcol'; th.style.width = '11%'; th.textContent = 'Method';
+        hr.insertBefore(th, hr.children[3]);
+        hr.children[0].style.width = '14%'; hr.children[1].style.width = '12%'; hr.children[2].style.width = '10%';
+      }
     });
-    return Object.keys(seen).length > 1;
+    document.querySelectorAll('#interviewingLive .live-table tbody tr').forEach(function(tr) {
+      if (tr.querySelector('td[colspan]') || tr.querySelector('.jm-mcell')) return;
+      if (tr.children.length !== 7) return;
+      var td = document.createElement('td');
+      td.className = 'jm-mcell';
+      td.innerHTML = chip(rowMethod(tr));
+      tr.insertBefore(td, tr.children[3]);
+    });
   }
+
   function fixInterviewing() {
-    var mixed = isMixed();
     document.querySelectorAll('#interviewingLive .interview-actions').forEach(function(grp) {
       var tr = grp.closest('tr');
       var k = rowMethod(tr);
@@ -6064,23 +6079,7 @@ a.jm-cp-num:hover { color:#0044B3; }
         b.onmouseout = function(){ this.style.background = '#0044B3'; };
       }
     });
-    if (!mixed) return;
-    document.querySelectorAll('#interviewingLive .live-table thead tr').forEach(function(hr) {
-      if (hr.children.length === 7 && !hr.querySelector('.jm-mcol')) {
-        var th = document.createElement('th');
-        th.className = 'jm-mcol'; th.style.width = '11%'; th.textContent = 'Method';
-        hr.insertBefore(th, hr.children[3]);
-        hr.children[0].style.width = '14%'; hr.children[1].style.width = '12%'; hr.children[2].style.width = '10%';
-      }
-    });
-    document.querySelectorAll('#interviewingLive .live-table tbody tr').forEach(function(tr) {
-      if (tr.children.length === 7 && !tr.querySelector('.jm-mcell')) {
-        var td = document.createElement('td');
-        td.className = 'jm-mcell';
-        td.innerHTML = chip(rowMethod(tr));
-        tr.insertBefore(td, tr.children[3]);
-      }
-    });
+    methodColumn();
   }
 
   /* ═══ 4. End-interview modal — the second option describes the wrong
@@ -6496,6 +6495,7 @@ a.jm-cp-num:hover { color:#0044B3; }
     headerLine();
     guard('startInterview');
     guard('rejoinInterview');
+    methodColumn();          /* permanent, every method */
     if (m === 'video') return;
     adaptWaiting(document.getElementById('waitingLive'));
     adaptWaiting(document.getElementById('waitingLiveEmpty'));
@@ -6814,6 +6814,13 @@ a.jm-cp-num:hover { color:#0044B3; }
 .sfx-hint { font-size:12.5px; color:#767676; line-height:1.5; margin-top:10px; }
 .sfx-err { display:none; align-items:center; gap:7px; color:#991b1b; font-size:13px; font-weight:600; margin-top:9px; }
 .sfx-err.on { display:flex; }
+/* The three formats are different heights — video has two radios, phone one
+   note, in-person seven fields. Centred, the modal re-centres on every switch
+   and the whole thing lurches. Pin the top edge instead: growth happens at the
+   bottom and nothing you are looking at moves. Scoped so no other modal
+   changes. */
+#scheduleModal { align-items: flex-start; }
+#scheduleModal .sched-modal-box, #scheduleModal .modal-box { margin-top: 40px; margin-bottom: 40px; max-height: calc(100vh - 96px); }
 @media (max-width:900px){ .sfx-split{ display:block } .sfx-l{ width:auto; flex:none; border-right:none; border-bottom:1px solid #e8e6e3 } }
 </style>
 <script>
