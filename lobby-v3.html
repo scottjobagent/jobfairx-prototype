@@ -5806,6 +5806,11 @@ else document.addEventListener("DOMContentLoaded", initBgCpxDrag);
 .jm-line { display:flex; align-items:center; gap:10px; margin-top:10px; font-size:15px; color:#595959; }
 .jm-line a { color:#0044B3; text-decoration:underline; cursor:pointer; font-weight:600; }
 .jm-line b { color:#2d2d2d; font-weight:600; }
+.jm-vtp { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.jm-vurl { font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:12px; color:#767676; }
+.jm-vcopy { display:inline-flex; align-items:center; gap:5px; font-size:12px; color:#0044B3; text-decoration:underline; cursor:pointer; background:none; border:0; padding:0; font-family:inherit; }
+.jm-vcopy svg { width:13px; height:13px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+.jm-vcopy.done { color:#166534; text-decoration:none; font-weight:600; }
 /* Secondary variant of the existing primary button — for rows not yet due */
 .start-interview-btn.jm-sec { background:#fff; color:#0044B3; border:1px solid #d4d2d0; }
 .start-interview-btn.jm-sec:hover { background:#f0f5ff; border-color:#0044B3; }
@@ -5912,6 +5917,33 @@ a.jm-cp-num:hover { color:#0044B3; }
     else { var st = sessionStorage.getItem('jfxMethod'); if (st && VALID[st]) m = st; }
   } catch (e) {}
 
+  /* A video event may run on the employer's own meeting link, carried through
+     from the dashboard. Absent it, video behaves exactly as it always has.
+     Deliberately NOT persisted: the method is a demo-wide mode, but a meeting
+     link belongs to one event. Persisting it would leak that event's link onto
+     every other video event. It survives a reload via the query string. */
+  var VURL = '';
+  try {
+    var qv = (location.search.match(/[?&]vurl=([^&]+)/) || [])[1];
+    if (qv) VURL = decodeURIComponent(qv);
+  } catch (e) {}
+  var VHOSTS = [
+    [/(^|\.)teams\.microsoft\.com$/, 'Microsoft Teams'],
+    [/(^|\.)zoom\.us$/,               'Zoom'],
+    [/(^|\.)meet\.google\.com$/,     'Google Meet'],
+    [/(^|\.)webex\.com$/,             'Webex']
+  ];
+  function platformOf(url) {
+    var host = '';
+    try { host = new URL(url).hostname.toLowerCase(); } catch (e) { return 'External video link'; }
+    for (var i = 0; i < VHOSTS.length; i++) if (VHOSTS[i][0].test(host)) return VHOSTS[i][1];
+    return 'External video link';
+  }
+  function shortUrl(url) {
+    var s = String(url).replace(/^https?:\/\//, '');
+    return s.length > 46 ? s.slice(0, 46) + '\u2026' : s;
+  }
+
   var PATH = {
     video: '<polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/>',
     phone: '<path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6A19.8 19.8 0 012.1 4.2 2 2 0 014.1 2h3a2 2 0 012 1.7c.1 1 .4 1.9.7 2.8a2 2 0 01-.5 2.1L8.1 9.9a16 16 0 006 6l1.3-1.3a2 2 0 012.1-.4c.9.3 1.8.6 2.8.7a2 2 0 011.7 2z"/>',
@@ -5961,6 +5993,15 @@ a.jm-cp-num:hover { color:#0044B3; }
     var body;
     if (m === 'phone') body = '<span>You call each candidate at their scheduled time</span>';
     else if (m === 'person') body = '<span>2200 Ross Ave, Suite 400, Dallas, TX 75201</span><a onclick="JFXM.addr()">Parking &amp; arrival</a>';
+    else if (VURL) {
+      /* Event day is when the employer needs the link, so this is where it
+         lives — not on the dashboard. */
+      body = '<span class="jm-vtp"><b>' + platformOf(VURL) + '</b>' +
+        '<span class="jm-vurl">' + shortUrl(VURL) + '</span>' +
+        '<button class="jm-vcopy" onclick="JFXM.copyMeet(this)">' +
+          '<svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/>' +
+          '<path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> Copy link</button></span>';
+    }
     else body = '<span>JobFairX video call</span>';
     el.innerHTML = chip(m, true) + body;
     host.appendChild(el);
@@ -6107,6 +6148,17 @@ a.jm-cp-num:hover { color:#0044B3; }
   /* ═══ Public API ═══ */
   var CP = null;
   window.JFXM = {
+    copyMeet: function (btn) {
+      try { navigator.clipboard.writeText(VURL); } catch (e) {}
+      if (btn.dataset.busy) return;
+      btn.dataset.busy = '1';
+      var html = btn.innerHTML;
+      btn.classList.add('done');
+      btn.innerHTML = '<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Copied';
+      setTimeout(function () {
+        btn.classList.remove('done'); btn.innerHTML = html; delete btn.dataset.busy;
+      }, 2000);
+    },
     get: function(){ return m; },
     is: function(k){ return m === k; },
     label: function(k){ return LABEL[k || m]; },

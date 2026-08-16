@@ -6616,6 +6616,22 @@ try {
     'atlanta-diversity': 'person',
     'houston-veteran': 'video'
   };
+  /* A video event can run on JobFairX video or on the employer's own meeting
+     link. That is a variant of Video, not a fourth location — same chip, same
+     icon, same label. Only the payload line below the chip differs. */
+  var EVENT_URL = { 'houston-veteran': 'https://teams.microsoft.com/l/meetup-join/19:meeting_ZjQxYTk4@thread.v2/0' };
+  var HOSTS = [
+    [/(^|\.)teams\.microsoft\.com$/, 'Microsoft Teams'],
+    [/(^|\.)zoom\.us$/,               'Zoom'],
+    [/(^|\.)meet\.google\.com$/,     'Google Meet'],
+    [/(^|\.)webex\.com$/,             'Webex']
+  ];
+  function platformOf(url) {
+    var host = '';
+    try { host = new URL(url).hostname.toLowerCase(); } catch (e) { return 'External video link'; }
+    for (var i = 0; i < HOSTS.length; i++) if (HOSTS[i][0].test(host)) return HOSTS[i][1];
+    return 'External video link';
+  }
   var NAME_METHOD = {
     'Dallas Healthcare Event': 'video', 'Dallas Hiring Event': 'video',
     'Chicago Technology Event': 'phone', 'Chicago Healthcare Hiring Event': 'phone',
@@ -6647,14 +6663,19 @@ try {
       cell.innerHTML = chip(k);   /* the chip carries the label; don't say it twice */
       var sub = document.createElement('div');
       sub.className = 'cell-method-sub';
-      sub.innerHTML = SUB[k];
+      var url = EVENT_URL[tr.getAttribute('data-dash-event')];
+      /* No URL text and no copy control here — the dashboard is a scanning
+         surface. The link itself lives in the lobby, on event day. */
+      sub.innerHTML = (k === 'video' && url) ? platformOf(url) : SUB[k];
       cell.parentNode.insertBefore(sub, cell.nextSibling);
       /* Carry the method through to the lobby, which opens in a new tab. */
       tr.querySelectorAll('a, button').forEach(function(el) {
         var h = el.getAttribute('onclick') || '';
         if (h.indexOf('lobby-v3') === -1) return;
         el.setAttribute('onclick', h.replace(/lobby-v3(-healthcare)?\.html([^'"]*)/g, function(_, hc, qs) {
-          return 'lobby-v3' + (hc || '') + '.html' + (qs ? qs + '&' : '?') + 'method=' + k;
+          var u = (k === 'video' && EVENT_URL[tr.getAttribute('data-dash-event')]) || '';
+          return 'lobby-v3' + (hc || '') + '.html' + (qs ? qs + '&' : '?') + 'method=' + k +
+                 (u ? '&vurl=' + encodeURIComponent(u) : '');
         }));
       });
     });
