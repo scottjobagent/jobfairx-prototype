@@ -4108,6 +4108,10 @@ function getScheduleName(el) {
   if (tr) {
     var ivName = tr.querySelector('.iv-review-name');
     if (ivName) return ivName.textContent;
+    /* Interviews-tab rows carry the name in a bare div, so the selector above
+       missed them and every title read "Schedule with Candidate". */
+    var firstCell = tr.querySelector('td div');
+    if (firstCell && firstCell.textContent.trim()) return firstCell.textContent.trim();
   }
   var resumeName = document.getElementById('ivResumeName');
   if (resumeName && resumeName.textContent) return resumeName.textContent;
@@ -7308,4 +7312,210 @@ document.addEventListener('click', function(e){
 })();
 </script>
 
+
+<!-- ═══════════ FORMAT ON THE SCHEDULE / RESCHEDULE MODAL ═══════════
+     Interview Settings sets the method for the whole event. Reschedule sets it
+     for one interview, so an employer can move a single candidate to a phone
+     screen or bring them in without changing anything for everyone else.
+     Built on the JobAgentX schedule modal: two columns, a segmented Format
+     control, and the format's own fields dropping in underneath it.
+     The picker opens on the event's method, and one format applies to the
+     whole proposal rather than per suggested time. ══════════════════════ -->
+<style>
+.sfx-split { display:flex; align-items:stretch; gap:0; }
+.sfx-l { width:420px; flex:0 0 420px; background:#f7f6f5; padding:22px 22px 8px; border-right:1px solid #e8e6e3; }
+.sfx-r { flex:1; padding:22px 22px 8px; min-width:0; }
+.sfx-lbl { font-size:15px; font-weight:700; color:#2d2d2d; display:block; margin-bottom:8px; }
+.sfx-lbl .rq { color:#991b1b; margin-left:2px; }
+.sfx-seg { display:inline-flex; gap:8px; flex-wrap:wrap; }
+.sfx-seg .sg { display:inline-flex; align-items:center; gap:7px; height:36px; padding:6px 15px; border-radius:8px; border:1px solid #d4d2d0; background:#fff; color:#2d2d2d; font-family:inherit; font-size:14px; font-weight:600; cursor:pointer; }
+.sfx-seg .sg:hover { background:#f3f2ef; }
+.sfx-seg .sg.on { background:#2d2d2d; border-color:#2d2d2d; color:#fff; }
+.sfx-seg .sg svg { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+.sfx-pane { display:none; margin-top:16px; }
+.sfx-pane.on { display:block; }
+.sfx-rad { display:flex; gap:10px; align-items:flex-start; margin-bottom:14px; cursor:pointer; }
+.sfx-rad .dot { flex:0 0 20px; width:20px; height:20px; margin-top:1px; border:2px solid #a8a8a8; border-radius:50%; position:relative; background:#fff; }
+.sfx-rad.on .dot { border-color:#0044B3; }
+.sfx-rad.on .dot:after { content:""; position:absolute; inset:3px; border-radius:50%; background:#0044B3; }
+.sfx-rad .ttl { display:inline-flex; align-items:center; gap:8px; font-size:15px; color:#2d2d2d; flex-wrap:wrap; }
+.sfx-rad.on .ttl { font-weight:700; }
+.sfx-badge { background:#e6f1fb; color:#0c447c; font-size:11px; font-weight:700; border-radius:6px; padding:3px 9px; }
+.sfx-sub { display:block; font-size:13px; color:#595959; line-height:1.5; margin-top:4px; }
+.sfx-note { background:#fff; border-left:4px solid #0044b3; border-radius:0 6px 6px 0; padding:12px 15px; font-size:13.5px; line-height:1.55; color:#595959; }
+.sfx-in { width:100%; height:42px; border:1px solid #d4d2d0; border-radius:10px; padding:9px 12px; font-family:inherit; font-size:14.5px; color:#2d2d2d; background:#fff; box-sizing:border-box; }
+.sfx-in:focus, .sfx-ta:focus { outline:none; border-color:#0044b3; box-shadow:0 0 0 3px rgba(0,68,179,.12); }
+.sfx-ta { width:100%; min-height:70px; border:1px solid #d4d2d0; border-radius:10px; padding:9px 12px; font-family:inherit; font-size:14.5px; color:#2d2d2d; background:#fff; resize:vertical; box-sizing:border-box; }
+.sfx-two { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:12px; }
+.sfx-fl { font-size:13.5px; font-weight:700; color:#2d2d2d; display:block; margin:14px 0 6px; }
+.sfx-hint { font-size:12.5px; color:#767676; line-height:1.5; margin-top:10px; }
+.sfx-err { display:none; align-items:center; gap:7px; color:#991b1b; font-size:13px; font-weight:600; margin-top:9px; }
+.sfx-err.on { display:flex; }
+@media (max-width:900px){ .sfx-split{ display:block } .sfx-l{ width:auto; flex:none; border-right:none; border-bottom:1px solid #e8e6e3 } }
+</style>
+<script>
+(function(){
+  var P = {
+    video:'<polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/>',
+    phone:'<path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6A19.8 19.8 0 012.1 4.2 2 2 0 014.1 2h3a2 2 0 012 1.7c.1 1 .4 1.9.7 2.8a2 2 0 01-.5 2.1L8.1 9.9a16 16 0 006 6l1.3-1.3a2 2 0 012.1-.4c.9.3 1.8.6 2.8.7a2 2 0 011.7 2z"/>',
+    person:'<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/>'
+  };
+  function ic(k){ return '<svg viewBox="0 0 24 24">' + P[k] + '</svg>'; }
+  var S = { fmt:'video', vmode:'native' };
+  window.__schedFormat = S;
+
+  /* The event's method is the starting point: most reschedules are about the
+     time, not the format. */
+  function eventMethod(row) {
+    try {
+      if (row && row.getAttribute('data-method')) return row.getAttribute('data-method');
+      if (window.JFXM && typeof JFXM.get === 'function') return JFXM.get();
+      if (row && window.JFXM && typeof JFXM.forEvent === 'function') {
+        var ev = row.getAttribute('data-event');
+        if (ev) return JFXM.forEvent(ev);
+      }
+    } catch (e) {}
+    return 'video';
+  }
+
+  function build() {
+    var slots = document.getElementById('scheduleSlots');
+    if (!slots || document.getElementById('sfxSplit')) return false;
+    var body = slots.parentNode;
+    var suggest = body.querySelector('.schedule-suggest');
+    var msgLbl = document.getElementById('scheduleMsgLabel');
+    var msgTa  = document.getElementById('scheduleTextarea');
+
+    var split = document.createElement('div');
+    split.className = 'sfx-split'; split.id = 'sfxSplit';
+    var L = document.createElement('div'); L.className = 'sfx-l';
+    var R = document.createElement('div'); R.className = 'sfx-r';
+    split.appendChild(L); split.appendChild(R);
+
+    L.innerHTML =
+      '<label class="sfx-lbl">Format<span class="rq">*</span></label>' +
+      '<div class="sfx-seg" id="sfxSeg">' +
+        '<button type="button" class="sg on" data-f="video">' + ic('video') + 'Video</button>' +
+        '<button type="button" class="sg" data-f="phone">' + ic('phone') + 'Phone</button>' +
+        '<button type="button" class="sg" data-f="person">' + ic('person') + 'In-Person</button>' +
+      '</div>' +
+      '<div class="sfx-pane on" id="sfxPaneVideo">' +
+        '<label class="sfx-rad on" data-v="native"><span class="dot"></span><span>' +
+          '<span class="ttl">JobFairX video call <span class="sfx-badge">Recommended</span></span>' +
+          '<span class="sfx-sub">No software to download and no links to manage. We’ll send a secure video link to you and your candidate when the interview is confirmed.</span>' +
+        '</span></label>' +
+        '<label class="sfx-rad" data-v="third"><span class="dot"></span><span><span class="ttl">Third-party video conferencing</span></span></label>' +
+        '<div id="sfxUrlWrap" style="display:none">' +
+          '<label class="sfx-fl" for="sfxUrl">Meeting URL</label>' +
+          '<input type="text" class="sfx-in" id="sfxUrl" placeholder="https://...">' +
+          '<div class="sfx-hint">Paste your Zoom, Teams, Google Meet or Webex link. The candidate receives it with their confirmation.</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="sfx-pane" id="sfxPanePhone">' +
+        '<div class="sfx-note" id="sfxPhoneNote">When the candidate confirms, we send you their phone number. Call them at the scheduled time.</div>' +
+      '</div>' +
+      '<div class="sfx-pane" id="sfxPanePerson">' +
+        '<label class="sfx-fl" style="margin-top:0">Interview address<span class="rq" style="color:#991b1b">*</span></label>' +
+        '<input type="text" class="sfx-in" id="sfxStreet" placeholder="Street address">' +
+        '<div class="sfx-two"><input type="text" class="sfx-in" id="sfxSuite" placeholder="Suite / unit (optional)">' +
+          '<input type="text" class="sfx-in" id="sfxCity" placeholder="City"></div>' +
+        '<div class="sfx-two"><input type="text" class="sfx-in" id="sfxState" placeholder="State">' +
+          '<input type="text" class="sfx-in" id="sfxZip" placeholder="ZIP code"></div>' +
+        '<label class="sfx-fl" for="sfxParking">Parking instructions</label>' +
+        '<textarea class="sfx-ta" id="sfxParking" placeholder="e.g., Visitor parking is available behind Building A."></textarea>' +
+        '<label class="sfx-fl" for="sfxArrival">Arrival instructions</label>' +
+        '<textarea class="sfx-ta" id="sfxArrival" placeholder="e.g., Check in with the receptionist on the 2nd floor and ask for Human Resources."></textarea>' +
+        '<div class="sfx-hint" id="sfxAddrHint">The address, parking, and arrival details are included in the candidate’s interview confirmation.</div>' +
+        '<div class="sfx-err" id="sfxAddrErr">Please complete the interview address (street, city, state, and ZIP).</div>' +
+      '</div>';
+
+    body.insertBefore(split, slots);
+    R.appendChild(slots);
+    if (suggest) R.appendChild(suggest);
+    if (msgLbl) L.appendChild(msgLbl);
+    if (msgTa) L.appendChild(msgTa);
+
+    /* Wider box for two columns — both file families, different wrapper class. */
+    var box = document.querySelector('#scheduleModal .sched-modal-box, #scheduleModal .modal-box');
+    if (box) { box.style.width = '1040px'; box.style.maxWidth = '95vw'; }
+    var mb = body; mb.style.padding = '0';
+
+    document.getElementById('sfxSeg').addEventListener('click', function(e){
+      var b = e.target.closest('.sg'); if (!b) return;
+      setFmt(b.getAttribute('data-f'));
+    });
+    L.querySelectorAll('.sfx-rad').forEach(function(r){
+      r.addEventListener('click', function(){ setVideoMode(r.getAttribute('data-v')); });
+    });
+    return true;
+  }
+
+  function setFmt(f) {
+    S.fmt = f;
+    document.querySelectorAll('#sfxSeg .sg').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-f') === f); });
+    ['video','phone','person'].forEach(function(k){
+      var p = document.getElementById('sfxPane' + k.charAt(0).toUpperCase() + k.slice(1));
+      if (p) p.classList.toggle('on', k === f);
+    });
+    var err = document.getElementById('sfxAddrErr'); if (err) err.classList.remove('on');
+  }
+  function setVideoMode(v) {
+    S.vmode = v;
+    document.querySelectorAll('.sfx-rad').forEach(function(r){ r.classList.toggle('on', r.getAttribute('data-v') === v); });
+    var w = document.getElementById('sfxUrlWrap'); if (w) w.style.display = (v === 'third' ? 'block' : 'none');
+  }
+  window.__sfxSetFmt = setFmt;
+
+  function ready(fn){ if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn); else fn(); }
+  ready(function(){
+    if (!build()) return;
+
+    /* Reset to the event's method on every open. */
+    var oOpen = window.openScheduleModal;
+    if (typeof oOpen === 'function') {
+      window.openScheduleModal = function(el) {
+        /* The modal lives inside a .view that is display:none on the dashboard,
+           so opening it from the Interviews tab produced a 0x0 invisible modal.
+           The Candidates tab worked only because it called unhide() first.
+           Doing it here fixes every entry point at once. */
+        var mdl = document.getElementById('scheduleModal');
+        if (mdl && mdl.closest && mdl.closest('.view')) document.body.appendChild(mdl);
+        var r = oOpen.apply(this, arguments);
+        var row = (el && el.closest) ? el.closest('tr') : null;
+        setFmt(eventMethod(row));
+        setVideoMode('native');
+        ['sfxUrl','sfxStreet','sfxSuite','sfxCity','sfxState','sfxZip','sfxParking','sfxArrival'].forEach(function(id){
+          var e2 = document.getElementById(id); if (e2) e2.value = '';
+        });
+        var n = document.getElementById('scheduleTitle');
+        var who = n ? n.textContent.replace(/^Schedule with\s*/, '') : '';
+        var pn = document.getElementById('sfxPhoneNote');
+        if (pn && who) pn.textContent = 'When ' + who + ' confirms, we send you their phone number. Call them at the scheduled time.';
+        return r;
+      };
+    }
+
+    /* In-person has to have somewhere to go. Everything else the original
+       validation already covers. */
+    var oSubmit = window.submitScheduleModal;
+    if (typeof oSubmit === 'function') {
+      window.submitScheduleModal = function() {
+        if (S.fmt === 'person') {
+          var missing = ['sfxStreet','sfxCity','sfxState','sfxZip'].some(function(id){
+            var e2 = document.getElementById(id); return !e2 || !e2.value.trim();
+          });
+          var err = document.getElementById('sfxAddrErr');
+          if (err) err.classList.toggle('on', missing);
+          if (missing) return;
+        }
+        var row = window.scheduleSourceRow || null;
+        var r = oSubmit.apply(this, arguments);
+        /* Stamp the interview so the rest of the app renders it correctly. */
+        if (row && row.setAttribute) row.setAttribute('data-method', S.fmt);
+        return r;
+      };
+    }
+  });
+})();
+</script>
 </body></html>
