@@ -725,13 +725,15 @@ body.join-live .iv-tip { display:none !important; }
        border:none; border-radius:8px; padding:14px 28px; cursor:pointer; font-family:inherit; }
 .evx .evx-cta button:hover { background:#003399; }
 
-.tlm{margin:12px 0 14px}
-.tlm-bar{display:flex;gap:3px}
-.tlm-seg{flex:1 1 0;min-width:0;height:4px;border-radius:2px;background:#e6e3df}
-.tlm-seg.done{background:#186a3b}
-.tlm-seg.now{background:#0044B3}
-.tlm-cap{font-size:12px;color:#6e6e6e;margin-top:8px;line-height:1.4}
-.tlm.dead .tlm-seg{background:#e6e3df}
+.evc-next{font-size:14px;color:#595959;line-height:1.55;max-width:760px}
+.evc-iv{display:flex;align-items:center;justify-content:space-between;gap:16px;background:#faf9f7;
+  border:1px solid #e6e3df;border-radius:10px;padding:14px 16px;margin-top:14px}
+.evc-iv-w{font-size:14px;font-weight:700;color:#2d2d2d}
+.evc-iv-s{font-size:13px;color:#6e6e6e;margin-top:3px}
+.evc-iv button{font-size:14px;font-weight:700;color:#fff;background:#0044B3;border:none;
+  border-radius:8px;padding:10px 18px;cursor:pointer;font-family:inherit;flex:none}
+.evc-iv button:hover{background:#003399}
+@media (max-width:640px){.evc-iv{flex-direction:column;align-items:stretch}.evc-iv button{width:100%}}
 
 </style>
 <style>
@@ -2088,7 +2090,7 @@ a:focus-visible, button:focus-visible, [role="button"]:focus-visible,
 
   /* events workspace */
   .evc{position:relative;background:#fff;border:1px solid #e0ddd8;border-radius:13px;padding:22px 24px;margin-bottom:16px}
-  .evc-h{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;padding-right:52px;margin-bottom:18px}
+  .evc-h{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;padding-right:52px;margin-bottom:12px}
   .evc-n{font-size:17px;font-weight:700;line-height:1.25}
   .evc-m{font-size:13px;color:#6e6e6e;margin-top:3px}
   .tl{display:flex;align-items:flex-start;margin:4px 0 18px;overflow-x:auto;padding-bottom:4px}
@@ -2102,7 +2104,7 @@ a:focus-visible, button:focus-visible, [role="button"]:focus-visible,
   .tl-s.now .tl-l{color:#0044B3;font-weight:700}
   .tl-b{height:2px;background:#e6e3df;flex:1 1 auto;margin-top:10px;min-width:14px}
   .tl-b.done{background:#186a3b}
-  .evc-c{border-top:1px solid #f0efec;padding-top:14px;display:flex;flex-direction:column;gap:10px}
+  .evc-c{border-top:1px solid #f0efec;margin-top:16px;padding-top:16px;display:flex;flex-direction:column;gap:10px}
   .cmp{display:flex;align-items:center;gap:12px;background:#fdf6ec;border-radius:9px;padding:12px 14px}
   .cmp.ok{background:#eef4ec}
   .cmp-i{width:22px;height:22px;border-radius:50%;background:#186a3b;color:#fff;font-size:12px;font-weight:700;
@@ -2467,22 +2469,34 @@ arrivalInstructions: string (optional, multiline)
   function m(){ return (typeof METHOD!=='undefined')?METHOD:'jfx'; }
 
   function timeline(stage,dead){
-    /* Segmented meter: segments flex, so it fits any step count at any width.
-       The stage NAME is carried by the status pill, not repeated here. */
-    var h='<div class="tlm'+(dead?' dead':'')+'"><div class="tlm-bar">';
-    for(var i=0;i<STEPS.length;i++){
-      var st = dead ? '' : (i<stage ? 'done' : (i===stage ? 'now' : ''));
-      h+='<span class="tlm-seg '+st+'"></span>';
+    /* No progress bar. The pill carries the status; this says what it means
+       and what happens next. Invite-only is stated, not implied. */
+    var TXT = [
+      'You are registered for this job fair.',
+      'Employers are reviewing candidates for their open roles. Job fairs are invite-only \u2014 you can only interview if an employer matches you and invites you to request a time.',
+      'An employer invited you to request an interview. Request a time to move forward.',
+      'Your request is with the employer. They will accept it or propose times that work for them.',
+      'Your interview is confirmed. You will find the time and joining details under Interviews.',
+      'It is time for your interview. Go to Interviews to join.',
+      'You are in your interview.',
+      'You have completed your interview for this job fair.'
+    ];
+    if(dead) return '<div class="evc-next">The employer did not move forward with your request this time. You stay registered for this job fair and can still be matched to another role.</div>';
+    var t = TXT[Math.min(stage, TXT.length-1)] || TXT[0];
+    var h = '<div class="evc-next">'+t+'</div>';
+    /* Once there is a real interview, show it here rather than making them hunt. */
+    if(stage>=4 && stage<=6){
+      var cta = (stage===5) ? 'Join interview' : (stage===6 ? 'Return to interview' : 'View interview');
+      h += '<div class="evc-iv"><div><div class="evc-iv-w">Wed 22 Apr 2026 \u00b7 12:30 PM</div>'
+        + '<div class="evc-iv-s">Patient Care Tech \u00b7 Texas Health</div></div>'
+        + '<button onclick="setView(\'interviews\')">'+cta+'</button></div>';
     }
-    var cap = dead
-      ? 'This event did not progress further'
-      : ('Step '+Math.min(stage+1,STEPS.length)+' of '+STEPS.length);
-    return h+'</div><div class="tlm-cap">'+cap+'</div></div>';
+    return h;
   }
   function comp(kind,ok){
-    /* One readiness item: the resume is the only thing an employer reviews. */
-      var L={t:'Resume',d:'Employers review your resume when deciding who to interview.',c:'Complete resume'};
-    if(ok) return '<div class="cmp ok"><span class="cmp-i">✓</span><div class="cmp-t"><b>'+L.t+' complete</b></div></div>';
+    /* A readiness task, not a badge. Once it is done it stops taking up space. */
+    if(ok) return '';
+    var L={t:'Resume',d:'Employers review your resume when deciding who to interview.',c:'Complete resume'};
     return '<div class="cmp"><span class="cmp-i warn">!</span><div class="cmp-t"><b>'+L.t+' incomplete</b>'
       +'<div class="cmp-d">'+L.d+'</div></div><button class="pbtn" style="min-width:0;" onclick="setView(\'profile\')">'+L.c+'</button></div>';
   }
@@ -2492,7 +2506,7 @@ arrivalInstructions: string (optional, multiline)
      +'<div class="evc-m">'+date+' · '+fmt+'</div></div>'
      +'<span class="pill '+(dead?'p-none':(stage>=2?'p-match':'p-wait'))+'">'+status+'</span></div>'
      + timeline(stage,dead)
-     + '<div class="evc-c">'+comp('resume',RESUME)+'</div>'
+     + (RESUME ? '' : '<div class="evc-c">'+comp('resume',RESUME)+'</div>')
      +'</div>';
   }
   var KID2=0;
@@ -2513,7 +2527,7 @@ arrivalInstructions: string (optional, multiline)
     var host=document.getElementById('evCards'); if(!host) return;
     var st=STAGE[JOURNEY]!==undefined?STAGE[JOURNEY]:1;
     var dead=(JOURNEY==='declined');
-    var statusTxt = dead?'Not selected':(st>=4?'Interview confirmed':(st===3?'Interview requested':(st===2?'Invited to request an interview':'Waiting to be matched')));
+    var statusTxt = dead?'Request declined':(st===7?'Interviewed':(st>=4?'Interview confirmed':(st===3?'Interview requested':(st===2?'Invited to request an interview':'Waiting to be matched'))));
     var fmt={jfx:'Video interviews on JobFairX',third:'Video interviews on the employer’s link',phone:'Phone interviews',person:'In-person interviews'}[m()];
     host.innerHTML =
         evCard('Dallas Healthcare Hiring Event','Wed 22 Apr 2026',fmt,st,statusTxt,dead)
