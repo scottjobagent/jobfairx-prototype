@@ -1,0 +1,249 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Waiting Rooms &amp; Interview Rooms</title><style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans',-apple-system,BlinkMacSystemFont,sans-serif;background:#e9e7e3;color:#2d2d2d;font-size:14px;line-height:1.6;-webkit-font-smoothing:antialiased}
+.pg{max-width:1020px;margin:0 auto;padding:40px 28px 100px}
+.doc-head{background:#fff;border:1px solid #b0aeab;border-radius:14px;padding:32px 36px;margin-bottom:26px;box-shadow:0 2px 10px rgba(0,0,0,.06)}
+.doc-eyebrow{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#0044B3;margin-bottom:10px}
+.doc-head h1{font-size:30px;font-weight:700;letter-spacing:-.02em;margin-bottom:10px;line-height:1.2}
+.doc-head p{font-size:15px;color:#595959;max-width:780px}
+.meta{display:flex;flex-wrap:wrap;gap:10px 28px;margin-top:20px;padding-top:18px;border-top:1px solid #ebebeb;font-size:13px;color:#595959}
+.meta b{color:#2d2d2d;font-weight:600}
+h2{font-size:21px;font-weight:700;letter-spacing:-.01em;margin:38px 0 6px;padding-top:14px;border-top:2px solid #d4d2d0}
+h2 .num{display:inline-block;font-size:12px;font-weight:700;color:#fff;background:#2d2d2d;border-radius:20px;padding:2px 10px;font-family:ui-monospace,monospace;vertical-align:3px;margin-right:10px}
+h3{font-size:16px;font-weight:700;margin:24px 0 6px}
+h4{font-size:14px;font-weight:700;margin:16px 0 4px}
+p{margin-bottom:10px;max-width:880px}
+ul,ol{margin:0 0 12px 22px;max-width:880px}
+li{margin-bottom:5px}
+table{width:100%;border-collapse:collapse;margin:12px 0 18px;background:#fff;border:1px solid #d4d2d0;border-radius:10px;overflow:hidden}
+th{text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#595959;padding:11px 14px;border-bottom:1px solid #d4d2d0;background:#fbfaf9}
+td{padding:11px 14px;border-bottom:1px solid #f0efed;font-size:13.5px;vertical-align:top}
+tr:last-child td{border-bottom:none}
+.box{border-left:4px solid #0044B3;background:#fff;border-radius:0 10px 10px 0;padding:16px 20px;margin:16px 0;max-width:880px;color:#595959}
+.box b{color:#2d2d2d}
+.box.stop{border-left-color:#991b1b}
+.box.ok{border-left-color:#166534}
+.box.warn{border-left-color:#8a5a20}
+.box h4{margin-top:0}
+.toc{background:#fff;border:1px solid #d4d2d0;border-radius:12px;padding:20px 26px}
+.toc-t{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#767676;margin-bottom:10px}
+.toc ol{columns:2;column-gap:36px;margin:0 0 0 18px}
+.toc li{margin-bottom:4px;font-size:13.5px}
+.toc a{color:#0044B3;text-decoration:none}
+.toc a:hover{text-decoration:underline}
+/* flow diagram */
+.flow{background:#fff;border:1px solid #d4d2d0;border-radius:12px;padding:24px 26px;margin:16px 0}
+.flow-row{display:flex;align-items:stretch;gap:0}
+.stage{flex:1 1 0;min-width:0;border:1px solid #d4d2d0;border-radius:10px;padding:11px 12px;background:#fbfaf9}
+.stage-n{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#767676;margin-bottom:4px}
+.stage-t{font-size:13.5px;font-weight:700;color:#2d2d2d;line-height:1.3}
+.stage-d{font-size:11.5px;color:#767676;margin-top:3px;line-height:1.45}
+.arrow{display:flex;align-items:center;justify-content:center;padding:0 5px;flex-shrink:0}
+.arrow span{font-size:10px;color:#0044B3;font-weight:700;text-align:center;line-height:1.25}
+.arrow em{display:block;font-style:normal;font-size:18px;color:#b0aeab}
+.who{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;border-radius:4px;padding:2px 7px;margin-left:6px;vertical-align:2px}
+.who.cand{background:#e8f0fe;color:#0044B3}
+.who.emp{background:#f6efe6;color:#8a5a20}
+.who.sys{background:#eef4ec;color:#166534}
+.key{display:flex;gap:18px;flex-wrap:wrap;margin-top:14px;font-size:12px;color:#595959}
+@media print{body{background:#fff}.pg{max-width:none}}
+</style></head><body>
+<div class="pg">
+
+<div class="doc-head">
+  <div class="doc-eyebrow">Design documentation</div>
+  <h1>Waiting rooms and Interview rooms — how candidates move</h1>
+  <p>The logic behind the event-day queue for the three locations where JobFairX cannot see the interview happening: in person, phone, and video on the employer’s own meeting link. What each state means, what moves a candidate between them, and who does the moving.</p>
+  <div class="meta">
+    <span><b>Date</b> August 15, 2026</span>
+    <span><b>Prototypes</b> scottjobagent.github.io/jobfairx-prototype/</span>
+    <span><b>Scope</b> Employer lobby, event day</span>
+  </div>
+</div>
+
+<div class="toc">
+  <div class="toc-t">Contents</div>
+  <ol>
+    <li><a href="#s1">The five places a candidate can be</a></li>
+    <li><a href="#s2">The two signals that move them</a></li>
+    <li><a href="#s3">What the platform can actually see</a></li>
+    <li><a href="#s4">In person</a></li>
+    <li><a href="#s5">Phone</a></li>
+    <li><a href="#s6">Video on an external link</a></li>
+    <li><a href="#s7">Every way out of the queue</a></li>
+    <li><a href="#s8">One table</a></li>
+  </ol>
+</div>
+
+<!-- ═══ 1 ═══ -->
+<h2 id="s1"><span class="num">1</span>The five places a candidate can be</h2>
+<p>Identical for every interview location. Nothing about this list changes between video, phone and in person.</p>
+
+<div class="flow">
+  <div class="flow-row">
+    <div class="stage"><div class="stage-n">Tab</div><div class="stage-t">Not yet interviewed</div><div class="stage-d">Scheduled, hasn’t turned up.</div></div>
+    <div class="arrow"><span><em>&rarr;</em>checks in</span></div>
+    <div class="stage"><div class="stage-n">Section</div><div class="stage-t">Waiting rooms</div><div class="stage-d">Here, waiting their turn. Status reads <b>Awaiting available interviewer</b>.</div></div>
+    <div class="arrow"><span><em>&rarr;</em>interviewer free</span></div>
+    <div class="stage"><div class="stage-n">Section</div><div class="stage-t">Interview rooms</div><div class="stage-d">Actionable now. Status reads <b>Ready</b>. The row carries the primary button.</div></div>
+    <div class="arrow"><span><em>&rarr;</em>employer starts</span></div>
+    <div class="stage"><div class="stage-n">Tab</div><div class="stage-t">Interviewing</div><div class="stage-d">In progress.</div></div>
+    <div class="arrow"><span><em>&rarr;</em>employer ends</span></div>
+    <div class="stage"><div class="stage-n">Tab</div><div class="stage-t">Interviewed</div><div class="stage-d">Done, with a rating.</div></div>
+  </div>
+  <div class="key">
+    <span><b>Waiting rooms</b> and <b>Interview rooms</b> are two sections of the same <i>Waiting to interview</i> tab.</span>
+  </div>
+</div>
+
+<div class="box stop">
+  <b>The two sections are not one list.</b> The split is the arrival model, not video presence detection, and it means the same thing for every location. <b>Waiting rooms</b> = the candidate is here but you can’t take them yet. <b>Interview rooms</b> = you can take them right now. Merging them loses the only thing that tells an employer who they can act on.
+</div>
+
+<p><b>No-show</b> is the sixth destination and is terminal. A candidate can reach it from Waiting rooms or Interview rooms, never from Interviewing.</p>
+
+<!-- ═══ 2 ═══ -->
+<h2 id="s2"><span class="num">2</span>The two signals that move them</h2>
+<p>Every movement through the queue is driven by two independent facts, and each one is known by exactly one party.</p>
+<table>
+  <tr><th style="width:24%">Signal</th><th style="width:20%">Who knows it</th><th>What it does</th></tr>
+  <tr><td><b>The candidate is here</b></td><td><span class="who cand">Candidate</span></td><td>Moves them out of <i>Not yet interviewed</i> and into <b>Waiting rooms</b>. In person this means “I’ve arrived”; on phone it means “I’m ready for your call.” Same signal, same destination.</td></tr>
+  <tr><td><b>An interviewer is free</b></td><td><span class="who sys">Platform</span> / <span class="who emp">Employer</span></td><td>Promotes the next candidate from <b>Waiting rooms</b> to <b>Interview rooms</b>. This is what makes a row actionable.</td></tr>
+</table>
+
+<div class="box">
+  <b>Arrival is the candidate’s to declare; starting is the employer’s.</b> The employer never checks a candidate in — they cannot know whether someone has walked through the door or is sitting by their phone. Equally, the candidate never moves themselves into Interview rooms. Each party reports only what they can see.
+</div>
+
+<h4>Where the “interviewer is free” signal comes from</h4>
+<ul>
+  <li><b>JobFairX video</b> — the employer sets <b>Your status</b> to Available or Away in the lobby header, and the platform can also see who is inside an interview room.</li>
+  <li><b>Phone, in person, external link</b> — there is no status control on these. Availability is inferred from what the employer is doing: anyone not currently in the Interviewing tab is free. In person adds a manual override, below.</li>
+</ul>
+
+<!-- ═══ 3 ═══ -->
+<h2 id="s3"><span class="num">3</span>What the platform can actually see</h2>
+<p>This is the single fact that explains every difference between the locations.</p>
+<table>
+  <tr><th style="width:26%">Location</th><th style="width:24%">Candidate arrived?</th><th style="width:24%">Interview started?</th><th>Interview ended?</th></tr>
+  <tr><td><b>JobFairX video</b></td><td>Observed — they joined the room</td><td>Observed</td><td>Observed</td></tr>
+  <tr><td><b>Phone</b></td><td>Told — candidate checks in</td><td>Told — employer says so</td><td>Told</td></tr>
+  <tr><td><b>In person</b></td><td>Told — candidate checks in</td><td>Told</td><td>Told</td></tr>
+  <tr><td><b>Video, external link</b></td><td>Told — candidate checks in</td><td>Told</td><td>Told</td></tr>
+</table>
+
+<div class="box warn">
+  <b>External-link video belongs with phone and in person, not with JobFairX video.</b> The interview happens in Teams or Zoom. JobFairX cannot see who joined, when it started, or when it finished — exactly as with a phone call or a handshake. It is a video interview by <i>method</i>, but an unobservable one by <i>mechanism</i>, and the queue has to be driven by people telling it things.
+</div>
+
+<p>Everything below follows from that. Where the platform observes nothing, every transition needs a person to declare it, and every state needs a manual way out.</p>
+
+<!-- ═══ 4 ═══ -->
+<h2 id="s4"><span class="num">4</span>In person</h2>
+
+<h3>The normal path</h3>
+<ol>
+  <li>The candidate arrives at the venue and <b>checks in</b> <span class="who cand">Candidate</span>. They land in <b>Waiting rooms</b>, status <i>Awaiting available interviewer</i>.</li>
+  <li>An interviewer becomes free, so the candidate moves to <b>Interview rooms</b>, status <i>Ready</i> <span class="who sys">Platform</span>.</li>
+  <li>The employer collects them and presses <b>Start interview</b> <span class="who emp">Employer</span>. The row moves to the <b>Interviewing</b> tab. No new window opens and no modal appears — the interview is happening in the room, not on the screen.</li>
+  <li>The employer presses <b>End interview</b>, confirms, rates the candidate, and the row moves to <b>Interviewed</b>.</li>
+</ol>
+
+<h3>What is different about in person</h3>
+<div class="box">
+  <b>The physical queue and the system queue drift apart.</b> Someone steps out for a phone call, someone else is already sitting in front of you, a hiring manager asks for a particular candidate next. The order on screen stops matching the order in the room.
+</div>
+<p>So in person — and <b>only</b> in person — the Waiting-rooms row menu carries <b>Interview next</b>. It promotes that candidate straight into Interview rooms out of turn: their status flips to <i>Ready</i> and the row gains the Start interview button. It is an override of the queue order, not a shortcut past a step.</p>
+
+<!-- ═══ 5 ═══ -->
+<h2 id="s5"><span class="num">5</span>Phone</h2>
+
+<h3>The normal path</h3>
+<ol>
+  <li>The candidate signals they are ready for the call by <b>checking in</b> <span class="who cand">Candidate</span> → <b>Waiting rooms</b>.</li>
+  <li>An interviewer becomes free → <b>Interview rooms</b>, status <i>Ready</i> <span class="who sys">Platform</span>.</li>
+  <li>The employer presses <b>Call candidate</b>. A panel opens beside the row with the number, a copy button and a tap-to-dial link.</li>
+  <li>The employer dials from their own phone and then presses <b>I’ve started the interview</b> <span class="who emp">Employer</span> → <b>Interviewing</b>.</li>
+  <li><b>End interview</b> → rate → <b>Interviewed</b>.</li>
+</ol>
+
+<div class="box stop">
+  <b>Opening the call panel changes nothing.</b> It is not the start of the interview. Employers open it to copy a number, to check they have the right one, or to look again after leaving a voicemail. Only the explicit <b>I’ve started the interview</b> moves the candidate. Treating the panel as the trigger would report interviews that never happened.
+</div>
+
+<h3>Nobody answers</h3>
+<p>The most common phone failure, and it is deliberately two-strike:</p>
+<ol>
+  <li><b>First No answer</b> — the candidate goes back into the queue carrying an attempt count, and the button on their row changes to <b>Call again</b>. They are still a live candidate.</li>
+  <li><b>Second No answer</b> — now the employer is offered <b>Mark as no-show</b>.</li>
+</ol>
+<p>Employers routinely call twice. Ending someone on the first miss would record reachable candidates as unreachable, which is a worse error than the extra click.</p>
+
+<!-- ═══ 6 ═══ -->
+<h2 id="s6"><span class="num">6</span>Video on an external link</h2>
+
+<h3>The normal path</h3>
+<ol>
+  <li>The employer’s meeting link is set when the event is created, and it is shown in the <b>lobby header</b> with a <b>Copy link</b> control — that is where they get it on the day.</li>
+  <li>The candidate <b>checks in</b> <span class="who cand">Candidate</span> → <b>Waiting rooms</b>. They receive the same meeting link with their confirmation.</li>
+  <li>An interviewer becomes free → <b>Interview rooms</b> <span class="who sys">Platform</span>.</li>
+  <li>The employer starts the interview <span class="who emp">Employer</span> → <b>Interviewing</b>. The conversation itself happens in Teams or Zoom, outside JobFairX.</li>
+  <li><b>End interview</b> → rate → <b>Interviewed</b>.</li>
+</ol>
+
+<h3>What is different</h3>
+<p>The queue behaves like the other two unobservable locations, and the lobby drops everything that only makes sense inside a JobFairX room:</p>
+<ul>
+  <li><b>No Your status control.</b> Nothing on this screen decides when a candidate is admitted to a Teams meeting, and nothing here reaches them.</li>
+  <li><b>No Update display name.</b> The name labels you inside the JobFairX room; the candidate will see whatever Teams shows.</li>
+  <li><b>No Test video and audio.</b> That test exercises the JobFairX video stack, which this interview never touches.</li>
+  <li>The chip still reads <b>Video</b>. Third-party is a variant of video, not a fourth location.</li>
+</ul>
+
+<div class="box warn">
+  <b>Open question for the build.</b> The row’s primary button currently behaves as it does on JobFairX video — it opens the JobFairX interview room. On an external-link event that is the wrong destination: the interview is in the employer’s meeting. Whether the button should open the meeting link, copy it, or simply move the row to Interviewing without opening anything is not decided.
+</div>
+
+<!-- ═══ 7 ═══ -->
+<h2 id="s7"><span class="num">7</span>Every way out of the queue</h2>
+<p>Where the platform observes nothing, a candidate can get stuck. Nothing tells JobFairX that a phone candidate hung up, that someone in the waiting area gave up and went home, or that an interview happened entirely off-screen. So every state needs a manual exit, and the Waiting-rooms row menu is where they live.</p>
+<table>
+  <tr><th style="width:26%">Exit</th><th style="width:22%">Available on</th><th>What it is for</th></tr>
+  <tr><td><b>Interview next</b></td><td>In person only</td><td>Pull someone forward out of queue order. Moves them to Interview rooms.</td></tr>
+  <tr><td><b>Mark as interviewed</b></td><td>Phone, in person, external link</td><td>An interview that happened while nobody touched the app — routine when the employer is talking rather than typing. Asks who interviewed them and the actual time, and will not confirm until both are given.</td></tr>
+  <tr><td><b>Didn’t show</b></td><td>Phone, in person, external link</td><td>The manual no-show, for a candidate who never turned up or stopped responding.</td></tr>
+  <tr><td><b>No answer &times;2</b></td><td>Phone only</td><td>Reached from the call panel rather than the row menu. The second one offers no-show.</td></tr>
+</table>
+
+<div class="box ok">
+  <b>This menu is not a convenience.</b> On JobFairX video the platform can watch someone leave the room and clean up after them. On these three locations it cannot. Remove the menu and the only way a candidate ever leaves Waiting rooms is by being interviewed — which means the queue never empties and the event never reconciles.
+</div>
+
+<h3>Ending an interview, and the second option</h3>
+<p><b>End interview</b> asks whether the employer has finished with that candidate:</p>
+<ul>
+  <li><b>Yes</b> → the rating modal opens, pre-filled with any note already taken during the interview, and the candidate moves to <b>Interviewed</b>.</li>
+  <li><b>No</b> → the candidate goes back to <b>Waiting rooms</b>, not to Interview rooms. They rejoin the queue rather than sitting at the front of it.</li>
+</ul>
+
+<!-- ═══ 8 ═══ -->
+<h2 id="s8"><span class="num">8</span>One table</h2>
+<table>
+  <tr><th style="width:22%"></th><th style="width:19.5%">JobFairX video</th><th style="width:19.5%">Phone</th><th style="width:19.5%">In person</th><th>External link</th></tr>
+  <tr><td><b>Enters Waiting rooms by</b></td><td>Joining the room</td><td>Checking in</td><td>Checking in at the desk</td><td>Checking in</td></tr>
+  <tr><td><b>Promoted to Interview rooms by</b></td><td>Interviewer availability</td><td>Interviewer availability</td><td>Availability, or <b>Interview next</b></td><td>Interviewer availability</td></tr>
+  <tr><td><b>Primary button</b></td><td>Start interview</td><td><b>Call candidate</b></td><td>Start interview</td><td>Start interview</td></tr>
+  <tr><td><b>What that button does</b></td><td>Opens the JobFairX room</td><td>Opens the call panel — <b>no state change</b></td><td>Moves the row in place</td><td>Undecided — see §6</td></tr>
+  <tr><td><b>Moves to Interviewing when</b></td><td>The room opens</td><td>“I’ve started the interview”</td><td>Start interview is pressed</td><td>Start interview is pressed</td></tr>
+  <tr><td><b>In-progress actions</b></td><td>Rejoin · End interview</td><td><b>Call again</b> · End interview</td><td>End interview only</td><td>Rejoin · End interview</td></tr>
+  <tr><td><b>Your status control</b></td><td>Yes</td><td>No</td><td>No</td><td>No</td></tr>
+  <tr><td><b>Waiting-rooms row menu</b></td><td>None</td><td>Mark as interviewed · Didn’t show</td><td>+ <b>Interview next</b></td><td>Mark as interviewed · Didn’t show</td></tr>
+  <tr><td><b>No-show happens</b></td><td>Automatically — never joined</td><td>After two unanswered calls</td><td>Manually — didn’t arrive</td><td>Manually</td></tr>
+</table>
+
+<div class="box">
+  <b>Reading the table in one line.</b> JobFairX video is the only column where the platform observes anything. Every other column is a queue that people tell the truth to, which is why each of them needs a manual exit and none of them needs an availability pill.
+</div>
+
+</div>
+</body></html>
