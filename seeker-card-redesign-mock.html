@@ -74,19 +74,26 @@
   .tchip.soon{border-color:#0044B3;color:#0044B3}
   .tsoon{font-size:11px;color:#0044B3;font-weight:700;margin-left:5px}
 
-  /* prep */
-  .prep{margin-top:13px;border-top:1px solid #f0efec;padding-top:11px}
-  .prep-t{background:none;border:none;padding:0;font-family:inherit;font-size:13px;font-weight:700;color:#0044B3;cursor:pointer}
-  .prep-b{display:none;margin-top:11px}
-  .prep-b.open{display:block}
-  .prow{display:flex;gap:13px;align-items:center;padding:12px 0;border-bottom:1px solid #f0efec}
+  /* prep — employer proportions */
+  .prep{margin:14px -18px -16px;border-top:1px solid #ebebeb;background:#fff;border-radius:0 0 10px 10px}
+  .prep-t{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 26px}
+  .prep-hd{font-size:16px;font-weight:700;color:#2d2d2d}
+  .prep-ct{font-size:13px;font-weight:600;color:#0044B3;white-space:nowrap}
+  .prep-b{border-top:1px solid #ebebeb}
+  .prow{display:flex;align-items:center;gap:24px;padding:24px 26px;border-bottom:1px solid #ebebeb}
   .prow:last-child{border-bottom:none}
-  .prow .pi{width:34px;height:34px;border-radius:8px;background:#f3f2ef;flex:0 0 auto;display:flex;align-items:center;justify-content:center}
-  .prow .pi svg{width:17px;height:17px;stroke:#595959;fill:none;stroke-width:2}
-  .prow .pt{flex:1;min-width:0}
-  .prow .ph{font-size:13px;font-weight:700}
-  .prow .ps{font-size:12.5px;color:#595959;margin-top:1px;line-height:1.45}
-  .pbtn{border:2px solid #0044B3;background:#fff;color:#0044B3;font-size:12.5px;font-weight:700;padding:7px 13px;border-radius:8px;cursor:pointer;font-family:inherit;white-space:nowrap}
+  .prow.done{background:#fcfcfb}
+  .pill-ill{flex-shrink:0;width:120px;height:90px}
+  .ptx{flex:1;min-width:0}
+  .pti{font-size:16px;font-weight:700;color:#2d2d2d}
+  .pde{font-size:14px;color:#767676;margin-top:4px;line-height:1.45}
+  .pde.ok{color:#186a3b;font-weight:600}
+  .pbtn{display:inline-block;font-size:16px;color:#0044B3;font-weight:700;cursor:pointer;text-decoration:none;
+    white-space:nowrap;padding:10px 20px;border:2px solid #0044B3;border-radius:8px;background:#fff;font-family:inherit;
+    min-width:172px;text-align:center}
+  .pbtn:hover{background:#f0f6ff}
+  .pbtn.ghost{border-color:#d4d0ca;color:#595959}
+  @media (max-width:760px){ .prow{gap:14px;padding:18px;flex-wrap:wrap} .pill-ill{width:84px;height:63px} .pbtn{font-size:14px;padding:8px 15px;min-width:0} }
   .note{font-size:12.5px;color:#595959;line-height:1.6;margin:16px 2px 0}
   @media (max-width:700px){ .seg{width:100%} .seg button{flex:1 1 auto} .row2 .lbl{min-width:0;padding-top:0} }
 </style>
@@ -115,6 +122,14 @@
       </div>
     </div>
     <div class="row2">
+      <div class="lbl">Prep progress</div>
+      <div class="chips" id="pseg">
+        <button class="on" data-p="0">Nothing done</button>
+        <button data-p="1">1 of 3 done</button>
+        <button data-p="3">All 3 done</button>
+      </div>
+    </div>
+    <div class="row2">
       <div class="lbl">Other states</div>
       <div class="chips" id="oseg">
         <button data-s="proposed">New times proposed</button>
@@ -139,7 +154,8 @@ var IC={
 };
 var MLBL={jfx:'Video interview on JobFairX',third:'Video interview &middot; employer&rsquo;s link',phone:'Phone interview',person:'In person'};
 var MSUB={jfx:'',third:'Microsoft Teams',phone:'(214) 555-0132',person:'Parkland Health, Building A &middot; 5200 Harry Hines Blvd, Dallas, TX 75235'};
-var M='jfx', S='confirmed', KID=0;
+var M='jfx', S='confirmed', KID=0, DONE=[false,false,false];
+var ILL={job:'<rect x="26" y="8" width="56" height="72" rx="5" fill="#d6e4f7"/><rect x="31" y="13" width="46" height="62" rx="3" fill="#fff"/><rect x="37" y="22" width="30" height="4" rx="2" fill="#0044B3"/><rect x="37" y="32" width="34" height="2.5" rx="1.2" fill="#d4c8b8"/><rect x="37" y="39" width="26" height="2.5" rx="1.2" fill="#d4c8b8"/><rect x="37" y="46" width="32" height="2.5" rx="1.2" fill="#d4c8b8"/><rect x="37" y="53" width="22" height="2.5" rx="1.2" fill="#d4c8b8"/><circle cx="94" cy="60" r="14" fill="#e8f4e8"/><path d="M88 60 l4.5 4.5 l9 -10" stroke="#7da67d" stroke-width="3.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',jfx:'<rect x="14" y="18" width="58" height="42" rx="5" fill="#d6e4f7"/><rect x="19" y="23" width="48" height="32" rx="3" fill="#fff"/><circle cx="43" cy="34" r="7" fill="#e8a87c"/><rect x="34" y="43" width="18" height="12" rx="5" fill="#4a90d9"/><rect x="30" y="64" width="26" height="4" rx="2" fill="#d4c8b8"/><rect x="38" y="60" width="10" height="5" fill="#c4b8a8"/><circle cx="96" cy="36" r="15" fill="#f0f5ff" stroke="#0044B3" stroke-width="2"/><rect x="86" y="30" width="14" height="12" rx="3" fill="#0044B3"/><path d="M100 33 l6 -4 v14 l-6 -4z" fill="#0044B3"/>',phone:'<rect x="38" y="10" width="36" height="66" rx="8" fill="#d6e4f7"/><rect x="42" y="17" width="28" height="50" rx="3" fill="#fff"/><circle cx="56" cy="71" r="3" fill="#c4b8a8"/><rect x="48" y="13" width="16" height="2.5" rx="1.2" fill="#c4b8a8"/><circle cx="98" cy="34" r="15" fill="#e8f4e8"/><path d="M104 39.5 v3 a2 2 0 01-2.2 2 19 19 0 01-8.3-3 18.7 18.7 0 01-5.7-5.7 19 19 0 01-3-8.4A2 2 0 0186.8 25h3a2 2 0 012 1.7c.1 1 .3 1.9.7 2.7a2 2 0 01-.5 2.1l-1.2 1.2a15 15 0 005.7 5.7l1.2-1.2a2 2 0 012.1-.5c.9.3 1.8.6 2.7.7a2 2 0 011.7 2z" fill="#7da67d"/>',person:'<rect x="16" y="34" width="40" height="40" rx="3" fill="#d6e4f7"/><rect x="22" y="40" width="8" height="8" rx="1" fill="#fff"/><rect x="34" y="40" width="8" height="8" rx="1" fill="#fff"/><rect x="46" y="40" width="4" height="8" rx="1" fill="#fff"/><rect x="22" y="52" width="8" height="8" rx="1" fill="#fff"/><rect x="34" y="52" width="8" height="8" rx="1" fill="#fff"/><rect x="30" y="64" width="14" height="10" rx="1" fill="#c4b8a8"/><rect x="10" y="74" width="100" height="4" rx="2" fill="#e8e0d4"/><path d="M84 20 a14 14 0 0128 0 c0 11-14 26-14 26 S84 31 84 20z" fill="#0044B3" opacity="0.9"/><circle cx="98" cy="20" r="5.5" fill="#fff"/>',third:'<rect x="12" y="20" width="46" height="34" rx="4" fill="#d6e4f7"/><rect x="16" y="24" width="38" height="26" rx="2" fill="#fff"/><circle cx="30" cy="33" r="5" fill="#e8a87c"/><rect x="24" y="39" width="12" height="9" rx="4" fill="#4a90d9"/><rect x="28" y="58" width="14" height="4" rx="2" fill="#d4c8b8"/><rect x="66" y="28" width="40" height="30" rx="4" fill="#e8f4e8"/><rect x="70" y="32" width="32" height="22" rx="2" fill="#fff"/><circle cx="82" cy="39" r="4.5" fill="#c9a87c"/><rect x="76" y="45" width="11" height="8" rx="3.5" fill="#7da67d"/><path d="M56 40 h12" stroke="#0044B3" stroke-width="3" stroke-linecap="round" stroke-dasharray="3 4"/>',msg:'<rect x="16" y="16" width="56" height="38" rx="7" fill="#d6e4f7"/><rect x="23" y="26" width="30" height="3.5" rx="1.7" fill="#fff"/><rect x="23" y="35" width="38" height="3.5" rx="1.7" fill="#fff"/><path d="M28 54 l0 10 l11 -10z" fill="#d6e4f7"/><rect x="52" y="44" width="52" height="32" rx="7" fill="#e8f4e8"/><rect x="60" y="53" width="26" height="3.5" rx="1.7" fill="#7da67d"/><rect x="60" y="62" width="34" height="3.5" rx="1.7" fill="#7da67d" opacity="0.6"/><path d="M94 76 l0 8 l-10 -8z" fill="#e8f4e8"/>'};
 
 function svg(m){return '<svg viewBox="0 0 24 24">'+IC[m]+'</svg>';}
 function kebab(items,stat){
@@ -158,25 +174,31 @@ function mrow(){
   var sub=MSUB[M]?'<div class="ms">'+MSUB[M]+'</div>':'';
   return '<div class="mrow">'+svg(M)+'<div><span class="mk">'+MLBL[M]+'</span>'+sub+'</div></div>';
 }
-function prep(open){
+function prep(){
   var mid={
-    jfx:{h:'Test your camera and mic',s:'Make sure you are seen and heard before you join.',b:'Test now'},
-    third:{h:'Check you can open Microsoft Teams',s:'The employer hosts this interview on their own link.',b:'Open Teams'},
-    phone:{h:'Confirm your phone number',s:'We will give the employer (214) 555-0132.',b:'Update number'},
-    person:{h:'Plan your route',s:'5200 Harry Hines Blvd, Dallas, TX 75235. Arrive 10 minutes early with photo ID.',b:'Get directions'}
+    jfx:{k:'jfx',h:'Test your camera and mic',s:'Check you can be seen and heard before you join.',b:'Test now',d:'Camera and mic tested.'},
+    third:{k:'third',h:'Check you can open Microsoft Teams',s:'Texas Health hosts this interview on their own link.',b:'Open Teams',d:'Teams opens on this device.'},
+    phone:{k:'phone',h:'Confirm your phone number',s:'We will give Texas Health (214) 555-0132 to call you on.',b:'Update number',d:'Number confirmed as (214) 555-0132.'},
+    person:{k:'person',h:'Plan your route',s:'5200 Harry Hines Blvd, Dallas, TX 75235. Arrive 10 minutes early with photo ID.',b:'Get directions',d:'Route saved. Arrive by 12:20 PM.'}
   }[M];
+  var rows=[
+    mid,
+    {k:'job',h:'Review the job',s:'Patient Care Tech at Texas Health.',b:'View job details',d:'You reviewed this job.'},
+    {k:'msg',h:'Message the employer',s:'Ask anything before the day.',b:'Send a message',d:'You messaged Texas Health.'}
+  ];
+  var doneCount=rows.filter(function(r,i){return DONE[i];}).length;
+  var body=rows.map(function(r,i){return prow(r,DONE[i]);}).join('');
   return '<div class="prep">'
-   +'<button class="prep-t" onclick="JFX.prep(this)">Prepare for your interview '+(open?'&#9652;':'&#9662;')+'</button>'
-   +'<div class="prep-b'+(open?' open':'')+'">'
-   + prow('<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>','Review the job','Patient Care Tech at Texas Health.','View job details')
-   + prow(IC[M],mid.h,mid.s,mid.b)
-   + prow('<path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>','Message the employer','Ask anything before the day.','Send a message')
-   +'</div></div>';
+   +'<div class="prep-t"><span class="prep-hd">Prepare for your interview</span>'
+   +'<span class="prep-ct">'+doneCount+' of 3 done</span></div>'
+   +'<div class="prep-b open">'+body+'</div></div>';
 }
-function prow(icon,h,s,b){
-  return '<div class="prow"><div class="pi"><svg viewBox="0 0 24 24">'+icon+'</svg></div>'
-   +'<div class="pt"><div class="ph">'+h+'</div><div class="ps">'+s+'</div></div>'
-   +'<button class="pbtn">'+b+'</button></div>';
+function prow(r,done){
+  return '<div class="prow'+(done?' done':'')+'">'
+   +'<svg class="pill-ill" viewBox="0 0 120 90" fill="none">'+ILL[r.k]+'</svg>'
+   +'<div class="ptx"><div class="pti">'+r.h+'</div>'
+   +'<div class="pde'+(done?' ok':'')+'">'+(done?'&#10003; '+r.d:r.s)+'</div></div>'
+   +'<button class="pbtn'+(done?' ghost':'')+'">'+(done?'Review':r.b)+'</button></div>';
 }
 function primary(kind){
   var lbl={confirmed:{jfx:'Join interview',third:'Open Microsoft Teams',person:'Get directions'},
@@ -207,13 +229,13 @@ function card(state){
     menu=['Message employer','Reschedule interview','View job details','-','!Cancel interview'];
     acts=primary('confirmed')+support();
     if(M==='phone') next='<div class="call"><b>Texas Health will call you</b> at <b>(214) 555-0132</b> at your scheduled time. No link needed.</div>';
-    pr=prep(false);
+    pr=prep();
   } else if(state==='joinnow'){
     pill='<span class="pill p-live">It is time for your interview</span>';
     menu=['Message employer','View job details'];
     acts=primary('live')+support();
     if(M==='phone') next='<div class="call"><b>Expect a call any minute</b> from Texas Health at <b>(214) 555-0132</b>. Keep your ringer on.</div>';
-    pr=prep(true);
+    pr=prep();
   } else if(state==='injoined'){
     pill='<span class="pill p-live">In interview</span>';
     menu=['Message employer'];
@@ -285,9 +307,7 @@ window.JFX={
     var m=document.getElementById(id), was=m.classList.contains('open');
     document.querySelectorAll('.menu.open').forEach(function(x){x.classList.remove('open');});
     if(!was) m.classList.add('open');
-  },
-  prep:function(b){ var p=b.nextElementSibling; var o=p.classList.toggle('open');
-    b.innerHTML='Prepare for your interview '+(o?'▴':'▾'); }
+  }
 };
 document.addEventListener('click',function(){document.querySelectorAll('.menu.open').forEach(function(x){x.classList.remove('open');});});
 document.addEventListener('keydown',function(e){if(e.key==='Escape')document.querySelectorAll('.menu.open').forEach(function(x){x.classList.remove('open');});});
@@ -298,6 +318,10 @@ function chipHandler(e){var b=e.target.closest('button');if(!b)return;
   document.querySelectorAll('.chips button').forEach(function(x){x.classList.toggle('on',x===b);});render();}
 document.getElementById('jseg').addEventListener('click',chipHandler);
 document.getElementById('oseg').addEventListener('click',chipHandler);
+document.getElementById('pseg').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;
+  var n=+b.getAttribute('data-p'); DONE=[n>=1,n>=2||n===3,n>=3];
+  if(n===1) DONE=[true,false,false];
+  [].forEach.call(this.children,function(x){x.classList.toggle('on',x===b);});render();});
 render();
 })();
 </script>
