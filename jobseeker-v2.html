@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JobFairX — Job Seeker</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════════════
+   DESIGN TOKENS — extracted from the Employer application
+   (visual-v3.html / lobby-v3.html). One source, no drift.
+   ═══════════════════════════════════════════════════════════ */
+:root{
+  --font: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* Colour — brand */
+  --blue: #0044B3;
+  --blue-hover: #003399;
+  --blue-wash: #f0f5ff;
+
+  /* Colour — ink */
+  --ink: #2d2d2d;
+  --ink-2: #595959;
+  --ink-3: #767676;
+  --ink-disabled: #b0afad;
+
+  /* Colour — surface */
+  --page: #f3f2ef;
+  --surface: #fff;
+  --rail: #2d2d2d;
+  --border: #d4d2d0;
+  --divider: #ebebeb;
+
+  /* Colour — status */
+  --green: #16a34a;
+  --green-wash: #f0fdf4;
+  --green-solid: #1e7e34;
+  --green-solid-wash: #e6f4ea;
+  --red: #991b1b;
+  --red-wash: #fef2f2;
+  --amber: #8a5c00;
+  --amber-wash: #fdf6ec;
+
+  /* Type scale — 7 steps, deliberately */
+  --t-xs: 12px;
+  --t-sm: 13px;
+  --t-base: 14px;
+  --t-md: 16px;
+  --t-lg: 17px;
+  --t-xl: 20px;
+  --t-2xl: 22px;
+
+  /* Radius — 4 steps */
+  --r-sm: 6px;
+  --r-md: 8px;
+  --r-lg: 12px;
+  --r-xl: 16px;
+
+  /* Elevation */
+  --shadow-menu: 0 4px 20px rgba(0,0,0,0.12);
+  --shadow-modal: 0 8px 32px rgba(0,0,0,0.2);
+
+  --rail-w: 220px;
+}
+
+*{margin:0;padding:0;box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{font-family:var(--font);background:var(--page);color:var(--ink);font-size:var(--t-base);line-height:1.5;-webkit-font-smoothing:antialiased;min-height:100vh}
+
+/* Accessibility baseline — the employer app's biggest debt, fixed at the root */
+:focus-visible{outline:3px solid var(--blue);outline-offset:2px;border-radius:3px}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.001ms!important;transition-duration:.001ms!important}}
+a{color:var(--blue)}
+
+/* ═══ DEV TOGGLE BAR ═══ */
+.devbar{position:fixed;top:0;left:0;right:0;height:auto;min-height:44px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;padding:6px 16px;z-index:400;flex-wrap:wrap}
+.dev-toggle{display:flex;align-items:center;gap:5px;padding:3px 8px;background:var(--page);border-radius:5px;border:1px solid var(--border)}
+.dev-toggle-label{font-size:9px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
+.dev-toggle-switch{display:flex;background:#e0e0e0;border-radius:3px;overflow:hidden}
+.dev-toggle-btn{padding:3px 7px;font-size:10px;font-weight:700;border:none;background:transparent;cursor:pointer;font-family:inherit;color:var(--ink-3);transition:all .15s}
+.dev-toggle-btn.active{background:var(--blue);color:#fff}
+.devbar-spacer{margin-left:auto;font-size:var(--t-sm);color:var(--ink-2);white-space:nowrap}
+
+/* ═══ SIDEBAR ═══ */
+.sidebar{position:fixed;left:0;top:0;bottom:0;width:var(--rail-w);background:var(--rail);display:flex;flex-direction:column;z-index:300;padding-top:52px;overflow:hidden}
+.sidebar-brand{padding:18px 22px 14px;font-size:var(--t-2xl);font-weight:800;color:#fff;letter-spacing:-.5px}
+.sidebar-nav{flex:1;padding:8px 12px;overflow-y:auto}
+.nav-item{display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:10px;font-size:var(--t-lg);font-weight:500;color:rgba(255,255,255,.85);cursor:pointer;transition:all .15s;text-decoration:none;letter-spacing:-.1px;width:100%;background:none;border:none;font-family:inherit;text-align:left}
+.nav-item:hover{background:rgba(255,255,255,.1);color:#fff}
+.nav-item[aria-current="page"]{background:rgba(255,255,255,.18);color:#fff;font-weight:700}
+.nav-item svg{width:24px;height:24px;flex-shrink:0;color:rgba(255,255,255,.7)}
+.nav-item[aria-current="page"] svg{color:#fff}
+.nav-item .badge{margin-left:auto;background:var(--blue);color:#fff;font-size:var(--t-xs);font-weight:700;padding:2px 9px;border-radius:10px;min-width:24px;text-align:center}
+.sidebar-foot{padding:12px;border-top:1px solid rgba(255,255,255,.12)}
+.sidebar-foot .nav-item{font-size:var(--t-base);padding:12px 18px;color:rgba(255,255,255,.65)}
+
+/* ═══ MAIN ═══ */
+.main{margin-left:var(--rail-w);padding:76px 32px 60px;max-width:1180px}
+.view{display:none}
+.view.active{display:block}
+
+/* ═══ PAGE HEADER ═══ */
+.page-head{background:var(--surface);border-radius:var(--r-lg);border:1px solid var(--border);padding:28px 32px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
+.page-head h1{font-size:var(--t-2xl);font-weight:700;letter-spacing:-.3px}
+.page-head .sub{font-size:var(--t-base);color:var(--ink-2);margin-top:4px}
+
+/* ═══ BUTTONS ═══ */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 24px;border-radius:var(--r-md);font-size:var(--t-md);font-weight:700;cursor:pointer;border:1px solid transparent;font-family:inherit;transition:all .15s;text-decoration:none;white-space:nowrap}
+.btn-primary{background:var(--blue);color:#fff}
+.btn-primary:hover{background:var(--blue-hover)}
+.btn-secondary{background:var(--surface);color:var(--ink);border-color:var(--border)}
+.btn-secondary:hover{background:var(--page);border-color:var(--ink)}
+.btn-sm{padding:9px 18px;font-size:var(--t-base)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-danger{background:var(--surface);color:var(--red);border-color:var(--border)}
+.btn-danger:hover{background:var(--red-wash);border-color:var(--red)}
+
+/* ═══ TAB PILLS (Events) ═══ */
+.tab-pills{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.tab-pill{padding:12px 24px;font-size:var(--t-base);font-weight:700;color:var(--ink-2);cursor:pointer;border-radius:var(--r-md);transition:all .15s;background:transparent;border:1px solid transparent;font-family:inherit}
+.tab-pill:hover:not(.disabled){background:var(--surface)}
+.tab-pill.active{background:var(--ink);color:#fff}
+.tab-pill.disabled{color:var(--ink-disabled);cursor:default;pointer-events:none}
+.tab-pill .count{opacity:.75;font-weight:600;margin-left:4px}
+
+/* ═══ UNDERLINE TABS (Interviews) ═══ */
+.utabs-wrap{border-bottom:3px solid var(--border);margin:0 -32px 24px;padding:0 32px}
+.utabs{display:flex}
+.utab{flex:1;padding:20px 16px;text-align:center;font-size:var(--t-md);font-weight:600;color:var(--ink-2);cursor:pointer;border:none;border-bottom:4px solid transparent;margin-bottom:-3px;transition:all .15s;background:none;font-family:inherit}
+.utab:hover{color:var(--ink)}
+.utab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--ink);font-weight:700}
+.utab .count{color:var(--ink-3);font-weight:600;margin-left:6px}
+
+/* ═══ CARDS ═══ */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:22px 24px;margin-bottom:14px}
+.card-top{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}
+.card-title{font-size:var(--t-md);font-weight:700;color:var(--ink)}
+.card-meta{font-size:var(--t-base);color:var(--ink-2);margin-top:5px;display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.dot-sep{color:var(--border)}
+.card-body{margin-top:16px}
+.card-actions{display:flex;gap:10px;align-items:center;margin-top:18px;flex-wrap:wrap}
+.card.pinned{border-color:var(--green);border-width:2px}
+.card.needs-you{border-left:4px solid var(--blue)}
+
+/* ═══ BADGES ═══ */
+.badge-pill{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:var(--r-sm);font-size:var(--t-xs);font-weight:700;white-space:nowrap}
+.b-live{background:var(--green-wash);color:var(--green)}
+.b-wait{background:var(--amber-wash);color:var(--amber)}
+.b-info{background:var(--blue-wash);color:var(--blue)}
+.b-neutral{background:var(--page);color:var(--ink-2)}
+.b-bad{background:var(--red-wash);color:var(--red)}
+.b-good{background:var(--green-solid-wash);color:var(--green-solid)}
+.method{display:inline-flex;align-items:center;gap:6px;font-size:var(--t-base);color:var(--ink);font-weight:400}
+.method svg{width:16px;height:16px;color:var(--ink-2);flex-shrink:0}
+.live-dot{width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block;flex-shrink:0}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.live-dot.animate{animation:pulse 1.8s ease-in-out infinite}
+
+/* ═══ OVERFLOW MENU ═══ */
+.of-wrap{position:relative;flex-shrink:0}
+.of-btn{width:38px;height:38px;border-radius:var(--r-md);border:1px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;color:var(--blue)}
+.of-btn:hover{background:var(--page)}
+.of-menu{position:absolute;top:44px;right:0;background:var(--surface);border-radius:10px;box-shadow:var(--shadow-menu);border:1px solid var(--border);min-width:230px;z-index:500;display:none;padding:6px 0}
+.of-menu.open{display:block}
+.of-item{display:block;width:100%;padding:12px 18px;font-size:var(--t-base);font-weight:500;color:var(--ink);background:none;border:none;text-align:left;cursor:pointer;font-family:inherit}
+.of-item:hover{background:var(--page)}
+.of-item.danger{color:var(--red)}
+.of-item.danger:hover{background:var(--red-wash)}
+.of-item:disabled{color:var(--ink-disabled);cursor:not-allowed}
+.of-item:disabled:hover{background:none}
+.of-sep{height:1px;background:var(--divider);margin:6px 0}
+
+/* ═══ EMPTY STATES ═══ */
+.empty{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-xl);padding:72px 40px;text-align:center}
+.empty h2{font-size:var(--t-2xl);font-weight:700;margin-bottom:10px}
+.empty p{font-size:var(--t-md);color:var(--ink-3);margin:0 auto 24px;max-width:520px}
+.empty-art{width:120px;height:96px;margin:0 auto 24px}
+
+/* ═══ SIX-STEP EXPLAINER ═══ */
+.steps{max-width:640px;margin:32px auto 0;text-align:left;border-top:1px solid var(--divider);padding-top:28px}
+.steps h3{font-size:var(--t-md);font-weight:700;margin-bottom:16px;text-align:center}
+.step{display:flex;gap:14px;margin-bottom:14px;align-items:flex-start}
+.step-n{width:26px;height:26px;border-radius:50%;background:var(--blue);color:#fff;font-size:var(--t-sm);font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.step-t{font-size:var(--t-base);color:var(--ink);line-height:1.55}
+
+/* ═══ INVITATION BLOCK ═══ */
+.dayhead{font-size:var(--t-base);font-weight:700;color:var(--ink-2);margin:18px 0 8px;padding-left:2px}
+.dayhead:first-child{margin-top:0}
+.invite{border:2px solid var(--blue);background:var(--blue-wash);border-radius:var(--r-md);padding:18px 20px;margin-top:16px}
+.invite-h{font-size:var(--t-base);font-weight:700;color:var(--blue);display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.invite-p{font-size:var(--t-base);color:var(--ink);line-height:1.55;margin-bottom:14px}
+.match-job{display:inline-block;font-size:var(--t-md);font-weight:700;color:var(--blue);text-decoration:none}
+.match-job:hover{text-decoration:underline}
+.match-co{font-size:var(--t-base);color:var(--ink);margin-top:2px;margin-bottom:10px}
+
+/* ═══ INFO STRIP ═══ */
+.strip{background:var(--page);border-radius:var(--r-md);padding:14px 16px;font-size:var(--t-base);color:var(--ink-2);line-height:1.55;margin-top:14px}
+.strip strong{color:var(--ink)}
+
+/* ═══ TIME CHIPS ═══ */
+
+/* ═══ EVENT / ROLE LISTS ═══ */
+
+/* ═══ QUEUE / LOBBY ═══ */
+.lobby-hero{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-xl);padding:48px 40px;text-align:center;margin-bottom:16px}
+.lobby-hero.ready{border-color:var(--green);border-width:2px}
+.lobby-status{font-size:var(--t-2xl);font-weight:700;margin-bottom:10px}
+.lobby-sub{font-size:var(--t-md);color:var(--ink-3);max-width:520px;margin:0 auto 26px;line-height:1.55}
+.wait-num{font-size:44px;font-weight:700;letter-spacing:-1px;line-height:1.1;color:var(--ink)}
+.wait-lbl{font-size:var(--t-sm);color:var(--ink-3);margin-top:4px}
+.wait-box{display:inline-flex;gap:44px;padding:20px 32px;background:var(--page);border-radius:var(--r-lg);margin-bottom:26px}
+.prep{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden}
+.prep h3{font-size:var(--t-xl);font-weight:700;padding:20px 24px 4px}
+.prep-item{display:flex;align-items:center;gap:16px;padding:18px 24px;border-top:1px solid var(--divider)}
+.prep-item:first-of-type{border-top:none;padding-top:10px}
+.prep-ico{width:40px;height:40px;border-radius:var(--r-md);background:var(--page);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--ink-2)}
+.prep-ico.done{background:var(--green-solid-wash);color:var(--green-solid)}
+.prep-t{flex:1;min-width:0}
+.prep-t b{display:block;font-size:var(--t-base);font-weight:700;margin-bottom:2px}
+.prep-t span{font-size:var(--t-sm);color:var(--ink-2)}
+
+/* ═══ PLACEHOLDER (unresolved product decisions) ═══ */
+.ph{background:#fff6d9;border-bottom:1px dashed #b8860b;color:#7a5c00;font-weight:600;padding:0 3px;border-radius:2px}
+
+/* ═══ TOAST ═══ */
+.toast{position:fixed;top:60px;right:20px;background:#dcfce7;border:1px solid #bbf7d0;border-radius:var(--r-md);padding:13px 18px;font-size:var(--t-base);font-weight:600;color:#14532d;box-shadow:var(--shadow-menu);z-index:9999;display:none}
+.toast.show{display:block}
+
+/* ═══ MODAL ═══ */
+.ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;align-items:center;justify-content:center;padding:20px}
+.ov.open{display:flex}
+.modal{background:var(--surface);border-radius:14px;width:520px;max-width:100%;box-shadow:var(--shadow-modal);max-height:90vh;overflow-y:auto}
+.modal-h{display:flex;justify-content:space-between;align-items:flex-start;padding:24px 24px 0;gap:12px}
+.modal-h h3{font-size:var(--t-xl);font-weight:700}
+.modal-x{width:32px;height:32px;border:none;background:none;cursor:pointer;color:var(--ink-2);border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.modal-x:hover{background:var(--page)}
+.modal-b{padding:18px 24px;font-size:var(--t-base);line-height:1.6;color:var(--ink)}
+.modal-f{display:flex;justify-content:flex-end;gap:12px;padding:0 24px 24px}
+
+/* ═══ RESPONSIVE — seeker is phone-first in practice ═══ */
+@media (max-width:900px){
+  .sidebar{left:-100%;}
+  .main{margin-left:0;padding:84px 16px 90px}
+  .utabs-wrap{margin:0 -16px 20px;padding:0 16px}
+  .page-head{padding:20px;flex-direction:column;align-items:flex-start}
+  .page-head .btn{width:100%}
+  .card-actions .btn{flex:1}
+  .wait-box{gap:24px;padding:16px 20px;width:100%;justify-content:center}
+  .mobile-nav{display:flex!important}
+  .empty{padding:48px 22px}
+}
+.mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--rail);z-index:300;padding:8px 4px;justify-content:space-around}
+.mobile-nav button{background:none;border:none;color:rgba(255,255,255,.7);font-family:inherit;font-size:11px;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 10px;cursor:pointer;border-radius:var(--r-sm)}
+.mobile-nav button[aria-current="page"]{color:#fff}
+.mobile-nav svg{width:22px;height:22px}
+</style>
+</head>
+<body>
+
+<!-- ══════════ DEV TOGGLES — mirrors the Employer prototype's toggle bar ══════════ -->
+<div class="devbar" role="region" aria-label="Prototype state controls">
+  <div class="dev-toggle">
+    <span class="dev-toggle-label">Source:</span>
+    <div class="dev-toggle-switch" id="tgSrc">
+      <button class="dev-toggle-btn active" onclick="setSrc('jobfairx',this)">JobFairX</button>
+      <button class="dev-toggle-btn" onclick="setSrc('indeed',this)">Indeed</button>
+    </div>
+  </div>
+  <div class="dev-toggle">
+    <span class="dev-toggle-label">Events view:</span>
+    <div class="dev-toggle-switch" id="tgEvents">
+      <button class="dev-toggle-btn active" onclick="setEvents('active',this)">Active</button>
+      <button class="dev-toggle-btn" onclick="setEvents('empty',this)">Empty</button>
+      <button class="dev-toggle-btn" onclick="setEvents('live',this)">Live</button>
+      <button class="dev-toggle-btn" onclick="setEvents('no-upcoming',this)">No upcoming</button>
+      <button class="dev-toggle-btn" onclick="setEvents('no-past',this)">No past</button>
+    </div>
+  </div>
+  <div class="dev-toggle">
+    <span class="dev-toggle-label">Registered:</span>
+    <div class="dev-toggle-switch" id="tgReg">
+      <button class="dev-toggle-btn active" onclick="setReg('waiting',this)">Waiting</button>
+      <button class="dev-toggle-btn" onclick="setReg('matched',this)">Matched</button>
+      <button class="dev-toggle-btn" onclick="setReg('requested',this)">Requested</button>
+    </div>
+  </div>
+  <div class="dev-toggle">
+    <span class="dev-toggle-label">Interview state:</span>
+    <div class="dev-toggle-switch" id="tgIv">
+      <button class="dev-toggle-btn active" onclick="setIv('empty',this)">Empty</button>
+      <button class="dev-toggle-btn" onclick="setIv('active',this)">Active</button>
+      <button class="dev-toggle-btn" onclick="setIv('live',this)">Live</button>
+    </div>
+  </div>
+  <div class="dev-toggle">
+    <span class="dev-toggle-label">Lobby:</span>
+    <div class="dev-toggle-switch" id="tgLobby">
+      <button class="dev-toggle-btn active" onclick="setLobby('before',this)">Before</button>
+      <button class="dev-toggle-btn" onclick="setLobby('waiting',this)">Waiting</button>
+      <button class="dev-toggle-btn" onclick="setLobby('next',this)">Next up</button>
+      <button class="dev-toggle-btn" onclick="setLobby('ready',this)">Ready</button>
+      <button class="dev-toggle-btn" onclick="setLobby('ended',this)">Ended</button>
+    </div>
+  </div>
+  <div class="devbar-spacer">jordan.reyes@example.com</div>
+</div>
+
+<!-- ══════════ SIDEBAR ══════════ -->
+<nav class="sidebar" aria-label="Main">
+  <div class="sidebar-brand">JobFairX</div>
+  <div class="sidebar-nav">
+    <button class="nav-item" id="nav-events" aria-current="page" onclick="go('events')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>
+      <span>Events</span><span class="badge" id="navEventsBadge">1</span>
+    </button>
+    <button class="nav-item" id="nav-interviews" onclick="go('interviews')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+      <span>Interviews</span><span class="badge" id="navIvBadge">2</span>
+    </button>
+    <button class="nav-item" id="nav-messages" onclick="go('messages')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+      <span>Messages</span>
+    </button>
+    <button class="nav-item" id="nav-resume" onclick="go('resume')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
+      <span>Resume</span>
+    </button>
+  </div>
+</nav>
+
+<nav class="mobile-nav" aria-label="Main">
+  <button id="mnav-events" aria-current="page" onclick="go('events')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>Events</button>
+  <button id="mnav-interviews" onclick="go('interviews')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>Interviews</button>
+  <button id="mnav-messages" onclick="go('messages')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>Messages</button>
+  <button id="mnav-resume" onclick="go('resume')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>Resume</button>
+</nav>
+
+<main class="main" id="main">
+
+<!-- ══════════ EVENTS ══════════ -->
+<section class="view active" id="view-events" aria-labelledby="h-events">
+  <div class="page-head">
+    <div>
+      <h1 id="h-events">Hiring events</h1>
+    </div>
+    <button class="btn btn-primary" onclick="toast('Browse events')">Browse events</button>
+  </div>
+  <div id="evTabs" class="tab-pills" role="tablist" aria-label="Event status">
+    <button class="tab-pill active" role="tab" aria-selected="true" onclick="evTab('up',this)">Registered <span class="count" id="cUp">4</span></button>
+    <button class="tab-pill" role="tab" aria-selected="false" id="pastPill" onclick="evTab('past',this)">Past events <span class="count" id="cPast">2</span></button>
+  </div>
+  <div id="evBody"></div>
+</section>
+
+<!-- ══════════ INTERVIEWS ══════════ -->
+<section class="view" id="view-interviews" aria-labelledby="h-iv">
+  <div class="page-head">
+    <div>
+      <h1 id="h-iv">Interviews</h1>
+      <p class="sub">Everything you've requested, confirmed, and completed.</p>
+    </div>
+  </div>
+  <div class="utabs-wrap">
+    <div class="utabs" role="tablist" aria-label="Interview status">
+      <button class="utab" role="tab" aria-selected="true" onclick="ivTab(0,this)">Upcoming <span class="count" id="ivC0">3</span></button>
+      <button class="utab" role="tab" aria-selected="false" onclick="ivTab(1,this)">Pending <span class="count" id="ivC1">4</span></button>
+      <button class="utab" role="tab" aria-selected="false" onclick="ivTab(2,this)">Past <span class="count" id="ivC2">4</span></button>
+    </div>
+  </div>
+  <div id="ivBody"></div>
+  <div class="card" style="margin-top:18px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+    <div style="flex:1;min-width:200px">
+      <b style="display:block;font-size:var(--t-base)">Set up your device for interviews</b>
+      <span style="font-size:var(--t-sm);color:var(--ink-2)">Test your camera and microphone ahead of time.</span>
+    </div>
+    <button class="btn btn-secondary btn-sm" onclick="toast('Testing camera and microphone')">Test your device</button>
+  </div>
+</section>
+
+<!-- ══════════ LOBBY ══════════ -->
+<section class="view" id="view-lobby" aria-labelledby="h-lobby">
+  <div class="page-head">
+    <div>
+      <h1 id="h-lobby">Dallas Healthcare Hiring Event</h1>
+      <p class="sub" id="lobbyMeta">Apr 22, 2026 · 11:00 AM – 3:00 PM CT</p>
+    </div>
+    <div class="of-wrap">
+      <button class="of-btn" aria-label="Event options" onclick="ofToggle(event,'ofLobby')">
+        <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><circle cx="6" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="18" cy="12" r="2"/></svg>
+      </button>
+      <div class="of-menu" id="ofLobby">
+        <button class="of-item" onclick="toast('Test camera and microphone')">Test camera and microphone</button>
+        <button class="of-item" onclick="go('resume')">View my resume</button>
+        <div class="of-sep"></div>
+        <button class="of-item danger" id="lobbyLeave" onclick="toast('Left the event')">Leave the event</button>
+      </div>
+    </div>
+  </div>
+  <div id="lobbyBody"></div>
+</section>
+
+<!-- Messages is already built. Nav entry only — existing design drops in here. -->
+<section class="view" id="view-messages" aria-labelledby="h-msg">
+  <div class="page-head"><div><h1 id="h-msg">Messages</h1></div></div>
+  <div class="card" style="padding:56px 32px;text-align:center;color:var(--ink-3);font-size:var(--t-md)">
+    Existing message design goes here.
+  </div>
+</section>
+
+<!-- ══════════ RESUME ══════════ -->
+<!-- Resume is already built. Nav entry only — existing design drops in here. -->
+<section class="view" id="view-resume" aria-labelledby="h-res">
+  <div class="page-head"><div><h1 id="h-res">Resume</h1></div></div>
+  <div class="card" style="padding:56px 32px;text-align:center;color:var(--ink-3);font-size:var(--t-md)">
+    Existing resume design goes here.
+  </div>
+</section>
+
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<div class="ov" id="ov" onclick="if(event.target===this)closeModal()">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+    <div class="modal-h"><h3 id="mTitle"></h3><button class="modal-x" aria-label="Close" onclick="closeModal()">×</button></div>
+    <div class="modal-b" id="mBody"></div>
+    <div class="modal-f" id="mFoot"></div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   ICONS
+   ═══════════════════════════════════════════════════════════ */
+var I = {
+  video:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>',
+  phone:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6A19.8 19.8 0 012.1 4.2 2 2 0 014.1 2h3a2 2 0 012 1.7c.1 1 .4 1.9.7 2.8a2 2 0 01-.5 2.1L8.1 9.9a16 16 0 006 6l1.3-1.3a2 2 0 012.1-.4c.9.3 1.8.6 2.8.7a2 2 0 011.7 2z"/></svg>',
+  person:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>',
+  link:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.5.5l3-3a5 5 0 00-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 00-7.5-.5l-3 3a5 5 0 007 7l1.7-1.7"/></svg>',
+  check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="20" height="20"><polyline points="20 6 9 17 4 12"/></svg>',
+  doc:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>',
+  cam:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>',
+  bldg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22v-4h6v4M9 6h.01M15 6h.01M9 10h.01M15 10h.01M9 14h.01M15 14h.01"/></svg>',
+  dots:'<svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><circle cx="6" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="18" cy="12" r="2"/></svg>'
+};
+/* Interview method is first-class. Every type gets its own copy at every
+   moment, because what the platform can observe differs per type: only a
+   JobFairX call can be tested, joined, or auto-completed. */
+var METHOD = {
+  video: {i:I.video, l:'JobFairX video call',
+    ahead:'You\'ll join online. Test your camera and mic before the day.',
+    dayof:'Your interview is online. The Join button appears here when it\'s time.',
+    atTime:'Your interviewer is ready. Join now — they\'re waiting for you.',
+    cta:'Join interview', go:"go('lobby')", canTest:true, lobby:true},
+  link:  {i:I.link,  l:'Employer’s video call',
+    ahead:'The employer sends their video link when they approve your interview. It arrives by email and appears here.',
+    dayof:'Open the employer’s link at your interview time. It opens outside JobFairX.',
+    atTime:'It’s time. Open the employer’s video link to join.',
+    cta:'Open video link', go:"toast('Opening employer link')", canTest:false, lobby:false},
+  phone: {i:I.phone, l:'Phone call',
+    ahead:'The employer will call you. There’s nothing to join — just make sure your number is right.',
+    dayof:'Keep your ringer on. The employer calls you at your interview time.',
+    atTime:'The employer is calling you now. Answer when your phone rings.',
+    cta:null, go:null, canTest:false, lobby:false},
+  person:{i:I.person,l:'In person',
+    ahead:'Plan your travel. Check the address and parking before the day.',
+    dayof:'Leave in good time. Check in at reception when you arrive.',
+    atTime:'It\'s your interview time. Check in at reception.',
+    cta:'Get directions', go:"toast('Opening directions')", canTest:false, lobby:false}
+};
+function m(k){return '<span class="method">'+METHOD[k].i+METHOD[k].l+'</span>';}
+function ph(t){return '<span class="ph">['+t+']</span>';}
+
+/* ═══════════════════════════════════════════════════════════
+   STATE
+   ═══════════════════════════════════════════════════════════ */
+var SRC='jobfairx';
+var S = { events:'active', evTab:'up', reg:'waiting', iv:['empty','empty','empty'], ivTab:0, lobby:'before' };
+
+/* ═══════════════════════════════════════════════════════════
+   NAV
+   ═══════════════════════════════════════════════════════════ */
+function go(v){
+  document.querySelectorAll('.view').forEach(function(x){x.classList.remove('active')});
+  document.getElementById('view-'+v).classList.add('active');
+  ['events','interviews','messages','resume'].forEach(function(n){
+    var a=document.getElementById('nav-'+n), b=document.getElementById('mnav-'+n);
+    if(a){ n===v ? a.setAttribute('aria-current','page') : a.removeAttribute('aria-current'); }
+    if(b){ n===v ? b.setAttribute('aria-current','page') : b.removeAttribute('aria-current'); }
+  });
+  window.scrollTo(0,0);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   EVENTS  — derived from the employer Events dashboard.
+   Employer distinguishes never-had-any from none-right-now.
+   Seeker keeps that distinction.
+   ═══════════════════════════════════════════════════════════ */
+/* An employer posts a job. The candidate is matched to that job and invited to
+   request an interview. Nobody is "invited to interview" — the request comes
+   from the candidate, and the employer confirms it. */
+/* One registered event per interview format, so every method state is
+   visible. The second line is method-specific — the employer app pairs
+   the method badge with an explanation, never a generic location. */
+var EVENTS = [
+  { id:'dallas', name:'Dallas Healthcare Hiring Event', date:'Apr 22, 2026', time:'11:00 AM – 3:00 PM CT',
+    method:'video', detail:'Hosted on JobFairX', countdown:'In 3 days',
+    matches:[{co:'Baylor Scott & White', job:'Nurse Practitioner'}], reqIdx:0 },
+  { id:'chicago', name:'Chicago Technology Event', date:'May 6, 2026', time:'11:00 AM – 3:00 PM CT',
+    method:'phone', detail:'The employer will call you', countdown:'In 3 weeks',
+    matches:[{co:'Relativity', job:'Data Engineer'}], reqIdx:1 },
+  { id:'atlanta', name:'Atlanta Diversity Event', date:'May 20, 2026', time:'11:00 AM – 3:00 PM ET',
+    method:'person', detail:ph('PLACEHOLDER — Atlanta venue address'), countdown:'In 4 weeks',
+    matches:[{co:'Tenet Health', job:'Occupational Therapist'}], reqIdx:2 },
+  { id:'denver', name:'Denver Engineering Event', date:'Jun 3, 2026', time:'10:00 AM – 2:00 PM MT',
+    method:'link', detail:'Microsoft Teams', countdown:'In 6 weeks',
+    matches:[{co:'Palantir', job:'Platform Engineer'}], reqIdx:3 }
+];
+
+function evTab(t,btn){
+  S.evTab=t;
+  document.querySelectorAll('#evTabs .tab-pill').forEach(function(p){p.classList.remove('active');p.setAttribute('aria-selected','false')});
+  btn.classList.add('active');btn.setAttribute('aria-selected','true');
+  renderEvents();
+}
+function setSrc(v,btn){
+  SRC=v;
+  document.querySelectorAll('#tgSrc .dev-toggle-btn').forEach(function(b){b.classList.remove('active')});
+  btn.classList.add('active');
+  var off=isIndeed();
+  document.querySelectorAll('#tgEvents .dev-toggle-btn, #tgReg .dev-toggle-btn').forEach(function(b){
+    b.disabled=off; b.style.opacity=off?'.4':'';
+  });
+  document.querySelectorAll('#evTabs .tab-pill').forEach(function(pl,i){
+    pl.classList.toggle('disabled', off);
+    pl.querySelector('.count').textContent = off ? '0' : (i===0?String(EVENTS.length):'2');
+  });
+  document.getElementById('navEventsBadge').style.display = off ? 'none' : '';
+  renderEvents(); renderIv(); renderLobby(); go(off?'interviews':'events');
+}
+
+function setEvents(mode,btn){
+  S.events=mode;
+  document.querySelectorAll('#tgEvents .dev-toggle-btn').forEach(function(b){b.classList.remove('active')});
+  btn.classList.add('active');
+  var pills=document.querySelectorAll('#evTabs .tab-pill');
+  pills.forEach(function(p){p.classList.remove('active','disabled');p.setAttribute('aria-selected','false')});
+  pills[0].classList.add('active');pills[0].setAttribute('aria-selected','true');
+  S.evTab='up';
+  document.getElementById('cUp').textContent = (mode==='empty'||mode==='no-upcoming')?'0':String(EVENTS.length);
+  document.getElementById('cPast').textContent = (mode==='empty'||mode==='no-past')?'0':'2';
+  if(mode==='no-past'||mode==='empty') pills[1].classList.add('disabled');
+  document.getElementById('evTabs').style.display = 'flex';
+  document.getElementById('navEventsBadge').style.display = (mode==='active'||mode==='live')?'':'none';
+  renderEvents(); go('events');
+}
+
+var waitNoteShown = false, reqNoteShown = false;
+function eventCard(e,live){
+  var st = e.matches.length ? S.reg : 'waiting';
+  var h='<article class="card'+(live?' pinned':'')+'">';
+  h+='<div class="card-top"><div style="min-width:0">';
+  h+='<div class="card-title">'+e.name+'</div>';
+  h+='<div class="card-meta">'+e.date+' <span class="dot-sep">·</span> '+e.time+'</div>';
+  h+='<div class="card-meta">'+m(e.method)+'</div>';
+  h+='<div class="card-meta" style="margin-top:2px;color:var(--ink-2)">'+e.detail+'</div>';
+  h+='<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">';
+  if(live) h+='<span class="badge-pill b-live"><span class="live-dot animate"></span>This event is live</span>';
+  else h+='<span class="badge-pill b-neutral">'+e.countdown+'</span>';
+  /* No status badge when matched — the invitation block below says it louder. */
+  if(st==='requested') h+='<span class="badge-pill b-wait">Interview requested</span>';
+  else if(st!=='matched') h+='<span class="badge-pill b-wait">Waiting to be matched</span>';
+  h+='</div></div>';
+  /* Overflow. Employer disables mutating actions once live and explains why —
+     the seeker's equivalent is that you cannot leave an event mid-interview. */
+  h+='<div class="of-wrap"><button class="of-btn" aria-label="Event options" onclick="ofToggle(event,\'of-'+e.id+'\')">'+I.dots+'</button>';
+  h+='<div class="of-menu" id="of-'+e.id+'">';
+  h+='<button class="of-item" onclick="toast(\'Event details\')">View event details</button>';
+  h+='<div class="of-sep"></div>';
+  h+= live
+     ? '<button class="of-item" disabled title="You can\'t leave an event while it\'s live">Unregister from this event</button>'
+     : '<button class="of-item danger" onclick="confirmUnregister(\''+e.name+'\')">Unregister from this event</button>';
+  h+='</div></div></div>';
+
+  if(live){
+    /* A lobby only exists for a JobFairX call. A phone or in-person event
+       has nothing to join, so it must not offer one. */
+    h+='<div class="card-actions">';
+    h+= METHOD[e.method].lobby
+       ? '<button class="btn btn-primary" onclick="go(\'lobby\')">Go to interview lobby</button>'
+       : '<button class="btn btn-primary" onclick="go(\'interviews\')">View my interviews</button>';
+    if(METHOD[e.method].lobby) h+='<button class="btn btn-secondary btn-sm" onclick="go(\'interviews\')">View my interviews</button>';
+    h+='</div>';
+  } else if(st==='matched'){
+    h+= e.matches.map(function(x){
+      return '<div class="invite"><div class="invite-h">'+I.check+' You\'ve been matched with a job</div>'
+       +'<a class="match-job" href="#" onclick="toast(\'Job details\');return false">'+x.job+'</a>'
+       +'<div class="match-co">'+x.co+'</div>'
+       +'<p class="invite-p">Request an interview and '+x.co+' will confirm a time with you.</p>'
+       +'<div style="display:flex;gap:10px;flex-wrap:wrap">'
+       +'<button class="btn btn-primary btn-sm" onclick="location.href=\'jobseeker-scheduling-v1.html\'">Request interview</button>'
+       +'<button class="btn btn-secondary btn-sm" onclick="toast(\'Job details\')">View job</button>'
+       +'</div></div>';
+    }).join('');
+  } else if(st==='requested'){
+    var x=REQUESTS[e.reqIdx];
+    var note = reqNoteShown ? '' :
+      '<br>Employers usually respond within '+ph('PLACEHOLDER — response window')+'. You\'ll get an email and a message here as soon as they do.';
+    reqNoteShown = true;
+    h+='<div class="strip"><strong>'+x.job+'</strong> · '+x.co+note
+     +'<div style="margin-top:12px"><button class="btn btn-secondary btn-sm" onclick="goPending()">View request</button></div></div>';
+  } else if(!waitNoteShown){
+    waitNoteShown = true;
+    h+='<div class="strip">You\'re registered. When you\'re matched with a job at this event, you\'ll be invited to request an interview.<br>'
+     +'<strong>A complete resume helps employers choose you.</strong> <a href="#" onclick="go(\'resume\');return false">Review your resume</a></div>';
+  }
+  h+='</article>';
+  return h;
+}
+
+function indeedEventsBlock(){
+  return '<div class="empty"><svg class="empty-art" viewBox="0 0 120 96" fill="none" aria-hidden="true">'
+   +'<rect x="26" y="18" width="68" height="60" rx="6" fill="#fff" stroke="#d4d2d0" stroke-width="2"/>'
+   +'<path d="M26 34h68" stroke="#d4d2d0" stroke-width="2"/><path d="M42 14v10M78 14v10" stroke="#b0aeab" stroke-width="4" stroke-linecap="round"/>'
+   +'<rect x="36" y="44" width="10" height="9" rx="2" fill="#ebebeb"/><rect x="55" y="44" width="10" height="9" rx="2" fill="#ebebeb"/>'
+   +'<rect x="74" y="44" width="10" height="9" rx="2" fill="#ebebeb"/><rect x="36" y="60" width="10" height="9" rx="2" fill="#ebebeb"/>'
+   +'<rect x="55" y="60" width="10" height="9" rx="2" fill="#ebebeb"/></svg>'
+   +'<h2>You\'re not registered for any hiring events</h2>'
+   +'<p>You don\'t need to be \u2014 your interview is already set. See <a href="#" onclick="go(\'interviews\');return false">Interviews</a> for the details.</p>'
+   +'<div class="steps" style="margin-top:26px"><h3>What a JobFairX hiring event is</h3>'
+   +'<div class="step"><span class="step-n">1</span><span class="step-t">Employers interview many candidates across a single day, back to back.</span></div>'
+   +'<div class="step"><span class="step-n">2</span><span class="step-t">You register once, then get matched to the roles you fit.</span></div>'
+   +'<div class="step"><span class="step-n">3</span><span class="step-t">One registration can put you in front of several employers.</span></div>'
+   +'<div style="text-align:center;margin-top:22px"><button class="btn btn-primary" onclick="toast(\'Browse events\')">Browse events</button></div>'
+   +'</div></div>';
+}
+
+function noEventsBlock(){
+  return '<div class="empty"><svg class="empty-art" viewBox="0 0 120 96" fill="none" aria-hidden="true">'
+   +'<rect x="26" y="18" width="68" height="60" rx="6" fill="#fff" stroke="#d4d2d0" stroke-width="2"/>'
+   +'<path d="M26 34h68" stroke="#d4d2d0" stroke-width="2"/><path d="M42 14v10M78 14v10" stroke="#b0aeab" stroke-width="4" stroke-linecap="round"/>'
+   +'<rect x="36" y="44" width="10" height="9" rx="2" fill="#ebebeb"/><rect x="55" y="44" width="10" height="9" rx="2" fill="#ebebeb"/>'
+   +'<rect x="74" y="44" width="10" height="9" rx="2" fill="#ebebeb"/><rect x="36" y="60" width="10" height="9" rx="2" fill="#ebebeb"/>'
+   +'<rect x="55" y="60" width="10" height="9" rx="2" fill="#ebebeb"/></svg>'
+   +'<h2>You have no upcoming events</h2>'
+   +'<p>Register for a hiring event to start connecting with employers who are interviewing now.</p>'
+   +'<button class="btn btn-primary" onclick="toast(\'Browse events\')">Browse events</button></div>';
+}
+
+function renderEvents(){
+  var b=document.getElementById('evBody'), mode=S.events, h='';
+  waitNoteShown = false; reqNoteShown = false;
+
+  /* Empty and No upcoming share one treatment — same calendar, same words.
+     They differ only in the Past events count behind the tab. */
+  if(isIndeed()){ b.innerHTML=indeedEventsBlock(); return; }
+  if(mode==='empty' || (mode==='no-upcoming' && S.evTab==='up')){
+    b.innerHTML=noEventsBlock(); return;
+  }
+
+  if(S.evTab==='past'){
+    var ended=[
+      {n:'Houston Veteran Hiring Event', d:'Mar 18, 2026', t:'11:00 AM – 3:00 PM CT', meth:'video'},
+      {n:'Phoenix Retail Hiring Event',  d:'Feb 24, 2026', t:'10:00 AM – 2:00 PM MT', meth:'person'}
+    ];
+    b.innerHTML = ended.map(function(e){
+      return '<article class="card"><div class="card-top"><div><div class="card-title">'+e.n+'</div>'
+      +'<div class="card-meta">'+e.d+' <span class="dot-sep">·</span> '+e.t+'</div>'
+      +'<div class="card-meta">'+m(e.meth)+'</div>'
+      +'<div style="margin-top:10px"><span class="badge-pill b-neutral">Event ended</span></div></div></div>'
+      +'<div class="strip">'+(function(){
+        var n=PAST_IV.filter(function(r){return r.ev===e.n && r.st==='done'}).length;
+        if(!n) return 'You didn\'t complete an interview at this event.';
+        return 'You interviewed with <strong>'+n+' employer'+(n===1?'':'s')+'</strong> at this event. '
+          +'Employers follow up directly with the candidates they want to move forward. '
+          +'Anything they send you appears in <a href="#" onclick="go(\'messages\');return false">Messages</a>.';
+      })()+'</div>'
+      +'<div class="card-actions"><button class="btn btn-secondary btn-sm" onclick="go(\'interviews\')">View these interviews</button></div></article>';
+    }).join('');
+    return;
+  }
+
+  var list = (mode==='no-past') ? EVENTS : EVENTS;
+  h = list.map(function(e){ return eventCard(e, mode==='live' && e.id==='dallas'); }).join('');
+  b.innerHTML=h;
+}
+
+function setReg(mode,btn){
+  S.reg=mode;
+  document.querySelectorAll('#tgReg .dev-toggle-btn').forEach(function(b){b.classList.remove('active')});
+  btn.classList.add('active');
+  renderEvents(); go('events');
+}
+
+function confirmUnregister(name){
+  modal('Unregister from this event?',
+    'You\'ll be removed from <strong>'+name+'</strong> and from any employer matches at it. Interviews you\'ve already confirmed for this event will be cancelled.<br><br>This can\'t be undone.',
+    '<button class="btn btn-secondary btn-sm" onclick="closeModal()">Keep my registration</button>'+
+    '<button class="btn btn-danger btn-sm" onclick="closeModal();toast(\'Unregistered\')">Unregister</button>');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   INTERVIEWS — Upcoming / Pending / Past, matching the
+   employer's own three-tab structure so the two products
+   stay legible to each other.
+   ═══════════════════════════════════════════════════════════ */
+function ivTab(i,btn){
+  S.ivTab=i;
+  document.querySelectorAll('.utab').forEach(function(t){t.setAttribute('aria-selected','false')});
+  btn.setAttribute('aria-selected','true');
+  syncIvToggle(); renderIv();
+}
+function setIv(mode,btn){
+  S.iv[S.ivTab]=mode;
+  document.querySelectorAll('#tgIv .dev-toggle-btn').forEach(function(b){b.classList.remove('active')});
+  btn.classList.add('active');
+  renderIv(); go('interviews');
+}
+function syncIvToggle(){
+  var cur=S.iv[S.ivTab], btns=document.querySelectorAll('#tgIv .dev-toggle-btn');
+  btns.forEach(function(b){b.classList.remove('active')});
+  ({empty:0,active:1,live:2})[cur]!==undefined && btns[({empty:0,active:1,live:2})[cur]].classList.add('active');
+  btns[2].disabled = (S.ivTab!==0);
+  btns[2].style.opacity = (S.ivTab!==0)?'.4':'';
+}
+
+function ivEmpty(){
+  var t=['upcoming','pending','past'][S.ivTab];
+  var copy={
+    upcoming:['You don\'t have any upcoming interviews','Confirmed interviews appear here, once an employer accepts a time you\'ve requested.'],
+    pending:['You\'re not waiting on any replies','Interview requests you\'ve sent appear here until the employer accepts or declines them.'],
+    past:['You haven\'t interviewed yet','Once you\'ve completed an interview it stays here for your records.']
+  }[t];
+  return '<div class="empty"><svg class="empty-art" viewBox="0 0 120 96" fill="none" aria-hidden="true">'
+   +'<ellipse cx="60" cy="84" rx="38" ry="6" fill="#ebebeb"/>'
+   +'<rect x="44" y="32" width="34" height="40" rx="3" fill="#d9c3a5"/><rect x="48" y="36" width="26" height="22" rx="2" fill="#fff"/>'
+   +'<path d="M48 72v10M74 72v10" stroke="#b99a76" stroke-width="4" stroke-linecap="round"/>'
+   +'<circle cx="28" cy="64" r="9" fill="#8fbf7f"/><path d="M28 64v18" stroke="#6b9a5c" stroke-width="3" stroke-linecap="round"/></svg>'
+   +'<h2>'+copy[0]+'</h2><p>'+copy[1]+'</p>'
+   +'<button class="btn btn-primary" onclick="go(\'events\')">'+(S.ivTab===2?'Go to events':'Browse events')+'</button></div>';
+}
+
+/* --- Upcoming ------------------------------------------------
+   One renderer, four methods. `phase` is 'ahead' (before the day),
+   'dayof' (event day, before your slot) or 'atTime' (your slot is up).
+   ------------------------------------------------------------- */
+var LIVE_EVENT = 'Dallas Healthcare Hiring Event';
+
+/* Indeed candidates never register for an event and never see its name.
+   Method, states and reschedule are all identical. */
+function isIndeed(){ return SRC==='indeed'; }
+function evLine(name){ return isIndeed() ? '' : ' <span class="dot-sep">·</span> '+name; }
+
+/* One source for pending requests, so an Indeed candidate still has requests
+   with no event registration, and the two surfaces cannot drift. */
+/* Past interviews, shared with the Past events tab so the two agree on what
+   actually happened at each ended event. */
+var PAST_IV=[
+  {job:'Medical Assistant',co:'CVS Health',ev:'Houston Veteran Hiring Event',meth:'video',when:'Mar 18, 11:38 AM CT',st:'done'},
+  {job:'Registered Nurse',co:'Baylor Scott & White',ev:'Houston Veteran Hiring Event',meth:'video',when:'Mar 18, 11:00 AM CT',st:'done'},
+  {job:'Retail Supervisor',co:'Target',ev:'Phoenix Retail Hiring Event',meth:'person',when:'Feb 24, 1:00 PM MT',st:'missed'},
+  {job:'Operations Coordinator',co:'Aramark',ev:'Phoenix Retail Hiring Event',meth:'person',when:'Requested Feb 20',st:'declined'}
+];
+
+var REQUESTS=[
+  {job:'Dental Hygienist',          co:'Baylor Scott & White', meth:'video',  ev:'Dallas Healthcare Hiring Event', when:'Apr 22, 2026'},
+  {job:'DevOps Engineer',           co:'Relativity',           meth:'phone',  ev:'Chicago Technology Event',       when:'May 6, 2026'},
+  {job:'Speech Therapist',          co:'Tenet Health',         meth:'person', ev:'Atlanta Diversity Event',        when:'May 20, 2026'},
+  {job:'Site Reliability Engineer', co:'Palantir',             meth:'link',   ev:'Denver Engineering Event',       when:'Jun 3, 2026'}
+];
+/* Method is an event-level setting, so an interview's method must equal its
+   event's. Dallas=video, Chicago=phone, Atlanta=in person, Denver=link. */
+var UPCOMING = [
+  {id:'u0', job:'Registered Nurse',   co:'Baylor Scott & White', ev:LIVE_EVENT,
+   meth:'video',  sort:'2026-04-22', day:'Wed, Apr 22', time:'11:00 – 11:30 AM CT', now:true},
+  {id:'u1', job:'Medical Assistant',  co:'CVS Health',           ev:LIVE_EVENT,
+   meth:'video',  sort:'2026-04-22', day:'Wed, Apr 22', time:'11:30 AM – 12:00 PM CT', soon:'40 minutes'},
+  {id:'u2', job:'Software Engineer',  co:'Relativity',           ev:'Chicago Technology Event',
+   meth:'phone',  sort:'2026-05-06', day:'Wed, May 6',  time:'1:00 – 1:30 PM CT', tel:'(555) 014-2278'},
+  {id:'u3', job:'Physical Therapist', co:'Tenet Health',         ev:'Atlanta Diversity Event',
+   meth:'person', sort:'2026-05-20', day:'Wed, May 20', time:'2:00 – 2:30 PM ET',
+   addr:ph('PLACEHOLDER — Atlanta venue address')},
+  {id:'u4', job:'Backend Engineer',   co:'Palantir',             ev:'Denver Engineering Event',
+   meth:'link',   sort:'2026-06-03', day:'Wed, Jun 3',  time:'10:30 – 11:00 AM MT', approved:true,
+   link:'teams.microsoft.com/l/meetup/19:af22d'}
+].sort(function(a,b){return a.sort<b.sort?-1:1});
+
+function ivUpcoming(live){
+  /* Day-of only applies to interviews at the event that is actually live.
+     An interview three weeks out at a different event is still 'ahead'. */
+  var rows = UPCOMING.map(function(r){
+    var atThisEvent = live && r.ev===LIVE_EVENT;
+    var phase = !atThisEvent ? 'ahead' : (r.now ? 'atTime' : 'dayof');
+    return card(r, phase);
+  });
+  /* Group by day, the way Indeed puts the date inside the card. */
+  var out='', lastDay=null;
+  UPCOMING.forEach(function(r,i){
+    if(r.day!==lastDay){ out+='<div class="dayhead">'+r.day+'</div>'; lastDay=r.day; }
+    out+=rows[i];
+  });
+  return out;
+}
+
+function card(r, phase){
+  var M = METHOD[r.meth];
+  var atTime = phase==='atTime', dayof = phase==='dayof';
+  var h='<article class="card'+(atTime?' pinned':'')+'"><div class="card-top"><div style="min-width:0">';
+
+  if(atTime)      h+='<span class="badge-pill b-live"><span class="live-dot animate"></span>Happening now</span><div style="height:10px"></div>';
+  else if(dayof)  h+='<span class="badge-pill b-info">'+(r.soon?'Starts in '+r.soon:'Today')+'</span><div style="height:10px"></div>';
+
+  h+='<div class="card-title">'+r.job+'</div>';
+  h+='<div class="card-meta">'+r.co+evLine(r.ev)+'</div>';
+  h+='<div class="card-meta">'+m(r.meth)+' <span class="dot-sep">·</span> '+r.time+'</div>';
+  h+='</div>';
+
+  /* Overflow. Cancel lives here; Reschedule is a visible button. */
+  /* Two items. Event details and Messages are in the nav; copy-address
+     duplicates Get directions; the wrong-number link is in the strip. */
+  var items=[['View job details',"toast('Job details')"]];
+  h+= ofMenu(r.id, items, atTime ? null : ['Cancel interview',"confirmCancel('"+r.job+" at "+r.co+"')"]);
+  h+='</div>';
+
+  /* The one line that tells them what happens next, per type and phase. */
+  var needsStrip = !(r.meth==='video' && !atTime);
+  if(needsStrip){
+  h+='<div class="strip">'+ M[phase];
+  if(r.meth==='phone')  h+='<br><strong>'+r.co+' will call '+r.tel+'</strong> at '+r.time.split(' – ')[0]+'. <a href="#" onclick="go(\'resume\');return false">Wrong number?</a>';
+  if(r.meth==='person') h+='<br><strong>'+r.addr+'</strong><br>Arrival: '+ph('PLACEHOLDER — arrival instructions')+' <span class="dot-sep">·</span> Parking: '+ph('PLACEHOLDER — parking');
+  if(r.meth==='link')   h+= r.approved
+      ? '<br><strong>'+r.link+'</strong>'
+      : '<br>Nothing to do yet — we\'ll email it and show it here.';
+  h+='</div>';
+  }
+
+  /* Actions. Reschedule and Cancel carry equal weight, as Indeed does;
+     the join/directions action is primary only once it's actionable. */
+  var acts=[];
+  if(M.cta && (atTime || (dayof && r.meth!=='phone') || r.meth==='person'))
+    acts.push('<button class="btn '+(atTime?'btn-primary':'btn-secondary btn-sm')+'" onclick="'+M.go+'">'+M.cta+(r.meth==='link'?' ↗':'')+'</button>');
+  if(!atTime){
+    acts.push('<button class="btn btn-secondary btn-sm" onclick="reschedule(\''+r.job+'\')">Reschedule</button>');
+    acts.push('<button class="btn btn-secondary btn-sm" onclick="confirmCancel(\''+r.job+' at '+r.co+'\')">Cancel</button>');
+  }
+  if(acts.length) h+='<div class="card-actions">'+acts.join('')+'</div>';
+  return h+'</article>';
+}
+
+/* Seam into the scheduling flow. */
+function reschedule(job){ window.location.href='jobseeker-scheduling-v1.html'; }
+
+/* Land on Pending with data showing, rather than whatever tab was last used. */
+function goPending(){
+  S.ivTab=1; S.iv[1]='active';
+  document.querySelectorAll('.utab').forEach(function(t,i){t.setAttribute('aria-selected', i===1?'true':'false')});
+  syncIvToggle(); renderIv(); go('interviews');
+}
+
+/* --- Pending ------------------------------------------------- */
+function ivPending(){
+  /* Renders the shared REQUESTS list. The event name is suppressed for an
+     Indeed candidate, who has no event to recognise. */
+  var noteShown=false;
+  return REQUESTS.map(function(x,i){
+    var note = noteShown ? '' :
+      'Employers usually respond within '+ph('PLACEHOLDER — response window')+'. You\'ll get an email and a message here as soon as they do.';
+    noteShown=true;
+    return '<article class="card"><div class="card-top"><div style="min-width:0">'
+     +'<div class="card-title">'+x.job+'</div>'
+     +'<div class="card-meta">'+x.co+evLine(x.ev)+'</div>'
+     +'<div class="card-meta">'+m(x.meth)+' <span class="dot-sep">·</span> You requested '+x.when+'</div>'
+     +'<div style="margin-top:10px"><span class="badge-pill b-wait">Awaiting employer response</span></div></div>'
+     +ofMenu('p'+i,[['View job details',"toast('Job details')"]],['Cancel request',"confirmCancel('"+x.job+" request')"])+'</div>'
+     +(note?'<div class="strip">'+note+'</div>':'')+'</article>';
+  }).join('');
+}
+
+/* --- Past ----------------------------------------------------
+   Deliberate asymmetry: the employer's Past tab carries a
+   Yes/Maybe/No rating, private notes and the interviewer's name.
+   None of it appears here. What replaces it is an honest
+   statement of what happens next.
+   ------------------------------------------------------------- */
+function ivPast(){
+  /* Past interviews sit at events that have ended, and carry those events'
+     methods: Houston was a video event, Phoenix was in person. */
+  var rows=PAST_IV;
+
+  var LBL={done:['b-good','Interviewed'],missed:['b-bad','Missed'],declined:['b-neutral','Not moving forward']};
+  return rows.map(function(r,i){
+    var h='<article class="card"><div class="card-top"><div style="min-width:0">'
+      +'<div class="card-title">'+r.job+'</div>'
+      +'<div class="card-meta">'+r.co+evLine(r.ev)+'</div>'
+      +'<div class="card-meta">'+m(r.meth)+' <span class="dot-sep">·</span> '+r.when+'</div>'
+      +'<div style="margin-top:10px"><span class="badge-pill '+LBL[r.st][0]+'">'+LBL[r.st][1]+'</span></div></div>'
+      +ofMenu('pa'+i,[['View job details',"toast('Job details')"],['View event details',"go('events')"]],null)+'</div>';
+    if(r.st==='done') h+='<div class="strip">Employers follow up directly with the candidates they want to move forward. Anything they send arrives in <a href="#" onclick="go(\'messages\');return false">Messages</a>.</div>';
+    if(r.st==='missed') h+='<div class="strip">This interview was marked as missed. '+(isIndeed()
+      ? 'You can request a new time with '+r.co+'.'
+      : 'You can still be matched to other roles at this event, and you can request a new interview while the event is open.')+'</div>';
+    if(r.st==='declined') h+='<div class="strip">'+(isIndeed()
+      ? 'This employer isn\'t moving forward with your application.'
+      : 'This employer isn\'t moving forward. You\'re still registered for the event and can still be matched to other roles. <a href="#" onclick="go(\'events\');return false">See the event</a>')+'</div>';
+    return h+'</article>';
+  }).join('');
+}
+
+function renderIv(){
+  var b=document.getElementById('ivBody'), mode=S.iv[S.ivTab];
+  document.getElementById('ivC0').textContent = S.iv[0]==='empty'?'0':'3';
+  document.getElementById('ivC1').textContent = S.iv[1]==='empty'?'0':String(EVENTS.length);
+  document.getElementById('ivC2').textContent = S.iv[2]==='empty'?'0':'4';
+  document.getElementById('navIvBadge').style.display = (S.iv[1]==='empty')?'none':'';
+  /* Grey a tab with nothing behind it, as Events already does. */
+  document.querySelectorAll('.utab').forEach(function(t,i){
+    var zero = S.iv[i]==='empty';
+    t.style.color = zero ? 'var(--ink-disabled)' : '';
+    t.querySelector('.count').style.color = zero ? 'var(--ink-disabled)' : '';
+  });
+  if(mode==='empty'){ b.innerHTML=ivEmpty(); return; }
+  if(S.ivTab===0) b.innerHTML=ivUpcoming(mode==='live');
+  else if(S.ivTab===1) b.innerHTML=ivPending();
+  else b.innerHTML=ivPast();
+}
+
+function ofMenu(id,items,danger){
+  var h='<div class="of-wrap"><button class="of-btn" aria-label="Options" onclick="ofToggle(event,\'of'+id+'\')">'+I.dots+'</button><div class="of-menu" id="of'+id+'">';
+  h+=items.map(function(it){return '<button class="of-item" onclick="'+it[1]+'">'+it[0]+'</button>'}).join('');
+  if(danger) h+='<div class="of-sep"></div><button class="of-item danger" onclick="'+danger[1]+'">'+danger[0]+'</button>';
+  return h+'</div></div>';
+}
+function confirmCancel(what){
+  modal('Cancel this interview?','You\'re about to cancel <strong>'+what+'</strong>. The employer will be notified. You\'ll stay registered for the event and can still be matched to other roles.',
+    '<button class="btn btn-secondary btn-sm" onclick="closeModal()">Keep it</button><button class="btn btn-danger btn-sm" onclick="closeModal();toast(\'Interview cancelled\')">Cancel interview</button>');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   LOBBY — the seeker's side of the employer lobby.
+   Employer sees a queue with a Wait time column and a
+   Start interview button. The seeker IS the row in that queue,
+   so they get their own wait time and their own status.
+   ═══════════════════════════════════════════════════════════ */
+function setLobby(mode,btn){
+  S.lobby=mode;
+  document.querySelectorAll('#tgLobby .dev-toggle-btn').forEach(function(b){b.classList.remove('active')});
+  btn.classList.add('active');
+  renderLobby(); go('lobby');
+}
+function prepSection(){
+  return '<div class="prep"><h3>Prepare for your interview</h3>'
+   +'<div class="prep-item"><div class="prep-ico done">'+I.check+'</div><div class="prep-t"><b>Camera and microphone tested</b><span>Tested 2 days ago. Test again if you\'ve changed device.</span></div><button class="btn btn-secondary btn-sm" onclick="toast(\'Testing camera and microphone\')">Test again</button></div>'
+   +'<div class="prep-item"><div class="prep-ico">'+I.doc+'</div><div class="prep-t"><b>Finish your resume</b><span>Employers use this to decide who to interview.</span></div><button class="btn btn-secondary btn-sm" onclick="go(\'resume\')">Finish resume</button></div>'
+   +'</div>';
+}
+function renderLobby(){
+  var b=document.getElementById('lobbyBody'), s=S.lobby, h='';
+  /* No event branding for an Indeed candidate — they only know the employer. */
+  document.getElementById('h-lobby').textContent =
+    isIndeed() ? 'Your interview with Baylor Scott & White' : 'Dallas Healthcare Hiring Event';
+  var leave=document.getElementById('lobbyLeave');
+  document.getElementById('lobbyMeta').innerHTML =
+    (s==='before') ? 'Starts in 3 days <span class="dot-sep">·</span> Apr 22, 2026 · 11:00 AM – 3:00 PM CT'
+    : (s==='ended') ? 'Ended <span class="dot-sep">·</span> Apr 22, 2026 · 11:00 AM – 3:00 PM CT'
+    : '<span class="badge-pill b-live" style="vertical-align:middle"><span class="live-dot animate"></span>Event is live</span> <span class="dot-sep">·</span> Ends in 2h 42m';
+
+  if(s==='before'){
+    h='<div class="lobby-hero"><div class="lobby-status">Interviewing hasn\'t begun</div>'
+     +'<p class="lobby-sub">When the event starts, this is where you\'ll wait to be called in. You don\'t need to do anything until then — we\'ll email you '+ph('PLACEHOLDER — reminder timing')+' before it opens.</p>'
+     +'<button class="btn btn-secondary" onclick="toast(\'Testing camera and microphone\')">Test camera &amp; mic</button></div>'+prepSection();
+    if(leave){leave.disabled=false;leave.classList.add('danger');leave.removeAttribute('title');}
+  }
+  else if(s==='waiting'||s==='next'){
+    var next = (s==='next');
+    h='<div class="lobby-hero"><div class="lobby-status">'+(next?'You\'re next':'You\'re in the waiting room')+'</div>'
+     +'<p class="lobby-sub">'+(next
+        ? 'An interviewer is finishing up. Stay on this screen — the Join button appears here the moment they\'re ready, and it won\'t wait long.'
+        : 'Baylor Scott &amp; White knows you\'re here. Stay on this screen and we\'ll move you in as soon as an interviewer is free.')+'</p>'
+     +'<div class="wait-box"><div><div class="wait-num">'+(next?'1':'3')+'</div><div class="wait-lbl">'+(next?'ahead of you':'ahead of you')+'</div></div>'
+     +'<div><div class="wait-num">'+(next?'6':'4')+' min</div><div class="wait-lbl">you\'ve been waiting</div></div></div>'
+     +'<div><button class="btn btn-primary" disabled>Waiting for an interviewer…</button></div>'
+     +'<p style="font-size:13px;color:var(--ink-3);margin-top:16px">Interview for <strong>Registered Nurse</strong> · '+METHOD.video.l+'</p></div>'
+     +'<div class="strip" style="margin-top:14px">Leaving this screen doesn\'t lose your place, but you may miss the call. If you need to step away, <a href="#" onclick="go(\'messages\');return false">message the employer</a>.</div>';
+    if(leave){leave.disabled=true;leave.classList.remove('danger');leave.setAttribute('title',"You can't leave while you're in the queue");}
+  }
+  else if(s==='ready'){
+    h='<div class="lobby-hero ready"><span class="badge-pill b-live"><span class="live-dot animate"></span>Your interviewer is ready</span>'
+     +'<div class="lobby-status" style="margin-top:14px">Join your interview</div>'
+     +'<p class="lobby-sub">Baylor Scott &amp; White is waiting for you now. This is the only thing to do on this screen.</p>'
+     +'<button class="btn btn-primary" style="padding:16px 44px;font-size:17px" onclick="toast(\'Joining interview…\')">Join interview</button>'
+     +'<p style="font-size:13px;color:var(--ink-3);margin-top:16px">Registered Nurse · '+METHOD.video.l+'</p></div>';
+    if(leave){leave.disabled=true;leave.classList.remove('danger');leave.setAttribute('title',"You can't leave during an interview");}
+  }
+  else {
+    h='<div class="lobby-hero"><div class="lobby-status">Interviewing has ended</div>'
+     +'<p class="lobby-sub">You interviewed with <strong>2 employers</strong> at this event. Employers follow up directly with the candidates they want to move forward — there\'s no result to check here.</p>'
+     +'<div class="card-actions" style="justify-content:center"><button class="btn btn-primary" onclick="go(\'messages\')">Go to Messages</button>'
+     +'<button class="btn btn-secondary" onclick="go(\'interviews\')">View my interviews</button></div></div>'
+     +'<div class="strip">Not every employer replies, and no reply isn\'t a decision you need to chase. The strongest next step is registering for another event — your resume is already done.'
+     +'<div style="margin-top:12px"><button class="btn btn-secondary btn-sm" onclick="go(\'events\')">Browse events</button></div></div>';
+    if(leave){leave.disabled=false;leave.classList.add('danger');leave.removeAttribute('title');}
+  }
+  b.innerHTML=h;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SHARED UI
+   ═══════════════════════════════════════════════════════════ */
+function ofToggle(e,id){
+  e.stopPropagation();
+  var el=document.getElementById(id), was=el.classList.contains('open');
+  document.querySelectorAll('.of-menu').forEach(function(x){x.classList.remove('open')});
+  if(!was) el.classList.add('open');
+}
+document.addEventListener('click',function(){document.querySelectorAll('.of-menu').forEach(function(x){x.classList.remove('open')})});
+document.addEventListener('keydown',function(e){ if(e.key==='Escape'){ closeModal(); document.querySelectorAll('.of-menu').forEach(function(x){x.classList.remove('open')}); }});
+
+var tTimer;
+function toast(msg){
+  var t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+  clearTimeout(tTimer); tTimer=setTimeout(function(){t.classList.remove('show')},2600);
+}
+function modal(title,body,foot){
+  document.getElementById('mTitle').textContent=title;
+  document.getElementById('mBody').innerHTML=body;
+  document.getElementById('mFoot').innerHTML=foot;
+  document.getElementById('ov').classList.add('open');
+}
+function closeModal(){document.getElementById('ov').classList.remove('open')}
+
+/* Boot */
+renderEvents(); renderIv(); renderLobby(); syncIvToggle();
+</script>
+</body>
+</html>

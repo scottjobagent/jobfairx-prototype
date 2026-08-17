@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JobFairX — Schedule &amp; Reschedule</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════════════
+   Tokens — identical set to jobseeker-v1.html, which took them
+   from the Employer app (visual-v3 / lobby-v3).
+   ═══════════════════════════════════════════════════════════ */
+:root{
+  --font:'Noto Sans',-apple-system,BlinkMacSystemFont,sans-serif;
+  --blue:#0044B3; --blue-hover:#003399; --blue-wash:#f0f5ff;
+  --ink:#2d2d2d; --ink-2:#595959; --ink-3:#767676; --ink-disabled:#b0afad;
+  --page:#f3f2ef; --surface:#fff; --border:#d4d2d0; --divider:#ebebeb;
+  --green:#16a34a; --green-solid:#1e7e34; --green-solid-wash:#e6f4ea;
+  --red:#991b1b; --red-wash:#fef2f2; --amber:#8a5c00; --amber-wash:#fdf6ec;
+  --t-xs:12px; --t-sm:13px; --t-base:14px; --t-md:16px; --t-lg:17px; --t-xl:20px; --t-2xl:22px;
+  --r-sm:6px; --r-md:8px; --r-lg:12px; --r-xl:16px;
+  --shadow-menu:0 4px 20px rgba(0,0,0,.12);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--font);background:var(--page);color:var(--ink);font-size:var(--t-base);line-height:1.5;-webkit-font-smoothing:antialiased}
+:focus-visible{outline:3px solid var(--blue);outline-offset:2px;border-radius:3px}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@media (prefers-reduced-motion:reduce){*{transition-duration:.001ms!important;animation-duration:.001ms!important}}
+a{color:var(--blue)}
+
+/* ═══ DEV TOGGLES ═══ */
+.devbar{position:fixed;top:0;left:0;right:0;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;padding:6px 16px;z-index:400;flex-wrap:wrap}
+.dev-toggle{display:flex;align-items:center;gap:5px;padding:3px 8px;background:var(--page);border-radius:5px;border:1px solid var(--border)}
+.dev-toggle-label{font-size:9px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
+.dev-toggle-switch{display:flex;background:#e0e0e0;border-radius:3px;overflow:hidden}
+.dev-toggle-btn{padding:3px 7px;font-size:10px;font-weight:700;border:none;background:transparent;cursor:pointer;font-family:inherit;color:var(--ink-3);transition:all .15s}
+.dev-toggle-btn.active{background:var(--blue);color:#fff}
+.devbar-note{margin-left:auto;font-size:var(--t-sm);color:var(--ink-2)}
+
+/* ═══ TOP BAR ═══ */
+.topbar{position:fixed;top:44px;left:0;right:0;height:56px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;z-index:200}
+.brand{font-size:var(--t-2xl);font-weight:800;color:var(--blue);letter-spacing:-.5px;text-decoration:none}
+
+/* ═══ NARROW FLOW COLUMN — Indeed's shape ═══ */
+.flow{max-width:560px;margin:0 auto;padding:132px 20px 80px}
+.ctx{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:20px 24px;margin-bottom:16px}
+.ctx b{display:block;font-size:var(--t-base);font-weight:700;line-height:1.4}
+.ctx span{font-size:var(--t-sm);color:var(--ink-3)}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:24px}
+
+/* ═══ PROGRESS ═══ */
+.bar{height:6px;background:var(--divider);border-radius:999px;overflow:hidden;margin-bottom:18px}
+.bar i{display:block;height:100%;background:var(--blue);border-radius:999px;transition:width .3s}
+.steprow{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.backarrow{background:none;border:none;cursor:pointer;color:var(--ink);display:flex;align-items:center;padding:2px;border-radius:var(--r-sm)}
+.backarrow:hover{background:var(--page)}
+.stepn{font-size:var(--t-base);font-weight:700;color:var(--ink)}
+h1{font-size:26px;font-weight:700;letter-spacing:-.4px;line-height:1.2;margin-bottom:18px}
+
+/* ═══ DETAIL ROWS ═══ */
+.drow{display:flex;gap:12px;margin-bottom:12px;align-items:flex-start}
+.drow svg{width:20px;height:20px;flex-shrink:0;color:var(--ink-2);margin-top:1px}
+.drow .v{font-size:var(--t-base);line-height:1.5}
+.rule{height:1px;background:var(--divider);margin:20px 0}
+
+/* ═══ SELECT A TIME ═══ */
+h2.sec{font-size:var(--t-xl);font-weight:700;margin-bottom:8px}
+.tzrow{display:flex;align-items:center;gap:7px;font-size:var(--t-base);color:var(--ink);margin-bottom:12px}
+.tzrow svg{width:16px;height:16px;color:var(--ink-2)}
+.tzrow button{background:none;border:none;cursor:pointer;color:var(--blue);display:flex;align-items:center;padding:2px;border-radius:var(--r-sm)}
+.banner{background:var(--blue-wash);border-radius:var(--r-md);padding:14px 16px;display:flex;gap:12px;margin-bottom:16px}
+.banner svg{width:20px;height:20px;color:var(--blue);flex-shrink:0;margin-top:1px}
+.banner .bt{font-size:var(--t-base);line-height:1.5}
+.banner .bt b{font-weight:700}
+.banner button{margin-top:10px;background:var(--blue);color:#fff;border:none;border-radius:999px;padding:8px 18px;font-family:inherit;font-size:var(--t-base);font-weight:700;cursor:pointer}
+.banner button:hover{background:var(--blue-hover)}
+.dayhead{font-size:var(--t-base);font-weight:700;color:var(--ink);margin:0 0 8px}
+.slots{border:1px solid var(--border);border-radius:var(--r-md);overflow:hidden}
+.slot{display:flex;align-items:flex-start;gap:14px;padding:16px 18px;border-top:1px solid var(--divider);cursor:pointer;background:var(--surface);width:100%;text-align:left;font-family:inherit;border-left:none;border-right:none;border-bottom:none;transition:background .12s}
+.slot:first-child{border-top:none}
+.slot:hover:not(.taken){background:var(--page)}
+.slot.sel{background:var(--blue-wash)}
+.slot.taken{cursor:default;background:#f7f6f5}
+.radio{width:20px;height:20px;border:2px solid var(--ink-2);border-radius:50%;flex-shrink:0;margin-top:1px;position:relative}
+.slot.sel .radio{border-color:var(--ink)}
+.slot.sel .radio::after{content:'';position:absolute;inset:3px;border-radius:50%;background:var(--ink)}
+.slot.taken .radio{border-color:var(--ink-disabled)}
+.slot .st{font-size:var(--t-md);color:var(--ink)}
+.slot.taken .st{color:var(--ink-3)}
+.slot .sub{display:block;font-size:var(--t-base);color:var(--ink-3);font-style:italic;margin-top:3px}
+
+/* ═══ VALIDATION + BUTTONS ═══ */
+.valid{display:flex;gap:10px;align-items:center;margin:22px 0 12px;font-size:var(--t-base);color:#a3006b;font-style:italic}
+.valid svg{width:20px;height:20px;flex-shrink:0}
+.btn{display:block;width:100%;padding:15px 24px;border-radius:var(--r-md);font-size:var(--t-md);font-weight:700;cursor:pointer;font-family:inherit;border:1px solid transparent;text-align:center;transition:all .15s}
+.btn-primary{background:var(--blue);color:#fff}
+.btn-primary:hover{background:var(--blue-hover)}
+.btn-primary:disabled{background:#a8bce0;cursor:not-allowed}
+.btn-secondary{background:var(--surface);color:var(--blue);border-color:var(--border);margin-top:12px}
+.btn-secondary:hover{background:var(--page);border-color:var(--blue)}
+
+/* ═══ REVIEW ═══ */
+.fieldset{border:1px solid var(--border);border-radius:var(--r-md);overflow:hidden;margin-bottom:20px}
+.field{padding:14px 18px;border-top:1px solid var(--divider)}
+.field:first-child{border-top:none}
+.field .k{font-size:var(--t-sm);color:var(--ink-2);margin-bottom:2px}
+.field .v{font-size:var(--t-md);font-weight:700}
+.seclabel{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}
+.seclabel .l{font-size:var(--t-sm);font-weight:700;color:var(--ink-2)}
+.seclabel button{background:none;border:none;cursor:pointer;color:var(--blue);font-family:inherit;font-size:var(--t-base);font-weight:700;padding:2px;border-radius:var(--r-sm)}
+.timebox{border:1px solid var(--border);border-radius:var(--r-md);padding:16px 18px}
+.timebox .d{font-size:var(--t-md);font-weight:700;margin-bottom:2px}
+.timebox .t{font-size:var(--t-base);color:var(--ink)}
+.timebox .z{font-size:var(--t-base);color:var(--ink-2)}
+/* before → after, which Indeed does not show */
+.delta{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.delta .was{color:var(--ink-3);text-decoration:line-through}
+.delta svg{width:18px;height:18px;color:var(--ink-2);flex-shrink:0}
+.legal{font-size:var(--t-sm);color:var(--ink-2);line-height:1.55;margin:18px 0}
+
+/* ═══ CONFIRMATION ═══ */
+.art{width:110px;height:88px;margin:6px 0 18px}
+.ticks{margin-bottom:20px}
+.tick{display:flex;gap:12px;align-items:flex-start;margin-bottom:10px;font-size:var(--t-md);line-height:1.5}
+.tick svg{width:20px;height:20px;color:var(--green-solid);flex-shrink:0;margin-top:2px}
+.detailcard{border:1px solid var(--border);border-radius:var(--r-md);padding:18px;margin-bottom:20px}
+.detailcard h3{font-size:var(--t-md);font-weight:700;margin-bottom:12px}
+.detailcard .rule{margin:12px 0}
+.nextup{border-top:1px solid var(--divider);padding-top:20px}
+.nextup h3{font-size:var(--t-md);font-weight:700;margin-bottom:4px}
+.nextup p{font-size:var(--t-base);color:var(--ink-2);margin-bottom:14px}
+
+/* ═══ FAIL / LOCKED ═══ */
+.failart{width:150px;height:auto;margin:4px 0 22px}
+.failp{font-size:var(--t-md);line-height:1.6;margin-bottom:18px}
+.lockbox{background:var(--amber-wash);border-radius:var(--r-md);padding:16px 18px;font-size:var(--t-base);line-height:1.55;margin-bottom:20px}
+.ph{background:#fff6d9;border-bottom:1px dashed #b8860b;color:#7a5c00;font-weight:600;padding:0 3px;border-radius:2px}
+.foot{text-align:center;font-size:var(--t-sm);color:var(--ink-2);margin-top:22px}
+
+/* ═══ SCREENER ═══ */
+.q{margin-bottom:24px}
+.q .qt{font-size:var(--t-md);font-weight:700;margin-bottom:10px;line-height:1.45}
+.opts{border:1px solid var(--border);border-radius:var(--r-md);overflow:hidden}
+.opt{display:flex;align-items:center;gap:14px;padding:14px 18px;border-top:1px solid var(--divider);cursor:pointer;background:var(--surface);width:100%;text-align:left;font-family:inherit;font-size:var(--t-base);border-left:none;border-right:none;border-bottom:none}
+.opt:first-child{border-top:none}
+.opt:hover{background:var(--page)}
+.opt.sel{background:var(--blue-wash)}
+.opt.sel .radio{border-color:var(--ink)}
+.opt.sel .radio::after{content:'';position:absolute;inset:3px;border-radius:50%;background:var(--ink)}
+.qnote{font-size:var(--t-sm);color:var(--ink-2);margin-bottom:20px;line-height:1.55}
+
+@media (max-width:640px){
+  .flow{padding:150px 14px 70px}
+  .panel{padding:20px 18px}
+  h1{font-size:23px}
+}
+</style>
+</head>
+<body>
+
+<div class="devbar" role="region" aria-label="Prototype state controls">
+  <div class="dev-toggle">
+    <span class="dev-toggle-label">Flow:</span>
+    <div class="dev-toggle-switch" id="tgFlow">
+      <button class="dev-toggle-btn active" onclick="setFlow('reschedule',this)">Reschedule</button>
+      <button class="dev-toggle-btn" onclick="setFlow('schedule',this)">First booking</button>
+    </div>
+  </div>
+  <div class="dev-toggle">
+    <span class="dev-toggle-label">Step:</span>
+    <div class="dev-toggle-switch" id="tgStep">
+      <button class="dev-toggle-btn" onclick="setStep('screener',this)">Screener</button>
+      <button class="dev-toggle-btn" onclick="setStep('failed',this)">Failed</button>
+      <button class="dev-toggle-btn active" onclick="setStep('time',this)">Select time</button>
+      <button class="dev-toggle-btn" onclick="setStep('review',this)">Review</button>
+      <button class="dev-toggle-btn" onclick="setStep('done',this)">Confirmed</button>
+      <button class="dev-toggle-btn" onclick="setStep('locked',this)">Locked</button>
+    </div>
+  </div>
+  <div class="dev-toggle">
+    <span class="dev-toggle-label">Method:</span>
+    <div class="dev-toggle-switch" id="tgMethod">
+      <button class="dev-toggle-btn active" onclick="setMethod('video',this)">Video</button>
+      <button class="dev-toggle-btn" onclick="setMethod('link',this)">Link</button>
+      <button class="dev-toggle-btn" onclick="setMethod('phone',this)">Phone</button>
+      <button class="dev-toggle-btn" onclick="setMethod('person',this)">In person</button>
+    </div>
+  </div>
+  <div class="dev-toggle">
+    <span class="dev-toggle-label">Capacity:</span>
+    <div class="dev-toggle-switch" id="tgCap">
+      <button class="dev-toggle-btn active" onclick="setCap('some',this)">Some full</button>
+      <button class="dev-toggle-btn" onclick="setCap('all',this)">All open</button>
+    </div>
+  </div>
+  <div class="devbar-note">jordan.reyes@example.com</div>
+</div>
+
+<div class="topbar"><a class="brand" href="jobseeker-v1.html">JobFairX</a></div>
+
+<main class="flow">
+  <div class="ctx">
+    <b>Registered Nurse</b>
+    <span>Baylor Scott &amp; White &middot; Dallas Healthcare Hiring Event &middot; Apr 22, 2026</span>
+  </div>
+  <div class="panel" id="panel"></div>
+  <p class="foot">Having an issue? <a href="#" onclick="return false">Tell us more</a></p>
+</main>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   MODEL
+   Event window is 11:00 AM – 3:00 PM, every 30 minutes.
+   Employers set how many candidates they take per slot; a slot
+   at capacity is not rendered at all — same as Indeed omitting
+   rather than disabling. The only disabled row is the one the
+   candidate already holds.
+   ═══════════════════════════════════════════════════════════ */
+var EVENT = { day:'Wednesday, April 22', date:'Wednesday, April 22, 2026', tz:'Central Daylight Time (CDT)', tzShort:'CDT', co:'Baylor Scott & White', job:'Registered Nurse' };
+
+/* The method comes from the event, not the candidate. What it changes here:
+   what we confirm before booking, and what the next step is afterwards. */
+var METHODS = {
+  video: {l:'JobFairX video call', sent:'This will be a JobFairX video call', pre:'You\u2019ll join from your Interviews tab at your interview time.',
+          nextH:'Test your camera and microphone', nextP:'Do it now so there are no surprises on the day.', nextC:'Test my device'},
+  link:  {l:'Employer\u2019s video call', sent:'This interview uses the employer\u2019s own video platform', pre:'\u2019'+'s video link arrives once they approve your interview \u2014 by email and on your Interviews tab.',
+          nextH:'Watch for the video link', nextP:'It arrives once the employer approves your interview. Nothing to do until then.', nextC:'Go to my interviews'},
+  phone: {l:'Phone call', sent:'This will be a phone call', pre:'The employer will call you. Check the number below is right.',
+          nextH:'Keep your ringer on', nextP:'There\u2019s nothing to join \u2014 the employer calls you at your interview time.', nextC:'Check my number'},
+  person:{l:'In person', sent:'This interview is in person', pre:'Check you can get to the address below before you book.',
+          nextH:'Plan your travel', nextP:'Check the address and parking before the day.', nextC:'Get directions'}
+};
+var ADDR='2200 Ross Avenue, Suite 400, Dallas, TX 75201';
+var TEL='(555) 014-2278';
+function MT(){return METHODS[S.method];}
+var CURRENT = '11:00 AM - 11:30 AM';
+
+var SLOTS = [
+  {t:'11:00 AM - 11:30 AM', full:false},
+  {t:'11:30 AM - 12:00 PM', full:false},
+  {t:'12:00 PM - 12:30 PM', full:true },
+  {t:'12:30 PM - 1:00 PM',  full:false},
+  {t:'1:00 PM - 1:30 PM',   full:false},
+  {t:'1:30 PM - 2:00 PM',   full:false},
+  {t:'2:00 PM - 2:30 PM',   full:true },
+  {t:'2:30 PM - 3:00 PM',   full:false}
+];
+
+var S = { flow:'reschedule', step:'time', cap:'some', method:'video', picked:null, answers:[null,null,null] };
+
+var SCREENER = [
+  { q:'Do you have an active Registered Nurse licence in the state of Texas?', a:['Yes','No, but I am in the process of obtaining one','No'] },
+  { q:'How many years of experience do you have as a Registered Nurse?', a:['Less than 1 year','1–3 years','4–6 years','7+ years'] },
+  { q:'Are you available to work night shifts?', a:['Yes','No','Depends on the schedule'] }
+];
+
+/* ═══ ICONS ═══ */
+var IC = {
+  cal:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>',
+  people:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13A4 4 0 0119 7a4 4 0 01-3 3.87"/></svg>',
+  globe:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 010 20 15 15 0 010-20"/></svg>',
+  pencil:'<svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M16.7 2.6a2.7 2.7 0 013.8 3.8l-1.2 1.2-3.8-3.8 1.2-1.2zM14.2 5.1l3.8 3.8L7.4 19.5l-4.6 1.3 1.3-4.6L14.2 5.1z"/></svg>',
+  info:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>',
+  check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>',
+  arrow:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
+  back:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>',
+  lock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>'
+};
+function ph(t){return '<span class="ph">['+t+']</span>';}
+var isRe = function(){return S.flow==='reschedule';};
+
+/* ═══ TOGGLES ═══ */
+function setFlow(v,b){S.flow=v;S.picked=null;mark('tgFlow',b);
+  /* A first booking has no screener-independent "current time", and the
+     Locked state only means anything once something is booked. */
+  render();}
+function setStep(v,b){S.step=v;mark('tgStep',b);render();}
+function setMethod(v,b){S.method=v;mark('tgMethod',b);render();}
+function setCap(v,b){S.cap=v;S.picked=null;mark('tgCap',b);render();}
+function mark(id,btn){document.querySelectorAll('#'+id+' .dev-toggle-btn').forEach(function(x){x.classList.remove('active')});btn.classList.add('active');}
+function jump(step){S.step=step;
+  document.querySelectorAll('#tgStep .dev-toggle-btn').forEach(function(x){
+    x.classList.toggle('active', x.textContent.toLowerCase().indexOf(({screener:'screener',failed:'failed',time:'select',review:'review',done:'confirmed',locked:'locked'})[step])===0);
+  });
+  render();window.scrollTo(0,0);}
+
+/* ═══ SLOT LIST ═══ */
+function visibleSlots(){
+  return SLOTS.filter(function(s){ return S.cap==='all' ? true : !s.full; });
+}
+function pick(t){ S.picked=t; render(); }
+
+function slotList(){
+  var h='<div class="dayhead">'+EVENT.day+'</div><div class="slots" role="radiogroup" aria-label="Available interview times">';
+  visibleSlots().forEach(function(s){
+    var held = isRe() && s.t===CURRENT;
+    var sel = S.picked===s.t;
+    if(held){
+      h+='<div class="slot taken"><span class="radio"></span><span class="st">'+s.t+' '+EVENT.tzShort
+        +'<span class="sub">Your currently scheduled interview time</span></span></div>';
+    } else {
+      h+='<button type="button" role="radio" aria-checked="'+sel+'" class="slot'+(sel?' sel':'')+'" onclick="pick(\''+s.t+'\')">'
+        +'<span class="radio"></span><span class="st">'+s.t+' '+EVENT.tzShort+'</span></button>';
+    }
+  });
+  return h+'</div>';
+}
+
+/* ═══ STEPS ═══ */
+function stepScreener(){
+  var done = S.answers.every(function(a){return a!==null});
+  var h='<div class="bar"><i style="width:20%"></i></div>';
+  h+='<div class="steprow"><span class="stepn">Step 1 of 3</span></div>';
+  h+='<h1>A few questions from '+EVENT.co+'</h1>';
+  h+='<p class="qnote">'+EVENT.co+' asks every candidate these before booking a time. Your answers go to them with your interview request.</p>';
+  SCREENER.forEach(function(item,qi){
+    h+='<div class="q"><div class="qt">'+(qi+1)+'. '+item.q+'</div><div class="opts" role="radiogroup" aria-label="Question '+(qi+1)+'">';
+    item.a.forEach(function(a,ai){
+      var sel=S.answers[qi]===ai;
+      h+='<button type="button" role="radio" aria-checked="'+sel+'" class="opt'+(sel?' sel':'')+'" onclick="answer('+qi+','+ai+')"><span class="radio"></span>'+a+'</button>';
+    });
+    h+='</div></div>';
+  });
+  if(!done) h+='<div class="valid">'+IC.info+'Answer every question to continue.</div>';
+  h+='<button class="btn btn-primary" '+(done?'':'disabled')+' onclick="jump(\'time\')">Continue</button>';
+  h+='<button class="btn btn-secondary" onclick="jump(\'failed\')">Preview the fail state</button>';
+  return h;
+}
+function answer(q,a){S.answers[q]=a;render();}
+
+function stepFailed(){
+  /* Indeed's screener-fail page, with the exit pointed at our own job search. */
+  return '<h1>Thanks for completing our screening</h1>'
+   +'<svg class="failart" viewBox="0 0 190 120" fill="none" aria-hidden="true">'
+   +'<path d="M14 30l52-14 8 78-52 12z" fill="#f4d3c4"/>'
+   +'<rect x="26" y="26" width="46" height="62" rx="3" fill="#fff" stroke="#e5ded9" stroke-width="2"/>'
+   +'<path d="M40 8v0" stroke="#a3006b"/>'
+   +'<path d="M45 36c0-1.7 1.3-3 3-3s3 1.3 3 3l-.9 20a2.1 2.1 0 01-4.2 0L45 36z" fill="#a3006b"/>'
+   +'<circle cx="48" cy="66" r="3.6" fill="#a3006b"/>'
+   +'<path d="M56 44h14M56 52h10" stroke="#0044B3" stroke-width="2.4" stroke-linecap="round"/>'
+   +'</svg>'
+   +'<p class="failp">Unfortunately, based on your answers, it looks like you do not meet the requirements the employer set for this job.</p>'
+   +'<p class="failp">The employer may still reach out to you if you are a fit.</p>'
+   +'<button class="btn btn-primary" onclick="toastish(\'Back to job search\')">Back to job search</button>';
+}
+
+function stepTime(){
+  var re=isRe();
+  var total = re?2:3, n = re?1:2, pct = re?45:55;
+  var h='<div class="bar"><i style="width:'+pct+'%"></i></div>';
+  h+='<div class="steprow">'+(re?'':'<button class="backarrow" aria-label="Back" onclick="jump(\'screener\')">'+IC.back+'</button>')+'<span class="stepn">Step '+n+' of '+total+'</span></div>';
+  h+='<h1>'+(re?'Reschedule this interview':'Choose your interview time')+'</h1>';
+
+  if(re){
+    h+='<div class="drow">'+IC.cal+'<span class="v">'+EVENT.date+'<br>'+CURRENT+'<br>'+EVENT.tz+'</span></div>';
+    h+='<div class="drow">'+IC.people+'<span class="v">'+MT().sent+'</span></div>';
+  } else {
+    h+='<div class="drow">'+IC.cal+'<span class="v">'+EVENT.date+'<br>Interviews run 11:00 AM – 3:00 PM<br>'+EVENT.tz+'</span></div>';
+    h+='<div class="drow">'+IC.people+'<span class="v">'+MT().sent+'</span></div>';
+  }
+
+  /* What this method needs confirmed before a slot is picked. */
+  if(S.method==='phone')  h+='<div class="drow">'+IC.people+'<span class="v">'+MT().pre+'<br><b>'+TEL+'</b> &middot; <a href="#" onclick="toastish(\'Edit number\');return false">Edit</a></span></div>';
+  if(S.method==='person') h+='<div class="drow">'+IC.people+'<span class="v">'+MT().pre+'<br><b>'+ADDR+'</b></span></div>';
+  if(S.method==='link')   h+='<div class="drow">'+IC.people+'<span class="v">'+EVENT.co+MT().pre+'</span></div>';
+  h+='<div class="rule"></div><h2 class="sec">Select a time</h2>';
+  h+='<div class="tzrow">'+IC.globe+EVENT.tz+'<button aria-label="Change time zone" onclick="toastish(\'Change time zone\')">'+IC.pencil+'</button></div>';
+  h+='<div class="banner">'+IC.info+'<div class="bt">We have identified your time zone as <b>'+EVENT.tz.replace(' (CDT)','')+'</b>'
+   +'<button onclick="toastish(\'Change time zone\')">Change</button></div></div>';
+  h+= slotList();
+
+  if(S.cap==='some') h+='<p class="qnote" style="margin-top:12px">Times the employer has already filled aren\'t shown. '+EVENT.co+' set how many candidates they can interview in each 30-minute slot.</p>';
+
+  if(!S.picked) h+='<div class="valid">'+IC.cal+'Select a time for your interview to continue.</div>';
+  else h+='<div style="height:22px"></div>';
+  h+='<button class="btn btn-primary" '+(S.picked?'':'disabled')+' onclick="jump(\'review\')">Continue</button>';
+  if(re) h+='<button class="btn btn-secondary" onclick="toastish(\'Keeping your current time\')">Keep current interview time</button>';
+  return h;
+}
+
+function stepReview(){
+  var re=isRe();
+  var total = re?2:3, n = re?2:3;
+  var t = S.picked || (re?CURRENT:SLOTS[3].t);
+  var h='<div class="bar"><i style="width:95%"></i></div>';
+  h+='<div class="steprow"><button class="backarrow" aria-label="Back" onclick="jump(\'time\')">'+IC.back+'</button><span class="stepn">Step '+n+' of '+total+'</span></div>';
+  h+='<h1>Here\'s what we\'ll send to the employer</h1>';
+
+  h+='<div class="seclabel"><span class="l">Contact information</span></div>';
+  h+='<div class="fieldset"><div class="field"><div class="k">Full name</div><div class="v">Jordan Reyes</div></div>'
+   +'<div class="field"><div class="k">Email address</div><div class="v">jordan.reyes@example.com</div></div></div>';
+
+  h+='<div class="seclabel"><span class="l">'+MT().l+'</span><button onclick="jump(\'time\')">Edit</button></div>';
+  h+='<div class="timebox"><div class="d">'+EVENT.date+'</div>';
+  if(re){
+    /* Before → after. Indeed shows only the new time; a candidate who
+       mis-tapped a row can't tell what changed. */
+    h+='<div class="delta"><span class="t was">'+CURRENT+'</span>'+IC.arrow+'<span class="t"><b>'+t+'</b></span></div>';
+  } else {
+    h+='<div class="t">'+t+'</div>';
+  }
+  h+='<div class="z">'+EVENT.tz+'</div></div>';
+
+  if(!re) h+='<div class="seclabel" style="margin-top:20px"><span class="l">Screener answers</span><button onclick="jump(\'screener\')">Edit</button></div>'
+   +'<div class="fieldset"><div class="field"><div class="k">3 questions answered</div><div class="v">Included with your request</div></div></div>';
+
+  h+='<p class="legal">By '+(re?'rescheduling':'requesting')+' this interview you agree to the JobFairX Terms of Service and Privacy Policy. Your resume is shared with '+EVENT.co+'.</p>';
+  h+='<button class="btn btn-primary" onclick="jump(\'done\')">'+(re?'Reschedule interview':'Request interview')+'</button>';
+  if(re) h+='<button class="btn btn-secondary" onclick="toastish(\'Keeping your current time\')">Keep current interview time</button>';
+  return h;
+}
+
+function stepDone(){
+  var re=isRe();
+  var t = S.picked || SLOTS[3].t;
+  var h='<div class="bar"><i style="width:100%"></i></div>';
+  h+='<svg class="art" viewBox="0 0 130 100" fill="none" aria-hidden="true">'
+   +'<path d="M18 44l34-18 22 12-30 46-26-14z" fill="#8fd0b0"/>'
+   +'<path d="M62 34c2-8 6-16 9-16 4 0 4 6 2 12l-2 8h16c5 0 8 4 6 9l-8 24c-1 5-5 8-10 8H54l4-38 4-7z" fill="#f2c6a8"/>'
+   +'<path d="M46 46h12l-4 42H40z" fill="#1f3a5f"/></svg>';
+
+  if(re){
+    h+='<h1>All set for your interview with '+EVENT.co+'</h1>';
+    h+='<div class="ticks">'
+     +'<div class="tick">'+IC.check+'<span>Your interview has been rescheduled</span></div>'
+     +'<div class="tick">'+IC.check+'<span>Look for an email from us with your interview details at <b>jordan.reyes@example.com</b></span></div>'
+     +'</div>';
+    h+='<div class="detailcard"><h3>Updated interview details</h3><div class="rule"></div>'
+     +'<div class="drow">'+IC.people+'<span class="v">'+MT().l+'</span></div>'
+     +'<div class="drow">'+IC.cal+'<span class="v">'+EVENT.date+'<br>'+t+'<br>'+EVENT.tz+'</span></div></div>';
+  } else {
+    /* First booking is a request: the candidate names the time, the
+       employer accepts or declines it. So this is not "all set" yet. */
+    h+='<h1>Your interview request has been sent</h1>';
+    h+='<div class="ticks">'
+     +'<div class="tick">'+IC.check+'<span>'+EVENT.co+' has your requested time and your screener answers</span></div>'
+     +'<div class="tick">'+IC.check+'<span>They usually respond within '+ph('PLACEHOLDER — response window')+'. You\'ll get an email at <b>jordan.reyes@example.com</b></span></div>'
+     +'</div>';
+    h+='<div class="detailcard"><h3>Requested interview</h3><div class="rule"></div>'
+     +'<div class="drow">'+IC.people+'<span class="v">'+MT().l+'</span></div>'
+     +'<div class="drow">'+IC.cal+'<span class="v">'+EVENT.date+'<br>'+t+'<br>'+EVENT.tz+'</span></div></div>';
+  }
+
+  /* The next step is method-specific: there is no device to test for a
+     phone call, and no link to wait for on a JobFairX call. */
+  h+='<div class="nextup"><h3>'+MT().nextH+'</h3><p>'+MT().nextP+'</p>'
+   +'<button class="btn btn-secondary" style="margin-top:0" onclick="toastish(\''+MT().nextC+'\')">'+MT().nextC+'</button></div>';
+  h+='<div class="nextup" style="margin-top:18px"><h3>Get your resume ready</h3>'
+   +'<p>You may be asked to share your resume before your interview.</p>'
+   +'<button class="btn btn-secondary" style="margin-top:0" onclick="toastish(\'Review resume\')">Review resume</button></div>';
+  h+='<button class="btn btn-secondary" onclick="toastish(\'Back to my interviews\')">Back to my interviews</button>';
+  return h;
+}
+
+function stepLocked(){
+  /* Rescheduling closes 24 hours before the event — the whole event locks
+     at once, not each interview separately. */
+  var h='<h1>Rescheduling is closed for this event</h1>';
+  h+='<div class="lockbox"><b>'+IC.lock.replace('<svg','<svg width="16" height="16" style="vertical-align:-3px"')+' Changes closed 24 hours before the event.</b><br>'
+   +'The Dallas Healthcare Hiring Event starts Apr 22 at 11:00 AM CDT. Times were locked on Apr 21 at 11:00 AM CDT so employers could finalise their schedules.</div>';
+  h+='<div class="detailcard"><h3>Your interview</h3><div class="rule"></div>'
+   +'<div class="drow">'+IC.people+'<span class="v">'+MT().l+'</span></div>'
+   +'<div class="drow">'+IC.cal+'<span class="v">'+EVENT.date+'<br>'+CURRENT+'<br>'+EVENT.tz+'</span></div></div>';
+  h+='<p class="qnote">If you can no longer attend, cancelling still works — but the slot won\'t be offered back to you.</p>';
+  h+='<button class="btn btn-primary" onclick="toastish(\'Back to my interviews\')">Back to my interviews</button>';
+  h+='<button class="btn btn-secondary" onclick="toastish(\'Message employer\')">Message '+EVENT.co+'</button>';
+  return h;
+}
+
+function toastish(m){
+  var d=document.createElement('div');
+  d.textContent=m;
+  d.style.cssText='position:fixed;top:112px;right:20px;background:#dcfce7;border:1px solid #bbf7d0;color:#14532d;padding:13px 18px;border-radius:8px;font-weight:600;font-size:14px;z-index:9999;box-shadow:var(--shadow-menu)';
+  d.setAttribute('role','status');
+  document.body.appendChild(d);
+  setTimeout(function(){d.remove()},2200);
+}
+
+function render(){
+  var p=document.getElementById('panel');
+  var f={screener:stepScreener,failed:stepFailed,time:stepTime,review:stepReview,done:stepDone,locked:stepLocked}[S.step];
+  p.innerHTML=f();
+  /* Screener only exists on a first booking. */
+  var scr=document.querySelectorAll('#tgStep .dev-toggle-btn');
+  [0,1].forEach(function(i){ scr[i].disabled = isRe(); scr[i].style.opacity = isRe()?'.4':''; });
+}
+render();
+</script>
+</body>
+</html>
