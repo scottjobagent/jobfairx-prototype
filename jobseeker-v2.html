@@ -240,6 +240,52 @@ a{color:var(--blue)}
 
 /* ═══ RESPONSIVE — seeker is phone-first in practice ═══ */
 @media (max-width:900px){
+  /* ── Phone-first interview + event cards ───────────────────────────── */
+  .card{padding:16px}
+  .card-meta{line-height:1.45}
+  .strip{padding:12px 14px;margin-top:12px}
+  .strip-prose{display:none}                 /* explanation goes, data stays */
+  .strip-data{display:block}
+  .card-actions{margin-top:14px;gap:8px}
+  .card-actions .btn{min-height:44px;flex:1 1 calc(50% - 4px)}
+  .card-actions .act-lead{flex:1 1 100%}     /* join / directions leads */
+  .of-btn{width:44px;height:44px}            /* 38px was under the 44px floor */
+  .strip a,.card-meta a{display:inline-block;padding:12px 0}   /* clears the 44px floor */
+  .match-job{padding:12px 0}
+  .btn-sm{min-height:44px}
+  .dayhead{margin:14px 0 6px}
+
+  /* ── Lobby ─────────────────────────────────────────────────────────── */
+  .lobby-hero{padding:28px 18px;border-radius:var(--r-lg)}
+  .lobby-status{font-size:var(--t-xl);line-height:1.25}
+  .lobby-sub{font-size:var(--t-base);margin-bottom:20px}
+  .wait-box{display:flex;width:100%;gap:0;padding:16px 12px;margin-bottom:20px}
+  .wait-box>div{flex:1;text-align:center}
+  .wait-box>div+div{border-left:1px solid var(--border)}
+  .wait-num{font-size:32px}
+  .wait-lbl{font-size:var(--t-xs);line-height:1.3}
+  .lobby-hero .btn{width:100%;min-height:48px}
+  .prep h3{font-size:var(--t-md);padding:16px 16px 2px}
+  .prep-item{padding:14px 16px;gap:12px;flex-wrap:wrap}
+  .prep-ico{width:34px;height:34px}
+  .prep-item .btn{flex:1 1 100%;margin-top:4px;min-height:44px}
+
+  /* ── Page header ───────────────────────────────────────────────────── */
+  .page-head h1{font-size:var(--t-xl)}
+  .page-head .of-wrap{align-self:flex-end;margin-top:-44px}
+
+  /* ── Tabs ──────────────────────────────────────────────────────────── */
+  .utab{padding:14px 8px;font-size:var(--t-base);min-height:48px}
+  .tab-pill{padding:10px 16px;min-height:44px}
+
+  /* ── Empty states + steps ──────────────────────────────────────────── */
+  .empty h2{font-size:var(--t-xl)}
+  .empty p{font-size:var(--t-base)}
+  .empty .btn{width:100%;min-height:48px}
+  .steps{padding-top:20px;margin-top:22px}
+  .invite{padding:14px}
+  .invite .btn{flex:1 1 100%;min-height:44px}
+
   .sidebar{left:-100%;}
   .main{margin-left:0;padding:84px 16px 90px}
   .utabs-wrap{margin:0 -16px 20px;padding:0 16px}
@@ -826,12 +872,14 @@ function card(r, phase){
   /* The one line that tells them what happens next, per type and phase. */
   var needsStrip = !(r.meth==='video' && !atTime);
   if(needsStrip){
-  h+='<div class="strip">'+ M[phase];
-  if(r.meth==='phone')  h+='<br><strong>'+r.co+' will call '+r.tel+'</strong> at '+r.time.split(' – ')[0]+'. <a href="#" onclick="go(\'resume\');return false">Wrong number?</a>';
-  if(r.meth==='person') h+='<br><strong>'+r.addr+'</strong><br>Arrival: '+ph('PLACEHOLDER — arrival instructions')+' <span class="dot-sep">·</span> Parking: '+ph('PLACEHOLDER — parking');
-  if(r.meth==='link')   h+= r.approved
-      ? '<br><strong>'+r.link+'</strong>'
-      : '<br>Nothing to do yet — we\'ll email it and show it here.';
+  /* At slot time the prose IS the message, so it always shows. Otherwise it
+     is explanation the phone can do without — the data below it stays. */
+  h+='<div class="strip">'+(atTime ? M[phase] : '<span class="strip-prose">'+M[phase]+'</span>');
+  if(r.meth==='phone')  h+='<span class="strip-data"><strong>'+r.co+' will call '+r.tel+'</strong> at '+r.time.split(' – ')[0]+'. <a href="#" onclick="go(\'resume\');return false">Wrong number?</a></span>';
+  if(r.meth==='person') h+='<span class="strip-data"><strong>'+r.addr+'</strong><br>Arrival: '+ph('PLACEHOLDER — arrival instructions')+' <span class="dot-sep">·</span> Parking: '+ph('PLACEHOLDER — parking')+'</span>';
+  if(r.meth==='link')   h+= '<span class="strip-data">'+(r.approved
+      ? '<strong>'+r.link+'</strong>'
+      : 'Nothing to do yet — we\'ll email it and show it here.')+'</span>';
   h+='</div>';
   }
 
@@ -839,7 +887,7 @@ function card(r, phase){
      the join/directions action is primary only once it's actionable. */
   var acts=[];
   if(M.cta && (atTime || (dayof && r.meth!=='phone') || r.meth==='person'))
-    acts.push('<button class="btn '+(atTime?'btn-primary':'btn-secondary btn-sm')+'" onclick="'+M.go+'">'+M.cta+(r.meth==='link'?' ↗':'')+'</button>');
+    acts.push('<button class="btn act-lead '+(atTime?'btn-primary':'btn-secondary btn-sm')+'" onclick="'+M.go+'">'+M.cta+(r.meth==='link'?' ↗':'')+'</button>');
   if(!atTime){
     acts.push('<button class="btn btn-secondary btn-sm" onclick="reschedule(\''+r.job+'\')">Reschedule</button>');
     acts.push('<button class="btn btn-secondary btn-sm" onclick="confirmCancel(\''+r.job+' at '+r.co+'\')">Cancel</button>');
