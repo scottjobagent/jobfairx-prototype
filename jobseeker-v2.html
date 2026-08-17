@@ -82,6 +82,19 @@ a{color:var(--blue)}
 .dev-toggle-btn.active{background:var(--blue);color:#fff}
 .devbar-spacer{margin-left:auto;font-size:var(--t-sm);color:var(--ink-2);white-space:nowrap}
 
+/* ═══ PHONE STAGE ═══ */
+#phoneStage{display:none;padding:72px 20px 40px;flex-direction:column;align-items:center;gap:12px}
+body.stage-mobile #phoneStage{display:flex}
+body.stage-mobile .sidebar,
+body.stage-mobile .mobile-nav,
+body.stage-mobile .main{display:none!important}
+.phone-shell{width:390px;height:844px;border:10px solid #1c1c1e;border-radius:44px;overflow:hidden;
+  background:#000;box-shadow:0 12px 34px rgba(0,0,0,.18);position:relative;max-width:100%}
+.phone-shell iframe{width:390px;height:824px;border:0;display:block;background:var(--surface)}
+.phone-notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:150px;height:26px;
+  background:#1c1c1e;border-radius:0 0 16px 16px;z-index:5;pointer-events:none}
+.phone-cap{font-size:var(--t-sm);color:var(--ink-3)}
+
 /* ═══ SIDEBAR ═══ */
 .sidebar{position:fixed;left:0;top:0;bottom:0;width:var(--rail-w);background:var(--rail);display:flex;flex-direction:column;z-index:300;padding-top:52px;overflow:hidden}
 .sidebar-brand{padding:18px 22px 14px;font-size:var(--t-2xl);font-weight:800;color:#fff;letter-spacing:-.5px}
@@ -221,6 +234,7 @@ a{color:var(--blue)}
 .prep-t span{font-size:var(--t-sm);color:var(--ink-2)}
 
 /* ═══ PLACEHOLDER (unresolved product decisions) ═══ */
+.ev-more{display:none}
 .ph{background:#fff6d9;border-bottom:1px dashed #b8860b;color:#7a5c00;font-weight:600;padding:0 3px;border-radius:2px}
 
 /* ═══ TOAST ═══ */
@@ -254,6 +268,12 @@ a{color:var(--blue)}
   .match-job{padding:12px 0}
   .btn-sm{min-height:44px}
   .dayhead{margin:14px 0 6px}
+
+  /* ── Collapsed event cards ─────────────────────────────────────────── */
+  .ev-more{display:block;width:100%;margin-top:12px;padding:11px 0;background:none;border:none;
+    border-top:1px solid var(--divider);font-family:inherit;font-size:var(--t-base);
+    font-weight:700;color:var(--blue);cursor:pointer;min-height:44px;text-align:left}
+  .ev-collapsed .ev-body{display:none}
 
   /* ── Lobby ─────────────────────────────────────────────────────────── */
   .lobby-hero{padding:28px 18px;border-radius:var(--r-lg)}
@@ -306,6 +326,13 @@ a{color:var(--blue)}
 
 <!-- ══════════ DEV TOGGLES — mirrors the Employer prototype's toggle bar ══════════ -->
 <div class="devbar" role="region" aria-label="Prototype state controls">
+  <div class="dev-toggle" id="tgView">
+    <span class="dev-toggle-label">View:</span>
+    <div class="dev-toggle-switch">
+      <button class="dev-toggle-btn active" onclick="setView('desktop',this)">Desktop</button>
+      <button class="dev-toggle-btn" onclick="setView('mobile',this)">Mobile</button>
+    </div>
+  </div>
   <div class="dev-toggle">
     <span class="dev-toggle-label">Source:</span>
     <div class="dev-toggle-switch" id="tgSrc">
@@ -353,6 +380,15 @@ a{color:var(--blue)}
 </div>
 
 <!-- ══════════ SIDEBAR ══════════ -->
+<!-- Phone stage. A real 390px viewport, so the mobile rules fire exactly as
+     they do on a handset rather than desktop CSS imitating a narrow screen. -->
+<div id="phoneStage">
+  <div class="phone-shell"><div class="phone-notch"></div>
+    <iframe id="phoneFrame" title="This dashboard at phone size"></iframe>
+  </div>
+  <p class="phone-cap">390 &times; 844 &middot; the state toggles inside the phone still work</p>
+</div>
+
 <nav class="sidebar" aria-label="Main">
   <div class="sidebar-brand">JobFairX</div>
   <div class="sidebar-nav">
@@ -556,8 +592,8 @@ var EVENTS = [
   { id:'chicago', name:'Chicago Technology Event', date:'May 6, 2026', time:'11:00 AM – 3:00 PM CT',
     method:'phone', detail:'The employer will call you', countdown:'In 3 weeks',
     matches:[{co:'Relativity', job:'Data Engineer'}], reqIdx:1 },
-  { id:'atlanta', name:'Atlanta Diversity Event', date:'May 20, 2026', time:'11:00 AM – 3:00 PM ET',
-    method:'person', detail:ph('PLACEHOLDER — Atlanta venue address'), countdown:'In 4 weeks',
+  { id:'atlanta', name:'Dallas Diversity Event', date:'May 20, 2026', time:'11:00 AM – 3:00 PM ET',
+    method:'person', detail:'2200 Ross Avenue, Suite 400, Dallas, TX 75201', countdown:'In 4 weeks',
     matches:[{co:'Tenet Health', job:'Occupational Therapist'}], reqIdx:2 },
   { id:'denver', name:'Denver Engineering Event', date:'Jun 3, 2026', time:'10:00 AM – 2:00 PM MT',
     method:'link', detail:'Microsoft Teams', countdown:'In 6 weeks',
@@ -603,9 +639,14 @@ function setEvents(mode,btn){
 }
 
 var waitNoteShown = false, reqNoteShown = false;
+/* On a phone, only the soonest event stays open. The rest collapse to their
+   heading so the list is scannable instead of four full cards deep. */
+var evOpen = 'dallas';
+function evToggle(id){ evOpen = (evOpen===id ? null : id); renderEvents(); }
 function eventCard(e,live){
   var st = e.matches.length ? S.reg : 'waiting';
-  var h='<article class="card'+(live?' pinned':'')+'">';
+  var open = (evOpen===e.id) || live;
+  var h='<article class="card'+(live?' pinned':'')+(open?'':' ev-collapsed')+'">';
   h+='<div class="card-top"><div style="min-width:0">';
   h+='<div class="card-title">'+e.name+'</div>';
   h+='<div class="card-meta">'+e.date+' <span class="dot-sep">·</span> '+e.time+'</div>';
@@ -628,6 +669,9 @@ function eventCard(e,live){
      ? '<button class="of-item" disabled title="You can\'t leave an event while it\'s live">Unregister from this event</button>'
      : '<button class="of-item danger" onclick="confirmUnregister(\''+e.name+'\')">Unregister from this event</button>';
   h+='</div></div></div>';
+  h+='<button class="ev-more" aria-expanded="'+open+'" onclick="evToggle(\''+e.id+'\')">'
+   +(open?'Hide details':'Show details')+'</button>';
+  h+='<div class="ev-body">';
 
   if(live){
     /* A lobby only exists for a JobFairX call. A phone or in-person event
@@ -661,7 +705,7 @@ function eventCard(e,live){
     h+='<div class="strip">You\'re registered. When you\'re matched with a job at this event, you\'ll be invited to request an interview.<br>'
      +'<strong>A complete resume helps employers choose you.</strong> <a href="#" onclick="go(\'resume\');return false">Review your resume</a></div>';
   }
-  h+='</article>';
+  h+='</div></article>';
   return h;
 }
 
@@ -812,11 +856,11 @@ var PAST_IV=[
 var REQUESTS=[
   {job:'Dental Hygienist',          co:'Baylor Scott & White', meth:'video',  ev:'Dallas Healthcare Hiring Event', when:'Apr 22, 2026'},
   {job:'DevOps Engineer',           co:'Relativity',           meth:'phone',  ev:'Chicago Technology Event',       when:'May 6, 2026'},
-  {job:'Speech Therapist',          co:'Tenet Health',         meth:'person', ev:'Atlanta Diversity Event',        when:'May 20, 2026'},
+  {job:'Speech Therapist',          co:'Tenet Health',         meth:'person', ev:'Dallas Diversity Event',        when:'May 20, 2026'},
   {job:'Site Reliability Engineer', co:'Palantir',             meth:'link',   ev:'Denver Engineering Event',       when:'Jun 3, 2026'}
 ];
 /* Method is an event-level setting, so an interview's method must equal its
-   event's. Dallas=video, Chicago=phone, Atlanta=in person, Denver=link. */
+   event's. Dallas Healthcare=video, Chicago=phone, Dallas Diversity=in person, Denver=link. */
 var UPCOMING = [
   {id:'u0', job:'Registered Nurse',   co:'Baylor Scott & White', ev:LIVE_EVENT,
    meth:'video',  sort:'2026-04-22', day:'Wed, Apr 22', time:'11:00 – 11:30 AM CT', now:true},
@@ -824,9 +868,9 @@ var UPCOMING = [
    meth:'video',  sort:'2026-04-22', day:'Wed, Apr 22', time:'11:30 AM – 12:00 PM CT', soon:'40 minutes'},
   {id:'u2', job:'Software Engineer',  co:'Relativity',           ev:'Chicago Technology Event',
    meth:'phone',  sort:'2026-05-06', day:'Wed, May 6',  time:'1:00 – 1:30 PM CT', tel:'(555) 014-2278'},
-  {id:'u3', job:'Physical Therapist', co:'Tenet Health',         ev:'Atlanta Diversity Event',
+  {id:'u3', job:'Physical Therapist', co:'Tenet Health',         ev:'Dallas Diversity Event',
    meth:'person', sort:'2026-05-20', day:'Wed, May 20', time:'2:00 – 2:30 PM ET',
-   addr:ph('PLACEHOLDER — Atlanta venue address')},
+   addr:'2200 Ross Avenue, Suite 400, Dallas, TX 75201'},
   {id:'u4', job:'Backend Engineer',   co:'Palantir',             ev:'Denver Engineering Event',
    meth:'link',   sort:'2026-06-03', day:'Wed, Jun 3',  time:'10:30 – 11:00 AM MT', approved:true,
    link:'teams.microsoft.com/l/meetup/19:af22d'}
@@ -1076,6 +1120,23 @@ function modal(title,body,foot){
   document.getElementById('ov').classList.add('open');
 }
 function closeModal(){document.getElementById('ov').classList.remove('open')}
+
+/* ── View toggle ─────────────────────────────────────────────────────────
+   The nested instance carries ?m=1 and hides its own View toggle, so the
+   phone cannot contain another phone. */
+var EMBED = /[?&]m=1/.test(location.search);
+function setView(v,btn){
+  document.querySelectorAll('#tgView .dev-toggle-btn').forEach(function(b){b.classList.remove('active')});
+  btn.classList.add('active');
+  var mob = v==='mobile';
+  document.body.classList.toggle('stage-mobile', mob);
+  if(mob){
+    var f=document.getElementById('phoneFrame');
+    if(!f.getAttribute('src')) f.setAttribute('src', location.pathname+'?m=1');
+  }
+  window.scrollTo(0,0);
+}
+if(EMBED) document.getElementById('tgView').style.display='none';
 
 /* Boot */
 renderEvents(); renderIv(); renderLobby(); syncIvToggle();
