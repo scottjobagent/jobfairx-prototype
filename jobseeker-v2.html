@@ -234,6 +234,24 @@ body.stage-mobile .main{display:none!important}
 .prep-t span{font-size:var(--t-sm);color:var(--ink-2)}
 
 /* ═══ PLACEHOLDER (unresolved product decisions) ═══ */
+.iv-mini{border-top:1px solid var(--divider);padding:13px 0;display:flex;gap:12px;align-items:flex-start;
+  width:100%;background:none;border-left:none;border-right:none;border-bottom:none;text-align:left;
+  font-family:inherit;cursor:pointer;transition:background .12s}
+.iv-mini:hover{background:var(--page)}
+.iv-mini .m-body{display:block}
+.iv-mini .m-job,.iv-mini .m-co,.iv-mini .m-meta{display:block}
+.iv-mini .m-chev{flex-shrink:0;color:var(--ink-3);display:flex;align-items:center;align-self:center}
+.iv-mini .m-chev svg{width:20px;height:20px}
+.iv-flash{box-shadow:0 0 0 3px var(--blue-wash),0 0 0 5px var(--blue);transition:box-shadow .25s}
+.iv-mini:first-of-type{border-top:none;padding-top:0}
+.iv-mini .m-body{flex:1;min-width:0}
+.iv-mini .m-job{font-size:var(--t-base);font-weight:700}
+.iv-mini .m-co{font-size:var(--t-sm);color:var(--ink-2);margin-top:2px}
+.iv-mini .m-meta{font-size:var(--t-sm);color:var(--ink-2);margin-top:3px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.iv-mini .badge-pill{margin-top:1px;flex-shrink:0}
+.iv-more-link{display:inline-flex;align-items:center;gap:6px;font-size:var(--t-base);font-weight:700;
+  color:var(--blue);background:none;border:none;cursor:pointer;font-family:inherit;padding:13px 0;min-height:44px}
+.iv-more-link:hover{text-decoration:underline}
 .ev-more{display:none}
 .ph{background:#fff6d9;border-bottom:1px dashed #b8860b;color:#7a5c00;font-weight:600;padding:0 3px;border-radius:2px}
 
@@ -268,6 +286,10 @@ body.stage-mobile .main{display:none!important}
   .match-job{padding:12px 0}
   .btn-sm{min-height:44px}
   .dayhead{margin:14px 0 6px}
+  /* The meta wraps at this width, stranding the separator at line end. */
+  .iv-mini .m-meta{display:block}
+  .iv-mini .m-meta .dot-sep{display:none}
+  .iv-mini .m-meta .method{display:inline-flex}
 
   /* ── Collapsed event cards ─────────────────────────────────────────── */
   .ev-more{display:block;width:100%;margin-top:12px;padding:11px 0;background:none;border:none;
@@ -524,6 +546,7 @@ var I = {
   doc:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>',
   cam:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>',
   bldg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22v-4h6v4M9 6h.01M15 6h.01M9 10h.01M15 10h.01M9 14h.01M15 14h.01"/></svg>',
+  chev:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>',
   dots:'<svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><circle cx="6" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="18" cy="12" r="2"/></svg>'
 };
 /* Interview method is first-class. Every type gets its own copy at every
@@ -710,20 +733,50 @@ function eventCard(e,live){
 }
 
 function indeedEventsBlock(){
-  return '<div class="empty"><svg class="empty-art" viewBox="0 0 120 96" fill="none" aria-hidden="true">'
-   +'<rect x="26" y="18" width="68" height="60" rx="6" fill="#fff" stroke="#d4d2d0" stroke-width="2"/>'
-   +'<path d="M26 34h68" stroke="#d4d2d0" stroke-width="2"/><path d="M42 14v10M78 14v10" stroke="#b0aeab" stroke-width="4" stroke-linecap="round"/>'
-   +'<rect x="36" y="44" width="10" height="9" rx="2" fill="#ebebeb"/><rect x="55" y="44" width="10" height="9" rx="2" fill="#ebebeb"/>'
-   +'<rect x="74" y="44" width="10" height="9" rx="2" fill="#ebebeb"/><rect x="36" y="60" width="10" height="9" rx="2" fill="#ebebeb"/>'
-   +'<rect x="55" y="60" width="10" height="9" rx="2" fill="#ebebeb"/></svg>'
-   +'<h2>You\'re not registered for any hiring events</h2>'
-   +'<p>You don\'t need to be \u2014 your interview is already set. See <a href="#" onclick="go(\'interviews\');return false">Interviews</a> for the details.</p>'
-   +'<div class="steps" style="margin-top:26px"><h3>What a JobFairX hiring event is</h3>'
-   +'<div class="step"><span class="step-n">1</span><span class="step-t">Employers interview many candidates across a single day, back to back.</span></div>'
-   +'<div class="step"><span class="step-n">2</span><span class="step-t">You register once, then get matched to the roles you fit.</span></div>'
-   +'<div class="step"><span class="step-n">3</span><span class="step-t">One registration can put you in front of several employers.</span></div>'
-   +'<div style="text-align:center;margin-top:22px"><button class="btn btn-primary" onclick="toast(\'Browse events\')">Browse events</button></div>'
-   +'</div></div>';
+  /* Same empty state as a JobFairX candidate. What differs is the card
+     underneath: an Indeed candidate has interviews without any event. */
+  var iv = indeedInterviewsCard();
+  return iv ? iv + '<div style="margin-top:14px">'+noEventsBlock()+'</div>'
+            : noEventsBlock();
+}
+
+function indeedInterviewsCard(){
+  /* Each row carries where it lives, so a tap can land on that exact card. */
+  var rows = UPCOMING.map(function(u){
+      return {job:u.job, co:u.co, meth:u.meth, when:u.day+' · '+u.time, st:'confirmed', id:u.id, tab:0};
+    }).concat(REQUESTS.map(function(r,i){
+      return {job:r.job, co:r.co, meth:r.meth, when:'awaiting employer response', st:'requested', id:'p'+i, tab:1};
+    }));
+  if(!rows.length) return '';                 /* nothing booked — plain empty state */
+  var shown = rows.slice(0,3), extra = rows.length - shown.length;
+
+  var h='<div class="card">'
+   +'<div style="font-size:var(--t-md);font-weight:700">Your interviews</div>'
+   +'<div style="font-size:var(--t-sm);color:var(--ink-2);margin:4px 0 12px">You don\'t need to register for an event to interview.</div>';
+
+  h+= shown.map(function(r){
+    var lab = r.st==='confirmed' ? ['b-good','Confirmed'] : ['b-wait','Requested'];
+    /* Whole row is the target — works the same with a thumb or a mouse,
+       and adds no button weight to a summary card. */
+    return '<button class="iv-mini" onclick="openInterview(\''+r.id+'\','+r.tab+')">'
+      +'<span class="badge-pill '+lab[0]+'">'+lab[1]+'</span>'
+      +'<span class="m-body"><span class="m-job">'+r.job+'</span>'
+      +'<span class="m-co">'+r.co+'</span>'
+      +'<span class="m-meta">'+m(r.meth)+' <span class="dot-sep">·</span> '+r.when+'</span></span>'
+      +'<span class="m-chev">'+I.chev+'</span></button>';
+  }).join('');
+
+  /* Confirmed sorts first because it is the more urgent news, which can push
+     every pending request past the cap — so the overflow line names them. */
+  if(extra>0){
+    var pend = rows.slice(shown.length).filter(function(r){return r.st==='requested'}).length;
+    h+='<div class="iv-mini" style="color:var(--ink-2);font-size:var(--t-sm)">and '+extra+' more'
+     +(pend? ', including '+pend+' awaiting a reply' : '')+'</div>';
+  }
+
+  h+='<div style="border-top:1px solid var(--divider)">'
+   +'<button class="iv-more-link" onclick="go(\'interviews\')">View all in Interviews →</button></div>';
+  return h+'</div>';
 }
 
 function noEventsBlock(){
@@ -896,7 +949,7 @@ function ivUpcoming(live){
 function card(r, phase){
   var M = METHOD[r.meth];
   var atTime = phase==='atTime', dayof = phase==='dayof';
-  var h='<article class="card'+(atTime?' pinned':'')+'"><div class="card-top"><div style="min-width:0">';
+  var h='<article class="card'+(atTime?' pinned':'')+'" data-iv="'+r.id+'"><div class="card-top"><div style="min-width:0">';
 
   if(atTime)      h+='<span class="badge-pill b-live"><span class="live-dot animate"></span>Happening now</span><div style="height:10px"></div>';
   else if(dayof)  h+='<span class="badge-pill b-info">'+(r.soon?'Starts in '+r.soon:'Today')+'</span><div style="height:10px"></div>';
@@ -944,6 +997,21 @@ function card(r, phase){
 function reschedule(job){ window.location.href='jobseeker-scheduling-v1.html'; }
 
 /* Land on Pending with data showing, rather than whatever tab was last used. */
+/* Land on the specific interview: right tab, card in view, brief highlight.
+   Tab choice persists afterwards — going back to Events and returning does
+   not reset it, and the highlight fires once. */
+function openInterview(id, tab){
+  S.ivTab = tab; S.iv[tab] = 'active';
+  document.querySelectorAll('.utab').forEach(function(t,i){t.setAttribute('aria-selected', i===tab?'true':'false')});
+  syncIvToggle(); renderIv(); go('interviews');
+  var el = document.querySelector('[data-iv="'+id+'"]');
+  if(el){
+    el.classList.add('iv-flash');
+    el.scrollIntoView({block:'center'});
+    setTimeout(function(){ el.classList.remove('iv-flash'); }, 2200);
+  }
+}
+
 function goPending(){
   S.ivTab=1; S.iv[1]='active';
   document.querySelectorAll('.utab').forEach(function(t,i){t.setAttribute('aria-selected', i===1?'true':'false')});
@@ -959,7 +1027,7 @@ function ivPending(){
     var note = noteShown ? '' :
       'Employers usually respond within '+ph('PLACEHOLDER — response window')+'. You\'ll get an email and a message here as soon as they do.';
     noteShown=true;
-    return '<article class="card"><div class="card-top"><div style="min-width:0">'
+    return '<article class="card" data-iv="p'+i+'"><div class="card-top"><div style="min-width:0">'
      +'<div class="card-title">'+x.job+'</div>'
      +'<div class="card-meta">'+x.co+evLine(x.ev)+'</div>'
      +'<div class="card-meta">'+m(x.meth)+' <span class="dot-sep">·</span> You requested '+x.when+'</div>'
