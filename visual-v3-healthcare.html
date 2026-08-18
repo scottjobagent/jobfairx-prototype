@@ -1102,7 +1102,7 @@ tbody tr:last-child td { border-bottom: none; }
     <!-- Filter row: sits on gray bg -->
     <div class="filter-row">
       <div class="tab-pills">
-        <button class="tab-pill active" onclick="filterEvents('upcoming', this)">Upcoming events <span class="count">2</span></button>
+        <button class="tab-pill active" onclick="filterEvents('upcoming', this)">Upcoming events <span class="count">3</span></button>
         <button class="tab-pill" onclick="filterEvents('complete', this)">Past events <span class="count">1</span></button>
       </div>
       <a class="av-test-link" id="avTestLink" href="lobby-v3-healthcare.html?avtest=1" target="_blank" rel="noopener" title="Opens in a new window" aria-label="Test your audio and video (opens in a new window)"><svg class="av-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="14" height="14" rx="2"/><path d="M16 10l6-3v10l-6-3"/></svg><span>Test your audio and video before your event<span class="av-it"> — IT may need to allow access</span></span><svg class="av-ext" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14 21 3"/></svg></a>
@@ -1207,6 +1207,43 @@ tbody tr:last-child td { border-bottom: none; }
               <div class="cand-pending">4 awaiting response</div>
               <div class="cand-upcoming">9 confirmed interviews</div>
               <a onclick="window.open('lobby-v3-healthcare.html?tab=notyet','_blank')" style="cursor:pointer;">Manage candidates</a>
+            </td>
+          </tr>
+<tr class="ev-row upcoming" data-event="omaha" data-dash-event="omaha-healthcare">
+            <td>
+              <div class="actions-cell">
+                <button class="action-pencil" title="Edit" onclick="window.open('edit-post-v3-healthcare.html?event=omaha','_blank')"><svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M16.293 2.293a2.828 2.828 0 114 4l-11 11a1 1 0 01-.39.242l-4.5 1.5a.75.75 0 01-.942-.942l1.5-4.5a1 1 0 01.242-.39l11.09-11.09z"/></svg></button>
+                <button class="action-dots" onclick="toggleMenu(this)"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="6" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="18" cy="12" r="2"/></svg></button>
+                <div class="action-menu">
+                  <button class="action-menu-item" onclick="window.open('edit-post-v3-healthcare.html?event=omaha','_blank')">Edit</button>
+                  <button class="action-menu-item" onclick="window.open('share-preview.html?event=omaha','_blank')">Share</button>
+                  <button class="action-menu-item" onclick="window.location.href='lobby-v3-healthcare.html?method=person'">Go to lobby</button>
+                </div>
+              </div>
+            </td>
+            <td>
+              <span class="cell-event-name">Omaha Hiring Event</span>
+              <div class="cell-event-date"><span class="date-part">Jul 15, 2026</span> <span class="time-part">&middot; 9:00 AM - 3:00 PM CT</span></div>
+            </td>
+            <td>
+              <div class="cell-location">In-person interviews</div>
+              <a class="cell-lobby" onclick="window.location.href='lobby-v3-healthcare.html?method=person'">Go to lobby</a>
+              <div class="cell-setup-complete"><span class="setup-complete-dot"></span> Setup complete</div>
+            </td>
+            <td>
+              <div class="setup-summary">
+                <a class="iv-count-tip" style="color:#0044B3;cursor:pointer;text-decoration:none;font-size:14px;font-weight:400;" onclick="openInterviewSettings()">4 interviewers</a>
+              </div>
+              <div class="cell-col-count">4 of 5 interviewers</div>
+            </td>
+            <td>
+              <a class="cell-job" onclick="window.open('share-preview.html?event=omaha&amp;job=rn','_blank')">Registered Nurse</a>
+              <div class="cell-col-count">2 of 3 jobs</div>
+            </td>
+            <td class="cell-candidates">
+              <div class="cand-pending">6 awaiting response</div>
+              <div class="cand-upcoming">11 confirmed interviews</div>
+              <a onclick="window.open('lobby-v3-healthcare.html?method=person&amp;tab=notyet','_blank')" style="cursor:pointer;">Manage candidates</a>
             </td>
           </tr>
         </tbody>
@@ -7273,7 +7310,8 @@ document.addEventListener('click', function(e){
     'chicago-technology': 'phone',
     'atlanta-diversity': 'person',
     'houston-veteran': 'video',
-    'denver-engineering': 'video'
+    'denver-engineering': 'video',
+    'omaha-healthcare': 'person'
   };
   /* A video event can run on JobFairX video or on the employer's own meeting
      link. That is a variant of Video, not a fourth location — same chip, same
@@ -7281,6 +7319,10 @@ document.addEventListener('click', function(e){
   var EVENT_URL = {
     'houston-veteran': 'https://teams.microsoft.com/l/meetup-join/19:meeting_ZjQxYTk4@thread.v2/0',
     'denver-engineering': 'https://teams.microsoft.com/l/meetup-join/19:meeting_MmE3NzQx@thread.v2/0'
+  };
+  /* In-person events each have their own venue; SUB.person is only the fallback. */
+  var EVENT_ADDR = {
+    'omaha-healthcare': 'Greenleaf Center, 1620 Dodge St &middot; Omaha, NE'
   };
   var HOSTS = [
     [/(^|\.)teams\.microsoft\.com$/, 'Microsoft Teams'],
@@ -7297,7 +7339,8 @@ document.addEventListener('click', function(e){
   var NAME_METHOD = {
     'Dallas Healthcare Event': 'video', 'Dallas Hiring Event': 'video',
     'Chicago Technology Event': 'phone', 'Chicago Healthcare Hiring Event': 'phone',
-    'Atlanta Diversity Event': 'person', 'Houston Healthcare Event': 'person'
+    'Atlanta Diversity Event': 'person', 'Houston Healthcare Event': 'person',
+    'Omaha Hiring Event': 'person'
   };
   var LABEL = { video:'Video', phone:'Phone', person:'In person' };
   var SUB = {
@@ -7328,7 +7371,10 @@ document.addEventListener('click', function(e){
       var url = EVENT_URL[tr.getAttribute('data-dash-event')];
       /* No URL text and no copy control here — the dashboard is a scanning
          surface. The link itself lives in the lobby, on event day. */
-      sub.innerHTML = (k === 'video' && url) ? platformOf(url) : SUB[k];
+      var _ek = tr.getAttribute('data-dash-event');
+      sub.innerHTML = (k === 'video' && url) ? platformOf(url)
+        : (k === 'person' && EVENT_ADDR[_ek]) ? EVENT_ADDR[_ek]
+        : SUB[k];
       cell.parentNode.insertBefore(sub, cell.nextSibling);
       /* Carry the method through to the lobby, which opens in a new tab. */
       tr.querySelectorAll('a, button').forEach(function(el) {
