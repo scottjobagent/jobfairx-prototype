@@ -497,7 +497,6 @@ body.stage-mobile .main{display:none!important}
   <div class="page-head">
     <div>
       <h1 id="h-iv">Interviews</h1>
-      <p class="sub">Everything you've requested, confirmed, and completed.</p>
     </div>
   </div>
   <div class="utabs-wrap">
@@ -1133,7 +1132,7 @@ function ivPending(){
   var noteShown=false;
   return REQUESTS.map(function(x,i){
     var note = noteShown ? '' :
-      'Employers usually respond within '+ph('PLACEHOLDER \u2014 response window')+'. You\'ll get an email and a message here as soon as they do.';
+      'Employers usually respond within 72 hours. You\'ll get an email when your interview is confirmed.';
     noteShown=true;
     var h='<article class="card" data-iv="p'+i+'"><div class="card-top"><div style="min-width:0">'
      + cap('Awaiting employer response','wait')
@@ -1164,13 +1163,15 @@ function ivPast(){
   return PAST_IV.map(function(r,i){
     var h='<article class="card"><div class="card-top"><div style="min-width:0">';
     if(r.st==='missed' && r.meth==='video') h+= cap('Missed','wait');
-    h+='<div class="c-date"><strong>'+r.when+'</strong></div></div>';
-    h+= ofMenu('pa'+i,[['View job details',"toast('Job details')"]],null)+'</div>';
+    /* No overflow menu here: nothing about a past interview can be changed,
+       so its one action sits in the open where Reschedule and Cancel sit. */
+    h+='<div class="c-date"><strong>'+r.when+'</strong></div></div></div>';
     h+='<div class="c-div"></div><div class="c-body"><div class="c-left">';
     h+='<div class="c-job">'+r.job+'</div>';
     h+='<div class="c-co">'+r.co+evLine(r.ev)+'</div>';
     h+='<div class="c-row">'+METHOD[r.meth].i+'<span>'+METHOD[r.meth].l+'</span></div>';
-    h+='</div></div></article>';
+    h+='</div><div class="c-acts"><button class="btn btn-secondary btn-sm" onclick="toast(\'Job details\')">View job</button></div>';
+    h+='</div></article>';
     return h;
   }).join('');
 }
