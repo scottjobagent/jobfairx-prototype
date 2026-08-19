@@ -26,6 +26,8 @@
   --chrome-h:100px;
 }
 *{margin:0;padding:0;box-sizing:border-box}
+/* Both bars are fixed, so anything scrolled to must clear them. */
+html{scroll-padding-top:calc(var(--chrome-h) + 16px)}
 body{font-family:var(--font);background:var(--page);color:var(--ink);font-size:var(--t-base);line-height:1.5;-webkit-font-smoothing:antialiased}
 :focus-visible{outline:3px solid var(--blue);outline-offset:2px;border-radius:3px}
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
@@ -94,8 +96,10 @@ h2.sec{font-size:var(--t-xl);font-weight:700;margin-bottom:8px}
 .slot.sel .radio{border-color:var(--ink)}
 .slot.sel .radio::after{content:'';position:absolute;inset:3px;border-radius:50%;background:var(--ink)}
 .slot.taken .radio{border-color:var(--ink-disabled)}
+/* The rounded containers clip an outset ring off these rows' left and right. */
+.slot:focus-visible,.opt:focus-visible{outline-offset:-3px}
 .slot .st{font-size:var(--t-md);color:var(--ink)}
-.slot.taken .st{color:var(--ink-3)}
+.slot.taken .st{color:var(--ink-2)}
 .slot .sub{display:block;font-size:var(--t-base);color:var(--ink-3);font-style:italic;margin-top:3px}
 
 /* ═══ VALIDATION + BUTTONS ═══ */
@@ -401,8 +405,8 @@ function stepTime(){
 
   /* What this method needs confirmed before a slot is picked. */
   if(S.method==='phone')  h+='<div class="drow">'+IC.people+'<span class="v">'+MT().pre+'<br><b>'+TEL+'</b> &middot; <a href="#" onclick="toastish(\'Edit number\');return false">Edit</a></span></div>';
-  if(S.method==='person') h+='<div class="drow">'+IC.people+'<span class="v">'+MT().pre+'</span></div>';
-  if(S.method==='link')   h+='<div class="drow">'+IC.people+'<span class="v">'+EVENT.co+MT().pre+'</span></div>';
+  if(S.method==='person' && !re) h+='<div class="drow">'+IC.people+'<span class="v">'+MT().pre+'</span></div>';
+  if(S.method==='link' && !re) h+='<div class="drow">'+IC.people+'<span class="v">'+EVENT.co+MT().pre+'</span></div>';
   h+='<div class="rule"></div><h2 class="sec">Select a time</h2>';
   h+='<div class="tzrow">'+IC.globe+EVENT.tz+'<button aria-label="Change time zone" onclick="toastish(\'Change time zone\')">'+IC.pencil+'</button></div>';
   h+='<div class="banner">'+IC.info+'<div class="bt">We have identified your time zone as <b>'+EVENT.tz.replace(' (CDT)','')+'</b>'
