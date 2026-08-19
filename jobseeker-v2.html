@@ -229,6 +229,7 @@ body.stage-mobile .main{display:none!important}
 /* ═══ EMPTY STATES ═══ */
 .empty{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-xl);padding:72px 40px;text-align:center}
 .empty h2{font-size:var(--t-2xl);font-weight:700;margin-bottom:10px}
+.empty p{font-size:var(--t-md);color:var(--ink-3);margin:0 auto 24px;max-width:520px}
 .empty-art{width:120px;height:96px;margin:0 auto 24px}
 
 /* ═══ DAY GROUPING ═══ */
@@ -352,6 +353,7 @@ body.stage-mobile .main{display:none!important}
 
   /* ── Empty states + steps ──────────────────────────────────────────── */
   .empty h2{font-size:var(--t-xl)}
+  .empty p{font-size:var(--t-base)}
   .empty .btn{width:100%;min-height:48px}
 
   .sidebar{left:-100%;}
@@ -655,7 +657,10 @@ function ph(t){return '<span class="ph">['+t+']</span>';}
    STATE
    ═══════════════════════════════════════════════════════════ */
 var SRC='jobfairx';
-var S = { events:'active', evTab:'up', reg:'mix', iv:['empty','empty','empty'], ivTab:0, lobby:'before' };
+/* One interview state across all three tabs. It used to be stored per tab,
+   mirroring the employer app, which meant switching on Upcoming left Pending
+   and Past empty until you found and clicked the toggle again on each. */
+var S = { events:'active', evTab:'up', reg:'mix', iv:'empty', ivTab:0, lobby:'before' };
 
 /* ═══════════════════════════════════════════════════════════
    NAV
@@ -946,18 +951,16 @@ function confirmUnregister(name){
    ═══════════════════════════════════════════════════════════ */
 function ivTab(i,btn){
   S.ivTab=i;
-  document.querySelectorAll('.utab').forEach(function(t){t.setAttribute('aria-selected','false')});
-  btn.setAttribute('aria-selected','true');
   syncIvToggle(); renderIv(); pushToFrame();
 }
 function setIv(mode,btn){
-  S.iv[S.ivTab]=mode;
+  S.iv=mode;
   document.querySelectorAll('#tgIv .dev-toggle-btn').forEach(function(b){b.classList.remove('active')});
   btn.classList.add('active');
   renderIv(); go('interviews');
 }
 function syncIvToggle(){
-  var cur=S.iv[S.ivTab], btns=document.querySelectorAll('#tgIv .dev-toggle-btn');
+  var cur=S.iv, btns=document.querySelectorAll('#tgIv .dev-toggle-btn');
   btns.forEach(function(b){b.classList.remove('active')});
   ({empty:0,active:1})[cur]!==undefined && btns[({empty:0,active:1})[cur]].classList.add('active');
 }
@@ -965,16 +968,16 @@ function syncIvToggle(){
 function ivEmpty(){
   var t=['upcoming','pending','past'][S.ivTab];
   var copy={
-    upcoming:'You don\'t have any upcoming interviews',
-    pending:'You\'re not waiting on any replies',
-    past:'You haven\'t interviewed yet'
+    upcoming:['You don\'t have upcoming interviews','All scheduled interviews will show up here.'],
+    pending:['You don\'t have pending interviews','All pending interviews will show up here.'],
+    past:['You don\'t have past interviews','All completed interviews will show up here.']
   }[t];
   return '<div class="empty"><svg class="empty-art" viewBox="0 0 120 96" fill="none" aria-hidden="true">'
    +'<ellipse cx="60" cy="84" rx="38" ry="6" fill="#ebebeb"/>'
    +'<rect x="44" y="32" width="34" height="40" rx="3" fill="#d9c3a5"/><rect x="48" y="36" width="26" height="22" rx="2" fill="#fff"/>'
    +'<path d="M48 72v10M74 72v10" stroke="#b99a76" stroke-width="4" stroke-linecap="round"/>'
    +'<circle cx="28" cy="64" r="9" fill="#8fbf7f"/><path d="M28 64v18" stroke="#6b9a5c" stroke-width="3" stroke-linecap="round"/></svg>'
-   +'<h2>'+copy+'</h2>'
+   +'<h2>'+copy[0]+'</h2><p>'+copy[1]+'</p>'
    +'<button class="btn btn-primary" onclick="go(\'events\')">'+(S.ivTab===2?'Go to events':'Browse events')+'</button></div>';
 }
 
@@ -1106,8 +1109,7 @@ function reschedule(job){ window.location.href='jobseeker-scheduling-v1.html'; }
    Tab choice persists afterwards — going back to Events and returning does
    not reset it, and the highlight fires once. */
 function openInterview(id, tab){
-  S.ivTab = tab; S.iv[tab] = 'active';
-  document.querySelectorAll('.utab').forEach(function(t,i){t.setAttribute('aria-selected', i===tab?'true':'false')});
+  S.ivTab = tab; S.iv = 'active';
   syncIvToggle(); renderIv(); go('interviews');
   var el = document.querySelector('[data-iv="'+id+'"]');
   if(el){
@@ -1118,27 +1120,33 @@ function openInterview(id, tab){
 }
 
 function goPending(){
-  S.ivTab=1; S.iv[1]='active';
-  document.querySelectorAll('.utab').forEach(function(t,i){t.setAttribute('aria-selected', i===1?'true':'false')});
+  S.ivTab=1; S.iv='active';
   syncIvToggle(); renderIv(); go('interviews');
 }
 
 /* --- Pending ------------------------------------------------- */
 function ivPending(){
-  /* Renders the shared REQUESTS list. The event name is suppressed for an
-     Indeed candidate, who has no event to recognise. */
+  /* Same shape as Upcoming and Past — capsule on top, then the detail. This
+     tab kept the old chip-at-the-bottom layout when the capsule replaced it
+     everywhere else. The event name is suppressed for an Indeed candidate,
+     who has no event to recognise. */
   var noteShown=false;
   return REQUESTS.map(function(x,i){
     var note = noteShown ? '' :
-      'Employers usually respond within '+ph('PLACEHOLDER — response window')+'. You\'ll get an email and a message here as soon as they do.';
+      'Employers usually respond within '+ph('PLACEHOLDER \u2014 response window')+'. You\'ll get an email and a message here as soon as they do.';
     noteShown=true;
-    return '<article class="card" data-iv="p'+i+'"><div class="card-top"><div style="min-width:0">'
-     +'<div class="card-title">'+x.job+'</div>'
-     +'<div class="card-meta">'+x.co+evLine(x.ev)+'</div>'
-     +'<div class="card-meta">'+m(x.meth)+' <span class="dot-sep">·</span> You requested '+x.when+'</div>'
-     +'<div style="margin-top:10px"><span class="badge-pill b-wait">Awaiting employer response</span></div></div>'
-     +ofMenu('p'+i,[['View job details',"toast('Job details')"]],['Cancel request',"confirmCancel('"+x.job+" request')"])+'</div>'
-     +(note?'<div class="strip">'+note+'</div>':'')+'</article>';
+    var h='<article class="card" data-iv="p'+i+'"><div class="card-top"><div style="min-width:0">'
+     + cap('Awaiting employer response','wait')
+     + '<div class="c-date"><strong>You requested '+x.when+'</strong></div></div>'
+     + ofMenu('p'+i,[['View job details',"toast('Job details')"]],['Cancel request',"confirmCancel('"+x.job+" request')"])
+     + '</div>';
+    h+='<div class="c-div"></div><div class="c-body"><div class="c-left">';
+    h+='<div class="c-job">'+x.job+'</div>';
+    h+='<div class="c-co">'+x.co+evLine(x.ev)+'</div>';
+    h+='<div class="c-row">'+METHOD[x.meth].i+'<span>'+METHOD[x.meth].l+'</span></div>';
+    if(note) h+='<div class="c-prose">'+note+'</div>';
+    h+='</div></div></article>';
+    return h;
   }).join('');
 }
 
@@ -1168,14 +1176,16 @@ function ivPast(){
 }
 
 function renderIv(){
-  var b=document.getElementById('ivBody'), mode=S.iv[S.ivTab];
-  document.getElementById('ivC0').textContent = S.iv[0]==='empty'?'0':String(upcomingNow().length);
-  document.getElementById('ivC1').textContent = S.iv[1]==='empty'?'0':String(REQUESTS.length);
-  document.getElementById('ivC2').textContent = S.iv[2]==='empty'?'0':String(PAST_IV.length);
-  document.getElementById('navIvBadge').style.display = (S.iv[1]==='empty')?'none':'';
-  /* Grey a tab with nothing behind it, as Events already does. */
+  var b=document.getElementById('ivBody'), mode=S.iv, off=(mode==='empty');
+  document.getElementById('ivC0').textContent = off?'0':String(upcomingNow().length);
+  document.getElementById('ivC1').textContent = off?'0':String(REQUESTS.length);
+  document.getElementById('ivC2').textContent = off?'0':String(PAST_IV.length);
+  document.getElementById('navIvBadge').style.display = off?'none':'';
+  /* Selection and greying both derive from state, so anything that re-renders
+     from state — including the phone frame — lands on the right tab. */
   document.querySelectorAll('.utab').forEach(function(t,i){
-    var zero = S.iv[i]==='empty';
+    t.setAttribute('aria-selected', String(i===S.ivTab));
+    var zero = off;
     t.style.color = zero ? 'var(--ink-disabled)' : '';
     t.querySelector('.count').style.color = zero ? 'var(--ink-disabled)' : '';
   });
