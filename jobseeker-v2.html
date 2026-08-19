@@ -93,6 +93,9 @@ a{color:var(--blue)}
 /* ═══ PHONE STAGE ═══ */
 #phoneStage{display:none;padding:calc(var(--devbar-h) + 20px) 20px 40px;flex-direction:column;align-items:center;gap:12px}
 body.stage-mobile #phoneStage{display:flex}
+/* Inside the phone frame the toggle bar is suppressed entirely — it was eating
+   271px of an 824px screen and duplicating the bar directly above it. */
+body.embed .devbar{display:none}
 body.stage-mobile .sidebar,
 body.stage-mobile .mobile-nav,
 body.stage-mobile .main{display:none!important}
@@ -659,7 +662,9 @@ var S = { events:'active', evTab:'up', reg:'mix', iv:['empty','empty','empty'], 
 /* ═══════════════════════════════════════════════════════════
    NAV
    ═══════════════════════════════════════════════════════════ */
+var VIEW='events';
 function go(v){
+  VIEW=v;
   document.querySelectorAll('.view').forEach(function(x){x.classList.remove('active')});
   document.getElementById('view-'+v).classList.add('active');
   ['events','interviews','messages','resume'].forEach(function(n){
@@ -668,6 +673,7 @@ function go(v){
     if(b){ n===v ? b.setAttribute('aria-current','page') : b.removeAttribute('aria-current'); }
   });
   window.scrollTo(0,0);
+  pushToFrame();
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -702,9 +708,7 @@ var EVENTS = [
 
 function evTab(t,btn){
   S.evTab=t;
-  document.querySelectorAll('#evTabs .tab-pill').forEach(function(p){p.classList.remove('active');p.setAttribute('aria-selected','false')});
-  btn.classList.add('active');btn.setAttribute('aria-selected','true');
-  renderEvents();
+  renderEvents(); pushToFrame();
 }
 function setSrc(v,btn){
   SRC=v;
@@ -714,11 +718,6 @@ function setSrc(v,btn){
   document.querySelectorAll('#tgEvents .dev-toggle-btn, #tgReg .dev-toggle-btn').forEach(function(b){
     b.disabled=off; b.style.opacity=off?'.4':'';
   });
-  document.querySelectorAll('#evTabs .tab-pill').forEach(function(pl,i){
-    pl.classList.toggle('disabled', off);
-    pl.querySelector('.count').textContent = off ? '0' : (i===0?String(EVENTS.length):'2');
-  });
-  document.getElementById('navEventsBadge').style.display = off ? 'none' : '';
   renderEvents(); renderIv(); renderLobby(); go(off?'interviews':'events');
 }
 
@@ -726,15 +725,8 @@ function setEvents(mode,btn){
   S.events=mode;
   document.querySelectorAll('#tgEvents .dev-toggle-btn').forEach(function(b){b.classList.remove('active')});
   btn.classList.add('active');
-  var pills=document.querySelectorAll('#evTabs .tab-pill');
-  pills.forEach(function(p){p.classList.remove('active','disabled');p.setAttribute('aria-selected','false')});
-  pills[0].classList.add('active');pills[0].setAttribute('aria-selected','true');
   S.evTab='up';
-  document.getElementById('cUp').textContent = (mode==='empty'||mode==='no-upcoming')?'0':String(EVENTS.length);
-  document.getElementById('cPast').textContent = (mode==='empty'||mode==='no-past')?'0':'2';
-  if(mode==='no-past'||mode==='empty') pills[1].classList.add('disabled');
   document.getElementById('evTabs').style.display = 'flex';
-  document.getElementById('navEventsBadge').style.display = (mode==='active')?'':'none';
   renderEvents(); go('events');
 }
 
@@ -884,8 +876,27 @@ function noEventsBlock(){
    +'<button class="btn btn-primary" onclick="toast(\'Browse events\')">Browse events</button></div>';
 }
 
+function syncEvTabs(){
+  var ind=isIndeed(), mode=S.events;
+  var up   = ind ? 0 : ((mode==='empty'||mode==='no-upcoming') ? 0 : EVENTS.length);
+  var past = ind ? 0 : ((mode==='empty'||mode==='no-past')     ? 0 : 2);
+  var cu=document.getElementById('cUp'), cp=document.getElementById('cPast');
+  if(cu) cu.textContent=String(up);
+  if(cp) cp.textContent=String(past);
+  document.querySelectorAll('#evTabs .tab-pill').forEach(function(p,i){
+    var isUp=(i===0), sel=((S.evTab==='up')===isUp) && !ind;
+    p.classList.toggle('active', sel);
+    p.setAttribute('aria-selected', String(sel));
+    /* The tab you are standing on is never greyed, even at zero. */
+    p.classList.toggle('disabled', ind || (!sel && (isUp ? up===0 : past===0)));
+  });
+  var badge=document.getElementById('navEventsBadge');
+  if(badge) badge.style.display = (!ind && mode==='active') ? '' : 'none';
+}
+
 function renderEvents(){
   var b=document.getElementById('evBody'), mode=S.events, h='';
+  syncEvTabs();
 
   /* Empty and No upcoming share one treatment — same calendar, same words.
      They differ only in the Past events count behind the tab. */
@@ -940,7 +951,7 @@ function ivTab(i,btn){
   S.ivTab=i;
   document.querySelectorAll('.utab').forEach(function(t){t.setAttribute('aria-selected','false')});
   btn.setAttribute('aria-selected','true');
-  syncIvToggle(); renderIv();
+  syncIvToggle(); renderIv(); pushToFrame();
 }
 function setIv(mode,btn){
   S.iv[S.ivTab]=mode;
@@ -1198,7 +1209,7 @@ function setClock(k,btn){
   CLOCK=k;
   document.querySelectorAll('#tgClock .dev-toggle-btn').forEach(function(b){b.classList.remove('active')});
   btn.classList.add('active');
-  renderEvents(); renderIv(); renderLobby();
+  renderEvents(); renderIv(); renderLobby(); pushToFrame();
 }
 
 function setLobby(mode,btn){
@@ -1292,6 +1303,28 @@ function closeModal(){document.getElementById('ov').classList.remove('open')}
    The nested instance carries ?m=1 and hides its own View toggle, so the
    phone cannot contain another phone. */
 var EMBED = /[?&]m=1/.test(location.search);
+
+/* ── Driving the phone from the outside ──────────────────────────────────
+   The phone stage is a real second document at a real 390px viewport, which
+   is the whole point — the media queries fire as they would on a handset.
+   The cost is that it has its own state, so the toggles above it appeared
+   dead. Same origin, so the outer page hands its state straight in. */
+function applyState(st){
+  S = JSON.parse(JSON.stringify(st.S));
+  SRC = st.SRC; CLOCK = st.CLOCK;
+  renderEvents(); renderIv(); renderLobby(); syncIvToggle();
+  go(st.view);
+}
+function pushToFrame(){
+  if(EMBED || !document.body.classList.contains('stage-mobile')) return;
+  var f=document.getElementById('phoneFrame');
+  try{
+    var w=f && f.contentWindow;
+    if(w && typeof w.applyState==='function')
+      w.applyState({S:S, SRC:SRC, CLOCK:CLOCK, view:VIEW});
+  }catch(e){}
+}
+
 function setView(v,btn){
   document.querySelectorAll('#tgView .dev-toggle-btn').forEach(function(b){b.classList.remove('active')});
   btn.classList.add('active');
@@ -1299,11 +1332,14 @@ function setView(v,btn){
   document.body.classList.toggle('stage-mobile', mob);
   if(mob){
     var f=document.getElementById('phoneFrame');
-    if(!f.getAttribute('src')) f.setAttribute('src', location.pathname+'?m=1');
+    if(!f.getAttribute('src')){
+      f.addEventListener('load', pushToFrame);
+      f.setAttribute('src', location.pathname+'?m=1');
+    } else pushToFrame();
   }
   window.scrollTo(0,0);
 }
-if(EMBED) document.getElementById('tgView').style.display='none';
+if(EMBED){ document.body.classList.add('embed'); }
 
 /* The toggle bar is prototype scaffolding that wraps to one, two or three
    rows depending on width. Measure it so nothing sits underneath it. */
