@@ -278,7 +278,6 @@ body.stage-mobile .main{display:none!important}
 .iv-more-link{display:inline-flex;align-items:center;gap:6px;font-size:var(--t-base);font-weight:700;
   color:var(--blue);background:none;border:none;cursor:pointer;font-family:inherit;padding:13px 0;min-height:44px}
 .iv-more-link:hover{text-decoration:underline}
-.ev-more{display:none}
 .ph{background:#fff6d9;border-bottom:1px dashed #b8860b;color:#7a5c00;font-weight:600;padding:0 3px;border-radius:2px}
 
 /* ═══ TOAST ═══ */
@@ -320,15 +319,6 @@ body.stage-mobile .main{display:none!important}
   .iv-mini .m-meta .dot-sep{display:none}
   .iv-mini .m-meta .method{display:inline-flex}
 
-  /* ── Collapsed event cards ─────────────────────────────────────────── */
-  .ev-more{display:block;width:100%;margin-top:12px;padding:11px 0;background:none;border:none;
-    border-top:1px solid var(--divider);font-family:inherit;font-size:var(--t-base);
-    font-weight:700;color:var(--blue);cursor:pointer;min-height:44px;text-align:left}
-  .ev-collapsed .ev-body{display:none}
-  /* The Show details button already draws a rule, so the body's own divider
-     would double it up at this width. */
-  .ev-body .c-div{display:none}
-
   /* ── Lobby ─────────────────────────────────────────────────────────── */
   .lobby-hero{padding:28px 18px;border-radius:var(--r-lg)}
   .lobby-status{font-size:var(--t-xl);line-height:1.25}
@@ -345,8 +335,14 @@ body.stage-mobile .main{display:none!important}
   .prep-item .btn{flex:1 1 100%;margin-top:4px;min-height:44px}
 
   /* ── Page header ───────────────────────────────────────────────────── */
+  /* The card was 140px on a phone to deliver a title and one button. On this
+     width it becomes a plain row: heading left, action right, no box. */
+  .page-head{padding:0;background:none;border:none;border-radius:0;margin-bottom:14px;
+    flex-direction:row;align-items:center;justify-content:space-between;gap:12px;flex-wrap:nowrap}
+  .page-head>div{min-width:0}
   .page-head h1{font-size:var(--t-xl)}
-  .page-head .of-wrap{align-self:flex-end;margin-top:-44px}
+  .page-head .btn{width:auto;flex-shrink:0;padding:10px 16px;font-size:var(--t-base);min-height:44px}
+  .page-head .of-wrap{flex-shrink:0}
 
   /* ── Tabs ──────────────────────────────────────────────────────────── */
   .utab{padding:14px 8px;font-size:var(--t-base);min-height:48px}
@@ -360,8 +356,6 @@ body.stage-mobile .main{display:none!important}
   .sidebar{left:-100%;}
   .main{margin-left:0;padding:calc(var(--devbar-h) + 24px) 16px 90px}
   .utabs-wrap{margin:0 -16px 20px;padding:0 16px}
-  .page-head{padding:20px;flex-direction:column;align-items:flex-start}
-  .page-head .btn{width:100%}
   .card-actions .btn{flex:1}
   .wait-box{gap:24px;padding:16px 20px;width:100%;justify-content:center}
   .mobile-nav{display:flex!important}
@@ -746,8 +740,6 @@ function setEvents(mode,btn){
 
 /* On a phone, only the soonest event stays open. The rest collapse to their
    heading so the list is scannable instead of four full cards deep. */
-var evOpen = EVENTS.slice().sort(function(a,b){return a.start-b.start})[0].id;
-function evToggle(id){ evOpen = (evOpen===id ? null : id); renderEvents(); }
 function eventCard(e,live){
   /* Mix leaves each event in its own state so the whole ladder is visible
      at once; the other toggle options force every card into one state. */
@@ -755,8 +747,7 @@ function eventCard(e,live){
   /* Waiting to be matched has nothing to expand — no job, no method, no
      action — so the card is just its heading, with the time on that line. */
   var bare = (st==='waiting' && !live);
-  var open = (evOpen===e.id) || live;
-  var h='<article class="card'+(live?' pinned':'')+((open||bare)?'':' ev-collapsed')+'">';
+  var h='<article class="card'+(live?' pinned':'')+'">';
   h+='<div class="card-top"><div style="min-width:0">';
 
   /* THE CAPSULE SLOT. One component, whatever the state. A countdown
@@ -778,9 +769,7 @@ function eventCard(e,live){
   /* Nothing below the heading, so no divider and no Show details either. */
   if(bare) return h+'</article>';
 
-  h+='<button class="ev-more" aria-expanded="'+open+'" onclick="evToggle(\''+e.id+'\')">'
-   +(open?'Hide details':'Show details')+'</button>';
-  h+='<div class="ev-body"><div class="c-div"></div><div class="c-body"><div class="c-left">';
+  h+='<div class="c-div"></div><div class="c-body"><div class="c-left">';
 
   if(st==='matched'){
     var mt=e.matches[0];
@@ -813,7 +802,7 @@ function eventCard(e,live){
   }
   if(acts.length) h+='<div class="c-acts">'+acts.join('')+'</div>';
 
-  h+='</div></div></article>';
+  h+='</div></article>';
   return h;
 }
 
