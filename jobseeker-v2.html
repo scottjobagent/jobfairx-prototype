@@ -90,6 +90,12 @@ a{color:var(--blue)}
 .dev-toggle-btn.active{background:var(--blue);color:#fff}
 .devbar-spacer{margin-left:auto;font-size:var(--t-sm);color:var(--ink-2);white-space:nowrap}
 
+/* Toggles that belong to one page now sit on that page. Like the bar itself
+   they are prototype scaffolding, so the phone frame never shows them. */
+.pagetoggles{display:flex;gap:8px;flex-wrap:wrap;align-items:center;
+  order:3;width:100%;margin-top:2px;padding-top:14px;border-top:1px solid var(--divider)}
+body.embed .pagetoggles{display:none}
+
 /* ═══ PHONE STAGE ═══ */
 #phoneStage{display:none;padding:calc(var(--devbar-h) + 20px) 20px 40px;flex-direction:column;align-items:center;gap:12px}
 body.stage-mobile #phoneStage{display:flex}
@@ -342,6 +348,9 @@ body.stage-mobile .main{display:none!important}
      width it becomes a plain row: heading left, action right, no box. */
   .page-head{padding:0;background:none;border:none;border-radius:0;margin-bottom:14px;
     flex-direction:row;align-items:center;justify-content:space-between;gap:12px;flex-wrap:nowrap}
+  /* The strip already sits on its own line; just tighten it up here. */
+  .page-head.has-toggles{flex-wrap:wrap}
+  .page-head .pagetoggles{padding-top:10px}
   .page-head>div{min-width:0}
   .page-head h1{font-size:var(--t-xl)}
   .page-head .btn{width:auto;flex-shrink:0;padding:10px 16px;font-size:var(--t-base);min-height:44px}
@@ -389,15 +398,6 @@ body.stage-mobile .main{display:none!important}
     </div>
   </div>
   <div class="dev-toggle">
-    <span class="dev-toggle-label">Events view:</span>
-    <div class="dev-toggle-switch" id="tgEvents">
-      <button class="dev-toggle-btn active" onclick="setEvents('active',this)">Active</button>
-      <button class="dev-toggle-btn" onclick="setEvents('empty',this)">Empty</button>
-      <button class="dev-toggle-btn" onclick="setEvents('no-upcoming',this)">No upcoming</button>
-      <button class="dev-toggle-btn" onclick="setEvents('no-past',this)">No past</button>
-    </div>
-  </div>
-  <div class="dev-toggle">
     <span class="dev-toggle-label">Registered:</span>
     <div class="dev-toggle-switch" id="tgReg">
       <button class="dev-toggle-btn active" onclick="setReg('mix',this)">Mix</button>
@@ -405,32 +405,6 @@ body.stage-mobile .main{display:none!important}
       <button class="dev-toggle-btn" onclick="setReg('matched',this)">Matched</button>
       <button class="dev-toggle-btn" onclick="setReg('requested',this)">Requested</button>
       <button class="dev-toggle-btn" onclick="setReg('booked',this)">Has interview</button>
-    </div>
-  </div>
-  <div class="dev-toggle">
-    <span class="dev-toggle-label">Interview state:</span>
-    <div class="dev-toggle-switch" id="tgIv">
-      <button class="dev-toggle-btn active" onclick="setIv('empty',this)">Empty</button>
-      <button class="dev-toggle-btn" onclick="setIv('active',this)">Active</button>
-    </div>
-  </div>
-  <div class="dev-toggle">
-    <span class="dev-toggle-label">Clock:</span>
-    <div class="dev-toggle-switch" id="tgClock">
-      <button class="dev-toggle-btn active" onclick="setClock('far',this)">Days out</button>
-      <button class="dev-toggle-btn" onclick="setClock('soon',this)">20 hrs</button>
-      <button class="dev-toggle-btn" onclick="setClock('live',this)">At interview</button>
-      <button class="dev-toggle-btn" onclick="setClock('after',this)">After</button>
-    </div>
-  </div>
-  <div class="dev-toggle">
-    <span class="dev-toggle-label">Lobby:</span>
-    <div class="dev-toggle-switch" id="tgLobby">
-      <button class="dev-toggle-btn active" onclick="setLobby('before',this)">Before</button>
-      <button class="dev-toggle-btn" onclick="setLobby('waiting',this)">Waiting</button>
-      <button class="dev-toggle-btn" onclick="setLobby('next',this)">Next up</button>
-      <button class="dev-toggle-btn" onclick="setLobby('ready',this)">Ready</button>
-      <button class="dev-toggle-btn" onclick="setLobby('ended',this)">Ended</button>
     </div>
   </div>
   <div class="devbar-spacer">jordan.reyes@example.com</div>
@@ -479,10 +453,40 @@ body.stage-mobile .main{display:none!important}
 
 <!-- ══════════ EVENTS ══════════ -->
 <section class="view active" id="view-events" aria-labelledby="h-events">
-  <div class="page-head">
+  <div class="page-head has-toggles">
     <div>
       <h1 id="h-events">Hiring events</h1>
     </div>
+  <div class="pagetoggles">
+  <div class="dev-toggle">
+    <span class="dev-toggle-label">Events view:</span>
+    <div class="dev-toggle-switch" id="tgEvents">
+      <button class="dev-toggle-btn active" onclick="setEvents('active',this)">Active</button>
+      <button class="dev-toggle-btn" onclick="setEvents('empty',this)">Empty</button>
+      <button class="dev-toggle-btn" onclick="setEvents('no-upcoming',this)">No upcoming</button>
+      <button class="dev-toggle-btn" onclick="setEvents('no-past',this)">No past</button>
+    </div>
+  </div>
+  <div class="dev-toggle">
+    <span class="dev-toggle-label">Clock:</span>
+    <div class="dev-toggle-switch" id="tgClock">
+      <button class="dev-toggle-btn active" onclick="setClock('far',this)">Days out</button>
+      <button class="dev-toggle-btn" onclick="setClock('soon',this)">20 hrs</button>
+      <button class="dev-toggle-btn" onclick="setClock('live',this)">At interview</button>
+      <button class="dev-toggle-btn" onclick="setClock('after',this)">After</button>
+    </div>
+  </div>
+  <div class="dev-toggle">
+    <span class="dev-toggle-label">Event:</span>
+    <div class="dev-toggle-switch" id="tgLobby">
+      <button class="dev-toggle-btn active" onclick="setLobby('before',this)">Before</button>
+      <button class="dev-toggle-btn" onclick="setLobby('waiting',this)">Waiting</button>
+      <button class="dev-toggle-btn" onclick="setLobby('next',this)">Next up</button>
+      <button class="dev-toggle-btn" onclick="setLobby('ready',this)">Ready</button>
+      <button class="dev-toggle-btn" onclick="setLobby('ended',this)">Ended</button>
+    </div>
+  </div>
+  </div>
     <button class="btn btn-primary" onclick="toast('Browse events')">Browse events</button>
   </div>
   <div id="evTabs" class="tab-pills" role="tablist" aria-label="Event status">
@@ -494,10 +498,19 @@ body.stage-mobile .main{display:none!important}
 
 <!-- ══════════ INTERVIEWS ══════════ -->
 <section class="view" id="view-interviews" aria-labelledby="h-iv">
-  <div class="page-head">
+  <div class="page-head has-toggles">
     <div>
       <h1 id="h-iv">Interviews</h1>
     </div>
+  <div class="pagetoggles">
+  <div class="dev-toggle">
+    <span class="dev-toggle-label">Interview state:</span>
+    <div class="dev-toggle-switch" id="tgIv">
+      <button class="dev-toggle-btn active" onclick="setIv('empty',this)">Empty</button>
+      <button class="dev-toggle-btn" onclick="setIv('active',this)">Active</button>
+    </div>
+  </div>
+  </div>
   </div>
   <div class="utabs-wrap">
     <div class="utabs" role="tablist" aria-label="Interview status">
@@ -787,7 +800,7 @@ function eventCard(e,live){
   if(live) acts.push('<button class="btn btn-secondary btn-sm" onclick="go(\'interviews\')">View my interviews</button>');
   else if(st==='matched'){
     acts.push('<button class="btn btn-primary btn-sm" onclick="location.href=\'jobseeker-scheduling-v1.html\'">Request interview</button>');
-    acts.push('<button class="btn btn-secondary btn-sm" onclick="toast(\'Job details\')">View job</button>');
+    acts.push('<button class="btn btn-secondary btn-sm" onclick="viewJob()">View job</button>');
   }
   else if(st==='requested') acts.push('<button class="btn btn-secondary btn-sm" onclick="goPending()">View request</button>');
   else if(st==='booked'){
@@ -1068,7 +1081,7 @@ function card(r, phase){
   h+='<div class="c-date"><strong>'+r.day+'</strong></div>';
   h+='</div>';
 
-  h+= ofMenu(r.id, [['View job details',"toast('Job details')"]],
+  h+= ofMenu(r.id, [['View job details','viewJob()']],
         canCancel ? ['Cancel interview',"confirmCancel('"+r.job+" at "+r.co+"')"] : null);
   h+='</div>';
 
@@ -1099,6 +1112,10 @@ function card(r, phase){
   if(acts.length) h+='<div class="c-acts">'+acts.join('')+'</div>';
   return h+'</div></article>';
 }
+
+/* The job posting is a public page of its own, so it opens in a separate
+   window — the candidate keeps their place in the app behind it. */
+function viewJob(){ window.open('jobseeker-job.html','_blank','noopener'); }
 
 /* Seam into the scheduling flow. */
 function reschedule(job){ window.location.href='jobseeker-scheduling-v1.html'; }
@@ -1137,7 +1154,7 @@ function ivPending(){
     var h='<article class="card" data-iv="p'+i+'"><div class="card-top"><div style="min-width:0">'
      + cap('Awaiting employer response','wait')
      + '<div class="c-date"><strong>You requested '+x.when+'</strong></div></div>'
-     + ofMenu('p'+i,[['View job details',"toast('Job details')"]],['Cancel request',"confirmCancel('"+x.job+" request')"])
+     + ofMenu('p'+i,[['View job details','viewJob()']],['Cancel request',"confirmCancel('"+x.job+" request')"])
      + '</div>';
     h+='<div class="c-div"></div><div class="c-body"><div class="c-left">';
     h+='<div class="c-job">'+x.job+'</div>';
@@ -1170,7 +1187,7 @@ function ivPast(){
     h+='<div class="c-job">'+r.job+'</div>';
     h+='<div class="c-co">'+r.co+evLine(r.ev)+'</div>';
     h+='<div class="c-row">'+METHOD[r.meth].i+'<span>'+METHOD[r.meth].l+'</span></div>';
-    h+='</div><div class="c-acts"><button class="btn btn-secondary btn-sm" onclick="toast(\'Job details\')">View job</button></div>';
+    h+='</div><div class="c-acts"><button class="btn btn-secondary btn-sm" onclick="viewJob()">View job</button></div>';
     h+='</div></article>';
     return h;
   }).join('');

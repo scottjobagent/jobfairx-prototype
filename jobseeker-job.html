@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JobFairX — Job</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════════════
+   Tokens — the same set as jobseeker-v2.html, which took them
+   from the Employer app. One source, no drift.
+   ═══════════════════════════════════════════════════════════ */
+:root{
+  --font:'Noto Sans',-apple-system,BlinkMacSystemFont,sans-serif;
+  --blue:#0044B3; --blue-hover:#003399; --blue-wash:#f0f5ff;
+  --ink:#2d2d2d; --ink-2:#595959; --ink-3:#767676; --ink-disabled:#b0afad;
+  --page:#f3f2ef; --surface:#fff; --border:#d4d2d0; --divider:#ebebeb;
+  --amber:#8a5c00; --amber-wash:#fdf6ec;
+  --matched:#15803d; --matched-wash:#dcfce7;
+  --green:#16a34a; --green-solid:#1e7e34; --green-wash:#f0fdf4;
+  --red:#991b1b; --red-wash:#fef2f2;
+  --t-xs:12px; --t-sm:13px; --t-base:14px; --t-md:16px; --t-lg:17px; --t-xl:20px; --t-2xl:22px;
+  --r-sm:6px; --r-md:8px; --r-lg:12px; --r-xl:16px;
+  --devbar-h:44px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-padding-top:180px}
+body{font-family:var(--font);background:var(--page);color:var(--ink);font-size:var(--t-base);
+  line-height:1.6;-webkit-font-smoothing:antialiased}
+:focus-visible{outline:3px solid var(--blue);outline-offset:2px;border-radius:3px}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@media (prefers-reduced-motion:reduce){*{transition-duration:.001ms!important;animation-duration:.001ms!important}}
+a{color:var(--blue)}
+
+/* ═══ DEV TOGGLES — prototype scaffolding, would not ship ═══ */
+.devbar{position:fixed;top:0;left:0;right:0;min-height:44px;background:var(--surface);
+  border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;padding:6px 16px;z-index:400;flex-wrap:wrap}
+.dev-toggle{display:flex;align-items:center;gap:5px;padding:3px 8px;background:var(--page);border-radius:5px;border:1px solid var(--border)}
+.dev-toggle-label{font-size:9px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
+.dev-toggle-switch{display:flex;background:#e0e0e0;border-radius:3px;overflow:hidden}
+.dev-toggle-btn{padding:3px 7px;font-size:10px;font-weight:700;border:none;background:transparent;cursor:pointer;
+  font-family:inherit;color:var(--ink-3);transition:all .15s}
+.dev-toggle-btn.active{background:var(--blue);color:#fff}
+.devbar-note{margin-left:auto;font-size:var(--t-sm);color:var(--ink-2)}
+
+/* ═══ BRAND BAR ═══ */
+.topbar{position:fixed;top:var(--devbar-h);left:0;right:0;height:56px;background:var(--surface);
+  border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;z-index:120}
+.brand{font-size:var(--t-2xl);font-weight:800;color:var(--blue);letter-spacing:-.5px;text-decoration:none}
+
+/* ═══ THE STICKY HEAD ═══════════════════════════════════════
+   Locked while the description scrolls under it. It condenses
+   once you are past it, because a full card pinned to the top
+   of a phone would eat most of the screen. ═══════════════════ */
+.wrap{max-width:820px;margin:0 auto;padding:calc(var(--devbar-h) + 56px) 20px 90px}
+.jobhead{position:sticky;top:calc(var(--devbar-h) + 56px);z-index:100;background:var(--surface);
+  border:1px solid var(--border);border-radius:var(--r-lg) var(--r-lg) 0 0;padding:26px 28px;
+  transition:padding .18s ease}
+.cap{display:inline-flex;align-items:center;gap:6px;padding:2px 8px;border-radius:var(--r-md);
+  font-size:var(--t-md);font-weight:400;line-height:24px;white-space:nowrap;margin-bottom:12px}
+.cap-wait{background:var(--amber-wash);color:var(--amber)}
+.cap-matched{background:var(--matched-wash);color:var(--matched)}
+.cap-done{background:var(--page);color:var(--ink-2)}
+.j-title{font-size:26px;font-weight:700;letter-spacing:-.4px;line-height:1.25;margin-bottom:10px;
+  transition:font-size .18s ease}
+.j-line{font-size:var(--t-md)}
+.j-line.muted{color:var(--ink-2)}
+.j-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.chip{background:var(--page);border-radius:var(--r-sm);padding:4px 10px;font-size:var(--t-sm);color:var(--ink-2)}
+.acts{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:20px}
+.ended-line{font-size:var(--t-md);color:var(--ink-2);margin-top:14px}
+
+/* condensed: everything below the title folds away, the action stays */
+.jobhead.stuck{padding:12px 28px;box-shadow:0 4px 14px rgba(0,0,0,.07)}
+.jobhead.stuck .j-title{font-size:var(--t-lg);margin-bottom:0}
+.jobhead.stuck .foldaway{display:none}
+.jobhead.stuck .acts{margin-top:10px}
+.jobhead.stuck .cap{margin-bottom:6px}
+/* The capsule already says Event ended, so the sentence explaining it folds
+   away too — otherwise the pinned card is nearly twice the height. */
+.jobhead.stuck .ended-line{display:none}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 26px;border-radius:var(--r-md);
+  font-size:var(--t-md);font-weight:700;border:1px solid transparent;font-family:inherit;cursor:pointer;min-height:48px}
+.btn-primary{background:var(--blue);color:#fff}
+.btn-primary:hover{background:var(--blue-hover)}
+.btn-secondary{background:var(--surface);color:var(--ink);border-color:var(--border)}
+.btn-secondary:hover{background:var(--page)}
+.btn:disabled{background:var(--page);color:var(--ink-disabled);cursor:not-allowed;border-color:var(--border)}
+
+/* ═══ EVENT STRIP ═══ */
+.evbar{background:var(--blue-wash);border-left:1px solid var(--border);border-right:1px solid var(--border);
+  padding:16px 28px;display:flex;gap:12px;align-items:flex-start;font-size:var(--t-md)}
+.evbar svg{width:20px;height:20px;color:var(--blue);flex-shrink:0;margin-top:2px}
+
+/* ═══ BODY ═══ */
+.jobbody{background:var(--surface);border:1px solid var(--border);border-top:none;
+  border-radius:0 0 var(--r-lg) var(--r-lg);padding:28px}
+.jobbody h2{font-size:var(--t-xl);font-weight:700;margin:28px 0 10px}
+.jobbody h2:first-child{margin-top:0}
+.jobbody p{font-size:var(--t-md);margin-bottom:12px;max-width:68ch}
+.jobbody ul{margin:0 0 16px 22px}
+.jobbody li{font-size:var(--t-md);margin-bottom:8px;max-width:66ch}
+.jobbody .kv{display:flex;gap:10px;margin-bottom:8px;font-size:var(--t-md)}
+.jobbody .kv b{min-width:120px;flex-shrink:0}
+.foot{text-align:center;font-size:var(--t-sm);color:var(--ink-3);margin-top:24px}
+
+@media (max-width:700px){
+  .wrap{padding:calc(var(--devbar-h) + 56px) 14px 70px}
+  .jobhead{padding:20px 18px;border-radius:var(--r-lg) var(--r-lg) 0 0}
+  .jobhead.stuck{padding:10px 18px}
+  .j-title{font-size:21px}
+  .jobhead.stuck .j-title{font-size:var(--t-md)}
+  .acts .btn{width:100%}
+  .evbar{padding:14px 18px}
+  .jobbody{padding:20px 18px}
+  .jobbody .kv{flex-direction:column;gap:0}
+  .jobbody .kv b{min-width:0}
+}
+</style>
+</head>
+<body>
+
+<div class="devbar" role="region" aria-label="Prototype state controls">
+  <div class="dev-toggle">
+    <span class="dev-toggle-label">State:</span>
+    <div class="dev-toggle-switch" id="tgState">
+      <button class="dev-toggle-btn active" onclick="setState('open',this)">Open</button>
+      <button class="dev-toggle-btn" onclick="setState('requested',this)">Requested</button>
+      <button class="dev-toggle-btn" onclick="setState('booked',this)">Scheduled</button>
+      <button class="dev-toggle-btn" onclick="setState('ended',this)">Event ended</button>
+    </div>
+  </div>
+  <div class="dev-toggle">
+    <span class="dev-toggle-label">Signed in:</span>
+    <div class="dev-toggle-switch" id="tgAuth">
+      <button class="dev-toggle-btn active" onclick="setAuth(true,this)">Yes</button>
+      <button class="dev-toggle-btn" onclick="setAuth(false,this)">No</button>
+    </div>
+  </div>
+  <div class="devbar-note">Public job page</div>
+</div>
+
+<div class="topbar"><a class="brand" href="jobseeker-v2.html">JobFairX</a></div>
+
+<main class="wrap">
+  <section class="jobhead" id="jobhead" aria-labelledby="jtitle">
+    <div id="capSlot"></div>
+    <h1 class="j-title" id="jtitle">Nurse Practitioner</h1>
+    <div class="foldaway">
+      <div class="j-line">Baylor Scott &amp; White</div>
+      <div class="j-line muted">2200 Ross Avenue, Suite 400, Dallas, TX 75201</div>
+      <div class="j-line">$118,000 &ndash; $132,000 a year</div>
+      <div class="j-meta">
+        <span class="chip">Full-time</span>
+        <span class="chip">Hiring event</span>
+        <span class="chip">Interviews on JobFairX</span>
+      </div>
+    </div>
+    <div id="actSlot"></div>
+  </section>
+
+  <div class="evbar foldaway-ev" id="evbar">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>
+    <div id="evText"></div>
+  </div>
+
+  <article class="jobbody">
+    <h2>About this role</h2>
+    <p>Baylor Scott &amp; White is hiring Nurse Practitioners to join its outpatient primary care teams across the
+      Dallas&ndash;Fort Worth area. You will carry your own patient panel, working alongside physicians, registered
+      nurses and medical assistants to deliver day-to-day primary and preventive care.</p>
+    <p>This role is being filled through a JobFairX hiring event. Interviews for every candidate happen on the same
+      day, and you choose the time that suits you.</p>
+
+    <h2>What you'll do</h2>
+    <ul>
+      <li>Assess, diagnose and treat patients across a general primary care panel.</li>
+      <li>Order and interpret diagnostic tests, and prescribe treatment within your scope of practice.</li>
+      <li>Develop care plans with patients and follow them through subsequent visits.</li>
+      <li>Refer to specialists where care falls outside primary care, and coordinate that handover.</li>
+      <li>Keep clear, timely clinical documentation in the electronic health record.</li>
+      <li>Work with the wider care team on preventive screening and chronic disease management.</li>
+    </ul>
+
+    <h2>What you'll bring</h2>
+    <ul>
+      <li>An active Nurse Practitioner licence in the state of Texas, or eligibility to obtain one.</li>
+      <li>National certification as an FNP, AGNP or equivalent.</li>
+      <li>A Master of Science in Nursing or Doctor of Nursing Practice.</li>
+      <li>Current BLS certification.</li>
+      <li>Two or more years of clinical experience is preferred, though new graduates are considered.</li>
+    </ul>
+
+    <h2>Pay and benefits</h2>
+    <ul>
+      <li>$118,000 &ndash; $132,000 a year, depending on experience.</li>
+      <li>Medical, dental and vision cover from your first month.</li>
+      <li>401(k) with employer matching.</li>
+      <li>Paid time off and paid holidays.</li>
+      <li>Continuing education allowance and licence renewal paid.</li>
+    </ul>
+
+    <h2>Schedule</h2>
+    <div class="kv"><b>Hours</b><span>Monday to Friday, 8:00 AM &ndash; 5:00 PM. No nights, no weekends.</span></div>
+    <div class="kv"><b>Job type</b><span>Full-time</span></div>
+    <div class="kv"><b>Location</b><span>On site &middot; 2200 Ross Avenue, Suite 400, Dallas, TX 75201</span></div>
+
+    <h2>How interviews work</h2>
+    <p>Request a time that suits you and the employer confirms it. Interviews for this job all take place during the
+      hiring event, in thirty-minute slots. Employers usually respond within 72 hours, and you will get an email when
+      your interview is confirmed.</p>
+  </article>
+
+  <p class="foot">Posted by Baylor Scott &amp; White through JobFairX</p>
+</main>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   STATE
+   The page is public, so it renders for a signed-out visitor
+   too. What changes when we know who you are is the action:
+   a stranger can only request, while a candidate who already
+   has a request or a booking is told so instead.
+   ═══════════════════════════════════════════════════════════ */
+var S = { state:'open', auth:true };
+
+var EVENT = { name:'Dallas Healthcare Hiring Event', day:'Wednesday, April 22, 2026',
+              time:'11:00 AM – 3:00 PM CT', host:'hosted on JobFairX' };
+
+function cap(text, kind){ return '<span class="cap cap-'+kind+'">'+text+'</span>'; }
+
+function render(){
+  var capSlot=document.getElementById('capSlot'), actSlot=document.getElementById('actSlot');
+  var ended = S.state==='ended';
+
+  /* Capsule. A signed-out visitor has no personal state, so the only one
+     they ever see is that the event is over — which is public. */
+  var c='';
+  if(ended)                      c=cap('Event ended','done');
+  else if(S.auth && S.state==='requested') c=cap('Awaiting employer response','wait');
+  else if(S.auth && S.state==='booked')    c=cap('Interview scheduled','matched');
+  capSlot.innerHTML=c;
+
+  /* Action. */
+  var a='';
+  if(ended){
+    a='<div class="ended-line">This hiring event has ended, so interviews for this job are closed.</div>'
+     +'<div class="acts"><button class="btn btn-primary" onclick="go()">Browse other events</button></div>';
+  } else if(S.auth && S.state==='requested'){
+    a='<div class="acts"><button class="btn btn-secondary" onclick="go()">View my request</button></div>';
+  } else if(S.auth && S.state==='booked'){
+    a='<div class="acts"><button class="btn btn-secondary" onclick="go()">View interview details</button></div>';
+  } else {
+    a='<div class="acts"><button class="btn btn-primary" onclick="request()">Request an interview</button></div>';
+  }
+  actSlot.innerHTML=a;
+
+  /* The event strip states plainly when the event has been and gone. */
+  document.getElementById('evText').innerHTML = ended
+    ? '<strong>'+EVENT.name+' has ended.</strong><br>'+EVENT.day+' · '+EVENT.time
+    : '<strong>Interviews happen at one event.</strong><br>'+EVENT.day+' · '+EVENT.time+' · '+EVENT.host;
+}
+
+function setState(v,btn){
+  S.state=v;
+  document.querySelectorAll('#tgState .dev-toggle-btn').forEach(function(b){b.classList.remove('active')});
+  btn.classList.add('active'); render(); measureHead(); onScroll();
+}
+function setAuth(v,btn){
+  S.auth=v;
+  document.querySelectorAll('#tgAuth .dev-toggle-btn').forEach(function(b){b.classList.remove('active')});
+  btn.classList.add('active'); render(); measureHead(); onScroll();
+}
+function request(){ window.location.href='jobseeker-scheduling-v1.html'; }
+function go(){ window.location.href='jobseeker-v2.html'; }
+
+/* The head is locked to the top while the description scrolls under it, and
+   condenses once you are past it — a full card pinned to a phone screen would
+   leave almost nothing for the job itself. */
+var head=document.getElementById('jobhead'), naturalH=0;
+
+/* Measure the card at full size so the condense point is a fraction of its
+   own height rather than a hardcoded number — the card is a different height
+   on a phone, and taller again in the ended state. */
+function measureHead(){
+  var was=head.classList.contains('stuck');
+  if(was) head.classList.remove('stuck');
+  naturalH=head.offsetHeight;
+  if(was) head.classList.add('stuck');
+}
+function onScroll(){
+  var bar=document.querySelector('.devbar').offsetHeight;
+  document.documentElement.style.setProperty('--devbar-h', bar+'px');
+  head.classList.toggle('stuck', window.scrollY > naturalH * 0.55);
+}
+window.addEventListener('scroll', onScroll, {passive:true});
+window.addEventListener('resize', function(){ measureHead(); onScroll(); });
+
+render(); measureHead(); onScroll();
+</script>
+</body>
+</html>
