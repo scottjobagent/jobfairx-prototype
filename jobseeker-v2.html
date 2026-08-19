@@ -180,6 +180,7 @@ body.stage-mobile .main{display:none!important}
 .cap-blue svg{color:var(--blue)}
 .cap-wait{background:var(--amber-wash);color:var(--amber)}
 .cap-matched{background:var(--matched-wash);color:var(--matched)}
+.cap-done{background:var(--page);color:var(--ink-2)}
 /* Text sits on --green-solid, not --green: #16a34a on this wash measured
    3.15:1, under the 4.5 minimum, on the two most urgent states in the app.
    --green still carries the pulse dot and the pinned border, which are
@@ -905,16 +906,20 @@ function renderEvents(){
   }
 
   if(S.evTab==='past'){
+    /* An ended event carries the event and nothing else. The interview
+       method belongs to an interview, not to a past date, and the interviews
+       themselves live on the Interviews tab. Same shape as a waiting card:
+       capsule on top, then one line. */
     var ended=[
-      {n:'Houston Veteran Hiring Event', d:'Mar 18, 2026', t:'11:00 AM – 3:00 PM CT', meth:'video'},
-      {n:'Phoenix Retail Hiring Event',  d:'Feb 24, 2026', t:'10:00 AM – 2:00 PM MT', meth:'person'}
+      {n:'Houston Veteran Hiring Event', d:'Mar 18, 2026', t:'11:00 AM – 3:00 PM CT'},
+      {n:'Phoenix Retail Hiring Event',  d:'Feb 24, 2026', t:'10:00 AM – 2:00 PM MT'}
     ];
     b.innerHTML = ended.map(function(e){
-      return '<article class="card"><div class="card-top"><div><div class="card-title">'+e.n+'</div>'
-      +'<div class="card-meta">'+e.d+' <span class="dot-sep">·</span> '+e.t+'</div>'
-      +'<div class="card-meta">'+m(e.meth)+'</div>'
-      +'<div style="margin-top:10px"><span class="badge-pill b-neutral">Event ended</span></div></div></div>'
-      +'<div class="card-actions"><button class="btn btn-secondary btn-sm" onclick="go(\'interviews\')">View these interviews</button></div></article>';
+      return '<article class="card"><div class="card-top"><div style="min-width:0">'
+      + cap('Event ended','done')
+      + '<div class="c-date"><strong>'+e.d+'</strong> <span class="dot-sep">\u00b7</span> '+e.n
+      + ' <span class="dot-sep">\u00b7</span> '+e.t+'</div>'
+      + '</div></div></article>';
     }).join('');
     return;
   }
