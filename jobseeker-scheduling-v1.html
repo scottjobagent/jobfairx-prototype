@@ -130,6 +130,18 @@ h2.sec{font-size:var(--t-xl);font-weight:700;margin-bottom:8px}
 .delta .was{color:var(--ink-3);text-decoration:line-through}
 .delta svg{width:18px;height:18px;color:var(--ink-2);flex-shrink:0}
 .legal{font-size:var(--t-sm);color:var(--ink-2);line-height:1.55;margin:18px 0}
+/* Indeed renders the whole document on this screen rather than a filename, so
+   this is a document surface, not a field group: rounder than the fieldsets
+   beside it, and centred at the head the way a resume is. 20px on Indeed;
+   --r-xl keeps it on our scale and still reads as the odd one out. */
+.resbox{border:1px solid var(--border);border-radius:var(--r-xl);background:var(--surface);padding:22px 20px;margin-bottom:20px}
+.resbox .rname{font-size:var(--t-2xl);font-weight:700;text-align:center;line-height:1.25}
+.resbox .rcon{font-size:var(--t-base);color:var(--ink-2);text-align:center;margin-top:4px}
+.resbox .rrule{height:2px;background:var(--ink);margin:16px 0}
+.resbox .rsec{font-size:var(--t-md);font-weight:700;text-align:center;margin-bottom:8px}
+.resbox .rbody{font-size:var(--t-base);line-height:1.55;margin-bottom:18px}
+.resbox .rbody:last-child{margin-bottom:0}
+.noresume{border:1px solid var(--border);border-radius:var(--r-md);padding:14px 18px;margin-bottom:20px;font-size:var(--t-base);color:var(--ink-2)}
 
 /* ═══ CONFIRMATION ═══ */
 .ticks{margin-bottom:20px}
@@ -183,6 +195,9 @@ h2.sec{font-size:var(--t-xl);font-weight:700;margin-bottom:8px}
   .q .qt{font-size:var(--t-base)}
   .field{padding:12px 14px}
   .timebox{padding:14px}
+  .resbox{padding:18px 16px}
+  .resbox .rname{font-size:var(--t-xl)}
+  .noresume{padding:12px 14px}
   .failart{width:120px}
 
   /* 44px floor. These were the last content controls under it: the footer
@@ -192,7 +207,8 @@ h2.sec{font-size:var(--t-xl);font-weight:700;margin-bottom:8px}
   .brand{display:inline-flex;align-items:center;min-height:44px}
   .backarrow{min-height:44px;min-width:44px;justify-content:center;margin-left:-10px}
   .tzrow button{min-height:44px;min-width:44px;justify-content:center}
-  .seclabel button{min-height:44px;padding:0 4px}
+  /* Height was raised last session; width was not, leaving these at 35x44. */
+  .seclabel button{min-height:44px;min-width:44px;padding:0 4px}
   .foot a{display:inline-block;padding:13px 8px}
   .drow a{display:inline-block;padding:12px 0}
 }
@@ -223,6 +239,13 @@ h2.sec{font-size:var(--t-xl);font-weight:700;margin-bottom:8px}
     <div class="dev-toggle-switch" id="tgCap">
       <button class="dev-toggle-btn active" onclick="setCap('some',this)">Some full</button>
       <button class="dev-toggle-btn" onclick="setCap('all',this)">All open</button>
+    </div>
+  </div>
+  <div class="dev-toggle">
+    <span class="dev-toggle-label">Resume:</span>
+    <div class="dev-toggle-switch" id="tgResume">
+      <button class="dev-toggle-btn active" onclick="setResume('req',this)">Required</button>
+      <button class="dev-toggle-btn" onclick="setResume('none',this)">Not required</button>
     </div>
   </div>
   <div class="devbar-note">jordan.reyes@example.com</div>
@@ -291,7 +314,7 @@ var SLOTS = [
   {t:'2:30 PM - 3:00 PM',   full:false}
 ];
 
-var S = { flow:'reschedule', step:'time', cap:'some', method:'video', picked:null, answers:[null,null,null] };
+var S = { flow:'reschedule', step:'time', cap:'some', method:'video', resume:'req', picked:null, answers:[null,null,null] };
 
 var SCREENER = [
   { q:'Do you have an active Registered Nurse licence in the state of Texas?', a:['Yes','No, but I am in the process of obtaining one','No'] },
@@ -321,6 +344,9 @@ function setFlow(v,b){S.flow=v;S.picked=null;mark('tgFlow',b);
 function setStep(v,b){S.step=v;mark('tgStep',b);render();}
 function setMethod(v,b){S.method=v;mark('tgMethod',b);render();}
 function setCap(v,b){S.cap=v;S.picked=null;mark('tgCap',b);render();}
+/* Stays live on a reschedule even though the section itself is first-booking
+   only: whether a resume exists still decides what the legal line can claim. */
+function setResume(v,b){S.resume=v;mark('tgResume',b);render();}
 function mark(id,btn){document.querySelectorAll('#'+id+' .dev-toggle-btn').forEach(function(x){x.classList.remove('active')});btn.classList.add('active');}
 function jump(step){S.step=step;
   document.querySelectorAll('#tgStep .dev-toggle-btn').forEach(function(x){
@@ -346,6 +372,27 @@ function slotList(){
       h+='<button type="button" role="radio" aria-checked="'+sel+'" class="slot'+(sel?' sel':'')+'" onclick="pick(\''+s.t+'\')">'
         +'<span class="radio"></span><span class="st">'+s.t+' '+EVENT.tzShort+'</span></button>';
     }
+  });
+  return h+'</div>';
+}
+
+/* ═══ RESUME ═══
+   Indeed shows the entire resume on review rather than a filename, so the
+   candidate reads what the employer will read. The document itself belongs to
+   the dashboard's Resume view, which is still a placeholder — so the structure
+   is Indeed's and the bodies are placeholders, not an invented career. */
+function resumeSection(){
+  if(S.resume==='none'){
+    return '<div class="seclabel"><span class="l">Resume</span><button onclick="toastish(\'Add a resume\')">Add</button></div>'
+     +'<div class="noresume">No resume included (optional)</div>';
+  }
+  var h='<div class="seclabel"><span class="l">Resume</span><button onclick="toastish(\'Edit resume\')">Edit</button></div>';
+  h+='<div class="resbox"><div class="rname">Jordan Reyes</div>'
+   +'<div class="rcon">jordan.reyes@example.com \u00b7 '+TEL+'</div>'
+   +'<div class="rrule"></div>';
+  ['Summary','Work experience','Skills'].forEach(function(sec){
+    h+='<div class="rsec">'+sec+'</div><div class="rbody">'
+      +ph('PLACEHOLDER \u2014 '+sec.toLowerCase()+' from Jordan\u2019s resume')+'</div>';
   });
   return h+'</div>';
 }
@@ -434,6 +481,9 @@ function stepReview(){
   h+='<div class="fieldset"><div class="field"><div class="k">Full name</div><div class="v">Jordan Reyes</div></div>'
    +'<div class="field"><div class="k">Email address</div><div class="v">jordan.reyes@example.com</div></div></div>';
 
+  /* A reschedule is not a fresh request, so nothing new is sent with it. */
+  if(!re) h+=resumeSection();
+
   h+='<div class="seclabel"><span class="l">'+MT().l+'</span><button onclick="jump(\'time\')">Edit</button></div>';
   h+='<div class="timebox"><div class="d">'+EVENT.date+'</div>';
   if(re){
@@ -448,7 +498,10 @@ function stepReview(){
   if(!re) h+='<div class="seclabel" style="margin-top:20px"><span class="l">Screener answers</span><button onclick="jump(\'screener\')">Edit</button></div>'
    +'<div class="fieldset"><div class="field"><div class="k">3 questions answered</div><div class="v">Included with your request</div></div></div>';
 
-  h+='<p class="legal">By '+(re?'rescheduling':'requesting')+' this interview you agree to the JobFairX Terms of Service and Privacy Policy. Your resume is shared with '+EVENT.co+'.</p>';
+  /* The resume clause is a claim about what we send. With no resume on file it
+     is false in either flow, so it derives rather than sitting in the string. */
+  h+='<p class="legal">By '+(re?'rescheduling':'requesting')+' this interview you agree to the JobFairX Terms of Service and Privacy Policy.'
+   +(S.resume==='req'?' Your resume is shared with '+EVENT.co+'.':'')+'</p>';
   h+='<button class="btn btn-primary" onclick="jump(\'done\')">'+(re?'Reschedule interview':'Request interview')+'</button>';
   if(re) h+='<button class="btn btn-secondary" onclick="toastish(\'Keeping your current time\')">Keep current interview time</button>';
   return h;
