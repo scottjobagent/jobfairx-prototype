@@ -88,10 +88,19 @@ a{color:var(--blue)}
 .btn-secondary:hover{background:var(--page)}
 .btn:disabled{background:var(--page);color:var(--ink-disabled);cursor:not-allowed;border-color:var(--border)}
 
-/* ═══ EVENT STRIP ═══ */
-.evbar{background:var(--blue-wash);border-left:1px solid var(--border);border-right:1px solid var(--border);
-  padding:16px 28px;display:flex;gap:12px;align-items:flex-start;font-size:var(--t-md)}
-.evbar svg{width:20px;height:20px;color:var(--blue);flex-shrink:0;margin-top:2px}
+/* ═══ INTERVIEW DETAILS ═════════════════════════════════════
+   Indeed's shape, measured off their hiring-event postings: a
+   small bold label over its value, so the facts scan as a list
+   without hardening into a table. It carries the date and time
+   that used to sit in the blue strip — one place, not two.
+   ═══════════════════════════════════════════════════════════ */
+.idet{margin-bottom:28px;padding-bottom:24px;border-bottom:1px solid var(--divider)}
+.idet h2{margin-bottom:6px}
+.id-l{font-size:var(--t-sm);font-weight:700;margin-top:16px}
+.id-v{font-size:var(--t-md);max-width:66ch}
+.id-tz{font-size:var(--t-sm);color:var(--ink-3);font-style:italic;display:flex;align-items:center;gap:5px}
+.id-tz svg{width:15px;height:15px;flex-shrink:0}
+.id-note{font-size:var(--t-sm);color:var(--ink-3);font-style:italic}
 
 /* ═══ BODY ═══ */
 .jobbody{background:var(--surface);border:1px solid var(--border);border-top:none;
@@ -112,7 +121,6 @@ a{color:var(--blue)}
   .j-title{font-size:21px}
   .jobhead.stuck .j-title{font-size:var(--t-md)}
   .acts .btn{width:100%}
-  .evbar{padding:14px 18px}
   .jobbody{padding:20px 18px}
   .jobbody .kv{flex-direction:column;gap:0}
   .jobbody .kv b{min-width:0}
@@ -129,6 +137,15 @@ a{color:var(--blue)}
       <button class="dev-toggle-btn" onclick="setState('requested',this)">Requested</button>
       <button class="dev-toggle-btn" onclick="setState('booked',this)">Scheduled</button>
       <button class="dev-toggle-btn" onclick="setState('ended',this)">Event ended</button>
+    </div>
+  </div>
+  <div class="dev-toggle">
+    <span class="dev-toggle-label">Method:</span>
+    <div class="dev-toggle-switch" id="tgMethod">
+      <button class="dev-toggle-btn active" onclick="setMethod('video',this)">Video</button>
+      <button class="dev-toggle-btn" onclick="setMethod('link',this)">Link</button>
+      <button class="dev-toggle-btn" onclick="setMethod('phone',this)">Phone</button>
+      <button class="dev-toggle-btn" onclick="setMethod('person',this)">In person</button>
     </div>
   </div>
   <div class="dev-toggle">
@@ -149,23 +166,19 @@ a{color:var(--blue)}
     <h1 class="j-title" id="jtitle">Nurse Practitioner</h1>
     <div class="foldaway">
       <div class="j-line">Baylor Scott &amp; White</div>
-      <div class="j-line muted">2200 Ross Avenue, Suite 400, Dallas, TX 75201</div>
+      <div class="j-line muted">Dallas, TX</div>
       <div class="j-line">$118,000 &ndash; $132,000 a year</div>
       <div class="j-meta">
         <span class="chip">Full-time</span>
         <span class="chip">Hiring event</span>
-        <span class="chip">Interviews on JobFairX</span>
       </div>
     </div>
     <div id="actSlot"></div>
   </section>
 
-  <div class="evbar foldaway-ev" id="evbar">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>
-    <div id="evText"></div>
-  </div>
-
   <article class="jobbody">
+    <section class="idet" id="idet"></section>
+
     <h2>About this role</h2>
     <p>Baylor Scott &amp; White is hiring Nurse Practitioners to join its outpatient primary care teams across the
       Dallas&ndash;Fort Worth area. You will carry your own patient panel, working alongside physicians, registered
@@ -204,7 +217,7 @@ a{color:var(--blue)}
     <h2>Schedule</h2>
     <div class="kv"><b>Hours</b><span>Monday to Friday, 8:00 AM &ndash; 5:00 PM. No nights, no weekends.</span></div>
     <div class="kv"><b>Job type</b><span>Full-time</span></div>
-    <div class="kv"><b>Location</b><span>On site &middot; 2200 Ross Avenue, Suite 400, Dallas, TX 75201</span></div>
+    <div class="kv"><b>Location</b><span>On site &middot; Dallas, TX</span></div>
 
     <h2>How interviews work</h2>
     <p>Request a time that suits you and the employer confirms it. Interviews for this job all take place during the
@@ -223,12 +236,48 @@ a{color:var(--blue)}
    a stranger can only request, while a candidate who already
    has a request or a booking is told so instead.
    ═══════════════════════════════════════════════════════════ */
-var S = { state:'open', auth:true };
+var S = { state:'open', auth:true, method:'video' };
 
-var EVENT = { name:'Dallas Healthcare Hiring Event', day:'Wednesday, April 22, 2026',
-              time:'11:00 AM – 3:00 PM CT', host:'hosted on JobFairX' };
+var CO = 'Baylor Scott &amp; White';
+var EVENT = { name:'Dallas Healthcare Hiring Event',
+              date:'Apr 22, 2026', window:'11 am\u20133 pm', tz:'Central Daylight Time' };
+
+/* The method is set on the event, so it is a fact about this posting. Indeed
+   labels only Virtual and In-person; we carry four, so the labels are our own
+   and the shape is theirs.
+
+   Nothing here names a place. The address and the joining instructions reach
+   the candidate when the employer approves their request — a public posting
+   that named the room would be telling people who are not coming. */
+var METHODS = {
+  video:  {l:'JobFairX video call',
+           v:'The interview takes place on JobFairX, so you won\u2019t need to download anything.'},
+  link:   {l:'Employer\u2019s video call',
+           v:CO + ' sends their video link once they approve your interview.'},
+  phone:  {l:'Phone call',
+           v:CO + ' calls you at your interview time.'},
+  person: {l:'In person',
+           v:CO + ' sends the address once they approve your interview.'}
+};
+
+var GLOBE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">'
+  + '<circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 010 20 15 15 0 010-20"/></svg>';
 
 function cap(text, kind){ return '<span class="cap cap-'+kind+'">'+text+'</span>'; }
+
+/* Every slot is 30 minutes with its own candidate, so the duration is a fact
+   about the event rather than an estimate we are making up. */
+function idet(){
+  var M = METHODS[S.method];
+  return '<h2>Interview details</h2>'
+   + '<div class="id-l">' + M.l + '</div><div class="id-v">' + M.v + '</div>'
+   + '<div class="id-l">Date and time</div>'
+   + '<div class="id-tz">' + GLOBE + EVENT.tz + '</div>'
+   + '<div class="id-v">' + EVENT.date + ' | ' + EVENT.window + '</div>'
+   + '<div class="id-l">Estimated duration</div>'
+   + '<div class="id-v">30 minutes</div>'
+   + '<div class="id-note">Each candidate will have their own time slot.</div>';
+}
 
 function render(){
   var capSlot=document.getElementById('capSlot'), actSlot=document.getElementById('actSlot');
@@ -256,10 +305,7 @@ function render(){
   }
   actSlot.innerHTML=a;
 
-  /* The event strip states plainly when the event has been and gone. */
-  document.getElementById('evText').innerHTML = ended
-    ? '<strong>'+EVENT.name+' has ended.</strong><br>'+EVENT.day+' · '+EVENT.time
-    : '<strong>Interviews happen at one event.</strong><br>'+EVENT.day+' · '+EVENT.time+' · '+EVENT.host;
+  document.getElementById('idet').innerHTML = idet();
 }
 
 function setState(v,btn){
@@ -270,6 +316,11 @@ function setState(v,btn){
 function setAuth(v,btn){
   S.auth=v;
   document.querySelectorAll('#tgAuth .dev-toggle-btn').forEach(function(b){b.classList.remove('active')});
+  btn.classList.add('active'); render(); measureHead(); onScroll();
+}
+function setMethod(v,btn){
+  S.method=v;
+  document.querySelectorAll('#tgMethod .dev-toggle-btn').forEach(function(b){b.classList.remove('active')});
   btn.classList.add('active'); render(); measureHead(); onScroll();
 }
 function request(){ window.location.href='jobseeker-scheduling-v1.html'; }
