@@ -66,6 +66,9 @@
   --shadow-modal: 0 8px 32px rgba(0,0,0,0.2);
 
   --rail-w: 220px;
+  /* Measured from the real bar at runtime — it wraps to a different number
+     of rows at every window width, so a fixed offset is wrong somewhere. */
+  --devbar-h: 52px;
 }
 
 *{margin:0;padding:0;box-sizing:border-box}
@@ -88,7 +91,7 @@ a{color:var(--blue)}
 .devbar-spacer{margin-left:auto;font-size:var(--t-sm);color:var(--ink-2);white-space:nowrap}
 
 /* ═══ PHONE STAGE ═══ */
-#phoneStage{display:none;padding:72px 20px 40px;flex-direction:column;align-items:center;gap:12px}
+#phoneStage{display:none;padding:calc(var(--devbar-h) + 20px) 20px 40px;flex-direction:column;align-items:center;gap:12px}
 body.stage-mobile #phoneStage{display:flex}
 body.stage-mobile .sidebar,
 body.stage-mobile .mobile-nav,
@@ -101,7 +104,7 @@ body.stage-mobile .main{display:none!important}
 .phone-cap{font-size:var(--t-sm);color:var(--ink-3)}
 
 /* ═══ SIDEBAR ═══ */
-.sidebar{position:fixed;left:0;top:0;bottom:0;width:var(--rail-w);background:var(--rail);display:flex;flex-direction:column;z-index:300;padding-top:52px;overflow:hidden}
+.sidebar{position:fixed;left:0;top:0;bottom:0;width:var(--rail-w);background:var(--rail);display:flex;flex-direction:column;z-index:300;padding-top:calc(var(--devbar-h) + 14px);overflow:hidden}
 .sidebar-brand{padding:18px 22px 14px;font-size:var(--t-2xl);font-weight:800;color:#fff;letter-spacing:-.5px}
 .sidebar-nav{flex:1;padding:8px 12px;overflow-y:auto}
 .nav-item{display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:10px;font-size:var(--t-lg);font-weight:500;color:rgba(255,255,255,.85);cursor:pointer;transition:all .15s;text-decoration:none;letter-spacing:-.1px;width:100%;background:none;border:none;font-family:inherit;text-align:left}
@@ -114,7 +117,7 @@ body.stage-mobile .main{display:none!important}
 .sidebar-foot .nav-item{font-size:var(--t-base);padding:12px 18px;color:rgba(255,255,255,.65)}
 
 /* ═══ MAIN ═══ */
-.main{margin-left:var(--rail-w);padding:76px 32px 60px;max-width:1180px}
+.main{margin-left:var(--rail-w);padding:calc(var(--devbar-h) + 24px) 32px 60px;max-width:1180px}
 .view{display:none}
 .view.active{display:block}
 
@@ -205,8 +208,10 @@ body.stage-mobile .main{display:none!important}
 
 /* ═══ OVERFLOW MENU ═══ */
 .of-wrap{position:relative;flex-shrink:0}
-.of-btn{width:38px;height:38px;border-radius:var(--r-md);border:1px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;color:var(--blue)}
-.of-btn:hover{background:var(--page)}
+/* Quiet by design: the only thing behind it is Unregister, so it should not
+   read as a primary control. Grey dots, no box until you hover it. */
+.of-btn{width:38px;height:38px;border-radius:var(--r-md);border:1px solid transparent;background:none;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;color:var(--ink-3)}
+.of-btn:hover{background:var(--page);color:var(--ink-2)}
 .of-menu{position:absolute;top:44px;right:0;background:var(--surface);border-radius:10px;box-shadow:var(--shadow-menu);border:1px solid var(--border);min-width:230px;z-index:500;display:none;padding:6px 0}
 .of-menu.open{display:block}
 .of-item{display:block;width:100%;padding:12px 18px;font-size:var(--t-base);font-weight:500;color:var(--ink);background:none;border:none;text-align:left;cursor:pointer;font-family:inherit}
@@ -352,7 +357,7 @@ body.stage-mobile .main{display:none!important}
   .empty .btn{width:100%;min-height:48px}
 
   .sidebar{left:-100%;}
-  .main{margin-left:0;padding:84px 16px 90px}
+  .main{margin-left:0;padding:calc(var(--devbar-h) + 24px) 16px 90px}
   .utabs-wrap{margin:0 -16px 20px;padding:0 16px}
   .page-head{padding:20px;flex-direction:column;align-items:flex-start}
   .page-head .btn{width:100%}
@@ -746,8 +751,11 @@ function eventCard(e,live){
   /* Mix leaves each event in its own state so the whole ladder is visible
      at once; the other toggle options force every card into one state. */
   var st = (S.reg==='mix') ? e.state : S.reg;
+  /* Waiting to be matched has nothing to expand — no job, no method, no
+     action — so the card is just its heading, with the time on that line. */
+  var bare = (st==='waiting' && !live);
   var open = (evOpen===e.id) || live;
-  var h='<article class="card'+(live?' pinned':'')+(open?'':' ev-collapsed')+'">';
+  var h='<article class="card'+(live?' pinned':'')+((open||bare)?'':' ev-collapsed')+'">';
   h+='<div class="card-top"><div style="min-width:0">';
 
   /* THE CAPSULE SLOT. One component, whatever the state. A countdown
@@ -755,7 +763,8 @@ function eventCard(e,live){
      hours — the countdown is always to the interview, never the event —
      and otherwise where they have got to in the flow. */
   h+= eventCap(e, st, live);
-  h+='<div class="c-date"><strong>'+e.date+'</strong> <span class="dot-sep">\u00b7</span> '+e.name+'</div>';
+  h+='<div class="c-date"><strong>'+e.date+'</strong> <span class="dot-sep">\u00b7</span> '+e.name
+   +(bare ? ' <span class="dot-sep">\u00b7</span> '+e.time : '')+'</div>';
   h+='</div>';
 
   /* Unregistering is always available, live or not: registration only
@@ -764,6 +773,9 @@ function eventCard(e,live){
   h+='<div class="of-menu" id="of-'+e.id+'">';
   h+='<button class="of-item danger" onclick="confirmUnregister(\''+e.name+'\')">Unregister from this event</button>';
   h+='</div></div></div>';
+
+  /* Nothing below the heading, so no divider and no Show details either. */
+  if(bare) return h+'</article>';
 
   h+='<button class="ev-more" aria-expanded="'+open+'" onclick="evToggle(\''+e.id+'\')">'
    +(open?'Hide details':'Show details')+'</button>';
@@ -781,12 +793,8 @@ function eventCard(e,live){
   }
 
   h+='<div class="c-row">'+I.clock+'<span>'+e.time+'</span></div>';
-  /* How an interview happens is a fact about an interview. Waiting to be
-     matched there isn't one yet, so the card carries the event and no more:
-     name, date, time. Every other state keeps the method. */
-  if(st!=='waiting')
-    h+='<div class="c-row">'+METHOD[e.method].i+'<span>'+METHOD[e.method].l
-     +'<br><span class="c-sub">'+e.detail+'</span></span></div>';
+  h+='<div class="c-row">'+METHOD[e.method].i+'<span>'+METHOD[e.method].l
+   +'<br><span class="c-sub">'+e.detail+'</span></span></div>';
   h+='</div>';
 
   /* Actions live on the right, as Indeed does. */
@@ -820,7 +828,7 @@ function eventCap(e, st, live){
        it there is still an interview to name — saying nothing here is what
        made a booked candidate look like they were still waiting. */
     var mine = ivAtEvent(e.name), cd = mine ? countdown(mine.start) : null;
-    return cd ? cap(cd,'blue',true) : cap('Interview scheduled','wait');
+    return cd ? cap(cd,'blue',true) : cap('Interview scheduled','matched');
   }
   if(st==='requested') return cap('Awaiting employer response','wait');
   if(st==='matched')   return cap('Matched','matched');
@@ -1303,7 +1311,17 @@ function setView(v,btn){
 }
 if(EMBED) document.getElementById('tgView').style.display='none';
 
+/* The toggle bar is prototype scaffolding that wraps to one, two or three
+   rows depending on width. Measure it so nothing sits underneath it. */
+function fitDevbar(){
+  var d=document.querySelector('.devbar');
+  if(d) document.documentElement.style.setProperty('--devbar-h', d.offsetHeight+'px');
+}
+window.addEventListener('resize', fitDevbar);
+window.addEventListener('load', fitDevbar);
+
 /* Boot */
+fitDevbar();
 renderEvents(); renderIv(); renderLobby(); syncIvToggle();
 </script>
 </body>
