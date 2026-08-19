@@ -42,6 +42,10 @@ a{color:var(--blue)}
 .dev-toggle-btn{padding:3px 7px;font-size:10px;font-weight:700;border:none;background:transparent;cursor:pointer;font-family:inherit;color:var(--ink-3);transition:all .15s}
 .dev-toggle-btn.active{background:var(--blue);color:#fff}
 .devbar-note{margin-left:auto;font-size:var(--t-sm);color:var(--ink-2)}
+/* Inside the dashboard's phone frame this is a document, not a workbench:
+   every piece of prototype scaffolding goes. fitDevbar() then measures the
+   hidden bar as 0 and everything below it moves up on its own. */
+body.embed .devbar,body.embed .topbar-method{display:none}
 
 /* ═══ TOP BAR ═══ */
 .topbar{position:fixed;top:var(--devbar-h);left:0;right:0;min-height:56px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px 16px;padding:8px 24px;z-index:200;flex-wrap:wrap}
@@ -265,10 +269,7 @@ h2.sec{font-size:var(--t-xl);font-weight:700;margin-bottom:8px}
 </div>
 
 <main class="flow">
-  <div class="ctx">
-    <b>Registered Nurse</b>
-    <span>Baylor Scott &amp; White &middot; Dallas Healthcare Hiring Event &middot; Apr 22, 2026</span>
-  </div>
+  <div class="ctx" id="ctx"></div>
   <div class="panel" id="panel"></div>
   <p class="foot">Having an issue? <a href="#" onclick="return false">Tell us more</a></p>
 </main>
@@ -282,7 +283,36 @@ h2.sec{font-size:var(--t-xl);font-weight:700;margin-bottom:8px}
    rather than disabling. The only disabled row is the one the
    candidate already holds.
    ═══════════════════════════════════════════════════════════ */
-var EVENT = { day:'Wednesday, April 22', date:'Wednesday, April 22, 2026', tz:'Central Daylight Time (CDT)', tzShort:'CDT', co:'Baylor Scott & White', job:'Registered Nurse' };
+/* ═══════════════════════════════════════════════════════════
+   WHERE THE CANDIDATE CAME FROM
+   The dashboard owns the interview records, so it hands this flow the values
+   to display rather than the flow keeping a second copy of the same facts.
+   Opened bare \u2014 from the header control, or directly \u2014 everything falls back
+   to the sample booking below, which is what the flow showed before.
+   ═══════════════════════════════════════════════════════════ */
+function qp(k){
+  var m=location.search.match(new RegExp('[?&]'+k+'=([^&]*)'));
+  return m ? decodeURIComponent(m[1].replace(/\+/g,' ')) : null;
+}
+/* Anything rendered through innerHTML and sourced from the URL gets escaped
+   once, here, rather than at every use. */
+function esc(t){return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;')
+  .replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function qpEsc(k,d){var v=qp(k);return esc(v===null?d:v);}
+/* An unknown value falls through to the default instead of rendering a step
+   that does not exist. */
+function qpOne(k,allowed,d){var v=qp(k);return allowed.indexOf(v)>=0?v:d;}
+
+var EVENT = {
+  job:  qpEsc('job','Registered Nurse'),
+  co:   qpEsc('co','Baylor Scott & White'),
+  ev:   qpEsc('ev','Dallas Healthcare Hiring Event'),
+  date: qpEsc('date','Wednesday, April 22, 2026'),
+  tz:   qpEsc('tz','Central Daylight Time (CDT)')
+};
+/* The slot heading drops the year; the slot rows carry the abbreviation. */
+EVENT.day = EVENT.date.replace(/,\s*\d{4}$/,'');
+EVENT.tzShort = (EVENT.tz.match(/\(([^)]+)\)/)||[null,EVENT.tz])[1];
 
 /* The method comes from the event, not the candidate. What it changes here:
    what we confirm before booking, and what the next step is afterwards. */
@@ -301,7 +331,7 @@ var METHODS = {
 };
 var TEL='(555) 014-2278';
 function MT(){return METHODS[S.method];}
-var CURRENT = '11:00 AM - 11:30 AM';
+var CURRENT = qpEsc('cur','11:00 AM - 11:30 AM');
 
 var SLOTS = [
   {t:'11:00 AM - 11:30 AM', full:false},
@@ -314,7 +344,12 @@ var SLOTS = [
   {t:'2:30 PM - 3:00 PM',   full:false}
 ];
 
-var S = { flow:'reschedule', step:'time', cap:'some', method:'video', resume:'req', picked:null, answers:[null,null,null] };
+var S = { flow:   qpOne('flow',  ['reschedule','schedule'],'reschedule'),
+          step:   qpOne('step',  ['screener','failed','time','review','done'],'time'),
+          cap:    qpOne('cap',   ['some','all'],'some'),
+          method: qpOne('method',['video','link','phone','person'],'video'),
+          resume: qpOne('resume',['req','none'],'req'),
+          picked:null, answers:[null,null,null] };
 
 var SCREENER = [
   { q:'Do you have an active Registered Nurse licence in the state of Texas?', a:['Yes','No, but I am in the process of obtaining one','No'] },
@@ -359,13 +394,23 @@ function jump(step){S.step=step;
 
 /* ═══ SLOT LIST ═══ */
 function visibleSlots(){
-  return SLOTS.filter(function(s){ return S.cap==='all' ? true : !s.full; });
+  /* The slot the candidate already holds reads as full because of them, so it
+     survives the filter that hides full slots \u2014 otherwise the row saying which
+     time is theirs disappears exactly when it matters. */
+  return SLOTS.filter(function(s){
+    return S.cap==='all' || !s.full || (isRe() && s.t===CURRENT);
+  });
 }
 function pick(t){ S.picked=t; render(); }
 
 function slotList(){
+  var rows=visibleSlots();
+  /* An interview booked in another event's window sits outside this 11\u20133 grid.
+     Show the time the candidate holds anyway rather than silently omitting it. */
+  if(isRe() && !rows.some(function(s){return s.t===CURRENT;}))
+    rows=[{t:CURRENT,full:true}].concat(rows);
   var h='<div class="dayhead">'+EVENT.day+'</div><div class="slots" role="radiogroup" aria-label="Available interview times">';
-  visibleSlots().forEach(function(s){
+  rows.forEach(function(s){
     var held = isRe() && s.t===CURRENT;
     var sel = S.picked===s.t;
     if(held){
@@ -435,7 +480,7 @@ function stepFailed(){
    +'</svg>'
    +'<p class="failp">Unfortunately, based on your answers, it looks like you do not meet the requirements the employer set for this job.</p>'
    +'<p class="failp">The employer may still reach out to you if you are a fit.</p>'
-   +'<button class="btn btn-primary" onclick="toastish(\'Back to job search\')">Back to job search</button>';
+   +'<button class="btn btn-primary" onclick="location.href=\'jobseeker-v2.html?view=events\'">Back to job search</button>';
 }
 
 function stepTime(){
@@ -548,7 +593,7 @@ function stepDone(){
     h+='<div class="nextup" style="margin-top:18px"><h3>Get your resume ready</h3>'
      +'<p>You may be asked to share your resume before your interview.</p>'
      +'<button class="btn btn-secondary" style="margin-top:0" onclick="editResume()">Review resume</button></div>';
-  h+='<button class="btn btn-secondary" onclick="toastish(\'Back to my interviews\')">Back to my interviews</button>';
+  h+='<button class="btn btn-secondary" onclick="location.href=\'jobseeker-v2.html?view=interviews\'">Back to my interviews</button>';
   return h;
 }
 
@@ -586,6 +631,27 @@ if(window.ResizeObserver){
 }
 if(document.fonts && document.fonts.ready) document.fonts.ready.then(fitDevbar);
 
+/* The bar has to report the state the flow actually booted into, which the
+   URL can set. Derived, never assumed \u2014 the markup's active classes are only
+   the fallback's. */
+function syncToggles(){
+  var order={tgFlow:['reschedule','schedule'],
+             tgStep:['screener','failed','time','review','done'],
+             tgCap:['some','all'],
+             tgResume:['req','none'],
+             tgMethod:['video','link','phone','person']},
+      now={tgFlow:S.flow,tgStep:S.step,tgCap:S.cap,tgResume:S.resume,tgMethod:S.method};
+  Object.keys(order).forEach(function(id){
+    var btns=document.querySelectorAll('#'+id+' .dev-toggle-btn');
+    order[id].forEach(function(v,i){ if(btns[i]) btns[i].classList.toggle('active', v===now[id]); });
+  });
+}
+
+function renderCtx(){
+  document.getElementById('ctx').innerHTML =
+    '<b>'+EVENT.job+'</b><span>'+EVENT.co+' \u00b7 '+EVENT.ev+' \u00b7 '+EVENT.date+'</span>';
+}
+
 function render(){
   var p=document.getElementById('panel');
   var f={screener:stepScreener,failed:stepFailed,time:stepTime,review:stepReview,done:stepDone}[S.step];
@@ -594,6 +660,10 @@ function render(){
   var scr=document.querySelectorAll('#tgStep .dev-toggle-btn');
   [0,1].forEach(function(i){ scr[i].disabled = isRe(); scr[i].style.opacity = isRe()?'.4':''; });
 }
+/* Same flag the dashboard's phone frame passes to itself. */
+if(/[?&]m=1/.test(location.search)) document.body.classList.add('embed');
+syncToggles();
+renderCtx();
 fitDevbar();
 render();
 </script>

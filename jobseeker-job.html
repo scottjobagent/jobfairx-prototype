@@ -236,11 +236,27 @@ a{color:var(--blue)}
    a stranger can only request, while a candidate who already
    has a request or a booking is told so instead.
    ═══════════════════════════════════════════════════════════ */
-var S = { state:'open', auth:true, method:'video' };
+/* The dashboard opens this page from four different cards, so it says which
+   state it is opening. Unknown values fall through to the plain public view
+   rather than rendering a state that does not exist. */
+function qp(k){
+  var m=location.search.match(new RegExp('[?&]'+k+'=([^&]*)'));
+  return m ? decodeURIComponent(m[1].replace(/\+/g,' ')) : null;
+}
+function qpOne(k,allowed,d){var v=qp(k);return allowed.indexOf(v)>=0?v:d;}
 
+var S = { state: qpOne('state',['open','requested','booked','ended'],'open'),
+          auth:  true,
+          method:qpOne('method',['video','link','phone','person'],'video') };
+
+var JOB = 'Nurse Practitioner';
 var CO = 'Baylor Scott &amp; White';
+/* Unescaped, for handing to the scheduling flow as a URL parameter. */
+var CO_TEXT = 'Baylor Scott & White';
 var EVENT = { name:'Dallas Healthcare Hiring Event',
-              date:'Apr 22, 2026', window:'11 am\u20133 pm', tz:'Central Daylight Time' };
+              date:'Apr 22, 2026', dateLong:'Wednesday, April 22, 2026',
+              window:'11 am\u20133 pm', tz:'Central Daylight Time',
+              tzFull:'Central Daylight Time (CDT)' };
 
 /* The method is set on the event, so it is a fact about this posting. Indeed
    labels only Virtual and In-person; we carry four, so the labels are our own
@@ -308,6 +324,19 @@ function render(){
   document.getElementById('idet').innerHTML = idet();
 }
 
+/* Derived, not assumed: the URL can set the state, so the markup's active
+   classes are only the default's. */
+function syncToggles(){
+  var order={tgState:['open','requested','booked','ended'],
+             tgMethod:['video','link','phone','person'],
+             tgAuth:[true,false]},
+      now={tgState:S.state,tgMethod:S.method,tgAuth:S.auth};
+  Object.keys(order).forEach(function(id){
+    var btns=document.querySelectorAll('#'+id+' .dev-toggle-btn');
+    order[id].forEach(function(v,i){ if(btns[i]) btns[i].classList.toggle('active', v===now[id]); });
+  });
+}
+
 function setState(v,btn){
   S.state=v;
   document.querySelectorAll('#tgState .dev-toggle-btn').forEach(function(b){b.classList.remove('active')});
@@ -323,8 +352,22 @@ function setMethod(v,btn){
   document.querySelectorAll('#tgMethod .dev-toggle-btn').forEach(function(b){b.classList.remove('active')});
   btn.classList.add('active'); render(); measureHead(); onScroll();
 }
-function request(){ window.location.href='jobseeker-scheduling-v1.html'; }
-function go(){ window.location.href='jobseeker-v2.html'; }
+/* A request is a first booking, never a reschedule — this used to open the
+   flow on the wrong one. The posting hands over what it is showing. */
+function request(){
+  window.location.href='jobseeker-scheduling-v1.html?flow=schedule&method='+S.method
+    +'&job='+encodeURIComponent(JOB)
+    +'&co='+encodeURIComponent(CO_TEXT)
+    +'&ev='+encodeURIComponent(EVENT.name)
+    +'&date='+encodeURIComponent(EVENT.dateLong)
+    +'&tz='+encodeURIComponent(EVENT.tzFull);
+}
+/* Land on the view that answers the button: a request or a booked interview
+   both live on Interviews, and browsing belongs on Events. */
+function go(){
+  var v=(S.state==='requested'||S.state==='booked') ? 'interviews' : 'events';
+  window.location.href='jobseeker-v2.html?view='+v;
+}
 
 /* The head is locked to the top while the description scrolls under it, and
    condenses once you are past it — a full card pinned to a phone screen would
@@ -348,6 +391,7 @@ function onScroll(){
 window.addEventListener('scroll', onScroll, {passive:true});
 window.addEventListener('resize', function(){ measureHead(); onScroll(); });
 
+syncToggles();
 render(); measureHead(); onScroll();
 </script>
 </body>

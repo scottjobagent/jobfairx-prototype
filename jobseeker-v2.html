@@ -411,6 +411,13 @@ body.stage-mobile .main{display:none!important}
     </div>
   </div>
   <div class="dev-toggle">
+    <span class="dev-toggle-label">Scheduling flow:</span>
+    <div class="dev-toggle-switch" id="tgSched">
+      <button class="dev-toggle-btn" onclick="openSched('reschedule')">Reschedule</button>
+      <button class="dev-toggle-btn" onclick="openSched('schedule')">First booking</button>
+    </div>
+  </div>
+  <div class="dev-toggle">
     <span class="dev-toggle-label">Joining interview:</span>
     <div class="dev-toggle-switch" id="tgJoin">
       <button class="dev-toggle-btn" onclick="joinInterview()">Start the flow</button>
@@ -808,7 +815,7 @@ function eventCard(e,live){
   if(live && METHOD[e.method].lobby) acts.push('<button class="btn btn-primary btn-sm" onclick="go(\'lobby\')">Go to interview lobby</button>');
   if(live) acts.push('<button class="btn btn-secondary btn-sm" onclick="go(\'interviews\')">View my interviews</button>');
   else if(st==='matched'){
-    acts.push('<button class="btn btn-primary btn-sm" onclick="location.href=\'jobseeker-scheduling-v1.html\'">Request interview</button>');
+    acts.push('<button class="btn btn-primary btn-sm" onclick="requestInterview(\''+e.id+'\')">Request interview</button>');
     acts.push('<button class="btn btn-secondary btn-sm" onclick="viewJob()">View job</button>');
   }
   else if(st==='requested') acts.push('<button class="btn btn-secondary btn-sm" onclick="goPending()">View request</button>');
@@ -1090,7 +1097,7 @@ function card(r, phase){
   h+='<div class="c-date"><strong>'+r.day+'</strong></div>';
   h+='</div>';
 
-  h+= ofMenu(r.id, [['View job details','viewJob()']],
+  h+= ofMenu(r.id, [['View job details',"viewJob('booked')"]],
         canCancel ? ['Cancel interview',"confirmCancel('"+r.job+" at "+r.co+"')"] : null);
   h+='</div>';
 
@@ -1116,7 +1123,7 @@ function card(r, phase){
      exists only once they have approved it. */
   if(M.cta && (atTime || r.meth==='person' || (r.meth==='link' && r.approved)))
     acts.push('<button class="btn act-lead '+(atTime?'btn-primary':'btn-secondary btn-sm')+'" onclick="'+M.go+'">'+M.cta+(r.meth==='link'?' \u2197':'')+'</button>');
-  if(canResched) acts.push('<button class="btn btn-secondary btn-sm" onclick="reschedule(\''+r.job+'\')">Reschedule</button>');
+  if(canResched) acts.push('<button class="btn btn-secondary btn-sm" onclick="reschedule(\''+r.id+'\')">Reschedule</button>');
   if(canCancel)  acts.push('<button class="btn btn-secondary btn-sm" onclick="confirmCancel(\''+r.job+' at '+r.co+'\')">Cancel</button>');
   if(acts.length) h+='<div class="c-acts">'+acts.join('')+'</div>';
   return h+'</div></article>';
@@ -1124,10 +1131,72 @@ function card(r, phase){
 
 /* The job posting is a public page of its own, so it opens in a separate
    window — the candidate keeps their place in the app behind it. */
-function viewJob(){ window.open('jobseeker-job.html','_blank','noopener'); }
+/* The posting shows what it knows about you, so the card that opened it says
+   which state that is. No argument means the plain public view. */
+function viewJob(state){
+  window.open('jobseeker-job.html'+(state?'?state='+state:''),'_blank','noopener');
+}
 
-/* Seam into the scheduling flow. */
-function reschedule(job){ window.location.href='jobseeker-scheduling-v1.html'; }
+/* ═══════════════════════════════════════════════════════════
+   SEAM INTO THE SCHEDULING FLOW
+   This file owns the interview records, so it hands the flow the values to
+   display instead of the flow keeping a second copy that would drift.
+   ═══════════════════════════════════════════════════════════ */
+var WDAY=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+var MONTH=['January','February','March','April','May','June','July','August',
+           'September','October','November','December'];
+/* Every event runs late morning to afternoon local time, so the UTC instant
+   and the local day never disagree. */
+function longDate(ms){
+  var d=new Date(ms);
+  return WDAY[d.getUTCDay()]+', '+MONTH[d.getUTCMonth()]+' '+d.getUTCDate()+', '+d.getUTCFullYear();
+}
+var TZLONG={CT:'Central Daylight Time (CDT)',ET:'Eastern Daylight Time (EDT)',
+            MT:'Mountain Daylight Time (MDT)',PT:'Pacific Daylight Time (PDT)'};
+function tzLong(t){var m=String(t).match(/\b([CEMP]T)\s*$/);return m?TZLONG[m[1]]:'';}
+/* Our rows read "11:00 – 11:30 AM CT" and drop the first meridiem when both
+   halves share it; the flow lists slots as "11:00 AM - 11:30 AM". */
+function slotOf(t){
+  var p=String(t).replace(/\s*[CEMP]T\s*$/,'').split(/\s*\u2013\s*/);
+  if(p.length!==2) return '';
+  var mer=(p[1].match(/(AM|PM)$/)||[])[1]||'';
+  return (/(AM|PM)$/.test(p[0]) ? p[0] : p[0]+' '+mer)+' - '+p[1];
+}
+function schedUrl(flow,d){
+  var q=['flow='+flow];
+  if(d){
+    if(d.meth) q.push('method='+d.meth);
+    q.push('job='+encodeURIComponent(d.job),
+           'co='+encodeURIComponent(d.co),
+           'ev='+encodeURIComponent(d.ev),
+           'date='+encodeURIComponent(longDate(d.start)),
+           'tz='+encodeURIComponent(tzLong(d.time)));
+    if(d.cur) q.push('cur='+encodeURIComponent(d.cur));
+  }
+  return 'jobseeker-scheduling-v1.html?'+q.join('&');
+}
+
+/* Generic entry points. They open the flow on its own sample booking — the
+   card buttons below are the ones that carry a real interview. */
+function openSched(flow){ window.location.href='jobseeker-scheduling-v1.html?flow='+flow; }
+
+function reschedule(id){
+  var r=null; UPCOMING.forEach(function(x){ if(x.id===id) r=x; });
+  window.location.href = r ? schedUrl('reschedule',{job:r.job,co:r.co,ev:r.ev,meth:r.meth,
+                                                    start:r.start,time:r.time,cur:slotOf(r.time)})
+                           : 'jobseeker-scheduling-v1.html?flow=reschedule';
+}
+
+/* A match is an invitation to REQUEST a time, so this is a first booking.
+   It used to drop the candidate into the reschedule flow. */
+function requestInterview(evId){
+  var e=null; EVENTS.forEach(function(x){ if(x.id===evId) e=x; });
+  if(!e || !e.matches || !e.matches.length){
+    window.location.href='jobseeker-scheduling-v1.html?flow=schedule'; return;
+  }
+  window.location.href = schedUrl('schedule',{job:e.matches[0].job, co:e.matches[0].co,
+                                              ev:e.name, meth:e.method, start:e.start, time:e.time});
+}
 
 /* Seam into joining an interview. It starts at the top of that flow — the
    device check — because the point is to walk the whole thing, the way a
@@ -1168,7 +1237,7 @@ function ivPending(){
     var h='<article class="card" data-iv="p'+i+'"><div class="card-top"><div style="min-width:0">'
      + cap('Awaiting employer response','wait')
      + '<div class="c-date"><strong>You requested '+x.when+'</strong></div></div>'
-     + ofMenu('p'+i,[['View job details','viewJob()']],['Cancel request',"confirmCancel('"+x.job+" request')"])
+     + ofMenu('p'+i,[['View job details',"viewJob('requested')"]],['Cancel request',"confirmCancel('"+x.job+" request')"])
      + '</div>';
     h+='<div class="c-div"></div><div class="c-body"><div class="c-left">';
     h+='<div class="c-job">'+x.job+'</div>';
@@ -1201,7 +1270,7 @@ function ivPast(){
     h+='<div class="c-job">'+r.job+'</div>';
     h+='<div class="c-co">'+r.co+evLine(r.ev)+'</div>';
     h+='<div class="c-row">'+METHOD[r.meth].i+'<span>'+METHOD[r.meth].l+'</span></div>';
-    h+='</div><div class="c-acts"><button class="btn btn-secondary btn-sm" onclick="viewJob()">View job</button></div>';
+    h+='</div><div class="c-acts"><button class="btn btn-secondary btn-sm" onclick="viewJob(\'ended\')">View job</button></div>';
     h+='</div></article>';
     return h;
   }).join('');
