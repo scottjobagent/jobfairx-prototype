@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JobFairX — Joining an interview</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════════════
+   JOINING AN INTERVIEW
+   Every screen, every string, follows Indeed's own join flow as
+   captured on video 18 Aug 2026. The only substitution is the
+   brand name. Where Indeed says "recruiter" we say recruiter,
+   even though the rest of our product says employer — Scott's
+   call, so the flow a candidate walks is theirs, not a remix.
+   Desktop note: the recording is phone-only, so the mobile
+   layout is observed and the desktop layout is our own.
+   ═══════════════════════════════════════════════════════════ */
+:root{
+  --font:'Noto Sans',-apple-system,BlinkMacSystemFont,sans-serif;
+  --blue:#0044B3; --blue-hover:#003399; --blue-wash:#f0f5ff;
+  --ink:#2d2d2d; --ink-2:#595959; --ink-3:#767676; --ink-disabled:#b0afad;
+  --page:#f3f2ef; --surface:#fff; --border:#d4d2d0; --divider:#ebebeb;
+  --green:#16a34a; --green-solid:#1e7e34; --green-deep:#0b6b2f;
+  --red:#991b1b; --red-wash:#fef2f2; --red-solid:#a5232b;
+  --amber:#8a5c00; --amber-wash:#fdf6ec;
+  --t-xs:12px; --t-sm:13px; --t-base:14px; --t-md:16px; --t-lg:17px; --t-xl:20px; --t-2xl:22px;
+  --r-sm:6px; --r-md:8px; --r-lg:12px; --r-xl:16px;
+  --shadow-menu:0 4px 20px rgba(0,0,0,.12);
+  --devbar-h:44px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{font-family:var(--font);background:var(--page);color:var(--ink);font-size:var(--t-base);line-height:1.5;-webkit-font-smoothing:antialiased;min-height:100vh}
+:focus-visible{outline:3px solid var(--blue);outline-offset:2px;border-radius:3px}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.001ms!important;transition-duration:.001ms!important}}
+
+/* ═══ DEV BAR ═══ */
+.devbar{position:fixed;top:0;left:0;right:0;min-height:44px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;padding:6px 16px;z-index:400;flex-wrap:wrap}
+.dev-toggle{display:flex;align-items:center;gap:5px;padding:3px 8px;background:var(--page);border-radius:5px;border:1px solid var(--border)}
+.dev-toggle-label{font-size:9px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
+.dev-toggle-switch{display:flex;background:#e0e0e0;border-radius:3px;overflow:hidden}
+.dev-toggle-btn{padding:3px 7px;font-size:10px;font-weight:700;border:none;background:transparent;cursor:pointer;font-family:inherit;color:var(--ink-3);transition:all .15s}
+.dev-toggle-btn.active{background:var(--blue);color:#fff}
+.dev-toggle-btn:disabled{opacity:.4;cursor:not-allowed}
+.devbar-note{margin-left:auto;font-size:var(--t-sm);color:var(--ink-2)}
+body.embed .devbar{display:none}
+
+/* ═══ PHONE STAGE ═══ */
+#phoneStage{display:none;padding:calc(var(--devbar-h) + 20px) 20px 40px;flex-direction:column;align-items:center;gap:12px}
+body.stage-mobile #phoneStage{display:flex}
+body.stage-mobile .appwrap{display:none!important}
+.phone-shell{width:390px;height:844px;border:10px solid #1c1c1e;border-radius:44px;overflow:hidden;background:#000;box-shadow:0 12px 34px rgba(0,0,0,.18);position:relative;max-width:100%}
+.phone-shell iframe{width:390px;height:824px;border:0;display:block;background:var(--surface)}
+.phone-notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:150px;height:26px;background:#1c1c1e;border-radius:0 0 16px 16px;z-index:5;pointer-events:none}
+.phone-cap{font-size:var(--t-sm);color:var(--ink-3)}
+
+/* ═══ APP CHROME ═══ */
+.appwrap{padding-top:var(--devbar-h);min-height:100vh;display:flex;flex-direction:column}
+.brandbar{background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;padding:14px 20px;flex-shrink:0}
+.brandbar .logo{font-size:var(--t-2xl);font-weight:800;color:var(--blue);letter-spacing:-.5px}
+.brandbar .help{width:32px;height:32px;border-radius:50%;border:2px solid var(--ink);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:var(--t-base);color:var(--ink);background:none;cursor:pointer;font-family:inherit;flex-shrink:0}
+.brandbar .signin{margin-left:auto;border:1px solid var(--blue);color:var(--blue);background:var(--surface);border-radius:var(--r-md);padding:10px 18px;font-size:var(--t-md);font-weight:700;font-family:inherit;cursor:pointer;min-height:44px;display:inline-flex;align-items:center;gap:8px}
+.stage{flex:1;display:flex;flex-direction:column}
+
+/* ═══ WIZARD COLUMN ═══ */
+.col{width:100%;max-width:620px;margin:0 auto;padding:24px 20px 60px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:28px 26px}
+.stepn{font-size:var(--t-sm);font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--ink-2);margin-bottom:10px}
+h1{font-size:26px;font-weight:700;letter-spacing:-.4px;line-height:1.25;margin-bottom:12px}
+.lede{font-size:var(--t-md);color:var(--ink-2);line-height:1.6;margin-bottom:22px}
+.note{font-size:var(--t-md);line-height:1.6;margin-bottom:22px}
+.btn{display:block;width:100%;padding:15px 24px;border-radius:var(--r-md);font-size:var(--t-md);font-weight:700;cursor:pointer;font-family:inherit;border:1px solid transparent;text-align:center;transition:all .15s;min-height:48px}
+.btn-primary{background:var(--blue);color:#fff}
+.btn-primary:hover{background:var(--blue-hover)}
+.btn-secondary{background:var(--surface);color:var(--blue);border-color:var(--border);margin-top:12px}
+.btn-secondary:hover{background:var(--page);border-color:var(--blue)}
+.btn-row{display:flex;gap:12px;margin-top:8px}
+.btn-row .btn{margin-top:0}
+.foot{text-align:center;font-size:var(--t-sm);color:var(--ink-2);margin-top:22px;line-height:2}
+.foot a{color:var(--ink-2);display:inline-block;padding:10px 4px}
+
+/* ═══ ILLUSTRATION ═══ */
+.art{display:block;width:150px;height:auto;margin:4px auto 22px}
+
+/* ═══ DEVICE ROWS ═══ */
+.dev-row{margin-bottom:20px}
+.dev-row .lbl{font-size:var(--t-base);font-weight:700;margin-bottom:6px}
+.sel{width:100%;padding:13px 14px;border:1px solid var(--border);border-radius:var(--r-md);font-family:inherit;font-size:var(--t-md);background:var(--surface);color:var(--ink);min-height:48px}
+.meter-lbl{font-size:var(--t-base);color:var(--ink-2);margin:10px 0 6px}
+.meter{height:8px;background:var(--divider);border-radius:999px;overflow:hidden}
+.meter i{display:block;height:100%;background:var(--green-solid);border-radius:999px;width:38%;animation:lvl 1.4s ease-in-out infinite}
+@keyframes lvl{0%,100%{width:22%}50%{width:64%}}
+.check-row{display:flex;align-items:center;gap:10px;margin-top:12px;font-size:var(--t-md);min-height:44px}
+.check-box{width:22px;height:22px;border-radius:4px;background:var(--blue);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.link-btn{background:none;border:none;color:var(--blue);font-family:inherit;font-size:var(--t-md);font-weight:700;cursor:pointer;padding:12px 0;min-height:44px}
+
+/* ═══ SELF VIEW ═══ */
+.selfview{background:#2f3336;border-radius:var(--r-lg);aspect-ratio:3/4;display:flex;align-items:center;justify-content:center;margin-bottom:20px;overflow:hidden;position:relative}
+.selfview svg{width:88px;height:88px;color:rgba(255,255,255,.34)}
+
+/* ═══ PHONE FIELD ═══ */
+.telrow{display:flex;gap:10px;margin:16px 0 18px}
+.telcc{display:flex;align-items:center;gap:6px;padding:13px 14px;border:1px solid var(--border);border-radius:var(--r-md);font-size:var(--t-md);white-space:nowrap;min-height:48px}
+.telin{flex:1;min-width:0;padding:13px 14px;border:1px solid var(--border);border-radius:var(--r-md);font-family:inherit;font-size:var(--t-md);min-height:48px}
+.legal{font-size:var(--t-sm);color:var(--ink-2);line-height:1.6;margin-bottom:14px}
+.infoline{display:flex;gap:12px;align-items:flex-start;font-size:var(--t-md);line-height:1.55;margin-bottom:16px}
+.infoline svg{width:22px;height:22px;flex-shrink:0;margin-top:1px;color:var(--ink-2)}
+
+/* ═══ JOIN CARD ═══ */
+.evtitle{font-size:var(--t-xl);font-weight:700;line-height:1.3;margin-bottom:8px}
+.evwhen{font-size:var(--t-md);color:var(--ink-2);margin-bottom:20px}
+.readybox{display:flex;border-radius:var(--r-md);overflow:hidden;margin-bottom:26px;background:var(--page)}
+.readybox .tick{background:var(--green-deep);width:56px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.readybox .tick svg{width:26px;height:26px;color:#fff}
+.readybox .body{padding:14px 16px}
+.readybox b{display:block;font-size:var(--t-md);font-weight:700;margin-bottom:4px}
+.readybox .sub{font-size:var(--t-md);color:var(--ink-2)}
+.cdown{display:flex;align-items:center;gap:8px;margin-top:6px;font-size:var(--t-lg);font-weight:700}
+.cdown svg{width:20px;height:20px;color:var(--ink-2);flex-shrink:0}
+.nextlbl{text-align:center;font-size:var(--t-md);font-weight:700;margin-bottom:4px}
+.nexttxt{text-align:center;font-size:var(--t-md);color:var(--ink);margin-bottom:22px}
+.btn .ico{width:22px;height:22px;vertical-align:-5px;margin-right:8px}
+
+/* ═══ SPLASH ═══ */
+.splash{flex:1;display:flex;align-items:center;justify-content:center;background:var(--surface);min-height:60vh}
+.splash .logo{font-size:38px;font-weight:800;color:var(--blue);letter-spacing:-1px}
+
+/* ═══ ROOM ═══ */
+.room{flex:1;display:flex;flex-direction:column;background:var(--surface);position:relative}
+.roominner{flex:1;padding:16px;display:flex;flex-direction:column;gap:14px;overflow:auto}
+.waitcard{background:var(--page);border-radius:var(--r-md);padding:22px 20px;text-align:center}
+.waitcard b{display:block;font-size:var(--t-lg);font-weight:700;margin-bottom:8px;line-height:1.35}
+.waitcard span{font-size:var(--t-md);color:var(--ink-2);line-height:1.55}
+.tiles{display:flex;flex-direction:column;gap:14px}
+.tile{background:var(--page);border-radius:var(--r-md);position:relative;aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.tile .vid{background:#2f3336;width:56%;height:100%;display:flex;align-items:center;justify-content:center}
+.tile .vid svg{width:64px;height:64px;color:rgba(255,255,255,.34)}
+.tile.off .vid{background:#5b6063}
+.namechip{position:absolute;top:10px;left:10px;background:var(--surface);border-radius:var(--r-md);padding:7px 12px;display:flex;align-items:center;gap:7px;font-size:var(--t-md);font-weight:500;max-width:calc(100% - 20px)}
+.namechip svg{width:17px;height:17px;flex-shrink:0;color:var(--ink-2)}
+.namechip.speaking svg{color:var(--blue)}
+.namechip.outline{background:none;border:1px solid var(--border)}
+.bars{display:flex;align-items:flex-end;gap:2px;height:14px}
+.bars i{width:3px;background:var(--ink-3);border-radius:1px}
+.bars i:nth-child(1){height:5px}.bars i:nth-child(2){height:9px}.bars i:nth-child(3){height:14px}
+
+/* ═══ CONTROL BAR ═══ */
+.ctrls{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 18px;border-top:1px solid var(--divider);background:var(--surface);flex-shrink:0}
+.cbtn{width:56px;height:48px;border-radius:var(--r-md);border:1px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--ink);flex-shrink:0}
+.cbtn svg{width:24px;height:24px}
+.cbtn.plain{border-color:transparent}
+.cbtn.leave{background:var(--red-solid);border-color:var(--red-solid);color:#fff}
+.cbtn.muted{position:relative}
+.cbtn.muted::after{content:'';position:absolute;left:12px;right:12px;top:50%;height:2px;background:var(--red);transform:rotate(-45deg)}
+
+/* ═══ OVERLAYS ═══ */
+.sheet{position:absolute;inset:0;background:var(--surface);display:flex;flex-direction:column;z-index:20}
+.sheet-h{display:flex;align-items:center;gap:12px;padding:16px 18px;border-bottom:1px solid var(--divider);flex-shrink:0}
+.sheet-h b{font-size:var(--t-xl);font-weight:500;flex:1}
+.sheet-h svg{width:24px;height:24px;color:var(--ink-2)}
+.sheet-x{width:44px;height:44px;border:none;background:none;cursor:pointer;color:var(--ink-2);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;font-family:inherit}
+.sheet-b{flex:1;overflow:auto;padding:18px}
+.infobar{display:flex;gap:12px;align-items:flex-start;background:var(--page);padding:14px 16px;font-size:var(--t-md);color:var(--ink-2);line-height:1.5}
+.infobar svg{width:20px;height:20px;flex-shrink:0;color:var(--ink-3);margin-top:1px}
+.chat-empty{text-align:center;color:var(--ink-2);padding:44px 20px}
+.chat-empty b{display:block;font-size:var(--t-md);font-weight:700;color:var(--ink);margin-bottom:6px}
+.composer{border-top:1px solid var(--divider);padding:12px 16px;display:flex;gap:10px;flex-shrink:0}
+.composer input{flex:1;min-width:0;padding:13px 14px;border:1px solid var(--border);border-radius:var(--r-md);font-family:inherit;font-size:var(--t-md);min-height:48px}
+.tabs{display:flex;border-bottom:1px solid var(--divider);flex-shrink:0}
+.tabs button{flex:1;padding:16px 8px;border:none;background:none;font-family:inherit;font-size:var(--t-md);font-weight:600;color:var(--ink-2);cursor:pointer;border-bottom:3px solid transparent;min-height:48px}
+.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--ink);font-weight:700}
+.optrow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 0;border-bottom:1px solid var(--divider);font-size:var(--t-md);min-height:56px}
+.optrow.off{color:var(--ink-disabled)}
+.optrow .why{font-size:var(--t-sm);color:var(--ink-3);font-style:italic}
+
+/* ═══ MODAL ═══ */
+.ov{position:absolute;inset:0;background:rgba(0,0,0,.5);z-index:40;display:flex;align-items:center;justify-content:center;padding:20px}
+.modal{background:var(--surface);border-radius:var(--r-lg);width:420px;max-width:100%;padding:24px;box-shadow:0 8px 32px rgba(0,0,0,.2)}
+.modal h3{font-size:var(--t-xl);font-weight:700;margin-bottom:10px;line-height:1.3}
+.modal p{font-size:var(--t-md);color:var(--ink-2);line-height:1.55;margin-bottom:18px}
+.modal .num{font-size:var(--t-xl);font-weight:700;color:var(--ink);margin-bottom:14px}
+.btn-danger{background:var(--red-solid);color:#fff}
+.modal-x{float:right;width:36px;height:36px;border:none;background:none;font-size:24px;color:var(--ink-2);cursor:pointer;font-family:inherit;margin:-6px -6px 0 0}
+
+/* ═══ SURVEY ═══ */
+.q{padding:18px 0;border-bottom:1px solid var(--divider)}
+.q .qt{font-size:var(--t-md);margin-bottom:12px;line-height:1.45}
+.thumbs{display:flex;gap:12px}
+.thumb{width:60px;height:48px;border:1px solid var(--border);border-radius:var(--r-md);background:var(--surface);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--ink-2)}
+.thumb svg{width:24px;height:24px}
+.thumb.sel{border-color:var(--blue);background:var(--blue-wash);color:var(--blue)}
+.ta{width:100%;min-height:110px;padding:13px 14px;border:1px solid var(--border);border-radius:var(--r-md);font-family:inherit;font-size:var(--t-md);margin-top:12px;resize:vertical}
+
+/* ═══ LEFT STATE ═══ */
+.leftmark{width:66px;height:66px;border-radius:50%;background:var(--page);display:flex;align-items:center;justify-content:center;margin:0 auto 18px}
+.leftmark svg{width:32px;height:32px;color:var(--ink-2)}
+
+/* ═══ DESKTOP ═══
+   No desktop recording exists, so this is our layout of Indeed's
+   content: the same screens, same order, same words, given a
+   centred column and a wider video stage. */
+@media (min-width:901px){
+  .col{padding:40px 20px 80px}
+  .card{padding:36px 40px}
+  .room{padding:24px}
+  .roominner{max-width:900px;margin:0 auto;width:100%;padding:0 0 18px}
+  .tiles{flex-direction:row;flex-wrap:wrap}
+  .tiles .tile{flex:1 1 0;min-width:280px;aspect-ratio:16/10}
+  .tile .vid{width:44%}
+  .ctrls{justify-content:center;gap:18px;border:1px solid var(--divider);border-radius:var(--r-lg);max-width:900px;margin:0 auto;width:100%}
+  .waitcard{padding:30px 26px}
+  .sheet{left:auto;right:24px;top:24px;bottom:24px;width:400px;border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow-menu)}
+  .selfview{aspect-ratio:16/10}
+}
+@media (max-width:900px){
+  .brandbar{padding:12px 16px}
+  .col{padding:16px 14px 50px}
+  .card{padding:20px 18px;border-radius:0;border-left:none;border-right:none}
+  h1{font-size:23px}
+}
+</style>
+</head>
+<body>
+
+<div class="devbar" role="region" aria-label="Prototype state controls">
+  <div class="dev-toggle" id="tgView">
+    <span class="dev-toggle-label">View:</span>
+    <div class="dev-toggle-switch">
+      <button class="dev-toggle-btn active" onclick="setView('desktop',this)">Desktop</button>
+      <button class="dev-toggle-btn" onclick="setView('mobile',this)">Mobile</button>
+    </div>
+  </div>
+  <div class="dev-toggle">
+    <span class="dev-toggle-label">Screen:</span>
+    <div class="dev-toggle-switch" id="tgScreen">
+      <button class="dev-toggle-btn active" onclick="setScreen('check',this)">Test</button>
+      <button class="dev-toggle-btn" onclick="setScreen('permission',this)">Permission</button>
+      <button class="dev-toggle-btn" onclick="setScreen('preview',this)">Self-view</button>
+      <button class="dev-toggle-btn" onclick="setScreen('devices',this)">Devices</button>
+      <button class="dev-toggle-btn" onclick="setScreen('phone',this)">Phone</button>
+      <button class="dev-toggle-btn" onclick="setScreen('join',this)">Join</button>
+      <button class="dev-toggle-btn" onclick="setScreen('loading',this)">Loading</button>
+      <button class="dev-toggle-btn" onclick="setScreen('waiting',this)">Waiting</button>
+      <button class="dev-toggle-btn" onclick="setScreen('inroom',this)">In room</button>
+      <button class="dev-toggle-btn" onclick="setScreen('survey',this)">Survey</button>
+      <button class="dev-toggle-btn" onclick="setScreen('left',this)">Left</button>
+    </div>
+  </div>
+  <div class="dev-toggle">
+    <span class="dev-toggle-label">Overlay:</span>
+    <div class="dev-toggle-switch" id="tgOverlay">
+      <button class="dev-toggle-btn active" onclick="setOverlay('none',this)">None</button>
+      <button class="dev-toggle-btn" onclick="setOverlay('chat',this)">Chat</button>
+      <button class="dev-toggle-btn" onclick="setOverlay('settings',this)">Settings</button>
+      <button class="dev-toggle-btn" onclick="setOverlay('byphone',this)">By phone</button>
+      <button class="dev-toggle-btn" onclick="setOverlay('leave',this)">Leave</button>
+    </div>
+  </div>
+  <div class="devbar-note">Joining an interview</div>
+</div>
+
+<div id="phoneStage">
+  <div class="phone-shell"><div class="phone-notch"></div>
+    <iframe id="phoneFrame" title="Joining an interview at phone size"></iframe>
+  </div>
+  <p class="phone-cap">390 &times; 844 &middot; the toggles above drive the phone</p>
+</div>
+
+<div class="appwrap">
+  <div class="brandbar" id="brandbar">
+    <span class="logo">JobFairX</span>
+    <button class="help" aria-label="Help" onclick="toast('Help')">?</button>
+    <button class="signin" onclick="toast('Sign in')">Sign in <span aria-hidden="true">&rarr;</span></button>
+  </div>
+  <div class="stage" id="stage"></div>
+</div>
+
+<script>
+/* ═══ ICONS ═══ */
+var I = {
+  cam:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>',
+  mic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v4"/></svg>',
+  chat:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 3h16a2 2 0 012 2v10a2 2 0 01-2 2H9l-5 4V5a2 2 0 010-2z"/></svg>',
+  dots:'<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>',
+  leave:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 4h4a2 2 0 012 2v12a2 2 0 01-2 2h-4M9 16l4-4-4-4M13 12H3"/></svg>',
+  clock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/></svg>',
+  tick:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>',
+  person:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0116 0"/></svg>',
+  warn:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l9.5 17H2.5L12 3z"/><path d="M12 10v4M12 17h.01"/></svg>',
+  sms:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>',
+  info:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>',
+  hangup:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 9c-2.2 0-4.3.4-6.2 1.1v3.1c0 .4-.2.8-.6 1-.9.5-1.8 1.1-2.6 1.8-.2.2-.4.3-.7.3s-.6-.1-.7-.3L.3 14.1c-.2-.2-.3-.4-.3-.7s.1-.5.3-.7C3.3 10 7.4 8.5 12 8.5s8.7 1.5 11.7 4.2c.2.2.3.4.3.7s-.1.5-.3.7l-1.9 1.9c-.2.2-.4.3-.7.3s-.5-.1-.7-.3c-.8-.7-1.7-1.3-2.6-1.8-.4-.2-.6-.6-.6-1v-3.1C16.3 9.4 14.2 9 12 9z"/></svg>',
+  up:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 22V11l5-9a2.5 2.5 0 012.5 3.5L13 11h5.5a2.5 2.5 0 012.4 3.1l-1.6 6A2.5 2.5 0 0117 22H7z"/></svg>',
+  down:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 2v11l-5 9a2.5 2.5 0 01-2.5-3.5L11 13H5.5a2.5 2.5 0 01-2.4-3.1l1.6-6A2.5 2.5 0 017 2h10z"/></svg>',
+  bars:'<span class="bars"><i></i><i></i><i></i></span>'
+};
+
+/* ═══ MODEL ═══
+   Demo data. The candidate and recruiter names are prototype
+   placeholders, like every other name in this project. */
+var EVENT = { name:'Dallas Healthcare Hiring Event Registered Nurse',
+              when:'Apr 22, 2026 at 11:00 AM - 3:00 PM CT' };
+var ME = 'Jordan Reyes';
+var RECRUITER = 'Alicia Barrett';
+var TEL = '(555) 014-2278';
+var ORIGIN = 'interviews.jobfairx.com';
+var HOLD = 5 * 60;              /* Indeed holds the spot five minutes */
+
+var S = { screen:'check', overlay:'none', camOff:false, micOff:false, selfHidden:false, tab:'audio', rating:{} };
+
+/* ═══ THE COUNTDOWN ═══
+   Indeed's join card counts real seconds and reads
+   "4 minutes, 57 seconds". It starts when the card loads. */
+var left = HOLD, timer = null;
+function cdText(s){
+  if(s < 0) s = 0;
+  var m = Math.floor(s/60), sec = s % 60;
+  return m + (m===1?' minute, ':' minutes, ') + sec + (sec===1?' second':' seconds');
+}
+function startClock(){
+  stopClock(); left = HOLD;
+  timer = setInterval(function(){
+    left--;
+    var el = document.getElementById('cdown');
+    if(!el){ stopClock(); return; }
+    el.textContent = cdText(left);
+    /* What the card becomes at zero was never captured on video,
+       so nothing is invented here — it simply stops. */
+    if(left <= 0) stopClock();
+  }, 1000);
+}
+function stopClock(){ if(timer){ clearInterval(timer); timer = null; } }
+
+/* ═══ SCREENS ═══ */
+function scCheck(){
+  return '<div class="col"><div class="card">'
+   + '<div class="stepn">Step 1 of 2</div>'
+   + '<h1>Test audio and video connection</h1>'
+   + '<p class="lede">Checking your connection helps ensure a smooth interview experience.</p>'
+   + '<svg class="art" viewBox="0 0 150 120" fill="none" aria-hidden="true">'
+   +   '<rect x="46" y="10" width="58" height="100" rx="10" fill="#fff" stroke="#d4d2d0" stroke-width="2"/>'
+   +   '<rect x="55" y="26" width="40" height="30" rx="5" fill="#f0f5ff"/>'
+   +   '<path d="M68 41h14M75 34v14" stroke="#0044B3" stroke-width="2.5" stroke-linecap="round"/>'
+   +   '<rect x="55" y="64" width="40" height="9" rx="4" fill="#ebebeb"/>'
+   +   '<rect x="55" y="79" width="26" height="9" rx="4" fill="#ebebeb"/>'
+   +   '<circle cx="112" cy="86" r="17" fill="#e6f4ea"/>'
+   +   '<path d="M105 86l5 5 10-10" stroke="#1e7e34" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>'
+   + '</svg>'
+   + '<p class="note">You’ll need to allow access to your mic and camera</p>'
+   + '<button class="btn btn-primary" onclick="go(\'permission\')">Test now</button>'
+   + '</div><p class="foot"><a href="#" onclick="return false">Do Not Sell My Personal Information</a></p></div>';
+}
+
+function scPermission(){
+  return scCheck()
+   + '<div class="ov" style="position:fixed;z-index:600"><div class="modal" style="width:340px;text-align:center">'
+   + '<p style="font-size:var(--t-md);color:var(--ink);line-height:1.5;margin-bottom:20px">Allow &ldquo;' + ORIGIN + '&rdquo; to use your camera and microphone?</p>'
+   + '<button class="btn btn-secondary" style="margin-top:0" onclick="go(\'check\')">Don’t Allow</button>'
+   + '<button class="btn btn-primary" style="margin-top:10px" onclick="go(\'preview\')">Allow</button>'
+   + '</div></div>';
+}
+
+function scPreview(){
+  return '<div class="col"><div class="card">'
+   + '<div class="selfview">' + I.person + '</div>'
+   + '<button class="btn btn-primary" onclick="go(\'devices\')">Continue</button>'
+   + '</div></div>';
+}
+
+function scDevices(){
+  return '<div class="col"><div class="card">'
+   + '<div class="selfview">' + I.person + '</div>'
+   + '<div class="dev-row"><div class="lbl">Microphone</div>'
+   +   '<select class="sel"><option>iPhone Microphone</option></select>'
+   +   '<div class="meter-lbl">Microphone Input:</div><div class="meter"><i></i></div></div>'
+   + '<div class="dev-row"><div class="lbl">Speaker</div>'
+   +   '<select class="sel"><option>Default - Speaker</option></select>'
+   +   '<button class="link-btn" onclick="toast(\'Test speaker\')">Test speaker</button></div>'
+   + '<div class="dev-row"><div class="lbl">Camera</div>'
+   +   '<select class="sel"><option>Front Ultra Wide Camera</option></select>'
+   +   '<label class="check-row"><span class="check-box">' + I.tick + '</span>Mirror my video</label></div>'
+   + '<button class="btn btn-primary" onclick="go(\'phone\')">Continue</button>'
+   + '</div><p class="foot"><a href="#" onclick="return false">Do Not Sell My Personal Information</a></p></div>';
+}
+
+function scPhone(){
+  return '<div class="col"><div class="card">'
+   + '<div class="infoline">' + I.warn + '<span>Your interviewer will call you in case of disconnection or other technical issues during the video interview.</span></div>'
+   + '<div class="infoline">' + I.sms + '<span>We’ll send you a text when it’s time for your interview.</span></div>'
+   + '<div class="telrow"><span class="telcc">&#127482;&#127480; +1</span>'
+   +   '<input class="telin" type="tel" inputmode="tel" aria-label="Phone number" placeholder=""></div>'
+   + '<p class="legal">By selecting &lsquo;confirm&rsquo;, you agree that we may send you text message reminders and phone calls related to this interview, and you confirm that you are the subscriber and primary user of the telephone number you provided.</p>'
+   + '<p class="legal">Please be aware the employer may call you from an unknown number and it may be flagged as spam.</p>'
+   + '<div class="btn-row"><button class="btn btn-secondary" onclick="go(\'join\')">Skip</button>'
+   +   '<button class="btn btn-primary" onclick="go(\'join\')">Confirm</button></div>'
+   + '</div><p class="foot"><a href="#" onclick="return false">Do Not Sell My Personal Information</a> - <a href="#" onclick="return false">Report</a> - <a href="#" onclick="return false">Help</a></p></div>';
+}
+
+function scJoin(){
+  return '<div class="col"><div class="card">'
+   + '<div class="evtitle">' + EVENT.name + '</div>'
+   + '<div class="evwhen">' + EVENT.when + '</div>'
+   + '<div class="readybox"><div class="tick">' + I.tick + '</div><div class="body">'
+   +   '<b>You can now join the interview</b>'
+   +   '<span class="sub">Join before losing your spot in:</span>'
+   +   '<div class="cdown">' + I.clock + '<span id="cdown">' + cdText(left) + '</span></div>'
+   + '</div></div>'
+   + '<div class="nextlbl">Next:</div>'
+   + '<div class="nexttxt">Join the interview and wait for the interviewer.</div>'
+   + '<button class="btn btn-primary" onclick="go(\'loading\')"><span class="ico" style="display:inline-block">' + I.cam + '</span>Join your interview</button>'
+   + '</div><p class="foot"><a href="#" onclick="return false">Do Not Sell My Personal Information</a> - <a href="#" onclick="return false">Report</a> - <a href="#" onclick="return false">Help</a></p></div>';
+}
+
+function scLoading(){
+  return '<div class="splash"><div class="logo">JobFairX</div></div>';
+}
+
+function tile(name, opts){
+  opts = opts || {};
+  var h = '<div class="tile' + (opts.off ? ' off' : '') + '">';
+  if(!opts.hidden) h += '<div class="vid">' + I.person + '</div>';
+  h += '<span class="namechip' + (opts.hidden ? ' outline' : '') + (opts.speaking ? ' speaking' : '') + '">'
+     + I.mic + I.bars + name + '</span></div>';
+  return h;
+}
+
+function room(waiting){
+  var h = '<div class="room" id="room"><div class="roominner">';
+  if(waiting){
+    h += '<div class="waitcard"><b>We’ve let the recruiter know you’re waiting</b>'
+       + '<span>Thank you for your patience. The recruiter will be with you shortly.</span></div>';
+  }
+  h += '<div class="tiles">';
+  h += tile(ME + ' (You)', { off:S.camOff, hidden:S.selfHidden, speaking:!S.micOff });
+  if(!waiting) h += tile(RECRUITER, {});
+  h += '</div></div>';
+
+  h += '<div class="ctrls">'
+     + '<button class="cbtn plain" aria-label="More options" onclick="setOverlay(\'settings\')">' + I.dots + '</button>'
+     + '<button class="cbtn' + (S.micOff ? ' muted' : '') + '" aria-label="Microphone" onclick="tgl(\'micOff\')">' + I.mic + '</button>'
+     + '<button class="cbtn' + (S.camOff ? ' muted' : '') + '" aria-label="Camera" onclick="tgl(\'camOff\')">' + I.cam + '</button>'
+     + '<button class="cbtn leave" aria-label="Leave interview" onclick="setOverlay(\'leave\')">' + I.leave + '</button>'
+     + '<button class="cbtn plain" aria-label="Chat" onclick="setOverlay(\'chat\')">' + I.chat + '</button>'
+     + '</div>';
+
+  h += overlay();
+  return h + '</div>';
+}
+
+function overlay(){
+  if(S.overlay === 'chat'){
+    return '<div class="sheet"><div class="sheet-h">' + I.chat + '<b>Chat</b>'
+     + '<button class="sheet-x" aria-label="Close chat" onclick="setOverlay(\'none\')">&times;</button></div>'
+     + '<div class="infobar">' + I.info + '<span>Chat history will not be saved.</span></div>'
+     + '<div class="sheet-b"><div class="chat-empty"><b>You’re the only one here.</b>'
+     +   '<span>Your messages won’t be seen until someone else joins.</span></div></div>'
+     + '<div class="composer"><input aria-label="Message" placeholder=""><button class="cbtn" aria-label="Send">' + I.chat + '</button></div>'
+     + '</div>';
+  }
+  if(S.overlay === 'settings'){
+    var audio = S.tab === 'audio';
+    var h = '<div class="sheet"><div class="sheet-h"><b>Audio &amp; video settings</b>'
+     + '<button class="sheet-x" aria-label="Close settings" onclick="setOverlay(\'none\')">&times;</button></div>'
+     + '<div class="tabs" role="tablist">'
+     +   '<button role="tab" aria-selected="' + audio + '" onclick="setTab(\'audio\')">Audio</button>'
+     +   '<button role="tab" aria-selected="' + (!audio) + '" onclick="setTab(\'video\')">Video</button></div>'
+     + '<div class="sheet-b">';
+    if(audio){
+      h += '<div class="optrow off"><span>Share screen</span><span class="why">Not available in mobile</span></div>'
+        +  '<div class="optrow off"><span>Suppress background noise</span><span class="why">Not available in mobile</span></div>'
+        +  '<div class="dev-row" style="margin-top:18px"><div class="lbl">Speaker</div>'
+        +    '<select class="sel"><option>Default - Speaker</option></select>'
+        +    '<button class="link-btn" onclick="toast(\'Test speaker\')">Test speaker</button></div>'
+        +  '<div class="dev-row"><div class="lbl">Microphone</div>'
+        +    '<select class="sel"><option>iPhone Microphone</option></select>'
+        +    '<div class="meter-lbl">Microphone Input:</div><div class="meter"><i></i></div></div>';
+    } else {
+      /* The Video tab was never opened on the recording, so its
+         contents are unknown and nothing is invented for it. */
+      h += '<div class="optrow off"><span>Not captured on the recording</span></div>';
+    }
+    return h + '</div><div class="composer" style="border:none"><button class="btn btn-secondary" style="margin:0" onclick="tgl(\'selfHidden\')">'
+      + (S.selfHidden ? 'Show self-view' : 'Hide self-view') + '</button></div></div>';
+  }
+  if(S.overlay === 'byphone'){
+    return '<div class="ov"><div class="modal">'
+     + '<button class="modal-x" aria-label="Close" onclick="setOverlay(\'none\')">&times;</button>'
+     + '<h3>Join by phone</h3>'
+     + '<p style="margin-bottom:6px">We’ll call you at this number</p>'
+     + '<div class="num">' + TEL + '</div>'
+     + '<p>You will be connected to the interview room by phone. You and the employer will no longer be able to see each other.</p>'
+     + '<div class="btn-row"><button class="btn btn-secondary" style="margin:0" onclick="setOverlay(\'none\')">Cancel</button>'
+     +   '<button class="btn btn-primary" onclick="toast(\'Calling you now\')">Call me</button></div>'
+     + '</div></div>';
+  }
+  if(S.overlay === 'leave'){
+    return '<div class="ov"><div class="modal">'
+     + '<button class="modal-x" aria-label="Close" onclick="setOverlay(\'none\')">&times;</button>'
+     + '<h3>Are you sure you want to leave the interview?</h3>'
+     + '<p>You can rejoin the interview by clicking on &ldquo;join interview room&rdquo; from the interview lobby</p>'
+     + '<div class="btn-row"><button class="btn btn-secondary" style="margin:0" onclick="setOverlay(\'none\')">Cancel</button>'
+     +   '<button class="btn btn-danger" onclick="setOverlay(\'none\');go(\'survey\')">Leave Call</button></div>'
+     + '</div></div>';
+  }
+  return '';
+}
+
+function q(id, text){
+  var v = S.rating[id];
+  return '<div class="q"><div class="qt">' + text + '</div><div class="thumbs">'
+   + '<button class="thumb' + (v === 'up' ? ' sel' : '') + '" aria-label="Yes" onclick="rate(\'' + id + '\',\'up\')">' + I.up + '</button>'
+   + '<button class="thumb' + (v === 'down' ? ' sel' : '') + '" aria-label="No" onclick="rate(\'' + id + '\',\'down\')">' + I.down + '</button>'
+   + '</div></div>';
+}
+
+function scSurvey(){
+  return '<div class="col"><div class="card">'
+   + '<h1>How would you rate these?</h1>'
+   + '<p class="lede">Your answer will only be visible to JobFairX.</p>'
+   + q('worth', 'Was the experience worth your time?')
+   + q('wait', 'How was the wait time?')
+   + q('interviewer', 'How was the interviewer?')
+   + q('quality', 'How was the call quality?')
+   + '<div class="q" style="border:none"><div class="qt">What could be improved?</div>'
+   +   '<textarea class="ta" aria-label="What could be improved?"></textarea></div>'
+   + '<button class="btn btn-primary" onclick="go(\'left\')">Submit</button>'
+   + '<button class="btn btn-secondary" onclick="go(\'left\')">Skip</button>'
+   + '</div></div>';
+}
+
+function scLeft(){
+  return '<div class="col"><div class="card">'
+   + '<div class="evtitle">' + EVENT.name + '</div>'
+   + '<div class="evwhen">' + EVENT.when + '</div>'
+   + '<div class="readybox"><div class="tick">' + I.tick + '</div><div class="body">'
+   +   '<b>You can now join the interview</b></div></div>'
+   + '<div class="leftmark">' + I.hangup + '</div>'
+   + '<div class="nextlbl" style="font-size:var(--t-xl);margin-bottom:8px">You left the interview</div>'
+   + '<div class="nexttxt">You can rejoin until the employer ends the interview.</div>'
+   + '<button class="btn btn-primary" onclick="go(\'join\')">Rejoin your interview</button>'
+   + '</div><p class="foot"><a href="#" onclick="return false">Do Not Sell My Personal Information</a> - <a href="#" onclick="return false">Report</a> - <a href="#" onclick="return false">Help</a></p></div>';
+}
+
+/* ═══ RENDER ═══
+   Everything visible derives from state here, so the phone frame
+   and the desktop page can never disagree. */
+function render(){
+  var s = S.screen, h = '';
+  if(s === 'check') h = scCheck();
+  else if(s === 'permission') h = scPermission();
+  else if(s === 'preview') h = scPreview();
+  else if(s === 'devices') h = scDevices();
+  else if(s === 'phone') h = scPhone();
+  else if(s === 'join') h = scJoin();
+  else if(s === 'loading') h = scLoading();
+  else if(s === 'waiting') h = room(true);
+  else if(s === 'inroom') h = room(false);
+  else if(s === 'survey') h = scSurvey();
+  else h = scLeft();
+  document.getElementById('stage').innerHTML = h;
+
+  /* The brand bar is absent from the room and the survey on the
+     recording, so it is hidden there rather than drawn everywhere. */
+  var inRoom = (s === 'waiting' || s === 'inroom' || s === 'loading' || s === 'survey');
+  document.getElementById('brandbar').style.display = inRoom ? 'none' : '';
+
+  if(s === 'join') startClock(); else stopClock();
+  syncToggles();
+}
+
+function syncToggles(){
+  var order = ['check','permission','preview','devices','phone','join','loading','waiting','inroom','survey','left'];
+  document.querySelectorAll('#tgScreen .dev-toggle-btn').forEach(function(b,i){
+    b.classList.toggle('active', order[i] === S.screen);
+  });
+  var ov = ['none','chat','settings','byphone','leave'];
+  var roomy = (S.screen === 'waiting' || S.screen === 'inroom');
+  document.querySelectorAll('#tgOverlay .dev-toggle-btn').forEach(function(b,i){
+    b.classList.toggle('active', ov[i] === S.overlay);
+    b.disabled = !roomy && i > 0;
+  });
+}
+
+function go(v){ S.screen = v; if(v !== 'waiting' && v !== 'inroom') S.overlay = 'none'; render(); push(); window.scrollTo(0,0); }
+function setScreen(v){ go(v); }
+function setOverlay(v){ S.overlay = v; render(); push(); }
+function setTab(v){ S.tab = v; render(); push(); }
+function tgl(k){ S[k] = !S[k]; render(); push(); }
+function rate(id, v){ S.rating[id] = (S.rating[id] === v) ? null : v; render(); push(); }
+
+var tTimer;
+function toast(m){
+  var d = document.createElement('div');
+  d.textContent = m; d.setAttribute('role','status');
+  d.style.cssText = 'position:fixed;left:50%;transform:translateX(-50%);bottom:24px;background:#dcfce7;border:1px solid #bbf7d0;color:#14532d;padding:12px 18px;border-radius:8px;font-weight:600;font-size:14px;z-index:9999';
+  document.body.appendChild(d);
+  clearTimeout(tTimer); tTimer = setTimeout(function(){ d.remove(); }, 2000);
+}
+
+/* ═══ PHONE BRIDGE ═══ */
+var EMBED = /[?&]m=1/.test(location.search);
+function applyState(st){ S = JSON.parse(JSON.stringify(st)); render(); }
+function push(){
+  if(EMBED || !document.body.classList.contains('stage-mobile')) return;
+  var f = document.getElementById('phoneFrame');
+  try{ var w = f && f.contentWindow;
+    if(w && typeof w.applyState === 'function') w.applyState(S);
+  }catch(e){}
+}
+function setView(v, btn){
+  document.querySelectorAll('#tgView .dev-toggle-btn').forEach(function(b){ b.classList.remove('active'); });
+  if(btn) btn.classList.add('active');
+  var mob = v === 'mobile';
+  document.body.classList.toggle('stage-mobile', mob);
+  if(mob){
+    var f = document.getElementById('phoneFrame');
+    if(!f.getAttribute('src')){ f.addEventListener('load', push); f.setAttribute('src', location.pathname + '?m=1'); }
+    else push();
+  }
+  window.scrollTo(0,0);
+}
+if(EMBED) document.body.classList.add('embed');
+
+function fitDevbar(){
+  var d = document.querySelector('.devbar');
+  if(d) document.documentElement.style.setProperty('--devbar-h', d.offsetHeight + 'px');
+}
+window.addEventListener('resize', fitDevbar);
+window.addEventListener('load', fitDevbar);
+if(window.ResizeObserver){ new ResizeObserver(fitDevbar).observe(document.querySelector('.devbar')); }
+
+fitDevbar();
+render();
+</script>
+</body>
+</html>
