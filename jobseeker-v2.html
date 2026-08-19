@@ -91,9 +91,16 @@ a{color:var(--blue)}
 .devbar-spacer{margin-left:auto;font-size:var(--t-sm);color:var(--ink-2);white-space:nowrap}
 
 /* Toggles that belong to one page now sit on that page. Like the bar itself
-   they are prototype scaffolding, so the phone frame never shows them. */
-.pagetoggles{display:flex;gap:8px;flex-wrap:wrap;align-items:center;
-  order:3;width:100%;margin-top:2px;padding-top:14px;border-top:1px solid var(--divider)}
+   they are prototype scaffolding, so the phone frame never shows them.
+   They ride in the header's flex row rather than claiming a line of their
+   own — a full-width strip pushed the card from ~100px to ~170px, and the
+   card is chrome, not content. Flexing here also does both placements at
+   once: the strip starts immediately after the h1, which puts it beside
+   "Interviews" and between "Hiring events" and its button. */
+.pagetoggles{display:flex;gap:6px;flex-wrap:wrap;align-items:center;flex:1 1 auto;min-width:0}
+.pagetoggles .dev-toggle{gap:4px;padding:2px 6px}
+.pagetoggles .dev-toggle-btn{padding:3px 5px}
+.pagetoggles .dev-toggle-label{letter-spacing:0}
 body.embed .pagetoggles{display:none}
 
 /* ═══ PHONE STAGE ═══ */
@@ -348,9 +355,9 @@ body.stage-mobile .main{display:none!important}
      width it becomes a plain row: heading left, action right, no box. */
   .page-head{padding:0;background:none;border:none;border-radius:0;margin-bottom:14px;
     flex-direction:row;align-items:center;justify-content:space-between;gap:12px;flex-wrap:nowrap}
-  /* The strip already sits on its own line; just tighten it up here. */
+  /* No card at this width, so the strip is free to take its own line. */
   .page-head.has-toggles{flex-wrap:wrap}
-  .page-head .pagetoggles{padding-top:10px}
+  .page-head .pagetoggles{flex:1 0 100%;margin-top:10px}
   .page-head>div{min-width:0}
   .page-head h1{font-size:var(--t-xl)}
   .page-head .btn{width:auto;flex-shrink:0;padding:10px 16px;font-size:var(--t-base);min-height:44px}
@@ -398,13 +405,9 @@ body.stage-mobile .main{display:none!important}
     </div>
   </div>
   <div class="dev-toggle">
-    <span class="dev-toggle-label">Registered:</span>
-    <div class="dev-toggle-switch" id="tgReg">
-      <button class="dev-toggle-btn active" onclick="setReg('mix',this)">Mix</button>
-      <button class="dev-toggle-btn" onclick="setReg('waiting',this)">Waiting</button>
-      <button class="dev-toggle-btn" onclick="setReg('matched',this)">Matched</button>
-      <button class="dev-toggle-btn" onclick="setReg('requested',this)">Requested</button>
-      <button class="dev-toggle-btn" onclick="setReg('booked',this)">Has interview</button>
+    <span class="dev-toggle-label">Job:</span>
+    <div class="dev-toggle-switch" id="tgJob">
+      <button class="dev-toggle-btn" onclick="viewJob()">View job page</button>
     </div>
   </div>
   <div class="devbar-spacer">jordan.reyes@example.com</div>
@@ -468,22 +471,13 @@ body.stage-mobile .main{display:none!important}
     </div>
   </div>
   <div class="dev-toggle">
-    <span class="dev-toggle-label">Clock:</span>
-    <div class="dev-toggle-switch" id="tgClock">
-      <button class="dev-toggle-btn active" onclick="setClock('far',this)">Days out</button>
-      <button class="dev-toggle-btn" onclick="setClock('soon',this)">20 hrs</button>
-      <button class="dev-toggle-btn" onclick="setClock('live',this)">At interview</button>
-      <button class="dev-toggle-btn" onclick="setClock('after',this)">After</button>
-    </div>
-  </div>
-  <div class="dev-toggle">
-    <span class="dev-toggle-label">Event:</span>
-    <div class="dev-toggle-switch" id="tgLobby">
-      <button class="dev-toggle-btn active" onclick="setLobby('before',this)">Before</button>
-      <button class="dev-toggle-btn" onclick="setLobby('waiting',this)">Waiting</button>
-      <button class="dev-toggle-btn" onclick="setLobby('next',this)">Next up</button>
-      <button class="dev-toggle-btn" onclick="setLobby('ready',this)">Ready</button>
-      <button class="dev-toggle-btn" onclick="setLobby('ended',this)">Ended</button>
+    <span class="dev-toggle-label">Registered:</span>
+    <div class="dev-toggle-switch" id="tgReg">
+      <button class="dev-toggle-btn active" onclick="setReg('mix',this)">Mix</button>
+      <button class="dev-toggle-btn" onclick="setReg('waiting',this)">Waiting</button>
+      <button class="dev-toggle-btn" onclick="setReg('matched',this)">Matched</button>
+      <button class="dev-toggle-btn" onclick="setReg('requested',this)">Requested</button>
+      <button class="dev-toggle-btn" onclick="setReg('booked',this)">Has interview</button>
     </div>
   </div>
   </div>
@@ -508,6 +502,15 @@ body.stage-mobile .main{display:none!important}
     <div class="dev-toggle-switch" id="tgIv">
       <button class="dev-toggle-btn active" onclick="setIv('empty',this)">Empty</button>
       <button class="dev-toggle-btn" onclick="setIv('active',this)">Active</button>
+    </div>
+  </div>
+  <div class="dev-toggle">
+    <span class="dev-toggle-label">Clock:</span>
+    <div class="dev-toggle-switch" id="tgClock">
+      <button class="dev-toggle-btn active" onclick="setClock('far',this)">Days out</button>
+      <button class="dev-toggle-btn" onclick="setClock('soon',this)">20 hrs</button>
+      <button class="dev-toggle-btn" onclick="setClock('live',this)">At interview</button>
+      <button class="dev-toggle-btn" onclick="setClock('after',this)">After</button>
     </div>
   </div>
   </div>
@@ -1237,12 +1240,6 @@ function setClock(k,btn){
   renderEvents(); renderIv(); renderLobby(); pushToFrame();
 }
 
-function setLobby(mode,btn){
-  S.lobby=mode;
-  document.querySelectorAll('#tgLobby .dev-toggle-btn').forEach(function(b){b.classList.remove('active')});
-  btn.classList.add('active');
-  renderLobby(); go('lobby');
-}
 function prepSection(){
   return '<div class="prep"><h3>Prepare for your interview</h3>'
    +'<div class="prep-item"><div class="prep-ico done">'+I.check+'</div><div class="prep-t"><b>Camera and microphone tested</b><span>Tested 2 days ago. Test again if you\'ve changed device.</span></div><button class="btn btn-secondary btn-sm" onclick="toast(\'Testing camera and microphone\')">Test again</button></div>'
