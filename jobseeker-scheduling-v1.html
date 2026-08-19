@@ -210,7 +210,7 @@ h2.sec{font-size:var(--t-xl);font-weight:700;margin-bottom:8px}
   /* Height was raised last session; width was not, leaving these at 35x44. */
   .seclabel button{min-height:44px;min-width:44px;padding:0 4px}
   .foot a{display:inline-block;padding:13px 8px}
-  .drow a{display:inline-block;padding:12px 0}
+  .drow a{display:inline-block;min-width:44px;padding:12px 0}
 }
 </style>
 </head>
@@ -334,6 +334,9 @@ var IC = {
   back:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>'
 };
 function ph(t){return '<span class="ph">['+t+']</span>';}
+/* The resume lives in the dashboard, not in this flow. New window on purpose:
+   navigating away would throw away the slot the candidate just picked. */
+function editResume(){ window.open('jobseeker-v2.html?view=resume','_blank','noopener'); }
 var isRe = function(){return S.flow==='reschedule';};
 
 /* ═══ TOGGLES ═══ */
@@ -383,10 +386,10 @@ function slotList(){
    is Indeed's and the bodies are placeholders, not an invented career. */
 function resumeSection(){
   if(S.resume==='none'){
-    return '<div class="seclabel"><span class="l">Resume</span><button onclick="toastish(\'Add a resume\')">Add</button></div>'
+    return '<div class="seclabel"><span class="l">Resume</span><button onclick="editResume()">Add</button></div>'
      +'<div class="noresume">No resume included (optional)</div>';
   }
-  var h='<div class="seclabel"><span class="l">Resume</span><button onclick="toastish(\'Edit resume\')">Edit</button></div>';
+  var h='<div class="seclabel"><span class="l">Resume</span><button onclick="editResume()">Edit</button></div>';
   h+='<div class="resbox"><div class="rname">Jordan Reyes</div>'
    +'<div class="rcon">jordan.reyes@example.com \u00b7 '+TEL+'</div>'
    +'<div class="rrule"></div>';
@@ -539,9 +542,12 @@ function stepDone(){
   var nC = (!re && MT().reqC) ? MT().reqC : MT().nextC;
   h+='<div class="nextup"><h3>'+MT().nextH+'</h3><p>'+nP+'</p>'
    +'<button class="btn btn-secondary" style="margin-top:0" onclick="toastish(\''+nC+'\')">'+nC+'</button></div>';
-  h+='<div class="nextup" style="margin-top:18px"><h3>Get your resume ready</h3>'
-   +'<p>You may be asked to share your resume before your interview.</p>'
-   +'<button class="btn btn-secondary" style="margin-top:0" onclick="toastish(\'Review resume\')">Review resume</button></div>';
+  /* Only when one wasn't included \u2014 there is nothing to get ready if it
+     already went with the request. */
+  if(S.resume==='none')
+    h+='<div class="nextup" style="margin-top:18px"><h3>Get your resume ready</h3>'
+     +'<p>You may be asked to share your resume before your interview.</p>'
+     +'<button class="btn btn-secondary" style="margin-top:0" onclick="editResume()">Review resume</button></div>';
   h+='<button class="btn btn-secondary" onclick="toastish(\'Back to my interviews\')">Back to my interviews</button>';
   return h;
 }
