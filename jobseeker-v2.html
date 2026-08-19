@@ -162,7 +162,7 @@ body.stage-mobile .main{display:none!important}
 
 /* ═══ BADGES ═══ */
 .badge-pill{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:var(--r-sm);font-size:var(--t-xs);font-weight:700;white-space:nowrap}
-.b-live{background:var(--green-wash);color:var(--green)}
+.b-live{background:var(--green-wash);color:var(--green-solid)}
 .b-wait{background:var(--amber-wash);color:var(--amber)}
 .b-neutral{background:var(--page);color:var(--ink-2)}
 .b-good{background:var(--green-solid-wash);color:var(--green-solid)}
@@ -177,8 +177,12 @@ body.stage-mobile .main{display:none!important}
 .cap-blue svg{color:var(--blue)}
 .cap-wait{background:var(--amber-wash);color:var(--amber)}
 .cap-matched{background:var(--matched-wash);color:var(--matched)}
-.cap-live{background:var(--green-wash);color:var(--green)}
-.cap-live svg{color:var(--green)}
+/* Text sits on --green-solid, not --green: #16a34a on this wash measured
+   3.15:1, under the 4.5 minimum, on the two most urgent states in the app.
+   --green still carries the pulse dot and the pinned border, which are
+   decoration and exempt. */
+.cap-live{background:var(--green-wash);color:var(--green-solid)}
+.cap-live svg{color:var(--green-solid)}
 
 /* ═══ CARD BODY — one shape for events and interviews ═══ */
 .c-date{font-size:var(--t-md);font-weight:400;margin-top:6px}
@@ -777,8 +781,12 @@ function eventCard(e,live){
   }
 
   h+='<div class="c-row">'+I.clock+'<span>'+e.time+'</span></div>';
-  h+='<div class="c-row">'+METHOD[e.method].i+'<span>'+METHOD[e.method].l
-   +'<br><span class="c-sub">'+e.detail+'</span></span></div>';
+  /* How an interview happens is a fact about an interview. Waiting to be
+     matched there isn't one yet, so the card carries the event and no more:
+     name, date, time. Every other state keeps the method. */
+  if(st!=='waiting')
+    h+='<div class="c-row">'+METHOD[e.method].i+'<span>'+METHOD[e.method].l
+     +'<br><span class="c-sub">'+e.detail+'</span></span></div>';
   h+='</div>';
 
   /* Actions live on the right, as Indeed does. */
