@@ -20,6 +20,10 @@
   --t-xs:12px; --t-sm:13px; --t-base:14px; --t-md:16px; --t-lg:17px; --t-xl:20px; --t-2xl:22px;
   --r-sm:6px; --r-md:8px; --r-lg:12px; --r-xl:16px;
   --shadow-menu:0 4px 20px rgba(0,0,0,.12);
+  /* Measured at runtime: the dev bar wraps to two or three rows on narrow
+     screens, so a fixed offset buries the white bar underneath it. */
+  --devbar-h:44px;
+  --chrome-h:100px;
 }
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:var(--font);background:var(--page);color:var(--ink);font-size:var(--t-base);line-height:1.5;-webkit-font-smoothing:antialiased}
@@ -38,11 +42,16 @@ a{color:var(--blue)}
 .devbar-note{margin-left:auto;font-size:var(--t-sm);color:var(--ink-2)}
 
 /* ═══ TOP BAR ═══ */
-.topbar{position:fixed;top:44px;left:0;right:0;height:56px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;z-index:200}
+.topbar{position:fixed;top:var(--devbar-h);left:0;right:0;min-height:56px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px 16px;padding:8px 24px;z-index:200;flex-wrap:wrap}
+/* The variation belongs next to the logo, not up in the grey bar: which
+   format you are booking changes what this flow asks for, so it should be
+   switchable while you are looking at the times. */
+.topbar-method{flex-shrink:1;min-width:0}
+.topbar-method .dev-toggle-switch{flex-wrap:nowrap}
 .brand{font-size:var(--t-2xl);font-weight:800;color:var(--blue);letter-spacing:-.5px;text-decoration:none}
 
 /* ═══ NARROW FLOW COLUMN — Indeed's shape ═══ */
-.flow{max-width:560px;margin:0 auto;padding:132px 20px 80px}
+.flow{max-width:560px;margin:0 auto;padding:calc(var(--chrome-h) + 32px) 20px 80px}
 .ctx{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:20px 24px;margin-bottom:16px}
 .ctx b{display:block;font-size:var(--t-base);font-weight:700;line-height:1.4}
 .ctx span{font-size:var(--t-sm);color:var(--ink-3)}
@@ -119,7 +128,6 @@ h2.sec{font-size:var(--t-xl);font-weight:700;margin-bottom:8px}
 .legal{font-size:var(--t-sm);color:var(--ink-2);line-height:1.55;margin:18px 0}
 
 /* ═══ CONFIRMATION ═══ */
-.art{width:110px;height:88px;margin:6px 0 18px}
 .ticks{margin-bottom:20px}
 .tick{display:flex;gap:12px;align-items:flex-start;margin-bottom:10px;font-size:var(--t-md);line-height:1.5}
 .tick svg{width:20px;height:20px;color:var(--green-solid);flex-shrink:0;margin-top:2px}
@@ -133,7 +141,6 @@ h2.sec{font-size:var(--t-xl);font-weight:700;margin-bottom:8px}
 /* ═══ FAIL / LOCKED ═══ */
 .failart{width:150px;height:auto;margin:4px 0 22px}
 .failp{font-size:var(--t-md);line-height:1.6;margin-bottom:18px}
-.lockbox{background:var(--amber-wash);border-radius:var(--r-md);padding:16px 18px;font-size:var(--t-base);line-height:1.55;margin-bottom:20px}
 .ph{background:#fff6d9;border-bottom:1px dashed #b8860b;color:#7a5c00;font-weight:600;padding:0 3px;border-radius:2px}
 .foot{text-align:center;font-size:var(--t-sm);color:var(--ink-2);margin-top:22px}
 
@@ -150,7 +157,9 @@ h2.sec{font-size:var(--t-xl);font-weight:700;margin-bottom:8px}
 .qnote{font-size:var(--t-sm);color:var(--ink-2);margin-bottom:20px;line-height:1.55}
 
 @media (max-width:640px){
-  .flow{padding:150px 14px 70px}
+  .flow{padding:calc(var(--chrome-h) + 26px) 14px 70px}
+  .topbar{padding:8px 14px}
+  .topbar-method .dev-toggle-btn{padding:6px 8px}
   .panel{padding:20px 18px}
   h1{font-size:23px}
 
@@ -171,6 +180,17 @@ h2.sec{font-size:var(--t-xl);font-weight:700;margin-bottom:8px}
   .field{padding:12px 14px}
   .timebox{padding:14px}
   .failart{width:120px}
+
+  /* 44px floor. These were the last content controls under it: the footer
+     link (18px), the back arrow (26px), the Edit buttons (23px/19px), the
+     timezone pencil (20px) and the brand (33px). Icon-only controls get a
+     min box rather than padding so the rows they sit in do not shift. */
+  .brand{display:inline-flex;align-items:center;min-height:44px}
+  .backarrow{min-height:44px;min-width:44px;justify-content:center;margin-left:-10px}
+  .tzrow button{min-height:44px;min-width:44px;justify-content:center}
+  .seclabel button{min-height:44px;padding:0 4px}
+  .foot a{display:inline-block;padding:13px 8px}
+  .drow a{display:inline-block;padding:12px 0}
 }
 </style>
 </head>
@@ -180,7 +200,7 @@ h2.sec{font-size:var(--t-xl);font-weight:700;margin-bottom:8px}
   <div class="dev-toggle">
     <span class="dev-toggle-label">Flow:</span>
     <div class="dev-toggle-switch" id="tgFlow">
-      <button class="dev-toggle-btn active" onclick="setFlow('reschedule',this)">Reschedule</button>
+      <button class="dev-toggle-btn active" onclick="setFlow('reschedule',this)">Reschedule flow</button>
       <button class="dev-toggle-btn" onclick="setFlow('schedule',this)">First booking</button>
     </div>
   </div>
@@ -192,16 +212,6 @@ h2.sec{font-size:var(--t-xl);font-weight:700;margin-bottom:8px}
       <button class="dev-toggle-btn active" onclick="setStep('time',this)">Select time</button>
       <button class="dev-toggle-btn" onclick="setStep('review',this)">Review</button>
       <button class="dev-toggle-btn" onclick="setStep('done',this)">Confirmed</button>
-      <button class="dev-toggle-btn" onclick="setStep('locked',this)">Locked</button>
-    </div>
-  </div>
-  <div class="dev-toggle">
-    <span class="dev-toggle-label">Method:</span>
-    <div class="dev-toggle-switch" id="tgMethod">
-      <button class="dev-toggle-btn active" onclick="setMethod('video',this)">Video</button>
-      <button class="dev-toggle-btn" onclick="setMethod('link',this)">Link</button>
-      <button class="dev-toggle-btn" onclick="setMethod('phone',this)">Phone</button>
-      <button class="dev-toggle-btn" onclick="setMethod('person',this)">In person</button>
     </div>
   </div>
   <div class="dev-toggle">
@@ -214,7 +224,18 @@ h2.sec{font-size:var(--t-xl);font-weight:700;margin-bottom:8px}
   <div class="devbar-note">jordan.reyes@example.com</div>
 </div>
 
-<div class="topbar"><a class="brand" href="jobseeker-v1.html">JobFairX</a></div>
+<div class="topbar">
+  <a class="brand" href="jobseeker-v2.html">JobFairX</a>
+  <div class="dev-toggle topbar-method">
+    <span class="dev-toggle-label">Method:</span>
+    <div class="dev-toggle-switch" id="tgMethod">
+      <button class="dev-toggle-btn active" onclick="setMethod('video',this)">JobFairX video</button>
+      <button class="dev-toggle-btn" onclick="setMethod('link',this)">External link</button>
+      <button class="dev-toggle-btn" onclick="setMethod('phone',this)">Phone call</button>
+      <button class="dev-toggle-btn" onclick="setMethod('person',this)">In person</button>
+    </div>
+  </div>
+</div>
 
 <main class="flow">
   <div class="ctx">
@@ -245,10 +266,12 @@ var METHODS = {
           nextH:'Watch for the video link', nextP:'It arrives once the employer approves your interview. Nothing to do until then.', nextC:'Go to my interviews'},
   phone: {l:'Phone call', sent:'This will be a phone call', pre:'The employer will call you. Check the number below is right.',
           nextH:'Keep your ringer on', nextP:'There\u2019s nothing to join \u2014 the employer calls you at your interview time.', nextC:'Check my number'},
-  person:{l:'In person', sent:'This interview is in person', pre:'Check you can get to the address below before you book.',
-          nextH:'Plan your travel', nextP:'Check the address and parking before the day.', nextC:'Get directions'}
+  person:{l:'In person', sent:'This interview is in person', pre:'You\u2019ll get the address once they approve your interview.',
+          nextH:'Plan your travel', nextP:'Check the address and parking before the day.', nextC:'Get directions',
+          /* A first booking is only a request, so there is no address yet and
+             nothing to get directions to. */
+          reqP:'The address arrives once they approve your interview. Nothing to do until then.', reqC:'Go to my interviews'}
 };
-var ADDR='2200 Ross Avenue, Suite 400, Dallas, TX 75201';
 var TEL='(555) 014-2278';
 function MT(){return METHODS[S.method];}
 var CURRENT = '11:00 AM - 11:30 AM';
@@ -281,8 +304,7 @@ var IC = {
   info:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>',
   check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>',
   arrow:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
-  back:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>',
-  lock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>'
+  back:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>'
 };
 function ph(t){return '<span class="ph">['+t+']</span>';}
 var isRe = function(){return S.flow==='reschedule';};
@@ -298,7 +320,7 @@ function setCap(v,b){S.cap=v;S.picked=null;mark('tgCap',b);render();}
 function mark(id,btn){document.querySelectorAll('#'+id+' .dev-toggle-btn').forEach(function(x){x.classList.remove('active')});btn.classList.add('active');}
 function jump(step){S.step=step;
   document.querySelectorAll('#tgStep .dev-toggle-btn').forEach(function(x){
-    x.classList.toggle('active', x.textContent.toLowerCase().indexOf(({screener:'screener',failed:'failed',time:'select',review:'review',done:'confirmed',locked:'locked'})[step])===0);
+    x.classList.toggle('active', x.textContent.toLowerCase().indexOf(({screener:'screener',failed:'failed',time:'select',review:'review',done:'confirmed'})[step])===0);
   });
   render();window.scrollTo(0,0);}
 
@@ -379,7 +401,7 @@ function stepTime(){
 
   /* What this method needs confirmed before a slot is picked. */
   if(S.method==='phone')  h+='<div class="drow">'+IC.people+'<span class="v">'+MT().pre+'<br><b>'+TEL+'</b> &middot; <a href="#" onclick="toastish(\'Edit number\');return false">Edit</a></span></div>';
-  if(S.method==='person') h+='<div class="drow">'+IC.people+'<span class="v">'+MT().pre+'<br><b>'+ADDR+'</b></span></div>';
+  if(S.method==='person') h+='<div class="drow">'+IC.people+'<span class="v">'+MT().pre+'</span></div>';
   if(S.method==='link')   h+='<div class="drow">'+IC.people+'<span class="v">'+EVENT.co+MT().pre+'</span></div>';
   h+='<div class="rule"></div><h2 class="sec">Select a time</h2>';
   h+='<div class="tzrow">'+IC.globe+EVENT.tz+'<button aria-label="Change time zone" onclick="toastish(\'Change time zone\')">'+IC.pencil+'</button></div>';
@@ -432,11 +454,6 @@ function stepDone(){
   var re=isRe();
   var t = S.picked || SLOTS[3].t;
   var h='<div class="bar"><i style="width:100%"></i></div>';
-  h+='<svg class="art" viewBox="0 0 130 100" fill="none" aria-hidden="true">'
-   +'<path d="M18 44l34-18 22 12-30 46-26-14z" fill="#8fd0b0"/>'
-   +'<path d="M62 34c2-8 6-16 9-16 4 0 4 6 2 12l-2 8h16c5 0 8 4 6 9l-8 24c-1 5-5 8-10 8H54l4-38 4-7z" fill="#f2c6a8"/>'
-   +'<path d="M46 46h12l-4 42H40z" fill="#1f3a5f"/></svg>';
-
   if(re){
     h+='<h1>All set for your interview with '+EVENT.co+'</h1>';
     h+='<div class="ticks">'
@@ -452,7 +469,7 @@ function stepDone(){
     h+='<h1>Your interview request has been sent</h1>';
     h+='<div class="ticks">'
      +'<div class="tick">'+IC.check+'<span>'+EVENT.co+' has your requested time and your screener answers</span></div>'
-     +'<div class="tick">'+IC.check+'<span>They usually respond within '+ph('PLACEHOLDER — response window')+'. You\'ll get an email at <b>jordan.reyes@example.com</b></span></div>'
+     +'<div class="tick">'+IC.check+'<span>They usually respond within 72 hours. You\'ll get an email at <b>jordan.reyes@example.com</b></span></div>'
      +'</div>';
     h+='<div class="detailcard"><h3>Requested interview</h3><div class="rule"></div>'
      +'<div class="drow">'+IC.people+'<span class="v">'+MT().l+'</span></div>'
@@ -461,8 +478,10 @@ function stepDone(){
 
   /* The next step is method-specific: there is no device to test for a
      phone call, and no link to wait for on a JobFairX call. */
-  h+='<div class="nextup"><h3>'+MT().nextH+'</h3><p>'+MT().nextP+'</p>'
-   +'<button class="btn btn-secondary" style="margin-top:0" onclick="toastish(\''+MT().nextC+'\')">'+MT().nextC+'</button></div>';
+  var nP = (!re && MT().reqP) ? MT().reqP : MT().nextP;
+  var nC = (!re && MT().reqC) ? MT().reqC : MT().nextC;
+  h+='<div class="nextup"><h3>'+MT().nextH+'</h3><p>'+nP+'</p>'
+   +'<button class="btn btn-secondary" style="margin-top:0" onclick="toastish(\''+nC+'\')">'+nC+'</button></div>';
   h+='<div class="nextup" style="margin-top:18px"><h3>Get your resume ready</h3>'
    +'<p>You may be asked to share your resume before your interview.</p>'
    +'<button class="btn btn-secondary" style="margin-top:0" onclick="toastish(\'Review resume\')">Review resume</button></div>';
@@ -470,38 +489,49 @@ function stepDone(){
   return h;
 }
 
-function stepLocked(){
-  /* Rescheduling closes 24 hours before the event — the whole event locks
-     at once, not each interview separately. */
-  var h='<h1>Rescheduling is closed for this event</h1>';
-  h+='<div class="lockbox"><b>'+IC.lock.replace('<svg','<svg width="16" height="16" style="vertical-align:-3px"')+' Changes closed 24 hours before the event.</b><br>'
-   +'The Dallas Healthcare Hiring Event starts Apr 22 at 11:00 AM CDT. Times were locked on Apr 21 at 11:00 AM CDT so employers could finalise their schedules.</div>';
-  h+='<div class="detailcard"><h3>Your interview</h3><div class="rule"></div>'
-   +'<div class="drow">'+IC.people+'<span class="v">'+MT().l+'</span></div>'
-   +'<div class="drow">'+IC.cal+'<span class="v">'+EVENT.date+'<br>'+CURRENT+'<br>'+EVENT.tz+'</span></div></div>';
-  h+='<p class="qnote">If you can no longer attend, cancelling still works — but the slot won\'t be offered back to you.</p>';
-  h+='<button class="btn btn-primary" onclick="toastish(\'Back to my interviews\')">Back to my interviews</button>';
-  h+='<button class="btn btn-secondary" onclick="toastish(\'Message employer\')">Message '+EVENT.co+'</button>';
-  return h;
-}
-
 function toastish(m){
   var d=document.createElement('div');
   d.textContent=m;
-  d.style.cssText='position:fixed;top:112px;right:20px;background:#dcfce7;border:1px solid #bbf7d0;color:#14532d;padding:13px 18px;border-radius:8px;font-weight:600;font-size:14px;z-index:9999;box-shadow:var(--shadow-menu)';
+  d.style.cssText='position:fixed;top:calc(var(--chrome-h) + 12px);right:20px;background:#dcfce7;border:1px solid #bbf7d0;color:#14532d;padding:13px 18px;border-radius:8px;font-weight:600;font-size:14px;z-index:9999;box-shadow:var(--shadow-menu)';
   d.setAttribute('role','status');
   document.body.appendChild(d);
   setTimeout(function(){d.remove()},2200);
 }
 
+/* The bar is prototype scaffolding that wraps to a different number of rows
+   at every width, so nothing below it can assume a fixed offset. */
+function fitDevbar(){
+  var r=document.documentElement,
+      d=document.querySelector('.devbar'),
+      t=document.querySelector('.topbar');
+  var dh = d ? d.offsetHeight : 44;
+  r.style.setProperty('--devbar-h', dh+'px');
+  /* Read the white bar only after the grey one has been placed — it wraps
+     too, and everything below has to clear both. */
+  r.style.setProperty('--chrome-h', (dh + (t ? t.offsetHeight : 56))+'px');
+}
+window.addEventListener('resize', fitDevbar);
+window.addEventListener('load', fitDevbar);
+/* Both bars change height when the webfont lands and when they re-wrap, and
+   a one-shot measurement at boot reads the pre-font layout. Watch them
+   instead. Setting the vars only moves what is below, so this cannot loop. */
+if(window.ResizeObserver){
+  var ro=new ResizeObserver(fitDevbar);
+  ['.devbar','.topbar'].forEach(function(sel){
+    var el=document.querySelector(sel); if(el) ro.observe(el);
+  });
+}
+if(document.fonts && document.fonts.ready) document.fonts.ready.then(fitDevbar);
+
 function render(){
   var p=document.getElementById('panel');
-  var f={screener:stepScreener,failed:stepFailed,time:stepTime,review:stepReview,done:stepDone,locked:stepLocked}[S.step];
+  var f={screener:stepScreener,failed:stepFailed,time:stepTime,review:stepReview,done:stepDone}[S.step];
   p.innerHTML=f();
   /* Screener only exists on a first booking. */
   var scr=document.querySelectorAll('#tgStep .dev-toggle-btn');
   [0,1].forEach(function(i){ scr[i].disabled = isRe(); scr[i].style.opacity = isRe()?'.4':''; });
 }
+fitDevbar();
 render();
 </script>
 </body>
