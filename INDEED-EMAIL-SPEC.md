@@ -36,6 +36,29 @@ Then a bold grey section heading with grey body under it
 ("Here's how you can prepare" / "How to attend" / "How to join your interview"),
 then plain text links — Change interview time, Cancel interview — then a sign-off.
 
+## The one button
+
+Indeed has exactly one filled button, and only for joining:
+
+    background:#2557a7; color:#fff; font-size:16px; font-weight:700;
+    line-height:44px; border-radius:8px; text-decoration:none;
+    display:inline-block
+
+It is followed by a fallback line — "If the button doesn't work, use this link:"
+— with the raw URL printed beneath it. Phone and in-person have no button.
+
+## Section order, per type
+
+Virtual: No software required -> How to join your interview -> button ->
+fallback link -> Change interview time -> Cancel interview -> Have a great
+interview!
+
+In person: How to attend (employer's own words) -> Here's how you can prepare ->
+Change interview time -> Cancel interview. No sign-off, no button.
+
+The prepare section appears on the in-person reminder and not on the virtual
+one. Matched per type rather than averaged.
+
 ## Icons
 
 Small hosted PNGs: 14px and 12px wide for the inline row icons, 80px for the
