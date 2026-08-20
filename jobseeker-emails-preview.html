@@ -234,6 +234,43 @@
     icoMsg:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H8l-5 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>'
   };
 
+  /* ═══════════════════════════════════════════════════════════
+     WHICH VIDEO PRODUCT THE EMPLOYER IS USING
+     The employer supplies a link, not a product name, so the name is read off
+     the link's host. Indeed never names the platform because their form never
+     asks for the link's origin \u2014 we have it, so we can answer the question this
+     type actually raises: do I need to install something before 11am.
+     An unrecognised host names no product rather than guessing at one.
+     ═══════════════════════════════════════════════════════════ */
+  var PLATFORMS = [
+    [/(^|\.)teams\.microsoft\.com$/, 'Microsoft Teams'],
+    [/(^|\.)zoom\.us$/,               'Zoom'],
+    [/(^|\.)meet\.google\.com$/,     'Google Meet'],
+    [/(^|\.)webex\.com$/,             'Webex'],
+    [/(^|\.)whereby\.com$/,           'Whereby'],
+    [/(^|\.)gotomeeting\.com$/,       'GoTo Meeting'],
+    [/(^|\.)meet\.jit\.si$/,          'Jitsi Meet']
+  ];
+  function platformFromLink(url) {
+    var m = String(url).match(/^https?:\/\/([^\/:?#]+)/i);
+    if (!m) return null;
+    var host = m[1].toLowerCase();
+    for (var i = 0; i < PLATFORMS.length; i++) if (PLATFORMS[i][0].test(host)) return PLATFORMS[i][1];
+    return null;
+  }
+
+  /* Same meeting link the dashboard carries for the Denver event, so the two
+     files name the same product from the same source. */
+  var LINK_URL = 'https://teams.microsoft.com/l/meetup-join/19:af22d9c1';
+  var LINK_PLATFORM = platformFromLink(LINK_URL);
+  var LINK_WHERE = LINK_PLATFORM || 'A video link from the employer';
+  var LINK_JOIN = LINK_PLATFORM
+    ? 'Nike is using ' + LINK_PLATFORM + ' for this interview. Open the link a few minutes early \u2014 you may need to install ' + LINK_PLATFORM + ' first.'
+    : 'Nike is using their own video link for this interview. Open it a few minutes early \u2014 it may open in another app.';
+  var LINK_META = LINK_PLATFORM
+    ? 'Your interview starts at 11:00 AM EST on ' + LINK_PLATFORM + '.'
+    : 'Your interview starts at 11:00 AM EST on the employer\u2019s video link.';
+
   var TYPES = {
     jfx: {
       joinTail: '<p class="esign"><b>Have a great interview!</b></p>',
@@ -255,17 +292,17 @@
       joinTail: '<p class="esign"><b>Have a great interview!</b></p>',
       label: 'Employer\u2019s video call',
       ico: '{{icoVideo}}',
-      typeRowPre: '<div class=\"erow\"><span class=\"erow-ico\">{{icoVideo}}</span><span><span class=\"erow-b\">Employer\u2019s video call</span><span class=\"erow-v\">Nike\u2019s own video platform</span><span class=\"erow-v\">Link: Nike sends it when they confirm</span></span></div>',
-      typeRowConf: '<div class=\"erow\"><span class=\"erow-ico\">{{icoVideo}}</span><span><span class=\"erow-b\">Employer\u2019s video call</span><span class=\"erow-v\">Nike\u2019s own video platform</span><span class=\"erow-v\">https://meet.nike-careers.com/j/8f42a1c9</span></span></div>',
+      typeRowPre: '<div class=\"erow\"><span class=\"erow-ico\">{{icoVideo}}</span><span><span class=\"erow-b\">Employer\u2019s video call</span><span class=\"erow-v\">'+LINK_WHERE+'</span><span class=\"erow-v\">Link: Nike sends it when they confirm</span></span></div>',
+      typeRowConf: '<div class=\"erow\"><span class=\"erow-ico\">{{icoVideo}}</span><span><span class=\"erow-b\">Employer\u2019s video call</span><span class=\"erow-v\">'+LINK_WHERE+'</span><span class=\"erow-v\">'+LINK_URL+'</span></span></div>',
       sec2: '',
       secHead: 'How to join your interview',
-      secBody: 'Nike is hosting this interview on their own video platform. On Friday, July 13, 2026 at 11:00 AM, click the button below to join.',
+      secBody: LINK_JOIN,
       joinBtn: '<a href="#" class="ebtn">Join your interview</a>',
-      fallback: '<p class="ebody" style="margin-top:10px">If the button does not work, use this link:<br><a href="#" class="eurl">https://meet.nike-careers.com/j/8f42a1c9</a></p>',
+      fallback: '<p class="ebody" style="margin-top:10px">If the button does not work, use this link:<br><a href="#" class="eurl">'+LINK_URL+'</a></p>',
       joinSubject: 'Your Nike interview is today. Here is your link',
       joinPreview: 'Your interview with Nike is at 11:00 AM. Here is the link...',
       joinTitle: 'Nike is ready to interview you',
-      joinMeta: 'Your interview starts at 11:00 AM EST on Nike\u2019s own video platform.',
+      joinMeta: LINK_META,
     },
     phone: {
       joinTail: '<p class="esign"><b>Have a great interview!</b></p>',

@@ -111,3 +111,22 @@ our own rule that candidates do not see recruiter names.
 Our seeker-side wording is therefore inferred from their employer copy, not
 transcribed. It is the one place in these emails where we are designing rather
 than matching.
+
+## The employer's video call: name the product
+
+Indeed never names the video product in any email. Their employer form asks only
+"Paste your video link" and never asks which service it is, so they cannot name
+it. We can: the link's host says so.
+
+`platformFromLink()` reads the host and maps the known ones — Teams, Zoom, Google
+Meet, Webex, Whereby, GoTo, Jitsi. An unrecognised host names no product and the
+copy falls back to "a video link from the employer".
+
+This is worth the small mechanism because it answers the only question this type
+raises that the others do not: whether the candidate needs to install something
+before the interview starts. "Open the link a few minutes early — you may need to
+install Microsoft Teams first" prevents a candidate spending the first four
+minutes of a fifteen-minute interview at a download screen.
+
+Note this is derived, not declared. If the employer form ever captures the
+product name directly, that value is authoritative and should win.
