@@ -36,6 +36,11 @@ Then a bold grey section heading with grey body under it
 ("Here's how you can prepare" / "How to attend" / "How to join your interview"),
 then plain text links — Change interview time, Cancel interview — then a sign-off.
 
+## No greeting
+
+Indeed's seeker mail opens straight on the headline. There is no "Hi <name>,".
+Ours matches.
+
 ## The one button
 
 Indeed has exactly one filled button, and only for joining:
