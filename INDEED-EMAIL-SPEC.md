@@ -85,3 +85,29 @@ already the prototype's font. Their `#2557a7` is close to our `--blue` `#0044B3`
 | Section heading | 16px bold grey | 10px uppercase, letterspaced |
 | Actions | plain links | filled button + small link |
 | Container | plain white | grey outer, white inner card, radius, shadow |
+
+## Phone, from Indeed's employer mail
+
+There is no seeker-side phone email from Indeed to copy. The mechanics come from
+their employer mail instead, in the "A - Indeed Employer Emails" label.
+
+On the request: **"Indeed will email phone details after the candidate
+confirms."** No number exists yet.
+
+On the confirmation, to the employer:
+
+    Call from your phone
+    <the candidate's number>
+    Call the number above at your interview start time.
+    Visit the candidate's page to choose another way to contact them.
+
+Three things follow. The number that changes hands is the **candidate's own** —
+the employer dials it. The heading names the direction rather than leaving it to
+be inferred. And the number is withheld until the interview is confirmed.
+
+Indeed never names a person as the caller anywhere in this flow, which matches
+our own rule that candidates do not see recruiter names.
+
+Our seeker-side wording is therefore inferred from their employer copy, not
+transcribed. It is the one place in these emails where we are designing rather
+than matching.
