@@ -129,6 +129,9 @@
   .body-copy { font-size: 14px; line-height: 1.55; color: #2d2d2d; margin: 0 0 18px; }
   .platform-note { padding: 12px 14px; background: #f5f7fb; border-radius: 10px; font-size: 12px; color: #4a4a4a; line-height: 1.5; margin-top: 14px; display: flex; align-items: center; gap: 8px; }
   .platform-note svg { width: 14px; height: 14px; flex-shrink: 0; color: #2563eb; }
+  /* Same visible-placeholder convention as the seeker prototype: a value we
+     do not have is shown as missing rather than invented. */
+  .ph { background: #fff6d9; border-bottom: 1px dashed #b8860b; color: #7a5c00; font-weight: 600; padding: 0 3px; border-radius: 2px; }
 
   .email-new-footer { padding: 24px 32px 28px; background: #fafafa; border-top: 1px solid #f0efec; font-size: 12px; color: #6b6862; line-height: 1.6; }
   .email-new-footer-links a { color: #2563eb; text-decoration: none; margin-right: 14px; font-weight: 500; }
@@ -165,6 +168,17 @@
       <button class="toggle-btn" data-view="current">Current</button>
     </div>
   </div>
+  <div class="tb-row">
+    <!-- Shorter names than the emails use: two of the four read as a video call
+         to the candidate, and they have to be distinguishable here. -->
+    <span class="toggle-label">Type</span>
+    <div class="toggle-btns">
+      <button class="toggle-btn active" data-type="jfx">On JobFairX</button>
+      <button class="toggle-btn" data-type="link">External link</button>
+      <button class="toggle-btn" data-type="phone">Phone</button>
+      <button class="toggle-btn" data-type="person">In person</button>
+    </div>
+  </div>
 </div>
 
 <div class="stage" id="stage"></div>
@@ -172,6 +186,91 @@
 <script>
   var currentEmail = 'match';
   var currentView = 'new';
+  var currentType = 'jfx';
+
+  /* ═══════════════════════════════════════════════════════════
+     THE FOUR INTERVIEW TYPES
+     Labels are the dashboard's, verbatim, so a candidate reads the same words
+     in the app and in their inbox. The toggle above uses shorter names because
+     two of these read as "video call" and have to be told apart while switching;
+     those toggle names never appear in an email.
+
+     Structure is Indeed's, taken from Scott's own seeker mail: one skeleton,
+     one swappable block per type, and an employer-written note for arrival.
+     ═══════════════════════════════════════════════════════════ */
+  var TYPES = {
+    jfx: {
+      label: 'JobFairX video call',
+      submittedLine: 'Your interview will happen on JobFairX. No software to download. Once Nike accepts, we\'ll send a link to join.',
+      reschedLine: 'Interview type: <b>JobFairX video call</b> &mdash; only the time is changing.',
+      acceptedAddr: '',
+      acceptedBlock: '<div class="platform-note"><span><b>No software required</b><br>Your interview takes place on JobFairX, so there is nothing to download.</span></div>',
+      joinSubject: 'Your Nike interview is starting. Join now',
+      joinPreview: 'Nike is in the room. Click below to join your interview...',
+      joinBlock: '<div class="callout neutral"><div>'
+        + '<p class="callout-title">Nike is ready to interview you for School Bus Driver</p>'
+        + '<p class="callout-meta">Your interview starts at 11:00 AM EST.</p>'
+        + '</div></div>'
+        + '<a href="#" class="cta">Join interview &rarr;</a>'
+        + '<div class="platform-note"><span>Opens in your browser. No download needed.</span></div>',
+    },
+    link: {
+      label: 'Employer\u2019s video call',
+      submittedLine: 'Nike runs this interview on their own video platform. Once they accept, we\'ll send you the link to join.',
+      reschedLine: 'Interview type: <b>Employer\u2019s video call</b> &mdash; only the time is changing.',
+      acceptedAddr: '',
+      acceptedBlock: '<div class="platform-note"><span><b>How to join your interview</b><br>Nike runs this interview on their own video platform. Use this link at your interview time.<br><span class="ph">[PLACEHOLDER &mdash; the employer\u2019s video link]</span></span></div>',
+      joinSubject: 'Your Nike interview is today. Here is your link',
+      joinPreview: 'Your interview with Nike is at 11:00 AM. Here is the link to join...',
+      joinBlock: '<div class="callout neutral"><div>'
+        + '<p class="callout-title">Nike is ready to interview you for School Bus Driver</p>'
+        + '<p class="callout-meta">Your interview starts at 11:00 AM EST on Nike\u2019s own video platform.</p>'
+        + '</div></div>'
+        + '<a href="#" class="cta">Join interview &rarr;</a>'
+        + '<div class="platform-note"><span>If the button does not work, use this link:<br><span class="ph">[PLACEHOLDER &mdash; the employer\u2019s video link]</span></span></div>',
+    },
+    phone: {
+      label: 'Phone call',
+      submittedLine: 'Nike will call you at your interview time. Once they accept, we\'ll confirm the number they are calling.',
+      reschedLine: 'Interview type: <b>Phone call</b> &mdash; only the time is changing.',
+      acceptedAddr: '',
+      acceptedBlock: '<div class="platform-note"><span><b>Nike will call you</b><br>Nike calls you at your interview time on <b>(555) 014-2278</b>. There is nothing to join.<br><a href="#">Wrong number?</a></span></div>',
+      joinSubject: 'Your Nike interview is today. Keep your phone nearby',
+      joinPreview: 'Nike calls you at 11:00 AM EST. Nothing to click...',
+      /* No CTA on purpose: a button telling someone to click, when the thing
+         they are waiting for is a ring, is the defect this type is prone to. */
+      joinBlock: '<div class="callout neutral"><div>'
+        + '<p class="callout-title">Nike is calling you today for School Bus Driver</p>'
+        + '<p class="callout-meta">Nike calls you at 11:00 AM EST on (555) 014-2278.</p>'
+        + '</div></div>'
+        + '<div class="platform-note"><span>Nothing to join &mdash; just answer when your phone rings. <a href="#">Wrong number?</a></span></div>',
+    },
+    person: {
+      label: 'In person',
+      submittedLine: 'This interview happens in person. Once Nike accepts, we\'ll send you the address and how to get in.',
+      reschedLine: 'Interview type: <b>In person</b> &mdash; only the time is changing.',
+      acceptedAddr: '<div class="info-card-row"><span class="k">Address</span><span class="v">Nike Store #412<br>3200 Las Vegas Blvd S<br>Las Vegas, NV 89109</span></div>',
+      acceptedBlock: '<div class="platform-note"><span><b>How to attend</b><br><span class="ph">[PLACEHOLDER &mdash; the employer\u2019s own arrival and parking note]</span></span></div>',
+      joinSubject: 'Your Nike interview is tomorrow. Here is how to get there',
+      joinPreview: 'Nike Store #412, 3200 Las Vegas Blvd S. Here is how to attend...',
+      joinBlock: '<div class="callout neutral"><div>'
+        + '<p class="callout-title">You are interviewing with Nike tomorrow for School Bus Driver</p>'
+        + '<p class="callout-meta">Friday, July 13 at 11:00 AM EST.</p>'
+        + '</div></div>'
+        + '<div class="info-card"><div class="info-card-row"><span class="k">Address</span>'
+        + '<span class="v">Nike Store #412<br>3200 Las Vegas Blvd S<br>Las Vegas, NV 89109</span></div></div>'
+        + '<div class="platform-note"><span><b>How to attend</b><br><span class="ph">[PLACEHOLDER &mdash; the employer\u2019s own arrival and parking note]</span></span></div>',
+    },
+  };
+
+  /* Any {{key}} in a subject, preview or body is filled from the current type.
+     Unknown keys are left alone rather than blanked, so a typo is visible. */
+  function fill(str) {
+    var T = TYPES[currentType];
+    return String(str).replace(/\{\{(\w+)\}\}/g, function(m, k){
+      return Object.prototype.hasOwnProperty.call(T, k) ? T[k] : m;
+    });
+  }
 
   var EMAILS = {
     match: {
@@ -217,7 +316,7 @@
               <div class="info-card-row"><span class="k">Company</span><span class="v big">Nike</span></div>
               <div class="info-card-row"><span class="k">Role</span><span class="v">Retail Sales Associate</span></div>
               <div class="info-card-row"><span class="k">Location</span><span class="v">Denver, CO</span></div>
-              <div class="info-card-row"><span class="k">Interview</span><span class="v">on JobFairX</span></div>
+              <div class="info-card-row"><span class="k">Interview</span><span class="v">{{label}}</span></div>
             </div>
             <a href="#" class="cta">Request an interview</a>
             <a href="#" class="cta-secondary">View job details &rarr;</a>
@@ -226,6 +325,7 @@
       },
       notes: {
         new: [
+          '<strong>Type-aware.</strong> The Interview row carries the real type &mdash; JobFairX video call, Employer&rsquo;s video call, Phone call or In person &mdash; so the first thing a candidate learns about the format is honest.',
           '<strong>"Request an interview" not "Schedule."</strong> The candidate isn\'t picking a time yet &mdash; they\'re asking Nike to be considered.',
           '<strong>"You matched with Nike" framing.</strong> This is a job-alert-style match notification, not an invitation. Feels like Indeed / LinkedIn Jobs.',
           '<strong>Info card with structured details.</strong> Company, role, location, event window &mdash; scannable at a glance.',
@@ -337,6 +437,7 @@
           <div class="email-new-body">
             <p class="email-new-greeting">Hi Brandon,</p>
             <p class="body-copy" style="margin-bottom: 20px;">Nike proposed new times for your Sales Associate interview. A scheduling conflict came up. Your spot is still held.</p>
+            <p class="body-copy" style="margin-bottom: 20px;">{{reschedLine}}</p>
             <div class="info-card" style="margin-bottom: 20px;">
               <div class="info-card-row"><span class="k">Was</span><span class="v" style="text-decoration:line-through;color:#9ca3af;font-weight:500;">Sept 22 &middot; 10:00 AM PDT</span></div>
             </div>
@@ -352,6 +453,7 @@
       },
       notes: {
         new: [
+          '<strong>Type-aware.</strong> A one-line type reminder, so a changed time never arrives without the format attached.',
           '<strong>Reschedule framing instead of invitation.</strong> Subject now says Nike proposed new times, not "invited you."',
           '<strong>"Was" reference.</strong> Original time crossed out so they immediately understand what\'s changing.',
           '<strong>Amber callout.</strong> Signals "attention needed but not urgent" &mdash; distinct from a first invite.',
@@ -422,14 +524,16 @@
               <div class="info-card-row"><span class="k">Role</span><span class="v">Sales Associate</span></div>
               <div class="info-card-row"><span class="k">Location</span><span class="v">Las Vegas, NV</span></div>
               <div class="info-card-row"><span class="k">Type</span><span class="v">Remote</span></div>
+              <div class="info-card-row"><span class="k">Interview</span><span class="v">{{label}}</span></div>
             </div>
-            <p class="body-copy">Your interview will happen on JobFairX. No software to download. Once Nike accepts, we\'ll send a link to join.</p>
+            <p class="body-copy">{{submittedLine}}</p>
             <a href="#" class="cta-secondary">View request status &rarr;</a>
           </div>
         `,
       },
       notes: {
         new: [
+          '<strong>Type-aware.</strong> The platform sentence changes per type. It used to promise JobFairX and no download, which is false for three of the four.',
           '<strong>Subject makes the status clear.</strong> "Your interview request to Nike is in" &mdash; not just "Your interview with Nike" which sounds already scheduled.',
           '<strong>Callout confirms what happened.</strong> "Request sent" + timeline expectation.',
           '<strong>Requested time card.</strong> Reinforces what they asked for so they can double-check.',
@@ -502,17 +606,19 @@
               <p class="info-section-label">Job details</p>
               <div class="info-card-row"><span class="k">Job title</span><span class="v big">Sales Associate</span></div>
               <div class="info-card-row"><span class="k">Job location</span><span class="v">Las Vegas, NV</span></div>
-              <div class="info-card-row"><span class="k">Interview location</span><span class="v">on JobFairX</span></div>
+              <div class="info-card-row"><span class="k">Interview location</span><span class="v">{{label}}</span></div>
+              {{acceptedAddr}}
             </div>
             <a href="#" class="cta">View interview details</a>
             <a href="#" class="cta-secondary">Send Nike a message to start the conversation &rarr;</a>
 
-            <div class="platform-note">Interview opens in your browser. No download needed.</div>
+            {{acceptedBlock}}
           </div>
         `,
       },
       notes: {
         new: [
+          '<strong>Type-aware payload.</strong> Structure follows Indeed&rsquo;s confirmation: one skeleton, one swappable block. Video explains no download; the employer&rsquo;s call carries their link; phone names the number they will call with a Wrong number? route; in person carries the address and the employer&rsquo;s own How to attend note.',
           '<strong>Grouped primary + related action.</strong> "View interview details" is primary. "Send Nike a note" is right below since they\'re both about engaging with the confirmed interview. Per your ask.',
           '<strong>"Change time" and "Cancel" grouped separately.</strong> These are utility actions &mdash; put in a "Need to change it?" bucket so they don\'t compete with the primary CTA.',
           '<strong>Duration added.</strong> "15 minutes" sets expectation and reduces no-shows from candidates who thought it was an hour.',
@@ -556,31 +662,25 @@
         inboxSender: 'Nike via JobFairX',
         inboxIcon: 'N',
         inboxIconBg: '#0a0e1a',
-        inboxSubject: 'Your Nike interview is starting. Join now',
-        inboxPreview: 'Your interview starts at 11:00 AM EST. Nike is in the room. Click below to join...',
+        inboxSubject: '{{joinSubject}}',
+        inboxPreview: '{{joinPreview}}',
         html: `
           <div class="email-new-brand-strip">
             <span class="email-new-brand">JobFairX</span>
           </div>
           <div class="email-new-body">
             <p class="email-new-greeting">Hi Adrian,</p>
-            <div class="callout neutral">
-              <div>
-                <p class="callout-title">Nike\'s ready to interview you for School Bus Driver</p>
-                <p class="callout-meta">Your interview starts at 11:00 AM EST.</p>
-              </div>
-            </div>
-            <a href="#" class="cta">Join interview &rarr;</a>
-            <div class="platform-note">Opens in your browser. No download needed.</div>
+            {{joinBlock}}
           </div>
         `,
       },
       notes: {
         new: [
+          '<strong>Type-aware, and it is a different email per type.</strong> Only a JobFairX call can be observed, so only that one fires in real time. The others are time-triggered: the morning of for both video types, the day before for in person. Phone has <em>no CTA</em> &mdash; there is nothing to click when what you are waiting for is a ring.',
           '<strong>Nike is named up top.</strong> "Nike is ready to interview you now" &mdash; specific and personal, per your ask.',
           '<strong>Live dot + pulse animation.</strong> This is a real-time action email &mdash; visually signals urgency without a scary red banner.',
           '<strong>Compact info line.</strong> Role and time on one line in the callout, not two big rows below it. You said they know it\'s starting now, they don\'t need it broken out.',
-          '<strong>Bright green CTA.</strong> Emerald instead of blue &mdash; signals "Go" more than "info."',
+          '<strong>Bright green CTA, where there is one.</strong> Emerald instead of blue &mdash; signals "Go" more than "info." Phone and in person have no CTA at all.',
           '<strong>No footer clutter.</strong> Kept legal footer available but this is a "get in NOW" email &mdash; minimal scroll below the fold.',
           '<strong>Subject line.</strong> "Your Nike interview is starting — join now" &mdash; way more scannable than "Your interviewer is ready."',
         ],
@@ -600,18 +700,23 @@
     var data = EMAILS[currentEmail][currentView];
     var otherView = currentView === 'new' ? 'current' : 'new';
     var notes = EMAILS[currentEmail].notes[currentView];
+    /* The current design is type-aware; the "current" column is the frozen
+       before-state and is left exactly as it shipped. */
+    var subject = currentView === 'new' ? fill(data.inboxSubject) : data.inboxSubject;
+    var preview = currentView === 'new' ? fill(data.inboxPreview) : data.inboxPreview;
+    var bodyHtml = currentView === 'new' ? fill(data.html) : data.html;
     var iconStyle = 'background:' + data.inboxIconBg + ';';
     var emailHtml;
     if (currentView === 'new') {
-      emailHtml = '<div class="stage-label">Redesigned email</div>' + '<div class="subject-strip"><span class="subject-label">Subject line</span><span class="subject-value">' + data.inboxSubject + '</span></div>' + '<div class="email-new"><div class="email-new-inner">' + data.html + '<div class="email-new-footer"><div class="email-new-footer-links"><a href="#">Unsubscribe</a><a href="#">Email preferences</a><a href="#">Why am I getting this?</a></div><div class="email-new-footer-address">JobFairX &middot; 209 S Stephanie St. STE B #144, Henderson, NV 89012 &middot; 702-269-1414 &middot; info@jobfairx.com</div></div></div></div>';
+      emailHtml = '<div class="stage-label">Redesigned email</div>' + '<div class="subject-strip"><span class="subject-label">Subject line</span><span class="subject-value">' + subject + '</span></div>' + '<div class="email-new"><div class="email-new-inner">' + bodyHtml + '<div class="email-new-footer"><div class="email-new-footer-links"><a href="#">Unsubscribe</a><a href="#">Email preferences</a><a href="#">Why am I getting this?</a></div><div class="email-new-footer-address">JobFairX &middot; 209 S Stephanie St. STE B #144, Henderson, NV 89012 &middot; 702-269-1414 &middot; info@jobfairx.com</div></div></div></div>';
     } else {
-      emailHtml = '<div class="stage-label">Current email</div><div class="email-current">' + data.html + '</div>';
+      emailHtml = '<div class="stage-label">Current email</div><div class="email-current">' + bodyHtml + '</div>';
     }
     var notesTitle = currentView === 'new' ? 'What changed and why' : 'Notes on the current version';
     var notesHtml = '<div class="notes"><h4>' + notesTitle + '</h4><ul>' + notes.map(function(n){ return '<li>' + n + '</li>'; }).join('') + '</ul></div>';
     stage.innerHTML =
       '<div class="stage-label">How it looks in the inbox</div>' +
-      '<div class="inbox"><div class="inbox-icon" style="' + iconStyle + '">' + data.inboxIcon + '</div><div class="inbox-body"><div class="inbox-top"><span class="inbox-sender">' + data.inboxSender + '</span><span class="inbox-time">Just now</span></div><div class="inbox-subject">' + data.inboxSubject + '</div><div class="inbox-preview">' + data.inboxPreview + '</div></div></div>' +
+      '<div class="inbox"><div class="inbox-icon" style="' + iconStyle + '">' + data.inboxIcon + '</div><div class="inbox-body"><div class="inbox-top"><span class="inbox-sender">' + data.inboxSender + '</span><span class="inbox-time">Just now</span></div><div class="inbox-subject">' + subject + '</div><div class="inbox-preview">' + preview + '</div></div></div>' +
       emailHtml +
       notesHtml;
   }
@@ -635,6 +740,13 @@
     document.body.classList.add('clean-mode');
   }
   render();
+    });
+  });
+  document.querySelectorAll('.toggle-btn[data-type]').forEach(function(b){
+    b.addEventListener('click', function(){
+      currentType = b.dataset.type;
+      document.querySelectorAll('.toggle-btn[data-type]').forEach(function(x){ x.classList.toggle('active', x === b); });
+      render();
     });
   });
   document.querySelectorAll('.toggle-btn[data-view]').forEach(function(b){
@@ -665,8 +777,11 @@
   var isClean = params.get('clean') === '1';
   if (pEmail && EMAILS[pEmail]) currentEmail = pEmail;
   if (pView && (pView === 'new' || pView === 'current')) currentView = pView;
+  var pType = params.get('type');
+  if (pType && TYPES[pType]) currentType = pType;
   document.querySelectorAll('.toggle-btn[data-email]').forEach(function(b){ b.classList.toggle('active', b.dataset.email === currentEmail); });
   document.querySelectorAll('.toggle-btn[data-view]').forEach(function(b){ b.classList.toggle('active', b.dataset.view === currentView); });
+  document.querySelectorAll('.toggle-btn[data-type]').forEach(function(b){ b.classList.toggle('active', b.dataset.type === currentType); });
   if (isClean) {
     var bar = document.querySelector('.toggle-bar');
     if (bar) bar.style.display = 'none';
