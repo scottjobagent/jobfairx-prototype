@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Job seeker emails — 4 states, current vs redesigned</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<!-- Indeed sets their seeker mail in Noto Sans, which is also the prototype's
+     face. Loaded so the redesigned column renders in it rather than falling
+     back to Helvetica. -->
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
@@ -50,13 +54,30 @@
   .email-current .icon-row .em { font-size: 15px; }
 
   /* REDESIGNED */
-  .email-new { background: #f5f5f4; max-width: 640px; margin: 0 auto; padding: 20px 20px 40px; border-radius: 8px; color: #2d2d2d; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
-  .email-new-inner { background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.04); border: 1px solid #ececec; }
-  .email-new-brand-strip { background: #fff; padding: 20px 32px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #f0efec; }
+  /* ═══ Indeed's measured design, applied to JobFairX ═══
+     Type, colour and spacing taken from the live DOM of Indeed's own seeker
+     mail — see INDEED-EMAIL-SPEC.md. Everything in the body is 16/24; there is
+     no small type, no coloured callout, no filled button and no boxed card.
+     Their #2d2d2d and #595959 are already our --ink and --ink-2. */
+  .email-new { background: #fff; max-width: 640px; margin: 0 auto; padding: 0; color: #2d2d2d; font-family: 'Noto Sans', Helvetica, Arial, sans-serif; }
+  .eh1 { font-size: 36px; line-height: 45px; font-weight: 700; color: #000; margin: 0 0 26px; letter-spacing: -0.5px; }
+  .erow { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 20px; }
+  .erow-ico { width: 20px; flex-shrink: 0; margin-top: 3px; color: #595959; }
+  .erow-ico svg { width: 18px; height: 18px; display: block; }
+  .erow-b { display: block; font-size: 16px; line-height: 24px; font-weight: 700; color: #2d2d2d; }
+  .erow-v { display: block; font-size: 16px; line-height: 24px; font-weight: 400; color: #595959; }
+  .esec { font-size: 16px; line-height: 24px; font-weight: 700; color: #595959; margin: 26px 0 0; }
+  .ebody { font-size: 16px; line-height: 24px; font-weight: 400; color: #595959; margin: 0 0 20px; }
+  .elink { display: block; font-size: 16px; line-height: 24px; color: #2557a7; text-decoration: none; margin-top: 14px; }
+  .elink:hover { text-decoration: underline; }
+  .esign { font-size: 16px; line-height: 24px; color: #2d2d2d; margin-top: 26px; }
+  .ewas { color: #767676; text-decoration: line-through; }
+  .email-new-inner { background: #fff; border: 1px solid #ececec; overflow: hidden; }
+  .email-new-brand-strip { background: #fff; padding: 28px 40px 0; display: flex; align-items: center; justify-content: space-between; }
   .email-new-brand { font-size: 20px; font-weight: 800; color: #2563eb; letter-spacing: -0.02em; }
   .email-new-brand-meta { font-size: 12px; color: #6b6862; }
-  .email-new-body { padding: 28px 32px 34px; }
-  .email-new-greeting { font-size: 15px; color: #2d2d2d; margin: 0 0 20px; }
+  .email-new-body { padding: 30px 40px 38px; }
+  .email-new-greeting { font-size: 16px; line-height: 24px; color: #2d2d2d; margin: 0 0 22px; }
 
   /* Callouts */
   .callout { border-radius: 12px; padding: 18px 20px; margin-bottom: 22px; display: flex; gap: 14px; align-items: flex-start; }
@@ -133,7 +154,7 @@
      do not have is shown as missing rather than invented. */
   .ph { background: #fff6d9; border-bottom: 1px dashed #b8860b; color: #7a5c00; font-weight: 600; padding: 0 3px; border-radius: 2px; }
 
-  .email-new-footer { padding: 24px 32px 28px; background: #fafafa; border-top: 1px solid #f0efec; font-size: 12px; color: #6b6862; line-height: 1.6; }
+  .email-new-footer { padding: 26px 40px 30px; background: #fff; border-top: 1px solid #f0efec; font-size: 13px; color: #767676; line-height: 1.6; }
   .email-new-footer-links a { color: #2563eb; text-decoration: none; margin-right: 14px; font-weight: 500; }
   .email-new-footer-address { color: #9ca3af; margin-top: 12px; }
 
@@ -198,104 +219,88 @@
      Structure is Indeed's, taken from Scott's own seeker mail: one skeleton,
      one swappable block per type, and an employer-written note for arrival.
      ═══════════════════════════════════════════════════════════ */
+  /* Indeed uses small hosted PNGs; a preview can use inline SVG. Production
+     needs these as hosted images \u2014 most mail clients will not render SVG. */
+  var ICONS = {
+    icoClock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+    icoPin:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-6.2 7-11a7 7 0 10-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>',
+    icoVideo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="13" height="12" rx="2"/><path d="M15 11l6-3v8l-6-3z"/></svg>',
+    icoPhone: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h3l2 5-2 1a12 12 0 006 6l1-2 5 2v3a2 2 0 01-2 2A16 16 0 014 5a2 2 0 012-2z"/></svg>',
+    icoJob:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>',
+    icoMsg:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H8l-5 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>'
+  };
+
   var TYPES = {
     jfx: {
-      /* Before the employer confirms, and after. Only the link differs:
-         it does not exist until they accept. */
-      rowsPre: '<div class="info-card-row"><span class="k">Interview</span><span class="v">JobFairX video call</span></div>'
-        + '<div class="info-card-row"><span class="k">Where</span><span class="v">On JobFairX &mdash; nothing to download</span></div>',
-      rowsConf: '<div class="info-card-row"><span class="k">Interview</span><span class="v">JobFairX video call</span></div>'
-        + '<div class="info-card-row"><span class="k">Where</span><span class="v">On JobFairX &mdash; nothing to download</span></div>',
       label: 'JobFairX video call',
-      submittedLine: 'Your interview will happen on JobFairX. No software to download. Once Nike accepts, we\'ll send a link to join.',
-      reschedLine: 'Interview type: <b>JobFairX video call</b> &mdash; only the time is changing.',
-      acceptedAddr: '',
-      acceptedBlock: '<div class="platform-note"><span><b>No software required</b><br>Your interview takes place on JobFairX, so there is nothing to download.</span></div>',
-      joinSubject: 'Your Nike interview is starting. Join now',
-      joinPreview: 'Nike is in the room. Click below to join your interview...',
-      joinBlock: '<div class="callout neutral"><div>'
-        + '<p class="callout-title">Nike is ready to interview you for School Bus Driver</p>'
-        + '<p class="callout-meta">Your interview starts at 11:00 AM EST.</p>'
-        + '</div></div>'
-        + '<a href="#" class="cta">Join interview &rarr;</a>'
-        + '<div class="platform-note"><span>Your interview opens on JobFairX, right in your browser. No download needed.</span></div>',
+      ico: '{{icoVideo}}',
+      typeRowPre: '<div class=\"erow\"><span class=\"erow-ico\">{{icoVideo}}</span><span><span class=\"erow-b\">JobFairX video call</span><span class=\"erow-v\">On JobFairX \u2014 nothing to download</span></span></div>',
+      typeRowConf: '<div class=\"erow\"><span class=\"erow-ico\">{{icoVideo}}</span><span><span class=\"erow-b\">JobFairX video call</span><span class=\"erow-v\">On JobFairX \u2014 nothing to download</span></span></div>',
+      secHead: 'How to join your interview',
+      secBody: 'Your interview takes place on JobFairX. At your interview time, open it from your Interviews tab and you are in \u2014 there is nothing to download.',
+      joinSubject: 'Your JobFairX interview is starting. Join now',
+      joinPreview: 'Nike is in the room. Open your interview to join...',
+      joinTitle: 'Nike is ready to interview you',
+      joinMeta: 'Your interview starts at 11:00 AM EST.',
+      joinCta: '<a href="#" class="elink">Join your interview</a>',
     },
     link: {
-      /* Before the employer confirms, and after. Only the link differs:
-         it does not exist until they accept. */
-      rowsPre: '<div class="info-card-row"><span class="k">Interview</span><span class="v">Employer\u2019s video call</span></div>'
-        + '<div class="info-card-row"><span class="k">Where</span><span class="v">Nike\u2019s own video platform</span></div>'
-        + '<div class="info-card-row"><span class="k">Link</span><span class="v">Nike sends it when they confirm</span></div>',
-      rowsConf: '<div class="info-card-row"><span class="k">Interview</span><span class="v">Employer\u2019s video call</span></div>'
-        + '<div class="info-card-row"><span class="k">Where</span><span class="v">Nike\u2019s own video platform</span></div>'
-        + '<div class="info-card-row"><span class="k">Link</span><span class="v"><span class="ph">[PLACEHOLDER &mdash; the employer\u2019s video link]</span></span></div>',
       label: 'Employer\u2019s video call',
-      submittedLine: 'Nike runs this interview on their own video platform. Once they accept, we\'ll send you the link to join.',
-      reschedLine: 'Interview type: <b>Employer\u2019s video call</b> &mdash; only the time is changing.',
-      acceptedAddr: '',
-      acceptedBlock: '<div class="platform-note"><span><b>How to join your interview</b><br>Nike runs this interview on their own video platform. Use this link at your interview time.<br><span class="ph">[PLACEHOLDER &mdash; the employer\u2019s video link]</span></span></div>',
+      ico: '{{icoVideo}}',
+      typeRowPre: '<div class=\"erow\"><span class=\"erow-ico\">{{icoVideo}}</span><span><span class=\"erow-b\">Employer\u2019s video call</span><span class=\"erow-v\">Nike\u2019s own video platform</span><span class=\"erow-v\">Link: Nike sends it when they confirm</span></span></div>',
+      typeRowConf: '<div class=\"erow\"><span class=\"erow-ico\">{{icoVideo}}</span><span><span class=\"erow-b\">Employer\u2019s video call</span><span class=\"erow-v\">Nike\u2019s own video platform</span><span class=\"erow-v\"><span class=\"ph\">[PLACEHOLDER \u2014 the employer\u2019s video link]</span></span></span></div>',
+      secHead: 'How to join your interview',
+      secBody: 'Nike runs this interview on their own video platform. Use the link above at your interview time.',
       joinSubject: 'Your Nike interview is today. Here is your link',
-      joinPreview: 'Your interview with Nike is at 11:00 AM. Here is the link to join...',
-      joinBlock: '<div class="callout neutral"><div>'
-        + '<p class="callout-title">Nike is ready to interview you for School Bus Driver</p>'
-        + '<p class="callout-meta">Your interview starts at 11:00 AM EST on Nike\u2019s own video platform.</p>'
-        + '</div></div>'
-        + '<a href="#" class="cta">Join interview &rarr;</a>'
-        + '<div class="platform-note"><span>If the button does not work, use this link:<br><span class="ph">[PLACEHOLDER &mdash; the employer\u2019s video link]</span></span></div>',
+      joinPreview: 'Your interview with Nike is at 11:00 AM. Here is the link...',
+      joinTitle: 'Nike is ready to interview you',
+      joinMeta: 'Your interview starts at 11:00 AM EST on Nike\u2019s own video platform.',
+      joinCta: '<a href="#" class="elink">Join your interview</a>',
     },
     phone: {
-      /* Before the employer confirms, and after. Only the link differs:
-         it does not exist until they accept. */
-      rowsPre: '<div class="info-card-row"><span class="k">Interview</span><span class="v">Phone call</span></div>'
-        + '<div class="info-card-row"><span class="k">Nike calls you on</span><span class="v">(555) 014-2278 &middot; <a href="#">Wrong number?</a></span></div>',
-      rowsConf: '<div class="info-card-row"><span class="k">Interview</span><span class="v">Phone call</span></div>'
-        + '<div class="info-card-row"><span class="k">Nike calls you on</span><span class="v">(555) 014-2278 &middot; <a href="#">Wrong number?</a></span></div>',
       label: 'Phone call',
-      submittedLine: 'Nike will call you at your interview time. Once they accept, we\'ll confirm the number they are calling.',
-      reschedLine: 'Interview type: <b>Phone call</b> &mdash; only the time is changing.',
-      acceptedAddr: '',
-      acceptedBlock: '<div class="platform-note"><span><b>Nike will call you</b><br>Nike calls you at your interview time on <b>(555) 014-2278</b>. There is nothing to join.<br><a href="#">Wrong number?</a></span></div>',
+      ico: '{{icoPhone}}',
+      typeRowPre: '<div class=\"erow\"><span class=\"erow-ico\">{{icoPhone}}</span><span><span class=\"erow-b\">Phone call</span><span class=\"erow-v\">Nike calls you on (555) 014-2278</span></span></div>',
+      typeRowConf: '<div class=\"erow\"><span class=\"erow-ico\">{{icoPhone}}</span><span><span class=\"erow-b\">Phone call</span><span class=\"erow-v\">Nike calls you on (555) 014-2278</span></span></div>',
+      secHead: 'How the call works',
+      secBody: 'Nike calls you at your interview time. There is nothing to join \u2014 just answer when your phone rings.',
       joinSubject: 'Your Nike interview is today. Keep your phone nearby',
       joinPreview: 'Nike calls you at 11:00 AM EST. Nothing to click...',
-      /* No CTA on purpose: a button telling someone to click, when the thing
-         they are waiting for is a ring, is the defect this type is prone to. */
-      joinBlock: '<div class="callout neutral"><div>'
-        + '<p class="callout-title">Nike is calling you today for School Bus Driver</p>'
-        + '<p class="callout-meta">Nike calls you at 11:00 AM EST on (555) 014-2278.</p>'
-        + '</div></div>'
-        + '<div class="platform-note"><span>Nothing to join &mdash; just answer when your phone rings. <a href="#">Wrong number?</a></span></div>',
+      joinTitle: 'Nike is calling you today',
+      joinMeta: 'Nike calls you at 11:00 AM EST on (555) 014-2278.',
+      joinCta: '',
     },
     person: {
-      /* Before the employer confirms, and after. Only the link differs:
-         it does not exist until they accept. */
-      rowsPre: '<div class="info-card-row"><span class="k">Interview</span><span class="v">In person</span></div>'
-        + '<div class="info-card-row"><span class="k">Address</span><span class="v">Nike Store #412<br>3200 Las Vegas Blvd S<br>Las Vegas, NV 89109</span></div>',
-      rowsConf: '<div class="info-card-row"><span class="k">Interview</span><span class="v">In person</span></div>'
-        + '<div class="info-card-row"><span class="k">Address</span><span class="v">Nike Store #412<br>3200 Las Vegas Blvd S<br>Las Vegas, NV 89109</span></div>',
       label: 'In person',
-      submittedLine: 'This interview happens in person. Once Nike accepts, we\'ll send you the address and how to get in.',
-      reschedLine: 'Interview type: <b>In person</b> &mdash; only the time is changing.',
-      acceptedAddr: '<div class="info-card-row"><span class="k">Address</span><span class="v">Nike Store #412<br>3200 Las Vegas Blvd S<br>Las Vegas, NV 89109</span></div>',
-      acceptedBlock: '<div class="platform-note"><span><b>How to attend</b><br><span class="ph">[PLACEHOLDER &mdash; the employer\u2019s own arrival and parking note]</span></span></div>',
+      ico: '{{icoPin}}',
+      typeRowPre: '<div class=\"erow\"><span class=\"erow-ico\">{{icoPin}}</span><span><span class=\"erow-b\">In person</span><span class=\"erow-v\">Nike Store #412</span><span class=\"erow-v\">3200 Las Vegas Blvd S</span><span class=\"erow-v\">Las Vegas, NV 89109</span></span></div>',
+      typeRowConf: '<div class=\"erow\"><span class=\"erow-ico\">{{icoPin}}</span><span><span class=\"erow-b\">In person</span><span class=\"erow-v\">Nike Store #412</span><span class=\"erow-v\">3200 Las Vegas Blvd S</span><span class=\"erow-v\">Las Vegas, NV 89109</span></span></div>',
+      secHead: 'How to attend',
+      secBody: '<span class=\"ph\">[PLACEHOLDER \u2014 the employer\u2019s own arrival and parking note]</span>',
       joinSubject: 'Your Nike interview is tomorrow. Here is how to get there',
-      joinPreview: 'Nike Store #412, 3200 Las Vegas Blvd S. Here is how to attend...',
-      joinBlock: '<div class="callout neutral"><div>'
-        + '<p class="callout-title">You are interviewing with Nike tomorrow for School Bus Driver</p>'
-        + '<p class="callout-meta">Friday, July 13 at 11:00 AM EST.</p>'
-        + '</div></div>'
-        + '<div class="info-card"><div class="info-card-row"><span class="k">Address</span>'
-        + '<span class="v">Nike Store #412<br>3200 Las Vegas Blvd S<br>Las Vegas, NV 89109</span></div></div>'
-        + '<div class="platform-note"><span><b>How to attend</b><br><span class="ph">[PLACEHOLDER &mdash; the employer\u2019s own arrival and parking note]</span></span></div>',
+      joinPreview: 'Nike Store #412, 3200 Las Vegas Blvd S...',
+      joinTitle: 'You are interviewing with Nike tomorrow',
+      joinMeta: 'Friday, July 13 at 11:00 AM EST.',
+      joinCta: '',
     },
   };
 
   /* Any {{key}} in a subject, preview or body is filled from the current type.
      Unknown keys are left alone rather than blanked, so a typo is visible. */
-  function fill(str) {
+  function fillOnce(str) {
     var T = TYPES[currentType];
     return String(str).replace(/\{\{(\w+)\}\}/g, function(m, k){
-      return Object.prototype.hasOwnProperty.call(T, k) ? T[k] : m;
+      if (Object.prototype.hasOwnProperty.call(T, k)) return T[k];
+      if (Object.prototype.hasOwnProperty.call(ICONS, k)) return ICONS[k];
+      return m;
     });
+  }
+  /* A type's row markup contains an icon token, so one pass is not enough.
+     Loops until stable rather than a fixed count, and stops either way. */
+  function fill(str) {
+    var prev = String(str), next = fillOnce(prev), n = 0;
+    while (next !== prev && n++ < 4) { prev = next; next = fillOnce(prev); }
+    return next;
   }
 
   var EMAILS = {
@@ -327,25 +332,15 @@
         inboxSubject: 'You matched with Nike for Retail Sales Associate',
         inboxPreview: 'Nike just posted a role that fits your profile. Request an interview...',
         html: `
-          <div class="email-new-brand-strip">
-            <span class="email-new-brand">JobFairX</span>
-          </div>
+  <div class="email-new-brand-strip"><span class="email-new-brand">JobFairX</span></div>
           <div class="email-new-body">
             <p class="email-new-greeting">Hi Scott,</p>
-            <div class="callout green">
-              <div>
-                <p class="callout-title">You matched with Nike</p>
-                <p class="callout-meta">Nike just posted a Retail Sales Associate role and your profile is a fit. Request an interview to lock in a time.</p>
-              </div>
-            </div>
-            <div class="info-card">
-              <div class="info-card-row"><span class="k">Company</span><span class="v big">Nike</span></div>
-              <div class="info-card-row"><span class="k">Role</span><span class="v">Retail Sales Associate</span></div>
-              <div class="info-card-row"><span class="k">Location</span><span class="v">Denver, CO</span></div>
-              {{rowsPre}}
-            </div>
-            <a href="#" class="cta">Request an interview</a>
-            <a href="#" class="cta-secondary">View job details &rarr;</a>
+            <h1 class="eh1">You matched with Nike</h1>
+            <p class="ebody">Nike just posted a Retail Sales Associate role and your profile is a fit. Request an interview to lock in a time.</p>
+            <div class="erow"><span class="erow-ico">{{icoJob}}</span><span><span class="erow-b">Nike</span><span class="erow-v">Retail Sales Associate</span><span class="erow-v">Denver, CO</span></span></div>
+            {{typeRowPre}}
+            <a href="#" class="elink">Request an interview</a>
+            <a href="#" class="elink">View job details</a>
           </div>
         `,
       },
@@ -392,19 +387,15 @@
         inboxSubject: 'Nike wants to interview you for Retail Sales Associate',
         inboxPreview: 'Hi Alex — we reviewed your resume and would like to schedule an interview...',
         html: `
-          <div class="email-new-brand-strip">
-            <span class="email-new-brand">JobFairX</span>
-          </div>
+  <div class="email-new-brand-strip"><span class="email-new-brand">JobFairX</span></div>
           <div class="email-new-body">
             <p class="email-new-greeting">Hi Alex,</p>
-            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px 20px; margin-bottom: 24px;">
-              <p style="font-size: 16px; font-weight: 700; color: #0a0e1a; margin: 0 0 4px; letter-spacing: -0.01em;">Nike sent you a message</p>
-              <p style="font-size: 13px; color: #6b6862; line-height: 1.45; margin: 0;"><strong style="color:#2d2d2d;font-weight:600;">Retail Sales Associate</strong> &middot; Denver, CO<br>From Jamie Chen, Talent Acquisition</p>
-            </div>
-            <p style="font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #6b6862; margin: 0 0 10px;">Message</p>
-            <p style="font-size: 15px; line-height: 1.6; color: #2d2d2d; margin: 0 0 26px;">I wanted to reach out and let you know that we have reviewed your resume, and we are impressed with your qualifications and experience. We would like to invite you for an interview to discuss further how your skills align with the role we have available. Please let us know your availability for next week so we can schedule a suitable time.</p>
-            <a href="#" class="cta">Reply on JobFairX</a>
-            <a href="#" class="cta-secondary">View job details &rarr;</a>
+            <h1 class="eh1">Nike sent you a message</h1>
+            <div class="erow"><span class="erow-ico">{{icoJob}}</span><span><span class="erow-b">Nike</span><span class="erow-v">Retail Sales Associate</span><span class="erow-v">Denver, CO</span></span></div>
+            <p class="esec">From Jamie Chen, Talent Acquisition</p>
+            <p class="ebody" style="margin-top:6px">I wanted to reach out and let you know that we have reviewed your resume, and we are impressed with your qualifications and experience. We would like to invite you for an interview to discuss further how your skills align with the role we have available. Please let us know your availability for next week so we can schedule a suitable time.</p>
+            <a href="#" class="elink">Reply on JobFairX</a>
+            <a href="#" class="elink">View job details</a>
           </div>
         `,
       },
@@ -457,24 +448,17 @@
         inboxSubject: 'Nike proposed new times for your Sales Associate interview',
         inboxPreview: 'A scheduling conflict came up. Pick a new time that works for you...',
         html: `
-          <div class="email-new-brand-strip">
-            <span class="email-new-brand">JobFairX</span>
-          </div>
+  <div class="email-new-brand-strip"><span class="email-new-brand">JobFairX</span></div>
           <div class="email-new-body">
             <p class="email-new-greeting">Hi Brandon,</p>
-            <p class="body-copy" style="margin-bottom: 20px;">Nike proposed new times for your Sales Associate interview. A scheduling conflict came up. Your spot is still held.</p>
-            <p class="body-copy" style="margin-bottom: 20px;">{{reschedLine}}</p>
-            <div class="info-card">{{rowsConf}}</div>
-            <div class="info-card" style="margin-bottom: 20px;">
-              <div class="info-card-row"><span class="k">Was</span><span class="v" style="text-decoration:line-through;color:#9ca3af;font-weight:500;">Sept 22 &middot; 10:00 AM PDT</span></div>
-            </div>
-            <p class="reschedule-label">Pick a time</p>
-            <ul class="reschedule-slots">
-              <li><span class="slot-date">Sat, Sep 23</span><span class="slot-time">11:30 AM PDT</span></li>
-              <li><span class="slot-date">Sun, Sep 24</span><span class="slot-time">2:00 PM PDT</span></li>
-              <li><span class="slot-date">Mon, Sep 25</span><span class="slot-time">9:00 AM PDT</span></li>
-            </ul>
-            <a href="#" class="cta">Choose a new time</a>
+            <h1 class="eh1">Nike proposed new times</h1>
+            <p class="ebody">A scheduling conflict came up. Your spot is still held.</p>
+            <div class="erow"><span class="erow-ico">{{icoClock}}</span><span><span class="erow-b">Was</span><span class="erow-v"><span class="ewas">Sept 22 &middot; 10:00 AM PDT</span></span></span></div>
+            {{typeRowConf}}
+            <p class="esec">Pick a time</p>
+            <div class="erow"><span class="erow-ico">{{icoClock}}</span><span><span class="erow-b">Sat, Sep 23</span><span class="erow-v">11:30 AM PDT</span></span></div><div class="erow"><span class="erow-ico">{{icoClock}}</span><span><span class="erow-b">Sun, Sep 24</span><span class="erow-v">2:00 PM PDT</span></span></div><div class="erow"><span class="erow-ico">{{icoClock}}</span><span><span class="erow-b">Mon, Sep 25</span><span class="erow-v">9:00 AM PDT</span></span></div>
+            <a href="#" class="elink">Choose a new time</a>
+            <a href="#" class="elink">Suggest another time</a>
           </div>
         `,
       },
@@ -530,31 +514,14 @@
         inboxSubject: 'Your interview request to Nike is in',
         inboxPreview: 'We\'ll let you know as soon as Nike confirms. Most respond within 24 hours...',
         html: `
-          <div class="email-new-brand-strip">
-            <span class="email-new-brand">JobFairX</span>
-          </div>
+  <div class="email-new-brand-strip"><span class="email-new-brand">JobFairX</span></div>
           <div class="email-new-body">
             <p class="email-new-greeting">Hi Brandon,</p>
-            <div class="callout neutral">
-              <div>
-                <p class="callout-title">Request sent to Nike</p>
-                <p class="callout-meta">We\'ll email you as soon as Nike confirms. Most employers respond within 24 hours.</p>
-              </div>
-            </div>
-            <div class="info-card">
-              <p class="info-section-label">Interview details</p>
-              <div class="info-card-row"><span class="k">Date</span><span class="v">Fri, Jul 13</span></div>
-              <div class="info-card-row"><span class="k">Time</span><span class="v">11:00 AM EST</span></div>
-              <div class="info-card-divider"></div>
-              <p class="info-section-label">Job details</p>
-              <div class="info-card-row"><span class="k">Company</span><span class="v big">Nike</span></div>
-              <div class="info-card-row"><span class="k">Role</span><span class="v">Sales Associate</span></div>
-              <div class="info-card-row"><span class="k">Location</span><span class="v">Las Vegas, NV</span></div>
-              <div class="info-card-row"><span class="k">Type</span><span class="v">Remote</span></div>
-              {{rowsPre}}
-            </div>
-            <p class="body-copy">{{submittedLine}}</p>
-            <a href="#" class="cta-secondary">View request status &rarr;</a>
+            <h1 class="eh1">Your interview request is in</h1>
+            <p class="ebody">We&rsquo;ll email you as soon as Nike confirms. Most employers respond within 24 hours.</p>
+            <div class="erow"><span class="erow-ico">{{icoClock}}</span><span><span class="erow-b">Fri, Jul 13</span><span class="erow-v">11:00 AM EST</span></span></div><div class="erow"><span class="erow-ico">{{icoJob}}</span><span><span class="erow-b">Nike</span><span class="erow-v">Sales Associate</span><span class="erow-v">Las Vegas, NV</span></span></div>
+            {{typeRowPre}}
+            <a href="#" class="elink">View request status</a>
           </div>
         `,
       },
@@ -611,35 +578,17 @@
         inboxSubject: 'Your interview with Nike is confirmed',
         inboxPreview: 'Fri, Jul 13 at 11:00 AM EST. Send Nike a message to start the conversation...',
         html: `
-          <div class="email-new-brand-strip">
-            <span class="email-new-brand">JobFairX</span>
-          </div>
+  <div class="email-new-brand-strip"><span class="email-new-brand">JobFairX</span></div>
           <div class="email-new-body">
             <p class="email-new-greeting">Hi Brandon,</p>
-            <div class="callout green">
-              <div>
-                <p class="callout-title">Nike confirmed your interview</p>
-                <p class="callout-meta">You\'re set. Everything you need is below.</p>
-              </div>
-            </div>
-            <div class="dt-card">
-              <div class="dt-cal"><span class="m">Jul</span><span class="d">13</span></div>
-              <div class="dt-info">
-                <p class="dt-day">Friday &middot; 11:00 AM EST</p>
-                <p class="dt-time">Nike &middot; Sales Associate</p>
-              </div>
-            </div>
-            <div class="info-card">
-              <p class="info-section-label">Job details</p>
-              <div class="info-card-row"><span class="k">Job title</span><span class="v big">Sales Associate</span></div>
-              <div class="info-card-row"><span class="k">Job location</span><span class="v">Las Vegas, NV</span></div>
-              <div class="info-card-row"><span class="k">Interview location</span><span class="v">{{label}}</span></div>
-              {{acceptedAddr}}
-            </div>
-            <a href="#" class="cta">View interview details</a>
-            <a href="#" class="cta-secondary">Send Nike a message to start the conversation &rarr;</a>
-
-            {{acceptedBlock}}
+            <h1 class="eh1">Your interview is confirmed!</h1>
+            <div class="erow"><span class="erow-ico">{{icoClock}}</span><span><span class="erow-b">Friday, July 13, 2026</span><span class="erow-v">11:00 AM EST</span></span></div><div class="erow"><span class="erow-ico">{{icoJob}}</span><span><span class="erow-b">Nike</span><span class="erow-v">Sales Associate</span></span></div>
+            {{typeRowConf}}
+            <p class="esec">{{secHead}}</p>
+            <p class="ebody" style="margin-top:2px">{{secBody}}</p>
+            <a href="#" class="elink">Change interview time</a>
+            <a href="#" class="elink">Cancel interview</a>
+            <p class="esign">Have a great interview!</p>
           </div>
         `,
       },
@@ -692,12 +641,13 @@
         inboxSubject: '{{joinSubject}}',
         inboxPreview: '{{joinPreview}}',
         html: `
-          <div class="email-new-brand-strip">
-            <span class="email-new-brand">JobFairX</span>
-          </div>
+  <div class="email-new-brand-strip"><span class="email-new-brand">JobFairX</span></div>
           <div class="email-new-body">
             <p class="email-new-greeting">Hi Adrian,</p>
-            {{joinBlock}}
+            <h1 class="eh1">{{joinTitle}}</h1>
+            <p class="ebody">{{joinMeta}}</p>
+            {{typeRowConf}}
+            {{joinCta}}
           </div>
         `,
       },
