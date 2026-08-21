@@ -130,6 +130,12 @@ h2.sec{font-size:var(--t-xl);font-weight:700;margin-bottom:8px}
 .timebox .d{font-size:var(--t-md);font-weight:700;margin-bottom:2px}
 .timebox .t{font-size:var(--t-base);color:var(--ink)}
 .timebox .z{font-size:var(--t-base);color:var(--ink-2)}
+/* What the method means in practice, carried onto Review. The name of the type
+   is not the information \u2014 the number, the link and the address are. */
+.timebox .mdet{margin-top:12px;padding-top:12px;border-top:1px solid var(--divider);font-size:var(--t-base);color:var(--ink-2);line-height:1.5}
+.timebox .mdet b{color:var(--ink)}
+.subline{display:block;font-size:var(--t-sm);color:var(--ink-2);margin-top:3px;line-height:1.5}
+.subline b{color:var(--ink)}
 /* before → after, which Indeed does not show */
 .delta{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
 .delta .was{color:var(--ink-3);text-decoration:line-through}
@@ -229,7 +235,9 @@ h2.sec{font-size:var(--t-xl);font-weight:700;margin-bottom:8px}
   .seclabel button{min-height:44px;min-width:44px;padding:0 4px}
   .modal-x{min-width:44px;min-height:44px}
   .foot a{display:inline-block;padding:13px 8px}
-  .drow a{display:inline-block;min-width:44px;padding:12px 0}
+  /* min-height, not padding alone: the subline is 13px/1.5, so 12px padding
+     lands on 43.5 and the floor depends on font metrics. */
+  .drow a,.timebox .mdet a,.subline a{display:inline-block;min-width:44px;min-height:44px;padding:12px 0}
 }
 </style>
 </head>
@@ -361,6 +369,18 @@ var METHODS = {
 };
 var TEL='(555) 014-2278';
 function MT(){return METHODS[S.method];}
+/* Carried onto Review and Confirmed so the candidate sees the same facts here
+   as in their inbox. A reschedule already has its link and address \u2014 only a
+   first booking is still waiting on approval, so the wording splits. */
+function methodDetail(){
+  var m=S.method, re=isRe();
+  if(m==='phone')  return 'They\u2019ll call you on <b>'+TEL+'</b> \u00b7 <a href="#" onclick="toastish(\'Edit number\');return false">Edit</a>';
+  if(m==='link')   return re ? 'Your video link is on your Interviews tab.'
+                             : EVENT.co+' sends the video link when they approve your interview.';
+  if(m==='person') return re ? 'The address is on your Interviews tab.'
+                             : 'You\u2019ll get the address when they approve your interview.';
+  return 'Nothing to download \u2014 you\u2019ll join from your Interviews tab.';
+}
 var CURRENT = qpEsc('cur','11:00 AM - 11:30 AM');
 
 var SLOTS = [
@@ -591,7 +611,8 @@ function stepReview(){
   } else {
     h+='<div class="t">'+t+'</div>';
   }
-  h+='<div class="z">'+EVENT.tz+'</div></div>';
+  h+='<div class="z">'+EVENT.tz+'</div>';
+  h+='<div class="mdet">'+methodDetail()+'</div></div>';
 
   if(!re) h+='<div class="seclabel" style="margin-top:20px"><span class="l">Screener answers</span><button onclick="jump(\'screener\')">Edit</button></div>'
    +'<div class="fieldset"><div class="field"><div class="k">3 questions answered</div><div class="v">Included with your request</div></div></div>';
@@ -616,7 +637,7 @@ function stepDone(){
      +'<div class="tick">'+IC.check+'<span>Look for an email from us with your interview details at <b>jordan.reyes@example.com</b></span></div>'
      +'</div>';
     h+='<div class="detailcard"><h3>Updated interview details</h3><div class="rule"></div>'
-     +'<div class="drow">'+IC.people+'<span class="v">'+MT().l+'</span></div>'
+     +'<div class="drow">'+IC.people+'<span class="v">'+MT().l+'<span class="subline">'+methodDetail()+'</span></span></div>'
      +'<div class="drow">'+IC.cal+'<span class="v">'+EVENT.date+'<br>'+t+'<br>'+EVENT.tz+'</span></div></div>';
   } else {
     /* First booking is a request: the candidate names the time, the
@@ -627,7 +648,7 @@ function stepDone(){
      +'<div class="tick">'+IC.check+'<span>They usually respond within 72 hours. You\'ll get an email at <b>jordan.reyes@example.com</b></span></div>'
      +'</div>';
     h+='<div class="detailcard"><h3>Requested interview</h3><div class="rule"></div>'
-     +'<div class="drow">'+IC.people+'<span class="v">'+MT().l+'</span></div>'
+     +'<div class="drow">'+IC.people+'<span class="v">'+MT().l+'<span class="subline">'+methodDetail()+'</span></span></div>'
      +'<div class="drow">'+IC.cal+'<span class="v">'+EVENT.date+'<br>'+t+'<br>'+EVENT.tz+'</span></div></div>';
   }
 
