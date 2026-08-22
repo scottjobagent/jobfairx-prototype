@@ -108,9 +108,6 @@ h1{font-size:25px;font-weight:700;letter-spacing:-.3px;line-height:1.3;margin-bo
 .selfview svg{width:88px;height:88px;color:rgba(255,255,255,.34)}
 
 /* ═══ PHONE FIELD ═══ */
-.telrow{display:flex;gap:10px;margin:16px 0 18px}
-.telcc{display:flex;align-items:center;gap:6px;padding:13px 14px;border:1px solid var(--border);border-radius:var(--r-md);font-size:var(--t-md);white-space:nowrap;min-height:50px}
-.telin{flex:1;min-width:0;padding:13px 14px;border:1px solid var(--border);border-radius:var(--r-md);font-family:inherit;font-size:var(--t-md);min-height:50px}
 .legal{font-size:var(--t-sm);color:var(--ink-2);line-height:1.6;margin-bottom:14px}
 .infoline{display:flex;gap:12px;align-items:flex-start;font-size:var(--t-md);line-height:1.55;margin-bottom:16px}
 .infoline svg{width:22px;height:22px;flex-shrink:0;margin-top:1px;color:var(--ink-2)}
@@ -134,15 +131,20 @@ h1{font-size:25px;font-weight:700;letter-spacing:-.3px;line-height:1.3;margin-bo
 .leftttl{text-align:center;font-size:var(--t-xl);font-weight:700;margin-bottom:4px}
 
 /* ═══ SPLASH ═══ */
-.splash{flex:1;display:flex;align-items:center;justify-content:center;background:var(--surface);min-height:60vh}
-.splash .logo{font-size:40px;font-weight:800;color:var(--blue);letter-spacing:-1px}
 
 /* ═══ ROOM ═══ */
 .room{flex:1;display:flex;flex-direction:column;background:var(--surface);position:relative;overflow:hidden}
 .roominner{flex:1;padding:14px;display:flex;flex-direction:column;gap:12px;overflow:auto}
-.waitcard{background:var(--tile);border-radius:10px;padding:20px 18px;text-align:center}
-.waitcard b{display:block;font-size:var(--t-lg);font-weight:700;margin-bottom:6px;line-height:1.35}
-.waitcard span{font-size:var(--t-md);color:var(--ink-2);line-height:1.5}
+/* The waiting message occupies the recruiter's tile rather than a card of its
+   own, so when they arrive their video replaces it in the same square instead
+   of the message vanishing and a new tile appearing beneath it. */
+/* Padding sits on the message, not the tile: with flex-basis 0 on desktop a
+   padded tile claims its padding as a floor and the two squares come out
+   unequal, which defeats the point of swapping video into the same slot. */
+.tile.waittile{text-align:center}
+.waitmsg{padding:16px}
+.waitmsg b{display:block;font-size:var(--t-lg);font-weight:700;margin-bottom:6px;line-height:1.35}
+.waitmsg span{font-size:var(--t-md);color:var(--ink-2);line-height:1.5}
 .tiles{display:flex;flex-direction:column;gap:12px}
 .tile{background:var(--tile);border-radius:10px;position:relative;aspect-ratio:16/11;display:flex;align-items:center;justify-content:center;overflow:hidden}
 .tile .vid{background:#8d7f6d;width:64%;height:100%;display:flex;align-items:center;justify-content:center}
@@ -261,9 +263,7 @@ h1{font-size:25px;font-weight:700;letter-spacing:-.3px;line-height:1.3;margin-bo
       <button class="dev-toggle-btn" onclick="go('permission')">Permission</button>
       <button class="dev-toggle-btn" onclick="go('preview')">Self-view</button>
       <button class="dev-toggle-btn" onclick="go('devices')">Devices</button>
-      <button class="dev-toggle-btn" onclick="go('phone')">Phone</button>
       <button class="dev-toggle-btn" onclick="go('join')">Join</button>
-      <button class="dev-toggle-btn" onclick="go('loading')">Loading</button>
       <button class="dev-toggle-btn" onclick="go('waiting')">Waiting</button>
       <button class="dev-toggle-btn" onclick="go('inroom')">In room</button>
       <button class="dev-toggle-btn" onclick="go('survey')">Survey</button>
@@ -421,20 +421,8 @@ function scDevices(){
    + selectRow('Speaker', 'Default - Speaker', '<div style="margin-top:12px"><button class="outline-btn" onclick="toast(\'Test speaker\')">Test speaker</button></div>')
    + selectRow('Camera', 'Front Ultra Wide Camera',
        '<label class="check-row"><span class="check-box on">' + I.tick + '</span>Mirror my video</label>')
-   + '<button class="btn btn-primary" onclick="go(\'phone\')">Continue</button>'
+   + '<button class="btn btn-primary" onclick="go(\'join\')">Continue</button>'
    + '</div><p class="foot"><a href="#" onclick="return false">Do Not Sell My Personal Information</a></p></div>';
-}
-function scPhone(){
-  return '<div class="col"><div class="card">'
-   + '<div class="infoline">' + I.warn + '<span>Your interviewer will call you in case of disconnection or other technical issues during the video interview.</span></div>'
-   + '<div class="infoline">' + I.sms + '<span>We’ll send you a text when it’s time for your interview.</span></div>'
-   + '<div class="telrow"><span class="telcc">&#127482;&#127480; +1</span>'
-   +   '<input class="telin" type="tel" inputmode="tel" aria-label="Phone number"></div>'
-   + '<p class="legal">By selecting &lsquo;confirm&rsquo;, you agree that we may send you text message reminders and phone calls related to this interview, and you confirm that you are the subscriber and primary user of the telephone number you provided.</p>'
-   + '<p class="legal">Please be aware the employer may call you from an unknown number and it may be flagged as spam.</p>'
-   + '<div class="btn-row"><button class="btn btn-secondary" style="margin:0" onclick="go(\'join\')">Skip</button>'
-   +   '<button class="btn btn-primary" onclick="go(\'join\')">Confirm</button></div>'
-   + '</div><p class="foot"><a href="#" onclick="return false">Do Not Sell My Personal Information</a> - <a href="#" onclick="return false">Report</a> - <a href="#" onclick="return false">Help</a></p></div>';
 }
 function readybox(withCountdown){
   var h = '<div class="readybox"><div class="cap">' + I.tick + '</div><div class="body">'
@@ -452,10 +440,9 @@ function scJoin(){
    + readybox(true)
    + '<div class="nextlbl">Next:</div>'
    + '<div class="nexttxt">Join the interview and wait for the interviewer.</div>'
-   + '<button class="btn btn-primary btn-inline" onclick="go(\'loading\')"><span class="ico">' + I.cam + '</span>Join your interview</button>'
+   + '<button class="btn btn-primary btn-inline" onclick="go(\'waiting\')"><span class="ico">' + I.cam + '</span>Join your interview</button>'
    + '</div><p class="foot"><a href="#" onclick="return false">Do Not Sell My Personal Information</a> - <a href="#" onclick="return false">Report</a> - <a href="#" onclick="return false">Help</a></p></div>';
 }
-function scLoading(){ return '<div class="splash"><div class="logo">JobFairX</div></div>'; }
 function scLeft(){
   return '<div class="col"><div class="card">'
    + '<div class="evtitle">' + EVENT.name + '</div>'
@@ -475,14 +462,15 @@ function tile(name, showVideo, live){
   return '<div class="tile">' + chip + '</div>';
 }
 function room(waiting){
-  var h = '<div class="room"><div class="roominner">';
-  if(waiting){
-    h += '<div class="waitcard"><b>We’ve let the recruiter know you’re waiting</b>'
-       + '<span>Thank you for your patience. The recruiter will be with you shortly.</span></div>';
-  }
-  h += '<div class="tiles">';
+  var h = '<div class="room"><div class="roominner"><div class="tiles">';
+  /* The recruiter's square comes first in both states — it is the same slot
+     whether it is holding the waiting message or their video. */
+  h += waiting
+    ? '<div class="tile waittile"><div class="waitmsg">'
+      + '<b>We’ve let the recruiter know you’re waiting</b>'
+      + '<span>Thank you for your patience. The recruiter will be with you shortly.</span></div></div>'
+    : tile(RECRUITER, true, false);
   h += tile(ME + ' (You)', !S.camOff && !S.selfHidden, !S.micOff);
-  if(!waiting) h += tile(RECRUITER, true, false);
   h += '</div></div>';
   h += '<div class="ctrls">'
      + '<button class="cbtn plain" aria-label="More options" onclick="setOverlay(\'menu\')">' + I.dots + '</button>'
@@ -602,9 +590,7 @@ function render(){
   else if(s === 'permission') h = scPermission();
   else if(s === 'preview') h = scPreview();
   else if(s === 'devices') h = scDevices();
-  else if(s === 'phone') h = scPhone();
   else if(s === 'join') h = scJoin();
-  else if(s === 'loading') h = scLoading();
   else if(s === 'waiting') h = room(true);
   else if(s === 'inroom') h = room(false);
   else if(s === 'survey') h = scSurvey();
