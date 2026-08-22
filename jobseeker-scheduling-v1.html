@@ -174,12 +174,15 @@ h2.sec{font-size:var(--t-xl);font-weight:700;margin-bottom:8px}
 .detailcard{border:1px solid var(--border);border-radius:var(--r-md);padding:18px;margin-bottom:20px}
 .detailcard h3{font-size:var(--t-md);font-weight:700;margin-bottom:12px}
 .detailcard .rule{margin:12px 0}
-.nextup{border-top:1px solid var(--divider);padding-top:20px}
-.nextup h3{font-size:var(--t-md);font-weight:700;margin-bottom:4px}
-.nextup p{font-size:var(--t-base);color:var(--ink-2);margin-bottom:14px}
 
 /* ═══ FAIL / LOCKED ═══ */
 .failart{width:150px;height:auto;margin:4px 0 22px}
+/* The confirmation leads with an illustration, the way Indeed's does. Ours is
+   its own drawing \u2014 same flat, friendly register, not their paper plane. */
+.doneart-wrap{display:flex;justify-content:center;margin:2px 0 20px}
+.doneart{width:150px;height:112px}
+h1.donehead{text-align:center;margin-bottom:20px}
+.detailcard .z{color:var(--ink-2)}
 .failp{font-size:var(--t-md);line-height:1.6;margin-bottom:18px}
 .ph{background:#fff6d9;border-bottom:1px dashed #b8860b;color:#7a5c00;font-weight:600;padding:0 3px;border-radius:2px}
 .foot{text-align:center;font-size:var(--t-sm);color:var(--ink-2);margin-top:22px}
@@ -355,23 +358,33 @@ EVENT.tzShort = (EVENT.tz.match(/\(([^)]+)\)/)||[null,EVENT.tz])[1];
 /* The method comes from the event, not the candidate. What it changes here:
    what we confirm before booking, and what the next step is afterwards. */
 var METHODS = {
-  video: {l:'JobFairX video call', sent:'This will be a JobFairX video call', pre:'You\u2019ll join from your Interviews tab at your interview time.',
-          nextH:'Test your camera and microphone', nextP:'Do it now so there are no surprises on the day.', nextC:'Test my device'},
-  link:  {l:'Employer\u2019s video call', sent:'This interview happens on the employer\u2019s video link', pre:'\u2019'+'s video link arrives once they approve your interview \u2014 by email and on your Interviews tab.',
-          nextH:'Watch for the video link', nextP:'It arrives once the employer approves your interview. Nothing to do until then.', nextC:'Go to my interviews'},
-  phone: {l:'Phone call', sent:'This will be a phone call', pre:'The employer will call you. Check the number below is right.',
-          nextH:'Keep your ringer on', nextP:'There\u2019s nothing to join \u2014 the employer calls you at your interview time.', nextC:'Check my number'},
-  person:{l:'In person', sent:'This interview is in person', pre:'You\u2019ll get the address once they approve your interview.',
-          nextH:'Plan your travel', nextP:'Check the address and parking before the day.', nextC:'Get directions',
-          /* A first booking is only a request, so there is no address yet and
-             nothing to get directions to. */
-          reqP:'The address arrives once they approve your interview. Nothing to do until then.', reqC:'Go to my interviews'}
+  video: {l:'JobFairX video call', sent:'This will be a JobFairX video call', pre:'You\u2019ll join from your Interviews tab at your interview time.'},
+  link:  {l:'Employer\u2019s video call', sent:'This interview happens on the employer\u2019s video link', pre:'\u2019'+'s video link arrives once they approve your interview \u2014 by email and on your Interviews tab.'},
+  phone: {l:'Phone call', sent:'This will be a phone call', pre:'The employer will call you. Check the number below is right.'},
+  person:{l:'In person', sent:'This interview is in person', pre:'You\u2019ll get the address once they approve your interview.'}
 };
 var TEL='(555) 014-2278';
 function MT(){return METHODS[S.method];}
 /* Carried onto Review and Confirmed so the candidate sees the same facts here
    as in their inbox. A reschedule already has its link and address \u2014 only a
    first booking is still waiting on approval, so the wording splits. */
+/* What the confirmation calls this interview. Plain sentences rather than the
+   label used elsewhere, because this screen reads as prose. */
+function methodSentence(){
+  var m=S.method;
+  if(m==='phone')  return 'The employer will call you';
+  if(m==='link')   return 'This will be an employer video call';
+  if(m==='person') return 'This interview is in person';
+  return 'This will be a JobFairX video call';
+}
+/* The icon follows the type: people for either video call, a handset for a
+   phone call, a pin for somewhere you travel to. */
+function methodIcon(){
+  var m=S.method;
+  if(m==='phone')  return IC.phone;
+  if(m==='person') return IC.pin;
+  return IC.people;
+}
 function methodDetail(){
   var m=S.method, re=isRe();
   if(m==='phone')  return 'They\u2019ll call you on <b>'+TEL+'</b> \u00b7 <a href="#" onclick="toastish(\'Edit number\');return false">Edit</a>';
@@ -416,6 +429,15 @@ var IC = {
   info:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>',
   check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>',
   arrow:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
+  phone:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h3l2 5-2 1a12 12 0 006 6l1-2 5 2v3a2 2 0 01-2 2A16 16 0 014 5a2 2 0 012-2z"/></svg>',
+  pin:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-6.2 7-11a7 7 0 10-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>',
+  sent:'<svg class="doneart" viewBox="0 0 150 112" fill="none" aria-hidden="true">'
+   +'<rect x="18" y="34" width="98" height="66" rx="6" fill="#e8eefc"/>'
+   +'<path d="M18 40l49 33 49-33" stroke="#0044B3" stroke-width="3" stroke-linejoin="round"/>'
+   +'<rect x="18" y="34" width="98" height="66" rx="6" stroke="#0044B3" stroke-width="3"/>'
+   +'<rect x="62" y="8" width="66" height="46" rx="5" fill="#fff" stroke="#0044B3" stroke-width="3"/>'
+   +'<path d="M74 30l9 9 20-20" stroke="#1e7e34" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>'
+   +'<circle cx="132" cy="72" r="5" fill="#f0b429"/><circle cx="14" cy="20" r="4" fill="#dcfce7"/></svg>',
   back:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>'
 };
 function ph(t){return '<span class="ph">['+t+']</span>';}
@@ -629,41 +651,22 @@ function stepReview(){
 function stepDone(){
   var re=isRe();
   var t = S.picked || SLOTS[3].t;
+  /* Indeed's shape: an illustration, one headline, the two things the candidate
+     needs to know as ticks, then the interview itself in a bordered card. */
   var h='<div class="bar"><i style="width:100%"></i></div>';
-  if(re){
-    h+='<h1>All set for your interview with '+EVENT.co+'</h1>';
-    h+='<div class="ticks">'
-     +'<div class="tick">'+IC.check+'<span>Your interview has been rescheduled</span></div>'
-     +'<div class="tick">'+IC.check+'<span>Look for an email from us with your interview details at <b>jordan.reyes@example.com</b></span></div>'
-     +'</div>';
-    h+='<div class="detailcard"><h3>Updated interview details</h3><div class="rule"></div>'
-     +'<div class="drow">'+IC.people+'<span class="v">'+MT().l+'<span class="subline">'+methodDetail()+'</span></span></div>'
-     +'<div class="drow">'+IC.cal+'<span class="v">'+EVENT.date+'<br>'+t+'<br>'+EVENT.tz+'</span></div></div>';
-  } else {
-    /* First booking is a request: the candidate names the time, the
-       employer accepts or declines it. So this is not "all set" yet. */
-    h+='<h1>Your interview request has been sent</h1>';
-    h+='<div class="ticks">'
-     +'<div class="tick">'+IC.check+'<span>'+EVENT.co+' has your requested time and your screener answers</span></div>'
-     +'<div class="tick">'+IC.check+'<span>They usually respond within 72 hours. You\'ll get an email at <b>jordan.reyes@example.com</b></span></div>'
-     +'</div>';
-    h+='<div class="detailcard"><h3>Requested interview</h3><div class="rule"></div>'
-     +'<div class="drow">'+IC.people+'<span class="v">'+MT().l+'<span class="subline">'+methodDetail()+'</span></span></div>'
-     +'<div class="drow">'+IC.cal+'<span class="v">'+EVENT.date+'<br>'+t+'<br>'+EVENT.tz+'</span></div></div>';
-  }
-
-  /* The next step is method-specific: there is no device to test for a
-     phone call, and no link to wait for on a JobFairX call. */
-  var nP = (!re && MT().reqP) ? MT().reqP : MT().nextP;
-  var nC = (!re && MT().reqC) ? MT().reqC : MT().nextC;
-  h+='<div class="nextup"><h3>'+MT().nextH+'</h3><p>'+nP+'</p>'
-   +'<button class="btn btn-secondary" style="margin-top:0" onclick="toastish(\''+nC+'\')">'+nC+'</button></div>';
-  /* Only when one wasn't included \u2014 there is nothing to get ready if it
-     already went with the request. */
-  if(S.resume==='none')
-    h+='<div class="nextup" style="margin-top:18px"><h3>Get your resume ready</h3>'
-     +'<p>You may be asked to share your resume before your interview.</p>'
-     +'<button class="btn btn-secondary" style="margin-top:0" onclick="openResumeEditor(this)">Review resume</button></div>';
+  h+='<div class="doneart-wrap">'+IC.sent+'</div>';
+  h+='<h1 class="donehead">'+(re
+      ? 'Your interview with '+EVENT.co+' has been rescheduled'
+      : 'Your interview request has been sent to '+EVENT.co)+'</h1>';
+  h+='<div class="ticks">'
+   +'<div class="tick">'+IC.check+'<span>You will get an email confirmation at <b>jordan.reyes@example.com</b></span></div>'
+   +'<div class="tick">'+IC.check+'<span>'+(re
+       ? 'Your new interview time has been confirmed'
+       : EVENT.co+' usually responds within 72 hours')+'</span></div>'
+   +'</div>';
+  h+='<div class="detailcard"><h3>Interview details</h3><div class="rule"></div>'
+   +'<div class="drow">'+methodIcon()+'<span class="v">'+methodSentence()+'</span></div>'
+   +'<div class="drow">'+IC.cal+'<span class="v">'+EVENT.date+'<br>'+t+'<br><span class="z">'+EVENT.tz+'</span></span></div></div>';
   h+='<button class="btn btn-secondary" onclick="location.href=\'jobseeker-v2.html?view=interviews\'">Back to my interviews</button>';
   return h;
 }
