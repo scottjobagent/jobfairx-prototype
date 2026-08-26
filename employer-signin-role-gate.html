@@ -57,6 +57,31 @@
   .spec code{background:#f3f2ef;padding:1px 5px;border-radius:4px;font-size:12px;}
   .step{display:none;}
   .step.active{display:block;}
+
+/* ---- Mobile layout. Two triggers, one look:
+   (a) real phones via the media query below;
+   (b) the View toggle in the dev bar, which puts .m-on/.m-sim on <body>.
+   Keep the two rule sets in sync. ---- */
+body.m-on .card{padding:22px 16px;}
+body.m-on h1{font-size:22px;}
+body.m-on .sub{font-size:14px;margin-bottom:16px;}
+body.m-on .choice{min-height:60px;padding:14px;}
+body.m-on .choice .d{line-height:1.4;}
+body.m-on .wordmark{font-size:19px;margin-bottom:14px;}
+body.m-on .page{padding:24px 12px 40px;}
+body.m-on .spec{font-size:13px;}
+body.m-sim .card{max-width:390px;}
+body.m-sim .spec{max-width:390px;margin-left:auto;margin-right:auto;}
+@media (max-width:480px){
+  .card{padding:22px 16px;}
+  h1{font-size:22px;}
+  .sub{font-size:14px;margin-bottom:16px;}
+  .choice{min-height:60px;padding:14px;}
+  .choice .d{line-height:1.4;}
+  .wordmark{font-size:19px;margin-bottom:14px;}
+  .page{padding:24px 12px 40px;}
+  .spec{font-size:13px;}
+}
 </style>
 </head>
 <body>
@@ -69,6 +94,11 @@
     <button class="devbtn" data-s="signin" onclick="showStep('signin',this)">2 · Employer sign in</button>
     <button class="devbtn" data-s="seeker" onclick="showStep('seeker',this)">Job seeker redirect</button>
     <button class="devbtn" data-s="returning" onclick="showStep('returning',this)">Returning employer</button>
+  </div>
+  <span class="devlabel">View</span>
+  <div class="devswitch">
+    <button class="devbtn active" id="viewDesk" onclick="setView('desktop',this)">Desktop</button>
+    <button class="devbtn" id="viewMob" onclick="setView('mobile',this)">Mobile</button>
   </div>
   <span class="devnote" id="memState"></span>
   <button class="devbtn" style="background:#f3f2ef;" onclick="clearMemory()">Clear memory</button>
@@ -171,6 +201,13 @@ function showStep(s, btn){
   if(t) t.classList.add('active');
   if(s==='seeker'){ setTimeout(function(){ if(JOBSEEKER_SIGNIN_URL !== '#') window.location.href = JOBSEEKER_SIGNIN_URL; }, 1200); }
   paintMem();
+}
+function setView(v, btn){
+  var mob = v === 'mobile';
+  document.body.classList.toggle('m-on', mob);
+  document.body.classList.toggle('m-sim', mob);
+  document.getElementById('viewDesk').classList.toggle('active', !mob);
+  document.getElementById('viewMob').classList.toggle('active', mob);
 }
 function chooseEmployer(){
   try{ localStorage.setItem('jfxRole','employer'); }catch(e){}
