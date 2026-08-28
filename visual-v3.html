@@ -5966,7 +5966,6 @@ var tpl=document.getElementById("anxViewTpl");var main=document.querySelector(".
 #view-candidates .cx-mbox.on{background:#0044B3;border-color:#0044B3}
 #view-candidates .cx-mbox svg{width:14px;height:14px;opacity:0}
 #view-candidates .cx-mbox.on svg{opacity:1}
-#view-candidates .cx-addcol{border:0;background:none;padding:0;cursor:pointer;font-family:inherit;color:#0044B3;font-weight:600;font-size:14px;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
 #view-candidates .cx-note{display:inline-flex;gap:7px;align-items:flex-start;color:#595959;background:none;border:0;padding:0;font-family:inherit;font-size:14px;line-height:21px;cursor:pointer;text-align:left}
 #view-candidates .cx-note.empty{color:#767676}
 #view-candidates .cx-note svg{width:15px;height:15px;flex:0 0 15px;margin-top:3px;color:#0044B3}
@@ -5977,7 +5976,7 @@ var tpl=document.getElementById("anxViewTpl");var main=document.querySelector(".
 /* table-layout is fixed, so every column needs a real width. Name and
    Desired job were width:auto and collapsed to one character per line once
    the five new fixed columns were added. min-width is the sum below. */
-#view-candidates .cx-tbl{min-width:1722px;table-layout:fixed}
+#view-candidates .cx-tbl{min-width:1592px;table-layout:fixed}
 #view-candidates .cx-tbl col.c1{width:52px}
 #view-candidates .cx-tbl col.c2{width:240px}
 #view-candidates .cx-tbl col.cst{width:150px}
@@ -5988,7 +5987,7 @@ var tpl=document.getElementById("anxViewTpl");var main=document.querySelector(".
 #view-candidates .cx-tbl col.c5{width:170px}
 #view-candidates .cx-tbl col.cnt{width:180px}
 #view-candidates .cx-tbl col.c6{width:200px}
-#view-candidates .cx-tbl col.cac{width:130px}
+
 #view-candidates .cx-fbwrap{position:relative;display:inline-block}
 #view-candidates .cx-fb{display:inline-flex;align-items:center;gap:8px;height:32px;padding:0 11px;border-radius:8px;border:1px solid #d4d2d0;background:#fff;color:#2d2d2d;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;white-space:nowrap}
 #view-candidates .cx-fb:hover{border-color:#b4b2a9}
@@ -6123,9 +6122,10 @@ function ico(n){
 }
 
 /* ── Indeed check-in-tool parity (Scott, 27 Aug 2026) ──
-   Status became an inline editable pill, and Phone / Event date / Notes /
-   Add column joined the table. Indeed's Source column was dropped: every
-   candidate of ours arrives the same way, so it would be one repeated value.
+   Status became an inline editable pill, and Phone / Event date / Notes
+   joined the table. Indeed's Source column was dropped: every candidate of
+   ours arrives the same way, so it would be one repeated value. Their
+   Add column control was dropped too (Scott, 28 Aug) - we do not need it.
    The stage vocabulary is unchanged - Indeed's Offer / No Offer / Hired
    describe a hiring pipeline, and this product does not track hires. */
 var STAGE_DOT={requested:'#767676',scheduled:'#0044B3',interviewed:'#16a34a',noshow:'#c2410c',declined:'#991b1b'};
@@ -6248,9 +6248,8 @@ function listHtml(){
     +'<button class="cx-b out" onclick="CXX.clearSel()">Clear selected</button>'
     +'<button class="cx-b pri" onclick="CXX.exportSel()">Export candidates'+ico('chev')+'</button></div>';
 
-  h+='<div class="cx-scroll"><table class="cx-tbl"><colgroup><col class="c1"><col class="c2"><col class="cst"><col class="c3"><col class="c4"><col class="cph"><col class="cev"><col class="c5"><col class="cnt"><col class="c6"><col class="cac"></colgroup>'
-    +'<thead><tr><th><span class="cx-cb'+(selRows.length&&selRows.length===rows.length?' on':'')+'" onclick="CXX.'+(selRows.length===rows.length?'clearSel()':'selAll()')+'">'+ico('tick')+'</span></th><th>Name</th><th>Status</th><th>Desired job</th><th>Desired location</th><th>Phone</th><th>Event date</th><th>'+timeHead()+'</th><th>Notes</th><th>Feedback</th>'
-    +'<th><button class="cx-addcol" onclick="CXX.addCol()">+ Add column</button></th></tr></thead><tbody>';
+  h+='<div class="cx-scroll"><table class="cx-tbl"><colgroup><col class="c1"><col class="c2"><col class="cst"><col class="c3"><col class="c4"><col class="cph"><col class="cev"><col class="c5"><col class="cnt"><col class="c6"></colgroup>'
+    +'<thead><tr><th><span class="cx-cb'+(selRows.length&&selRows.length===rows.length?' on':'')+'" onclick="CXX.'+(selRows.length===rows.length?'clearSel()':'selAll()')+'">'+ico('tick')+'</span></th><th>Name</th><th>Status</th><th>Desired job</th><th>Desired location</th><th>Phone</th><th>Event date</th><th>'+timeHead()+'</th><th>Notes</th><th>Feedback</th></tr></thead><tbody>';
   rows.forEach(function(c){
     h+='<tr><td><span class="cx-cb'+(selRows.indexOf(c.id)>-1?' on':'')+'" onclick="CXX.togSel('+c.id+')">'+ico('tick')+'</span></td>'
       +'<td><button class="cx-name" onclick="CXX.open_('+c.id+')">'+esc(c.n)+'</button>'
@@ -6263,8 +6262,7 @@ function listHtml(){
       +'<td><div class="cx-cell sub">'+esc(evDateOf(c))+'</div></td>'
       +'<td><div class="cx-cell sub">'+esc(timeOf(c))+'</div></td>'
       +'<td>'+noteCell(c)+'</td>'
-      +'<td>'+fbPill(c)+'</td>'
-      +'<td></td></tr>';
+      +'<td>'+fbPill(c)+'</td></tr>';
   });
   h+='</tbody></table></div>';
   if(!rows.length) h+='<div style="padding:56px 0;text-align:center;color:#767676">No candidates in this filter.</div>';
@@ -6708,7 +6706,6 @@ function toggleSt(e){e.stopPropagation();stpop=!stpop;menu=false;render();}
 function toggleScope(e){e.stopPropagation();scopeOpen=!scopeOpen;render();}
 function setScope(e,v){e.stopPropagation();evScope=v;scopeOpen=false;var r=list();if(sel&&!r.some(function(c){return c.id===sel;}))sel=r.length?r[0].id:null;render();}
 function setInt(id,v){var c=get(id);c.int=(c.int===v)?null:v;render();}
-function addCol(){var n=window.prompt('Column name');if(n&&n.trim())toast('Column \u201c'+n.trim()+'\u201d added');}
 function setStage(id,k){var c=get(id);c.stage=k;stpop=false;render();}
 function accept(id){var c=get(id);c.stage='scheduled';c.iv.forEach(function(x){if(x.k==='req'){x.k='soon';x.st='Confirmed';x.by='Emily Chen';}});c.act='Interview confirmed · just now';render();}
 /* F3: Decline confirms first, same modal as the Lobby. */
@@ -6763,7 +6760,7 @@ document.addEventListener('click',function(e){
     if(inQ)focusQ();
   }
 },true);
-window.CXX={accept:accept,back:back,closeDecline:closeDecline,confirmDecline:confirmDecline,sched:sched,cancelIv:cancelIv,reAccept:reAccept,setFb:setFb,openNotes:openNotes,_noteSave:_noteSave,clearSel:clearSel,decline:decline,noshow:noshow,om:om,openDock:openDock,open_:open_,reinstate:reinstate,rowAct:rowAct,selAll:selAll,setInt:setInt,setPTab:setPTab,setPill:setPill,setScope:setScope,setStage:setStage,setStageInline:setStageInline,setEvd:setEvd,addCol:addCol,step:step,togSel:togSel,toggleMenu:toggleMenu,toggleScope:toggleScope,toggleSec:toggleSec,toggleSt:toggleSt,setSort:setSort,setJob:setJob,setRate:setRate,closeDock:closeDock,render:render,setQ:setQ,exportSel:exportSel};
+window.CXX={accept:accept,back:back,closeDecline:closeDecline,confirmDecline:confirmDecline,sched:sched,cancelIv:cancelIv,reAccept:reAccept,setFb:setFb,openNotes:openNotes,_noteSave:_noteSave,clearSel:clearSel,decline:decline,noshow:noshow,om:om,openDock:openDock,open_:open_,reinstate:reinstate,rowAct:rowAct,selAll:selAll,setInt:setInt,setPTab:setPTab,setPill:setPill,setScope:setScope,setStage:setStage,setStageInline:setStageInline,setEvd:setEvd,step:step,togSel:togSel,toggleMenu:toggleMenu,toggleScope:toggleScope,toggleSec:toggleSec,toggleSt:toggleSt,setSort:setSort,setJob:setJob,setRate:setRate,closeDock:closeDock,render:render,setQ:setQ,exportSel:exportSel};
 
 /* ---------- bootstrap ---------- */
 try {
