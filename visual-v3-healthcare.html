@@ -6594,6 +6594,9 @@ var tpl=document.getElementById("anxViewTpl");var main=document.querySelector(".
 #view-candidates .cx-statmenu{position:absolute;top:38px;left:0;min-width:190px;background:#fff;border:1px solid #e4e2e0;border-radius:12px;padding:6px;z-index:60;box-shadow:0 0 2px rgba(45,45,45,.16),0 4px 12px rgba(45,45,45,.08)}
 #view-candidates .cx-statmenu button{display:flex;align-items:center;gap:9px;width:100%;border:0;background:none;padding:9px 10px;border-radius:8px;font-family:inherit;font-size:14px;color:#2d2d2d;cursor:pointer;text-align:left}
 #view-candidates .cx-statmenu button:hover{background:#f3f2ef}
+#view-candidates .cx-statmenu button.on{background:#f3f2ef}
+#view-candidates .cx-statmenu .tk{width:14px;flex:0 0 14px;display:inline-flex;align-items:center;color:#2d2d2d}
+#view-candidates .cx-statmenu .tk svg{width:14px;height:14px;color:#2d2d2d}
 #view-candidates .cx-statdot{width:8px;height:8px;border-radius:50%;flex:0 0 8px}
 #view-candidates .cx-mopt{display:flex;align-items:center;gap:10px}
 #view-candidates .cx-mbox{width:18px;height:18px;flex:0 0 18px;border:1px solid #595959;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;color:#fff}
@@ -6713,23 +6716,25 @@ function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');}
 function get(id){for(var i=0;i<C.length;i++)if(C[i].id===id)return C[i];return null;}
 function inScope(c){return !evScope||c.iv.some(function(x){return EVS[x.ev].n===evScope;});}
 function list(){
-  var r=C.filter(function(c){
-    if(pill&&c.stage!==pill)return false;
-    if(!inScope(c))return false;
+  var rows=allRows().filter(function(r){
+    var c=r.c;
+    if(pill&&r.stage!==pill)return false;
+    if(evScope&&(!EVS[r.ev]||EVS[r.ev].n!==evScope))return false;
     if(jobFil.length&&jobFil.indexOf(c.job)<0)return false;
-    if(evdFil.length&&evdFil.indexOf(evDateOf(c))<0)return false;
-    if(rateFil.length){var fb=fbOf(c);var hit=false;
-      rateFil.forEach(function(r){if(r==='none'){if(!fb)hit=true;}else if(fb===r)hit=true;});
+    if(evdFil.length&&evdFil.indexOf(rEvDate(r))<0)return false;
+    if(rateFil.length){var fb=rFb(r);var hit=false;
+      rateFil.forEach(function(x){if(x==='none'){if(!fb)hit=true;}else if(fb===x)hit=true;});
       if(!hit)return false;}
     if(q){var hay=(c.n+' '+c.job+' '+c.loc).toLowerCase();if(hay.indexOf(q.toLowerCase().trim())<0)return false;}
     return true;});
   var s=sortBy;
-  r.sort(function(a,b){
-    if(s.indexOf('Name')===0)return s.indexOf('A to Z')>0?a.n.localeCompare(b.n):b.n.localeCompare(a.n);
-    if(s.indexOf('Interview time')===0){var x=tOf(a),y=tOf(b);return s.indexOf('earliest')>0?x.localeCompare(y):y.localeCompare(x);}
-    return s.indexOf('newest')>0?b.id-a.id:a.id-b.id;});
-  return r;}
-function countFor(k){return C.filter(function(c){return (!k||c.stage===k)&&inScope(c);}).length;}
+  rows.sort(function(a,b){
+    if(s.indexOf('Name')===0)return s.indexOf('A to Z')>0?a.c.n.localeCompare(b.c.n):b.c.n.localeCompare(a.c.n);
+    if(s.indexOf('Interview time')===0){var x=a.lead.t||'',y=b.lead.t||'';return s.indexOf('earliest')>0?x.localeCompare(y):y.localeCompare(x);}
+    return s.indexOf('newest')>0?b.c.id-a.c.id:a.c.id-b.c.id;});
+  return rows;}
+function countFor(k){return allRows().filter(function(r){
+  return (!k||r.stage===k)&&(!evScope||(EVS[r.ev]&&EVS[r.ev].n===evScope));}).length;}
 function ico(n){
   var m={
    mphone:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6A19.8 19.8 0 012.1 4.2 2 2 0 014.1 2h3a2 2 0 012 1.7c.1 1 .4 1.9.7 2.8a2 2 0 01-.5 2.1L8.1 9.9a16 16 0 006 6l1.3-1.3a2 2 0 012.1-.4c.9.3 1.8.6 2.8.7a2 2 0 011.7 2z"/></svg>',
@@ -6765,22 +6770,22 @@ function ico(n){
 var STAGE_DOT={requested:'#767676',scheduled:'#0044B3',interviewed:'#16a34a',noshow:'#c2410c',declined:'#991b1b'};
 var STAGE_ORDER=['requested','scheduled','interviewed','noshow','declined'];
 
-function stagePill(c){
-  var k='st'+c.id;
-  var h='<span class="cx-statwrap"><button class="cx-stat st-'+c.stage+'" onclick="CXX.om(event,\''+k+'\')">'
-      + STAGEL[c.stage] + ico('chev') + '</button>';
+function stagePill(r){
+  var k='st'+r.key;
+  var h='<span class="cx-statwrap"><button class="cx-stat st-'+r.stage+'" onclick="CXX.om(event,\''+k+'\')">'
+      + STAGEL[r.stage] + ico('chev') + '</button>';
   if(openMenu===k){
     h+='<span class="cx-statmenu" onclick="event.stopPropagation()">';
     STAGE_ORDER.forEach(function(s){
-      if(s===c.stage) return;
-      h+='<button onclick="CXX.setStageInline('+c.id+',\''+s+'\')">'
+      var on=(s===r.stage);
+      h+='<button class="'+(on?'on':'')+'" onclick="CXX.setRowStage(\''+r.key+'\',\''+s+'\')">'
+        +'<span class="tk">'+(on?ico('tick'):'')+'</span>'
         +'<span class="cx-statdot" style="background:'+STAGE_DOT[s]+'"></span>'+STAGEL[s]+'</button>';
     });
     h+='</span>';
   }
   return h+'</span>';
 }
-function setStageInline(id,k){var c=get(id);if(c){c.stage=k;}openMenu='';render();}
 
 /* Our events run a single day, so the event's date names the event. Indeed's
    own Event Date column marks which day of one multi-week event a slot fell on;
@@ -6800,7 +6805,7 @@ function evDateOf(c){
 }
 function evDates(){
   var o=[];
-  C.forEach(function(c){var d=evDateOf(c);if(d!=='\u2014'&&o.indexOf(d)<0)o.push(d);});
+  allRows().forEach(function(r){var d=rEvDate(r);if(d!=='\u2014'&&o.indexOf(d)<0)o.push(d);});
   return o;
 }
 /* Feedback pill (Scott's option B, 28 Aug). Shaped like Indeed's Job status
@@ -6817,15 +6822,15 @@ function fbDot(k){
   return k ? '<span class="cx-fbdot" style="background:'+FB_DOT[k]+'"></span>'
            : '<span class="cx-fbdot empty"></span>';
 }
-function fbPill(c){
-  var key='fb'+c.id, cur=fbOf(c);
+function fbPill(r){
+  var key='fb'+r.key, cur=rFb(r);
   var h='<span class="cx-fbwrap"><button class="cx-fb'+(cur?'':' unset')+'" onclick="CXX.om(event,\''+key+'\')">'
       + fbDot(cur) + (cur?FBL[cur]:'Select') + ico('chev') + '</button>';
   if(openMenu===key){
     h+='<span class="cx-fbmenu" onclick="event.stopPropagation()">';
     FB_ORDER.forEach(function(o){
       var on=(o[0]===cur);
-      h+='<button class="'+(on?'on':'')+'" onclick="CXX.setFb('+c.id+',\''+o[0]+'\')">'
+      h+='<button class="'+(on?'on':'')+'" onclick="CXX.setRowFb(\''+r.key+'\',\''+o[0]+'\')">'
         +'<span class="tk">'+(on?ico('tick'):'')+'</span>'+fbDot(o[0])+o[1]+'</button>';
     });
     h+='</span>';
@@ -6857,6 +6862,47 @@ function multiLabel(name,arr){
 }
 function togIn(arr,v){var i=arr.indexOf(v);if(i<0)arr.push(v);else arr.splice(i,1);}
 
+/* ── One row per interview (Scott, 28 Aug) ──
+   Feedback belongs to the interview, not the person: an interviewer marks whether
+   this candidate was a good fit for THIS role at THIS event. So the table lists
+   interviews, and a candidate who books at two events appears twice.
+   Repeat attempts at one event are a single interview that was interrupted and
+   resumed, so they collapse into one row and the furthest-along entry leads it. */
+var K_STAGE={req:'requested',soon:'scheduled',attempt:'interviewed',done:'interviewed',noshow:'noshow',dec:'declined'};
+var K_RANK={req:1,soon:2,attempt:3,done:4,noshow:5,dec:6};
+var STAGE_K={requested:'req',scheduled:'soon',interviewed:'done',noshow:'noshow',declined:'dec'};
+
+function rowsOf(c){
+  var by={}, order=[];
+  (c.iv||[]).forEach(function(x){ if(!by[x.ev]){by[x.ev]=[];order.push(x.ev);} by[x.ev].push(x); });
+  return order.map(function(ev){
+    var g=by[ev], lead=g[0];
+    g.forEach(function(x){ if((K_RANK[x.k]||0)>(K_RANK[lead.k]||0)) lead=x; });
+    return {c:c, ev:ev, g:g, lead:lead, key:c.id+':'+ev, stage:K_STAGE[lead.k]||c.stage};
+  });
+}
+function allRows(){ var o=[]; C.forEach(function(c){ o=o.concat(rowsOf(c)); }); return o; }
+function rowByKey(k){ var hit=null; allRows().forEach(function(r){ if(r.key===k) hit=r; }); return hit; }
+
+function rEvDate(r){ return EVS[r.ev] ? EVS[r.ev].d : '\u2014'; }
+function rTime(r){
+  if(r.stage==='requested' && r.c.prop) return r.c.prop.replace(/&middot;/g,'\u00b7');
+  return r.lead.t || '\u2014';
+}
+/* The rating lives on whichever entry in the group carries it; new ratings are
+   written to the lead so a resumed interview keeps one verdict, not two. */
+function rFb(r){ var v=''; r.g.forEach(function(x){ if(x.rate) v=x.rate; }); return v; }
+function setRowFb(key,val){
+  var r=rowByKey(key);
+  if(r){ r.g.forEach(function(x){ delete x.rate; }); if(val) r.lead.rate=val; }
+  openMenu=''; render();
+}
+function setRowStage(key,s){
+  var r=rowByKey(key);
+  if(r){ r.lead.k=STAGE_K[s]||r.lead.k; r.c.stage=s; }
+  openMenu=''; render();
+}
+
 /* ── list view ── */
 function listHtml(){
   var rows=list();
@@ -6877,26 +6923,27 @@ function listHtml(){
     +ctlMulti('evd', multiLabel('Event date',evdFil), evDates().map(function(d){return [d,d,evdFil.indexOf(d)>-1];}), 'setEvd')
     +ctlMulti('rate', multiLabel('Feedback',rateFil), RATES.filter(function(r){return r[0];}).map(function(r){return [r[0],r[1],rateFil.indexOf(r[0])>-1];}), 'setRate')
     +'<div class="cx-search">'+ico('search')+'<input id="cxSearch" placeholder="Search candidates" value="'+esc(q).replace(/"/g,'&quot;')+'" oninput="CXX.setQ(this.value)"></div></div>';
-  if(selRows.length) h+='<div class="cx-bulk"><span class="cx-bulklbl">'+selRows.length+' candidate'+(selRows.length===1?' is':'s are')+' selected</span>'
-    +(selRows.length<rows.length?'<button class="cx-b out" onclick="CXX.selAll()">Select all '+rows.length+' candidates</button>':'')
+  if(selRows.length) h+='<div class="cx-bulk"><span class="cx-bulklbl">'+selRows.length+' interview'+(selRows.length===1?' is':'s are')+' selected</span>'
+    +(selRows.length<rows.length?'<button class="cx-b out" onclick="CXX.selAll()">Select all '+rows.length+' interviews</button>':'')
     +'<button class="cx-b out" onclick="CXX.clearSel()">Clear selected</button>'
     +'<button class="cx-b pri" onclick="CXX.exportSel()">Export candidates'+ico('chev')+'</button></div>';
 
   h+='<div class="cx-scroll"><table class="cx-tbl"><colgroup><col class="c1"><col class="c2"><col class="cst"><col class="c3"><col class="c4"><col class="cph"><col class="cev"><col class="c5"><col class="cnt"><col class="c6"></colgroup>'
     +'<thead><tr><th><span class="cx-cb'+(selRows.length&&selRows.length===rows.length?' on':'')+'" onclick="CXX.'+(selRows.length===rows.length?'clearSel()':'selAll()')+'">'+ico('tick')+'</span></th><th>Name</th><th>Status</th><th>Desired job</th><th>Desired location</th><th>Phone</th><th>Event date</th><th>'+timeHead()+'</th><th>Notes</th><th>Feedback</th></tr></thead><tbody>';
-  rows.forEach(function(c){
-    h+='<tr><td><span class="cx-cb'+(selRows.indexOf(c.id)>-1?' on':'')+'" onclick="CXX.togSel('+c.id+')">'+ico('tick')+'</span></td>'
+  rows.forEach(function(r){
+    var c=r.c;
+    h+='<tr><td><span class="cx-cb'+(selRows.indexOf(r.key)>-1?' on':'')+'" onclick="CXX.togSel(\''+r.key+'\')">'+ico('tick')+'</span></td>'
       +'<td><button class="cx-name" onclick="CXX.open_('+c.id+')">'+esc(c.n)+'</button>'
       +'<div class="cx-meta">'+esc(c.act.split(' · ').pop())+cxChip(c)+'</div>'
       +'<div class="iv-review-actions" style="margin-top:2px"><a onclick="CXX.rowAct('+c.id+',\'View resume\')" style="cursor:pointer">View resume</a> <a onclick="CXX.openDock('+c.id+')" style="cursor:pointer">Message</a></div></td>'
-      +'<td>'+stagePill(c)+'</td>'
+      +'<td>'+stagePill(r)+'</td>'
       +'<td><div class="cx-cell">'+esc(c.job)+'</div></td>'
       +'<td><div class="cx-cell sub">'+esc(c.loc)+'</div></td>'
       +'<td><div class="cx-cell sub">'+esc(c.ph||'—')+'</div></td>'
-      +'<td><div class="cx-cell sub">'+esc(evDateOf(c))+'</div></td>'
-      +'<td><div class="cx-cell sub">'+esc(timeOf(c))+'</div></td>'
+      +'<td><div class="cx-cell sub">'+esc(rEvDate(r))+'</div></td>'
+      +'<td><div class="cx-cell sub">'+esc(rTime(r))+'</div></td>'
       +'<td>'+noteCell(c)+'</td>'
-      +'<td>'+fbPill(c)+'</td></tr>';
+      +'<td>'+fbPill(r)+'</td></tr>';
   });
   h+='</tbody></table></div>';
   if(!rows.length) h+='<div style="padding:56px 0;text-align:center;color:#767676">No candidates in this filter.</div>';
@@ -6915,7 +6962,7 @@ function setSort(v){sortBy=v;openMenu='';render();}
 function setJob(v){togIn(jobFil,v);render();}
 function setEvd(v){togIn(evdFil,v);render();}
 function setRate(v){togIn(rateFil,v);render();}
-function selAll(){selRows=list().map(function(c){return c.id;});render();}
+function selAll(){selRows=list().map(function(r){return r.key;});render();}
 function clearSel(){selRows=[];render();}
 function togSel(id){var i=selRows.indexOf(id);if(i<0)selRows.push(id);else selRows.splice(i,1);render();}
 /* Audit item 13: the action column holds whatever decision the stage is waiting on.
@@ -6944,7 +6991,9 @@ function timeOf(c){
    Upcoming. Interviewed -> the Interviews feedback chip. No-show -> kebab only. */
 var FBL={yes:'Yes',no:'No',maybe:'Maybe'};
 var FBMAP={sl:'yes',ud:'maybe',rj:'no'};
-function fbOf(c){return FBMAP[c.int]||'';}
+/* Candidate-level view of feedback, for the profile: the most recent rating
+   this person carries on any interview. c.int is no longer read anywhere. */
+function fbOf(c){return rateOf(c)||'';}
 function pendCap(c,withDecline){
   return '<div class="iv-pending-actions">'
     +'<button class="iv-pending-btn accept" onclick="CXX.'+(withDecline?'accept':'reAccept')+'('+c.id+')">Accept<span class="iv-btn-tooltip">Accept interview request</span></button>'
@@ -7076,7 +7125,9 @@ function cancelIv(id){
   m.classList.add('open');
 }
 function reAccept(id){reinstate(id);accept(id);}
-function setFb(id,v){var c=get(id);c.int={yes:'sl',maybe:'ud',no:'rj'}[v]||null;openMenu='';render();}
+function setFb(id,v){var c=get(id);var x=ivFor(c);
+  if(x){ if(v) x.rate=v; else delete x.rate; }
+  openMenu='';render();}
 function openNotes(id,btn){
   var c=get(id);if(!unhide('ivNotesModal')||typeof ivOpenNotesModal!=='function')return;
   ivOpenNotesModal(c.n,btn);
@@ -7339,7 +7390,6 @@ function toggleMenu(e){e.stopPropagation();menu=!menu;stpop=false;render();}
 function toggleSt(e){e.stopPropagation();stpop=!stpop;menu=false;render();}
 function toggleScope(e){e.stopPropagation();scopeOpen=!scopeOpen;render();}
 function setScope(e,v){e.stopPropagation();evScope=v;scopeOpen=false;var r=list();if(sel&&!r.some(function(c){return c.id===sel;}))sel=r.length?r[0].id:null;render();}
-function setInt(id,v){var c=get(id);c.int=(c.int===v)?null:v;render();}
 function setStage(id,k){var c=get(id);c.stage=k;stpop=false;render();}
 function accept(id){var c=get(id);c.stage='scheduled';c.iv.forEach(function(x){if(x.k==='req'){x.k='soon';x.st='Confirmed';x.by='Emily Chen';}});c.act='Interview confirmed · just now';render();}
 /* F3: Decline confirms first, same modal as the Lobby. */
@@ -7394,7 +7444,7 @@ document.addEventListener('click',function(e){
     if(inQ)focusQ();
   }
 },true);
-window.CXX={accept:accept,back:back,closeDecline:closeDecline,confirmDecline:confirmDecline,sched:sched,cancelIv:cancelIv,reAccept:reAccept,setFb:setFb,openNotes:openNotes,_noteSave:_noteSave,clearSel:clearSel,decline:decline,noshow:noshow,om:om,openDock:openDock,open_:open_,reinstate:reinstate,rowAct:rowAct,selAll:selAll,setInt:setInt,setPTab:setPTab,setPill:setPill,setScope:setScope,setStage:setStage,setStageInline:setStageInline,setEvd:setEvd,step:step,togSel:togSel,toggleMenu:toggleMenu,toggleScope:toggleScope,toggleSec:toggleSec,toggleSt:toggleSt,setSort:setSort,setJob:setJob,setRate:setRate,closeDock:closeDock,render:render,setQ:setQ,exportSel:exportSel};
+window.CXX={accept:accept,back:back,closeDecline:closeDecline,confirmDecline:confirmDecline,sched:sched,cancelIv:cancelIv,reAccept:reAccept,setFb:setFb,openNotes:openNotes,_noteSave:_noteSave,clearSel:clearSel,decline:decline,noshow:noshow,om:om,openDock:openDock,open_:open_,reinstate:reinstate,rowAct:rowAct,selAll:selAll,setPTab:setPTab,setPill:setPill,setScope:setScope,setStage:setStage,setRowStage:setRowStage,setRowFb:setRowFb,setEvd:setEvd,step:step,togSel:togSel,toggleMenu:toggleMenu,toggleScope:toggleScope,toggleSec:toggleSec,toggleSt:toggleSt,setSort:setSort,setJob:setJob,setRate:setRate,closeDock:closeDock,render:render,setQ:setQ,exportSel:exportSel};
 
 /* ---------- bootstrap ---------- */
 try {
