@@ -954,7 +954,9 @@ tbody tr:last-child td { border-bottom: none; }
    Outlined with a coloured dot, deliberately unlike the solid Status pill, so where
    the two sit side by side they read as different kinds of value. */
 .fbp{position:relative;display:inline-block}
-.fbp-btn{display:inline-flex;align-items:center;gap:8px;height:32px;padding:0 11px;border-radius:8px;border:1px solid #d4d2d0;background:#fff;color:#2d2d2d;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;white-space:nowrap}
+/* Sized to the longest label, Maybe, so a column of pills never jumps width. */
+.fbp-btn{display:inline-flex;align-items:center;gap:8px;height:32px;padding:0 11px;min-width:106px;border-radius:8px;border:1px solid #d4d2d0;background:#fff;color:#2d2d2d;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;white-space:nowrap}
+.fbp-lbl{flex:1 1 auto;text-align:left}
 .fbp-btn:hover{border-color:#b4b2a9}
 .fbp[data-v=""] .fbp-btn{color:#595959}
 .fbp-btn svg{width:14px;height:14px;flex:0 0 14px;color:#767676}
@@ -6031,7 +6033,9 @@ var tpl=document.getElementById("anxViewTpl");var main=document.querySelector(".
 }
 #view-candidates .cx-toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(8px);background:#2d2d2d;color:#fff;border-radius:12px;padding:12px 20px;font-size:14px;line-height:21px;z-index:9999;opacity:0;pointer-events:none;transition:opacity .18s,transform .18s}
 #view-candidates .cx-toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
-#view-candidates .cx-stat{display:inline-flex;align-items:center;gap:7px;height:32px;padding:0 11px;border-radius:8px;color:#fff;font-size:13px;font-weight:600;border:0;cursor:pointer;font-family:inherit;white-space:nowrap}
+/* Sized to the longest label, Interviewed, for the same reason as .fbp-btn. */
+#view-candidates .cx-stat{display:inline-flex;align-items:center;gap:7px;height:32px;padding:0 11px;min-width:120px;border-radius:8px;color:#fff;font-size:13px;font-weight:600;border:0;cursor:pointer;font-family:inherit;white-space:nowrap}
+#view-candidates .cx-statlbl{flex:1 1 auto;text-align:left}
 #view-candidates .cx-stat svg{width:14px;height:14px;opacity:.9;flex:0 0 14px}
 #view-candidates .cx-stat.st-requested{background:#767676}
 #view-candidates .cx-stat.st-scheduled{background:#0044B3}
@@ -6208,7 +6212,7 @@ var STAGE_ORDER=['requested','scheduled','interviewed','noshow','declined'];
 function stagePill(r){
   var k='st'+r.key;
   var h='<span class="cx-statwrap"><button class="cx-stat st-'+r.stage+'" onclick="CXX.om(event,\''+k+'\')">'
-      + STAGEL[r.stage] + ico('chev') + '</button>';
+      + '<span class="cx-statlbl">' + STAGEL[r.stage] + '</span>' + ico('chev') + '</button>';
   if(openMenu===k){
     h+='<span class="cx-statmenu" onclick="event.stopPropagation()">';
     STAGE_ORDER.forEach(function(s){
