@@ -6611,7 +6611,7 @@ var tpl=document.getElementById("anxViewTpl");var main=document.querySelector(".
 /* table-layout is fixed, so every column needs a real width. Name and
    Desired job were width:auto and collapsed to one character per line once
    the five new fixed columns were added. min-width is the sum below. */
-#view-candidates .cx-tbl{min-width:1822px;table-layout:fixed}
+#view-candidates .cx-tbl{min-width:1722px;table-layout:fixed}
 #view-candidates .cx-tbl col.c1{width:52px}
 #view-candidates .cx-tbl col.c2{width:240px}
 #view-candidates .cx-tbl col.cst{width:150px}
@@ -6621,7 +6621,7 @@ var tpl=document.getElementById("anxViewTpl");var main=document.querySelector(".
 #view-candidates .cx-tbl col.cev{width:120px}
 #view-candidates .cx-tbl col.c5{width:170px}
 #view-candidates .cx-tbl col.cnt{width:180px}
-#view-candidates .cx-tbl col.c6{width:300px}
+#view-candidates .cx-tbl col.c6{width:200px}
 #view-candidates .cx-tbl col.cac{width:130px}
 </style>
 
@@ -6790,6 +6790,14 @@ function evDates(){
   C.forEach(function(c){var d=evDateOf(c);if(d!=='\u2014'&&o.indexOf(d)<0)o.push(d);});
   return o;
 }
+/* Scott, 27 Aug: the Accept / Decline / Reschedule / Cancel controls came out
+   of the table - they already live behind the candidate's name. What stays is
+   the judgment, and feedback only exists once an interview has happened, so
+   every other stage renders a dash rather than an inert control. */
+function fbCell(c){
+  if(c.stage==='interviewed'||c.stage==='noshow') return fbChip(c);
+  return '<span class="cx-cell sub">\u2014</span>';
+}
 function noteCell(c){
   var t=(c.notes||'').trim();
   var pen='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg>';
@@ -6841,7 +6849,7 @@ function listHtml(){
     +'<button class="cx-b pri" onclick="CXX.exportSel()">Export candidates'+ico('chev')+'</button></div>';
 
   h+='<div class="cx-scroll"><table class="cx-tbl"><colgroup><col class="c1"><col class="c2"><col class="cst"><col class="c3"><col class="c4"><col class="cph"><col class="cev"><col class="c5"><col class="cnt"><col class="c6"><col class="cac"></colgroup>'
-    +'<thead><tr><th><span class="cx-cb'+(selRows.length&&selRows.length===rows.length?' on':'')+'" onclick="CXX.'+(selRows.length===rows.length?'clearSel()':'selAll()')+'">'+ico('tick')+'</span></th><th>Name</th><th>Status</th><th>Desired job</th><th>Desired location</th><th>Phone</th><th>Event date</th><th>'+timeHead()+'</th><th>Notes</th><th>'+colHead()+'</th>'
+    +'<thead><tr><th><span class="cx-cb'+(selRows.length&&selRows.length===rows.length?' on':'')+'" onclick="CXX.'+(selRows.length===rows.length?'clearSel()':'selAll()')+'">'+ico('tick')+'</span></th><th>Name</th><th>Status</th><th>Desired job</th><th>Desired location</th><th>Phone</th><th>Event date</th><th>'+timeHead()+'</th><th>Notes</th><th>Feedback</th>'
     +'<th><button class="cx-addcol" onclick="CXX.addCol()">+ Add column</button></th></tr></thead><tbody>';
   rows.forEach(function(c){
     h+='<tr><td><span class="cx-cb'+(selRows.indexOf(c.id)>-1?' on':'')+'" onclick="CXX.togSel('+c.id+')">'+ico('tick')+'</span></td>'
@@ -6855,7 +6863,7 @@ function listHtml(){
       +'<td><div class="cx-cell sub">'+esc(evDateOf(c))+'</div></td>'
       +'<td><div class="cx-cell sub">'+esc(timeOf(c))+'</div></td>'
       +'<td>'+noteCell(c)+'</td>'
-      +'<td><span class="cx-ivwrap">'+rowCtl(c)+moreBtn(c)+'</span></td>'
+      +'<td>'+fbCell(c)+'</td>'
       +'<td></td></tr>';
   });
   h+='</tbody></table></div>';
