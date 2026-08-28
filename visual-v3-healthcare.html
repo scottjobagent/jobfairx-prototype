@@ -6623,6 +6623,19 @@ var tpl=document.getElementById("anxViewTpl");var main=document.querySelector(".
 #view-candidates .cx-tbl col.cnt{width:180px}
 #view-candidates .cx-tbl col.c6{width:200px}
 #view-candidates .cx-tbl col.cac{width:130px}
+#view-candidates .cx-fbwrap{position:relative;display:inline-block}
+#view-candidates .cx-fb{display:inline-flex;align-items:center;gap:8px;height:32px;padding:0 11px;border-radius:8px;border:1px solid #d4d2d0;background:#fff;color:#2d2d2d;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;white-space:nowrap}
+#view-candidates .cx-fb:hover{border-color:#b4b2a9}
+#view-candidates .cx-fb.unset{color:#595959}
+#view-candidates .cx-fb svg{width:14px;height:14px;flex:0 0 14px;color:#767676}
+#view-candidates .cx-fbdot{width:8px;height:8px;border-radius:50%;flex:0 0 8px}
+#view-candidates .cx-fbdot.empty{background:transparent;border:1px solid #b4b2a9}
+#view-candidates .cx-fbmenu{position:absolute;top:38px;left:0;min-width:186px;background:#fff;border:1px solid #e4e2e0;border-radius:12px;padding:6px;z-index:60;box-shadow:0 0 2px rgba(45,45,45,.16),0 4px 12px rgba(45,45,45,.08)}
+#view-candidates .cx-fbmenu button{display:flex;align-items:center;gap:9px;width:100%;border:0;background:none;padding:9px 10px;border-radius:8px;font-family:inherit;font-size:14px;color:#2d2d2d;cursor:pointer;text-align:left}
+#view-candidates .cx-fbmenu button:hover{background:#f3f2ef}
+#view-candidates .cx-fbmenu button.on{background:#f3f2ef}
+#view-candidates .cx-fbmenu .tk{width:14px;flex:0 0 14px;display:inline-flex;align-items:center;color:#2d2d2d}
+#view-candidates .cx-fbmenu .tk svg{width:14px;height:14px;color:#2d2d2d}
 </style>
 
 <template id="cxViewTpl">
@@ -6790,13 +6803,34 @@ function evDates(){
   C.forEach(function(c){var d=evDateOf(c);if(d!=='\u2014'&&o.indexOf(d)<0)o.push(d);});
   return o;
 }
-/* Scott, 27 Aug: the Accept / Decline / Reschedule / Cancel controls came out
-   of the table - they already live behind the candidate's name. What stays is
-   the judgment, and feedback only exists once an interview has happened, so
-   every other stage renders a dash rather than an inert control. */
-function fbCell(c){
-  if(c.stage==='interviewed'||c.stage==='noshow') return fbChip(c);
-  return '<span class="cx-cell sub">\u2014</span>';
+/* Feedback pill (Scott's option B, 28 Aug). Shaped like Indeed's Job status
+   control: an outlined pill with a coloured dot, not a filled one, so it stays
+   distinguishable from the solid Status pill in the column beside it. Every row
+   carries it and the default is unset. "Select" is a real option inside the
+   menu with the tick on it, so choosing it clears the rating - there is no
+   separate clear action, which is how Indeed's own dropdown behaves.
+   Dot colours are the app's existing .iv-dot values. Order follows Indeed's
+   evaluation control: Yes, Maybe, No. */
+var FB_DOT={yes:'#16a34a',maybe:'#c2410c',no:'#991b1b'};
+var FB_ORDER=[['','Select'],['yes','Yes'],['maybe','Maybe'],['no','No']];
+function fbDot(k){
+  return k ? '<span class="cx-fbdot" style="background:'+FB_DOT[k]+'"></span>'
+           : '<span class="cx-fbdot empty"></span>';
+}
+function fbPill(c){
+  var key='fb'+c.id, cur=fbOf(c);
+  var h='<span class="cx-fbwrap"><button class="cx-fb'+(cur?'':' unset')+'" onclick="CXX.om(event,\''+key+'\')">'
+      + fbDot(cur) + (cur?FBL[cur]:'Select') + ico('chev') + '</button>';
+  if(openMenu===key){
+    h+='<span class="cx-fbmenu" onclick="event.stopPropagation()">';
+    FB_ORDER.forEach(function(o){
+      var on=(o[0]===cur);
+      h+='<button class="'+(on?'on':'')+'" onclick="CXX.setFb('+c.id+',\''+o[0]+'\')">'
+        +'<span class="tk">'+(on?ico('tick'):'')+'</span>'+fbDot(o[0])+o[1]+'</button>';
+    });
+    h+='</span>';
+  }
+  return h+'</span>';
 }
 function noteCell(c){
   var t=(c.notes||'').trim();
@@ -6863,7 +6897,7 @@ function listHtml(){
       +'<td><div class="cx-cell sub">'+esc(evDateOf(c))+'</div></td>'
       +'<td><div class="cx-cell sub">'+esc(timeOf(c))+'</div></td>'
       +'<td>'+noteCell(c)+'</td>'
-      +'<td>'+fbCell(c)+'</td>'
+      +'<td>'+fbPill(c)+'</td>'
       +'<td></td></tr>';
   });
   h+='</tbody></table></div>';
