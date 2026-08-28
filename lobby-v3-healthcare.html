@@ -1090,7 +1090,89 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
 /* Constrain custom picker in lobby modal */
 #bgCpxAv { max-width: 300px; margin: 0 auto; }
 #bgCpxAv .bg-cpx-sl { height: 180px; }
+
+/* ── Feedback pill: one component for every place Yes/Maybe/No is set ──
+   Outlined with a coloured dot, deliberately unlike the solid Status pill, so where
+   the two sit side by side they read as different kinds of value. */
+.fbp{position:relative;display:inline-block}
+.fbp-btn{display:inline-flex;align-items:center;gap:8px;height:32px;padding:0 11px;border-radius:8px;border:1px solid #d4d2d0;background:#fff;color:#2d2d2d;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;white-space:nowrap}
+.fbp-btn:hover{border-color:#b4b2a9}
+.fbp[data-v=""] .fbp-btn{color:#595959}
+.fbp-btn svg{width:14px;height:14px;flex:0 0 14px;color:#767676}
+.fbp-dot{width:8px;height:8px;border-radius:50%;flex:0 0 8px}
+.fbp-dot.empty{background:transparent;border:1px solid #b4b2a9}
+.fbp-menu{display:none;position:absolute;top:38px;left:0;min-width:186px;background:#fff;border:1px solid #e4e2e0;border-radius:12px;padding:6px;z-index:200;box-shadow:0 0 2px rgba(45,45,45,.16),0 4px 12px rgba(45,45,45,.08)}
+.fbp.on .fbp-menu{display:block}
+.fbp-menu button{display:flex;align-items:center;gap:9px;width:100%;border:0;background:none;padding:9px 10px;border-radius:8px;font-family:inherit;font-size:14px;color:#2d2d2d;cursor:pointer;text-align:left}
+.fbp-menu button:hover{background:#f3f2ef}
+.fbp-menu button.on{background:#f3f2ef}
+.fbp-menu .tk{width:14px;flex:0 0 14px;display:inline-flex;align-items:center;visibility:hidden;color:#2d2d2d}
+.fbp-menu button.on .tk{visibility:visible}
+.fbp-menu .tk svg{width:14px;height:14px}
 </style>
+<script>
+/* ── Feedback pill behaviour ──
+   DOM-driven, so one component serves hand-written rows and rendered ones alike.
+   A pill carrying data-cid also writes through to the candidate's interview record. */
+var FBP_LBL={'':'Select',yes:'Yes',maybe:'Maybe',no:'No'};
+var FBP_COL={yes:'#16a34a',maybe:'#c2410c',no:'#991b1b'};
+var FBP_CHEV='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>';
+var FBP_TICK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6L9 17l-5-5"/></svg>';
+function fbpDot(v){
+  return v ? '<span class="fbp-dot" style="background:'+FBP_COL[v]+'"></span>'
+           : '<span class="fbp-dot empty"></span>';
+}
+function fbpMarkup(v,extra){
+  if(!FBP_LBL.hasOwnProperty(v||'')) v='';
+  v=v||''; extra=extra||'';
+  var h='<span class="fbp" data-v="'+v+'"'+extra+'>'
+    +'<button type="button" class="fbp-btn" onclick="fbpOpen(event,this)">'
+    +fbpDot(v)+'<span class="fbp-lbl">'+FBP_LBL[v]+'</span>'+FBP_CHEV+'</button>'
+    +'<span class="fbp-menu">';
+  ['','yes','maybe','no'].forEach(function(k){
+    h+='<button type="button" data-v="'+k+'" onclick="fbpSet(event,this,\''+k+'\')">'
+      +'<span class="tk">'+FBP_TICK+'</span>'+fbpDot(k)+FBP_LBL[k]+'</button>';
+  });
+  return h+'</span></span>';
+}
+function fbpPaint(w){
+  var v=w.getAttribute('data-v')||'';
+  var lbl=w.querySelector('.fbp-lbl'); if(lbl) lbl.textContent=FBP_LBL[v]||'Select';
+  var d=w.querySelector('.fbp-btn .fbp-dot');
+  if(d){ d.className='fbp-dot'+(v?'':' empty'); d.style.background=v?FBP_COL[v]:''; }
+  var opts=w.querySelectorAll('.fbp-menu button');
+  for(var i=0;i<opts.length;i++){
+    if((opts[i].getAttribute('data-v')||'')===v) opts[i].classList.add('on');
+    else opts[i].classList.remove('on');
+  }
+}
+function fbpCloseAll(){
+  var o=document.querySelectorAll('.fbp.on');
+  for(var i=0;i<o.length;i++) o[i].classList.remove('on');
+}
+function fbpOpen(e,btn){
+  e.stopPropagation();
+  var w=btn.parentNode, was=w.classList.contains('on');
+  fbpCloseAll();
+  if(!was){ fbpPaint(w); w.classList.add('on'); }
+}
+function fbpSet(e,btn,v){
+  e.stopPropagation();
+  var w=btn.parentNode.parentNode;
+  w.setAttribute('data-v',v);
+  fbpPaint(w);
+  w.classList.remove('on');
+  var cid=w.getAttribute('data-cid');
+  if(cid && window.CXX && CXX.setFb) CXX.setFb(parseInt(cid,10), v);
+  var rk=w.getAttribute('data-rk');
+  if(rk && window.CXX && CXX.setRowFb) CXX.setRowFb(rk, v);
+}
+document.addEventListener('click', fbpCloseAll);
+document.addEventListener('DOMContentLoaded', function(){
+  var all=document.querySelectorAll('.fbp');
+  for(var i=0;i<all.length;i++) fbpPaint(all[i]);
+});
+</script>
 </head>
 <body>
 
@@ -1912,7 +1994,7 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
               </div>
             </td>
             <td>
-              <div class="fb-wrapper"><div class="fb-actions"><button class="fb-btn status yes" onclick="fbToggleDropdown(this)">Yes</button><button class="fb-btn change" onclick="fbToggleDropdown(this)">Update</button></div><div class="fb-dropdown" onclick="event.stopPropagation()"><div class="fb-dropdown-option" onclick="fbChange(this, 'yes')"><span class="fb-dot green"></span>Yes</div><div class="fb-dropdown-option" onclick="fbChange(this, 'no')"><span class="fb-dot red"></span>No</div><div class="fb-dropdown-option" onclick="fbChange(this, 'maybe')"><span class="fb-dot orange"></span>Maybe</div><div class="fb-dropdown-option" onclick="fbChange(this, 'noshow')"><span class="fb-dot gray"></span>No-show</div></div></div>
+              <span class="fbp" data-v="yes"><button type="button" class="fbp-btn" onclick="fbpOpen(event,this)"><span class="fbp-dot" style="background:#16a34a"></span><span class="fbp-lbl">Yes</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button><span class="fbp-menu"><button type="button" data-v="" onclick="fbpSet(event,this,'')"><span class="tk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6L9 17l-5-5"/></svg></span><span class="fbp-dot empty"></span>Select</button><button type="button" data-v="yes" onclick="fbpSet(event,this,'yes')"><span class="tk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6L9 17l-5-5"/></svg></span><span class="fbp-dot" style="background:#16a34a"></span>Yes</button><button type="button" data-v="maybe" onclick="fbpSet(event,this,'maybe')"><span class="tk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6L9 17l-5-5"/></svg></span><span class="fbp-dot" style="background:#c2410c"></span>Maybe</button><button type="button" data-v="no" onclick="fbpSet(event,this,'no')"><span class="tk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6L9 17l-5-5"/></svg></span><span class="fbp-dot" style="background:#991b1b"></span>No</button></span></span>
             </td>
             <td>Emily Chen</td>
             <td>
@@ -1933,7 +2015,7 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
               </div>
             </td>
             <td>
-              <div class="fb-wrapper"><div class="fb-actions"><button class="fb-btn status yes" onclick="fbToggleDropdown(this)">Yes</button><button class="fb-btn change" onclick="fbToggleDropdown(this)">Update</button></div><div class="fb-dropdown" onclick="event.stopPropagation()"><div class="fb-dropdown-option" onclick="fbChange(this, 'yes')"><span class="fb-dot green"></span>Yes</div><div class="fb-dropdown-option" onclick="fbChange(this, 'no')"><span class="fb-dot red"></span>No</div><div class="fb-dropdown-option" onclick="fbChange(this, 'maybe')"><span class="fb-dot orange"></span>Maybe</div><div class="fb-dropdown-option" onclick="fbChange(this, 'noshow')"><span class="fb-dot gray"></span>No-show</div></div></div>
+              <span class="fbp" data-v="yes"><button type="button" class="fbp-btn" onclick="fbpOpen(event,this)"><span class="fbp-dot" style="background:#16a34a"></span><span class="fbp-lbl">Yes</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button><span class="fbp-menu"><button type="button" data-v="" onclick="fbpSet(event,this,'')"><span class="tk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6L9 17l-5-5"/></svg></span><span class="fbp-dot empty"></span>Select</button><button type="button" data-v="yes" onclick="fbpSet(event,this,'yes')"><span class="tk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6L9 17l-5-5"/></svg></span><span class="fbp-dot" style="background:#16a34a"></span>Yes</button><button type="button" data-v="maybe" onclick="fbpSet(event,this,'maybe')"><span class="tk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6L9 17l-5-5"/></svg></span><span class="fbp-dot" style="background:#c2410c"></span>Maybe</button><button type="button" data-v="no" onclick="fbpSet(event,this,'no')"><span class="tk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6L9 17l-5-5"/></svg></span><span class="fbp-dot" style="background:#991b1b"></span>No</button></span></span>
             </td>
             <td>Maria Lopez</td>
             <td>
@@ -1954,7 +2036,7 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
               </div>
             </td>
             <td>
-              <div class="fb-wrapper"><div class="fb-actions"><button class="fb-btn status yes" onclick="fbToggleDropdown(this)">Yes</button><button class="fb-btn change" onclick="fbToggleDropdown(this)">Update</button></div><div class="fb-dropdown" onclick="event.stopPropagation()"><div class="fb-dropdown-option" onclick="fbChange(this, 'yes')"><span class="fb-dot green"></span>Yes</div><div class="fb-dropdown-option" onclick="fbChange(this, 'no')"><span class="fb-dot red"></span>No</div><div class="fb-dropdown-option" onclick="fbChange(this, 'maybe')"><span class="fb-dot orange"></span>Maybe</div><div class="fb-dropdown-option" onclick="fbChange(this, 'noshow')"><span class="fb-dot gray"></span>No-show</div></div></div>
+              <span class="fbp" data-v="yes"><button type="button" class="fbp-btn" onclick="fbpOpen(event,this)"><span class="fbp-dot" style="background:#16a34a"></span><span class="fbp-lbl">Yes</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button><span class="fbp-menu"><button type="button" data-v="" onclick="fbpSet(event,this,'')"><span class="tk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6L9 17l-5-5"/></svg></span><span class="fbp-dot empty"></span>Select</button><button type="button" data-v="yes" onclick="fbpSet(event,this,'yes')"><span class="tk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6L9 17l-5-5"/></svg></span><span class="fbp-dot" style="background:#16a34a"></span>Yes</button><button type="button" data-v="maybe" onclick="fbpSet(event,this,'maybe')"><span class="tk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6L9 17l-5-5"/></svg></span><span class="fbp-dot" style="background:#c2410c"></span>Maybe</button><button type="button" data-v="no" onclick="fbpSet(event,this,'no')"><span class="tk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6L9 17l-5-5"/></svg></span><span class="fbp-dot" style="background:#991b1b"></span>No</button></span></span>
             </td>
             <td>David Park</td>
             <td>
@@ -1975,7 +2057,7 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
               </div>
             </td>
             <td>
-              <div class="fb-wrapper"><div class="fb-actions"><button class="fb-btn status no" onclick="fbToggleDropdown(this)">No</button><button class="fb-btn change" onclick="fbToggleDropdown(this)">Update</button></div><div class="fb-dropdown" onclick="event.stopPropagation()"><div class="fb-dropdown-option" onclick="fbChange(this, 'yes')"><span class="fb-dot green"></span>Yes</div><div class="fb-dropdown-option" onclick="fbChange(this, 'no')"><span class="fb-dot red"></span>No</div><div class="fb-dropdown-option" onclick="fbChange(this, 'maybe')"><span class="fb-dot orange"></span>Maybe</div><div class="fb-dropdown-option" onclick="fbChange(this, 'noshow')"><span class="fb-dot gray"></span>No-show</div></div></div>
+              <span class="fbp" data-v="no"><button type="button" class="fbp-btn" onclick="fbpOpen(event,this)"><span class="fbp-dot" style="background:#991b1b"></span><span class="fbp-lbl">No</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button><span class="fbp-menu"><button type="button" data-v="" onclick="fbpSet(event,this,'')"><span class="tk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6L9 17l-5-5"/></svg></span><span class="fbp-dot empty"></span>Select</button><button type="button" data-v="yes" onclick="fbpSet(event,this,'yes')"><span class="tk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6L9 17l-5-5"/></svg></span><span class="fbp-dot" style="background:#16a34a"></span>Yes</button><button type="button" data-v="maybe" onclick="fbpSet(event,this,'maybe')"><span class="tk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6L9 17l-5-5"/></svg></span><span class="fbp-dot" style="background:#c2410c"></span>Maybe</button><button type="button" data-v="no" onclick="fbpSet(event,this,'no')"><span class="tk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6L9 17l-5-5"/></svg></span><span class="fbp-dot" style="background:#991b1b"></span>No</button></span></span>
             </td>
             <td>Emily Chen</td>
             <td>
@@ -2000,7 +2082,7 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
               </div>
             </td>
             <td>
-              <div class="fb-wrapper"><div class="fb-actions"><button class="fb-btn status maybe" onclick="fbToggleDropdown(this)">Maybe</button><button class="fb-btn change" onclick="fbToggleDropdown(this)">Update</button></div><div class="fb-dropdown" onclick="event.stopPropagation()"><div class="fb-dropdown-option" onclick="fbChange(this, 'yes')"><span class="fb-dot green"></span>Yes</div><div class="fb-dropdown-option" onclick="fbChange(this, 'no')"><span class="fb-dot red"></span>No</div><div class="fb-dropdown-option" onclick="fbChange(this, 'maybe')"><span class="fb-dot orange"></span>Maybe</div><div class="fb-dropdown-option" onclick="fbChange(this, 'noshow')"><span class="fb-dot gray"></span>No-show</div></div></div>
+              <span class="fbp" data-v="maybe"><button type="button" class="fbp-btn" onclick="fbpOpen(event,this)"><span class="fbp-dot" style="background:#c2410c"></span><span class="fbp-lbl">Maybe</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button><span class="fbp-menu"><button type="button" data-v="" onclick="fbpSet(event,this,'')"><span class="tk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6L9 17l-5-5"/></svg></span><span class="fbp-dot empty"></span>Select</button><button type="button" data-v="yes" onclick="fbpSet(event,this,'yes')"><span class="tk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6L9 17l-5-5"/></svg></span><span class="fbp-dot" style="background:#16a34a"></span>Yes</button><button type="button" data-v="maybe" onclick="fbpSet(event,this,'maybe')"><span class="tk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6L9 17l-5-5"/></svg></span><span class="fbp-dot" style="background:#c2410c"></span>Maybe</button><button type="button" data-v="no" onclick="fbpSet(event,this,'no')"><span class="tk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6L9 17l-5-5"/></svg></span><span class="fbp-dot" style="background:#991b1b"></span>No</button></span></span>
             </td>
             <td>Maria Lopez</td>
             <td>
@@ -2021,7 +2103,7 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
               </div>
             </td>
             <td>
-              <div class="fb-wrapper"><div class="fb-actions"><button class="fb-btn status yes" onclick="fbToggleDropdown(this)">Yes</button><button class="fb-btn change" onclick="fbToggleDropdown(this)">Update</button></div><div class="fb-dropdown" onclick="event.stopPropagation()"><div class="fb-dropdown-option" onclick="fbChange(this, 'yes')"><span class="fb-dot green"></span>Yes</div><div class="fb-dropdown-option" onclick="fbChange(this, 'no')"><span class="fb-dot red"></span>No</div><div class="fb-dropdown-option" onclick="fbChange(this, 'maybe')"><span class="fb-dot orange"></span>Maybe</div><div class="fb-dropdown-option" onclick="fbChange(this, 'noshow')"><span class="fb-dot gray"></span>No-show</div></div></div>
+              <span class="fbp" data-v="yes"><button type="button" class="fbp-btn" onclick="fbpOpen(event,this)"><span class="fbp-dot" style="background:#16a34a"></span><span class="fbp-lbl">Yes</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button><span class="fbp-menu"><button type="button" data-v="" onclick="fbpSet(event,this,'')"><span class="tk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6L9 17l-5-5"/></svg></span><span class="fbp-dot empty"></span>Select</button><button type="button" data-v="yes" onclick="fbpSet(event,this,'yes')"><span class="tk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6L9 17l-5-5"/></svg></span><span class="fbp-dot" style="background:#16a34a"></span>Yes</button><button type="button" data-v="maybe" onclick="fbpSet(event,this,'maybe')"><span class="tk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6L9 17l-5-5"/></svg></span><span class="fbp-dot" style="background:#c2410c"></span>Maybe</button><button type="button" data-v="no" onclick="fbpSet(event,this,'no')"><span class="tk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6L9 17l-5-5"/></svg></span><span class="fbp-dot" style="background:#991b1b"></span>No</button></span></span>
             </td>
             <td>David Park</td>
             <td>
@@ -2042,7 +2124,7 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
               </div>
             </td>
             <td>
-              <div class="fb-wrapper"><div class="fb-actions"><button class="fb-btn status yes" onclick="fbToggleDropdown(this)">Yes</button><button class="fb-btn change" onclick="fbToggleDropdown(this)">Update</button></div><div class="fb-dropdown" onclick="event.stopPropagation()"><div class="fb-dropdown-option" onclick="fbChange(this, 'yes')"><span class="fb-dot green"></span>Yes</div><div class="fb-dropdown-option" onclick="fbChange(this, 'no')"><span class="fb-dot red"></span>No</div><div class="fb-dropdown-option" onclick="fbChange(this, 'maybe')"><span class="fb-dot orange"></span>Maybe</div><div class="fb-dropdown-option" onclick="fbChange(this, 'noshow')"><span class="fb-dot gray"></span>No-show</div></div></div>
+              <span class="fbp" data-v="yes"><button type="button" class="fbp-btn" onclick="fbpOpen(event,this)"><span class="fbp-dot" style="background:#16a34a"></span><span class="fbp-lbl">Yes</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button><span class="fbp-menu"><button type="button" data-v="" onclick="fbpSet(event,this,'')"><span class="tk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6L9 17l-5-5"/></svg></span><span class="fbp-dot empty"></span>Select</button><button type="button" data-v="yes" onclick="fbpSet(event,this,'yes')"><span class="tk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6L9 17l-5-5"/></svg></span><span class="fbp-dot" style="background:#16a34a"></span>Yes</button><button type="button" data-v="maybe" onclick="fbpSet(event,this,'maybe')"><span class="tk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6L9 17l-5-5"/></svg></span><span class="fbp-dot" style="background:#c2410c"></span>Maybe</button><button type="button" data-v="no" onclick="fbpSet(event,this,'no')"><span class="tk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6L9 17l-5-5"/></svg></span><span class="fbp-dot" style="background:#991b1b"></span>No</button></span></span>
             </td>
             <td>Emily Chen</td>
             <td>
@@ -2063,7 +2145,7 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
               </div>
             </td>
             <td>
-              <div class="fb-wrapper"><div class="fb-actions"><button class="fb-btn status maybe" onclick="fbToggleDropdown(this)">Maybe</button><button class="fb-btn change" onclick="fbToggleDropdown(this)">Update</button></div><div class="fb-dropdown" onclick="event.stopPropagation()"><div class="fb-dropdown-option" onclick="fbChange(this, 'yes')"><span class="fb-dot green"></span>Yes</div><div class="fb-dropdown-option" onclick="fbChange(this, 'no')"><span class="fb-dot red"></span>No</div><div class="fb-dropdown-option" onclick="fbChange(this, 'maybe')"><span class="fb-dot orange"></span>Maybe</div><div class="fb-dropdown-option" onclick="fbChange(this, 'noshow')"><span class="fb-dot gray"></span>No-show</div></div></div>
+              <span class="fbp" data-v="maybe"><button type="button" class="fbp-btn" onclick="fbpOpen(event,this)"><span class="fbp-dot" style="background:#c2410c"></span><span class="fbp-lbl">Maybe</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button><span class="fbp-menu"><button type="button" data-v="" onclick="fbpSet(event,this,'')"><span class="tk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6L9 17l-5-5"/></svg></span><span class="fbp-dot empty"></span>Select</button><button type="button" data-v="yes" onclick="fbpSet(event,this,'yes')"><span class="tk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6L9 17l-5-5"/></svg></span><span class="fbp-dot" style="background:#16a34a"></span>Yes</button><button type="button" data-v="maybe" onclick="fbpSet(event,this,'maybe')"><span class="tk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6L9 17l-5-5"/></svg></span><span class="fbp-dot" style="background:#c2410c"></span>Maybe</button><button type="button" data-v="no" onclick="fbpSet(event,this,'no')"><span class="tk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6L9 17l-5-5"/></svg></span><span class="fbp-dot" style="background:#991b1b"></span>No</button></span></span>
             </td>
             <td>Maria Lopez</td>
             <td>
@@ -2084,7 +2166,7 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
               </div>
             </td>
             <td>
-              <div class="fb-wrapper"><div class="fb-actions"><button class="fb-btn status yes" onclick="fbToggleDropdown(this)">Yes</button><button class="fb-btn change" onclick="fbToggleDropdown(this)">Update</button></div><div class="fb-dropdown" onclick="event.stopPropagation()"><div class="fb-dropdown-option" onclick="fbChange(this, 'yes')"><span class="fb-dot green"></span>Yes</div><div class="fb-dropdown-option" onclick="fbChange(this, 'no')"><span class="fb-dot red"></span>No</div><div class="fb-dropdown-option" onclick="fbChange(this, 'maybe')"><span class="fb-dot orange"></span>Maybe</div><div class="fb-dropdown-option" onclick="fbChange(this, 'noshow')"><span class="fb-dot gray"></span>No-show</div></div></div>
+              <span class="fbp" data-v="yes"><button type="button" class="fbp-btn" onclick="fbpOpen(event,this)"><span class="fbp-dot" style="background:#16a34a"></span><span class="fbp-lbl">Yes</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button><span class="fbp-menu"><button type="button" data-v="" onclick="fbpSet(event,this,'')"><span class="tk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6L9 17l-5-5"/></svg></span><span class="fbp-dot empty"></span>Select</button><button type="button" data-v="yes" onclick="fbpSet(event,this,'yes')"><span class="tk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6L9 17l-5-5"/></svg></span><span class="fbp-dot" style="background:#16a34a"></span>Yes</button><button type="button" data-v="maybe" onclick="fbpSet(event,this,'maybe')"><span class="tk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6L9 17l-5-5"/></svg></span><span class="fbp-dot" style="background:#c2410c"></span>Maybe</button><button type="button" data-v="no" onclick="fbpSet(event,this,'no')"><span class="tk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6L9 17l-5-5"/></svg></span><span class="fbp-dot" style="background:#991b1b"></span>No</button></span></span>
             </td>
             <td>David Park</td>
             <td>
@@ -2105,7 +2187,7 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
               </div>
             </td>
             <td>
-              <div class="fb-wrapper"><div class="fb-actions"><button class="fb-btn status no" onclick="fbToggleDropdown(this)">No</button><button class="fb-btn change" onclick="fbToggleDropdown(this)">Update</button></div><div class="fb-dropdown" onclick="event.stopPropagation()"><div class="fb-dropdown-option" onclick="fbChange(this, 'yes')"><span class="fb-dot green"></span>Yes</div><div class="fb-dropdown-option" onclick="fbChange(this, 'no')"><span class="fb-dot red"></span>No</div><div class="fb-dropdown-option" onclick="fbChange(this, 'maybe')"><span class="fb-dot orange"></span>Maybe</div><div class="fb-dropdown-option" onclick="fbChange(this, 'noshow')"><span class="fb-dot gray"></span>No-show</div></div></div>
+              <span class="fbp" data-v="no"><button type="button" class="fbp-btn" onclick="fbpOpen(event,this)"><span class="fbp-dot" style="background:#991b1b"></span><span class="fbp-lbl">No</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button><span class="fbp-menu"><button type="button" data-v="" onclick="fbpSet(event,this,'')"><span class="tk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6L9 17l-5-5"/></svg></span><span class="fbp-dot empty"></span>Select</button><button type="button" data-v="yes" onclick="fbpSet(event,this,'yes')"><span class="tk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6L9 17l-5-5"/></svg></span><span class="fbp-dot" style="background:#16a34a"></span>Yes</button><button type="button" data-v="maybe" onclick="fbpSet(event,this,'maybe')"><span class="tk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6L9 17l-5-5"/></svg></span><span class="fbp-dot" style="background:#c2410c"></span>Maybe</button><button type="button" data-v="no" onclick="fbpSet(event,this,'no')"><span class="tk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6L9 17l-5-5"/></svg></span><span class="fbp-dot" style="background:#991b1b"></span>No</button></span></span>
             </td>
             <td>Emily Chen</td>
             <td>
@@ -2126,7 +2208,7 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
               </div>
             </td>
             <td>
-              <div class="fb-wrapper"><div class="fb-actions"><button class="fb-btn status yes" onclick="fbToggleDropdown(this)">Yes</button><button class="fb-btn change" onclick="fbToggleDropdown(this)">Update</button></div><div class="fb-dropdown" onclick="event.stopPropagation()"><div class="fb-dropdown-option" onclick="fbChange(this, 'yes')"><span class="fb-dot green"></span>Yes</div><div class="fb-dropdown-option" onclick="fbChange(this, 'no')"><span class="fb-dot red"></span>No</div><div class="fb-dropdown-option" onclick="fbChange(this, 'maybe')"><span class="fb-dot orange"></span>Maybe</div><div class="fb-dropdown-option" onclick="fbChange(this, 'noshow')"><span class="fb-dot gray"></span>No-show</div></div></div>
+              <span class="fbp" data-v="yes"><button type="button" class="fbp-btn" onclick="fbpOpen(event,this)"><span class="fbp-dot" style="background:#16a34a"></span><span class="fbp-lbl">Yes</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button><span class="fbp-menu"><button type="button" data-v="" onclick="fbpSet(event,this,'')"><span class="tk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6L9 17l-5-5"/></svg></span><span class="fbp-dot empty"></span>Select</button><button type="button" data-v="yes" onclick="fbpSet(event,this,'yes')"><span class="tk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6L9 17l-5-5"/></svg></span><span class="fbp-dot" style="background:#16a34a"></span>Yes</button><button type="button" data-v="maybe" onclick="fbpSet(event,this,'maybe')"><span class="tk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6L9 17l-5-5"/></svg></span><span class="fbp-dot" style="background:#c2410c"></span>Maybe</button><button type="button" data-v="no" onclick="fbpSet(event,this,'no')"><span class="tk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6L9 17l-5-5"/></svg></span><span class="fbp-dot" style="background:#991b1b"></span>No</button></span></span>
             </td>
             <td>Maria Lopez</td>
             <td>
@@ -6767,16 +6849,7 @@ a.jm-cp-num:hover { color:#0044B3; }
     return null;
   }
 
-  function fbCell(rating) {
-    var opt = function(k){ return '<div class="fb-dropdown-option" onclick="fbChange(this, \'' + k + '\')"><span class="fb-dot ' +
-      (k === 'yes' ? 'green' : k === 'no' ? 'red' : 'orange') + '"></span>' + FBN[k] + '</div>'; };
-    var status = rating
-      ? '<button class="fb-btn status ' + FBC[rating] + '" onclick="fbToggleDropdown(this)">' + FBN[rating] + '</button>'
-      : '<button class="fb-btn status" onclick="fbToggleDropdown(this)">Select</button>';
-    return '<div class="fb-wrapper"><div class="fb-actions">' + status +
-      '<button class="fb-btn change" onclick="fbToggleDropdown(this)">Update</button></div>' +
-      '<div class="fb-dropdown" onclick="event.stopPropagation()">' + opt('yes') + opt('no') + opt('maybe') + '</div></div>';
-  }
+  function fbCell(rating) { return fbpMarkup(rating); }
 
   /* Interviewed keeps the small notes modal — a quick edit after the fact
      does not need the resume beside it. */
