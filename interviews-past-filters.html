@@ -1,0 +1,561 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Interviews - Column Filters</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<!--
+  Header card keeps Hiring event + Job as the Analytics "Date range" control.
+  Feedback comes out of the header and becomes a column-header control, Indeed style.
+  Column menu reuses the live Feedback-pill menu style:
+    absolute top-[calc(100%+6px)] z-50 min-w-[186px] rounded-lg border border-[#e4e2e0] bg-white p-1.5
+    shadow-[0_0_2px_rgba(45,45,45,0.16),0_4px_12px_rgba(45,45,45,0.08)]
+  Feedback pills in the rows are untouched live markup.
+-->
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{font-family:'Noto Sans',-apple-system,system-ui,sans-serif;font-size:14px;color:#2d2d2d;background:#f3f2ef;-webkit-font-smoothing:antialiased}
+button{font-family:inherit}
+.mockbar{position:fixed;top:0;left:0;right:0;height:40px;z-index:900;background:#111;color:#fff;display:flex;align-items:center;gap:14px;padding:0 16px;font-size:12px}
+.mockbar .lbl{opacity:.6}
+.mockbar .rt{margin-left:auto;opacity:.55;font-size:11.5px}
+.dnlink{margin-left:16px;border:1px solid rgba(255,255,255,.35);background:transparent;color:#fff;font-size:12px;font-weight:700;padding:5px 12px;border-radius:20px;cursor:pointer}
+.dnlink:hover{background:#fff;color:#111;border-color:#fff}
+.dnov{position:fixed;inset:0;z-index:1000;background:rgba(45,45,45,.42);display:none}
+.dnov.open{display:block}
+.dnp{position:absolute;right:0;top:0;bottom:0;width:min(680px,94vw);background:#fff;box-shadow:-8px 0 30px rgba(0,0,0,.18);display:flex;flex-direction:column}
+.dnh{flex:0 0 auto;display:flex;align-items:center;gap:12px;padding:20px 26px;border-bottom:1px solid #e4e2e0}
+.dnh h2{margin:0;font-size:18px;font-weight:700}
+.dnh .sub{font-size:13px;color:#767676}
+.dnx{margin-left:auto;border:1px solid #d4d2d0;background:#fff;border-radius:8px;width:32px;height:32px;cursor:pointer;color:#595959;font-size:17px;line-height:1}
+.dnx:hover{background:#f3f2ef;color:#2d2d2d}
+.dnb{flex:1 1 auto;overflow-y:auto;padding:22px 26px 60px;font-size:14px;line-height:1.65;color:#2d2d2d}
+.dnb h3{font-size:12px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#0044b3;margin:26px 0 10px;padding-bottom:6px;border-bottom:1px solid #f0efee}
+.dnb h3:first-child{margin-top:0}
+.dnb p{margin:0 0 12px}
+.dnb ol,.dnb ul{margin:0 0 12px;padding-left:20px}
+.dnb li{margin-bottom:7px}
+.dnb code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;background:#f3f2ef;border-radius:4px;padding:1px 5px;color:#2d2d2d}
+.dnb pre{background:#2d2d2d;color:#f3f2ef;border-radius:8px;padding:12px 14px;overflow-x:auto;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;line-height:1.55;margin:0 0 14px}
+.dnb pre code{background:transparent;color:inherit;padding:0}
+.dnb table{width:100%;border-collapse:collapse;margin:0 0 14px;font-size:13px}
+.dnb th{background:#faf9f8;border:1px solid #e4e2e0;padding:7px 10px;text-align:left;font-weight:700;font-size:12px;color:#595959;position:static}
+.dnb td{border:1px solid #e4e2e0;padding:7px 10px;font-size:13px;vertical-align:top}
+.dnb .todo{background:#fff;border:1px solid #d4d2d0;border-left:3px solid #0044b3;border-radius:8px;padding:12px 16px;margin:0 0 12px}
+.dnb .todo b{display:block;margin-bottom:3px}
+.dnb .flag{background:#fdf6e7;border:1px solid #f0dfae;border-left:3px solid #c2410c;border-radius:8px;padding:12px 16px;margin:0 0 12px}
+.dnb .done{color:#1f662c;font-weight:700}
+.seg{display:inline-flex;background:#333;border-radius:20px;padding:3px}
+.seg button{border:0;background:transparent;color:#ddd;font:inherit;font-weight:700;padding:5px 12px;border-radius:16px;cursor:pointer}
+.seg button.on{background:#fff;color:#111}
+
+.side{position:fixed;left:0;top:40px;bottom:0;width:220px;background:#2d2d2d;z-index:300;display:flex;flex-direction:column;overflow:hidden}
+.collapse{display:flex;align-items:center;gap:14px;color:rgba(255,255,255,.85);padding:16px 18px;font-size:17px;font-weight:600}
+.nav{padding:8px 10px;display:flex;flex-direction:column;gap:2px}
+.nav a{display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:10px;color:rgba(255,255,255,.85);font-size:17px;text-decoration:none;letter-spacing:-.1px}
+.nav a.on{background:rgba(255,255,255,.18);color:#fff;font-weight:700}
+.nav .badge{margin-left:auto;background:#0044b3;color:#fff;font-size:12px;font-weight:700;border-radius:20px;padding:1px 8px}
+.topbar{position:fixed;top:40px;left:220px;right:0;height:56px;background:#fff;border-bottom:1px solid #d4d2d0;display:flex;align-items:center;justify-content:space-between;padding:0 24px;z-index:200}
+.brand{color:#0044b3;font-size:20px;font-weight:700;letter-spacing:-.02em}
+.acct{color:#2d2d2d;font-size:14px;display:flex;align-items:center;gap:8px}
+.shell{margin-left:220px;padding-top:96px;min-height:100vh}
+.content{display:flex;width:100%;flex-direction:column;padding:32px 32px 0}
+
+.hcard{margin-bottom:20px;border-radius:12px;border:1px solid #d4d2d0;background:#fff;padding:28px 32px}
+.hrow{display:flex;align-items:center;gap:24px}
+.hleft{min-width:0;flex:1}
+.hright{flex:none;display:flex;gap:12px;align-items:center}
+h1{font-size:20px;font-weight:700;color:#2d2d2d;margin:0}
+.wrapf{position:relative}
+.lctl{display:flex;cursor:pointer;align-items:center;gap:10px;border-radius:8px;border:1px solid #d4d2d0;background:#fff;text-align:left;color:#2d2d2d}
+.lctl:hover{border-color:#2d2d2d;background:#faf9f8}
+.lctl .ic{margin-left:auto;flex:none}
+.lctl.set{border-color:#0044b3}
+.lctl.set .val{color:#0044b3;font-weight:700}
+/* stacked: caption over value, 44px */
+body.sz-stack .lctl{min-width:216px;padding:5px 12px}
+body.sz-stack .lctl .cap{display:block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#767676;line-height:14px}
+body.sz-stack .lctl .val{display:block;font-size:14px;font-weight:600;color:#2d2d2d;line-height:18px}
+/* one line, 38px */
+body.sz-line .lctl{min-width:210px;padding:9px 12px}
+body.sz-line .lctl>span:first-child{display:flex;align-items:baseline;gap:7px}
+body.sz-line .lctl .cap{font-size:14px;font-weight:400;color:#767676;line-height:18px}
+body.sz-line .lctl .val{font-size:14px;font-weight:700;color:#2d2d2d;line-height:18px}
+.fmenu{position:absolute;right:0;top:calc(100% + 6px);z-index:30;min-width:300px;overflow:hidden;border-radius:10px;border:1px solid #d4d2d0;background:#fff;box-shadow:0 4px 16px rgba(0,0,0,.12);display:none}
+.fmenu.open{display:block}
+.fmenu button{display:flex;width:100%;align-items:center;gap:9px;cursor:pointer;border:none;background:transparent;padding:12px 18px;text-align:left;font-size:14px;color:#2d2d2d}
+.fmenu button:hover{background:#f3f2ef}
+.fmenu button.sel{background:#f0f5ff;font-weight:600;color:#0044b3}
+.fmenu .ct{margin-left:auto;color:#767676;font-weight:400;font-size:13px}
+.fmenu button.sel .ct{color:#0044b3}
+
+.tabsw{border-bottom:3px solid #d4d2d0}
+.tabs{display:flex}
+.tab{margin-bottom:-3px;flex:1;cursor:pointer;border:0;border-bottom:4px solid transparent;background:transparent;padding:20px 16px;font-size:16px;font-weight:600;color:#595959}
+.tab.on{border-bottom-color:#2d2d2d;font-weight:700;color:#2d2d2d}
+.tab .n{margin-left:4px;font-weight:400;color:#767676}
+
+.sunken{padding:24px 0}
+.card{border-radius:12px;border:1px solid #d4d2d0;background:#fff}
+.card.mb{margin-bottom:16px}
+.chead{display:flex;align-items:center;gap:10px;padding:16px 20px;flex-wrap:wrap}
+.ctitle{font-size:20px;font-weight:700;line-height:30px;color:#2d2d2d;display:flex;align-items:center;gap:8px}
+.ctitle .of{color:#767676;font-weight:400;font-size:16px}
+.csub{margin-top:2px;font-size:14px;color:#595959}
+.achip{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid #d4d2d0;color:#2d2d2d;border-radius:20px;padding:2px 4px 2px 9px;font-size:12px;font-weight:600;line-height:18px}
+.achip button{border:0;background:transparent;color:#767676;cursor:pointer;font-size:14px;line-height:1;padding:1px 4px;border-radius:50%}
+.achip button:hover{background:#f3f2ef;color:#2d2d2d}
+.achip .d{width:7px;height:7px;border-radius:50%;flex:none}
+.tw{padding:0 20px 20px}
+table{width:100%;border-collapse:collapse}
+th{border-bottom:1px solid #d4d2d0;padding:0;text-align:left;font-size:13px;font-weight:400;color:#595959;position:relative}
+th .plain{display:block;padding:12px 14px}
+/* Indeed-style header control */
+.thb{display:flex;width:100%;align-items:center;gap:6px;cursor:pointer;border:0;background:transparent;padding:12px 14px;text-align:left;font-size:13px;font-weight:400;color:#595959;border-radius:6px}
+.thb:hover{background:#f3f2ef;color:#2d2d2d}
+.thb .car{flex:none;opacity:.55;transition:opacity .12s}
+.thb:hover .car{opacity:1}
+.thb.act{color:#0044b3;font-weight:700}
+.thb.act .car{opacity:1}
+.thmenu{position:absolute;left:8px;top:calc(100% + 6px);z-index:50;min-width:212px;border-radius:8px;border:1px solid #e4e2e0;background:#fff;padding:6px;box-shadow:0 0 2px rgba(45,45,45,.16),0 4px 12px rgba(45,45,45,.08);display:none}
+.thmenu.open{display:block}
+.thmenu.r{left:auto;right:8px}
+.thmenu .mi{display:flex;width:100%;align-items:center;gap:9px;cursor:pointer;border:0;background:transparent;border-radius:4px;padding:9px 10px;text-align:left;font-size:14px;color:#2d2d2d;font-weight:400}
+.thmenu .mi:hover{background:#f3f2ef}
+.thmenu .mi.on{color:#0044b3;font-weight:700}
+.thmenu .tick{width:14px;flex:none;visibility:hidden}
+.thmenu .mi.on .tick{visibility:visible}
+.thmenu .d{width:8px;height:8px;border-radius:50%;flex:none}
+.thmenu .n{margin-left:auto;font-size:13px;color:#767676;font-weight:400}
+.thmenu .mi.on .n{color:#0044b3}
+.thmenu .sep{height:1px;background:#f0efee;margin:5px 4px}
+.thmenu .cap{font-size:11px;font-weight:700;letter-spacing:.06em;color:#767676;padding:6px 10px 3px}
+
+td{border-bottom:1px solid #f3f2ef;padding:14px;font-size:14px;color:#2d2d2d;vertical-align:top}
+td.sec{font-size:13px;color:#595959}
+.rlink{cursor:pointer;font-size:12px;color:#0044b3;text-decoration:underline}
+.mt1{margin-top:4px}
+.ivgrp .lbl{font-size:13px;font-weight:600;color:#0044b3}
+.ivgrp .tm{font-size:13px;color:#595959}
+.ivgrp .sp{margin-top:6px}
+.fbpill{display:inline-flex;height:32px;min-width:106px;cursor:pointer;align-items:center;gap:8px;white-space:nowrap;border-radius:8px;border:1px solid #d4d2d0;background:#fff;padding:0 11px;font-size:13px;font-weight:600;color:#2d2d2d}
+.fbpill:hover{border-color:#b4b2a9}
+.fbpill .d{height:8px;width:8px;flex:none;border-radius:9999px}
+.fbpill .t{flex:1;text-align:left}
+.fbpill .cv{height:14px;width:14px;flex:none;color:#767676}
+.d-yes{background:#16a34a}.d-maybe{background:#c2410c}.d-no{background:#991b1b}
+.d-unset{background:transparent;border:1px solid #b4b2a9}
+.notesbtn{display:inline-flex;align-items:center;gap:6px;cursor:pointer;border:none;background:transparent;padding:0;font-size:14px;font-weight:600;color:#0044b3}
+.kebab{display:flex;height:32px;width:32px;cursor:pointer;align-items:center;justify-content:center;border-radius:6px;border:1px solid #d4d2d0;background:#fff;color:#0044b3}
+.kebab:hover{border-color:#0044b3;background:#f0f5ff}
+.nonerow td{padding:36px 14px;text-align:center;color:#767676;border-bottom:0}
+.hide{display:none !important}
+.note{margin:0 0 20px;border-radius:12px;border:1px solid #d4d2d0;background:#fff;padding:16px 20px;font-size:13.5px;line-height:1.7}
+.note h4{margin:0 0 8px;font-size:14px;color:#0044b3}
+.note b{color:#2d2d2d}
+.key{display:inline-flex;align-items:center;gap:5px;background:#f3f2ef;border-radius:5px;padding:1px 7px;font-size:12.5px;font-weight:700;color:#2d2d2d}
+</style>
+</head>
+<body class="sz-stack">
+
+<div class="mockbar">
+  <span class="lbl">Filter size</span>
+  <div class="seg" id="szSeg"><button data-s="stack" class="on">Stacked 44px</button><button data-s="line">One line 38px</button></div>
+  <span class="rt" id="szrt">Title is 20px. Stacked control is 44px tall, was 64px.</span>
+  <button class="dnlink" id="dnOpen">Developer notes</button>
+</div>
+
+<div class="side">
+  <div class="collapse"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg> Collapse</div>
+  <div class="nav">
+    <a href="#"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>Events</a>
+    <a href="#" class="on"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5"/><path d="M17 11a3 3 0 100-6"/><path d="M18 20c0-2.6-1-4.4-2.6-5.3"/></svg>Interviews<span class="badge">2</span></a>
+    <a href="#"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H8l-4 4V5a2 2 0 012-2h13a2 2 0 012 2z"/></svg>Messages</a>
+    <a href="#"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L4.5 13.5H11L10 22l8.5-11.5H12z"/></svg>Automations</a>
+    <a href="#"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 20h18"/><path d="M6 16l4-5 3 3 5-7"/></svg>Analytics</a>
+  </div>
+</div>
+
+<div class="topbar"><span class="brand">JobFairX</span><span class="acct">hali.sandrik@transdev.com <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#595959" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></span></div>
+
+<div class="shell"><div class="content">
+
+  <div class="hcard"><div class="hrow">
+    <div class="hleft"><h1>Interviews</h1></div>
+    <div class="hright" id="hright"></div>
+  </div></div>
+
+  <div class="tabsw"><div class="tabs">
+    <button class="tab">Upcoming<span class="n">(18)</span></button>
+    <button class="tab">Pending<span class="n">(2)</span></button>
+    <button class="tab on">Past<span class="n" id="pastN">(54)</span></button>
+  </div></div>
+
+  <div class="sunken">
+    <div class="card mb">
+      <div class="chead">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#595959" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M9 14l2 2 4-4"/></svg>
+        <div class="ctitle">Interviewed candidates <span id="c1n">(26)</span><span id="c1chips"></span></div>
+      </div>
+      <div class="tw"><table>
+        <thead><tr id="th1"></tr></thead>
+        <tbody id="rows1"></tbody>
+      </table></div>
+    </div>
+
+    <div class="card">
+      <div style="padding:16px 20px"><div class="ctitle" id="c2t">28 candidates couldn't make the interview</div>
+      <div class="csub">They are interested in your company and the job opportunities.</div></div>
+      <div class="tw"><table>
+        <thead><tr id="th2"></tr></thead>
+        <tbody id="rows2"></tbody>
+      </table></div>
+    </div>
+
+    <div class="note">
+      <h4>What got a caret, and why</h4>
+      <b>Feedback</b> &mdash; sort and filter. This is the one you asked for. Values carry live counts.<br>
+      <b>Interviews / Interview time</b> &mdash; sort only, newest or oldest. Filtering a timestamp needs a date-range picker, and the Hiring event filter above already does that job better.<br>
+      <b>Interviewer</b> &mdash; sort and filter. Nothing for Transdev today (25 of 26 are Hali), but Growth accounts get 5 interviewers and Pro is unlimited. "Show me the ones I ran" is the request you will get.<br>
+      <b>Name</b> &mdash; sort only, A&ndash;Z. Cheap, and it beats scanning 26 rows.<br>
+      <b>Desired job</b> and <b>Desired location</b> &mdash; nothing. Job lives in the header because it filters both tables; a column caret would only filter one and the two would fight. Location is one value for every employer we have right now &mdash; add it the day someone posts in two cities.<br>
+      <b>Notes</b> and <b>Action</b> &mdash; nothing to sort.
+      <br><br>
+      Active filters show as a chip next to the card title so the state is never buried in a header. Click the <span class="key">&times;</span> to drop it.
+      <br><br>
+      <b>Tab counts stay absolute.</b> Past reads (54) whatever is filtered. A tab is a place you go, not a result count &mdash; and if Past changed with the filter, Upcoming and Pending would have to as well. The card titles carry the filtered numbers instead.
+    </div>
+  </div>
+
+</div></div>
+
+<div class="dnov" id="dnOv"><div class="dnp" role="dialog" aria-label="Developer notes">
+  <div class="dnh">
+    <div><h2>Developer notes</h2><div class="sub">Interviews &rsaquo; Past &mdash; filtering and sorting</div></div>
+    <button class="dnx" id="dnClose">&times;</button>
+  </div>
+  <div class="dnb">
+
+    <h3>What this page is</h3>
+    <p>A working prototype of the <b>Past</b> tab on <code>virtual.jobfairx.com/employer/#/interviews</code>. The markup, tokens and spacing were read off the live DOM, not eyeballed. Candidate data is the real Transdev data as of Sep 8 2026 (26 interviewed + 28 missed = 54).</p>
+    <p><b>Nothing about the existing layout moved.</b> Same header card, same three tabs, same two result cards, same eight columns. The Feedback pills in the rows are the live component untouched &mdash; 32px tall, 106px min-width, 8px radius, 13px/600, dots <code>#16a34a</code> / <code>#c2410c</code> / <code>#991b1b</code>. Do not restyle them.</p>
+
+    <h3>What was added</h3>
+    <ol>
+      <li><b>Two page-level filters in the header card</b>, right-aligned: Hiring event and Job. Replaces the single 340px "All hiring events" button that sat to the <i>left</i> of the title. Right-aligned matches Events and Analytics; left-aligned was the odd one out.</li>
+      <li><b>Column-header sort and filter</b> on the two Past tables, Indeed style. A caret appears on every column that does something; columns that do nothing have no caret.</li>
+      <li><b>Active-filter chips</b> next to the card title, with an &times; to clear.</li>
+    </ol>
+
+    <h3>Scope rules &mdash; the important part</h3>
+    <p>There are two filter scopes and they must not be mixed up.</p>
+    <table>
+      <tr><th>Filter</th><th>Scope</th><th>Lives</th></tr>
+      <tr><td>Hiring event</td><td>Page. Both tables, and all three tabs.</td><td>Header card</td></tr>
+      <tr><td>Job</td><td>Page. Both tables, and all three tabs.</td><td>Header card</td></tr>
+      <tr><td>Feedback</td><td>Table. Interviewed candidates only.</td><td>Column header</td></tr>
+      <tr><td>Interviewer</td><td>Table. Interviewed candidates only.</td><td>Column header</td></tr>
+    </table>
+    <p>Job stays in the header specifically <i>because</i> it hits both tables. A column caret can only filter its own table, so a Job caret on each table would give you two controls fighting over the same field.</p>
+    <p>Counts inside a column menu rescope to the current page-level filter. Pick the Aug 10 event and Feedback recounts to that event &mdash; it must never show 21 yeses that are no longer on screen.</p>
+
+    <h3>Per-column behaviour</h3>
+    <table>
+      <tr><th>Column</th><th>Sort</th><th>Filter</th></tr>
+      <tr><td>Name</td><td>A&ndash;Z / Z&ndash;A</td><td>&mdash;</td></tr>
+      <tr><td>Desired job</td><td>&mdash;</td><td>&mdash; (header)</td></tr>
+      <tr><td>Desired location</td><td>&mdash;</td><td>&mdash; (deferred)</td></tr>
+      <tr><td>Interviews / Interview time</td><td>Newest / Oldest</td><td>&mdash;</td></tr>
+      <tr><td>Feedback</td><td>Yes first / No first</td><td>All, Yes, Maybe, No, Not set</td></tr>
+      <tr><td>Interviewer</td><td>A&ndash;Z / Z&ndash;A</td><td>All + one per interviewer</td></tr>
+      <tr><td>Notes, Action</td><td>&mdash;</td><td>&mdash;</td></tr>
+    </table>
+    <p>Timestamps sort, they do not filter. Filtering a timestamp needs a date-range picker and the Hiring event filter already does that job better.</p>
+    <p>Multi-interview rows (Bryant Mercely has three) sort on the <b>first</b> interview time.</p>
+
+    <h3>Interaction rules</h3>
+    <ul>
+      <li>One sort at a time per table. Choosing a new sort clears the old one. Choosing the active sort again clears it.</li>
+      <li>Sort and filter are independent &mdash; a column can be sorted and filtered at once, and two different columns can be active at once.</li>
+      <li>Caret states: idle = grey up/down pair &middot; sorted = single blue arrow &middot; filtered = filled blue funnel. Header label turns <code>#0044b3</code> and bold when active.</li>
+      <li>Card title shows <code>(21 of 26)</code> when filtered, plain <code>(26)</code> when not.</li>
+      <li><b>Tab counts stay absolute.</b> Past always reads (54). A tab is a destination, not a result count &mdash; and if Past reflected the filter, Upcoming and Pending would have to as well.</li>
+      <li>Empty result renders a full-width row: "No candidates match these filters."</li>
+    </ul>
+
+    <h3>Component specs</h3>
+    <p>Both new controls are components that already exist elsewhere in the app. Reuse them, do not build new ones.</p>
+    <p><b>Header filter</b> &mdash; the Analytics "Date range" control, shortened from 64px to 44px:</p>
+<pre><code>&lt;button class="flex min-w-[216px] cursor-pointer items-center gap-2.5
+  rounded-lg border border-border-strong bg-white px-3 py-[5px] text-left
+  hover:border-text-primary hover:bg-[#faf9f8]"&gt;
+  &lt;span&gt;
+    &lt;span class="block text-[11px] font-bold uppercase tracking-[0.06em]
+      leading-[14px] text-text-tertiary"&gt;Hiring event&lt;/span&gt;
+    &lt;span class="block text-sm font-semibold leading-[18px]
+      text-text-primary"&gt;All events&lt;/span&gt;
+  &lt;/span&gt;
+  &lt;svg class="ml-auto h-3.5 w-3.5 flex-none"&gt;chevron&lt;/svg&gt;
+&lt;/button&gt;</code></pre>
+    <p>Applied state: border <code>border-brand-blue</code>, value <code>text-brand-blue font-bold</code>.</p>
+    <p><b>Column menu</b> &mdash; the existing Feedback-pill menu, verbatim:</p>
+<pre><code>absolute top-[calc(100%+6px)] z-50 min-w-[212px] rounded-lg
+border border-[#e4e2e0] bg-white p-1.5
+shadow-[0_0_2px_rgba(45,45,45,0.16),0_4px_12px_rgba(45,45,45,0.08)]</code></pre>
+    <p>Items: <code>flex w-full items-center gap-[9px] rounded px-2.5 py-[9px] text-left text-sm hover:bg-surface-sunken</code>, with a 14px checkmark slot that is <code>invisible</code> when unselected. SORT and SHOW group captions, 11px/700 uppercase <code>text-text-tertiary</code>, separated by a 1px rule.</p>
+    <p><b>Chip</b> &mdash; white, not blue: <code>inline-flex items-center gap-1.5 rounded-full border border-border-strong bg-white pl-[9px] pr-1 py-0.5 text-xs font-semibold text-text-primary</code>, 24px tall, with the status dot and a grey &times;.</p>
+
+    <h3>What you need to decide</h3>
+    <div class="todo"><b>1. Control height &mdash; 44px or 38px</b>
+      The toggle in the black bar switches between stacked (caption over value, 44px) and one line ("Hiring event <b>All events</b>", 38px). Scott's call. One line reads lighter next to a 20px title; stacked survives longer labels better.</div>
+    <div class="todo"><b>2. Filter state in the URL</b>
+      Recommend yes &mdash; query params, so a filtered view can be bookmarked and pasted to a teammate. e.g. <code>#/interviews?tab=past&amp;event=1842&amp;feedback=yes</code>. Do not persist across sessions; a filter someone forgot they set is a support ticket.</div>
+    <div class="todo"><b>3. Client or server filtering</b>
+      54 rows is fine client-side. If Past ever paginates, filtering and sorting must move server-side &mdash; filtering one page of results is worse than not filtering at all. Tell us which you are building so the counts can be sourced correctly.</div>
+    <div class="todo"><b>4. The "Not set" feedback state</b>
+      The live Feedback dropdown's first option is <b>Select</b>, meaning unrated. The filter calls it "Not set". Confirm the API returns null (not an empty string or a default) so the two agree. Transdev has zero unrated today, so this is untested against real data.</div>
+    <div class="todo"><b>5. Narrow viewports</b>
+      Not designed yet. The header row holds title + two 216px controls; the table is already wide. Needs a call on stacking vs horizontal scroll before this ships to anyone on a laptop under ~1280px.</div>
+
+    <h3>Two data problems, not UI</h3>
+    <div class="flag"><b>Every hiring event has the same name.</b> The live event dropdown lists four entries all reading "New Orleans Hiring Event" with no date. They are genuinely indistinguishable &mdash; you cannot pick the right one. This prototype appends the date ("New Orleans Hiring Event - Sep 3") so the filter is usable. The real fix is in the event label, and it is worth doing whether or not any of this filtering ships.</div>
+    <div class="flag"><b>The Job filter does nothing for Transdev.</b> All 54 rows are "Autonomous Vehicle Operator", and 25 of 26 interviews were run by Hali. Both filters are built and correct, they just have one option each on this account. Recommend hiding a filter when it would render a single option, rather than showing a dropdown that cannot change anything.</div>
+
+    <h3>Deferred</h3>
+    <ul>
+      <li><b>Desired location filter</b> &mdash; one value for every employer we have. Add the caret the day someone posts in two cities; the column config already supports it.</li>
+      <li><b>Search by name</b> &mdash; overkill at 26 rows, necessary at 200. Goes in the card header, right-aligned, if it ships.</li>
+    </ul>
+
+    <h3>Style inconsistencies worth a ticket</h3>
+    <p>Found while comparing pages, unrelated to this work:</p>
+    <ul>
+      <li>Events card is <code>rounded-lg</code>; Interviews and Analytics are <code>rounded-xl</code>.</li>
+      <li>Analytics card border is <code>#e4e2e0</code>; everywhere else is <code>#d4d2d0</code>.</li>
+      <li>Three different filter button styles across three pages &mdash; chunky 2px blue on Interviews, thin grey with blue text on Events, thin dark outline on Analytics.</li>
+      <li>Events uses filled pill tabs; Interviews uses underline tabs.</li>
+    </ul>
+
+  </div>
+</div></div>
+
+<script>
+var JOB="Autonomous Vehicle Operator", LOC="New Orleans, LA, 70130";
+var EV_SEP="New Orleans Hiring Event - Sep 3", EV_AUG="New Orleans Hiring Event - Aug 10";
+function s(n,t,f,i,ev){return {name:n,job:JOB,loc:LOC,iv:[t],fb:f,who:i,ev:ev};}
+var T1=[
+ s("Joseph Brown","Sep 3, 2:30 PM CDT","no","Hali",EV_SEP),s("Peter Gondrella","Sep 3, 1:30 PM CDT","yes","Nelson",EV_SEP),
+ s("Dion Collins","Sep 3, 1:30 PM CDT","yes","Hali",EV_SEP),s("James Ginn","Sep 3, 12:00 PM CDT","maybe","Hali",EV_SEP),
+ {name:"Bryant Mercely",job:JOB,loc:LOC,iv:["Sep 3, 12:00 PM CDT","Sep 3, 12:00 PM CDT","Sep 3, 12:25 PM CDT"],fb:"yes",who:"Hali",ev:EV_SEP},
+ s("TERRY LeBan Jr","Sep 3, 12:00 PM CDT","yes","Hali",EV_SEP),s("Trahan John","Sep 3, 12:00 PM CDT","yes","Hali",EV_SEP),
+ s("Marissa Kuder","Sep 3, 11:30 AM CDT","yes","Hali",EV_SEP),s("Whitney Sterling","Sep 3, 11:00 AM CDT","yes","Hali",EV_SEP),
+ s("Altoine Taylor","Sep 3, 11:00 AM CDT","yes","Hali",EV_SEP),s("Joshua Clarke","Aug 10, 2:30 PM CDT","yes","Hali",EV_AUG),
+ s("Younes Riad","Aug 10, 2:30 PM CDT","yes","Hali",EV_AUG),s("Isiah Johnson","Aug 10, 2:30 PM CDT","yes","Hali",EV_AUG),
+ s("Kelvin White","Aug 10, 2:00 PM CDT","no","Hali",EV_AUG),s("Chris LOMBARD","Aug 10, 2:00 PM CDT","yes","Hali",EV_AUG),
+ s("James Harrington","Aug 10, 1:30 PM CDT","maybe","Hali",EV_AUG),s("Stanley Barton","Aug 10, 1:00 PM CDT","yes","Hali",EV_AUG),
+ s("Matthew Carter","Aug 10, 12:30 PM CDT","yes","Hali",EV_AUG),s("Daja Waters-Rollins","Aug 10, 12:30 PM CDT","yes","Hali",EV_AUG),
+ s("Steve Pusateri","Aug 10, 12:30 PM CDT","yes","Hali",EV_AUG),s("Kalviana Madison","Aug 10, 12:00 PM CDT","yes","Hali",EV_AUG),
+ s("Alvarez Neely","Aug 10, 12:00 PM CDT","no","Hali",EV_AUG),s("Oscar  Arias","Aug 10, 11:30 AM CDT","yes","Hali",EV_AUG),
+ s("Hildevert Lafeuille","Aug 10, 11:30 AM CDT","yes","Hali",EV_AUG),s("Ernest Coppock","Aug 10, 11:00 AM CDT","yes","Hali",EV_AUG),
+ s("Doyle Smith","Aug 10, 11:00 AM CDT","yes","Hali",EV_AUG)];
+function n2(n,t,ev){return {name:n,job:JOB,loc:LOC,iv:[t],ev:ev};}
+var T2=[n2("OLUWAFEMI ETAJE","Aug 10, 11:00 AM CDT",EV_AUG),n2("Emanuel Cooper","Aug 10, 11:30 AM CDT",EV_AUG),
+ n2("Kendrick Cockerham","Aug 10, 12:00 PM CDT",EV_AUG),n2("Len Davis","Aug 10, 1:00 PM CDT",EV_AUG),
+ n2("Jamall Williams","Aug 10, 1:00 PM CDT",EV_AUG),n2("Kevin Fuzy-Sibley","Aug 10, 1:30 PM CDT",EV_AUG),
+ n2("Dennard Powell","Aug 10, 1:30 PM CDT",EV_AUG),n2("Donnell Evans","Aug 10, 2:00 PM CDT",EV_AUG),
+ n2("Keoka Laurent","Sep 3, 11:00 AM CDT",EV_SEP),n2("Maurice Jackson","Sep 3, 11:00 AM CDT",EV_SEP),
+ n2("Edward Cormier","Sep 3, 11:00 AM CDT",EV_SEP),n2("Esau Taylor","Sep 3, 11:30 AM CDT",EV_SEP),
+ n2("Gregory Charlot Jr","Sep 3, 11:30 AM CDT",EV_SEP),n2("Christopher Prince","Sep 3, 11:30 AM CDT",EV_SEP),
+ n2("Christopher Hays","Sep 3, 11:30 AM CDT",EV_SEP),
+ {name:"Samuel Robinson",job:JOB,loc:LOC,iv:["Sep 3, 12:00 PM CDT","Sep 3, 12:00 PM CDT","Sep 3, 12:00 PM CDT"],ev:EV_SEP},
+ n2("Fred Horst","Sep 3, 12:30 PM CDT",EV_SEP),n2("Byronika Matthews","Sep 3, 12:30 PM CDT",EV_SEP),
+ n2("Jala Georgetown","Sep 3, 1:30 PM CDT",EV_SEP),n2("Jared Chapman","Sep 3, 2:00 PM CDT",EV_SEP),
+ n2("Anthony Swann","Sep 3, 2:00 PM CDT",EV_SEP),n2("Jordan Garnett","Sep 3, 2:00 PM CDT",EV_SEP),
+ {name:"Gerald Jacob",job:JOB,loc:LOC,iv:["Sep 3, 2:00 PM CDT","Sep 3, 2:00 PM CDT"],ev:EV_SEP},
+ n2("Shane Bynum","Sep 3, 2:00 PM CDT",EV_SEP),n2("Brian Farria","Sep 3, 2:30 PM CDT",EV_SEP),
+ n2("Joshua Stirgus","Sep 3, 2:30 PM CDT",EV_SEP),n2("Bobbi Sinclair","Sep 3, 2:30 PM CDT",EV_SEP),
+ n2("Tauvarous Trittie","Sep 3, 2:30 PM CDT",EV_SEP)];
+
+var FBL={yes:"Yes",maybe:"Maybe",no:"No",unset:"Select"};
+var FBF={yes:"Yes",maybe:"Maybe",no:"No",unset:"Not set"};
+var FBDOT={yes:"d-yes",maybe:"d-maybe",no:"d-no",unset:"d-unset"};
+var FBORD={yes:0,maybe:1,no:2,unset:3};
+var MO={Jan:1,Feb:2,Mar:3,Apr:4,May:5,Jun:6,Jul:7,Aug:8,Sep:9,Oct:10,Nov:11,Dec:12};
+function tkey(x){var m=/^([A-Za-z]{3}) (\d+), (\d+):(\d+) (AM|PM)/.exec(x);if(!m)return 0;
+  var h=(+m[3])%12; if(m[5]==='PM')h+=12;
+  return (((MO[m[1]]||0)*100+ +m[2])*100+h)*100+ +m[4];}
+function fbKey(r){return r.fb||"unset"}
+
+var st={ev:"",job:"",fb:"",who:"",s1:null,s2:null};
+function el(i){return document.getElementById(i)}
+function evOK(r){return !st.ev||r.ev===st.ev}
+function jobOK(r){return !st.job||r.job===st.job}
+function base1(){return T1.filter(function(r){return evOK(r)&&jobOK(r)})}
+function fbCounts(){var b=base1().filter(function(r){return !st.who||r.who===st.who}),c={yes:0,maybe:0,no:0,unset:0,all:b.length};
+  b.forEach(function(r){c[fbKey(r)]++});return c;}
+function whoCounts(){var b=base1().filter(function(r){return !st.fb||fbKey(r)===st.fb}),c={all:b.length};
+  b.forEach(function(r){c[r.who]=(c[r.who]||0)+1});return c;}
+function whoList(){var a=[];T1.forEach(function(r){if(a.indexOf(r.who)<0)a.push(r.who)});return a.sort()}
+function evCount(v){return T1.filter(r=>!v||r.ev===v).length+T2.filter(r=>!v||r.ev===v).length}
+function jobCount(v){var b=T1.concat(T2).filter(evOK);return v?b.filter(r=>r.job===v).length:b.length}
+function closeAll(){[].forEach.call(document.querySelectorAll('.fmenu,.thmenu'),function(m){m.classList.remove('open')})}
+document.addEventListener('click',closeAll);
+
+var CHEV='<svg class="ic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#595959" stroke-width="2.4" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>';
+var CV='<svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>';
+var NOTESVG='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>';
+var KEB='<svg width="16" height="16" viewBox="0 0 24 24" fill="#0044B3"><circle cx="6" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="18" cy="12" r="2"/></svg>';
+var TICK='<svg class="tick" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>';
+// idle = up/down pair, active sort = single arrow, active filter = funnel
+function caret(state){
+  if(state==='asc')  return '<svg class="car" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#0044b3" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V6M6 12l6-6 6 6"/></svg>';
+  if(state==='desc') return '<svg class="car" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#0044b3" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v13M6 12l6 6 6-6"/></svg>';
+  if(state==='filt') return '<svg class="car" width="12" height="12" viewBox="0 0 24 24" fill="#0044b3" stroke="#0044b3" stroke-width="1.8" stroke-linejoin="round"><path d="M3 4h18l-7 8.2V20l-4-2.2v-5.6L3 4z"/></svg>';
+  return '<svg class="car" width="11" height="13" viewBox="0 0 12 14" fill="none" stroke="#767676" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 1.6L3 5h6L6 1.6z" fill="#767676"/><path d="M6 12.4L3 9h6l-3 3.4z" fill="#767676"/></svg>';
+}
+
+/* ---------- generic column header ---------- */
+function th(cfg){
+  // cfg: {id,label,w,sort:'text'|'time'|'fb'|null, filter:[{v,label,dot,count}]|null, cur, sortState, align}
+  if(!cfg.sort && !cfg.filter) return '<th style="width:'+cfg.w+'"><span class="plain">'+cfg.label+'</span></th>';
+  var state = cfg.sortState || (cfg.cur?'filt':'idle');
+  var items='';
+  if(cfg.sort){
+    var a=cfg.sort==='time'?'Newest first':cfg.sort==='fb'?'Yes first':'A – Z';
+    var d=cfg.sort==='time'?'Oldest first':cfg.sort==='fb'?'No first':'Z – A';
+    items+='<div class="cap">SORT</div>'+
+      '<button class="mi'+(cfg.sortState==='asc'?' on':'')+'" data-act="sort" data-dir="asc">'+TICK+a+'</button>'+
+      '<button class="mi'+(cfg.sortState==='desc'?' on':'')+'" data-act="sort" data-dir="desc">'+TICK+d+'</button>';
+  }
+  if(cfg.filter){
+    if(cfg.sort) items+='<div class="sep"></div>';
+    items+='<div class="cap">SHOW</div>'+cfg.filter.map(function(o){
+      return '<button class="mi'+(cfg.cur===o.v?' on':'')+'" data-act="filter" data-v="'+o.v+'">'+TICK+
+        (o.dot?'<span class="d '+o.dot+'"></span>':'')+o.label+'<span class="n">'+o.count+'</span></button>';
+    }).join('');
+  }
+  return '<th style="width:'+cfg.w+'">'+
+    '<button class="thb'+(state!=='idle'?' act':'')+'" data-th="'+cfg.id+'">'+cfg.label+caret(state)+'</button>'+
+    '<div class="thmenu'+(cfg.align==='r'?' r':'')+'" data-m="'+cfg.id+'">'+items+'</div></th>';
+}
+function wireTh(rowId, handler){
+  var row=el(rowId);
+  [].forEach.call(row.querySelectorAll('.thb'),function(b){
+    var m=row.querySelector('.thmenu[data-m="'+b.dataset.th+'"]');
+    b.onclick=function(e){e.stopPropagation();var was=m.classList.contains('open');closeAll();if(!was)m.classList.add('open');};
+    m.onclick=function(e){e.stopPropagation()};
+    [].forEach.call(m.querySelectorAll('.mi'),function(x){
+      x.onclick=function(){handler(b.dataset.th,x.dataset.act,x.dataset.act==='sort'?x.dataset.dir:x.dataset.v);closeAll();render();};
+    });
+  });
+}
+function sortRows(arr,sp){
+  if(!sp) return arr;
+  var f = sp.col==='name'?function(r){return r.name.toLowerCase()}
+        : sp.col==='iv'?function(r){return tkey(r.iv[0])}
+        : sp.col==='fb'?function(r){return FBORD[fbKey(r)]}
+        : function(r){return (r.who||'').toLowerCase()};
+  var c=arr.slice().sort(function(a,b){var x=f(a),y=f(b);return x<y?-1:x>y?1:0});
+  // time + fb: "asc" means newest / yes-first
+  if(sp.col==='iv'){c.reverse(); if(sp.dir==='desc')c.reverse();}
+  else if(sp.dir==='desc') c.reverse();
+  return c;
+}
+
+function lctl(id,cap,val,isSet){
+  return '<button type="button" class="lctl'+(isSet?' set':'')+'" id="'+id+'"><span><span class="cap">'+cap+'</span><span class="val">'+val+'</span></span>'+CHEV+'</button>';
+}
+function fmenu(id,items,cur){
+  return '<div class="fmenu" id="'+id+'">'+items.map(function(it){
+    return '<button data-v="'+it.v+'" class="'+(cur===it.v?'sel':'')+'">'+it.label+'<span class="ct">'+it.count+'</span></button>';
+  }).join('')+'</div>';
+}
+function wireF(mid,bid,setter){
+  var m=el(mid),b=el(bid);
+  b.onclick=function(e){e.stopPropagation();var was=m.classList.contains('open');closeAll();if(!was)m.classList.add('open')};
+  m.onclick=function(e){e.stopPropagation()};
+  [].forEach.call(m.querySelectorAll('button'),function(x){x.onclick=function(){setter(x.dataset.v);closeAll();render()}});
+}
+function ivCell(r){
+  if(r.iv.length===1) return '<div>'+r.iv[0]+'</div>';
+  return '<div class="ivgrp">'+r.iv.map(function(t,i){return '<div'+(i?' class="sp"':'')+'><span class="lbl">Interview '+(i+1)+'</span></div><div class="tm">'+t+'</div>'}).join('')+'</div>';
+}
+function nameCell(n){return '<div>'+n+'</div><div class="mt1"><a class="rlink">View resume</a></div>'}
+
+function render(){
+  // header card
+  el('hright').innerHTML='<div class="wrapf">'+lctl('bEv','Hiring event',st.ev||'All events',!!st.ev)+
+      fmenu('mEv',[{v:'',label:'All events',count:evCount('')},{v:EV_SEP,label:EV_SEP,count:evCount(EV_SEP)},{v:EV_AUG,label:EV_AUG,count:evCount(EV_AUG)}],st.ev)+'</div>'+
+    '<div class="wrapf">'+lctl('bJob','Job',st.job||'All jobs',!!st.job)+
+      fmenu('mJob',[{v:'',label:'All jobs',count:jobCount('')},{v:JOB,label:JOB,count:jobCount(JOB)}],st.job)+'</div>';
+  wireF('mEv','bEv',function(v){st.ev=v}); wireF('mJob','bJob',function(v){st.job=v});
+
+  var fc=fbCounts(), wc=whoCounts();
+  var fbOpts=[{v:'',label:'All',count:fc.all}].concat(['yes','maybe','no','unset'].map(function(k){return {v:k,label:FBF[k],dot:FBDOT[k],count:fc[k]}}));
+  var whoOpts=[{v:'',label:'All interviewers',count:wc.all}].concat(whoList().map(function(w){return {v:w,label:w,count:wc[w]||0}}));
+  var s1=st.s1;
+  el('th1').innerHTML=
+    th({id:'name',label:'Name',w:'14%',sort:'text',sortState:s1&&s1.col==='name'?s1.dir:null})+
+    th({id:'job',label:'Desired job',w:'12%'})+
+    th({id:'loc',label:'Desired location',w:'11%'})+
+    th({id:'iv',label:'Interviews',w:'18%',sort:'time',sortState:s1&&s1.col==='iv'?s1.dir:null})+
+    th({id:'fb',label:'Feedback',w:'12%',sort:'fb',filter:fbOpts,cur:st.fb,sortState:s1&&s1.col==='fb'?s1.dir:null})+
+    th({id:'who',label:'Interviewer',w:'12%',sort:'text',filter:whoOpts,cur:st.who,sortState:s1&&s1.col==='who'?s1.dir:null})+
+    th({id:'notes',label:'Notes',w:'14%'})+
+    th({id:'act',label:'Action',w:'7%'});
+  wireTh('th1',function(col,act,val){
+    if(act==='sort'){ st.s1=(st.s1&&st.s1.col===col&&st.s1.dir===val)?null:{col:col,dir:val}; }
+    else { if(col==='fb') st.fb=(st.fb===val?'':val); else st.who=(st.who===val?'':val); }
+  });
+  var s2=st.s2;
+  el('th2').innerHTML=
+    th({id:'name',label:'Name',w:'25%',sort:'text',sortState:s2&&s2.col==='name'?s2.dir:null})+
+    th({id:'job',label:'Desired job',w:'20%'})+
+    th({id:'loc',label:'Desired location',w:'20%'})+
+    th({id:'iv',label:'Interview time',w:'27%',sort:'time',sortState:s2&&s2.col==='iv'?s2.dir:null})+
+    th({id:'act',label:'Action',w:'8%'});
+  wireTh('th2',function(col,act,val){ if(act==='sort') st.s2=(st.s2&&st.s2.col===col&&st.s2.dir===val)?null:{col:col,dir:val}; });
+
+  var o1=sortRows(base1().filter(function(r){return (!st.fb||fbKey(r)===st.fb)&&(!st.who||r.who===st.who)}),st.s1);
+  var o2=sortRows(T2.filter(function(r){return evOK(r)&&jobOK(r)}),st.s2);
+
+  el('rows1').innerHTML=o1.length?o1.map(function(r){
+    var k=fbKey(r);
+    return '<tr><td>'+nameCell(r.name)+'</td><td>'+r.job+'</td><td>'+r.loc+'</td><td class="sec">'+ivCell(r)+'</td>'+
+      '<td><button type="button" class="fbpill"><span class="d '+FBDOT[k]+'"></span><span class="t">'+FBL[k]+'</span>'+CV+'</button></td>'+
+      '<td>'+r.who+'</td><td><button class="notesbtn">'+NOTESVG+' Notes</button></td><td><button class="kebab">'+KEB+'</button></td></tr>';
+  }).join(''):'<tr class="nonerow"><td colspan="8">No candidates match these filters.</td></tr>';
+  el('rows2').innerHTML=o2.length?o2.map(function(r){
+    return '<tr><td>'+nameCell(r.name)+'</td><td>'+r.job+'</td><td>'+r.loc+'</td><td>'+ivCell(r)+'</td><td><button class="kebab">'+KEB+'</button></td></tr>';
+  }).join(''):'<tr class="nonerow"><td colspan="5">No candidates match these filters.</td></tr>';
+
+  el('c1n').innerHTML=(o1.length===T1.length)?'('+T1.length+')':'<span class="of">('+o1.length+' of '+T1.length+')</span>';
+  var ch=[];
+  if(st.fb) ch.push(['fb','<span class="d '+FBDOT[st.fb]+'"></span>Feedback: '+FBF[st.fb]]);
+  if(st.who) ch.push(['who','Interviewer: '+st.who]);
+  el('c1chips').innerHTML=ch.map(function(x){return '<span class="achip">'+x[1]+'<button data-k="'+x[0]+'">&times;</button></span>'}).join('');
+  [].forEach.call(el('c1chips').querySelectorAll('button'),function(b){b.onclick=function(){st[b.dataset.k]='';render()}});
+  el('c2t').textContent=(o2.length===T2.length)?T2.length+" candidates couldn't make the interview":o2.length+" of "+T2.length+" candidates couldn't make the interview";
+  el('pastN').textContent='(54)';
+}
+[].forEach.call(document.querySelectorAll('#szSeg button'),function(b){
+  b.onclick=function(){
+    document.body.className='sz-'+b.dataset.s;
+    [].forEach.call(document.querySelectorAll('#szSeg button'),function(x){x.classList.remove('on')});
+    b.classList.add('on');
+    el('szrt').textContent = b.dataset.s==='stack'
+      ? 'Title is 20px. Stacked control is 44px tall, was 64px.'
+      : 'Title is 20px. One-line control is 38px tall, was 64px.';
+  };
+});
+el('dnOpen').onclick=function(e){e.stopPropagation();el('dnOv').classList.add('open')};
+el('dnClose').onclick=function(){el('dnOv').classList.remove('open')};
+el('dnOv').onclick=function(e){if(e.target===el('dnOv'))el('dnOv').classList.remove('open')};
+document.querySelector('.dnp').onclick=function(e){e.stopPropagation()};
+document.addEventListener('keydown',function(e){if(e.key==='Escape')el('dnOv').classList.remove('open')});
+render();
+</script>
+</body>
+</html>
