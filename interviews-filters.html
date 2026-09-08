@@ -1,0 +1,650 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Interviews - filtering and sorting</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{font-family:'Noto Sans',-apple-system,system-ui,sans-serif;font-size:14px;color:#2d2d2d;background:#f3f2ef;-webkit-font-smoothing:antialiased}
+button{font-family:inherit}
+.mockbar{position:fixed;top:0;left:0;right:0;height:40px;z-index:900;background:#111;color:#fff;display:flex;align-items:center;gap:14px;padding:0 16px;font-size:12px}
+.mockbar .lbl{opacity:.6}
+.mockbar .rt{margin-left:auto;opacity:.55;font-size:11.5px}
+.dnlink{margin-left:16px;border:1px solid rgba(255,255,255,.35);background:transparent;color:#fff;font-size:12px;font-weight:700;padding:5px 12px;border-radius:20px;cursor:pointer}
+.dnlink:hover{background:#fff;color:#111;border-color:#fff}
+.dnov{position:fixed;inset:0;z-index:1000;background:rgba(45,45,45,.42);display:none}
+.dnov.open{display:block}
+.dnp{position:absolute;right:0;top:0;bottom:0;width:min(680px,94vw);background:#fff;box-shadow:-8px 0 30px rgba(0,0,0,.18);display:flex;flex-direction:column}
+.dnh{flex:0 0 auto;display:flex;align-items:center;gap:12px;padding:20px 26px;border-bottom:1px solid #e4e2e0}
+.dnh h2{margin:0;font-size:18px;font-weight:700}
+.dnh .sub{font-size:13px;color:#767676}
+.dnx{margin-left:auto;border:1px solid #d4d2d0;background:#fff;border-radius:8px;width:32px;height:32px;cursor:pointer;color:#595959;font-size:17px;line-height:1}
+.dnx:hover{background:#f3f2ef;color:#2d2d2d}
+.dnb{flex:1 1 auto;overflow-y:auto;padding:22px 26px 60px;font-size:14px;line-height:1.65;color:#2d2d2d}
+.dnb h3{font-size:12px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#0044b3;margin:26px 0 10px;padding-bottom:6px;border-bottom:1px solid #f0efee}
+.dnb h3:first-child{margin-top:0}
+.dnb p{margin:0 0 12px}
+.dnb ol,.dnb ul{margin:0 0 12px;padding-left:20px}
+.dnb li{margin-bottom:7px}
+.dnb code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;background:#f3f2ef;border-radius:4px;padding:1px 5px;color:#2d2d2d}
+.dnb pre{background:#2d2d2d;color:#f3f2ef;border-radius:8px;padding:12px 14px;overflow-x:auto;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;line-height:1.55;margin:0 0 14px}
+.dnb pre code{background:transparent;color:inherit;padding:0}
+.dnb table{width:100%;border-collapse:collapse;margin:0 0 14px;font-size:13px}
+.dnb th{background:#faf9f8;border:1px solid #e4e2e0;padding:7px 10px;text-align:left;font-weight:700;font-size:12px;color:#595959;position:static}
+.dnb td{border:1px solid #e4e2e0;padding:7px 10px;font-size:13px;vertical-align:top}
+.dnb .todo{background:#fff;border:1px solid #d4d2d0;border-left:3px solid #0044b3;border-radius:8px;padding:12px 16px;margin:0 0 12px}
+.dnb .todo b{display:block;margin-bottom:3px}
+.dnb .flag{background:#fdf6e7;border:1px solid #f0dfae;border-left:3px solid #c2410c;border-radius:8px;padding:12px 16px;margin:0 0 12px}
+.dnb .done{color:#1f662c;font-weight:700}
+.mockbar .crumb{background:#333;border-radius:20px;padding:5px 12px;font-weight:700}
+
+.side{position:fixed;left:0;top:40px;bottom:0;width:220px;background:#2d2d2d;z-index:300;display:flex;flex-direction:column;overflow:hidden}
+.collapse{display:flex;align-items:center;gap:14px;color:rgba(255,255,255,.85);padding:16px 18px;font-size:17px;font-weight:600}
+.nav{padding:8px 10px;display:flex;flex-direction:column;gap:2px}
+.nav a{display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:10px;color:rgba(255,255,255,.85);font-size:17px;text-decoration:none;letter-spacing:-.1px}
+.nav a.on{background:rgba(255,255,255,.18);color:#fff;font-weight:700}
+.nav .badge{margin-left:auto;background:#0044b3;color:#fff;font-size:12px;font-weight:700;border-radius:20px;padding:1px 8px}
+.topbar{position:fixed;top:40px;left:220px;right:0;height:56px;background:#fff;border-bottom:1px solid #d4d2d0;display:flex;align-items:center;justify-content:space-between;padding:0 24px;z-index:200}
+.brand{color:#0044b3;font-size:20px;font-weight:700;letter-spacing:-.02em}
+.acct{color:#2d2d2d;font-size:14px;display:flex;align-items:center;gap:8px}
+.shell{margin-left:220px;padding-top:96px;min-height:100vh}
+.content{display:flex;width:100%;flex-direction:column;padding:32px 32px 0}
+
+.hcard{margin-bottom:20px;border-radius:12px;border:1px solid #d4d2d0;background:#fff;padding:28px 32px}
+.hrow{display:flex;align-items:center;gap:24px}
+.hleft{min-width:0;flex:1}
+.hright{flex:none;display:flex;gap:12px;align-items:center}
+h1{font-size:20px;font-weight:700;color:#2d2d2d;margin:0}
+.wrapf{position:relative}
+.lctl{display:flex;cursor:pointer;align-items:center;gap:10px;border-radius:8px;border:1px solid #d4d2d0;background:#fff;text-align:left;color:#2d2d2d}
+.lctl:hover{border-color:#2d2d2d;background:#faf9f8}
+.lctl .ic{margin-left:auto;flex:none}
+.lctl.set{border-color:#0044b3}
+.lctl.set .val{color:#0044b3;font-weight:700}
+/* caption over value, 44px tall */
+.lctl{min-width:216px;padding:5px 12px}
+.lctl .cap{display:block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#767676;line-height:14px}
+.lctl .val{display:block;font-size:14px;font-weight:600;color:#2d2d2d;line-height:18px}
+.fmenu{position:absolute;right:0;top:calc(100% + 6px);z-index:30;min-width:300px;overflow:hidden;border-radius:10px;border:1px solid #d4d2d0;background:#fff;box-shadow:0 4px 16px rgba(0,0,0,.12);display:none}
+.fmenu.open{display:block}
+.fmenu button{display:flex;width:100%;align-items:center;gap:9px;cursor:pointer;border:none;background:transparent;padding:12px 18px;text-align:left;font-size:14px;color:#2d2d2d}
+.fmenu button:hover{background:#f3f2ef}
+.fmenu button.sel{background:#f0f5ff;font-weight:600;color:#0044b3}
+.fmenu .ct{margin-left:auto;color:#767676;font-weight:400;font-size:13px}
+.fmenu button.sel .ct{color:#0044b3}
+
+.tabsw{border-bottom:3px solid #d4d2d0}
+.tabs{display:flex}
+.tab{margin-bottom:-3px;flex:1;cursor:pointer;border:0;border-bottom:4px solid transparent;background:transparent;padding:20px 16px;font-size:16px;font-weight:600;color:#595959}
+.tab.on{border-bottom-color:#2d2d2d;font-weight:700;color:#2d2d2d}
+.tab .n{margin-left:4px;font-weight:400;color:#767676}
+
+.sunken{padding:24px 0}
+.card{border-radius:12px;border:1px solid #d4d2d0;background:#fff}
+.card.mb{margin-bottom:16px}
+.chead{display:flex;align-items:center;gap:10px;padding:16px 20px;flex-wrap:wrap}
+.ctitle{font-size:20px;font-weight:700;line-height:30px;color:#2d2d2d;display:flex;align-items:center;gap:8px}
+.ctitle .of{color:#767676;font-weight:400;font-size:16px}
+.csub{margin-top:2px;font-size:14px;color:#595959}
+.achip{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid #d4d2d0;color:#2d2d2d;border-radius:20px;padding:2px 4px 2px 9px;font-size:12px;font-weight:600;line-height:18px}
+.achip button{border:0;background:transparent;color:#767676;cursor:pointer;font-size:14px;line-height:1;padding:1px 4px;border-radius:50%}
+.achip button:hover{background:#f3f2ef;color:#2d2d2d}
+.achip .d{width:7px;height:7px;border-radius:50%;flex:none}
+.tw{padding:0 20px 20px}
+table{width:100%;border-collapse:collapse}
+th{border-bottom:1px solid #d4d2d0;padding:0;text-align:left;font-size:13px;font-weight:400;color:#595959;position:relative}
+th .plain{display:block;padding:12px 14px}
+/* Indeed-style header control */
+/* sort header: label is the button, arrow reveals on hover, persists when sorted (IBM Carbon) */
+.thb{display:flex;width:100%;align-items:center;gap:6px;cursor:pointer;border:0;background:transparent;padding:12px 14px;text-align:left;font-size:13px;font-weight:400;color:#595959;border-radius:6px}
+.thb:hover{background:#f3f2ef;color:#2d2d2d}
+.thb .car{flex:none;opacity:.5;transition:opacity .12s}
+.thb:hover .car{opacity:1}
+.thb.act{color:#0044b3;font-weight:700}
+.thb.act .car{opacity:1}
+/* filter header: label + funnel, funnel always visible, fills when active (Ant Design) */
+.thf{display:flex;width:100%;align-items:center;gap:6px;cursor:pointer;border:0;background:transparent;padding:12px 14px;text-align:left;font-size:13px;font-weight:400;color:#595959;border-radius:6px}
+.thf:hover{background:#f3f2ef;color:#2d2d2d}
+.thf .fun{flex:none;opacity:.5;transition:opacity .12s}
+.thf:hover .fun{opacity:1}
+.thf.act{color:#0044b3;font-weight:700}
+.thf.act .fun{opacity:1}
+.thf .cnt{margin-left:auto;font-size:11px;font-weight:700;color:#0044b3;background:#f0f5ff;border-radius:20px;padding:0 6px}
+.thmenu{position:absolute;left:8px;top:calc(100% + 6px);z-index:50;min-width:212px;border-radius:8px;border:1px solid #e4e2e0;background:#fff;padding:6px;box-shadow:0 0 2px rgba(45,45,45,.16),0 4px 12px rgba(45,45,45,.08);display:none}
+.thmenu.open{display:block}
+.thmenu.r{left:auto;right:8px}
+.thmenu .mi{display:flex;width:100%;align-items:center;gap:9px;cursor:pointer;border:0;background:transparent;border-radius:4px;padding:9px 10px;text-align:left;font-size:14px;color:#2d2d2d;font-weight:400}
+.thmenu .mi:hover{background:#f3f2ef}
+.thmenu .mi.on{color:#0044b3;font-weight:700}
+.thmenu .tick{width:14px;flex:none;visibility:hidden}
+.thmenu .mi.on .tick{visibility:visible}
+.thmenu .box{width:15px;height:15px;flex:none;border:1.5px solid #b4b2a9;border-radius:3px;display:flex;align-items:center;justify-content:center;background:#fff}
+.thmenu .mi.on .box{background:#0044b3;border-color:#0044b3}
+.thmenu .box svg{visibility:hidden}
+.thmenu .mi.on .box svg{visibility:visible}
+.thmenu .foot{border-top:1px solid #f0efee;margin-top:5px;padding-top:5px;display:flex;justify-content:flex-end}
+.thmenu .foot button{border:0;background:transparent;color:#0044b3;font:inherit;font-size:13px;font-weight:700;cursor:pointer;padding:5px 8px;border-radius:5px}
+.thmenu .foot button:hover{background:#f0f5ff}
+.thmenu .foot button[disabled]{color:#b4b2a9;cursor:default;background:transparent}
+.thmenu .d{width:8px;height:8px;border-radius:50%;flex:none}
+.thmenu .n{margin-left:auto;font-size:13px;color:#767676;font-weight:400}
+.thmenu .mi.on .n{color:#0044b3}
+.thmenu .sep{height:1px;background:#f0efee;margin:5px 4px}
+.thmenu .cap{font-size:11px;font-weight:700;letter-spacing:.06em;color:#767676;padding:6px 10px 3px}
+
+td{border-bottom:1px solid #f3f2ef;padding:14px;font-size:14px;color:#2d2d2d;vertical-align:top}
+td.sec{font-size:13px;color:#595959}
+.rlink{cursor:pointer;font-size:12px;color:#0044b3;text-decoration:underline}
+.mt1{margin-top:4px}
+.ivgrp .lbl{font-size:13px;font-weight:600;color:#0044b3}
+.ivgrp .tm{font-size:13px;color:#595959}
+.ivgrp .sp{margin-top:6px}
+.fbpill{display:inline-flex;height:32px;min-width:106px;cursor:pointer;align-items:center;gap:8px;white-space:nowrap;border-radius:8px;border:1px solid #d4d2d0;background:#fff;padding:0 11px;font-size:13px;font-weight:600;color:#2d2d2d}
+.fbpill:hover{border-color:#b4b2a9}
+.fbpill .d{height:8px;width:8px;flex:none;border-radius:9999px}
+.fbpill .t{flex:1;text-align:left}
+.fbpill .cv{height:14px;width:14px;flex:none;color:#767676}
+.d-yes{background:#16a34a}.d-maybe{background:#c2410c}.d-no{background:#991b1b}
+.d-unset{background:transparent;border:1px solid #b4b2a9}
+.notesbtn{display:inline-flex;align-items:center;gap:6px;cursor:pointer;border:none;background:transparent;padding:0;font-size:14px;font-weight:600;color:#0044b3}
+.kebab{display:flex;height:32px;width:32px;cursor:pointer;align-items:center;justify-content:center;border-radius:6px;border:1px solid #d4d2d0;background:#fff;color:#0044b3}
+.kebab:hover{border-color:#0044b3;background:#f0f5ff}
+.nonerow td{padding:36px 14px;text-align:center;color:#767676;border-bottom:0}
+.hide{display:none !important}
+.note{margin:0 0 20px;border-radius:12px;border:1px solid #d4d2d0;background:#fff;padding:16px 20px;font-size:13.5px;line-height:1.7}
+.note h4{margin:0 0 8px;font-size:14px;color:#0044b3}
+.note b{color:#2d2d2d}
+.key{display:inline-flex;align-items:center;gap:5px;background:#f3f2ef;border-radius:5px;padding:1px 7px;font-size:12.5px;font-weight:700;color:#2d2d2d}
+
+.chead .grow{flex:1;display:flex;align-items:center;gap:10px;min-width:0}
+.chead .grow .cico{display:flex;align-items:center;flex:none}
+.slotrow td{background:#faf9f8;border-bottom:1px solid #f3f2ef;padding:9px 14px;font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#595959}
+.slotrow .n{margin-left:8px;font-weight:400;letter-spacing:0;text-transform:none;color:#767676}
+.slotrow .nx{margin-left:10px;background:#0044b3;color:#fff;border-radius:20px;padding:1px 8px;font-size:11px;font-weight:700;letter-spacing:.04em}
+.mpill{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;border-radius:12px;padding:3px 9px;font-size:12px;font-weight:600;line-height:normal}
+.m-video{background:#f6efe6;color:#8a5a20}.m-phone{background:#e9f3eb;color:#1f662c}.m-inperson{background:#ecf2ff;color:#0044b3}
+.actgrp{display:inline-flex;align-items:center;border-radius:8px;border:1px solid #d4d2d0;overflow:hidden}
+.actgrp button{height:36px;cursor:pointer;border:0;border-right:1px solid #d4d2d0;background:#fff;padding:0 14px;font-size:13px;font-weight:600;color:#2d2d2d}
+.actgrp button:last-child{border-right:0}
+.actgrp button:hover{background:#e8f0fe;color:#0044b3}
+.actgrp button.pri{background:#0044b3;color:#fff}
+.actgrp button.pri:hover{background:#003399}
+.selbar{display:flex;align-items:center;gap:12px;margin:0 20px 14px;padding:10px 14px;border-radius:8px;background:#ecf2ff;border:1px solid #cfdeff;font-size:14px;font-weight:600;color:#0044b3}
+.selbar button{border:0;background:#0044b3;color:#fff;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer}
+.selbar button.alt{background:#fff;color:#a9252b;border:1px solid #d4d2d0}
+.selbar button.alt:hover{border-color:#a9252b}
+.selbar button.ghost{background:transparent;color:#0044b3;text-decoration:underline}
+.selbar .sp{margin-left:auto}
+th.cbx,td.cbx{width:40px;padding-left:14px;padding-right:0}
+.cb{width:16px;height:16px;border:1.5px solid #b4b2a9;border-radius:3px;background:#fff;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;vertical-align:-3px}
+.cb.on{background:#0044b3;border-color:#0044b3}
+.cb svg{visibility:hidden}
+.cb.on svg{visibility:visible}
+.mockbar .crumb{background:#333;border-radius:20px;padding:5px 12px;font-weight:700}
+</style>
+</head>
+<body>
+
+<div class="mockbar">
+  <span class="lbl">JobFairX prototype</span><span class="crumb">Interviews</span>
+  <span class="rt">Sort = arrow on the label. Filter = funnel, multi-select. Real data.</span>
+  <button class="dnlink" id="dnOpen">Developer notes</button>
+</div>
+
+<div class="side">
+  <div class="collapse"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg> Collapse</div>
+  <div class="nav">
+    <a href="#"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>Events</a>
+    <a href="#" class="on"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5"/><path d="M17 11a3 3 0 100-6"/><path d="M18 20c0-2.6-1-4.4-2.6-5.3"/></svg>Interviews<span class="badge">1</span></a>
+    <a href="#"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H8l-4 4V5a2 2 0 012-2h13a2 2 0 012 2z"/></svg>Messages</a>
+    <a href="#"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L4.5 13.5H11L10 22l8.5-11.5H12z"/></svg>Automations</a>
+    <a href="#"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 20h18"/><path d="M6 16l4-5 3 3 5-7"/></svg>Analytics</a>
+  </div>
+</div>
+
+<div class="topbar"><span class="brand">JobFairX</span><span class="acct">hali.sandrik@transdev.com <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#595959" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></span></div>
+
+<div class="shell"><div class="content">
+  <div class="hcard"><div class="hrow">
+    <div class="hleft"><h1>Interviews</h1></div>
+    <div class="hright" id="hright"></div>
+  </div></div>
+
+  <div class="tabsw"><div class="tabs">
+    <button class="tab" data-t="up">Upcoming<span class="n" id="nUp"></span></button>
+    <button class="tab" data-t="pen">Pending<span class="n" id="nPen"></span></button>
+    <button class="tab on" data-t="past">Past<span class="n" id="nPast"></span></button>
+  </div></div>
+
+  <div class="sunken" id="panes"></div>
+</div></div>
+<div class="dnov" id="dnOv"><div class="dnp" role="dialog" aria-label="Developer notes">
+  <div class="dnh">
+    <div><h2>Developer notes</h2><div class="sub">Interviews &mdash; filtering and sorting, all three tabs</div></div>
+    <button class="dnx" id="dnClose">&times;</button>
+  </div>
+  <div class="dnb">
+
+    <h3>What this page is</h3>
+    <p>A working prototype of the <b>Interviews</b> page on <code>virtual.jobfairx.com/employer/#/interviews</code>, covering all three tabs. Markup, tokens and spacing were read off the live DOM, not eyeballed.</p>
+    <p>All candidate data is the real Transdev data as of Sep 8 2026: <b>Upcoming 21, Pending 1, Past 54</b> (26 interviewed plus 28 who missed the interview). Nothing is invented.</p>
+    <p><b>The existing layout does not move.</b> Same header card, same three tabs, same cards, same columns. The Feedback pills on Past are the live component untouched &mdash; 32px tall, 106px min-width, 8px radius, 13px/600, dots <code>#16a34a</code> / <code>#c2410c</code> / <code>#991b1b</code>. Do not restyle them.</p>
+
+    <h3>The rules</h3>
+    <div class="todo"><b>1. Two filter scopes, and they must not be mixed.</b>
+      <b>Hiring event</b> and <b>Job</b> are page-level: header card, right-aligned, and they apply to every tab and every card. Verified on the live app &mdash; selecting an event takes Upcoming, Pending and Past to (0) together.<br><br>
+      Everything else is table-level and lives on its column header. Feedback and Interviewer only exist on Past &rsaquo; Interviewed candidates. Interview method only exists on Upcoming and Pending.</div>
+    <div class="todo"><b>2. One control per column. Never both.</b>
+      A column either sorts (arrow on the label) or filters (funnel). No column opens a menu with a sort section and a filter section in it.</div>
+    <div class="todo"><b>3. Controls are always visible. They never appear or disappear based on the data.</b>
+      An earlier pass hid a control when its column held a single value. On real data that hid almost everything, because every upcoming interview is the same job, same city, all Video. It is also unlike any comparable product: Ant Design declares filters per column and always shows them; AG Grid and Excel always open the column menu regardless of how many values it holds. An employer who learns "I filter method here" and later finds the control gone reads that as broken.<br><br>
+      So the funnel renders even when it opens to one option. Today Interview method on Upcoming reads <b>Video 21</b> and filtering to it changes nothing. That is correct.</div>
+    <div class="todo"><b>4. The sort arrow is visible at rest.</b>
+      50% opacity at rest, full on hover, blue with a bold label when sorted. IBM Carbon hides it until hover; we followed that at first and it produced header rows with nothing visible in them, so we dropped it.</div>
+
+    <h3>Per-column behaviour</h3>
+    <table>
+      <tr><th>Tab</th><th>Column</th><th>Control</th></tr>
+      <tr><td rowspan="4">Past &rsaquo; Interviewed</td><td>Name</td><td>Sort A&ndash;Z</td></tr>
+      <tr><td>Interviews</td><td>Sort newest &harr; oldest</td></tr>
+      <tr><td>Feedback</td><td>Filter: Yes, Maybe, No, Not set</td></tr>
+      <tr><td>Interviewer</td><td>Filter: one per interviewer</td></tr>
+      <tr><td rowspan="2">Past &rsaquo; Missed</td><td>Name</td><td>Sort A&ndash;Z</td></tr>
+      <tr><td>Interview time</td><td>Sort newest &harr; oldest</td></tr>
+      <tr><td rowspan="3">Upcoming</td><td>Name</td><td>Sort A&ndash;Z</td></tr>
+      <tr><td>Interview time</td><td>Sort earliest &harr; latest</td></tr>
+      <tr><td>Interview method</td><td>Filter: Video, Phone, In-Person</td></tr>
+      <tr><td rowspan="3">Pending</td><td>Name</td><td>Sort A&ndash;Z</td></tr>
+      <tr><td>Requested time</td><td>Sort earliest &harr; latest</td></tr>
+      <tr><td>Interview method</td><td>Filter: Video, Phone, In-Person</td></tr>
+    </table>
+    <p><b>Desired job</b> carries no column control on any tab &mdash; it is filtered from the header card, because it applies to every table at once. <b>Desired location</b>, <b>Notes</b> and <b>Action</b> carry nothing.</p>
+    <p><b>Feedback does not sort.</b> Four values over 26 rows: sorting Yes-first answers the same question as filtering but leaves the No rows on screen. The filter is strictly better, so the sort would be dead weight.</p>
+    <p><b>Timestamps sort, they do not filter.</b> Filtering a timestamp needs a date-range picker, and the Hiring event filter already does that job. On Past, rows with several interviews (Bryant Mercely has three) sort on the <b>first</b> interview time.</p>
+    <p>A filter menu lists only the values present in the current scope. It does not pad the list with <code>Phone 0</code> and <code>In-Person 0</code> for methods this employer has never used.</p>
+
+    <h3>Two features that are not filters</h3>
+    <div class="todo"><b>Upcoming groups by time slot.</b>
+      21 interviews across 7 slots on one day. On event day the question is "who is in the next block", not "show me the Video ones". Slot subheaders carry the time and a candidate count, and the first group is tagged <b>NEXT UP</b>.<br><br>
+      Grouping is the default and <b>drops automatically when the user sorts</b>, because a sorted list and a slot grouping contradict each other. Clearing the sort restores it.</div>
+    <div class="todo"><b>Pending supports bulk actions.</b>
+      Every Pending row is a decision. With thirty requests the week of an event, the work is not finding them, it is clicking Accept thirty times. Checkbox column, select-all in the header, and a bar that appears on selection with <b>Accept N</b> and <b>Decline N</b>.<br><br>
+      Select-all takes the <b>filtered</b> set, not the whole table. <b>Bulk Decline must confirm before it fires</b> &mdash; it is destructive and it messages the candidate. Bulk Accept can fire directly. The confirm step is not built in this prototype.</div>
+
+    <h3>Interaction rules</h3>
+    <ul>
+      <li>Sort is three-state: ascending &rarr; descending &rarr; off. Off restores the table's default order.</li>
+      <li>One sort at a time per table. Past has two tables and they sort independently.</li>
+      <li>Filters are multi-select. "Yes and Maybe" is the shortlist question a recruiter actually asks; single-select cannot answer it. Nothing checked means no filter, so there is no "All" row.</li>
+      <li>A filter menu applies on each checkbox and stays open, so several values can be set in one pass. Clear is disabled when nothing is checked.</li>
+      <li>Filter counts rescope to the page-level filters and to the other column filter on the same table &mdash; checking an interviewer recounts the Feedback options against that interviewer's interviews only.</li>
+      <li>Applied filters show as a chip beside the card title; its &times; clears that column.</li>
+      <li>Card titles read <code>(21 of 26)</code> when filtered, plain <code>(26)</code> when not.</li>
+      <li><b>Tab counts stay absolute.</b> Past always reads (54). A tab is a destination, not a result count &mdash; and if Past reflected the filter, Upcoming and Pending would have to as well.</li>
+      <li>Switching tabs clears column-level filters and sorts. Header card filters persist, because they are page-level.</li>
+      <li>An empty result renders the card's empty state, not a bare row.</li>
+    </ul>
+
+    <h3>Component specs</h3>
+    <p>Every control here already exists somewhere in the app. Reuse, do not rebuild.</p>
+    <p><b>Header filter</b> (Hiring event, Job) &mdash; the Analytics "Date range" control, shortened from 64px to <b>44px</b>:</p>
+<pre><code>&lt;button class="flex min-w-[216px] cursor-pointer items-center gap-2.5
+  rounded-lg border border-border-strong bg-white px-3 py-[5px] text-left
+  hover:border-text-primary hover:bg-[#faf9f8]"&gt;
+  &lt;span&gt;
+    &lt;span class="block text-[11px] font-bold uppercase tracking-[0.06em]
+      leading-[14px] text-text-tertiary"&gt;Hiring event&lt;/span&gt;
+    &lt;span class="block text-sm font-semibold leading-[18px]
+      text-text-primary"&gt;All events&lt;/span&gt;
+  &lt;/span&gt;
+  &lt;svg class="ml-auto h-3.5 w-3.5 flex-none"&gt;chevron&lt;/svg&gt;
+&lt;/button&gt;</code></pre>
+    <p>Applied state: border <code>border-brand-blue</code>, value <code>text-brand-blue font-bold</code>. Its dropdown is the existing event menu &mdash; <code>min-w-[300px] rounded-[10px] border border-border-strong shadow-[0_4px_16px_rgba(0,0,0,0.12)]</code>, single-select.</p>
+
+    <p><b>Sort header</b> &mdash; the whole label is the button, <code>px-3.5 py-3 text-[13px] font-normal text-text-secondary rounded-md hover:bg-surface-sunken</code>. 12px arrow after the label at <code>opacity:.5</code>, <code>1</code> on hover, <code>1</code> and <code>#0044b3</code> when sorted; the label goes <code>font-bold text-brand-blue</code> with it. No menu. Set <code>aria-sort="ascending|descending"</code> on the active <code>th</code> and remove it from the previous one.</p>
+
+    <p><b>Filter header</b> &mdash; same padding and type, with a 12px funnel at <code>opacity:.5</code>, filled <code>#0044b3</code> when applied, plus a badge counting checked values. The menu is the live Feedback-pill menu shell:</p>
+<pre><code>absolute top-[calc(100%+6px)] z-50 min-w-[212px] rounded-lg
+border border-[#e4e2e0] bg-white p-1.5
+shadow-[0_0_2px_rgba(45,45,45,0.16),0_4px_12px_rgba(45,45,45,0.08)]</code></pre>
+    <p>Rows are checkboxes:</p>
+<pre><code>&lt;button class="flex w-full items-center gap-[9px] rounded px-2.5 py-[9px]
+  text-left text-sm hover:bg-surface-sunken"&gt;
+  &lt;span class="h-[15px] w-[15px] flex-none rounded-[3px] border-[1.5px]
+    border-[#b4b2a9] bg-white"&gt;check icon, hidden until checked&lt;/span&gt;
+  &lt;span class="h-2 w-2 rounded-full bg-status-success"&gt;&lt;/span&gt;
+  Yes
+  &lt;span class="ml-auto text-[13px] text-text-tertiary"&gt;21&lt;/span&gt;
+&lt;/button&gt;</code></pre>
+    <p>Checked box: <code>bg-brand-blue border-brand-blue</code> with a white tick. Footer is a right-aligned <b>Clear</b>, <code>disabled</code> when nothing is checked.</p>
+    <p><b>Chip</b> &mdash; <code>inline-flex items-center gap-1.5 rounded-full border border-border-strong bg-white pl-[9px] pr-1 py-0.5 text-xs font-semibold text-text-primary</code>, 24px tall, with the status dot and a grey &times;. Lists every checked value.</p>
+
+    <h3>Decided &mdash; do not reopen</h3>
+    <ul>
+      <li>Header filter height: <b>44px stacked</b>, caption over value.</li>
+      <li>Sort and filter never share a column.</li>
+      <li>Feedback filters, it does not sort.</li>
+      <li>Filters are multi-select, not single-select.</li>
+      <li>Controls always render, regardless of how many values the column holds.</li>
+      <li>Tab counts do not react to filters.</li>
+      <li>Hiring event and Job stay page-level, in the header card.</li>
+    </ul>
+
+    <h3>What you need to decide</h3>
+    <div class="todo"><b>1. Filter state in the URL</b>
+      Recommend yes &mdash; query params, so a filtered view can be bookmarked and pasted to a teammate, e.g. <code>#/interviews?tab=past&amp;event=1842&amp;feedback=yes,maybe</code>. Multi-select means the value is a list, so pick a separator and hold to it. Do not persist across sessions; a filter someone forgot they set becomes a support ticket.</div>
+    <div class="todo"><b>2. Client or server filtering</b>
+      54 rows is fine client-side. If any tab paginates, filtering and sorting must move server-side &mdash; filtering one page of results is worse than not filtering at all. Menu counts are cross-scoped, which is a real query if it runs on the server. Tell us which you are building.</div>
+    <div class="todo"><b>3. The "Not set" feedback state</b>
+      The live Feedback dropdown's first option is <b>Select</b>, meaning unrated. The filter calls it "Not set". Confirm the API returns null rather than an empty string or a default so the two agree. Transdev has zero unrated rows today, so this path is untested against real data.</div>
+    <div class="todo"><b>4. What "sort off" returns to</b>
+      Sort is three-state, so the third click restores something. Confirm each table's default order server-side so "off" is defined rather than whatever order the response happened to arrive in.</div>
+    <div class="todo"><b>5. Does Upcoming ever span more than one day?</b>
+      Every upcoming interview today is Sep 11, so slot grouping is one day deep. If a second event's interviews land in the same list, confirm whether you want the current shape ("Sep 11 &middot; 11:00 AM" on each group header) or a day header with times nested beneath it.</div>
+    <div class="todo"><b>6. Bulk size cap</b>
+      Is there a limit on how many Accepts can fire in one request? If it is a few hundred, say so and the UI will chunk them and show progress rather than hanging on one call.</div>
+    <div class="todo"><b>7. Narrow viewports</b>
+      Not designed. The header row holds the title plus two 216px controls, and the tables are already wide. Needs a call on stacking versus horizontal scroll before this reaches anyone under roughly 1280px.</div>
+
+    <h3>Three things to fix that are not UI</h3>
+    <div class="flag"><b>"Interview location" is the wrong column name.</b> On the live app that column holds Video / Phone / In-Person, which is the interview <i>method</i>. Two columns to its left sits "Desired location", holding a city. Two similar names, unrelated contents. This prototype renames it <b>Interview method</b>. Rename it in the live app before building a filter labelled with the wrong noun.</div>
+    <div class="flag"><b>All four hiring events are named "New Orleans Hiring Event", with no date.</b> They are impossible to tell apart in the dropdown. Pick one on the live app and all three tabs go to (0), with no way to know which event you chose or why it is empty. This prototype appends the date so the filter is usable. The real fix is in the event label and is worth doing whether or not any of this filtering ships.</div>
+    <div class="flag"><b>The Job filter does nothing for this account.</b> All 76 rows across all three tabs are "Autonomous Vehicle Operator", and 25 of the 26 past interviews were run by Hali. Both controls are built and correct; they simply hold one value each on Transdev. Per rule 3 they still render.</div>
+
+    <h3>Style inconsistencies worth a ticket</h3>
+    <p>Found while comparing pages, unrelated to this work:</p>
+    <ul>
+      <li>Events card is <code>rounded-lg</code>; Interviews and Analytics are <code>rounded-xl</code>.</li>
+      <li>Analytics card border is <code>#e4e2e0</code>; everywhere else is <code>#d4d2d0</code>.</li>
+      <li>Three different filter button styles across three pages &mdash; chunky 2px blue on Interviews, thin grey with blue text on Events, thin dark outline on Analytics.</li>
+      <li>Events uses filled pill tabs; Interviews uses underline tabs.</li>
+    </ul>
+
+  </div>
+</div></div>
+<script>
+var JOB="Autonomous Vehicle Operator", LOC="New Orleans, LA, 70130";
+var EV_SEP="New Orleans Hiring Event - Sep 3", EV_AUG="New Orleans Hiring Event - Aug 10";
+var EV_SEP11="New Orleans Hiring Event - Sep 11";
+function s(n,t,f,i,ev){return {name:n,job:JOB,loc:LOC,iv:[t],fb:f,who:i,ev:ev};}
+var T1=[
+ s("Joseph Brown","Sep 3, 2:30 PM CDT","no","Hali",EV_SEP),s("Peter Gondrella","Sep 3, 1:30 PM CDT","yes","Nelson",EV_SEP),
+ s("Dion Collins","Sep 3, 1:30 PM CDT","yes","Hali",EV_SEP),s("James Ginn","Sep 3, 12:00 PM CDT","maybe","Hali",EV_SEP),
+ {name:"Bryant Mercely",job:JOB,loc:LOC,iv:["Sep 3, 12:00 PM CDT","Sep 3, 12:00 PM CDT","Sep 3, 12:25 PM CDT"],fb:"yes",who:"Hali",ev:EV_SEP},
+ s("TERRY LeBan Jr","Sep 3, 12:00 PM CDT","yes","Hali",EV_SEP),s("Trahan John","Sep 3, 12:00 PM CDT","yes","Hali",EV_SEP),
+ s("Marissa Kuder","Sep 3, 11:30 AM CDT","yes","Hali",EV_SEP),s("Whitney Sterling","Sep 3, 11:00 AM CDT","yes","Hali",EV_SEP),
+ s("Altoine Taylor","Sep 3, 11:00 AM CDT","yes","Hali",EV_SEP),s("Joshua Clarke","Aug 10, 2:30 PM CDT","yes","Hali",EV_AUG),
+ s("Younes Riad","Aug 10, 2:30 PM CDT","yes","Hali",EV_AUG),s("Isiah Johnson","Aug 10, 2:30 PM CDT","yes","Hali",EV_AUG),
+ s("Kelvin White","Aug 10, 2:00 PM CDT","no","Hali",EV_AUG),s("Chris LOMBARD","Aug 10, 2:00 PM CDT","yes","Hali",EV_AUG),
+ s("James Harrington","Aug 10, 1:30 PM CDT","maybe","Hali",EV_AUG),s("Stanley Barton","Aug 10, 1:00 PM CDT","yes","Hali",EV_AUG),
+ s("Matthew Carter","Aug 10, 12:30 PM CDT","yes","Hali",EV_AUG),s("Daja Waters-Rollins","Aug 10, 12:30 PM CDT","yes","Hali",EV_AUG),
+ s("Steve Pusateri","Aug 10, 12:30 PM CDT","yes","Hali",EV_AUG),s("Kalviana Madison","Aug 10, 12:00 PM CDT","yes","Hali",EV_AUG),
+ s("Alvarez Neely","Aug 10, 12:00 PM CDT","no","Hali",EV_AUG),s("Oscar  Arias","Aug 10, 11:30 AM CDT","yes","Hali",EV_AUG),
+ s("Hildevert Lafeuille","Aug 10, 11:30 AM CDT","yes","Hali",EV_AUG),s("Ernest Coppock","Aug 10, 11:00 AM CDT","yes","Hali",EV_AUG),
+ s("Doyle Smith","Aug 10, 11:00 AM CDT","yes","Hali",EV_AUG)];
+function n2(n,t,ev){return {name:n,job:JOB,loc:LOC,iv:[t],ev:ev};}
+var T2=[n2("OLUWAFEMI ETAJE","Aug 10, 11:00 AM CDT",EV_AUG),n2("Emanuel Cooper","Aug 10, 11:30 AM CDT",EV_AUG),
+ n2("Kendrick Cockerham","Aug 10, 12:00 PM CDT",EV_AUG),n2("Len Davis","Aug 10, 1:00 PM CDT",EV_AUG),
+ n2("Jamall Williams","Aug 10, 1:00 PM CDT",EV_AUG),n2("Kevin Fuzy-Sibley","Aug 10, 1:30 PM CDT",EV_AUG),
+ n2("Dennard Powell","Aug 10, 1:30 PM CDT",EV_AUG),n2("Donnell Evans","Aug 10, 2:00 PM CDT",EV_AUG),
+ n2("Keoka Laurent","Sep 3, 11:00 AM CDT",EV_SEP),n2("Maurice Jackson","Sep 3, 11:00 AM CDT",EV_SEP),
+ n2("Edward Cormier","Sep 3, 11:00 AM CDT",EV_SEP),n2("Esau Taylor","Sep 3, 11:30 AM CDT",EV_SEP),
+ n2("Gregory Charlot Jr","Sep 3, 11:30 AM CDT",EV_SEP),n2("Christopher Prince","Sep 3, 11:30 AM CDT",EV_SEP),
+ n2("Christopher Hays","Sep 3, 11:30 AM CDT",EV_SEP),
+ {name:"Samuel Robinson",job:JOB,loc:LOC,iv:["Sep 3, 12:00 PM CDT","Sep 3, 12:00 PM CDT","Sep 3, 12:00 PM CDT"],ev:EV_SEP},
+ n2("Fred Horst","Sep 3, 12:30 PM CDT",EV_SEP),n2("Byronika Matthews","Sep 3, 12:30 PM CDT",EV_SEP),
+ n2("Jala Georgetown","Sep 3, 1:30 PM CDT",EV_SEP),n2("Jared Chapman","Sep 3, 2:00 PM CDT",EV_SEP),
+ n2("Anthony Swann","Sep 3, 2:00 PM CDT",EV_SEP),n2("Jordan Garnett","Sep 3, 2:00 PM CDT",EV_SEP),
+ {name:"Gerald Jacob",job:JOB,loc:LOC,iv:["Sep 3, 2:00 PM CDT","Sep 3, 2:00 PM CDT"],ev:EV_SEP},
+ n2("Shane Bynum","Sep 3, 2:00 PM CDT",EV_SEP),n2("Brian Farria","Sep 3, 2:30 PM CDT",EV_SEP),
+ n2("Joshua Stirgus","Sep 3, 2:30 PM CDT",EV_SEP),n2("Bobbi Sinclair","Sep 3, 2:30 PM CDT",EV_SEP),
+ n2("Tauvarous Trittie","Sep 3, 2:30 PM CDT",EV_SEP)];
+
+var FBL={yes:"Yes",maybe:"Maybe",no:"No",unset:"Select"};
+var FBF={yes:"Yes",maybe:"Maybe",no:"No",unset:"Not set"};
+var FBDOT={yes:"d-yes",maybe:"d-maybe",no:"d-no",unset:"d-unset"};
+var MO={Jan:1,Feb:2,Mar:3,Apr:4,May:5,Jun:6,Jul:7,Aug:8,Sep:9,Oct:10,Nov:11,Dec:12};
+function tkeyStr(x){var m=/^([A-Za-z]{3}) (\d+), (\d+):(\d+) (AM|PM)/.exec(x);if(!m)return 0;
+  var h=(+m[3])%12; if(m[5]==='PM')h+=12;
+  return (((MO[m[1]]||0)*100+ +m[2])*100+h)*100+ +m[4];}
+function fbKey(r){return r.fb||"unset"}
+
+/* Upcoming + Pending, read off virtual.jobfairx.com on Sep 8 2026 */
+var UP=[["Brian Crittindon","11:00 AM"],["edward lowery","11:00 AM"],["Mikquel John","11:00 AM"],["Todd Durel","11:00 AM"],["Tamika Lewis","11:00 AM"],
+ ["Latonya Alexander","11:30 AM"],["Juan Burns","11:30 AM"],["Ian Gammage","11:30 AM"],["Laquinta Woolridge","11:30 AM"],["Shante Johnson","11:30 AM"],
+ ["Jose Suarez","12:00 PM"],["Christopher Tate","12:00 PM"],["Terrance Darby","12:00 PM"],["Wayne Marcelin","12:00 PM"],
+ ["Brandon Williamson","1:00 PM"],["Joshua Swinnie","1:00 PM"],["Brandon Smith","1:30 PM"],["Danielle Bass","1:30 PM"],
+ ["Nathan Parker","2:00 PM"],["Mouhamed Berete","2:00 PM"],["Jordan Sartler","2:30 PM"]
+].map(function(r){return {name:r[0],job:JOB,loc:LOC,iv:["Sep 11, "+r[1]+" CDT"],method:"Video",ev:EV_SEP11};});
+var PEN=[{name:"Christopher Tran",job:JOB,loc:LOC,iv:["Sep 11, 1:30 PM CDT"],method:"Video",ev:EV_SEP11}];
+
+var MCLS={Video:"m-video",Phone:"m-phone","In-Person":"m-inperson"};
+var MICON={Video:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>',
+ Phone:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6A19.8 19.8 0 012.1 4.2 2 2 0 014.1 2h3a2 2 0 012 1.7c.1 1 .3 1.9.6 2.8a2 2 0 01-.5 2.1L8.1 9.9a16 16 0 006 6l1.3-1.1a2 2 0 012.1-.5c.9.3 1.8.5 2.8.6a2 2 0 011.7 2z"/></svg>',
+ "In-Person":'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>'};
+
+var CHEV='<svg class="ic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#595959" stroke-width="2.4" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>';
+var CV='<svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>';
+var NOTESVG='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>';
+var KEB='<svg width="16" height="16" viewBox="0 0 24 24" fill="#0044B3"><circle cx="6" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="18" cy="12" r="2"/></svg>';
+var CHECK='<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>';
+var ICO_CLIP='<svg class="cico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#595959" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M9 14l2 2 4-4"/></svg>';
+var ICO_CAL='<svg class="cico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#595959" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>';
+var ICO_ALERT='<svg class="cico" width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#991b1b"/><path d="M12 8v4M12 16h.01" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>';
+
+function arrow(dir){var c=dir?'#0044b3':'#767676';
+  var d=dir==='desc'?'M12 5v13M6 12l6 6 6-6':'M12 19V6M6 12l6-6 6 6';
+  return '<svg class="car" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="'+c+'" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="'+d+'"/></svg>';}
+function funnel(on){return '<svg class="fun" width="12" height="12" viewBox="0 0 24 24" fill="'+(on?'#0044b3':'none')+'" stroke="'+(on?'#0044b3':'#767676')+'" stroke-width="1.9" stroke-linejoin="round"><path d="M3 4h18l-7 8.2V20l-4-2.2v-5.6L3 4z"/></svg>';}
+
+var st={tab:"past", ev:"", job:"", fb:[], who:[], method:[], sort:{}, sel:{}};
+function el(i){return document.getElementById(i)}
+function evOK(r){return !st.ev||r.ev===st.ev}
+function jobOK(r){return !st.job||r.job===st.job}
+function ALL(){return T1.concat(T2,UP,PEN)}
+function distinct(a,k){var o=[];a.forEach(function(r){if(o.indexOf(r[k])<0)o.push(r[k])});return o;}
+function closeAll(){[].forEach.call(document.querySelectorAll('.fmenu,.thmenu'),function(m){m.classList.remove('open')})}
+document.addEventListener('click',closeAll);
+function toggle(a,v){var i=a.indexOf(v);if(i<0)a.push(v);else a.splice(i,1);}
+function srt(key){return st.sort[key]||null}
+
+function thPlain(l,w,cls){return '<th style="width:'+w+'"'+(cls?' class="'+cls+'"':'')+'><span class="plain">'+l+'</span></th>';}
+function thSort(key,id,l,w){var d=srt(key)&&srt(key).col===id?srt(key).dir:null;
+  return '<th style="width:'+w+'"><button class="thb'+(d?' act':'')+'" data-k="'+key+'" data-s="'+id+'">'+l+arrow(d)+'</button></th>';}
+function thFilter(key,id,l,w,opts,sel,align){var n=sel.length;
+  return '<th style="width:'+w+'">'+
+    '<button class="thf'+(n?' act':'')+'" data-k="'+key+'" data-f="'+id+'">'+l+funnel(n>0)+(n?'<span class="cnt">'+n+'</span>':'')+'</button>'+
+    '<div class="thmenu'+(align==='r'?' r':'')+'" data-m="'+key+'-'+id+'">'+
+      opts.map(function(o){return '<button class="mi'+(sel.indexOf(o.v)>=0?' on':'')+'" data-v="'+o.v+'">'+
+        '<span class="box">'+CHECK+'</span>'+(o.dot?'<span class="d '+o.dot+'"></span>':'')+o.label+'<span class="n">'+o.count+'</span></button>';}).join('')+
+      '<div class="foot"><button data-clr="1"'+(n?'':' disabled')+'>Clear</button></div>'+
+    '</div></th>';}
+function cycle(cur,id){return !cur||cur.col!==id?{col:id,dir:'asc'}:cur.dir==='asc'?{col:id,dir:'desc'}:null;}
+function wireHead(scope){
+  [].forEach.call(scope.querySelectorAll('.thb'),function(b){
+    b.onclick=function(e){e.stopPropagation();closeAll();st.sort[b.dataset.k]=cycle(srt(b.dataset.k),b.dataset.s);render();};});
+  [].forEach.call(scope.querySelectorAll('.thf'),function(b){
+    var mid=b.dataset.k+'-'+b.dataset.f, m=scope.querySelector('.thmenu[data-m="'+mid+'"]');
+    var arr = b.dataset.f==='fb'?st.fb : b.dataset.f==='who'?st.who : st.method;
+    b.onclick=function(e){e.stopPropagation();var w=m.classList.contains('open');closeAll();if(!w)m.classList.add('open');};
+    m.onclick=function(e){e.stopPropagation()};
+    [].forEach.call(m.querySelectorAll('.mi'),function(x){
+      x.onclick=function(){toggle(arr,x.dataset.v);render();var mm=document.querySelector('.thmenu[data-m="'+mid+'"]');if(mm)mm.classList.add('open');};});
+    var c=m.querySelector('[data-clr]');
+    if(c) c.onclick=function(){arr.length=0;render();var mm=document.querySelector('.thmenu[data-m="'+mid+'"]');if(mm)mm.classList.add('open');};});
+}
+function sortRows(arr,sp,timeKey){
+  if(!sp) return arr;
+  var f = sp.col==='name'?function(r){return r.name.toLowerCase()}
+        : sp.col==='iv'?function(r){return tkeyStr(r.iv[0])}
+        : function(r){return (r.who||'').toLowerCase()};
+  var c=arr.slice().sort(function(a,b){var x=f(a),y=f(b);return x<y?-1:x>y?1:0});
+  if(sp.col==='iv' && timeKey==='past') c.reverse();
+  if(sp.dir==='desc') c.reverse();
+  return c;
+}
+function lctl(id,cap,val,set){return '<button type="button" class="lctl'+(set?' set':'')+'" id="'+id+'"><span><span class="cap">'+cap+'</span><span class="val">'+val+'</span></span>'+CHEV+'</button>';}
+function fmenu(id,items,cur){return '<div class="fmenu" id="'+id+'">'+items.map(function(it){
+  return '<button data-v="'+it.v+'" class="'+(cur===it.v?'sel':'')+'">'+it.label+'<span class="ct">'+it.count+'</span></button>';}).join('')+'</div>';}
+function wireF(mid,bid,setter){var m=el(mid),b=el(bid);
+  b.onclick=function(e){e.stopPropagation();var w=m.classList.contains('open');closeAll();if(!w)m.classList.add('open')};
+  m.onclick=function(e){e.stopPropagation()};
+  [].forEach.call(m.querySelectorAll('button'),function(x){x.onclick=function(){setter(x.dataset.v);closeAll();render()}});}
+function ivCell(r){if(r.iv.length===1) return '<div>'+r.iv[0]+'</div>';
+  return '<div class="ivgrp">'+r.iv.map(function(t,i){return '<div'+(i?' class="sp"':'')+'><span class="lbl">Interview '+(i+1)+'</span></div><div class="tm">'+t+'</div>'}).join('')+'</div>';}
+function nameCell(n,msg){return '<div>'+n+'</div><div class="mt1" style="display:inline-flex;gap:16px"><a class="rlink">View resume</a>'+(msg?'<a class="rlink">Message</a>':'')+'</div>';}
+function mpill(m){return '<span class="mpill '+MCLS[m]+'">'+MICON[m]+' '+m+'</span>';}
+
+/* ---------- render ---------- */
+function evCount(v){return ALL().filter(function(r){return !v||r.ev===v}).length}
+function jobCount(v){var b=ALL().filter(evOK);return v?b.filter(function(r){return r.job===v}).length:b.length}
+function scope(rows){return rows.filter(function(r){return evOK(r)&&jobOK(r)})}
+
+function render(){
+  /* page-level filters, always rendered */
+  var evs=[{v:'',label:'All events',count:evCount('')}].concat(
+    [EV_SEP11,EV_SEP,EV_AUG].map(function(e){return {v:e,label:e,count:evCount(e)}}));
+  var jbase=ALL().filter(evOK);
+  var jobs=[{v:'',label:'All jobs',count:jobCount('')}].concat(
+    distinct(jbase,'job').sort().map(function(j){return {v:j,label:j,count:jbase.filter(function(r){return r.job===j}).length}}));
+  el('hright').innerHTML='<div class="wrapf">'+lctl('bEv','Hiring event',st.ev||'All events',!!st.ev)+fmenu('mEv',evs,st.ev)+'</div>'+
+    '<div class="wrapf">'+lctl('bJob','Job',st.job||'All jobs',!!st.job)+fmenu('mJob',jobs,st.job)+'</div>';
+  wireF('mEv','bEv',function(v){st.ev=v}); wireF('mJob','bJob',function(v){st.job=v});
+
+  el('nUp').textContent='('+UP.length+')';
+  el('nPen').textContent='('+PEN.length+')';
+  el('nPast').textContent='('+(T1.length+T2.length)+')';
+  [].forEach.call(document.querySelectorAll('.tab'),function(b){b.classList.toggle('on',b.dataset.t===st.tab)});
+
+  var html = st.tab==='past' ? panePast() : st.tab==='up' ? paneUp() : panePen();
+  el('panes').innerHTML = html;
+  [].forEach.call(document.querySelectorAll('#panes table'),function(t){wireHead(t);});
+  postWire();
+}
+
+function methodOpts(base){
+  var present=distinct(base,'method');
+  return ["Video","Phone","In-Person"].filter(function(m){return present.indexOf(m)>=0})
+    .map(function(m){return {v:m,label:m,count:base.filter(function(r){return r.method===m}).length}});
+}
+function card(icon,title,count,total,chips,tools,thead,body,emptyH,emptyP,mb){
+  var t = count===total ? '('+total+')' : '<span class="of">('+count+' of '+total+')</span>';
+  return '<div class="card'+(mb?' mb':'')+'">'+
+    '<div class="chead"><div class="grow">'+icon+'<div class="ctitle">'+title+' '+t+'</div>'+(chips||'')+'</div></div>'+
+    (tools||'')+
+    (count? '<div class="tw"><table><thead><tr>'+thead+'</tr></thead><tbody>'+body+'</tbody></table></div>'
+          : '<div class="emptybox" style="padding:48px 20px;text-align:center"><h3 style="margin:0 0 6px;font-size:20px;font-weight:700">'+emptyH+'</h3><p style="margin:0;font-size:14px;color:#595959">'+emptyP+'</p></div>')+
+  '</div>';
+}
+
+/* ---------- PAST ---------- */
+function panePast(){
+  var b1=scope(T1), b2=scope(T2);
+  var fc={yes:0,maybe:0,no:0,unset:0};
+  b1.filter(function(r){return !st.who.length||st.who.indexOf(r.who)>=0}).forEach(function(r){fc[fbKey(r)]++});
+  var wc={};
+  b1.filter(function(r){return !st.fb.length||st.fb.indexOf(fbKey(r))>=0}).forEach(function(r){wc[r.who]=(wc[r.who]||0)+1});
+  var fbOpts=['yes','maybe','no','unset'].map(function(k){return {v:k,label:FBF[k],dot:FBDOT[k],count:fc[k]}});
+  var whoOpts=distinct(T1,'who').sort().map(function(w){return {v:w,label:w,count:wc[w]||0}});
+  var o1=sortRows(b1.filter(function(r){return (!st.fb.length||st.fb.indexOf(fbKey(r))>=0)&&(!st.who.length||st.who.indexOf(r.who)>=0)}),srt('past1'),'past');
+  var o2=sortRows(b2,srt('past2'),'past');
+
+  var th1=thSort('past1','name','Name','14%')+thPlain('Desired job','12%')+thPlain('Desired location','11%')+
+    thSort('past1','iv','Interviews','18%')+thFilter('past1','fb','Feedback','12%',fbOpts,st.fb)+
+    thFilter('past1','who','Interviewer','12%',whoOpts,st.who,'r')+thPlain('Notes','14%')+thPlain('Action','7%');
+  var body1=o1.map(function(r){var k=fbKey(r);
+    return '<tr><td>'+nameCell(r.name)+'</td><td>'+r.job+'</td><td>'+r.loc+'</td><td class="sec">'+ivCell(r)+'</td>'+
+      '<td><button type="button" class="fbpill"><span class="d '+FBDOT[k]+'"></span><span class="t">'+FBL[k]+'</span>'+CV+'</button></td>'+
+      '<td>'+r.who+'</td><td><button class="notesbtn">'+NOTESVG+' Notes</button></td><td><button class="kebab">'+KEB+'</button></td></tr>';}).join('');
+  var ch=[];
+  if(st.fb.length) ch.push(['fb',(st.fb.length===1?'<span class="d '+FBDOT[st.fb[0]]+'"></span>':'')+'Feedback: '+st.fb.map(function(k){return FBF[k]}).join(', ')]);
+  if(st.who.length) ch.push(['who','Interviewer: '+st.who.join(', ')]);
+  var chips=ch.map(function(x){return '<span class="achip">'+x[1]+'<button data-clrk="'+x[0]+'">&times;</button></span>'}).join('');
+
+  var th2=thSort('past2','name','Name','25%')+thPlain('Desired job','20%')+thPlain('Desired location','20%')+
+    thSort('past2','iv','Interview time','27%')+thPlain('Action','8%');
+  var body2=o2.map(function(r){
+    return '<tr><td>'+nameCell(r.name)+'</td><td>'+r.job+'</td><td>'+r.loc+'</td><td>'+ivCell(r)+'</td><td><button class="kebab">'+KEB+'</button></td></tr>';}).join('');
+
+  return card(ICO_CLIP,'Interviewed candidates',o1.length,T1.length,chips,'',th1,body1,
+              'No candidates match these filters','Clear the filters to see everything.',true)+
+    '<div class="card"><div style="padding:16px 20px"><div class="ctitle">'+
+      (o2.length===T2.length? T2.length+" candidates couldn't make the interview" : o2.length+" of "+T2.length+" candidates couldn't make the interview")+
+      '</div><div class="csub">They are interested in your company and the job opportunities.</div></div>'+
+      '<div class="tw"><table><thead><tr>'+th2+'</tr></thead><tbody>'+body2+'</tbody></table></div></div>';
+}
+
+/* ---------- UPCOMING ---------- */
+function paneUp(){
+  var base=scope(UP);
+  var mOpts=methodOpts(base);
+  var out=sortRows(base.filter(function(r){return !st.method.length||st.method.indexOf(r.method)>=0}),srt('up'),'future');
+  var th=thSort('up','name','Name','18%')+thPlain('Desired job','15%')+thPlain('Desired location','13%')+
+    thSort('up','iv','Interview time','16%')+thFilter('up','method','Interview method','16%',mOpts,st.method,'r')+thPlain('Action','22%');
+  var body='', grouped = !srt('up');
+  if(grouped){
+    var last=null;
+    out.forEach(function(r){
+      var slot=r.iv[0].replace(' CDT','');
+      if(slot!==last){
+        var n=out.filter(function(x){return x.iv[0].replace(' CDT','')===slot}).length;
+        body+='<tr class="slotrow"><td colspan="6">'+slot+' CDT<span class="n">'+n+' candidate'+(n>1?'s':'')+'</span>'+(last===null?'<span class="nx">NEXT UP</span>':'')+'</td></tr>';
+        last=slot;
+      }
+      body+=upRow(r);
+    });
+  } else out.forEach(function(r){body+=upRow(r)});
+  var chips=st.method.length?'<span class="achip">Interview method: '+st.method.join(', ')+'<button data-clrk="method">&times;</button></span>':'';
+  return card(ICO_CAL,'Candidates with upcoming interviews',out.length,UP.length,chips,'',th,body,
+              'No upcoming interviews match these filters','Clear the filters to see everything.',false);
+}
+function upRow(r){return '<tr><td>'+nameCell(r.name,1)+'</td><td>'+r.job+'</td><td>'+r.loc+'</td><td>'+r.iv[0]+'</td><td>'+mpill(r.method)+'</td>'+
+  '<td><div class="actgrp"><button>Reschedule</button><button>Cancel</button></div></td></tr>';}
+
+/* ---------- PENDING ---------- */
+function panePen(){
+  var base=scope(PEN);
+  var mOpts=methodOpts(base);
+  var out=sortRows(base.filter(function(r){return !st.method.length||st.method.indexOf(r.method)>=0}),srt('pen'),'future');
+  var allOn = out.length>0 && out.every(function(r){return st.sel[r.name]});
+  var th='<th class="cbx"><span class="cb'+(allOn?' on':'')+'" id="cbAll">'+CHECK+'</span></th>'+
+    thSort('pen','name','Name','18%')+thPlain('Desired job','15%')+thPlain('Desired location','13%')+
+    thSort('pen','iv','Requested time','16%')+thFilter('pen','method','Interview method','16%',mOpts,st.method,'r')+thPlain('Action','22%');
+  var body=out.map(function(r){
+    return '<tr><td class="cbx"><span class="cb'+(st.sel[r.name]?' on':'')+'" data-n="'+r.name+'">'+CHECK+'</span></td>'+
+      '<td>'+nameCell(r.name,1)+'</td><td>'+r.job+'</td><td>'+r.loc+'</td><td>'+r.iv[0]+'</td><td>'+mpill(r.method)+'</td>'+
+      '<td><div class="actgrp"><button class="pri">Accept</button><button>Decline</button><button>Reschedule</button></div></td></tr>';}).join('');
+  var nsel=out.filter(function(r){return st.sel[r.name]}).length;
+  var tools = nsel? '<div class="selbar">'+nsel+' selected<span class="sp"></span><button>Accept '+nsel+'</button><button class="alt">Decline '+nsel+'</button><button class="ghost" id="selClear">Clear</button></div>' : '';
+  var chips=st.method.length?'<span class="achip">Interview method: '+st.method.join(', ')+'<button data-clrk="method">&times;</button></span>':'';
+  return card(ICO_ALERT,'Candidates awaiting your response',out.length,PEN.length,chips,tools,th,body,
+              'No pending interviews match these filters','Clear the filters to see everything.',false);
+}
+
+function postWire(){
+  [].forEach.call(document.querySelectorAll('#panes .achip button[data-clrk]'),function(b){
+    b.onclick=function(){var k=b.dataset.clrk; (k==='fb'?st.fb:k==='who'?st.who:st.method).length=0; render();};});
+  if(el('cbAll')) el('cbAll').onclick=function(){
+    var base=scope(PEN).filter(function(r){return !st.method.length||st.method.indexOf(r.method)>=0});
+    var on = base.length>0 && base.every(function(r){return st.sel[r.name]});
+    base.forEach(function(r){ if(on) delete st.sel[r.name]; else st.sel[r.name]=true; }); render();};
+  [].forEach.call(document.querySelectorAll('#panes .cb[data-n]'),function(c){
+    c.onclick=function(){var n=c.dataset.n; if(st.sel[n]) delete st.sel[n]; else st.sel[n]=true; render();};});
+  if(el('selClear')) el('selClear').onclick=function(){st.sel={};render()};
+}
+
+[].forEach.call(document.querySelectorAll('.tab'),function(b){
+  b.onclick=function(){st.tab=b.dataset.t; st.fb.length=0; st.who.length=0; st.method.length=0; st.sort={}; render();};});
+el('dnOpen').onclick=function(e){e.stopPropagation();el('dnOv').classList.add('open')};
+el('dnClose').onclick=function(){el('dnOv').classList.remove('open')};
+el('dnOv').onclick=function(e){if(e.target===el('dnOv'))el('dnOv').classList.remove('open')};
+document.querySelector('.dnp').onclick=function(e){e.stopPropagation()};
+document.addEventListener('keydown',function(e){if(e.key==='Escape')el('dnOv').classList.remove('open')});
+render();
+</script>
+</body>
+</html>
