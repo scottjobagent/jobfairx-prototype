@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Interviews - Column Filters</title>
+<title>Interviews - Past filters</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700&display=swap" rel="stylesheet">
 <!--
   Header card keeps Hiring event + Job as the Analytics "Date range" control.
@@ -113,12 +113,21 @@ table{width:100%;border-collapse:collapse}
 th{border-bottom:1px solid #d4d2d0;padding:0;text-align:left;font-size:13px;font-weight:400;color:#595959;position:relative}
 th .plain{display:block;padding:12px 14px}
 /* Indeed-style header control */
+/* sort header: label is the button, arrow reveals on hover, persists when sorted (IBM Carbon) */
 .thb{display:flex;width:100%;align-items:center;gap:6px;cursor:pointer;border:0;background:transparent;padding:12px 14px;text-align:left;font-size:13px;font-weight:400;color:#595959;border-radius:6px}
 .thb:hover{background:#f3f2ef;color:#2d2d2d}
-.thb .car{flex:none;opacity:.55;transition:opacity .12s}
-.thb:hover .car{opacity:1}
+.thb .car{flex:none;opacity:0;transition:opacity .12s}
+.thb:hover .car{opacity:.6}
 .thb.act{color:#0044b3;font-weight:700}
 .thb.act .car{opacity:1}
+/* filter header: label + funnel, funnel always visible, fills when active (Ant Design) */
+.thf{display:flex;width:100%;align-items:center;gap:6px;cursor:pointer;border:0;background:transparent;padding:12px 14px;text-align:left;font-size:13px;font-weight:400;color:#595959;border-radius:6px}
+.thf:hover{background:#f3f2ef;color:#2d2d2d}
+.thf .fun{flex:none;opacity:.5;transition:opacity .12s}
+.thf:hover .fun{opacity:1}
+.thf.act{color:#0044b3;font-weight:700}
+.thf.act .fun{opacity:1}
+.thf .cnt{margin-left:auto;font-size:11px;font-weight:700;color:#0044b3;background:#f0f5ff;border-radius:20px;padding:0 6px}
 .thmenu{position:absolute;left:8px;top:calc(100% + 6px);z-index:50;min-width:212px;border-radius:8px;border:1px solid #e4e2e0;background:#fff;padding:6px;box-shadow:0 0 2px rgba(45,45,45,.16),0 4px 12px rgba(45,45,45,.08);display:none}
 .thmenu.open{display:block}
 .thmenu.r{left:auto;right:8px}
@@ -127,6 +136,14 @@ th .plain{display:block;padding:12px 14px}
 .thmenu .mi.on{color:#0044b3;font-weight:700}
 .thmenu .tick{width:14px;flex:none;visibility:hidden}
 .thmenu .mi.on .tick{visibility:visible}
+.thmenu .box{width:15px;height:15px;flex:none;border:1.5px solid #b4b2a9;border-radius:3px;display:flex;align-items:center;justify-content:center;background:#fff}
+.thmenu .mi.on .box{background:#0044b3;border-color:#0044b3}
+.thmenu .box svg{visibility:hidden}
+.thmenu .mi.on .box svg{visibility:visible}
+.thmenu .foot{border-top:1px solid #f0efee;margin-top:5px;padding-top:5px;display:flex;justify-content:flex-end}
+.thmenu .foot button{border:0;background:transparent;color:#0044b3;font:inherit;font-size:13px;font-weight:700;cursor:pointer;padding:5px 8px;border-radius:5px}
+.thmenu .foot button:hover{background:#f0f5ff}
+.thmenu .foot button[disabled]{color:#b4b2a9;cursor:default;background:transparent}
 .thmenu .d{width:8px;height:8px;border-radius:50%;flex:none}
 .thmenu .n{margin-left:auto;font-size:13px;color:#767676;font-weight:400}
 .thmenu .mi.on .n{color:#0044b3}
@@ -163,7 +180,7 @@ td.sec{font-size:13px;color:#595959}
 <div class="mockbar">
   <span class="lbl">Filter size</span>
   <div class="seg" id="szSeg"><button data-s="stack" class="on">Stacked 44px</button><button data-s="line">One line 38px</button></div>
-  <span class="rt" id="szrt">Title is 20px. Stacked control is 44px tall, was 64px.</span>
+  <span class="rt" id="szrt">Sort = arrow on the label. Filter = funnel, multi-select.</span>
   <button class="dnlink" id="dnOpen">Developer notes</button>
 </div>
 
@@ -261,26 +278,42 @@ td.sec{font-size:13px;color:#595959}
     <p>Job stays in the header specifically <i>because</i> it hits both tables. A column caret can only filter its own table, so a Job caret on each table would give you two controls fighting over the same field.</p>
     <p>Counts inside a column menu rescope to the current page-level filter. Pick the Aug 10 event and Feedback recounts to that event &mdash; it must never show 21 yeses that are no longer on screen.</p>
 
-    <h3>Per-column behaviour</h3>
+    <h3>Per-column behaviour &mdash; one job per column</h3>
+    <p>A column is <b>either</b> sortable <b>or</b> filterable, never both. No column opens a menu with two sections in it.</p>
     <table>
-      <tr><th>Column</th><th>Sort</th><th>Filter</th></tr>
-      <tr><td>Name</td><td>A&ndash;Z / Z&ndash;A</td><td>&mdash;</td></tr>
-      <tr><td>Desired job</td><td>&mdash;</td><td>&mdash; (header)</td></tr>
-      <tr><td>Desired location</td><td>&mdash;</td><td>&mdash; (deferred)</td></tr>
-      <tr><td>Interviews / Interview time</td><td>Newest / Oldest</td><td>&mdash;</td></tr>
-      <tr><td>Feedback</td><td>Yes first / No first</td><td>All, Yes, Maybe, No, Not set</td></tr>
-      <tr><td>Interviewer</td><td>A&ndash;Z / Z&ndash;A</td><td>All + one per interviewer</td></tr>
+      <tr><th>Column</th><th>Control</th><th>Behaviour</th></tr>
+      <tr><td>Name</td><td>Sort</td><td>Click label: A&ndash;Z &rarr; Z&ndash;A &rarr; off</td></tr>
+      <tr><td>Desired job</td><td>&mdash;</td><td>Filtered from the header card</td></tr>
+      <tr><td>Desired location</td><td>&mdash;</td><td>Deferred</td></tr>
+      <tr><td>Interviews / Interview time</td><td>Sort</td><td>Click label: newest &rarr; oldest &rarr; off</td></tr>
+      <tr><td>Feedback</td><td>Filter</td><td>Funnel opens a multi-select checkbox list with counts</td></tr>
+      <tr><td>Interviewer</td><td>Filter</td><td>Funnel opens a multi-select checkbox list with counts</td></tr>
       <tr><td>Notes, Action</td><td>&mdash;</td><td>&mdash;</td></tr>
     </table>
-    <p>Timestamps sort, they do not filter. Filtering a timestamp needs a date-range picker and the Hiring event filter already does that job better.</p>
-    <p>Multi-interview rows (Bryant Mercely has three) sort on the <b>first</b> interview time.</p>
+    <p><b>Why Feedback does not also sort.</b> Four values across 26 rows. Sorting Yes-first answers the same question as filtering but worse, because the nos are still on screen and you scroll past them. The filter is strictly better, so the sort is dead weight.</p>
+    <p><b>Why timestamps do not filter.</b> Filtering a timestamp needs a date-range picker, and the Hiring event filter above already does that job better. Multi-interview rows (Bryant Mercely has three) sort on the <b>first</b> interview time.</p>
+
+    <h3>Why it is built this way</h3>
+    <p>These are not house preferences, they are the documented conventions:</p>
+    <ul>
+      <li>A sortable header is a <code>button</code>; clicking it toggles direction and <code>aria-sort</code> reports ascending/descending &mdash; <a href="https://www.w3.org/WAI/ARIA/apg/patterns/table/examples/sortable-table/">W3C ARIA APG</a>. Set <code>aria-sort</code> on the active column and remove it from the previous one.</li>
+      <li>Sort arrow is hidden at rest, appears on hover, and persists when the column is sorted &mdash; three states, unsorted / ascending / descending &mdash; <a href="https://carbondesignsystem.com/components/data-table/usage/">IBM Carbon</a>.</li>
+      <li>Sort and filter are separate affordances; the filter is a funnel that highlights when applied &mdash; <a href="https://ant.design/components/table">Ant Design Table</a>.</li>
+      <li>Clicking a column header sorts ascending, clicking again reverses &mdash; <a href="https://developer.salesforce.com/docs/platform/lightning-component-reference/guide/lightning-datatable.html">Salesforce lightning-datatable</a>.</li>
+      <li>Page-scope filtering lives outside the table, not in headers &mdash; <a href="https://polaris-react.shopify.com/components/tables/index-table">Shopify Polaris IndexTable</a>, <a href="https://carbondesignsystem.com/components/data-table/usage/">Carbon</a> (toolbar).</li>
+    </ul>
+    <p>An up/down glyph in a column header means sort in every one of these. It must never filter.</p>
 
     <h3>Interaction rules</h3>
     <ul>
-      <li>One sort at a time per table. Choosing a new sort clears the old one. Choosing the active sort again clears it.</li>
-      <li>Sort and filter are independent &mdash; a column can be sorted and filtered at once, and two different columns can be active at once.</li>
-      <li>Caret states: idle = grey up/down pair &middot; sorted = single blue arrow &middot; filtered = filled blue funnel. Header label turns <code>#0044b3</code> and bold when active.</li>
-      <li>Card title shows <code>(21 of 26)</code> when filtered, plain <code>(26)</code> when not.</li>
+      <li><b>Sort is three-state.</b> Click cycles ascending &rarr; descending &rarr; off. Off restores the table's default order.</li>
+      <li>One sort at a time per table. Sorting a different column clears the previous one.</li>
+      <li><b>Filters are multi-select.</b> "Yes and Maybe" is the shortlist question a recruiter actually asks; single-select cannot answer it. Nothing checked = no filter.</li>
+      <li>Filter menu applies immediately on each checkbox and stays open, so several values can be set in one go. Clear is disabled when nothing is selected.</li>
+      <li>Filter counts rescope to the current page-level filter and to the <i>other</i> column filter &mdash; checking Nelson recounts the Feedback options against Nelson's interviews only.</li>
+      <li>States: sort arrow blue with the header label bold &middot; funnel filled blue with a count badge of how many values are checked.</li>
+      <li>Chip next to the card title lists the applied values ("Feedback: Yes, Maybe"); its &times; clears that whole column.</li>
+      <li>Card title shows <code>(23 of 26)</code> when filtered, plain <code>(26)</code> when not.</li>
       <li><b>Tab counts stay absolute.</b> Past always reads (54). A tab is a destination, not a result count &mdash; and if Past reflected the filter, Upcoming and Pending would have to as well.</li>
       <li>Empty result renders a full-width row: "No candidates match these filters."</li>
     </ul>
@@ -305,6 +338,16 @@ td.sec{font-size:13px;color:#595959}
 border border-[#e4e2e0] bg-white p-1.5
 shadow-[0_0_2px_rgba(45,45,45,0.16),0_4px_12px_rgba(45,45,45,0.08)]</code></pre>
     <p>Items: <code>flex w-full items-center gap-[9px] rounded px-2.5 py-[9px] text-left text-sm hover:bg-surface-sunken</code>, with a 14px checkmark slot that is <code>invisible</code> when unselected. SORT and SHOW group captions, 11px/700 uppercase <code>text-text-tertiary</code>, separated by a 1px rule.</p>
+    <p><b>Sort header</b> &mdash; the whole label is the button; the arrow is <code>opacity:0</code> at rest, <code>.6</code> on hover, <code>1</code> and <code>#0044b3</code> when sorted. Needs <code>aria-sort="ascending|descending"</code> on the active <code>th</code>.</p>
+    <p><b>Filter header</b> &mdash; label + 12px funnel, funnel at <code>opacity:.5</code> at rest and filled <code>#0044b3</code> when applied, plus a small count badge of checked values. Menu items are checkboxes:</p>
+<pre><code>&lt;button class="flex w-full items-center gap-[9px] rounded px-2.5 py-[9px]
+  text-left text-sm hover:bg-surface-sunken"&gt;
+  &lt;span class="h-[15px] w-[15px] flex-none rounded-[3px] border-[1.5px]
+    border-[#b4b2a9] bg-white"&gt;check icon, hidden until checked&lt;/span&gt;
+  &lt;span class="h-2 w-2 rounded-full bg-status-success"&gt;&lt;/span&gt;
+  Yes
+  &lt;span class="ml-auto text-[13px] text-text-tertiary"&gt;21&lt;/span&gt;
+&lt;/button&gt;</code></pre>
     <p><b>Chip</b> &mdash; white, not blue: <code>inline-flex items-center gap-1.5 rounded-full border border-border-strong bg-white pl-[9px] pr-1 py-0.5 text-xs font-semibold text-text-primary</code>, 24px tall, with the status dot and a grey &times;.</p>
 
     <h3>What you need to decide</h3>
@@ -316,6 +359,8 @@ shadow-[0_0_2px_rgba(45,45,45,0.16),0_4px_12px_rgba(45,45,45,0.08)]</code></pre>
       54 rows is fine client-side. If Past ever paginates, filtering and sorting must move server-side &mdash; filtering one page of results is worse than not filtering at all. Tell us which you are building so the counts can be sourced correctly.</div>
     <div class="todo"><b>4. The "Not set" feedback state</b>
       The live Feedback dropdown's first option is <b>Select</b>, meaning unrated. The filter calls it "Not set". Confirm the API returns null (not an empty string or a default) so the two agree. Transdev has zero unrated today, so this is untested against real data.</div>
+    <div class="todo"><b>6. Sort persistence</b>
+      Sort is three-state so it can be turned off, which means there is a defined default order to return to. Confirm what the server's default sort is (looks like interview time descending) so "off" is not ambiguous.</div>
     <div class="todo"><b>5. Narrow viewports</b>
       Not designed yet. The header row holds title + two 216px controls; the table is already wide. Needs a call on stacking vs horizontal scroll before this ships to anyone on a laptop under ~1280px.</div>
 
@@ -388,18 +433,18 @@ function tkey(x){var m=/^([A-Za-z]{3}) (\d+), (\d+):(\d+) (AM|PM)/.exec(x);if(!m
   return (((MO[m[1]]||0)*100+ +m[2])*100+h)*100+ +m[4];}
 function fbKey(r){return r.fb||"unset"}
 
-var st={ev:"",job:"",fb:"",who:"",s1:null,s2:null};
+var st={ev:"",job:"",fb:[],who:[],s1:null,s2:null};
 function el(i){return document.getElementById(i)}
 function evOK(r){return !st.ev||r.ev===st.ev}
 function jobOK(r){return !st.job||r.job===st.job}
 function base1(){return T1.filter(function(r){return evOK(r)&&jobOK(r)})}
-function fbCounts(){var b=base1().filter(function(r){return !st.who||r.who===st.who}),c={yes:0,maybe:0,no:0,unset:0,all:b.length};
+function fbCounts(){var b=base1().filter(function(r){return !st.who.length||st.who.indexOf(r.who)>=0}),c={yes:0,maybe:0,no:0,unset:0};
   b.forEach(function(r){c[fbKey(r)]++});return c;}
-function whoCounts(){var b=base1().filter(function(r){return !st.fb||fbKey(r)===st.fb}),c={all:b.length};
+function whoCounts(){var b=base1().filter(function(r){return !st.fb.length||st.fb.indexOf(fbKey(r))>=0}),c={};
   b.forEach(function(r){c[r.who]=(c[r.who]||0)+1});return c;}
 function whoList(){var a=[];T1.forEach(function(r){if(a.indexOf(r.who)<0)a.push(r.who)});return a.sort()}
-function evCount(v){return T1.filter(r=>!v||r.ev===v).length+T2.filter(r=>!v||r.ev===v).length}
-function jobCount(v){var b=T1.concat(T2).filter(evOK);return v?b.filter(r=>r.job===v).length:b.length}
+function evCount(v){return T1.filter(function(r){return !v||r.ev===v}).length+T2.filter(function(r){return !v||r.ev===v}).length}
+function jobCount(v){var b=T1.concat(T2).filter(evOK);return v?b.filter(function(r){return r.job===v}).length:b.length}
 function closeAll(){[].forEach.call(document.querySelectorAll('.fmenu,.thmenu'),function(m){m.classList.remove('open')})}
 document.addEventListener('click',closeAll);
 
@@ -407,60 +452,65 @@ var CHEV='<svg class="ic" width="14" height="14" viewBox="0 0 24 24" fill="none"
 var CV='<svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>';
 var NOTESVG='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>';
 var KEB='<svg width="16" height="16" viewBox="0 0 24 24" fill="#0044B3"><circle cx="6" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="18" cy="12" r="2"/></svg>';
-var TICK='<svg class="tick" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>';
-// idle = up/down pair, active sort = single arrow, active filter = funnel
-function caret(state){
-  if(state==='asc')  return '<svg class="car" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#0044b3" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V6M6 12l6-6 6 6"/></svg>';
-  if(state==='desc') return '<svg class="car" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#0044b3" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v13M6 12l6 6 6-6"/></svg>';
-  if(state==='filt') return '<svg class="car" width="12" height="12" viewBox="0 0 24 24" fill="#0044b3" stroke="#0044b3" stroke-width="1.8" stroke-linejoin="round"><path d="M3 4h18l-7 8.2V20l-4-2.2v-5.6L3 4z"/></svg>';
-  return '<svg class="car" width="11" height="13" viewBox="0 0 12 14" fill="none" stroke="#767676" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 1.6L3 5h6L6 1.6z" fill="#767676"/><path d="M6 12.4L3 9h6l-3 3.4z" fill="#767676"/></svg>';
+var CHECK='<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>';
+
+/* Sort arrow: hidden at rest, faint on hover, solid blue when active (IBM Carbon three-state) */
+function arrow(dir){
+  var c = dir ? '#0044b3' : '#767676';
+  var d = dir==='desc' ? 'M12 5v13M6 12l6 6 6-6' : 'M12 19V6M6 12l6-6 6 6';
+  return '<svg class="car" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="'+c+'" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="'+d+'"/></svg>';
+}
+function funnel(on){
+  return '<svg class="fun" width="12" height="12" viewBox="0 0 24 24" fill="'+(on?'#0044b3':'none')+'" stroke="'+(on?'#0044b3':'#767676')+'" stroke-width="1.9" stroke-linejoin="round"><path d="M3 4h18l-7 8.2V20l-4-2.2v-5.6L3 4z"/></svg>';
 }
 
-/* ---------- generic column header ---------- */
-function th(cfg){
-  // cfg: {id,label,w,sort:'text'|'time'|'fb'|null, filter:[{v,label,dot,count}]|null, cur, sortState, align}
-  if(!cfg.sort && !cfg.filter) return '<th style="width:'+cfg.w+'"><span class="plain">'+cfg.label+'</span></th>';
-  var state = cfg.sortState || (cfg.cur?'filt':'idle');
-  var items='';
-  if(cfg.sort){
-    var a=cfg.sort==='time'?'Newest first':cfg.sort==='fb'?'Yes first':'A – Z';
-    var d=cfg.sort==='time'?'Oldest first':cfg.sort==='fb'?'No first':'Z – A';
-    items+='<div class="cap">SORT</div>'+
-      '<button class="mi'+(cfg.sortState==='asc'?' on':'')+'" data-act="sort" data-dir="asc">'+TICK+a+'</button>'+
-      '<button class="mi'+(cfg.sortState==='desc'?' on':'')+'" data-act="sort" data-dir="desc">'+TICK+d+'</button>';
-  }
-  if(cfg.filter){
-    if(cfg.sort) items+='<div class="sep"></div>';
-    items+='<div class="cap">SHOW</div>'+cfg.filter.map(function(o){
-      return '<button class="mi'+(cfg.cur===o.v?' on':'')+'" data-act="filter" data-v="'+o.v+'">'+TICK+
-        (o.dot?'<span class="d '+o.dot+'"></span>':'')+o.label+'<span class="n">'+o.count+'</span></button>';
-    }).join('');
-  }
-  return '<th style="width:'+cfg.w+'">'+
-    '<button class="thb'+(state!=='idle'?' act':'')+'" data-th="'+cfg.id+'">'+cfg.label+caret(state)+'</button>'+
-    '<div class="thmenu'+(cfg.align==='r'?' r':'')+'" data-m="'+cfg.id+'">'+items+'</div></th>';
+/* ---- column headers: one job per column ---- */
+function thPlain(label,w){ return '<th style="width:'+w+'"><span class="plain">'+label+'</span></th>'; }
+function thSort(id,label,w,dir){
+  return '<th style="width:'+w+'"><button class="thb'+(dir?' act':'')+'" data-s="'+id+'">'+label+arrow(dir)+'</button></th>';
 }
-function wireTh(rowId, handler){
+function thFilter(id,label,w,opts,sel,align){
+  var n=sel.length;
+  return '<th style="width:'+w+'">'+
+    '<button class="thf'+(n?' act':'')+'" data-f="'+id+'">'+label+funnel(n>0)+(n?'<span class="cnt">'+n+'</span>':'')+'</button>'+
+    '<div class="thmenu'+(align==='r'?' r':'')+'" data-m="'+id+'">'+
+      opts.map(function(o){
+        return '<button class="mi'+(sel.indexOf(o.v)>=0?' on':'')+'" data-v="'+o.v+'">'+
+          '<span class="box">'+CHECK+'</span>'+
+          (o.dot?'<span class="d '+o.dot+'"></span>':'')+o.label+
+          '<span class="n">'+o.count+'</span></button>';
+      }).join('')+
+      '<div class="foot"><button data-clr="1"'+(n?'':' disabled')+'>Clear</button></div>'+
+    '</div></th>';
+}
+/* sort cycles: none -> asc -> desc -> none  (Carbon) */
+function cycle(cur,id){ return !cur||cur.col!==id ? {col:id,dir:'asc'} : cur.dir==='asc' ? {col:id,dir:'desc'} : null; }
+function wireHead(rowId,key,onSort,onFilter){
   var row=el(rowId);
   [].forEach.call(row.querySelectorAll('.thb'),function(b){
-    var m=row.querySelector('.thmenu[data-m="'+b.dataset.th+'"]');
+    b.onclick=function(e){e.stopPropagation();closeAll();onSort(b.dataset.s);render();};
+  });
+  [].forEach.call(row.querySelectorAll('.thf'),function(b){
+    var m=row.querySelector('.thmenu[data-m="'+b.dataset.f+'"]');
     b.onclick=function(e){e.stopPropagation();var was=m.classList.contains('open');closeAll();if(!was)m.classList.add('open');};
     m.onclick=function(e){e.stopPropagation()};
     [].forEach.call(m.querySelectorAll('.mi'),function(x){
-      x.onclick=function(){handler(b.dataset.th,x.dataset.act,x.dataset.act==='sort'?x.dataset.dir:x.dataset.v);closeAll();render();};
+      x.onclick=function(){ onFilter(b.dataset.f,x.dataset.v); render();
+        var mm=el(rowId).querySelector('.thmenu[data-m="'+b.dataset.f+'"]'); if(mm) mm.classList.add('open'); };
     });
+    var clr=m.querySelector('[data-clr]');
+    if(clr) clr.onclick=function(){ onFilter(b.dataset.f,null); render();
+      var mm=el(rowId).querySelector('.thmenu[data-m="'+b.dataset.f+'"]'); if(mm) mm.classList.add('open'); };
   });
 }
+function toggle(arr,v){ var i=arr.indexOf(v); if(i<0) arr.push(v); else arr.splice(i,1); }
+
 function sortRows(arr,sp){
   if(!sp) return arr;
-  var f = sp.col==='name'?function(r){return r.name.toLowerCase()}
-        : sp.col==='iv'?function(r){return tkey(r.iv[0])}
-        : sp.col==='fb'?function(r){return FBORD[fbKey(r)]}
-        : function(r){return (r.who||'').toLowerCase()};
+  var f = sp.col==='name' ? function(r){return r.name.toLowerCase()} : function(r){return tkey(r.iv[0])};
   var c=arr.slice().sort(function(a,b){var x=f(a),y=f(b);return x<y?-1:x>y?1:0});
-  // time + fb: "asc" means newest / yes-first
-  if(sp.col==='iv'){c.reverse(); if(sp.dir==='desc')c.reverse();}
-  else if(sp.dir==='desc') c.reverse();
+  if(sp.col==='iv') c.reverse();                 // asc on a date column means newest first
+  if(sp.dir==='desc') c.reverse();
   return c;
 }
 
@@ -485,7 +535,6 @@ function ivCell(r){
 function nameCell(n){return '<div>'+n+'</div><div class="mt1"><a class="rlink">View resume</a></div>'}
 
 function render(){
-  // header card
   el('hright').innerHTML='<div class="wrapf">'+lctl('bEv','Hiring event',st.ev||'All events',!!st.ev)+
       fmenu('mEv',[{v:'',label:'All events',count:evCount('')},{v:EV_SEP,label:EV_SEP,count:evCount(EV_SEP)},{v:EV_AUG,label:EV_AUG,count:evCount(EV_AUG)}],st.ev)+'</div>'+
     '<div class="wrapf">'+lctl('bJob','Job',st.job||'All jobs',!!st.job)+
@@ -493,32 +542,34 @@ function render(){
   wireF('mEv','bEv',function(v){st.ev=v}); wireF('mJob','bJob',function(v){st.job=v});
 
   var fc=fbCounts(), wc=whoCounts();
-  var fbOpts=[{v:'',label:'All',count:fc.all}].concat(['yes','maybe','no','unset'].map(function(k){return {v:k,label:FBF[k],dot:FBDOT[k],count:fc[k]}}));
-  var whoOpts=[{v:'',label:'All interviewers',count:wc.all}].concat(whoList().map(function(w){return {v:w,label:w,count:wc[w]||0}}));
+  var fbOpts=['yes','maybe','no','unset'].map(function(k){return {v:k,label:FBF[k],dot:FBDOT[k],count:fc[k]}});
+  var whoOpts=whoList().map(function(w){return {v:w,label:w,count:wc[w]||0}});
   var s1=st.s1;
   el('th1').innerHTML=
-    th({id:'name',label:'Name',w:'14%',sort:'text',sortState:s1&&s1.col==='name'?s1.dir:null})+
-    th({id:'job',label:'Desired job',w:'12%'})+
-    th({id:'loc',label:'Desired location',w:'11%'})+
-    th({id:'iv',label:'Interviews',w:'18%',sort:'time',sortState:s1&&s1.col==='iv'?s1.dir:null})+
-    th({id:'fb',label:'Feedback',w:'12%',sort:'fb',filter:fbOpts,cur:st.fb,sortState:s1&&s1.col==='fb'?s1.dir:null})+
-    th({id:'who',label:'Interviewer',w:'12%',sort:'text',filter:whoOpts,cur:st.who,sortState:s1&&s1.col==='who'?s1.dir:null})+
-    th({id:'notes',label:'Notes',w:'14%'})+
-    th({id:'act',label:'Action',w:'7%'});
-  wireTh('th1',function(col,act,val){
-    if(act==='sort'){ st.s1=(st.s1&&st.s1.col===col&&st.s1.dir===val)?null:{col:col,dir:val}; }
-    else { if(col==='fb') st.fb=(st.fb===val?'':val); else st.who=(st.who===val?'':val); }
-  });
+    thSort('name','Name','14%', s1&&s1.col==='name'?s1.dir:null)+
+    thPlain('Desired job','12%')+
+    thPlain('Desired location','11%')+
+    thSort('iv','Interviews','18%', s1&&s1.col==='iv'?s1.dir:null)+
+    thFilter('fb','Feedback','12%',fbOpts,st.fb)+
+    thFilter('who','Interviewer','12%',whoOpts,st.who,'r')+
+    thPlain('Notes','14%')+
+    thPlain('Action','7%');
+  wireHead('th1','1',
+    function(col){ st.s1=cycle(st.s1,col); },
+    function(col,v){ var arr = col==='fb'?st.fb:st.who; if(v===null) arr.length=0; else toggle(arr,v); });
+
   var s2=st.s2;
   el('th2').innerHTML=
-    th({id:'name',label:'Name',w:'25%',sort:'text',sortState:s2&&s2.col==='name'?s2.dir:null})+
-    th({id:'job',label:'Desired job',w:'20%'})+
-    th({id:'loc',label:'Desired location',w:'20%'})+
-    th({id:'iv',label:'Interview time',w:'27%',sort:'time',sortState:s2&&s2.col==='iv'?s2.dir:null})+
-    th({id:'act',label:'Action',w:'8%'});
-  wireTh('th2',function(col,act,val){ if(act==='sort') st.s2=(st.s2&&st.s2.col===col&&st.s2.dir===val)?null:{col:col,dir:val}; });
+    thSort('name','Name','25%', s2&&s2.col==='name'?s2.dir:null)+
+    thPlain('Desired job','20%')+
+    thPlain('Desired location','20%')+
+    thSort('iv','Interview time','27%', s2&&s2.col==='iv'?s2.dir:null)+
+    thPlain('Action','8%');
+  wireHead('th2','2', function(col){ st.s2=cycle(st.s2,col); }, function(){});
 
-  var o1=sortRows(base1().filter(function(r){return (!st.fb||fbKey(r)===st.fb)&&(!st.who||r.who===st.who)}),st.s1);
+  var o1=sortRows(base1().filter(function(r){
+    return (!st.fb.length||st.fb.indexOf(fbKey(r))>=0) && (!st.who.length||st.who.indexOf(r.who)>=0);
+  }),st.s1);
   var o2=sortRows(T2.filter(function(r){return evOK(r)&&jobOK(r)}),st.s2);
 
   el('rows1').innerHTML=o1.length?o1.map(function(r){
@@ -533,23 +584,13 @@ function render(){
 
   el('c1n').innerHTML=(o1.length===T1.length)?'('+T1.length+')':'<span class="of">('+o1.length+' of '+T1.length+')</span>';
   var ch=[];
-  if(st.fb) ch.push(['fb','<span class="d '+FBDOT[st.fb]+'"></span>Feedback: '+FBF[st.fb]]);
-  if(st.who) ch.push(['who','Interviewer: '+st.who]);
+  if(st.fb.length) ch.push(['fb',(st.fb.length===1?'<span class="d '+FBDOT[st.fb[0]]+'"></span>':'')+'Feedback: '+st.fb.map(function(k){return FBF[k]}).join(', ')]);
+  if(st.who.length) ch.push(['who','Interviewer: '+st.who.join(', ')]);
   el('c1chips').innerHTML=ch.map(function(x){return '<span class="achip">'+x[1]+'<button data-k="'+x[0]+'">&times;</button></span>'}).join('');
-  [].forEach.call(el('c1chips').querySelectorAll('button'),function(b){b.onclick=function(){st[b.dataset.k]='';render()}});
+  [].forEach.call(el('c1chips').querySelectorAll('button'),function(b){b.onclick=function(){st[b.dataset.k].length=0;render()}});
   el('c2t').textContent=(o2.length===T2.length)?T2.length+" candidates couldn't make the interview":o2.length+" of "+T2.length+" candidates couldn't make the interview";
   el('pastN').textContent='(54)';
 }
-[].forEach.call(document.querySelectorAll('#szSeg button'),function(b){
-  b.onclick=function(){
-    document.body.className='sz-'+b.dataset.s;
-    [].forEach.call(document.querySelectorAll('#szSeg button'),function(x){x.classList.remove('on')});
-    b.classList.add('on');
-    el('szrt').textContent = b.dataset.s==='stack'
-      ? 'Title is 20px. Stacked control is 44px tall, was 64px.'
-      : 'Title is 20px. One-line control is 38px tall, was 64px.';
-  };
-});
 el('dnOpen').onclick=function(e){e.stopPropagation();el('dnOv').classList.add('open')};
 el('dnClose').onclick=function(){el('dnOv').classList.remove('open')};
 el('dnOv').onclick=function(e){if(e.target===el('dnOv'))el('dnOv').classList.remove('open')};
