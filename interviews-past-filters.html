@@ -47,9 +47,7 @@ button{font-family:inherit}
 .dnb .todo b{display:block;margin-bottom:3px}
 .dnb .flag{background:#fdf6e7;border:1px solid #f0dfae;border-left:3px solid #c2410c;border-radius:8px;padding:12px 16px;margin:0 0 12px}
 .dnb .done{color:#1f662c;font-weight:700}
-.seg{display:inline-flex;background:#333;border-radius:20px;padding:3px}
-.seg button{border:0;background:transparent;color:#ddd;font:inherit;font-weight:700;padding:5px 12px;border-radius:16px;cursor:pointer}
-.seg button.on{background:#fff;color:#111}
+.mockbar .crumb{background:#333;border-radius:20px;padding:5px 12px;font-weight:700}
 
 .side{position:fixed;left:0;top:40px;bottom:0;width:220px;background:#2d2d2d;z-index:300;display:flex;flex-direction:column;overflow:hidden}
 .collapse{display:flex;align-items:center;gap:14px;color:rgba(255,255,255,.85);padding:16px 18px;font-size:17px;font-weight:600}
@@ -74,15 +72,10 @@ h1{font-size:20px;font-weight:700;color:#2d2d2d;margin:0}
 .lctl .ic{margin-left:auto;flex:none}
 .lctl.set{border-color:#0044b3}
 .lctl.set .val{color:#0044b3;font-weight:700}
-/* stacked: caption over value, 44px */
-body.sz-stack .lctl{min-width:216px;padding:5px 12px}
-body.sz-stack .lctl .cap{display:block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#767676;line-height:14px}
-body.sz-stack .lctl .val{display:block;font-size:14px;font-weight:600;color:#2d2d2d;line-height:18px}
-/* one line, 38px */
-body.sz-line .lctl{min-width:210px;padding:9px 12px}
-body.sz-line .lctl>span:first-child{display:flex;align-items:baseline;gap:7px}
-body.sz-line .lctl .cap{font-size:14px;font-weight:400;color:#767676;line-height:18px}
-body.sz-line .lctl .val{font-size:14px;font-weight:700;color:#2d2d2d;line-height:18px}
+/* caption over value, 44px tall */
+.lctl{min-width:216px;padding:5px 12px}
+.lctl .cap{display:block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#767676;line-height:14px}
+.lctl .val{display:block;font-size:14px;font-weight:600;color:#2d2d2d;line-height:18px}
 .fmenu{position:absolute;right:0;top:calc(100% + 6px);z-index:30;min-width:300px;overflow:hidden;border-radius:10px;border:1px solid #d4d2d0;background:#fff;box-shadow:0 4px 16px rgba(0,0,0,.12);display:none}
 .fmenu.open{display:block}
 .fmenu button{display:flex;width:100%;align-items:center;gap:9px;cursor:pointer;border:none;background:transparent;padding:12px 18px;text-align:left;font-size:14px;color:#2d2d2d}
@@ -175,12 +168,11 @@ td.sec{font-size:13px;color:#595959}
 .key{display:inline-flex;align-items:center;gap:5px;background:#f3f2ef;border-radius:5px;padding:1px 7px;font-size:12.5px;font-weight:700;color:#2d2d2d}
 </style>
 </head>
-<body class="sz-stack">
+<body>
 
 <div class="mockbar">
-  <span class="lbl">Filter size</span>
-  <div class="seg" id="szSeg"><button data-s="stack" class="on">Stacked 44px</button><button data-s="line">One line 38px</button></div>
-  <span class="rt" id="szrt">Sort = arrow on the label. Filter = funnel, multi-select.</span>
+  <span class="lbl">JobFairX prototype</span><span class="crumb">Interviews &rsaquo; Past</span>
+  <span class="rt">Sort = arrow on the label. Filter = funnel, multi-select.</span>
   <button class="dnlink" id="dnOpen">Developer notes</button>
 </div>
 
@@ -262,7 +254,7 @@ td.sec{font-size:13px;color:#595959}
     <h3>What was added</h3>
     <ol>
       <li><b>Two page-level filters in the header card</b>, right-aligned: Hiring event and Job. Replaces the single 340px "All hiring events" button that sat to the <i>left</i> of the title. Right-aligned matches Events and Analytics; left-aligned was the odd one out.</li>
-      <li><b>Column-header sort and filter</b> on the two Past tables, Indeed style. A caret appears on every column that does something; columns that do nothing have no caret.</li>
+      <li><b>Column-header controls</b> on the two Past tables. A column is either sortable (arrow on the label) or filterable (funnel), never both; columns that do neither carry no control at all.</li>
       <li><b>Active-filter chips</b> next to the card title, with an &times; to clear.</li>
     </ol>
 
@@ -319,8 +311,9 @@ td.sec{font-size:13px;color:#595959}
     </ul>
 
     <h3>Component specs</h3>
-    <p>Both new controls are components that already exist elsewhere in the app. Reuse them, do not build new ones.</p>
-    <p><b>Header filter</b> &mdash; the Analytics "Date range" control, shortened from 64px to 44px:</p>
+    <p>Every control here already exists somewhere in the app. Reuse, do not rebuild.</p>
+
+    <p><b>Header filter</b> (Hiring event, Job) &mdash; the Analytics "Date range" control, shortened from 64px to <b>44px</b>. Size is settled; there is no longer a toggle in the prototype.</p>
 <pre><code>&lt;button class="flex min-w-[216px] cursor-pointer items-center gap-2.5
   rounded-lg border border-border-strong bg-white px-3 py-[5px] text-left
   hover:border-text-primary hover:bg-[#faf9f8]"&gt;
@@ -332,14 +325,15 @@ td.sec{font-size:13px;color:#595959}
   &lt;/span&gt;
   &lt;svg class="ml-auto h-3.5 w-3.5 flex-none"&gt;chevron&lt;/svg&gt;
 &lt;/button&gt;</code></pre>
-    <p>Applied state: border <code>border-brand-blue</code>, value <code>text-brand-blue font-bold</code>.</p>
-    <p><b>Column menu</b> &mdash; the existing Feedback-pill menu, verbatim:</p>
+    <p>Applied state: border <code>border-brand-blue</code>, value <code>text-brand-blue font-bold</code>. Its dropdown is the existing event menu &mdash; <code>min-w-[300px] rounded-[10px] border border-border-strong shadow-[0_4px_16px_rgba(0,0,0,0.12)]</code>, single-select, 12px/18px rows.</p>
+
+    <p><b>Sort header</b> (Name, Interviews / Interview time) &mdash; the whole label is the button, <code>px-3.5 py-3 text-[13px] font-normal text-text-secondary rounded-md hover:bg-surface-sunken</code>. The 12px arrow sits after the label at <code>opacity:0</code> at rest, <code>.6</code> on hover, and <code>1</code> in <code>#0044b3</code> when sorted; the label goes <code>font-bold text-brand-blue</code> with it. No menu, no popup. Set <code>aria-sort="ascending|descending"</code> on the active <code>th</code> and remove it from the previous one.</p>
+
+    <p><b>Filter header</b> (Feedback, Interviewer) &mdash; same padding and type as the sort header, with a 12px funnel at <code>opacity:.5</code>, filled <code>#0044b3</code> when applied, plus a count badge of how many values are checked. Its menu is the live Feedback-pill menu shell:</p>
 <pre><code>absolute top-[calc(100%+6px)] z-50 min-w-[212px] rounded-lg
 border border-[#e4e2e0] bg-white p-1.5
 shadow-[0_0_2px_rgba(45,45,45,0.16),0_4px_12px_rgba(45,45,45,0.08)]</code></pre>
-    <p>Items: <code>flex w-full items-center gap-[9px] rounded px-2.5 py-[9px] text-left text-sm hover:bg-surface-sunken</code>, with a 14px checkmark slot that is <code>invisible</code> when unselected. SORT and SHOW group captions, 11px/700 uppercase <code>text-text-tertiary</code>, separated by a 1px rule.</p>
-    <p><b>Sort header</b> &mdash; the whole label is the button; the arrow is <code>opacity:0</code> at rest, <code>.6</code> on hover, <code>1</code> and <code>#0044b3</code> when sorted. Needs <code>aria-sort="ascending|descending"</code> on the active <code>th</code>.</p>
-    <p><b>Filter header</b> &mdash; label + 12px funnel, funnel at <code>opacity:.5</code> at rest and filled <code>#0044b3</code> when applied, plus a small count badge of checked values. Menu items are checkboxes:</p>
+    <p>Rows are checkboxes, not radio items. Nothing is checked by default and nothing checked means no filter, so there is no "All" row:</p>
 <pre><code>&lt;button class="flex w-full items-center gap-[9px] rounded px-2.5 py-[9px]
   text-left text-sm hover:bg-surface-sunken"&gt;
   &lt;span class="h-[15px] w-[15px] flex-none rounded-[3px] border-[1.5px]
@@ -348,21 +342,31 @@ shadow-[0_0_2px_rgba(45,45,45,0.16),0_4px_12px_rgba(45,45,45,0.08)]</code></pre>
   Yes
   &lt;span class="ml-auto text-[13px] text-text-tertiary"&gt;21&lt;/span&gt;
 &lt;/button&gt;</code></pre>
-    <p><b>Chip</b> &mdash; white, not blue: <code>inline-flex items-center gap-1.5 rounded-full border border-border-strong bg-white pl-[9px] pr-1 py-0.5 text-xs font-semibold text-text-primary</code>, 24px tall, with the status dot and a grey &times;.</p>
+    <p>Checked box: <code>bg-brand-blue border-brand-blue</code> with a white tick. Footer is a right-aligned <b>Clear</b>, <code>disabled</code> when nothing is checked.</p>
+
+    <p><b>Chip</b> &mdash; white, not blue: <code>inline-flex items-center gap-1.5 rounded-full border border-border-strong bg-white pl-[9px] pr-1 py-0.5 text-xs font-semibold text-text-primary</code>, 24px tall, with the status dot and a grey &times;. Lists every checked value: "Feedback: Yes, Maybe".</p>
+
+    <h3>Decided &mdash; do not reopen</h3>
+    <ul>
+      <li><b>Header filter height: 44px stacked.</b> The prototype used to carry a 44px / 38px toggle; it is gone and 44px is the build. Caption over value, matching Analytics.</li>
+      <li><b>Sort and filter never share a column.</b> One control per header.</li>
+      <li><b>Feedback has no sort.</b> Filter only.</li>
+      <li><b>Filters are multi-select.</b> Not single-select, not radio.</li>
+      <li><b>Tab counts do not react to filters.</b> Past always reads (54).</li>
+      <li><b>Hiring event and Job stay at page level</b>, in the header card, not on columns.</li>
+    </ul>
 
     <h3>What you need to decide</h3>
-    <div class="todo"><b>1. Control height &mdash; 44px or 38px</b>
-      The toggle in the black bar switches between stacked (caption over value, 44px) and one line ("Hiring event <b>All events</b>", 38px). Scott's call. One line reads lighter next to a 20px title; stacked survives longer labels better.</div>
-    <div class="todo"><b>2. Filter state in the URL</b>
-      Recommend yes &mdash; query params, so a filtered view can be bookmarked and pasted to a teammate. e.g. <code>#/interviews?tab=past&amp;event=1842&amp;feedback=yes</code>. Do not persist across sessions; a filter someone forgot they set is a support ticket.</div>
-    <div class="todo"><b>3. Client or server filtering</b>
-      54 rows is fine client-side. If Past ever paginates, filtering and sorting must move server-side &mdash; filtering one page of results is worse than not filtering at all. Tell us which you are building so the counts can be sourced correctly.</div>
-    <div class="todo"><b>4. The "Not set" feedback state</b>
-      The live Feedback dropdown's first option is <b>Select</b>, meaning unrated. The filter calls it "Not set". Confirm the API returns null (not an empty string or a default) so the two agree. Transdev has zero unrated today, so this is untested against real data.</div>
-    <div class="todo"><b>6. Sort persistence</b>
-      Sort is three-state so it can be turned off, which means there is a defined default order to return to. Confirm what the server's default sort is (looks like interview time descending) so "off" is not ambiguous.</div>
+    <div class="todo"><b>1. Filter state in the URL</b>
+      Recommend yes &mdash; query params, so a filtered view can be bookmarked and pasted to a teammate. e.g. <code>#/interviews?tab=past&amp;event=1842&amp;feedback=yes,maybe</code>. Multi-select means the value is a list, so pick a separator and stick to it. Do not persist across sessions; a filter someone forgot they set is a support ticket.</div>
+    <div class="todo"><b>2. Client or server filtering</b>
+      54 rows is fine client-side. If Past ever paginates, filtering and sorting must move server-side &mdash; filtering one page of results is worse than not filtering at all. Tell us which you are building so the menu counts can be sourced correctly; they are cross-scoped (see Interaction rules) and that is a real query if it runs on the server.</div>
+    <div class="todo"><b>3. The "Not set" feedback state</b>
+      The live Feedback dropdown's first option is <b>Select</b>, meaning unrated. The filter calls it "Not set". Confirm the API returns null (not an empty string or a default) so the two agree. Transdev has zero unrated today, so this path is untested against real data.</div>
+    <div class="todo"><b>4. What "sort off" returns to</b>
+      Sort is three-state, so the third click has to restore something. Confirm the server's default order for this table &mdash; it looks like interview time descending &mdash; so "off" is a defined state and not just whatever order the last response happened to arrive in.</div>
     <div class="todo"><b>5. Narrow viewports</b>
-      Not designed yet. The header row holds title + two 216px controls; the table is already wide. Needs a call on stacking vs horizontal scroll before this ships to anyone on a laptop under ~1280px.</div>
+      Not designed yet. The header row holds the title plus two 216px controls, and the table is already wide. Needs a call on stacking vs horizontal scroll before this ships to anyone on a laptop under ~1280px.</div>
 
     <h3>Two data problems, not UI</h3>
     <div class="flag"><b>Every hiring event has the same name.</b> The live event dropdown lists four entries all reading "New Orleans Hiring Event" with no date. They are genuinely indistinguishable &mdash; you cannot pick the right one. This prototype appends the date ("New Orleans Hiring Event - Sep 3") so the filter is usable. The real fix is in the event label, and it is worth doing whether or not any of this filtering ships.</div>
