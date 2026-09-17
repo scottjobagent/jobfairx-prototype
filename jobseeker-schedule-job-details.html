@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Schedule Page Job Details</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans:wght@400;600;700&display=swap">
+<style>
+:root{
+  --ground:#eceef2; --panel:#ffffff; --ink:#15171c; --ink2:#4f545e; --ink3:#7b808a;
+  --rule:#d8dce3; --accent:#2563eb; --accentSoft:#e3ebfd; --newBg:#e8f3ec; --newInk:#1d5a36;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --ground:#121419; --panel:#1b1e25; --ink:#eceef2; --ink2:#aab0ba; --ink3:#7f8591;
+    --rule:#2c313b; --accent:#8fb0f5; --accentSoft:#1f2a44; --newBg:#15271d; --newInk:#8fd3a8;
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--ground);color:var(--ink);font-family:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1120px;margin:0 auto;padding-inline:20px;padding-block:44px 100px}
+
+.kicker{font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);margin:0 0 10px}
+h1{font-size:38px;line-height:1.15;font-weight:600;margin:0 0 12px;letter-spacing:-.015em;text-wrap:balance}
+.lead{font-size:18px;color:var(--ink2);max-width:68ch;margin:0}
+.lead b{color:var(--ink);font-weight:600}
+.meta{font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--ink3);margin:18px 0 0;padding-top:14px;border-top:1px solid var(--rule)}
+
+.jump{display:flex;flex-wrap:wrap;gap:8px;margin:20px 0 0}
+.jump a{font-size:14px;font-weight:500;color:var(--accent);text-decoration:none;border:1px solid var(--rule);background:var(--panel);padding:5px 12px;border-radius:999px}
+.jump a:hover{border-color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.switchrow{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin:26px 0 0;padding:12px 14px;background:var(--panel);border:1px solid var(--rule);border-radius:12px}
+.switchlbl{font-size:13px;font-weight:600}
+.switch{display:inline-flex;border:1px solid var(--rule);border-radius:9px;overflow:hidden}
+.switch button{font:inherit;font-size:14px;padding:6px 14px;border:0;background:transparent;color:var(--ink2);cursor:pointer}
+.switch button + button{border-left:1px solid var(--rule)}
+.switch button[aria-pressed="true"]{background:var(--accent);color:#fff}
+.switchhint{font-size:13px;color:var(--ink3)}
+
+section{margin-top:64px;padding-top:28px;border-top:1px solid var(--rule);scroll-margin-top:16px}
+.num{font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.1em;color:var(--accent);margin:0 0 4px}
+h2{font-size:28px;line-height:1.2;font-weight:600;margin:0 0 8px;letter-spacing:-.01em;text-wrap:balance}
+h3{font-size:17px;font-weight:600;margin:22px 0 6px}
+.desc{color:var(--ink2);max-width:70ch;margin:0 0 10px}
+.list{margin:10px 0 0;padding-left:20px;max-width:74ch;color:var(--ink2)}
+.list li{margin-bottom:10px}
+.list b{color:var(--ink);font-weight:600}
+code{font-family:"IBM Plex Mono",monospace;font-size:.86em;background:var(--accentSoft);color:var(--ink);padding:1px 5px;border-radius:4px}
+
+.deskscroll{overflow-x:auto;margin-top:18px;padding-bottom:6px}
+.phones{display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start;margin-top:18px}
+.fig{margin:0;max-width:100%}
+.cap{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--ink3);margin:0 0 8px}
+.cap-new{color:var(--newInk);font-weight:500}
+
+.tablewrap{overflow-x:auto;border:1px solid var(--rule);border-radius:12px;background:var(--panel);margin:12px 0 14px}
+table{width:100%;border-collapse:collapse;font-size:14.5px;min-width:640px}
+th{text-align:left;font-weight:600;font-size:13px;padding:11px 14px;border-bottom:1px solid var(--rule);white-space:nowrap}
+td{padding:11px 14px;border-top:1px solid var(--rule);vertical-align:top;color:var(--ink2)}
+tbody tr:first-child td{border-top:0}
+td code{white-space:nowrap}
+table.small{min-width:560px}
+
+/* ── Mocks depict the live product, a light UI, so they keep a fixed palette in either page
+      theme. Sizes measured on virtual.jobfairx.com/schedule, 17 Sep 2026. ── */
+.m{font-family:"Noto Sans",-apple-system,sans-serif;color:#111827;line-height:1.45;background:#f3f4f6;border:1px solid #cfd3da;-webkit-font-smoothing:antialiased;color-scheme:light}
+.m p{margin:0}
+.m .card{background:#fff;border-radius:12px}
+.m .card + .card{margin-top:12px}
+.m .jt{font-weight:700;font-size:16px;line-height:1.3}
+.m .jt.small{font-size:14px}
+.m .jc{font-size:13px;color:#4b5563;margin-top:4px}
+.m .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px}
+.m .chip{font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px}
+.m .pay{background:#e7f5ec;color:#146c43}
+.m .type{background:#e8effd;color:#1d4ed8}
+.m .prev{font-size:14px;color:#374151;margin-top:12px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.m .card.job.open .prev{display:none}
+.m .full{font-size:14px;color:#374151;margin-top:12px}
+.m .full p{margin:0 0 10px}
+.m .full strong{color:#111827}
+.m .full ul{margin:0 0 10px;padding-left:18px}
+.m .full li{margin-bottom:3px}
+.m .more{display:inline-flex;align-items:center;gap:4px;font:inherit;font-size:14px;font-weight:600;color:#2563eb;background:none;border:0;padding:0;margin-top:10px;cursor:pointer}
+.m .more svg{width:15px;height:15px;transition:transform .15s}
+.m .card.job.open .more svg{transform:rotate(180deg)}
+.m .more .on-open{display:none}
+.m .card.job.open .more .on-open{display:inline}
+.m .card.job.open .more .on-closed{display:none}
+.m .h{font-weight:700}
+.m .iv{display:flex;align-items:center;gap:8px;color:#4b5563;margin-top:8px}
+.m .iv svg{width:18px;height:18px;flex:0 0 18px}
+.m .hr{height:4px;background:#e5e7eb;border-radius:4px}
+.m .tz{display:flex;align-items:center;gap:6px;font-size:13px;color:#4b5563;margin:8px 0 12px}
+.m .tz svg{width:15px;height:15px}
+.m .date{font-weight:700;font-size:16px;margin:0 0 10px 12px}
+.m .slots{border:1px solid #e5e7eb;border-radius:12px;overflow:hidden}
+.m .slot{display:flex;align-items:center;gap:12px;padding:12px 14px;border-top:1px solid #eef0f3;font-size:15px;cursor:pointer}
+.m .slot:first-child{border-top:0}
+.m .slot input{position:absolute;opacity:0;pointer-events:none}
+.m .slot .left{color:#9ca3af;font-size:13px}
+.m .radio{width:18px;height:18px;border-radius:50%;border:1.5px solid #c7cbd3;flex:0 0 18px}
+.m .slot.sel{background:#f3f6fe}
+.m .slot.sel .radio{border:5px solid #2563eb}
+.m .slot:focus-within{outline:2px solid #2563eb;outline-offset:-2px}
+.m .btn{display:inline-flex;align-items:center;justify-content:center;width:182px;height:42px;background:#2563eb;color:#fff;font-weight:600;font-size:16px;border-radius:10px;margin-top:18px}
+
+.phone{width:390px;max-width:100%;padding:12px;border-radius:26px}
+.phone .card{padding:16px}
+.phone .h{font-size:18px}
+.phone .iv{font-size:15px}
+.phone .hr{margin:16px 0}
+
+.desk{width:1040px;padding:32px 24px 40px;border-radius:14px}
+.desk .logo{font-weight:700;color:#3a62c4;font-size:26px;text-align:center;margin:0 0 30px;letter-spacing:-.01em}
+.desk .col{width:500px;margin:0 auto}
+.desk .card{padding:30px 32px}
+.desk .h{font-size:24px}
+.desk .iv{font-size:18px}
+.desk .hr{margin:32px 0}
+
+@media (max-width:480px){
+  h1{font-size:30px}
+  .phone{padding:10px}
+  .phone .card{padding:14px}
+}
+@media (prefers-reduced-motion:reduce){ .m .more svg{transition:none} }
+.m .trunc{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<p class="kicker">Developer spec · Job seeker · virtual.jobfairx.com/schedule</p>
+<h1>Show the job on the schedule page</h1>
+<p class="lead">When a job seeker opens “Schedule your interview”, the page names the job and lists time slots but never says what the job is. This adds a job summary above the time picker — pay, job type and a two-line preview — with the full description one tap away. It applies to <b>desktop and mobile</b>. Everything needed is already in the page’s API response.</p>
+<p class="meta">Approved by Scott · 17 Sep 2026 · Example data: live posting 754738200362139648, B2B Inside Sales Representative, TTEC, Tempe AZ</p>
+
+<nav class="jump"><a href="#desktop">Desktop</a><a href="#mobile">Mobile</a><a href="#changes">What changes</a><a href="#data">Data</a><a href="#format">Formatting</a><a href="#behaviour">Behaviour</a><a href="#notes">Notes</a></nav>
+
+<div class="switchrow">
+  <span class="switchlbl">Preview state</span>
+  <div class="switch" role="group" aria-label="Preview state">
+    <button type="button" data-state="closed" aria-pressed="true">Collapsed</button>
+    <button type="button" data-state="open" aria-pressed="false">Expanded</button>
+  </div>
+  <span class="switchhint">Or click “View full job details” on any frame. Time slots are clickable too.</span>
+</div>
+
+<section id="desktop">
+  <p class="num">01</p>
+  <h2>Desktop</h2>
+  <p class="desc">Same single 500px column as today. The job card grows; the schedule card is unchanged.</p>
+  <div class="deskscroll"><div class="m desk"><p class="logo">JobFairX</p><div class="col"><div class="card job" data-frame="d"><p class="jt">B2B Inside Sales Representative - Hybrid</p><p class="jc">TTEC · 40 East Rio Salado Parkway, Tempe, AZ, 85281</p><div class="chips"><span class="chip pay">$23.50/hr</span><span class="chip type">Full-time</span></div><p class="prev">Your potential has a place here with TTEC’s award-winning employment experience. As a B2B Inside Sales Representative working onsite in Tempe, AZ (with opportunity to earn hybrid work benefits), you’ll be a part of bringing humanity to business. #experienceTTEC Our employees have spoken. Our purpose, team, and company culture are amazing and our Great Place to Work® certification in United States says it all! Base Salary $23.50/hour + performance-based bonus opportunities $1400 retention bonus * help us grow our sales representative team eligible for generous employee referral bonus opportunities What You’ll Do You’ll connect with small business customers and prospects to understand their needs, recommend business solutions, and support new sales and expanded customer relationships. Using your consultative sales, product, and customer discovery skills, you’ll help customers see how available solutions can support their bookkeeping, accounting, payroll, and cash flow needs. During a Typical Day, You’ll Connect with customers and prospects by phone, chat, meetings, and outbound follow-up Lead discovery conversations to understand business needs and workflows Recommend, demo, and sell solutions based on customer needs Identify additional offerings that may support the customer’s business Use sales tools to log activity, manage pipeline steps, and support follow-up Meet productivity, sales, availability, pipeline, and adherence expectations What You Bring to the Role High school diploma or equivalent 4+ years of contact center experience supporting inbound and outbound interactions 2+ years of applied sales experience with a customer-focused mindset Experience with SaaS, cloud, technical solutions, account management, pipeline management, or small business sales Ability to understand customer needs and clearly explain technical solutions and business value Strong verbal and written communication skills with clarity and detail What You Can Expect A team environment supportive of your career and professional development An inclusive culture and community minded organization where giving back is encouraged A global team of curious lifelong learners guided by our company values Opportunity to work hybrid based on reaching and maintaining performance standards And yes... $23.50/hr base + performance based bonus opportunities, $1400 retention bonus (conditions apply), benefits you&#x27;d expect like paid time off, wellness and healthcare benefits and maybe a few that would pleasantly surprise you (like tuition reimbursement) Visit https://www.ttecjobs.com/en/us-employee-benefits for more information. About TTEC TTEC is a global consulting, technology, and managed services company that helps brands deliver smarter, more human customer experiences through data, AI, and technology. Our work connects people and brands every day—and it starts with the talent behind the experience. TTEC is proud to be an equal opportunity employer where all qualified applicants will receive consideration for employment without regard to race, color, religion, sex, sexual orientation, gender identity, national origin, disability, or status as a protected veteran. TTEC embraces and is committed to building a diverse and inclusive workforce that respects and empowers the cultures and perspectives within our global teams. We aim to reflect the communities we serve, by not only delivering amazing service and technology, but also humanity. We make it a point to make sure all our employees feel valued, belonging, and comfortable being their authentic selves at work. As a global company, we know diversity is our strength because it enables us to view things from different vantage points and for you to bring value to the table in your own unique way.</p><div class="full" id="full-d" hidden><p>Your potential has a place here with TTEC’s award-winning employment experience. As a <strong>B2B Inside Sales Representative working onsite in Tempe, AZ </strong>(with opportunity to earn hybrid work benefits), you’ll be a part of bringing humanity to business. #experienceTTEC </p><p>Our employees have spoken. Our purpose, team, and company culture are amazing and our <strong>Great Place to Work®</strong> certification in United States says it all!</p><p><strong>Base Salary $23.50/hour + performance-based bonus opportunities </strong>$1400 retention bonus * help us grow our sales representative team eligible for generous employee referral bonus opportunities</p><p><strong>What You’ll Do </strong></p><p>You’ll connect with small business customers and prospects to understand their needs, recommend business solutions, and support new sales and expanded customer relationships. Using your consultative sales, product, and customer discovery skills, you’ll help customers see how available solutions can support their bookkeeping, accounting, payroll, and cash flow needs.</p><p><strong>During a Typical Day, You’ll</strong></p><ul><li>Connect with customers and prospects by phone, chat, meetings, and outbound follow-up</li><li>Lead discovery conversations to understand business needs and workflows</li><li>Recommend, demo, and sell solutions based on customer needs Identify additional offerings that may support the customer’s business </li><li>Use sales tools to log activity, manage pipeline steps, and support follow-up</li><li>Meet productivity, sales, availability, pipeline, and adherence expectations</li></ul><p><strong>What You Bring to the Role</strong></p><ul><li>High school diploma or equivalent</li><li>4+ years of contact center experience supporting inbound and outbound interactions</li><li>2+ years of applied sales experience with a customer-focused mindset</li><li>Experience with SaaS, cloud, technical solutions, account management, pipeline management, or small business sales</li><li>Ability to understand customer needs and clearly explain technical solutions and business value</li><li>Strong verbal and written communication skills with clarity and detail</li></ul><p><strong>What You Can Expect</strong></p><ul><li>A team environment supportive of your career and professional development</li><li>An inclusive culture and community minded organization where giving back is encouraged</li><li>A global team of curious lifelong learners guided by our company values</li><li>Opportunity to work hybrid based on reaching and maintaining performance standards</li><li>And yes... $23.50/hr base + performance based bonus opportunities, $1400 retention bonus (conditions apply), benefits you'd expect like paid time off, wellness and healthcare benefits and maybe a few that would pleasantly surprise you (like tuition reimbursement)</li></ul><p>Visit https://www.ttecjobs.com/en/us-employee-benefits for more information. </p><p><strong>About TTEC </strong></p><p>TTEC is a global consulting, technology, and managed services company that helps brands deliver smarter, more human customer experiences through data, AI, and technology. Our work connects people and brands every day—and it starts with the talent behind the experience.</p><p>TTEC is proud to be an equal opportunity employer where all qualified applicants will receive consideration for employment without regard to race, color, religion, sex, sexual orientation, gender identity, national origin, disability, or status as a protected veteran. TTEC embraces and is committed to building a diverse and inclusive workforce that respects and empowers the cultures and perspectives within our global teams. We aim to reflect the communities we serve, by not only delivering amazing service and technology, but also humanity. We make it a point to make sure all our employees feel valued, belonging, and comfortable being their authentic selves at work. As a global company, we know diversity is our strength because it enables us to view things from different vantage points and for you to bring value to the table in your own unique way.</p></div><button type="button" class="more" aria-expanded="false" aria-controls="full-d"><span class="on-closed">View full job details</span><span class="on-open">Hide job details</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button></div><div class="card"><p class="h">Schedule your interview</p><p class="iv"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4 6h11a1 1 0 011 1v3l4-3v10l-4-3v3a1 1 0 01-1 1H4a1 1 0 01-1-1V7a1 1 0 011-1z"/></svg>This will be a virtual interview on JobFairX</p><div class="hr"></div><p class="h">Select a time</p><p class="tz"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 010 18M12 3a14 14 0 000 18"/></svg>Mountain Time (MDT)</p><p class="date">Friday, October 2, 2026</p><div class="slots"><label class="slot"><input type="radio" name="t-d"><span class="radio"></span><span>11:00 AM&nbsp; MDT</span><span class="left">3 spots remaining</span></label><label class="slot"><input type="radio" name="t-d"><span class="radio"></span><span>11:30 AM&nbsp; MDT</span><span class="left">3 spots remaining</span></label><label class="slot"><input type="radio" name="t-d"><span class="radio"></span><span>12:00 PM&nbsp; MDT</span><span class="left">3 spots remaining</span></label><label class="slot"><input type="radio" name="t-d"><span class="radio"></span><span>12:30 PM&nbsp; MDT</span><span class="left">3 spots remaining</span></label><label class="slot"><input type="radio" name="t-d"><span class="radio"></span><span>1:00 PM&nbsp; MDT</span><span class="left">2 spots remaining</span></label><label class="slot"><input type="radio" name="t-d"><span class="radio"></span><span>1:30 PM&nbsp; MDT</span><span class="left">3 spots remaining</span></label><label class="slot"><input type="radio" name="t-d"><span class="radio"></span><span>2:00 PM&nbsp; MDT</span><span class="left">3 spots remaining</span></label><label class="slot"><input type="radio" name="t-d"><span class="radio"></span><span>2:30 PM&nbsp; MDT</span><span class="left">3 spots remaining</span></label></div><span class="btn">Schedule interview</span></div></div></div></div>
+</section>
+
+<section id="mobile">
+  <p class="num">02</p>
+  <h2>Mobile</h2>
+  <p class="desc">Today’s page on the left for comparison. On a phone there is no logo, so the job card is the first thing on screen.</p>
+  <div class="phones">
+    <figure class="fig"><figcaption class="cap">Today</figcaption><div class="m phone"><div class="card"><p class="jt small trunc">B2B Inside Sales Representative - Hybrid</p><p class="jc trunc">TTEC - 40 East Rio Salado Parkway, Tempe, AZ, 85281</p></div><div class="card"><p class="h">Schedule your interview</p><p class="iv"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4 6h11a1 1 0 011 1v3l4-3v10l-4-3v3a1 1 0 01-1 1H4a1 1 0 01-1-1V7a1 1 0 011-1z"/></svg>This will be a virtual interview on JobFairX</p><div class="hr"></div><p class="h">Select a time</p><p class="tz"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 010 18M12 3a14 14 0 000 18"/></svg>Mountain Time (MDT)</p><p class="date">Friday, October 2, 2026</p><div class="slots"><label class="slot"><input type="radio" name="t-t"><span class="radio"></span><span>11:00 AM&nbsp; MDT</span><span class="left">3 spots remaining</span></label><label class="slot"><input type="radio" name="t-t"><span class="radio"></span><span>11:30 AM&nbsp; MDT</span><span class="left">3 spots remaining</span></label><label class="slot"><input type="radio" name="t-t"><span class="radio"></span><span>12:00 PM&nbsp; MDT</span><span class="left">3 spots remaining</span></label><label class="slot"><input type="radio" name="t-t"><span class="radio"></span><span>12:30 PM&nbsp; MDT</span><span class="left">3 spots remaining</span></label><label class="slot"><input type="radio" name="t-t"><span class="radio"></span><span>1:00 PM&nbsp; MDT</span><span class="left">2 spots remaining</span></label><label class="slot"><input type="radio" name="t-t"><span class="radio"></span><span>1:30 PM&nbsp; MDT</span><span class="left">3 spots remaining</span></label><label class="slot"><input type="radio" name="t-t"><span class="radio"></span><span>2:00 PM&nbsp; MDT</span><span class="left">3 spots remaining</span></label><label class="slot"><input type="radio" name="t-t"><span class="radio"></span><span>2:30 PM&nbsp; MDT</span><span class="left">3 spots remaining</span></label></div><span class="btn">Schedule interview</span></div></div></figure>
+    <figure class="fig"><figcaption class="cap cap-new">New · 390px wide</figcaption><div class="m phone"><div class="card job" data-frame="p"><p class="jt">B2B Inside Sales Representative - Hybrid</p><p class="jc">TTEC · 40 East Rio Salado Parkway, Tempe, AZ, 85281</p><div class="chips"><span class="chip pay">$23.50/hr</span><span class="chip type">Full-time</span></div><p class="prev">Your potential has a place here with TTEC’s award-winning employment experience. As a B2B Inside Sales Representative working onsite in Tempe, AZ (with opportunity to earn hybrid work benefits), you’ll be a part of bringing humanity to business. #experienceTTEC Our employees have spoken. Our purpose, team, and company culture are amazing and our Great Place to Work® certification in United States says it all! Base Salary $23.50/hour + performance-based bonus opportunities $1400 retention bonus * help us grow our sales representative team eligible for generous employee referral bonus opportunities What You’ll Do You’ll connect with small business customers and prospects to understand their needs, recommend business solutions, and support new sales and expanded customer relationships. Using your consultative sales, product, and customer discovery skills, you’ll help customers see how available solutions can support their bookkeeping, accounting, payroll, and cash flow needs. During a Typical Day, You’ll Connect with customers and prospects by phone, chat, meetings, and outbound follow-up Lead discovery conversations to understand business needs and workflows Recommend, demo, and sell solutions based on customer needs Identify additional offerings that may support the customer’s business Use sales tools to log activity, manage pipeline steps, and support follow-up Meet productivity, sales, availability, pipeline, and adherence expectations What You Bring to the Role High school diploma or equivalent 4+ years of contact center experience supporting inbound and outbound interactions 2+ years of applied sales experience with a customer-focused mindset Experience with SaaS, cloud, technical solutions, account management, pipeline management, or small business sales Ability to understand customer needs and clearly explain technical solutions and business value Strong verbal and written communication skills with clarity and detail What You Can Expect A team environment supportive of your career and professional development An inclusive culture and community minded organization where giving back is encouraged A global team of curious lifelong learners guided by our company values Opportunity to work hybrid based on reaching and maintaining performance standards And yes... $23.50/hr base + performance based bonus opportunities, $1400 retention bonus (conditions apply), benefits you&#x27;d expect like paid time off, wellness and healthcare benefits and maybe a few that would pleasantly surprise you (like tuition reimbursement) Visit https://www.ttecjobs.com/en/us-employee-benefits for more information. About TTEC TTEC is a global consulting, technology, and managed services company that helps brands deliver smarter, more human customer experiences through data, AI, and technology. Our work connects people and brands every day—and it starts with the talent behind the experience. TTEC is proud to be an equal opportunity employer where all qualified applicants will receive consideration for employment without regard to race, color, religion, sex, sexual orientation, gender identity, national origin, disability, or status as a protected veteran. TTEC embraces and is committed to building a diverse and inclusive workforce that respects and empowers the cultures and perspectives within our global teams. We aim to reflect the communities we serve, by not only delivering amazing service and technology, but also humanity. We make it a point to make sure all our employees feel valued, belonging, and comfortable being their authentic selves at work. As a global company, we know diversity is our strength because it enables us to view things from different vantage points and for you to bring value to the table in your own unique way.</p><div class="full" id="full-p" hidden><p>Your potential has a place here with TTEC’s award-winning employment experience. As a <strong>B2B Inside Sales Representative working onsite in Tempe, AZ </strong>(with opportunity to earn hybrid work benefits), you’ll be a part of bringing humanity to business. #experienceTTEC </p><p>Our employees have spoken. Our purpose, team, and company culture are amazing and our <strong>Great Place to Work®</strong> certification in United States says it all!</p><p><strong>Base Salary $23.50/hour + performance-based bonus opportunities </strong>$1400 retention bonus * help us grow our sales representative team eligible for generous employee referral bonus opportunities</p><p><strong>What You’ll Do </strong></p><p>You’ll connect with small business customers and prospects to understand their needs, recommend business solutions, and support new sales and expanded customer relationships. Using your consultative sales, product, and customer discovery skills, you’ll help customers see how available solutions can support their bookkeeping, accounting, payroll, and cash flow needs.</p><p><strong>During a Typical Day, You’ll</strong></p><ul><li>Connect with customers and prospects by phone, chat, meetings, and outbound follow-up</li><li>Lead discovery conversations to understand business needs and workflows</li><li>Recommend, demo, and sell solutions based on customer needs Identify additional offerings that may support the customer’s business </li><li>Use sales tools to log activity, manage pipeline steps, and support follow-up</li><li>Meet productivity, sales, availability, pipeline, and adherence expectations</li></ul><p><strong>What You Bring to the Role</strong></p><ul><li>High school diploma or equivalent</li><li>4+ years of contact center experience supporting inbound and outbound interactions</li><li>2+ years of applied sales experience with a customer-focused mindset</li><li>Experience with SaaS, cloud, technical solutions, account management, pipeline management, or small business sales</li><li>Ability to understand customer needs and clearly explain technical solutions and business value</li><li>Strong verbal and written communication skills with clarity and detail</li></ul><p><strong>What You Can Expect</strong></p><ul><li>A team environment supportive of your career and professional development</li><li>An inclusive culture and community minded organization where giving back is encouraged</li><li>A global team of curious lifelong learners guided by our company values</li><li>Opportunity to work hybrid based on reaching and maintaining performance standards</li><li>And yes... $23.50/hr base + performance based bonus opportunities, $1400 retention bonus (conditions apply), benefits you'd expect like paid time off, wellness and healthcare benefits and maybe a few that would pleasantly surprise you (like tuition reimbursement)</li></ul><p>Visit https://www.ttecjobs.com/en/us-employee-benefits for more information. </p><p><strong>About TTEC </strong></p><p>TTEC is a global consulting, technology, and managed services company that helps brands deliver smarter, more human customer experiences through data, AI, and technology. Our work connects people and brands every day—and it starts with the talent behind the experience.</p><p>TTEC is proud to be an equal opportunity employer where all qualified applicants will receive consideration for employment without regard to race, color, religion, sex, sexual orientation, gender identity, national origin, disability, or status as a protected veteran. TTEC embraces and is committed to building a diverse and inclusive workforce that respects and empowers the cultures and perspectives within our global teams. We aim to reflect the communities we serve, by not only delivering amazing service and technology, but also humanity. We make it a point to make sure all our employees feel valued, belonging, and comfortable being their authentic selves at work. As a global company, we know diversity is our strength because it enables us to view things from different vantage points and for you to bring value to the table in your own unique way.</p></div><button type="button" class="more" aria-expanded="false" aria-controls="full-p"><span class="on-closed">View full job details</span><span class="on-open">Hide job details</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button></div><div class="card"><p class="h">Schedule your interview</p><p class="iv"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4 6h11a1 1 0 011 1v3l4-3v10l-4-3v3a1 1 0 01-1 1H4a1 1 0 01-1-1V7a1 1 0 011-1z"/></svg>This will be a virtual interview on JobFairX</p><div class="hr"></div><p class="h">Select a time</p><p class="tz"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 010 18M12 3a14 14 0 000 18"/></svg>Mountain Time (MDT)</p><p class="date">Friday, October 2, 2026</p><div class="slots"><label class="slot"><input type="radio" name="t-p"><span class="radio"></span><span>11:00 AM&nbsp; MDT</span><span class="left">3 spots remaining</span></label><label class="slot"><input type="radio" name="t-p"><span class="radio"></span><span>11:30 AM&nbsp; MDT</span><span class="left">3 spots remaining</span></label><label class="slot"><input type="radio" name="t-p"><span class="radio"></span><span>12:00 PM&nbsp; MDT</span><span class="left">3 spots remaining</span></label><label class="slot"><input type="radio" name="t-p"><span class="radio"></span><span>12:30 PM&nbsp; MDT</span><span class="left">3 spots remaining</span></label><label class="slot"><input type="radio" name="t-p"><span class="radio"></span><span>1:00 PM&nbsp; MDT</span><span class="left">2 spots remaining</span></label><label class="slot"><input type="radio" name="t-p"><span class="radio"></span><span>1:30 PM&nbsp; MDT</span><span class="left">3 spots remaining</span></label><label class="slot"><input type="radio" name="t-p"><span class="radio"></span><span>2:00 PM&nbsp; MDT</span><span class="left">3 spots remaining</span></label><label class="slot"><input type="radio" name="t-p"><span class="radio"></span><span>2:30 PM&nbsp; MDT</span><span class="left">3 spots remaining</span></label></div><span class="btn">Schedule interview</span></div></div></figure>
+  </div>
+</section>
+
+<section id="changes">
+  <p class="num">03</p>
+  <h2>What changes</h2>
+  <ul class="list">
+    <li><b>The job card</b> gains a pay chip, a job-type chip, a two-line preview of the description, and a “View full job details” button.</li>
+    <li><b>Expanding</b> shows the full, sanitized description inside the same card, above the time picker. The button changes to “Hide job details”.</li>
+    <li><b>The title and the company line wrap</b> instead of being cut to one line.</li>
+    <li><b>The separator</b> between company and location changes from “ - ” to “ · ”.</li>
+    <li><b>Nothing else moves.</b> The schedule card, time slots, button, interview-method line and every later step stay as they are.</li>
+  </ul>
+</section>
+
+<section id="data">
+  <p class="num">04</p>
+  <h2>Where each piece comes from</h2>
+  <p class="desc">Everything is already in <code>GET /api/schedule/&lt;jobId&gt;/initial</code>. This is a front-end change.</p>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Field</th><th>Shown as</th><th>Rule</th></tr></thead>
+    <tbody><tr><td><code>title</code></td><td>Job card heading</td><td>As sent. Wraps to as many lines as it needs (today it is cut to one line)</td></tr><tr><td><code>companyName</code>, <code>locationText</code></td><td>Line under the heading</td><td>Join the non-empty values with “ · ”. Company alone when there is no location. Wraps</td></tr><tr><td><code>compensationValue</code>, <code>compensationMaximum</code>, <code>compensationType</code>, <code>compensationPeriod</code></td><td>Green pay chip</td><td>Section 05</td></tr><tr><td><code>compensation</code></td><td>Green pay chip, fallback</td><td>Free-text pay. Used only when there is no structured pay (section 05)</td></tr><tr><td><code>commitmentType</code></td><td>Blue job-type chip(s)</td><td>Section 05 — confirm the mapping with the backend first (section 07)</td></tr><tr><td><code>jobDescription</code></td><td>Two-line preview, then the full text when expanded</td><td>Sanitize first (section 06)</td></tr><tr><td><code>slots</code>, <code>timezone</code>, <code>interviewMethod</code>, <code>usesNativeRoom</code>, <code>meetingPlatform</code></td><td>Schedule card</td><td>No change</td></tr><tr><td><code>workplaceType</code></td><td>Not shown</td><td>Arrives as <code>5</code> with no label anywhere in the page code</td></tr><tr><td><code>screenerQuestions</code>, <code>requireResume</code></td><td>Not on this step</td><td>No change to later steps</td></tr></tbody>
+  </table></div>
+</section>
+
+<section id="format">
+  <p class="num">05</p>
+  <h2>Formatting</h2>
+  <h3>Pay chip</h3>
+  <p class="desc">Format each amount on its own. Under 1,000: always two decimals (<code>$18.00</code>, <code>$23.50</code>). 1,000 and up: a thousands separator, with two decimals only when there are cents (<code>$55,000</code>, <code>$52,000.50</code>). A range that crosses 1,000 is fine as <code>$950.00–$1,200/mo</code>. Every posting uses a bare <code>$</code>, US and Canada alike.</p>
+  <div class="tablewrap"><table class="small">
+    <thead><tr><th><code>compensationType</code></th><th>Display</th><th>Example</th></tr></thead>
+    <tbody>
+      <tr><td><code>1</code> Range</td><td>“$low–$high”. Just “$low” when <code>compensationMaximum</code> is null or equals the low end</td><td>$18.00–$22.00/hr · <b>$23.50/hr</b></td></tr>
+      <tr><td><code>2</code> Starting amount</td><td>“From $value”</td><td>From $20.00/hr</td></tr>
+      <tr><td><code>3</code> Maximum amount</td><td>“Up to $value”</td><td>Up to $60,000/yr</td></tr>
+      <tr><td><code>4</code> Exact amount</td><td>“$value”</td><td>$23.50/hr</td></tr>
+    </tbody>
+  </table></div>
+  <ul class="list">
+    <li><b>Suffix</b> from <code>compensationPeriod</code>: <code>1</code> /hr · <code>2</code> /day · <code>3</code> /wk · <code>4</code> /mo · <code>5</code> /yr. Any other value, or none: no suffix.</li>
+    <li><b>No structured pay</b> — <code>compensationType</code> null or 0, or <code>compensationValue</code> null or 0: show the free-text <code>compensation</code> as the chip if it isn’t empty. Otherwise no pay chip.</li>
+  </ul>
+  <h3>Job-type chip</h3>
+  <p class="desc">Assuming the bitmask in <code>globals</code> is correct (see section 07): <code>1</code> Full-time · <code>2</code> Part-time · <code>4</code> Contract · <code>8</code> Contract to hire. One chip per bit set, in that order. Ignore any other bit. No chip when the value is null or 0. Sentence case — the existing code writes “Full-Time”.</p>
+  <h3>Chip style</h3>
+  <p class="desc">Match the mock: no icon, 12px semibold text, 3px × 10px padding, fully rounded. The app’s existing Chip component adds an icon and a 2px border, which this design doesn’t have.</p>
+</section>
+
+<section id="behaviour">
+  <p class="num">06</p>
+  <h2>Behaviour</h2>
+  <ul class="list">
+    <li><b>Where it goes.</b> The job card is <code>DefaultContainer</code> in the <code>BuilderRoutes</code> bundle, in the block that renders while <code>registration.step === ""</code>. Build it there and keep it inside that condition — <code>DefaultContainer</code> is also used by the resume-builder steps. Do not change <code>JobSummary</code>.</li>
+    <li><b>Breakpoints.</b> None new. The card sits inside the existing column, so it follows the page’s current behaviour (500px column from <code>md</code>, logo from <code>lg</code>).</li>
+    <li><b>Collapsed</b> every time that step mounts.</li>
+    <li><b>The toggle is a real button</b> with <code>aria-expanded</code>, and <code>aria-controls</code> pointing at the description container.</li>
+    <li><b>Collapsing a long description:</b> if the top of the job card has scrolled off screen, scroll it back into view.</li>
+    <li><b>Preview</b> is the plain text of the whole sanitized description — paragraphs and list items joined with spaces — clamped to two lines with an ellipsis. It hides while expanded.</li>
+    <li><b>No description</b> means null, an empty string, or nothing left after sanitizing. Then hide the preview and the button; the card still shows the title, company line and chips.</li>
+    <li><b>Sanitize <code>jobDescription</code> on the client</b> (for example with DOMPurify). Allow <code>p br strong b em i ul ol li</code> with no attributes. Unwrap any other tag and keep its text. Then remove paragraphs whose text is only whitespace or non-breaking spaces, such as <code>&lt;p&gt;&lt;br&gt;&lt;/p&gt;</code> and <code>&lt;p&gt;&lt;strong&gt;&amp;nbsp;&lt;/strong&gt;&lt;/p&gt;</code>. Keep the spaces between words when removing empty inline tags.</li>
+  </ul>
+</section>
+
+<section id="notes">
+  <p class="num">07</p>
+  <h2>Notes from the current code</h2>
+  <ul class="list">
+    <li><b>Confirm the job-type mapping with the backend before building that chip.</b> The app decodes <code>commitmentType</code> two ways. The <code>globals</code> enum is a bitmask — <code>1</code> Full-time, <code>2</code> Part-time, <code>4</code> Contract, <code>8</code> Contract to hire — and <code>JobSummary</code> uses it. The event Preview page in the schedule bundle reads it as a plain list — <code>1</code> Full-time, <code>2</code> Part-time, <code>3</code> Contract, <code>4</code> Temporary, <code>5</code> Internship. They disagree from <code>3</code> up. The example posting is <code>1</code>, which is Full-time under both.</li>
+    <li><b>There are two pay formatters; use neither.</b> <code>JobSummary</code> would print “Between $23.5 and $23.5” for this posting (type <code>1</code> Range, both ends <code>23.5</code>). The Preview page would print “$23.5 – $23.5 an hour”. Build one formatter from section 05.</li>
+    <li><b>The description isn’t read anywhere in the booking flow today.</b> The only page that shows one is the separate event Preview page (<code>#/preview</code> and <code>#/&lt;token&gt;</code>), which puts it into <code>innerHTML</code> with no sanitizing. Don’t copy that pattern — and it is worth checking whether that page is safe as it stands.</li>
+    <li><b><code>JobSummary</code></b> computes job type, pay and location but never uses them. It renders the title, company, date and time as a sidebar at <code>lg</code> and up, and as a one-line “Schedule Interview For … at …” strip below that. It only mounts once a time has been picked.</li>
+    <li><b><code>workplaceType</code> is undecoded.</b> This posting sends <code>5</code>, and nothing in any bundle the page loads labels it, so there’s no workplace chip. “Hybrid” in the mock is part of the job title.</li>
+  </ul>
+  <h3>Open question for Scott</h3>
+  <ul class="list">
+    <li>When a seeker taps <b>Edit</b> on the Review step, they return to the time picker with <code>registration.step</code> already set — so <code>DefaultContainer</code> hides the job card and <code>JobSummary</code> shows instead. Should the new job card also show on that return visit?</li>
+  </ul>
+  <h3>Not part of this change</h3>
+  <ul class="list">
+    <li>The native-video line still reads “This will be a virtual interview on JobFairX”. Phone and in-person interviews already have their own lines.</li>
+  </ul>
+</section>
+
+</div>
+<script>
+(function(){
+  function setFrame(card, open){
+    var btn = card.querySelector('.more'), full = card.querySelector('.full');
+    full.hidden = !open;
+    card.classList.toggle('open', open);
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+  document.querySelectorAll('.card.job').forEach(function(card){
+    card.querySelector('.more').addEventListener('click', function(){
+      var open = card.classList.contains('open');
+      setFrame(card, !open);
+      if (open) {                       // collapsing a long description: keep the card in view
+        var r = card.getBoundingClientRect();
+        if (r.top < 0) card.scrollIntoView({block:'start', behavior:'smooth'});
+      }
+      syncSwitch();
+    });
+  });
+  document.querySelectorAll('.slots').forEach(function(list){
+    list.addEventListener('change', function(){
+      list.querySelectorAll('.slot').forEach(function(s){
+        s.classList.toggle('sel', s.querySelector('input').checked);
+      });
+    });
+  });
+  var sw = document.querySelectorAll('.switch button');
+  sw.forEach(function(b){
+    b.addEventListener('click', function(){
+      var open = b.getAttribute('data-state') === 'open';
+      document.querySelectorAll('.card.job').forEach(function(c){ setFrame(c, open); });
+      syncSwitch();
+    });
+  });
+  function syncSwitch(){
+    var cards = document.querySelectorAll('.card.job'), openCount = 0;
+    cards.forEach(function(c){ if (c.classList.contains('open')) openCount++; });
+    sw.forEach(function(b){
+      var want = b.getAttribute('data-state') === 'open' ? cards.length : 0;
+      b.setAttribute('aria-pressed', openCount === want ? 'true' : 'false');
+    });
+  }
+  syncSwitch();
+})();
+</script>
+</body>
+</html>
