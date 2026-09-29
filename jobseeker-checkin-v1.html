@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JobFairX — Check in for your interview</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════════════
+   CHECKING IN FOR AN IN-PERSON INTERVIEW (Scott, 29 Sep 2026)
+   The candidate scans the employer's sign and lands here.
+
+   Scott's ruling: the whole check-in process is the same as
+   Indeed's, with one exception — no walk-ins.
+
+   Measured on Indeed, 29 Sep 2026:
+     · One code for the whole event, scanned with the phone's
+       own camera. The link is also typed out on the sign.
+     · The candidate enters their phone number. That is how
+       they are matched to their interview.
+     · Their status updates on the employer's side on its own.
+   Indeed does not publish the candidate's screen. Their video
+   shows a blank phone. So the layout here is ours, built from
+   the components of jobseeker-join-v1.html, and the flow is the
+   shortest one that fits what Indeed describes: one field, one
+   button.
+
+   No walk-ins: a number with no interview here today gets a
+   plain message and is sent to the front desk.
+
+   NOT BUILT: there is no server. A check-in is written to the
+   browser's localStorage so the employer pages in this
+   prototype can show it. Names and numbers are placeholders.
+   ═══════════════════════════════════════════════════════════ */
+:root{
+  --font:'Noto Sans',-apple-system,BlinkMacSystemFont,sans-serif;
+  --blue:#0044B3; --blue-hover:#003399; --blue-wash:#eef4ff;
+  --ink:#2d2d2d; --ink-2:#595959; --ink-3:#767676; --ink-disabled:#a9a7a4;
+  --page:#f3f2ef; --surface:#fff; --border:#d4d2d0; --divider:#ebebeb;
+  --green-deep:#13674a; --red-solid:#9d2933;
+  --t-xs:12px; --t-sm:13px; --t-base:14px; --t-md:16px; --t-lg:17px; --t-xl:20px; --t-2xl:22px;
+  --r-sm:6px; --r-md:8px; --r-lg:12px; --r-xl:16px;
+  --devbar-h:44px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{font-family:var(--font);background:var(--page);color:var(--ink);font-size:var(--t-base);line-height:1.5;-webkit-font-smoothing:antialiased;min-height:100vh}
+:focus-visible{outline:3px solid var(--blue);outline-offset:2px;border-radius:3px}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.001ms!important;transition-duration:.001ms!important}}
+
+/* ═══ DEV BAR ═══ */
+.devbar{position:fixed;top:0;left:0;right:0;min-height:44px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;padding:6px 16px;z-index:400;flex-wrap:wrap}
+.dev-toggle{display:flex;align-items:center;gap:5px;padding:3px 8px;background:var(--page);border-radius:5px;border:1px solid var(--border)}
+.dev-toggle-label{font-size:9px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
+.dev-toggle-switch{display:flex;background:#e0e0e0;border-radius:3px;overflow:hidden}
+.dev-toggle-btn{padding:3px 7px;font-size:10px;font-weight:700;border:none;background:transparent;cursor:pointer;font-family:inherit;color:var(--ink-3);transition:all .15s}
+.dev-toggle-btn.active{background:var(--blue);color:#fff}
+.devbar-note{margin-left:auto;font-size:var(--t-sm);color:var(--ink-2)}
+.devbar-note b{color:var(--ink);font-weight:700}
+body.embed .devbar{display:none}
+
+/* ═══ PHONE STAGE ═══ */
+#phoneStage{display:none;padding:calc(var(--devbar-h) + 20px) 20px 40px;flex-direction:column;align-items:center;gap:12px}
+body.stage-mobile #phoneStage{display:flex}
+body.stage-mobile .appwrap{display:none!important}
+.phone-shell{width:390px;height:844px;border:10px solid #1c1c1e;border-radius:44px;overflow:hidden;background:#000;box-shadow:0 12px 34px rgba(0,0,0,.18);position:relative;max-width:100%}
+.phone-shell iframe{width:390px;height:824px;border:0;display:block;background:var(--surface)}
+.phone-notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:150px;height:26px;background:#1c1c1e;border-radius:0 0 16px 16px;z-index:5;pointer-events:none}
+.phone-cap{font-size:var(--t-sm);color:var(--ink-3)}
+
+/* ═══ APP CHROME — from jobseeker-join-v1.html ═══ */
+.appwrap{padding-top:var(--devbar-h);min-height:100vh;display:flex;flex-direction:column}
+body.embed .appwrap{padding-top:0}
+.brandbar{background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px;padding:14px 20px;flex-shrink:0}
+.brandbar .logo{font-size:26px;font-weight:800;color:var(--blue);letter-spacing:-.6px}
+.brandbar .help{margin-left:auto;width:30px;height:30px;border-radius:50%;border:2px solid var(--ink);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:var(--t-base);color:var(--ink);background:none;cursor:pointer;font-family:inherit;flex-shrink:0;position:relative}
+/* the round button is 30px; this gives it a 44px touch target */
+.brandbar .help:after{content:"";position:absolute;inset:-7px}
+.stage{flex:1;display:flex;flex-direction:column;background:var(--page)}
+
+.col{width:100%;max-width:600px;margin:0 auto;padding:20px 16px 60px}
+.card{background:var(--surface);border-radius:var(--r-lg);padding:26px 24px}
+.stepn{font-size:var(--t-sm);font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--ink-2);margin-bottom:10px}
+h1{font-size:25px;font-weight:700;letter-spacing:-.3px;line-height:1.3;margin-bottom:14px}
+.btn{display:block;width:100%;padding:14px 24px;border-radius:var(--r-md);font-size:var(--t-md);font-weight:700;cursor:pointer;font-family:inherit;border:1px solid transparent;text-align:center;transition:all .15s;min-height:48px}
+.btn-primary{background:var(--blue);color:#fff}
+.btn-primary:hover{background:var(--blue-hover)}
+.foot{text-align:center;font-size:var(--t-base);color:var(--ink-2);margin-top:20px;line-height:1.6}
+.readybox{display:flex;border-radius:10px;overflow:hidden;margin-bottom:22px;background:var(--page)}
+.readybox .cap{background:var(--green-deep);width:56px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.readybox .cap svg{width:24px;height:24px;color:#fff}
+.readybox .body{padding:12px 16px;min-width:0}
+.readybox b{display:block;font-size:var(--t-md);font-weight:700}
+.readybox .sub{display:block;font-size:var(--t-md);color:var(--ink-2);margin-top:2px}
+
+/* ═══ NEW FOR CHECK-IN — same tokens ═══ */
+.place{display:flex;gap:10px;align-items:flex-start;background:var(--page);border-radius:10px;padding:12px 14px;margin-bottom:22px}
+.place svg{width:20px;height:20px;flex-shrink:0;margin-top:2px;color:var(--ink-2)}
+.place b{display:block;font-size:var(--t-md);font-weight:700;line-height:1.35}
+.place span{display:block;font-size:var(--t-base);color:var(--ink-2);line-height:1.45;margin-top:1px}
+.fl{display:block;font-size:var(--t-md);font-weight:700;margin-bottom:8px}
+.inp{width:100%;padding:13px 14px;border:1px solid var(--ink-3);border-radius:var(--r-md);font-family:inherit;font-size:18px;color:var(--ink);background:var(--surface);min-height:52px;letter-spacing:.2px}
+.inp::placeholder{color:var(--ink-3)}
+.inp.bad{border:2px solid var(--red-solid);padding:12px 13px}
+.hint{font-size:var(--t-base);color:var(--ink-2);margin:8px 0 20px;line-height:1.5}
+.err{display:flex;gap:8px;align-items:flex-start;font-size:var(--t-base);color:var(--red-solid);font-weight:600;margin:8px 0 20px;line-height:1.45}
+.err svg{width:18px;height:18px;flex-shrink:0;margin-top:1px}
+.rows{display:flex;flex-direction:column;gap:12px}
+.rw{display:flex;gap:12px;align-items:flex-start;font-size:var(--t-md);line-height:1.45}
+.rw svg{width:20px;height:20px;flex-shrink:0;margin-top:2px;color:var(--ink-2)}
+.rw b{font-weight:700}
+.sep{height:1px;background:var(--divider);margin:20px 0}
+.lbl{font-size:var(--t-sm);font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--ink-2);margin-bottom:8px}
+.from{font-size:var(--t-md);line-height:1.55}
+.undo{text-align:center;font-size:var(--t-base);color:var(--ink-2);margin-top:18px}
+.undo button{background:none;border:0;font-family:inherit;font-size:inherit;color:var(--blue);text-decoration:underline;font-weight:600;cursor:pointer;padding:12px 4px;min-height:44px}
+
+@media (min-width:901px){
+  .col{padding:36px 20px 80px}
+  .card{padding:34px 38px;border:1px solid var(--border)}
+}
+@media (max-width:900px){
+  .brandbar{padding:12px 16px}
+  .col{padding:14px 12px 50px}
+  .card{padding:20px 18px}
+  h1{font-size:23px}
+}
+</style>
+</head>
+<body>
+
+<div class="devbar" role="region" aria-label="Prototype state controls">
+  <div class="dev-toggle" id="tgView">
+    <span class="dev-toggle-label">View:</span>
+    <div class="dev-toggle-switch">
+      <button class="dev-toggle-btn active" onclick="setView('desktop',this)">Desktop</button>
+      <button class="dev-toggle-btn" onclick="setView('mobile',this)">Mobile</button>
+    </div>
+  </div>
+  <div class="dev-toggle">
+    <span class="dev-toggle-label">Screen:</span>
+    <div class="dev-toggle-switch" id="tgScreen">
+      <button class="dev-toggle-btn active" onclick="show('form')">Check in</button>
+      <button class="dev-toggle-btn" onclick="show('done')">Checked in</button>
+      <button class="dev-toggle-btn" onclick="show('notfound')">Not found</button>
+      <button class="dev-toggle-btn" onclick="show('already')">Already checked in</button>
+    </div>
+  </div>
+  <div class="dev-toggle">
+    <span class="dev-toggle-label">Demo:</span>
+    <div class="dev-toggle-switch">
+      <button class="dev-toggle-btn" onclick="resetAll()">Clear check-ins</button>
+    </div>
+  </div>
+  <div class="devbar-note">Demo numbers: <b>(713) 555-0140</b> and <b>(972) 555-0148</b></div>
+</div>
+
+<div id="phoneStage">
+  <div class="phone-shell"><div class="phone-notch"></div>
+    <iframe id="phoneFrame" title="Check-in at phone size"></iframe>
+  </div>
+  <p class="phone-cap">390 &times; 844 &middot; the toggles above drive the phone</p>
+</div>
+
+<div class="appwrap">
+  <div class="brandbar">
+    <span class="logo">JobFairX</span>
+    <button class="help" aria-label="Help" onclick="toast('Help')">?</button>
+  </div>
+  <main class="stage" id="stage"></main>
+</div>
+
+<script>
+var I = {
+  tick:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>',
+  pin:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 22s7-6.2 7-12a7 7 0 10-14 0c0 5.800 7 12 7 12z"/><circle cx="12" cy="10" r="2.6"/></svg>',
+  clock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7.500V12l3 2"/></svg>',
+  bag:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 012-2h2a2 2 0 012 2v2"/></svg>',
+  warn:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3l9.500 17H2.500L12 3z"/><path d="M12 10v4M12 17h.01"/></svg>'
+};
+
+/* ═══ MODEL ═══
+   Placeholders. The employer and address are the seeker prototype's own
+   in-person interview. The three people are the scheduled candidates on the
+   employer's Candidates page in this build. */
+var EMPLOYER = 'Tenet Health';
+var ADDRESS  = '2200 Ross Avenue, Suite 400, Dallas';
+/* The employer's own arrival instructions, as they wrote them. The prototype's
+   example reads "Check in with the receptionist…", which would give "check in"
+   two meanings on one page, so the example here opens with "Go to". */
+var ARRIVAL  = 'Go to the receptionist on the 4th floor and ask for Talent Acquisition.';
+var PEOPLE = {
+  '7135550140': { name:'Rachel Foster',  first:'Rachel', job:'Registered Nurse',   loc:'Dallas, TX', time:'2:00 PM', slot:'Apr 22, 2:00 PM - 2:30 PM CT' },
+  '9725550148': { name:'Sofia Alvarez',  first:'Sofia',  job:'Physical Therapist', loc:'Dallas, TX', time:'3:00 PM', slot:'Apr 22, 3:00 PM - 3:30 PM CT' },
+  /* Daniel had checked in before the demo starts, so his number shows the
+     already-checked-in screen. */
+  '2145550121': { name:'Daniel Okafor',  first:'Daniel', job:'Registered Nurse',   loc:'Dallas, TX', time:'2:30 PM', slot:'Apr 22, 2:30 PM - 3:00 PM CT', pre:true }
+};
+var KEY = 'jfxCheckins';
+
+var S = { screen:'form', tel:'', err:'', who:'' };
+
+/* ═══ STORAGE ═══ */
+function readAll(){ try { return JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch(e){ return {}; } }
+function writeAll(o){ try { localStorage.setItem(KEY, JSON.stringify(o)); } catch(e){} }
+function isIn(d){ return !!(PEOPLE[d] && (PEOPLE[d].pre || readAll()[d])); }
+
+/* ═══ PHONE NUMBER ═══ */
+function digits(v){
+  var d = String(v || '').replace(/\D/g, '');
+  if (d.length === 11 && d.charAt(0) === '1') d = d.slice(1);
+  return d.slice(0, 10);
+}
+function fmt(d){
+  if (!d) return '';
+  if (d.length < 4) return '(' + d;
+  if (d.length < 7) return '(' + d.slice(0,3) + ') ' + d.slice(3);
+  return '(' + d.slice(0,3) + ') ' + d.slice(3,6) + '-' + d.slice(6);
+}
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+/* ═══ SCREENS ═══ */
+function place(){
+  return '<div class="place">' + I.pin + '<div><b>' + esc(EMPLOYER) + '</b><span>' + esc(ADDRESS) + '</span></div></div>';
+}
+function scForm(){
+  var miss = S.err === 'nomatch', short = S.err === 'short';
+  var msg = miss
+    ? 'No interview with ' + esc(EMPLOYER) + ' today matches this number. Check it and try again.'
+    : 'Enter your 10-digit mobile number.';
+  return '<div class="col"><form class="card" onsubmit="return submitTel(event)" novalidate>'
+    + '<div class="stepn">In-person interview</div>'
+    + '<h1 id="h1" tabindex="-1">' + (miss ? 'We couldn’t find your interview' : 'Check in for your interview') + '</h1>'
+    + place()
+    + '<label class="fl" for="tel">Mobile number</label>'
+    + '<input class="inp' + (S.err ? ' bad' : '') + '" id="tel" name="tel" type="tel" inputmode="tel" autocomplete="tel"'
+    +   ' placeholder="(555) 555-0100" value="' + esc(fmt(S.tel)) + '" oninput="typed(this)"'
+    +   ' aria-describedby="telMsg"' + (S.err ? ' aria-invalid="true"' : '') + '>'
+    + (S.err
+        ? '<div class="err" id="telMsg" role="alert">' + I.warn + '<span>' + msg + '</span></div>'
+        : '<p class="hint" id="telMsg">Use the number on your JobFairX account.</p>')
+    + '<button class="btn btn-primary" type="submit">Check in</button>'
+    + '</form><p class="foot">' + (miss ? 'Still can’t check in?' : 'Can’t check in?') + ' Ask at the front desk.</p></div>';
+}
+function scDone(already){
+  var p = PEOPLE[S.who] || PEOPLE['7135550140'];
+  return '<div class="col"><div class="card">'
+    + '<div class="readybox" role="status"><div class="cap">' + I.tick + '</div><div class="body">'
+    +   '<b id="h1" tabindex="-1">' + (already ? 'You’re already checked in, ' : 'You’re checked in, ') + esc(p.first) + '</b>'
+    +   '<span class="sub">We’ve let ' + esc(EMPLOYER) + ' know you’re here.</span></div></div>'
+    + '<div class="rows">'
+    +   '<div class="rw">' + I.bag + '<span><b>' + esc(p.job) + '</b><br>' + esc(EMPLOYER) + '</span></div>'
+    +   '<div class="rw">' + I.clock + '<span>Today at ' + esc(p.time) + '</span></div>'
+    + '</div>'
+    + '<div class="sep"></div>'
+    + '<div class="lbl">What to do now</div>'
+    + '<p class="from">' + esc(ARRIVAL) + '</p>'
+    + '</div>'
+    + (p.pre ? '' : '<p class="undo">Not ' + esc(p.first) + '? <button type="button" onclick="undo()">Undo this check-in</button></p>')
+    + '</div>';
+}
+
+/* ═══ ACTIONS ═══ */
+function typed(el){
+  var d = digits(el.value);
+  S.tel = d;
+  var f = fmt(d);
+  if (el.value !== f) el.value = f;
+  if (S.err) { S.err = ''; render(true); }
+}
+function submitTel(e){
+  if (e && e.preventDefault) e.preventDefault();
+  var d = digits(S.tel);
+  if (d.length < 10) { S.err = 'short'; render(true); return false; }
+  if (!PEOPLE[d]) { S.err = 'nomatch'; S.screen = 'form'; render(true); push(); return false; }
+  S.who = d; S.err = '';
+  if (isIn(d)) { S.screen = 'already'; }
+  else {
+    var all = readAll(), p = PEOPLE[d];
+    all[d] = { name:p.name, job:p.job, loc:p.loc, slot:p.slot, at:Date.now() };
+    writeAll(all);
+    S.screen = 'done';
+  }
+  render(); push(); window.scrollTo(0,0);
+  return false;
+}
+function undo(){
+  var all = readAll();
+  delete all[S.who];
+  writeAll(all);
+  S.screen = 'form'; S.tel = ''; S.who = ''; S.err = '';
+  render(true); push();
+  toast('Check-in undone');
+}
+function resetAll(){
+  writeAll({});
+  S = { screen:'form', tel:'', err:'', who:'' };
+  render(); push();
+  toast('Check-ins cleared');
+}
+/* The Screen toggle shows a state without typing anything. */
+function show(v){
+  if (v === 'form')     S = { screen:'form', tel:'', err:'', who:'' };
+  if (v === 'notfound') S = { screen:'form', tel:'7135550104', err:'nomatch', who:'' };
+  if (v === 'done')     S = { screen:'done', tel:'7135550140', err:'', who:'7135550140' };
+  if (v === 'already')  S = { screen:'already', tel:'2145550121', err:'', who:'2145550121' };
+  render(); push(); window.scrollTo(0,0);
+}
+
+/* ═══ RENDER ═══ */
+function render(keepFocus){
+  var h = S.screen === 'form' ? scForm() : scDone(S.screen === 'already');
+  document.getElementById('stage').innerHTML = h;
+  syncToggles();
+  if (S.screen === 'form') {
+    var el = document.getElementById('tel');
+    if (el && keepFocus) { el.focus(); try { el.setSelectionRange(el.value.length, el.value.length); } catch(e){} }
+  } else if (!EMBED_PARENT()) {
+    var t = document.getElementById('h1');
+    if (t) t.focus({ preventScroll:true });
+  }
+}
+function EMBED_PARENT(){ return !EMBED && document.body.classList.contains('stage-mobile'); }
+function syncToggles(){
+  var cur = S.screen === 'form' ? (S.err === 'nomatch' ? 'notfound' : 'form') : S.screen;
+  var order = ['form','done','notfound','already'];
+  document.querySelectorAll('#tgScreen .dev-toggle-btn').forEach(function(b,i){
+    b.classList.toggle('active', order[i] === cur);
+  });
+}
+
+var tTimer;
+function toast(m){
+  var d = document.createElement('div');
+  d.textContent = m; d.setAttribute('role','status');
+  d.style.cssText='position:fixed;left:50%;transform:translateX(-50%);bottom:24px;background:#dcfce7;border:1px solid #bbf7d0;color:#14532d;padding:12px 18px;border-radius:8px;font-weight:600;font-size:14px;z-index:9999';
+  document.body.appendChild(d);
+  clearTimeout(tTimer); tTimer = setTimeout(function(){ d.remove(); }, 2000);
+}
+
+/* ═══ PHONE BRIDGE — same as the join flow ═══ */
+var EMBED = /[?&]m=1/.test(location.search);
+function applyState(st){ S = JSON.parse(JSON.stringify(st)); render(); }
+function push(){
+  if (EMBED) { try { if (parent && parent !== window && typeof parent.pulled === 'function') parent.pulled(S); } catch(e){} return; }
+  if (!document.body.classList.contains('stage-mobile')) return;
+  var f = document.getElementById('phoneFrame');
+  try { var w = f && f.contentWindow;
+    if (w && typeof w.applyState === 'function') w.applyState(S);
+  } catch(e){}
+}
+/* The phone reports back, so typing inside it keeps the toggles in step. */
+function pulled(st){ S = JSON.parse(JSON.stringify(st)); syncToggles(); }
+function setView(v, btn){
+  document.querySelectorAll('#tgView .dev-toggle-btn').forEach(function(b){ b.classList.remove('active'); });
+  if (btn) btn.classList.add('active');
+  var mob = v === 'mobile';
+  document.body.classList.toggle('stage-mobile', mob);
+  if (mob) {
+    var f = document.getElementById('phoneFrame');
+    if (!f.getAttribute('src')) { f.addEventListener('load', push); f.setAttribute('src', location.pathname + '?m=1'); }
+    else push();
+  }
+  window.scrollTo(0,0);
+}
+if (EMBED) document.body.classList.add('embed');
+function fitDevbar(){
+  var d = document.querySelector('.devbar');
+  if (d) document.documentElement.style.setProperty('--devbar-h', (EMBED ? 0 : d.offsetHeight) + 'px');
+}
+window.addEventListener('resize', fitDevbar);
+window.addEventListener('load', fitDevbar);
+if (window.ResizeObserver) { new ResizeObserver(fitDevbar).observe(document.querySelector('.devbar')); }
+fitDevbar();
+/* A phone that scanned the sign has no toggles to reach for, so on a narrow
+   screen the prototype's bar steps aside and the page is only the page. */
+if (!EMBED && window.matchMedia && window.matchMedia('(max-width:600px)').matches) {
+  document.body.classList.add('embed');
+  document.documentElement.style.setProperty('--devbar-h', '0px');
+}
+render();
+</script>
+</body>
+</html>
