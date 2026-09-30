@@ -5657,6 +5657,10 @@ var tpl=document.getElementById("anxViewTpl");var main=document.querySelector(".
      the lobby under "candidates couldn't make the interview", which already
      exists and is unchanged.
      ═══════════════════════════════════════════════════════════════════════ -->
+<!-- check-in, added 30 Sep 2026 (Scott's pick, option 1B): on the Events list an
+     upcoming in-person row shows a "Check-in QR code" link under Go to lobby. It opens
+     the sign (employer-checkin-qr.html) in a new tab. Video and phone rows do not get it.
+     The link is added by the events-table script below (search "option 1B"). -->
 <style>
 #view-candidates .cd-titlerow { display:flex; align-items:center; justify-content:space-between; height:54px; }
 #view-candidates .cd-scope { display:inline-flex; align-items:center; gap:8px; background:none; border:0; padding:9px 0; border-radius:12px; font-family:inherit; font-size:24px; line-height:36px; font-weight:700; color:#2d2d2d; cursor:pointer; }
@@ -7069,6 +7073,15 @@ try {
          surface. The link itself lives in the lobby, on event day. */
       sub.innerHTML = (k === 'video' && url) ? platformOf(url) : SUB[k];
       cell.parentNode.insertBefore(sub, cell.nextSibling);
+      /* check-in (Scott, 30 Sep 2026, option 1B): an upcoming in-person event gets
+         its sign here, under Go to lobby. Video and phone rows have nothing to print. */
+      if (k === 'person' && tr.classList.contains('upcoming') && !tr.querySelector('.cell-qr')) {
+        var qk = (tr.getAttribute('data-dash-event') || 'dallas').split('-')[0];
+        var qw = document.createElement('div');
+        qw.innerHTML = '<a class="cell-lobby cell-qr" style="margin-top:6px" onclick="window.open(\'employer-checkin-qr.html?e=' + qk + '\',\'_blank\')">Check-in QR code</a>';
+        var qa = tr.querySelector('.cell-setup-complete') || tr.querySelector('.cell-lobby');
+        if (qa) qa.parentNode.insertBefore(qw, qa.nextSibling);
+      }
       /* Carry the method through to the lobby, which opens in a new tab. */
       tr.querySelectorAll('a, button').forEach(function(el) {
         var h = el.getAttribute('onclick') || '';

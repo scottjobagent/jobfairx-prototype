@@ -93,6 +93,12 @@ body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
 .status-card-text h3 { font-size: 24px; font-weight: 700; color: #2d2d2d; margin-bottom: 6px; }
 .status-card-text p { font-size: 16px; font-weight: 400; color: #595959; line-height: 1.5; }
 .status-card-illustration { flex-shrink: 0; width: 140px; height: 100px; }
+/* check-in (30 Sep 2026, option 4A): the card that shows until the first candidate checks in */
+.chk-card { margin-bottom: 16px; }
+.chk-card .status-card-text { max-width: 640px; }
+.chk-card-btn { margin-top: 14px; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 10px 22px; background: #0044B3; color: #fff; border: 0; border-radius: 8px; font-size: 15px; font-weight: 700; font-family: inherit; cursor: pointer; }
+.chk-card-btn:hover { background: #003a99; }
+.chk-card-btn svg { width: 18px; height: 18px; }
 
 /* Collapsible candidate review section */
 .review-section { background: #fff; border-radius: 16px; padding: 24px 28px; border: 1px solid #b0aeab; }
@@ -6615,7 +6621,15 @@ a.jm-cp-num:hover { color:#0044B3; }
   var CHK_KEY = 'jfxCheckins';
   function chkRead() { try { return JSON.parse(localStorage.getItem(CHK_KEY) || '{}') || {}; } catch (e) { return {}; } }
   function chkRows() {
-    var wait = document.querySelectorAll('#waitingLive .live-panel-section')[0];
+    /* 30 Sep: land in whichever live list is showing. "Live empty" is the state
+       an in-person day starts in, and a check-in made then must be seen. */
+    var host = null;
+    ['waitingLive', 'waitingLiveEmpty'].forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el && el.style.display !== 'none' && !host) host = el;
+    });
+    host = host || document.getElementById('waitingLive');
+    var wait = host && host.querySelectorAll('.live-panel-section')[0];
     return wait ? wait.querySelector('tbody') : null;
   }
   function chkFindUpcoming(name) {
@@ -6668,6 +6682,48 @@ a.jm-cp-num:hover { color:#0044B3; }
       arrived.push(r.name);
     });
     if (announce && arrived.length) toast(arrived.join(', ') + ' checked in.');
+    chkCard(); /* 30 Sep: the card goes at the first check-in, and returns if the last one is undone */
+  }
+  /* ═══ check-in (Scott, 30 Sep 2026, option 4A): the card above the list ═══
+     On an in-person event day the Waiting to interview tab opens with a card:
+     "No one has checked in yet", one sentence, and the Check-in QR code button.
+     It goes away by itself at the first check-in and does not come back for an
+     empty list later in the day: once anyone has checked in, the list is a list.
+     In this prototype "anyone" means a stored check-in or a row already in the
+     visible list. In the real build it is the day's check-in count. */
+  var CHK_QR_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14h1M14 20h1M20 20h1M17 17v.01"/></svg>';
+  var CHK_ILLO = '<svg class="status-card-illustration" viewBox="0 0 140 100" fill="none" aria-hidden="true">' +
+    '<rect x="38" y="8" width="64" height="84" rx="6" fill="#fff" stroke="#b0aeab" stroke-width="1.5"/>' +
+    '<g fill="#2d2d2d"><rect x="48" y="18" width="16" height="16" rx="2"/><rect x="76" y="18" width="16" height="16" rx="2"/><rect x="48" y="46" width="16" height="16" rx="2"/>' +
+    '<rect x="76" y="46" width="6" height="6"/><rect x="86" y="46" width="6" height="6"/><rect x="76" y="56" width="6" height="6"/><rect x="86" y="56" width="6" height="6"/></g>' +
+    '<rect x="48" y="72" width="44" height="4" rx="2" fill="#b0aeab"/><rect x="56" y="80" width="28" height="4" rx="2" fill="#d4d2d0"/>' +
+    '<rect x="52" y="22" width="8" height="8" fill="#fff"/><rect x="80" y="22" width="8" height="8" fill="#fff"/><rect x="52" y="50" width="8" height="8" fill="#fff"/></svg>';
+  function chkHostRows(host) {
+    var sec = host.querySelector('.live-panel-section'), body = sec && sec.querySelector('tbody');
+    return body ? [].slice.call(body.querySelectorAll('tr')).filter(function(tr) { return !tr.querySelector('td[colspan]'); }).length : 0;
+  }
+  function chkCard() {
+    ['waitingLive', 'waitingLiveEmpty'].forEach(function(id) {
+      var host = document.getElementById(id), sec = host && host.querySelector('.live-panel-section');
+      if (!sec) return;
+      var card = host.querySelector('.chk-card');
+      var want = (m === 'person') && !Object.keys(chkRead()).length && !chkHostRows(host);
+      if (want && !card) {
+        card = document.createElement('div');
+        card.className = 'status-card chk-card';
+        card.innerHTML = '<div class="status-card-text"><h3>No one has checked in yet</h3>' +
+          '<p>Print the check-in QR code and put it at the door. Candidates scan it to check in, and they appear here.</p>' +
+          '<button type="button" class="chk-card-btn" onclick="JFXM.qr()">' + CHK_QR_SVG + 'Check-in QR code</button></div>' + CHK_ILLO;
+        host.insertBefore(card, sec);
+      } else if (!want && card) {
+        card.parentNode.removeChild(card);
+      }
+      /* the in-person list fills by check-in, so its empty line says so */
+      if (m === 'person') {
+        var ph = sec.querySelector('td[colspan]');
+        if (ph) ph.textContent = 'Candidates appear here when they check in.';
+      }
+    });
   }
   window.addEventListener('storage', function(e) { if (!e.key || e.key === CHK_KEY) chkLand(true); });
   /* Switching the lobby's state redraws the tabs from fixed numbers, so put the
@@ -6679,6 +6735,7 @@ a.jm-cp-num:hover { color:#0044B3; }
       var host = chkRows();
       var k = host ? host.querySelectorAll('tr[data-checkin]').length : 0;
       if (k && mode === 'live') { bumpTab('Waiting to interview', k); bumpTab('Not yet interviewed', -k); }
+      chkCard(); /* 30 Sep: each state decides for itself whether the card shows */
       return r;
     };
   }
@@ -6802,6 +6859,7 @@ a.jm-cp-num:hover { color:#0044B3; }
     fixEndModal();
     wireEndFlow();
     chkLand(false); /* check-in: pick up check-ins made before this page opened */
+    chkCard(); /* check-in, 30 Sep: the card that shows until the first check-in */
   }
 
   document.addEventListener('click', function(e) {
@@ -6829,6 +6887,10 @@ a.jm-cp-num:hover { color:#0044B3; }
          way is the Status menu on the Candidates page, as on Indeed.
        · No-shows are unchanged. When the event ends, anyone who was never
          interviewed is listed under "candidates couldn't make the interview".
+       · 30 Sep (Scott's pick, option 4A): on an in-person event day the Waiting to
+         interview tab opens with a card, "No one has checked in yet", and the
+         Check-in QR code button. It goes away at the first check-in. The
+         in-person list's empty line reads "Candidates appear here when they check in."
      ═══════════════════════════════════════════════════════════════════════ -->
 <!-- ═══════════ PHASE 3 — method-aware polish ═══════════ -->
 <style>

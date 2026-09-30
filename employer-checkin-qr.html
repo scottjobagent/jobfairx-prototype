@@ -24,7 +24,15 @@
          employer's door.
        · One code per employer per event. Every candidate scans the same code.
 
+     ADDED 30 Sep 2026 (Scott's picks): a Copy link button beside Print and
+     Download (option 3A), and the sign now opens from the dashboard's Events
+     list (option 1B), the day-before email (option 2A) and the lobby's
+     "No one has checked in yet" card (option 4A).
+
      NOT BUILT:
+       · The link that Copy link copies is this page's address. The real build
+         needs a signed link that opens without an account and stops working
+         when the event ends.
        · The typed link is a placeholder. The real build needs a short link
          that a person can type from a sign.
        · The code opens the prototype's check-in page. In the real build it
@@ -104,6 +112,10 @@ body{font-family:var(--font);background:var(--surface);color:var(--ink);font-siz
   <button class="b out" type="button" onclick="SIGN.download()">Download
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M4 20h16"/></svg>
   </button>
+  <!-- check-in (Scott, 30 Sep 2026, option 3A): whoever holds the sign shares it -->
+  <button class="b out" type="button" onclick="SIGN.copyLink()">Copy link
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+  </button>
 </div>
 
 <main class="sheet">
@@ -131,7 +143,8 @@ body{font-family:var(--font);background:var(--surface);color:var(--ink);font-siz
   /* Prototype data. The employer is the seeker prototype's own in-person
      employer at the same address the lobby shows. */
   var EVENTS = {
-    dallas: { co:'Tenet Health', name:'Dallas Healthcare Event', date:'Apr 22, 2026' }
+    dallas:  { co:'Tenet Health', name:'Dallas Healthcare Event',  date:'Apr 22, 2026' },
+    atlanta: { co:'Tenet Health', name:'Atlanta Diversity Event',  date:'Apr 5, 2026' }
   };
   var key = (location.search.match(/[?&]e=([a-z0-9-]+)/) || [])[1];
   if (!EVENTS[key]) key = 'dallas';
@@ -191,7 +204,31 @@ body{font-family:var(--font);background:var(--surface);color:var(--ink);font-siz
     img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(xml);
   }
 
-  window.SIGN = { download: download, target: function(){ return target.href; } };
+  /* Copy link (30 Sep, option 3A): puts this page's address on the clipboard so
+     the employer can send the sign to whoever is at the front desk. In the real
+     build the address must be a signed link that opens without an account and
+     stops working when the event ends; here it is simply this page. */
+  function legacyCopy(text) {
+    var t = document.createElement('textarea');
+    t.value = text; t.setAttribute('readonly', ''); t.style.position = 'fixed'; t.style.opacity = '0';
+    document.body.appendChild(t); t.select();
+    var ok = false;
+    try { ok = document.execCommand('copy'); } catch (e) {}
+    t.remove();
+    return ok;
+  }
+  function copyLink() {
+    var url = location.href;
+    var done = function(){ toast('Link copied. Anyone with it can open and print this sign.'); };
+    var fail = function(){ toast('The link could not be copied. It is in the address bar.'); };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(done, function(){ legacyCopy(url) ? done() : fail(); });
+    } else {
+      legacyCopy(url) ? done() : fail();
+    }
+  }
+
+  window.SIGN = { download: download, copyLink: copyLink, target: function(){ return target.href; } };
 })();
 </script>
 </body>
