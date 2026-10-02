@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>Phone interviews: developer notes</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 40px 24px 80px 24px; background: #e9e7e3; font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #2d2d2d; font-size: 14px; line-height: 1.5; }
+  .wrap { max-width: 940px; margin: 0 auto; }
+  .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; color: #0044B3; margin-bottom: 10px; }
+  h1 { font-size: 30px; line-height: 1.2; font-weight: 700; margin: 0 0 12px 0; letter-spacing: -.4px; }
+  .standfirst { font-size: 16px; line-height: 1.6; color: #595959; max-width: 720px; margin: 0 0 8px 0; }
+  .metaline { font-size: 13px; color: #767676; margin-bottom: 34px; }
+  .card { background: #fff; border: 1px solid #b0aeab; border-radius: 14px; padding: 30px 32px; margin-bottom: 22px; }
+  .card > *:first-child { margin-top: 0; } .card > *:last-child { margin-bottom: 0; }
+  h2 { font-size: 20px; font-weight: 700; margin: 0 0 16px 0; display: flex; align-items: center; gap: 12px; letter-spacing: -.2px; }
+  .chipnum { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 999px; background: #0044B3; color: #fff; font-size: 13px; font-weight: 700; flex-shrink: 0; }
+  h3 { font-size: 15px; font-weight: 700; margin: 24px 0 8px 0; }
+  p { margin: 0 0 12px 0; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12.5px; background: #f3f2ef; border: 1px solid #e8e6e3; border-radius: 4px; padding: 1px 5px; }
+  table.data { width: 100%; border-collapse: collapse; margin: 14px 0 4px 0; font-size: 13.5px; }
+  table.data th { text-align: left; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: #767676; padding: 0 14px 8px 0; border-bottom: 1px solid #d4d2d0; vertical-align: bottom; }
+  table.data td { padding: 12px 14px 12px 0; border-bottom: 1px solid #f3f2ef; vertical-align: top; line-height: 1.5; }
+  table.data tr:last-child td { border-bottom: none; }
+  .box { border-left: 4px solid #0044B3; background: #f7f6f5; border-radius: 0 8px 8px 0; padding: 14px 18px; margin: 18px 0; font-size: 13.5px; line-height: 1.6; }
+  .box.warn { border-left-color: #8a5a20; background: #fdf6ec; }
+  .box .lbl { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; margin-bottom: 5px; color: #595959; }
+  .sms { max-width: 360px; background: #e9e9eb; border-radius: 18px; padding: 10px 14px; font-size: 15px; line-height: 21px; margin: 10px 0; }
+  ul { margin: 0 0 12px 0; padding-left: 20px; } li { margin-bottom: 7px; }
+  a { color: #0044B3; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">JobFairX prototype &middot; phone interviews</div>
+  <h1>Phone interviews, in Indeed Interview's format</h1>
+  <p class="standfirst">What changed in the prototype on 2 October 2026 so that a phone interview on JobFairX runs the way a phone-format Indeed Interview runs: the employer gets the candidate's number when the interview is confirmed and calls from their own phone at the start time. No lobby, no check-in, nobody places the call for them.</p>
+  <div class="metaline">Measured from Indeed's current help center, its Employer Guide, its Interview page and nine real Indeed emails (August 2026). Built as copies and new files; no live page changed.</div>
+
+  <div class="card">
+    <h2><span class="chipnum">1</span> Indeed's rules we now follow</h2>
+    <ul>
+      <li><strong>The number is released on confirmation.</strong> Before that, Indeed says "Indeed will email phone details after the candidate confirms." The confirmed email carries the candidate's own number, the calendar invitation (.ics) and the resume.</li>
+      <li><strong>The employer calls from their own phone</strong> at the start time. The confirmed email says "Call from your phone", the number, "Call the number above at your interview start time." and "Visit the candidate's page to choose another way to contact them."</li>
+      <li><strong>No check-in for phone.</strong> A phone row in the lobby is simply the confirmed interview with its time. There is nothing to wait for, so the Wait time column is not shown for phone events.</li>
+      <li><strong>Every change sends an updated invite right away</strong> (Indeed: "When you change an interview, an updated invite is sent to the candidate right away."). The employer gets the Updated email with the new .ics; the candidate is asked to confirm the new time.</li>
+      <li><strong>Times are ranges.</strong> Indeed writes "1:00 PM - 1:15 PM PDT". Every email now carries <code>{{interviewStartTime}} - {{interviewEndTime}} {{timezone}}</code>.</li>
+      <li><strong>Actions on the interview</strong> (Indeed's Interviews tab): Reschedule, Cancel, Add team member(s), Take notes. After the interview: schedule a follow-up interview, add notes (not shared with the candidate), send a message.</li>
+      <li><strong>Candidate labels:</strong> "Interview starts in 4 hours" (hours, then minutes, nothing beyond 24 hours), "It's time to join your interview"; Reschedule and Cancel on the interview.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2><span class="chipnum">2</span> Emails to the employer</h2>
+    <table class="data">
+      <tr><th style="width:190px">Template</th><th style="width:250px">Trigger</th><th>What it says</th></tr>
+      <tr><td><code>email-interview-confirmed.html</code><br><span style="color:#767676">replaces Proposed Interview Accepted</span></td><td>The interview becomes confirmed: the candidate accepts your proposed time, or you accept their request.</td><td>"[Name] confirmed your phone interview" &middot; Confirmed &middot; job &middot; date and time range &middot; Phone interview &middot; <em>phone only:</em> Call from your phone, the number, "Call the number above at your interview start time.", "Visit the candidate's page to choose another way to contact them." &middot; Reschedule &middot; attachments invite.ics and the resume.</td></tr>
+      <tr><td><code>email-interview-updated.html</code><br><span style="color:#767676">new</span></td><td>You change the time of an interview.</td><td>"Your phone interview request to [Name] has been updated" &middot; Awaiting candidate confirmation &middot; new date and time range &middot; Phone interview &middot; no button &middot; updated invite.ics attached.</td></tr>
+      <tr><td><code>email-interview-cancelled-v2.html</code><br><span style="color:#767676">replaces Interview Cancelled</span></td><td>The candidate cancels a confirmed interview.</td><td>"[Name] cancelled your scheduled interview" &middot; Cancelled &middot; job &middot; date and time range &middot; Phone interview. Nothing else.</td></tr>
+    </table>
+    <h3>Placeholders added</h3>
+    <p><code>{{interviewTypeLabel}}</code> (phone, video or in-person) &middot; <code>{{interviewStartTime}}</code> and <code>{{interviewEndTime}}</code> (replace <code>{{interviewTime}}</code>) &middot; <code>{{candidatePhone}}</code> as shown, <code>{{candidatePhoneE164}}</code> for the tel: link &middot; <code>{{rescheduleUrl}}</code>. The call block is rendered only when <code>{{interviewLocation}}</code> is phone; the other three locations keep their one-line row. The phone row's label is "Phone interview" in these three templates.</p>
+    <h3>Subjects</h3>
+    <p>"Confirmed: Interview with [Name] for [Job]" &middot; "Updated: Interview request to [Name] for [Job]" &middot; "Cancelled: Interview request to [Name] for [Job]". These are Indeed's subject patterns.</p>
+    <p>All three are listed in <a href="email-viewer.html">email-viewer.html</a>.</p>
+  </div>
+
+  <div class="card">
+    <h2><span class="chipnum">3</span> Text message to the employer at the start time</h2>
+    <p>Indeed texts the employer when an interview starts. Its video text reads: "Your video interview with [Name] starts at 11:00 AM PDT. Click here to join the interview lobby: [link]. To cancel or reschedule, click here: [link]". The phone version follows the same pattern:</p>
+    <div class="sms">Your phone interview with Maria Lopez starts at 10:30 AM CT. Click here to open your lobby and call: jfx.app/l/8k2m. To cancel or reschedule, click here: jfx.app/i/8k2m</div>
+    <p>Two links: the lobby (where the number and the Call button are) and the interview's reschedule/cancel page. Sent at the start time to the interviewer's mobile number. Indeed's phone text itself is not published; this wording is adapted from the video text.</p>
+  </div>
+
+  <div class="card">
+    <h2><span class="chipnum">4</span> Employer lobby (<code>lobby-v3-checkin.html</code>, phone)</h2>
+    <ul>
+      <li><strong>Row state:</strong> phone rows read <strong>Confirmed</strong> (green), not Checked in. The Wait time column is hidden for phone events (<code>.jm-nowait</code>). In-person and video rows are unchanged.</li>
+      <li><strong>Call panel:</strong> "Call from your phone", the number with tel: link and Copy, "Call the number above at your interview start time.", "Visit the candidate's page to choose another way to contact them." (opens the candidate's resume panel). The buttons are JobFairX's: I've started the interview, No answer, Close, Number looks wrong?</li>
+      <li><strong>Row menu (phone rows):</strong> Reschedule (opens the scheduling modal to propose new times), Cancel interview (confirms, removes the row, tells the candidate), Add team member (not built: shows a notice), Take notes (opens the notes modal), Message candidate, Mark as interviewed, Didn't show.</li>
+      <li><strong>Interviewed tab:</strong> the row menu reads "Schedule a follow-up interview" and "Send a message"; every Notes link carries "Not shared with the candidate".</li>
+    </ul>
+    <p>Open <code>lobby-v3-checkin.html?method=phone&amp;mode=live</code>.</p>
+  </div>
+
+  <div class="card">
+    <h2><span class="chipnum">5</span> Job seeker app</h2>
+    <ul>
+      <li><strong><code>jobseeker-v2-phone.html</code></strong> (copy of the dashboard): the phone interview card already carried Indeed's countdown ladder ("Interview starts in 4 hours", then minutes) and the Reschedule and Cancel buttons. At the start time the pill now reads <strong>"It's time to join your interview"</strong> (Indeed's label; the live copy says "Happening now"). Indeed uses the same label for every interview type; apply it beyond phone if you want one label.</li>
+      <li><strong><code>jobseeker-emails-preview-phone.html</code></strong> (copy of the seeker email preview): the "proposed new times" email now offers the three answers Indeed's candidate has, <strong>Choose a new time, Suggest another time, Decline</strong>, and every time is a range. The phone variant already names who calls whom and the number.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2><span class="chipnum">6</span> Not built, on purpose</h2>
+    <ul>
+      <li>Indeed's employer-initiated request flow (Set up interview, "request sent, awaiting confirmation", the candidate's alternate times with a note, Declined). JobFairX interviews are booked by the candidate; only the steps from confirmation onward were adopted.</li>
+      <li>Healthcare copies of the lobby. Main and healthcare differ in data only; apply the same code change.</li>
+      <li>The candidate's reminder text. Indeed's set-up form has "Enable text reminders (optional)"; no text is pictured anywhere public.</li>
+    </ul>
+    <div class="box warn"><span class="lbl">Reference material</span>Indeed's screens and emails are in <code>JobAgentX Business Info/_reference-do-not-publish-indeed-interview-phone-2026-10-02/</code> on Scott's Mac. They are Indeed's and are not published.</div>
+  </div>
+</div>
+</body>
+</html>
