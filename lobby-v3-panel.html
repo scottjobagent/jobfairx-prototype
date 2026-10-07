@@ -7679,6 +7679,8 @@ a.jm-cp-num:hover { color:#0044B3; }
 .pn-ck input{width:18px;height:18px;accent-color:#0044B3;cursor:pointer;flex-shrink:0;margin:0}
 .pn-ck .nm{font-size:14px;font-weight:600;color:#2d2d2d}
 .pn-ck .em{font-size:13px;color:#595959;margin-left:auto}
+.pn-ck.pn-all{border-top:1px solid #e0e0e0;border-bottom:none;margin-top:6px;padding-top:14px}
+.pn-allhint{font-size:13px;color:#767676;margin:-6px 0 0 34px;line-height:1.5}
 .pn-morelink{font-size:13.5px;color:#595959;margin-top:10px}
 .pn-morelink a{color:#0044B3;font-weight:600;text-decoration:underline;text-underline-offset:2px;cursor:pointer}
 .pn-g{border-top:1px solid #e0e0e0;margin-top:18px;padding-top:16px}
@@ -7740,6 +7742,17 @@ a.jm-cp-num:hover { color:#0044B3; }
     var stored = JSON.parse(localStorage.getItem('jfxPanelTeams') || '{}') || {};
     Object.keys(stored).forEach(function (k) { if (Array.isArray(stored[k])) NAMED[k] = stored[k].map(function (n) { return /^Scott\b/.test(n) ? ME : n; }); });
   } catch (e) {}
+  /* Scott, 7 Oct: the same interviewers on every interview of the event. The dashboard's Interview settings switch
+     (everyone on the event) or the Add interviewer dialog's checkbox (the ticked people) sets a team for every interview
+     without a team of its own, booked now or later. This lobby is one event. */
+  var EVENT = 'Dallas Healthcare Event';
+  var EVTEAM = {};
+  try {
+    var st2 = JSON.parse(localStorage.getItem('jfxPanelEventTeams') || '{}') || {};
+    Object.keys(st2).forEach(function (k) { if (Array.isArray(st2[k])) EVTEAM[k] = st2[k].map(function (n) { return /^Scott\b/.test(n) ? ME : n; }); });
+  } catch (e) {}
+  function persistEv() { try { localStorage.setItem('jfxPanelEventTeams', JSON.stringify(EVTEAM)); } catch (e) {} }
+  function teamFor(tr) { var own = NAMED[nameOf(tr)]; if (own && own.length) return own; var ev = EVTEAM[EVENT]; return ev && ev.length ? ev : []; }
   /* Finished interviews: one answer per interviewer. v is 'yes', 'maybe', 'no' or '' (not answered). Guests give none. */
   var DONE = {
     'Marcus Thompson': [{ n: 'Emily Chen', v: 'no' }],
@@ -7800,7 +7813,7 @@ a.jm-cp-num:hover { color:#0044B3; }
         if (ph) { ph.colSpan = hr.children.length; return; }          /* the "nothing here yet" line spans the new column too */
         var td = tr.querySelector('.pn-ncell');
         if (!td) { td = document.createElement('td'); td.className = 'pn-ncell'; tr.insertBefore(td, tr.children[at + 1] || null); }
-        var team = NAMED[nameOf(tr)];
+        var team = teamFor(tr);
         var html = team && team.length
           ? '<div class="pn-names">' + team.map(function (n) { return '<div>' + who(n) + '</div>'; }).join('') + '</div>'
           : '<span class="pn-any">Any available interviewer</span>';
@@ -7890,6 +7903,8 @@ a.jm-cp-num:hover { color:#0044B3; }
     /* The same words as the dashboard's dialog. The guest link lines are Indeed's. */
     o.innerHTML = '<div class="pn-box"><div class="hd"><div><h3>Add interviewer</h3><p id="pnTeamFor"></p></div><button type="button" class="x" onclick="JFXP.closeTeam()" title="Close">&times;</button></div>' +
       '<div class="bd"><div class="pn-lab">Interviewers on this event</div><div class="pn-hint">Choose who will join this interview.</div><div id="pnTeamList"></div>' +
+      '<label class="pn-ck pn-all"><input type="checkbox" id="pnAllBox"><span class="nm">Use these interviewers for all interviews on this event</span></label>' +
+      '<div class="pn-allhint">Including interviews booked after this. To change one interview, use Add interviewer on its row.</div>' +
       '<div class="pn-morelink">Not on the list? <a onclick="JFXP.addToEvent()">Add interviewers to the event</a></div>' +
       '<div class="pn-g"><div class="gt">Share a link with team members</div>' +
       '<p>' + LOCK + '<span>No login required. This link should only be shared with people on your team.</span></p>' +
@@ -8264,16 +8279,24 @@ a.jm-cp-num:hover { color:#0044B3; }
       cur = nameOf(tr);
       var ji = col(t, 'Desired job'), ti = col(t, 'Interview time');
       $('#pnTeamFor').textContent = [cur, ji > -1 ? tr.children[ji].textContent.trim() : '', ti > -1 ? tr.children[ti].textContent.trim() : ''].filter(Boolean).join(' · ');
-      var have = NAMED[cur] || [];
+      var have = teamFor(tr);
       $('#pnTeamList').innerHTML = TEAM.map(function (p) {
         return '<label class="pn-ck"><input type="checkbox" value="' + esc(p.n) + '"' + (have.indexOf(p.n) > -1 ? ' checked' : '') + '><span class="nm">' + who(p.n) + '</span><span class="em">' + esc(p.e) + '</span></label>';
       }).join('');
+      $('#pnAllBox').checked = false;
       $('#pnGuestUrl').textContent = guestUrlFor(cur);
       $('#pnTeamModal').classList.add('open');
     },
     saveTeam: function () {
       if (!cur) return;
-      NAMED[cur] = $$('#pnTeamList input:checked').map(function (i) { return i.value; });
+      var names = $$('#pnTeamList input:checked').map(function (i) { return i.value; });
+      if ($('#pnAllBox').checked) {
+        /* Every interview on this event, booked now or later, gets these people. Teams set row by row are dropped
+           (kept as empty lists so a reload does not bring the example teams back). */
+        EVTEAM[EVENT] = names; persistEv();
+        Object.keys(NAMED).forEach(function (k) { NAMED[k] = []; });
+        namedTables().forEach(function (t) { $$('tbody tr', t).forEach(function (tr) { if (nameOf(tr)) NAMED[nameOf(tr)] = []; }); });
+      } else NAMED[cur] = names;
       persist();
       JFXP.closeTeam();
       namedColumn();

@@ -7294,6 +7294,8 @@ try {
 .pn-ck input{width:18px;height:18px;accent-color:#0044B3;cursor:pointer;flex-shrink:0;margin:0}
 .pn-ck .nm{font-size:14px;font-weight:600;color:#2d2d2d}
 .pn-ck .em{font-size:13px;color:#595959;margin-left:auto}
+.pn-ck.pn-all{border-top:1px solid #e0e0e0;border-bottom:none;margin-top:6px;padding-top:14px}
+.pn-allhint{font-size:13px;color:#767676;margin:-6px 0 0 34px;line-height:1.5}
 .pn-morelink{font-size:13.5px;color:#595959;margin-top:10px}
 .pn-morelink a{color:#0044B3;font-weight:600;text-decoration:underline;text-underline-offset:2px;cursor:pointer}
 .pn-g{border-top:1px solid #e0e0e0;margin-top:18px;padding-top:16px}
@@ -7370,6 +7372,18 @@ try {
     Object.keys(stored).forEach(function (k) { if (Array.isArray(stored[k])) NAMED[k] = stored[k]; });
   } catch (e) {}
   function persist() { try { localStorage.setItem('jfxPanelTeams', JSON.stringify(NAMED)); } catch (e) {} }
+  /* Scott, 7 Oct: the same interviewers on every interview of an event. Per event, a team that applies to every
+     interview without a team of its own, booked now or later. Set by the switch in the event's Interview settings
+     (everyone on the event) or by the checkbox in the Add interviewer dialog (the ticked people). */
+  var EVENT = 'Dallas Healthcare Event';            /* the video event in this copy */
+  var EVTEAM = {};
+  try {
+    var st2 = JSON.parse(localStorage.getItem('jfxPanelEventTeams') || '{}') || {};
+    Object.keys(st2).forEach(function (k) { if (Array.isArray(st2[k])) EVTEAM[k] = st2[k]; });
+  } catch (e) {}
+  function persistEv() { try { localStorage.setItem('jfxPanelEventTeams', JSON.stringify(EVTEAM)); } catch (e) {} }
+  function eventOf(tr) { return tr.getAttribute('data-event') || ''; }
+  function teamFor(tr) { var own = NAMED[nameOf(tr)]; if (own && own.length) return own; var ev = EVTEAM[eventOf(tr)]; return ev && ev.length ? ev : []; }
 
   function $(q, r) { return (r || document).querySelector(q); }
   function $$(q, r) { return [].slice.call((r || document).querySelectorAll(q)); }
@@ -7410,7 +7424,7 @@ try {
         var td = tr.querySelector('.pn-icell');
         if (!td) { td = document.createElement('td'); td.className = 'pn-icell'; }
         if (tr.lastElementChild.previousElementSibling !== td) tr.insertBefore(td, tr.lastElementChild);
-        var team = NAMED[nameOf(tr)];
+        var team = teamFor(tr);
         td.innerHTML = team && team.length
           ? '<div class="pn-names">' + team.map(function (n) { return '<div>' + who(n, ME) + '</div>'; }).join('') + '</div>'
           : '<span class="pn-any">Any available interviewer</span>';
@@ -7430,7 +7444,30 @@ try {
     });
   }
 
-  var cur = null;                                  /* candidate the dialog is open for */
+  var cur = null, curEv = '';                      /* candidate the dialog is open for, and the row's event */
+  /* The event's Interview settings dialog: after the interviewer list, the Panel interviews switch (Scott, 7 Oct).
+     On = everyone on the event joins every interview, now and later. The example interviewers in the dialog are
+     made the same five people as the Add interviewer list, so the two agree. */
+  function syncSwitch() { var s = $('#pnPanelAll'); if (s) s.checked = !!(EVTEAM[EVENT] && EVTEAM[EVENT].length); }
+  function wireSettings() {
+    var m = $('#interviewSettingsModal'), first = m && m.querySelector('.iv-settings-section'); if (!first) return;
+    var tags = first.querySelector('.email-tags-input');
+    if (tags) tags.innerHTML = TEAM.filter(function (p) { return !p.me; }).map(function (p) { return '<span class="email-tag">' + esc(p.e) + ' <button class="remove-tag" onclick="this.parentElement.remove()">&times;</button></span>'; }).join('') + '<input type="text" placeholder="Add email...">';
+    var seats = first.querySelector('div[style*="font-size:13px"]'); if (seats) seats.innerHTML = 'Growth package <span style="color:#d4d2d0;">&middot;</span> 4 of 5 interviewer seats used';
+    first.insertAdjacentHTML('afterend', '<div class="modal-divider" style="margin:0 -28px;"></div><div class="iv-settings-section pn-panelsec" style="margin-top:24px;"><h4 style="margin-bottom:4px !important;">Panel interviews</h4>' +
+      '<div class="iv-toggle-row" style="margin-top:14px;"><span class="iv-toggle-label">Do you want panel interviews for all interviews?</span><label class="iv-toggle-switch"><input type="checkbox" id="pnPanelAll"><span class="iv-toggle-slider"></span></label></div>' +
+      '<p style="font-size:13px;color:#767676;margin-top:10px;line-height:1.5;">All the interviewers above join every interview on this event, including interviews booked after this is turned on. To change one interview, use Add interviewer on its row on the Interviews page.</p></div>');
+    var upd = $$('.modal-footer .modal-btn', m).filter(function (b) { return /Update/.test(b.textContent); })[0];
+    if (upd) upd.addEventListener('click', function () {
+      var on = $('#pnPanelAll').checked;
+      if (on && !(EVTEAM[EVENT] && EVTEAM[EVENT].length)) EVTEAM[EVENT] = TEAM.map(function (p) { return p.n; });
+      if (!on) delete EVTEAM[EVENT];
+      persistEv(); renderUpcoming();
+    });
+    var oOpen = window.openInterviewSettings;
+    if (typeof oOpen === 'function') window.openInterviewSettings = function () { var r = oOpen.apply(this, arguments); syncSwitch(); return r; };
+    syncSwitch();
+  }
   function guestUrlFor(name) {
     var u; try { u = new URL(ROOM, window.location.href).href; } catch (e) { u = ROOM; }
     return u + '?candidate=' + encodeURIComponent(name) + '&role=guest';
@@ -7444,6 +7481,8 @@ try {
       '<div class="modal-divider"></div><div class="modal-body">' +
       '<div class="pn-lab">Interviewers on this event</div><div class="pn-hint">Choose who will join this interview.</div>' +
       '<div id="pnTeamList"></div>' +
+      '<label class="pn-ck pn-all"><input type="checkbox" id="pnAllBox"><span class="nm">Use these interviewers for all interviews on this event</span></label>' +
+      '<div class="pn-allhint">Including interviews booked after this. To change one interview, use Add interviewer on its row.</div>' +
       '<div class="pn-morelink">Not on the list? <a onclick="JFXP.addToEvent()">Add interviewers to the event</a></div>' +
       '<div class="pn-g"><div class="gt">Share a link with team members</div>' +
       '<p>' + LOCK + '<span>No login required. This link should only be shared with people on your team.</span></p>' +
@@ -7620,19 +7659,26 @@ try {
       cur = nameOf(tr);
       var ji = col(t, 'Desired job'), ti = col(t, 'Interview time');
       $('#pnTeamFor').textContent = [cur, ji > -1 ? tr.children[ji].textContent.trim() : '', ti > -1 ? tr.children[ti].textContent.trim() : ''].filter(Boolean).join(' \u00b7 ');
-      var have = NAMED[cur] || [];
+      curEv = eventOf(tr);
+      var have = teamFor(tr);
       $('#pnTeamList').innerHTML = TEAM.map(function (p) {
         return '<label class="pn-ck"><input type="checkbox" value="' + esc(p.n) + '"' + (have.indexOf(p.n) > -1 ? ' checked' : '') + '><span class="nm">' + who(p.n, ME) + '</span><span class="em">' + esc(p.e) + '</span></label>';
       }).join('');
+      $('#pnAllBox').checked = false;
       $('#pnGuestUrl').textContent = guestUrlFor(cur);
       $('#pnTeamModal').classList.add('open');
     },
     saveTeam: function () {
       if (!cur) return;
-      NAMED[cur] = $$('#pnTeamList input:checked').map(function (i) { return i.value; });
+      var names = $$('#pnTeamList input:checked').map(function (i) { return i.value; });
+      if ($('#pnAllBox').checked) {
+        /* Every interview on the event, booked now or later, gets these people. Teams set row by row on this event are dropped. */
+        EVTEAM[curEv] = names; persistEv();
+        upTables().forEach(function (t) { $$('tbody tr', t).forEach(function (tr) { if (eventOf(tr) === curEv && nameOf(tr)) NAMED[nameOf(tr)] = []; }); });
+      } else NAMED[cur] = names;
       persist();
       closeModal('pnTeamModal');
-      renderUpcoming();
+      renderUpcoming(); syncSwitch();
     },
     addToEvent: function () { closeModal('pnTeamModal'); if (typeof openInterviewSettings === 'function') openInterviewSettings(); },
     who: function (e, btn) {
@@ -7660,6 +7706,7 @@ try {
 
   function init() {
     wireReport();
+    wireSettings();
     renderUpcoming();
     renderReport();
     /* Scott, 7 Oct: the heading reads Actions wherever a row offers more than one action. (The Candidates page
