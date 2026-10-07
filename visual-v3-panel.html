@@ -7272,9 +7272,21 @@ try {
 .pn-you{color:#595959}
 #ivUpcomingActive .iv-review-actions,#ivUpcomingLive .iv-review-actions{white-space:nowrap}
 #ivUpcomingActive .iv-live-table tbody td:first-child > div:first-child,#ivUpcomingLive .iv-live-table tbody td:first-child > div:first-child{white-space:nowrap}
-.iv-upcoming-btn.pn-add{white-space:nowrap}
-.iv-upcoming-btn.pn-add:hover{background:#e8f0fe;color:#0044B3}
-/* Add team member(s) dialog */
+/* Actions menu (7 Oct 2026, Scott's pick, option B): the Events tab's three-dot square in place of the row's buttons.
+   Reschedule interview · Add interviewer (video rows) · a divider · Cancel interview in red. */
+.pn-hidden{display:none !important}
+.pn-act{position:relative;display:flex;align-items:center}
+.pn-dots{width:38px;height:38px;border-radius:8px;border:1px solid #d4d2d0;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;color:#0044B3;padding:0;flex-shrink:0}
+.pn-dots:hover,.pn-act.on .pn-dots{background:#f0f5ff;border-color:#0044B3}
+.pn-dots svg{width:18px;height:18px}
+.pn-menu{display:none;position:absolute;top:calc(100% + 4px);right:0;background:#fff;border:1px solid #d4d2d0;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.12);min-width:210px;z-index:500;padding:6px 0;text-align:left}
+.pn-act.on .pn-menu{display:block}
+.pn-menu.up{top:auto;bottom:calc(100% + 4px)}
+.pn-mi{display:block;width:100%;padding:12px 18px;font-size:14px;font-weight:500;color:#2d2d2d;background:none;border:none;text-align:left;cursor:pointer;font-family:inherit;transition:background .1s;white-space:nowrap}
+.pn-mi:hover{background:#f3f2ef}
+.pn-mi.pn-danger{color:#991b1b}
+.pn-sep{height:1px;background:#e8e6e3;margin:6px 0}
+/* Add interviewer dialog */
 .pn-lab{font-size:15px;font-weight:700;color:#2d2d2d;margin-bottom:4px}
 .pn-hint{font-size:13.5px;color:#595959;margin-bottom:12px}
 .pn-ck{display:flex;align-items:center;gap:12px;padding:11px 4px;border-bottom:1px solid #f0eeeb;cursor:pointer}
@@ -7328,8 +7340,11 @@ try {
    Several interviewers in one interview. Employer side only, video on JobFairX only.
 
    What it adds to the dashboard:
-     Interviews, Upcoming   an Interviewers column and, on video rows, Add team member(s): a dialog with a
-                            checklist of the interviewers on the event, plus the guest link.
+     Interviews, Upcoming   an Interviewers column, and (7 Oct) one Actions menu per row in place of the buttons:
+                            Reschedule interview, Add interviewer on video rows (a dialog with a checklist of the
+                            interviewers on the event, plus the guest link), then Cancel interview. The Candidates
+                            page's scheduled list gets the same menu with two items (its markup is patched in
+                            build_panel.py; the styles are here).
      Event Report           Interviewers moves in front of Feedback; several interviewers show as one tally
                             ("1 Yes, 1 Maybe"), and clicking it shows who said what. You change only your own.
                             The filter buttons count a candidate under each answer they received.
@@ -7372,17 +7387,24 @@ try {
   var COPY = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>';
   var TICK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
 
-  /* ══ 1. Interviews, Upcoming: who is named on each interview, and Add team member(s) ══ */
+  /* ══ 1. Interviews, Upcoming: who is named on each interview, and the Actions menu ══ */
   function upTables() { return $$('#ivUpcomingActive table.iv-live-table, #ivUpcomingLive table.iv-live-table'); }
   function nameOf(tr) { var d = tr.querySelector('td div'); return d ? d.textContent.trim() : ''; }
   function methodOf(tr) { return (window.JFXM && JFXM.forEvent) ? JFXM.forEvent(tr.getAttribute('data-event')) : 'video'; }
+  var DOTS = '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="6" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="18" cy="12" r="2"/></svg>';
+  function mi(cls, what, label) { return '<button type="button" class="pn-mi ' + cls + '" onclick="JFXP.run(this,\'' + what + '\')">' + label + '</button>'; }
+  function menuHtml(items) {
+    return '<div class="pn-act"><button type="button" class="pn-dots" title="Actions" aria-label="Actions" onclick="JFXP.menu(event,this)">' + DOTS + '</button><div class="pn-menu">' + items.join('') + '</div></div>';
+  }
+  function closeMenus() { $$('.pn-act.on').forEach(function (w) { w.classList.remove('on'); }); }
   function renderUpcoming() {
     upTables().forEach(function (t) {
       var hr = t.querySelector('thead tr'); if (!hr) return;
       var th = hr.querySelector('.pn-icol');
       if (!th) { th = document.createElement('th'); th.className = 'pn-icol'; th.textContent = 'Interviewers'; }
-      if (hr.lastElementChild.previousElementSibling !== th) hr.insertBefore(th, hr.lastElementChild);   /* always just before Action */
-      if (hr.children.length === 7) ['196px', '128px', '96px', '192px', '104px', '136px', ''].forEach(function (w, i) { hr.children[i].style.width = w; });
+      if (hr.lastElementChild.previousElementSibling !== th) hr.insertBefore(th, hr.lastElementChild);   /* always just before Actions */
+      hr.lastElementChild.textContent = 'Actions';                                                       /* Scott, 7 Oct: "Actions", as on the Events tab */
+      if (hr.children.length === 7) ['21%', '15%', '12%', '19%', '12%', '13%', '8%'].forEach(function (w, i) { hr.children[i].style.width = w; });
       $$('tbody tr', t).forEach(function (tr) {
         if (tr.querySelector('td[colspan]')) return;
         var td = tr.querySelector('.pn-icell');
@@ -7392,14 +7414,17 @@ try {
         td.innerHTML = team && team.length
           ? '<div class="pn-names">' + team.map(function (n) { return '<div>' + who(n, ME) + '</div>'; }).join('') + '</div>'
           : '<span class="pn-any">Any available interviewer</span>';
-        /* Indeed's Interviews tab: Reschedule, Cancel, Add team member(s). Panels are video only. */
+        /* Scott, 7 Oct: the Reschedule and Cancel buttons become one three-dot menu, like the Events tab.
+           The page's own buttons stay in the row, hidden, so nothing that looks for them breaks.
+           Add interviewer is on video rows only: panels are video on JobFairX only. A live-event row with
+           Go to Lobby has no button group and is left alone. */
         var grp = tr.querySelector('.iv-upcoming-actions');
-        if (grp && methodOf(tr) === 'video' && !grp.querySelector('.pn-add')) {
-          var c = grp.querySelector('.cancel'); if (c) c.style.borderRight = '1px solid #d4d2d0';
-          var b = document.createElement('button');
-          b.type = 'button'; b.className = 'iv-upcoming-btn pn-add'; b.textContent = 'Add team member(s)';
-          b.setAttribute('onclick', 'JFXP.team(this)');
-          grp.appendChild(b);
+        if (grp && !tr.querySelector('.pn-act')) {
+          grp.classList.add('pn-hidden');
+          var items = [mi('pn-resched', 'reschedule', 'Reschedule interview')];
+          if (methodOf(tr) === 'video') items.push(mi('pn-add', 'add', 'Add interviewer'));
+          items.push('<div class="pn-sep"></div>', mi('pn-danger pn-cancel', 'cancel', 'Cancel interview'));
+          grp.insertAdjacentHTML('afterend', menuHtml(items));
         }
       });
     });
@@ -7414,7 +7439,7 @@ try {
     if ($('#pnTeamModal')) return;
     var o = document.createElement('div'); o.className = 'modal-overlay'; o.id = 'pnTeamModal';
     /* The dialog is ours: Indeed does not publish its form. The guest link wording is the same as in the room. */
-    o.innerHTML = '<div class="modal-box" style="width:560px"><div class="modal-header"><div><h3>Add team member(s)</h3><p id="pnTeamFor"></p></div>' +
+    o.innerHTML = '<div class="modal-box" style="width:560px"><div class="modal-header"><div><h3>Add interviewer</h3><p id="pnTeamFor"></p></div>' +
       '<button class="modal-close" onclick="closeModal(\'pnTeamModal\')" title="Close" style="font-size:24px;line-height:1">&times;</button></div>' +
       '<div class="modal-divider"></div><div class="modal-body">' +
       '<div class="pn-lab">Interviewers on this event</div><div class="pn-hint">Choose who will join this interview.</div>' +
@@ -7564,6 +7589,31 @@ try {
   }
 
   window.JFXP = {
+    /* The three-dot square on an Upcoming row. One menu open at a time; it opens upward when there is no room under the row. */
+    menu: function (e, btn) {
+      e.stopPropagation();
+      var w = btn.parentNode, was = w.classList.contains('on');
+      closeMenus();
+      if (!was) {
+        var m = w.querySelector('.pn-menu'); m.classList.remove('up'); w.classList.add('on');
+        var r = m.getBoundingClientRect();
+        if (r.bottom > window.innerHeight - 8 && w.getBoundingClientRect().top - r.height > 8) m.classList.add('up');
+      }
+    },
+    close: closeMenus,
+    run: function (btn, what) {
+      var tr = btn.closest('tr'); closeMenus();
+      if (what === 'reschedule') openScheduleModal(btn);
+      else if (what === 'add') JFXP.team(btn);
+      else if (what === 'cancel') {
+        /* The page's own openCancelInterviewModal reads .iv-review-name, which these rows do not have, so on the
+           live page Cancel throws and its dialog never opens. The menu sets the same dialog up itself. */
+        var name = nameOf(tr) || 'this candidate';
+        $('#cancelInterviewTitle').textContent = 'Cancel interview with ' + name + '?';
+        $('#cancelInterviewText').textContent = 'Are you sure you want to cancel your interview with ' + name + '?';
+        $('#cancelInterviewModal').classList.add('open');
+      }
+    },
     team: function (btn) {
       ensureModal();
       var tr = btn.closest('tr'), t = tr.closest('table');
@@ -7602,14 +7652,19 @@ try {
     state: function () { return { named: NAMED, report: REPORT }; }
   };
   document.addEventListener('click', function (e) {
+    if (!(e.target.closest && e.target.closest('.pn-act'))) closeMenus();
     if (e.target.closest && e.target.closest('.pn-tw')) return;
     $$('.pn-tw.on').forEach(function (x) { x.classList.remove('on'); });
   });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeMenus(); });
 
   function init() {
     wireReport();
     renderUpcoming();
     renderReport();
+    /* Scott, 7 Oct: the heading reads Actions wherever a row offers more than one action. (The Candidates page
+       lists have no Reschedule or Cancel buttons and no Action column, so nothing changes there.) */
+    $$('#ivPendingActive table.iv-live-table thead th:last-child, #ivPastActive table.iv-live-table thead th:last-child').forEach(function (th) { if (th.textContent.trim() === 'Action') th.textContent = 'Actions'; });
     /* Straight to the panel screens: ?view=interviews or ?view=report */
     var v = (window.location.search.match(/[?&]view=([a-z]+)/) || [])[1];
     try {
@@ -7620,6 +7675,8 @@ try {
         renderUpcoming();
       } else if (v === 'report') {
         showEventReport('houston');
+      } else if (v === 'candidates') {
+        showView('candidates');
       }
     } catch (e) { console.error('panel deep link', e); }
   }
