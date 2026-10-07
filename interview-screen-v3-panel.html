@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Interview - JobFairX</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif; background: #f0eeeb; color: #2d2d2d; height: 100vh; overflow: hidden; -webkit-font-smoothing: antialiased; }
+
+/* ═══ MAIN LAYOUT ═══ */
+.iv-screen { display: flex; flex-direction: column; height: 100vh; }
+
+/* ═══ VIDEO AREA ═══ */
+.iv-video-area { flex: 1; display: flex; position: relative; overflow: visible; }
+.iv-video-main { flex: 1; display: flex; align-items: center; justify-content: center; position: relative; transition: margin-right 0.3s ease; background: #f0eeeb; }
+.iv-video-main.panel-open { margin-right: 380px; }
+
+/* Floating candidate name — top left */
+.iv-floating-name { position: absolute; top: 16px; left: 16px; display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.9); backdrop-filter: blur(8px); padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; color: #2d2d2d; z-index: 6; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+.iv-floating-name .mic-icon { width: 14px; height: 14px; color: #595959; }
+.iv-floating-name .audio-bars { display: inline-flex; align-items: flex-end; gap: 1.5px; height: 12px; }
+.iv-floating-name .audio-bars span { width: 2.5px; background: #0044B3; border-radius: 1px; animation: audioBar 0.8s ease-in-out infinite alternate; }
+.iv-floating-name .audio-bars span:nth-child(1) { height: 3px; animation-delay: 0s; }
+.iv-floating-name .audio-bars span:nth-child(2) { height: 8px; animation-delay: 0.15s; }
+.iv-floating-name .audio-bars span:nth-child(3) { height: 5px; animation-delay: 0.3s; }
+@keyframes audioBar { 0% { transform: scaleY(0.5); } 100% { transform: scaleY(1.3); } }
+
+/* Floating timer — top center */
+.iv-floating-timer { position: absolute; top: 16px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; color: #2d2d2d; z-index: 6; }
+.iv-timer-dot { width: 8px; height: 8px; border-radius: 50%; background: #ef4444; animation: pulse 1.5s ease-in-out infinite; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+
+/* Candidate video / avatar area */
+.iv-candidate-video { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; position: relative; }
+.iv-candidate-placeholder { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.iv-candidate-avatar { width: 140px; height: 140px; border-radius: 50%; background: #8e9aaf; display: flex; align-items: center; justify-content: center; font-size: 52px; font-weight: 700; color: #fff; letter-spacing: 2px; }
+.iv-candidate-info { text-align: center; }
+.iv-candidate-info-name { font-size: 18px; font-weight: 600; color: #2d2d2d; }
+.iv-candidate-info-title { font-size: 14px; color: #767676; margin-top: 2px; }
+
+/* Floating self name — bottom left */
+.iv-floating-self { position: absolute; bottom: 20px; left: 16px; display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.9); backdrop-filter: blur(8px); padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; color: #2d2d2d; z-index: 6; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+.iv-floating-self .mic-icon { width: 14px; height: 14px; color: #991b1b; }
+.iv-floating-self .audio-bars { display: inline-flex; align-items: flex-end; gap: 1.5px; height: 12px; }
+.iv-floating-self .audio-bars span { width: 2.5px; background: #0044B3; border-radius: 1px; }
+.iv-floating-self .audio-bars span:nth-child(1) { height: 4px; }
+.iv-floating-self .audio-bars span:nth-child(2) { height: 7px; }
+.iv-floating-self .audio-bars span:nth-child(3) { height: 5px; }
+
+/* PIP (self-view) — bottom right */
+.iv-pip { position: absolute; bottom: 20px; right: 20px; width: 180px; height: 130px; background: #d4d2d0; border-radius: 10px; overflow: hidden; display: flex; align-items: center; justify-content: center; z-index: 5; box-shadow: 0 2px 12px rgba(0,0,0,0.15); }
+.iv-pip-placeholder { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.iv-pip-avatar { width: 44px; height: 44px; border-radius: 50%; background: #0044B3; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; color: #fff; }
+.iv-pip-label { font-size: 12px; color: #595959; font-weight: 500; }
+.iv-pip-you { position: absolute; bottom: 8px; left: 8px; font-size: 11px; color: #595959; font-weight: 500; background: rgba(255,255,255,0.8); padding: 2px 8px; border-radius: 4px; }
+
+/* ═══ BOTTOM TOOLBAR ═══ */
+.iv-toolbar { display: flex; align-items: center; justify-content: center; padding: 10px 20px; background: #fff; position: relative; z-index: 10; border-top: 1px solid #e8e6e3; }
+.iv-toolbar-center { display: flex; align-items: center; gap: 6px; }
+.iv-toolbar-right { position: absolute; right: 20px; display: flex; align-items: center; gap: 2px; }
+
+/* Center buttons (Unmute, Start Video) — rounded rect with divider and caret */
+.iv-center-wrap { display: flex; flex-direction: column; align-items: center; gap: 5px; cursor: pointer; }
+.iv-center-btn-box { display: flex; align-items: center; background: #f3f2ef; border-radius: 12px; overflow: hidden; height: 44px; transition: background 0.15s; }
+.iv-center-btn-box:hover { background: #e8e6e3; }
+.iv-center-icon-area { display: flex; align-items: center; justify-content: center; width: 48px; height: 44px; }
+.iv-center-icon-area svg { width: 22px; height: 22px; color: #2d2d2d; }
+.iv-center-divider { width: 1px; height: 24px; background: #d4d2d0; }
+.iv-center-caret-area { display: flex; align-items: center; justify-content: center; width: 28px; height: 44px; }
+.iv-center-caret-area svg { width: 10px; height: 10px; color: #767676; }
+.iv-center-label { font-size: 11px; font-weight: 500; color: #595959; }
+.iv-center-wrap.muted .iv-center-icon-area svg { color: #991b1b; }
+.iv-center-wrap.muted .iv-center-label { color: #991b1b; }
+
+/* End button — solid red rounded square with exit icon, label below */
+.iv-end-wrap { display: flex; flex-direction: column; align-items: center; gap: 5px; cursor: pointer; }
+.iv-end-icon { width: 48px; height: 44px; border-radius: 12px; background: #991b1b; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.15s; }
+.iv-end-icon:hover { background: #7f1d1d; }
+.iv-end-icon svg { width: 22px; height: 22px; color: #fff; }
+.iv-end-label { font-size: 11px; font-weight: 500; color: #991b1b; }
+
+/* Right buttons (Notes, Resume, Chat) — icon + text, no background */
+.iv-tool-btn { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 14px; border: none; background: transparent; color: #595959; border-radius: 8px; cursor: pointer; font-family: inherit; font-size: 11px; font-weight: 500; transition: all 0.15s; min-width: 60px; }
+.iv-tool-btn:hover { background: #f3f2ef; color: #2d2d2d; }
+.iv-tool-btn svg { width: 22px; height: 22px; }
+.iv-tool-btn.active { color: #0044B3; }
+
+
+/* ═══ SIDE PANELS ═══ */
+.iv-side-panel { position: absolute; top: 0; right: 0; width: 380px; height: 100%; background: #fff; color: #2d2d2d; z-index: 20; display: none; flex-direction: column; box-shadow: -2px 0 12px rgba(0,0,0,0.08); }
+.iv-side-panel.open { display: flex; }
+.iv-panel-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid #e8e6e3; }
+.iv-panel-header h3 { display: flex; align-items: center; gap: 8px; font-size: 18px; font-weight: 700; color: #2d2d2d; }
+.iv-panel-header h3 svg { width: 20px; height: 20px; color: #595959; }
+.iv-panel-close { width: 32px; height: 32px; border: none; background: none; font-size: 22px; color: #595959; cursor: pointer; display: flex; align-items: center; justify-content: center; border-radius: 6px; transition: all 0.15s; }
+.iv-panel-close:hover { background: #f3f2ef; color: #2d2d2d; }
+.iv-panel-body { flex: 1; overflow-y: auto; }
+
+/* ═══ NOTES PANEL ═══ */
+.notes-info { padding: 16px 20px 0; }
+.notes-info p { font-size: 13px; color: #595959; line-height: 1.5; display: flex; align-items: flex-start; gap: 6px; margin-bottom: 6px; }
+.notes-info p svg { width: 14px; height: 14px; flex-shrink: 0; margin-top: 2px; color: #767676; }
+.notes-autosave { display: flex; align-items: center; gap: 6px; padding: 8px 20px; font-size: 13px; font-weight: 600; color: #16a34a; }
+.notes-autosave svg { width: 16px; height: 16px; }
+.notes-editor { margin: 0 20px 20px; border: 1px solid #d4d2d0; border-radius: 8px; overflow: hidden; }
+.notes-editor-toolbar { display: flex; align-items: center; padding: 8px 12px; background: #f3f2ef; border-bottom: 1px solid #d4d2d0; gap: 4px; }
+.notes-editor-btn { width: 32px; height: 32px; border: none; background: transparent; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; color: #2d2d2d; transition: background 0.15s; }
+.notes-editor-btn:hover { background: #e8e6e3; }
+.notes-editor-btn.bold { font-weight: 800; font-family: 'Noto Sans', sans-serif; }
+.notes-editor-btn.italic { font-style: italic; font-family: 'Georgia', serif; }
+.notes-editor-btn.help { margin-left: auto; width: 28px; height: 28px; border: 2px solid #d4d2d0; border-radius: 50%; font-size: 14px; font-weight: 700; color: #595959; }
+.notes-editor-btn.help:hover { border-color: #0044B3; color: #0044B3; }
+.notes-editor textarea { width: 100%; min-height: 280px; border: none; outline: none; padding: 14px 16px; font-size: 14px; font-family: inherit; color: #2d2d2d; resize: vertical; line-height: 1.6; }
+.notes-editor textarea::placeholder { color: #999; }
+
+/* ═══ CHAT PANEL ═══ */
+.chat-info { padding: 12px 20px; display: flex; flex-direction: column; gap: 6px; }
+.chat-info p { font-size: 13px; color: #595959; display: flex; align-items: center; gap: 6px; }
+.chat-info p svg { width: 14px; height: 14px; color: #767676; flex-shrink: 0; }
+.chat-messages { flex: 1; overflow-y: auto; padding: 12px 20px; display: flex; flex-direction: column; gap: 8px; }
+.chat-msg { max-width: 80%; padding: 10px 14px; border-radius: 12px; font-size: 14px; line-height: 1.5; }
+.chat-msg.sent { background: #0044B3; color: #fff; align-self: flex-end; border-bottom-right-radius: 4px; }
+.chat-msg.received { background: #f3f2ef; color: #2d2d2d; align-self: flex-start; border-bottom-left-radius: 4px; }
+.chat-msg .chat-msg-time { font-size: 11px; opacity: 0.7; margin-top: 4px; }
+.chat-input-area { display: flex; align-items: center; gap: 8px; padding: 12px 20px; border-top: 1px solid #e8e6e3; }
+.chat-input { flex: 1; border: 1px solid #d4d2d0; border-radius: 8px; padding: 10px 14px; font-size: 14px; font-family: inherit; outline: none; }
+.chat-input:focus { border-color: #0044B3; }
+.chat-input::placeholder { color: #999; }
+.chat-send { width: 40px; height: 40px; border: none; background: #0044B3; color: #fff; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.15s; flex-shrink: 0; }
+.chat-send:hover { background: #003399; }
+.chat-send svg { width: 18px; height: 18px; }
+
+/* ═══ RESUME PANEL ═══ */
+.resume-panel-header-info { padding: 20px 20px 16px; border-bottom: 1px solid #e8e6e3; }
+.resume-panel-name { font-size: 18px; font-weight: 400; color: #2d2d2d; }
+.resume-panel-subtitle { font-size: 13px; color: #595959; margin-top: 4px; }
+.resume-panel-contact { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-top: 8px; font-size: 12px; color: #595959; }
+.resume-panel-contact a { color: #0044B3; text-decoration: none; font-weight: 500; }
+.resume-panel-contact a:hover { text-decoration: underline; }
+.resume-panel-contact .contact-sep { color: #d4d2d0; font-size: 10px; }
+.resume-panel-body { padding: 20px; overflow-y: auto; flex: 1; }
+.resume-section-title { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: #2d2d2d; margin-bottom: 14px; }
+.resume-section-title svg { width: 16px; height: 16px; color: #767676; flex-shrink: 0; }
+.resume-job { margin-bottom: 16px; }
+.resume-job-title { font-size: 13px; font-weight: 700; color: #2d2d2d; }
+.resume-job-company { font-size: 12px; color: #595959; margin-top: 2px; }
+.resume-job-dates { font-size: 12px; color: #767676; margin-top: 2px; }
+.resume-job-bullets { margin-top: 6px; padding-left: 16px; }
+.resume-job-bullets li { font-size: 12px; color: #595959; line-height: 1.6; margin-bottom: 2px; list-style-type: disc; }
+.resume-job-bullets li::marker { color: #b0aeab; }
+.resume-section-divider { border: none; border-top: 1px solid #e8e6e3; margin: 16px 0; }
+.resume-edu-title { font-size: 13px; font-weight: 700; color: #2d2d2d; }
+.resume-edu-school { font-size: 12px; color: #595959; margin-top: 2px; }
+.resume-edu-dates { font-size: 12px; color: #767676; margin-top: 2px; }
+.resume-skills-list { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+.resume-skill-tag { padding: 3px 10px; background: #f3f2ef; border-radius: 12px; font-size: 11px; font-weight: 500; color: #2d2d2d; }
+
+/* ═══ END CALL MODAL ═══ */
+.end-modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center; }
+.end-modal-overlay.open { display: flex; }
+.end-modal { background: #fff; border-radius: 14px; width: 520px; max-width: 90vw; box-shadow: 0 8px 32px rgba(0,0,0,0.2); color: #2d2d2d; }
+.end-modal-header { display: flex; align-items: flex-start; justify-content: space-between; padding: 24px 24px 0; }
+.end-modal-header h3 { font-size: 18px; font-weight: 700; color: #2d2d2d; margin: 0; line-height: 1.4; }
+.end-modal-close { width: 28px; height: 28px; border: none; background: none; cursor: pointer; color: #595959; border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-left: 12px; }
+.end-modal-close:hover { background: #f3f2ef; color: #2d2d2d; }
+.end-modal-options { padding: 20px 24px 0; display: flex; flex-direction: column; gap: 16px; }
+.end-modal-option { display: flex; align-items: flex-start; gap: 12px; cursor: pointer; }
+.end-modal-option input[type="radio"] { width: 18px; height: 18px; accent-color: #0044B3; margin-top: 2px; flex-shrink: 0; cursor: pointer; }
+.end-modal-option label { font-size: 14px; color: #2d2d2d; line-height: 1.5; cursor: pointer; }
+.end-modal-actions { display: flex; justify-content: flex-end; gap: 12px; padding: 24px; }
+.end-modal-actions button { padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+.end-modal-cancel { background: #fff; border: 1px solid #d4d2d0; color: #2d2d2d; }
+.end-modal-cancel:hover { background: #f3f2ef; }
+.end-modal-end { background: #991b1b; border: none; color: #fff; }
+.end-modal-end:hover { background: #7f1d1d; }
+
+/* ═══ RECOMMEND MODAL ═══ */
+.rec-modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center; }
+.rec-modal-overlay.open { display: flex; }
+.rec-modal { background: #fff; border-radius: 14px; width: 520px; max-width: 90vw; box-shadow: 0 8px 32px rgba(0,0,0,0.2); color: #2d2d2d; padding: 28px; }
+.rec-modal-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px; }
+.rec-modal-header h3 { font-size: 20px; font-weight: 700; color: #2d2d2d; margin: 0; line-height: 1.4; }
+.rec-modal-header h3 span { font-weight: 400; color: #767676; }
+.rec-modal-close { width: 32px; height: 32px; border: none; background: none; cursor: pointer; color: #595959; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; margin-left: 12px; }
+.rec-modal-close:hover { background: #f3f2ef; color: #2d2d2d; }
+.rec-toggle { display: inline-flex; border: 1px solid #d4d2d0; border-radius: 8px; overflow: hidden; margin-bottom: 24px; }
+.rec-toggle-btn { display: flex; align-items: center; gap: 6px; padding: 10px 24px; border: none; background: #fff; color: #2d2d2d; font-family: inherit; font-size: 15px; font-weight: 500; cursor: pointer; transition: all 0.15s; border-right: 1px solid #d4d2d0; }
+.rec-toggle-btn:last-child { border-right: none; }
+.rec-toggle-btn:hover { background: #f3f2ef; }
+.rec-toggle-btn.selected { background: #f3f2ef; font-weight: 700; }
+.rec-toggle-btn svg { width: 16px; height: 16px; }
+.rec-notes-label { font-size: 14px; font-weight: 700; color: #2d2d2d; margin-bottom: 10px; }
+.rec-notes-textarea { width: 100%; min-height: 120px; border: 1px solid #d4d2d0; border-radius: 8px; padding: 12px 14px; font-size: 14px; font-family: inherit; outline: none; resize: vertical; color: #2d2d2d; }
+.rec-notes-textarea:focus { border-color: #0044B3; }
+.rec-notes-textarea::placeholder { color: #999; }
+.rec-modal-actions { display: flex; justify-content: flex-end; margin-top: 20px; }
+.rec-done-btn { padding: 10px 28px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; background: #0044B3; border: none; color: #fff; transition: all 0.15s; }
+.rec-done-btn:hover { background: #003399; }
+
+/* ═══ CALL ENDED SCREEN ═══ */
+.call-ended-screen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(180deg, #f8f8f8 0%, #e8e6e3 100%); z-index: 9998; align-items: center; justify-content: center; flex-direction: column; }
+.call-ended-screen.open { display: flex; }
+.call-ended-title { font-size: 28px; font-weight: 700; color: #2d2d2d; margin-bottom: 8px; }
+.call-ended-subtitle { font-size: 16px; color: #595959; margin-bottom: 28px; }
+.call-ended-btns { display: flex; align-items: center; gap: 32px; }
+.call-ended-btn { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 16px 24px; background: transparent; border: none; cursor: pointer; font-family: inherit; transition: all 0.15s; border-radius: 12px; }
+.call-ended-btn:hover { background: rgba(0,0,0,0.05); }
+.call-ended-btn svg { width: 36px; height: 36px; color: #2d2d2d; }
+.call-ended-btn span { font-size: 14px; font-weight: 600; color: #595959; }
+
+/* ═══ CALL QUALITY FEEDBACK FORM ═══ */
+.call-feedback { display: none; background: #fff; border-radius: 14px; width: 520px; max-width: 90vw; box-shadow: 0 8px 32px rgba(0,0,0,0.15); color: #2d2d2d; overflow: hidden; }
+.call-feedback.open { display: block; }
+.call-feedback-header { display: flex; align-items: center; justify-content: space-between; padding: 24px 24px 0; }
+.call-feedback-header h3 { font-size: 18px; font-weight: 700; color: #2d2d2d; margin: 0; }
+.call-feedback-close { width: 32px; height: 32px; border: none; background: none; cursor: pointer; color: #595959; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+.call-feedback-close:hover { background: #f3f2ef; color: #2d2d2d; }
+.call-feedback-options { padding: 20px 24px 0; display: flex; flex-direction: column; gap: 16px; }
+.call-feedback-option { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+.call-feedback-option input[type="checkbox"] { width: 20px; height: 20px; accent-color: #2d2d2d; border-radius: 4px; cursor: pointer; flex-shrink: 0; }
+.call-feedback-option label { font-size: 15px; color: #2d2d2d; cursor: pointer; }
+.call-feedback-comments { padding: 20px 24px 0; }
+.call-feedback-comments h4 { font-size: 15px; font-weight: 700; color: #2d2d2d; margin-bottom: 10px; }
+.call-feedback-comments textarea { width: 100%; min-height: 100px; border: 1px solid #d4d2d0; border-radius: 8px; padding: 12px 14px; font-size: 14px; font-family: inherit; outline: none; resize: vertical; color: #2d2d2d; }
+.call-feedback-comments textarea:focus { border-color: #0044B3; }
+.call-feedback-actions { display: flex; justify-content: flex-end; gap: 12px; padding: 24px; border-top: 1px solid #e8e6e3; margin-top: 20px; }
+.call-feedback-actions button { padding: 10px 24px; border-radius: 24px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+.call-feedback-skip { background: #fff; border: 1px solid #2d2d2d; color: #2d2d2d; }
+.call-feedback-skip:hover { background: #f3f2ef; }
+.call-feedback-submit { background: #0044B3; border: none; color: #fff; }
+.call-feedback-submit:hover { background: #003399; }
+
+/* ═══ BACKGROUND PICKER ═══ */
+.iv-bg-wrap { position: relative; display: inline-block; }
+.iv-bg-panel { position: absolute; bottom: calc(100% + 12px); right: 0; background: #fff; border: 1px solid #e5e5e5; border-radius: 12px; padding: 14px; box-shadow: 0 10px 32px rgba(0,0,0,0.15); width: 260px; z-index: 200; display: none; }
+.iv-bg-panel.open { display: block; }
+.iv-bg-panel-title { font-size: 13px; font-weight: 600; color: #2d2d2d; margin-bottom: 10px; letter-spacing: -0.005em; }
+.iv-bg-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.iv-bg-swatch { width: 100%; height: 60px; border-radius: 8px; border: 2px solid transparent; cursor: pointer; padding: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 11px; font-weight: 500; color: #555; background: #f3f2ef; transition: transform 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease; position: relative; outline: none; }
+.iv-bg-swatch:hover { transform: scale(1.04); }
+.iv-bg-swatch.active { border-color: #2563eb; box-shadow: 0 0 0 2px rgba(37,99,235,0.18); }
+.iv-bg-icon { font-size: 18px; color: #888; line-height: 1; }
+.iv-bg-lbl { font-size: 11px; line-height: 1.1; }
+.iv-bg-blur { background: linear-gradient(135deg, #e0e0e0 0%, #b6b6b6 60%, #989898 100%); color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.25); }
+.iv-bg-color { color: transparent; }
+.iv-tool-btn.active { background: rgba(37,99,235,0.10); color: #2563eb; }
+
+/* ═══ BACKGROUND PICKER V2: 14 swatches + custom ═══ */
+.iv-bg-grid { grid-template-columns: repeat(4, 1fr) !important; gap: 6px !important; }
+.iv-bg-panel { width: 280px !important; }
+.iv-bg-swatch { height: 48px !important; min-width: 0; }
+.iv-bg-custom { background: conic-gradient(from 0deg, #ff3b30, #ff9500, #ffcc00, #34c759, #00c7be, #007aff, #5856d6, #af52de, #ff2d55, #ff3b30) !important; color: #fff !important; text-shadow: 0 1px 3px rgba(0,0,0,0.6); font-weight: 600; }
+
+/* ═══ CUSTOM COLOR PICKER ═══ */
+.bg-cpx { display: none; padding: 6px 2px; }
+.bg-cpx.open { display: block; }
+.bg-cpx-header { display: flex; align-items: center; gap: 6px; margin-bottom: 12px; }
+.bg-cpx-back { background: transparent; border: none; cursor: pointer; padding: 4px; border-radius: 6px; color: #555; display: inline-flex; align-items: center; }
+.bg-cpx-back svg { width: 16px; height: 16px; }
+.bg-cpx-back:hover { background: #f3f2ef; }
+.bg-cpx-title { font-size: 13px; font-weight: 600; color: #2d2d2d; }
+.bg-cpx-sl { position: relative; width: 100%; height: 130px; border-radius: 8px; cursor: crosshair; margin-bottom: 14px; touch-action: none; background: linear-gradient(to top, #000, transparent), linear-gradient(to right, #fff, #f00); }
+.bg-cpx-sl-cursor { position: absolute; width: 14px; height: 14px; border: 2px solid #fff; border-radius: 50%; box-shadow: 0 0 0 1px rgba(0,0,0,0.4); transform: translate(-50%, -50%); pointer-events: none; top: 0; left: 100%; }
+.bg-cpx-hue { position: relative; width: 100%; height: 12px; border-radius: 6px; background: linear-gradient(to right, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00); cursor: pointer; touch-action: none; }
+.bg-cpx-hue-cursor { position: absolute; width: 16px; height: 16px; border: 2px solid #fff; border-radius: 50%; box-shadow: 0 0 0 1px rgba(0,0,0,0.4); transform: translate(-50%, -50%); pointer-events: none; top: 50%; left: 0; background: #f00; }
+.bg-cpx-footer { display: flex; align-items: center; gap: 10px; margin-top: 14px; }
+.bg-cpx-current { width: 28px; height: 28px; border-radius: 50%; border: 1px solid #e8e6e3; background: #f00; }
+.bg-cpx-done { margin-left: auto; padding: 6px 16px; background: #2563eb; color: #fff; border: none; border-radius: 6px; font-weight: 500; cursor: pointer; font-family: inherit; font-size: 13px; }
+.bg-cpx-done:hover { background: #1d4ed8; }
+/* Edit affordance */
+.iv-bg-custom.custom-set::after, .av-bg-opt-custom.custom-set .av-bg-thumb-custom::after { content: "✎"; position: absolute; bottom: 3px; right: 5px; font-size: 11px; color: rgba(255,255,255,0.9); text-shadow: 0 1px 2px rgba(0,0,0,0.6); opacity: 0; transition: opacity 0.15s; pointer-events: none; }
+.iv-bg-custom.custom-set:hover::after, .av-bg-opt-custom.custom-set:hover .av-bg-thumb-custom::after { opacity: 1; }
+.av-bg-thumb-custom { position: relative; }
+</style>
+</head>
+<body>
+
+<div class="iv-screen">
+
+  <!-- ═══ VIDEO AREA ═══ -->
+  <div class="iv-video-area">
+    <div class="iv-video-main" id="videoMain">
+
+      <!-- Floating candidate name — top left -->
+      <div class="iv-floating-name">
+        <svg class="mic-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+        <div class="audio-bars"><span></span><span></span><span></span></div>
+        <span id="floatingCandidateName">Candidate</span>
+      </div>
+
+      <!-- Floating timer — top center -->
+      <div class="iv-floating-timer">
+        <span class="iv-timer-dot"></span>
+        <span id="timerDisplay">00:00</span>
+      </div>
+
+      <!-- Candidate video area -->
+      <div class="iv-candidate-video">
+        <div class="iv-candidate-placeholder">
+          <div class="iv-candidate-avatar" id="candidateAvatar">AR</div>
+          <div class="iv-candidate-info">
+            <div class="iv-candidate-info-name" id="candidateDisplayName">Candidate</div>
+            <div class="iv-candidate-info-title">Registered Nurse</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Floating self name — bottom left -->
+      <div class="iv-floating-self">
+        <svg class="mic-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1l22 22"/><path d="M9 9v3a3 3 0 005.12 2.12M15 9.34V4a3 3 0 00-5.94-.6"/><path d="M17 16.95A7 7 0 015 12v-2m14 0v2c0 .76-.12 1.5-.34 2.18"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+        <div class="audio-bars"><span></span><span></span><span></span></div>
+        <span>Scott (You)</span>
+      </div>
+
+      <!-- PIP self view — bottom right -->
+      <div class="iv-pip">
+        <div class="iv-pip-placeholder">
+          <div class="iv-pip-avatar">SH</div>
+          <div class="iv-pip-label">You</div>
+        </div>
+        <div class="iv-pip-you">You</div>
+      </div>
+
+    </div>
+
+    <!-- ═══ NOTES PANEL ═══ -->
+    <div class="iv-side-panel" id="notesPanel">
+      <div class="iv-panel-header">
+        <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="8" y1="8" x2="16" y2="8"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="12" y2="16"/></svg> Notes</h3>
+        <button class="iv-panel-close" onclick="closePanel()">&times;</button>
+      </div>
+      <div class="iv-panel-body" style="display:flex;flex-direction:column;">
+        <div class="notes-info">
+          <p><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg> Your interview notes are never visible to candidates.</p>
+          <p><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> Notes will be included with this candidate's information after the interview.</p>
+        </div>
+        <div class="notes-autosave" id="notesAutosave" style="display:none;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Auto-saved</div>
+        <div class="notes-editor">
+          <div class="notes-editor-toolbar">
+            <button class="notes-editor-btn bold">B</button>
+            <button class="notes-editor-btn italic">I</button>
+            <button class="notes-editor-btn"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M5 3h8M5 7h8M5 11h8M2 3h0M2 7h0M2 11h0"/></svg></button>
+            <button class="notes-editor-btn help">?</button>
+          </div>
+          <textarea id="notesTextarea" placeholder="Take notes during the interview..." oninput="handleNotesInput()"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ CHAT PANEL ═══ -->
+    <div class="iv-side-panel" id="chatPanel">
+      <div class="iv-panel-header">
+        <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg> Chat</h3>
+        <button class="iv-panel-close" onclick="closePanel()">&times;</button>
+      </div>
+      <div class="chat-info">
+        <p><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg> Everyone including the candidate can see this chat.</p>
+        <p><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg> Chat history will not be saved.</p>
+      </div>
+      <div class="chat-messages" id="chatMessages"></div>
+      <div class="chat-input-area">
+        <input class="chat-input" id="chatInput" type="text" placeholder="Type a message..." onkeydown="if(event.key==='Enter')sendChat()">
+        <button class="chat-send" onclick="sendChat()"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></button>
+      </div>
+    </div>
+
+    <!-- ═══ RESUME PANEL ═══ -->
+    <div class="iv-side-panel" id="resumePanel">
+      <div class="iv-panel-header">
+        <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg> Resume</h3>
+        <button class="iv-panel-close" onclick="closePanel()">&times;</button>
+      </div>
+      <div class="iv-panel-body" style="display:flex;flex-direction:column;">
+        <div class="resume-panel-header-info">
+          <div class="resume-panel-name" id="resumePanelName">Candidate Name</div>
+          <div class="resume-panel-subtitle">Software Engineer &middot; San Francisco, CA</div>
+          <div class="resume-panel-contact">
+            <a href="#">candidate@email.com</a>
+            <span class="contact-sep">&middot;</span>
+            <span>(555) 123-4567</span>
+            <span class="contact-sep">&middot;</span>
+            <a href="#">LinkedIn</a>
+          </div>
+        </div>
+        <div class="resume-panel-body">
+          <div class="resume-section-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg> Experience</div>
+          <div class="resume-job">
+            <div class="resume-job-title">Senior Software Engineer</div>
+            <div class="resume-job-company">TechCorp Inc.</div>
+            <div class="resume-job-dates">Jan 2022 - Present</div>
+            <ul class="resume-job-bullets">
+              <li>Led development of microservices architecture serving 2M+ daily active users</li>
+              <li>Mentored team of 5 junior engineers on best practices and code review</li>
+              <li>Reduced API response times by 40% through query optimization</li>
+            </ul>
+          </div>
+          <div class="resume-job">
+            <div class="resume-job-title">Software Engineer</div>
+            <div class="resume-job-company">StartupXYZ</div>
+            <div class="resume-job-dates">Jun 2019 - Dec 2021</div>
+            <ul class="resume-job-bullets">
+              <li>Built full-stack features using React, Node.js, and PostgreSQL</li>
+              <li>Implemented CI/CD pipeline reducing deployment time by 60%</li>
+            </ul>
+          </div>
+          <hr class="resume-section-divider">
+          <div class="resume-section-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 10 3 12 0v-5"/></svg> Education</div>
+          <div class="resume-edu-title">B.S. Computer Science</div>
+          <div class="resume-edu-school">University of California, Berkeley</div>
+          <div class="resume-edu-dates">2015 - 2019</div>
+          <hr class="resume-section-divider">
+          <div class="resume-section-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> Skills</div>
+          <div class="resume-skills-list">
+            <span class="resume-skill-tag">JavaScript</span>
+            <span class="resume-skill-tag">React</span>
+            <span class="resume-skill-tag">Node.js</span>
+            <span class="resume-skill-tag">Python</span>
+            <span class="resume-skill-tag">PostgreSQL</span>
+            <span class="resume-skill-tag">AWS</span>
+            <span class="resume-skill-tag">Docker</span>
+            <span class="resume-skill-tag">GraphQL</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ BOTTOM TOOLBAR ═══ -->
+  <div class="iv-toolbar">
+    <div class="iv-toolbar-center">
+      <div class="iv-center-wrap muted" id="muteBtn" onclick="toggleMute()">
+        <div class="iv-center-btn-box">
+          <div class="iv-center-icon-area"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="muteIcon"><path d="M1 1l22 22"/><path d="M9 9v3a3 3 0 005.12 2.12M15 9.34V4a3 3 0 00-5.94-.6"/><path d="M17 16.95A7 7 0 015 12v-2m14 0v2c0 .76-.12 1.5-.34 2.18"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="unmuteIcon" style="display:none"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg></div>
+          <div class="iv-center-divider"></div>
+          <div class="iv-center-caret-area"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 15 12 9 18 15"/></svg></div>
+        </div>
+        <span class="iv-center-label" id="muteLabel">Unmute</span>
+      </div>
+      <div class="iv-center-wrap">
+        <div class="iv-center-btn-box">
+          <div class="iv-center-icon-area"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></div>
+          <div class="iv-center-divider"></div>
+          <div class="iv-center-caret-area"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 15 12 9 18 15"/></svg></div>
+        </div>
+        <span class="iv-center-label">Start Video</span>
+      </div>
+      <div class="iv-end-wrap" onclick="openEndModal()">
+        <div class="iv-end-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg></div>
+        <span class="iv-end-label">End</span>
+      </div>
+    </div>
+    <div class="iv-toolbar-right">
+      <button class="iv-tool-btn" onclick="togglePanel('notes')" id="notesPanelBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="8" y1="8" x2="16" y2="8"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="12" y2="16"/></svg> Notes</button>
+      <button class="iv-tool-btn" onclick="togglePanel('resume')" id="resumePanelBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> Resume</button>
+      <button class="iv-tool-btn" onclick="togglePanel('chat')" id="chatPanelBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg> Chat</button>
+      <div class="iv-bg-wrap">
+        <button class="iv-tool-btn" id="bgPanelBtn" onclick="toggleBgPanel(event)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg> Background
+        </button>
+        <div class="iv-bg-panel" id="bgPanel">
+          <div class="iv-bg-panel-title">Background</div>
+          <div class="iv-bg-grid">
+            <button class="iv-bg-swatch iv-bg-none active" data-bg="none" title="None" onclick="setBackground('none')"><span class="iv-bg-icon">⊘</span><span class="iv-bg-lbl">None</span></button>
+            <button class="iv-bg-swatch iv-bg-blur" data-bg="blur" title="Blur" onclick="setBackground('blur')"><span class="iv-bg-lbl">Blur</span></button>
+            <button class="iv-bg-swatch iv-bg-color" data-bg="lightblue" title="Light Blue" style="background:#cfe2f3" onclick="setBackground('lightblue')"></button>
+            <button class="iv-bg-swatch iv-bg-color" data-bg="royalblue" title="Royal Blue" style="background:#2056d3" onclick="setBackground('royalblue')"></button>
+            <button class="iv-bg-swatch iv-bg-color" data-bg="pink" title="Soft Pink" style="background:#fbcfcf" onclick="setBackground('pink')"></button>
+            <button class="iv-bg-swatch iv-bg-color" data-bg="red" title="Red" style="background:#cc2218" onclick="setBackground('red')"></button>
+            <button class="iv-bg-swatch iv-bg-color" data-bg="emerald" title="Emerald Green" style="background:#1e7c4f" onclick="setBackground('emerald')"></button>
+            <button class="iv-bg-swatch iv-bg-color" data-bg="charcoal" title="Charcoal" style="background:#2c2e35" onclick="setBackground('charcoal')"></button>
+            <button class="iv-bg-swatch iv-bg-color" data-bg="lavender" title="Lavender" style="background:#c5beea" onclick="setBackground('lavender')"></button>
+            <button class="iv-bg-swatch iv-bg-color" data-bg="periwinkle" title="Periwinkle" style="background:#6862e8" onclick="setBackground('periwinkle')"></button>
+            <button class="iv-bg-swatch iv-bg-color" data-bg="yellow" title="Pale Yellow" style="background:#fde79b" onclick="setBackground('yellow')"></button>
+            <button class="iv-bg-swatch iv-bg-color" data-bg="orange" title="Orange" style="background:#f49120" onclick="setBackground('orange')"></button>
+            <button class="iv-bg-swatch iv-bg-color" data-bg="gray" title="Light Gray" style="background:#bbbbbb" onclick="setBackground('gray')"></button>
+            <button class="iv-bg-swatch iv-bg-custom" data-bg="custom" title="Custom color" onclick="openCustomBg(event)"><span class="iv-bg-lbl">Custom</span></button>
+          </div>
+          <input type="color" id="ivBgCustomInput" style="position:absolute;width:0;height:0;opacity:0;pointer-events:none" oninput="applyCustomBg(this.value)">
+<div class="bg-cpx" id="bgCpxIv">
+  <div class="bg-cpx-header"><button class="bg-cpx-back" onclick="closeBgCpx()" aria-label="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button><span class="bg-cpx-title">Custom color</span></div>
+  <div class="bg-cpx-sl"><div class="bg-cpx-sl-cursor"></div></div>
+  <div class="bg-cpx-hue"><div class="bg-cpx-hue-cursor"></div></div>
+  <div class="bg-cpx-footer"><div class="bg-cpx-current"></div><button class="bg-cpx-done" onclick="closeBgCpx()">Done</button></div>
+</div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ END CALL MODAL ═══ -->
+<div class="end-modal-overlay" id="endModal">
+  <div class="end-modal">
+    <div class="end-modal-header">
+      <h3>Have you finished interviewing <span id="endModalName">Candidate</span>?</h3>
+      <button class="end-modal-close" onclick="closeEndModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div class="end-modal-options">
+      <div class="end-modal-option" onclick="document.getElementById('endYes').checked=true">
+        <input type="radio" name="endChoice" id="endYes" value="yes" checked>
+        <label for="endYes">Yes, <span class="end-name-inline">Candidate</span> will be marked as interviewed.</label>
+      </div>
+      <div class="end-modal-option" onclick="document.getElementById('endNo').checked=true">
+        <input type="radio" name="endChoice" id="endNo" value="no">
+        <label for="endNo">No, <span class="end-name-inline">Candidate</span> will return to the front of the interview line and be able to join the interview again.</label>
+      </div>
+    </div>
+    <div class="end-modal-actions">
+      <button class="end-modal-cancel" onclick="closeEndModal()">Cancel</button>
+      <button class="end-modal-end" onclick="handleEndCall()">End Call</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ RECOMMEND MODAL ═══ -->
+<div class="rec-modal-overlay" id="recModal">
+  <div class="rec-modal">
+    <div class="rec-modal-header">
+      <h3>Would you recommend moving forward with <span id="recModalName">Candidate</span>? <span>(Optional)</span></h3>
+      <button class="rec-modal-close" onclick="closeRecModal()">&times;</button>
+    </div>
+    <div class="rec-toggle">
+      <button class="rec-toggle-btn" onclick="selectRec(this, 'yes')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Yes</button>
+      <button class="rec-toggle-btn" onclick="selectRec(this, 'maybe')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Maybe</button>
+      <button class="rec-toggle-btn" onclick="selectRec(this, 'no')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> No</button>
+    </div>
+    <div class="rec-notes-label">Notes (optional)</div>
+    <textarea class="rec-notes-textarea" placeholder="Add any notes about this candidate..."></textarea>
+    <div class="rec-modal-actions">
+      <button class="rec-done-btn" onclick="closeRecModal()">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ CALL ENDED SCREEN ═══ -->
+<div class="call-ended-screen" id="callEndedScreen">
+  <!-- Thumbs up / down view -->
+  <div id="callRatingView">
+    <div class="call-ended-title">Call ended</div>
+    <div class="call-ended-subtitle">How was the call quality?</div>
+    <div class="call-ended-btns">
+      <button class="call-ended-btn" onclick="rateCallQuality('good')">
+        <svg viewBox="0 0 24 24" fill="#2d2d2d" stroke="none"><path d="M2 20h2c.55 0 1-.45 1-1v-9c0-.55-.45-1-1-1H2v11zm19.83-7.12c.11-.25.17-.52.17-.8V11c0-1.1-.9-2-2-2h-5.5l.92-4.65c.05-.22.02-.46-.08-.66L14.17 2 7.58 8.59C7.22 8.95 7 9.45 7 10v9c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-1.12z"/></svg>
+        <span>Good</span>
+      </button>
+      <button class="call-ended-btn" onclick="rateCallQuality('bad')">
+        <svg viewBox="0 0 24 24" fill="#2d2d2d" stroke="none"><path d="M22 4h-2c-.55 0-1 .45-1 1v9c0 .55.45 1 1 1h2V4zM2.17 11.12c-.11.25-.17.52-.17.8V13c0 1.1.9 2 2 2h5.5l-.92 4.65c-.05.22-.02.46.08.66L9.83 22l6.59-6.59c.36-.36.58-.86.58-1.41V5c0-1.1-.9-2-2-2H6c-.83 0-1.54.5-1.84 1.22l-3.02 7.05c-.09.23-.14.47-.14.73v1.12z"/></svg>
+        <span>Bad</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Feedback form (shown after thumbs down) -->
+  <div class="call-feedback" id="callFeedbackForm">
+    <div class="call-feedback-header">
+      <h3>What went wrong?</h3>
+      <button class="call-feedback-close" onclick="skipFeedback()">&times;</button>
+    </div>
+    <div class="call-feedback-options">
+      <div class="call-feedback-option" onclick="this.querySelector('input').click()">
+        <input type="checkbox" id="fb1"><label for="fb1">I could not hear others</label>
+      </div>
+      <div class="call-feedback-option" onclick="this.querySelector('input').click()">
+        <input type="checkbox" id="fb2"><label for="fb2">Others could not hear me</label>
+      </div>
+      <div class="call-feedback-option" onclick="this.querySelector('input').click()">
+        <input type="checkbox" id="fb3"><label for="fb3">Poor audio quality</label>
+      </div>
+      <div class="call-feedback-option" onclick="this.querySelector('input').click()">
+        <input type="checkbox" id="fb4"><label for="fb4">I could not see others</label>
+      </div>
+      <div class="call-feedback-option" onclick="this.querySelector('input').click()">
+        <input type="checkbox" id="fb5"><label for="fb5">Others could not see me</label>
+      </div>
+      <div class="call-feedback-option" onclick="this.querySelector('input').click()">
+        <input type="checkbox" id="fb6"><label for="fb6">Poor video quality</label>
+      </div>
+    </div>
+    <div class="call-feedback-comments">
+      <h4>Additional comments</h4>
+      <textarea placeholder=""></textarea>
+    </div>
+    <div class="call-feedback-actions">
+      <button class="call-feedback-skip" onclick="skipFeedback()">Skip</button>
+      <button class="call-feedback-submit" onclick="submitFeedback()">Submit</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══ URL PARAMS ═══ */
+var params = new URLSearchParams(window.location.search);
+var candidateName = params.get('candidate') || 'Aisha Rahman';
+var initials = candidateName.split(' ').map(function(w) { return w[0]; }).join('').toUpperCase();
+
+/* Set candidate name everywhere */
+document.getElementById('floatingCandidateName').textContent = candidateName;
+document.getElementById('candidateDisplayName').textContent = candidateName;
+document.getElementById('candidateAvatar').textContent = initials;
+document.getElementById('endModalName').textContent = candidateName;
+document.getElementById('recModalName').textContent = candidateName;
+document.getElementById('resumePanelName').textContent = candidateName;
+document.querySelectorAll('.end-name-inline').forEach(function(el) { el.textContent = candidateName; });
+
+/* ═══ TIMER ═══ */
+var timerSeconds = 0;
+setInterval(function() {
+  timerSeconds++;
+  var m = String(Math.floor(timerSeconds / 60)).padStart(2, '0');
+  var s = String(timerSeconds % 60).padStart(2, '0');
+  document.getElementById('timerDisplay').textContent = m + ':' + s;
+}, 1000);
+
+/* ═══ PANEL LOGIC ═══ */
+var activePanel = null;
+var panelIds = ['notesPanel', 'chatPanel', 'resumePanel'];
+var btnIds = ['notesPanelBtn', 'chatPanelBtn', 'resumePanelBtn'];
+var panelMap = { notes: 0, chat: 1, resume: 2 };
+
+function closeAllPanels() {
+  for (var i = 0; i < panelIds.length; i++) {
+    document.getElementById(panelIds[i]).classList.remove('open');
+    document.getElementById(btnIds[i]).classList.remove('active');
+  }
+  document.getElementById('videoMain').classList.remove('panel-open');
+  activePanel = null;
+}
+
+function togglePanel(panel) {
+  /* If this panel is already open, just close everything */
+  if (activePanel === panel) {
+    closeAllPanels();
+    return;
+  }
+
+  /* Close everything first */
+  closeAllPanels();
+
+  /* Now open the requested panel */
+  var idx = panelMap[panel];
+  document.getElementById(panelIds[idx]).classList.add('open');
+  document.getElementById(btnIds[idx]).classList.add('active');
+  document.getElementById('videoMain').classList.add('panel-open');
+  activePanel = panel;
+
+  if (panel === 'chat') setTimeout(function() { document.getElementById('chatInput').focus(); }, 50);
+  if (panel === 'notes') setTimeout(function() { document.getElementById('notesTextarea').focus(); }, 50);
+}
+
+function closePanel() {
+  closeAllPanels();
+}
+
+/* ═══ NOTES AUTO-SAVE ═══ */
+var notesTimeout = null;
+function handleNotesInput() {
+  var indicator = document.getElementById('notesAutosave');
+  indicator.style.display = 'none';
+  clearTimeout(notesTimeout);
+  notesTimeout = setTimeout(function() {
+    indicator.style.display = 'flex';
+  }, 1000);
+}
+
+/* ═══ CHAT ═══ */
+function sendChat() {
+  var input = document.getElementById('chatInput');
+  var text = input.value.trim();
+  if (!text) return;
+  var container = document.getElementById('chatMessages');
+  var msg = document.createElement('div');
+  msg.className = 'chat-msg sent';
+  var now = new Date();
+  var timeStr = now.getHours() + ':' + String(now.getMinutes()).padStart(2, '0');
+  msg.innerHTML = text + '<div class="chat-msg-time">' + timeStr + '</div>';
+  container.appendChild(msg);
+  container.scrollTop = container.scrollHeight;
+  input.value = '';
+  input.focus();
+}
+
+/* ═══ MUTE TOGGLE ═══ */
+function toggleMute() {
+  var wrap = document.getElementById('muteBtn');
+  var muteIcon = document.getElementById('muteIcon');
+  var unmuteIcon = document.getElementById('unmuteIcon');
+  var label = document.getElementById('muteLabel');
+  if (wrap.classList.contains('muted')) {
+    wrap.classList.remove('muted');
+    muteIcon.style.display = 'none';
+    unmuteIcon.style.display = 'block';
+    label.textContent = 'Mute';
+  } else {
+    wrap.classList.add('muted');
+    muteIcon.style.display = 'block';
+    unmuteIcon.style.display = 'none';
+    label.textContent = 'Unmute';
+  }
+}
+
+/* ═══ END CALL FLOW ═══ */
+function openEndModal() { document.getElementById('endModal').classList.add('open'); }
+function closeEndModal() { document.getElementById('endModal').classList.remove('open'); }
+function handleEndCall() {
+  closeEndModal();
+  var finishedInterviewing = document.getElementById('endYes').checked;
+  if (finishedInterviewing) {
+    document.getElementById('recModal').classList.add('open');
+  } else {
+    /* Not finished — skip rating/notes, go straight to call quality feedback */
+    document.getElementById('callEndedScreen').classList.add('open');
+  }
+}
+
+/* ═══ RECOMMEND MODAL ═══ */
+function selectRec(btn, value) {
+  document.querySelectorAll('.rec-toggle-btn').forEach(function(b) { b.classList.remove('selected'); });
+  btn.classList.add('selected');
+}
+function closeRecModal() {
+  document.getElementById('recModal').classList.remove('open');
+  document.getElementById('callEndedScreen').classList.add('open');
+}
+var lobbyUrl = 'lobby-v3-panel.html?method=video&mode=live&tab=waiting';
+
+function rateCallQuality(rating) {
+  if (rating === 'good') {
+    window.location.href = lobbyUrl;
+  } else {
+    /* Show feedback form, hide thumbs */
+    document.getElementById('callRatingView').style.display = 'none';
+    document.getElementById('callFeedbackForm').classList.add('open');
+  }
+}
+function skipFeedback() { window.location.href = lobbyUrl; }
+function submitFeedback() { window.location.href = lobbyUrl; }
+
+document.getElementById('endModal').addEventListener('click', function(e) {
+  if (e.target === this) closeEndModal();
+});
+document.getElementById('recModal').addEventListener('click', function(e) {
+  if (e.target === this) closeRecModal();
+});
+
+// ═══ BACKGROUND PICKER ═══
+function toggleBgPanel(e) {
+  if (e) e.stopPropagation();
+  var p = document.getElementById('bgPanel');
+  var btn = document.getElementById('bgPanelBtn');
+  if (!p) return;
+  var open = p.classList.contains('open');
+  p.classList.toggle('open');
+  if (btn) btn.classList.toggle('active', !open);
+}
+function setBackground(type) {
+  var main = document.querySelector('.iv-pip-placeholder');
+  document.querySelectorAll('.iv-bg-swatch').forEach(function(s){ s.classList.remove('active'); });
+  var sel = document.querySelector('.iv-bg-swatch[data-bg="' + type + '"]');
+  if (sel) sel.classList.add('active');
+  if (!main) return;
+  var colors = { slate: '#5b7c99', sage: '#7d9b76', cream: '#ede4d3', charcoal: '#3d4451' };
+  if (type === 'none') { main.style.background = ''; main.style.filter = ''; }
+  else if (type === 'blur') { main.style.background = 'linear-gradient(135deg, #cfcfcf 0%, #a5a5a5 60%, #8a8a8a 100%)'; main.style.filter = ''; }
+  else if (colors[type]) { main.style.background = colors[type]; main.style.filter = ''; }
+}
+document.addEventListener('click', function(e) {
+  var p = document.getElementById('bgPanel');
+  var btn = document.getElementById('bgPanelBtn');
+  if (!p || !p.classList.contains('open')) return;
+  if (p.contains(e.target) || (btn && btn.contains(e.target))) return;
+  p.classList.remove('open');
+  if (btn) btn.classList.remove('active');
+});
+
+// ═══ BG PICKER V2 (overrides) ═══
+window.__customBgColor = null;
+function openCustomBg(e) { if (e) e.stopPropagation(); const inp = document.getElementById("ivBgCustomInput"); if (window.__customBgColor) inp.value = window.__customBgColor; inp.click(); }
+function applyCustomBg(color) { window.__customBgColor = color; const tile = document.querySelector(".iv-bg-custom"); if (tile) tile.style.background = color; setBackground("custom"); }
+function setBackground(type) { const main = document.querySelector(".iv-pip-placeholder"); document.querySelectorAll(".iv-bg-swatch").forEach(s => s.classList.remove("active")); const sel = document.querySelector(".iv-bg-swatch[data-bg=\"" + type + "\"]"); if (sel) sel.classList.add("active"); if (!main) return; const colors = { lightblue: "#cfe2f3", royalblue: "#2056d3", pink: "#fbcfcf", red: "#cc2218", emerald: "#1e7c4f", charcoal: "#2c2e35", lavender: "#c5beea", periwinkle: "#6862e8", yellow: "#fde79b", orange: "#f49120", gray: "#bbbbbb" }; if (type === "none") { main.style.background = ""; main.style.filter = ""; } else if (type === "blur") { main.style.background = "linear-gradient(135deg, #cfcfcf 0%, #a5a5a5 60%, #8a8a8a 100%)"; main.style.filter = ""; } else if (type === "custom" && window.__customBgColor) { main.style.background = window.__customBgColor; main.style.filter = ""; } else if (colors[type]) { main.style.background = colors[type]; main.style.filter = ""; } }
+
+// ═══ CUSTOM COLOR PICKER ═══
+window.__bgHsv = { h: 0, s: 100, v: 100 };
+window.__bgPickerContext = null;
+function hsvToHex(h, s, v) { s /= 100; v /= 100; const f = (n, k = (n + h / 60) % 6) => v - v * s * Math.max(Math.min(k, 4 - k, 1), 0); const toHex = x => Math.round(x * 255).toString(16).padStart(2, "0"); return "#" + toHex(f(5)) + toHex(f(3)) + toHex(f(1)); }
+function openCustomBg(e) { if (e) e.stopPropagation(); window.__bgPickerContext = "iv"; const g = document.querySelector(".iv-bg-grid"); const p = document.getElementById("bgCpxIv"); if (g) g.style.display = "none"; if (p) { p.classList.add("open"); updateBgCpxVisuals(); } }
+function openLobbyCustomBg(e) { if (e) e.stopPropagation(); window.__bgPickerContext = "av"; const g = document.querySelector(".av-bg-options"); const h = document.querySelector(".av-bg-help"); const p = document.getElementById("bgCpxAv"); if (g) g.style.display = "none"; if (h) h.style.display = "none"; if (p) { p.classList.add("open"); updateBgCpxVisuals(); } }
+function closeBgCpx() { document.querySelectorAll(".bg-cpx").forEach(p => p.classList.remove("open")); const g1 = document.querySelector(".iv-bg-grid"); const g2 = document.querySelector(".av-bg-options"); const h = document.querySelector(".av-bg-help"); if (g1) g1.style.display = ""; if (g2) g2.style.display = ""; if (h) h.style.display = ""; }
+function updateBgCpxVisuals() { const hsv = window.__bgHsv; const color = hsvToHex(hsv.h, hsv.s, hsv.v); document.querySelectorAll(".bg-cpx-sl").forEach(sl => { sl.style.background = "linear-gradient(to top, #000, transparent), linear-gradient(to right, #fff, hsl(" + hsv.h + ", 100%, 50%))"; const c = sl.querySelector(".bg-cpx-sl-cursor"); if (c) { c.style.left = hsv.s + "%"; c.style.top = (100 - hsv.v) + "%"; } }); document.querySelectorAll(".bg-cpx-hue").forEach(hue => { const c = hue.querySelector(".bg-cpx-hue-cursor"); if (c) { c.style.left = (hsv.h / 360 * 100) + "%"; c.style.background = "hsl(" + hsv.h + ", 100%, 50%)"; } }); document.querySelectorAll(".bg-cpx-current").forEach(c => c.style.background = color); applyCustomBgColor(color); }
+function applyCustomBgColor(color) { if (window.__bgPickerContext === "iv") { const m = document.querySelector(".iv-pip-placeholder"); if (m) { m.style.background = color; m.style.filter = ""; } const t = document.querySelector(".iv-bg-custom"); if (t) { t.style.background = color; t.classList.add("custom-set"); } document.querySelectorAll(".iv-bg-swatch").forEach(s => s.classList.remove("active")); if (t) t.classList.add("active"); window.__customBgColor = color; } else if (window.__bgPickerContext === "av") { const p = document.querySelector(".video-preview"); if (p) p.style.background = color; const th = document.querySelector(".av-bg-thumb-custom"); const op = document.querySelector(".av-bg-opt-custom"); if (th) th.style.background = color; if (op) op.classList.add("custom-set"); document.querySelectorAll(".av-bg-opt").forEach(o => o.classList.remove("active")); if (op) op.classList.add("active"); window.__lobbyCustomColor = color; } }
+function initBgCpxDrag() { document.querySelectorAll(".bg-cpx-sl").forEach(sl => { const h = e => { const r = sl.getBoundingClientRect(); const cx = e.touches ? e.touches[0].clientX : e.clientX; const cy = e.touches ? e.touches[0].clientY : e.clientY; const x = Math.max(0, Math.min(r.width, cx - r.left)); const y = Math.max(0, Math.min(r.height, cy - r.top)); window.__bgHsv.s = (x / r.width) * 100; window.__bgHsv.v = (1 - y / r.height) * 100; updateBgCpxVisuals(); }; let d = false; sl.addEventListener("pointerdown", e => { d = true; try { sl.setPointerCapture(e.pointerId); } catch(_){} h(e); }); sl.addEventListener("pointermove", e => { if (d) h(e); }); sl.addEventListener("pointerup", e => { d = false; try { sl.releasePointerCapture(e.pointerId); } catch(_){} }); sl.addEventListener("pointercancel", () => { d = false; }); }); document.querySelectorAll(".bg-cpx-hue").forEach(hue => { const h = e => { const r = hue.getBoundingClientRect(); const cx = e.touches ? e.touches[0].clientX : e.clientX; const x = Math.max(0, Math.min(r.width, cx - r.left)); window.__bgHsv.h = (x / r.width) * 360; updateBgCpxVisuals(); }; let d = false; hue.addEventListener("pointerdown", e => { d = true; try { hue.setPointerCapture(e.pointerId); } catch(_){} h(e); }); hue.addEventListener("pointermove", e => { if (d) h(e); }); hue.addEventListener("pointerup", e => { d = false; try { hue.releasePointerCapture(e.pointerId); } catch(_){} }); hue.addEventListener("pointercancel", () => { d = false; }); }); }
+if (document.readyState !== "loading") initBgCpxDrag();
+else document.addEventListener("DOMContentLoaded", initBgCpxDrag);
+</script>
+
+
+<!-- ═══════════════ PANEL INTERVIEWS (6 Oct 2026) ═══════════════
+     Several interviewers in one interview. Everything for it is in this block.
+     ═════════════════════════════════════════════════════════════ -->
+<style>
+/* ═══ PANEL INTERVIEWS (6 Oct 2026): several interviewers in one room ═══ */
+.pn-tiles{position:absolute;bottom:20px;right:20px;left:20px;display:flex;justify-content:flex-end;gap:12px;z-index:5;align-items:flex-end;pointer-events:none}
+.pn-tiles > *{pointer-events:auto}
+.pn-tiles .iv-pip{position:relative;bottom:auto;right:auto;flex:0 1 180px;min-width:64px}
+.pn-tile{flex:0 1 180px;min-width:64px;height:130px;background:#d4d2d0;border-radius:10px;overflow:hidden;display:flex;align-items:center;justify-content:center;position:relative;box-shadow:0 2px 12px rgba(0,0,0,.15)}
+.pn-tile .av{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#fff;background:#6b7a90;margin-bottom:30px}
+.pn-chip{position:absolute;left:8px;bottom:8px;max-width:calc(100% - 16px);background:rgba(255,255,255,.88);padding:3px 8px 4px;border-radius:4px;line-height:1.3;overflow:hidden}
+.pn-chip .n{font-size:11.5px;font-weight:600;color:#2d2d2d;display:flex;align-items:center;gap:4px;white-space:nowrap;min-width:0}
+.pn-chip .n .nm{overflow:hidden;text-overflow:ellipsis;min-width:0}
+.pn-chip .n svg{width:11px;height:11px;color:#991b1b;flex-shrink:0}
+.pn-chip .r{font-size:10.5px;font-weight:400;color:#595959;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* When the row of tiles reaches your own name tag (bottom left), the tag moves up above the row. */
+.iv-floating-self.pn-up{bottom:166px}
+.pn-top{position:absolute;top:16px;right:16px;display:flex;align-items:center;gap:8px;z-index:6}
+.pn-count{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.92);padding:8px 12px;border-radius:8px;font:600 13px 'Noto Sans',sans-serif;color:#2d2d2d;box-shadow:0 1px 4px rgba(0,0,0,.08);border:none;cursor:pointer;white-space:nowrap}
+.pn-count svg{width:16px;height:16px;color:#595959}
+.pn-count .chev{width:12px;height:12px;color:#767676}
+.pn-count.open{box-shadow:0 0 0 2px #0044B3}
+.pn-list{display:none;position:absolute;top:58px;right:16px;width:340px;max-height:calc(100% - 74px);background:#fff;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.18);z-index:30;overflow:hidden;font-family:'Noto Sans',sans-serif;flex-direction:column}
+.pn-list.open{display:flex}
+.pn-people{overflow-y:auto;flex:1 1 auto;min-height:0;padding-bottom:6px}
+.pn-list h4{font-size:15px;font-weight:700;color:#2d2d2d;padding:14px 18px 2px;margin:0}
+.pn-list .sub{font-size:12px;font-weight:600;color:#767676;letter-spacing:.02em;padding:8px 18px 2px}
+.pn-row{display:flex;align-items:center;gap:12px;padding:6px 18px}
+.pn-row .a{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12.5px;font-weight:700;color:#fff;background:#6b7a90;flex-shrink:0}
+.pn-row .t{min-width:0;flex:1}
+.pn-row .t .n{font-size:14px;font-weight:600;color:#2d2d2d;line-height:1.35}
+.pn-row .t .r{font-size:12.5px;color:#595959;line-height:1.35}
+.pn-row .tag{font-size:11.5px;font-weight:600;color:#595959;background:#f3f2ef;border-radius:10px;padding:3px 9px;white-space:nowrap}
+.pn-g{flex:0 0 auto;border-top:1px solid #e8e6e3;padding:12px 18px 0}
+.pn-g p{display:flex;align-items:flex-start;gap:8px;font-size:12.5px;line-height:1.45;color:#595959;margin:0 0 5px}
+.pn-g p svg{width:14px;height:14px;flex-shrink:0;margin-top:2px;color:#595959}
+.pn-g .gt{font-size:14px;font-weight:700;color:#2d2d2d;margin-bottom:8px}
+.pn-g .gl{display:flex;align-items:center;gap:10px;border-top:1px solid #e8e6e3;margin:9px -18px 0;padding:10px 18px 12px}
+.pn-g .gl .url{flex:1;min-width:0;font-size:12.5px;color:#2d2d2d;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pn-g .gl button{flex-shrink:0;display:inline-flex;align-items:center;gap:6px;background:#0044B3;color:#fff;border:none;border-radius:8px;padding:8px 14px;font-family:'Noto Sans',sans-serif;font-size:13px;font-weight:700;white-space:nowrap;cursor:pointer}
+.pn-g .gl button:hover{background:#003399}
+.pn-g .gl button svg{width:14px;height:14px}
+.pn-endnote{padding:8px 24px 0;font-size:14px;color:#595959;line-height:1.5}
+.pn-rechelp{font-size:14px;color:#595959;line-height:1.5;margin:0 0 18px}
+.tn-lab{font-size:12.5px;font-weight:700;color:#2d2d2d;padding:4px 20px 8px;letter-spacing:.01em}
+.tn{padding:0 20px;margin:0 0 4px}
+.tn .e{border-left:3px solid #d4d2d0;padding:1px 0 1px 12px;margin-bottom:12px}
+.tn .who{font-size:12.5px;font-weight:700;color:#2d2d2d;margin-bottom:2px}
+.tn .who span{font-weight:400;color:#767676}
+.tn .tx{font-size:13.5px;color:#2d2d2d;line-height:1.5}
+</style>
+<script>
+/* ═══ PANEL INTERVIEWS (6 Oct 2026) ═══
+   Several interviewers in one interview room. Employer side only.
+   The view is chosen by the link:
+     ?role=started  (default) you started the interview: End
+     ?role=joined             you joined someone else's interview: Leave
+     ?role=guest              you opened a guest link: Leave, no Notes, no Resume, no feedback
+     &guest=1                 shows a guest already in the room (started and joined views)
+     &full=1                  fills the room to the limit of 10 (started and joined views)
+   Nothing here talks to a server. The people in the room are example data. */
+(function () {
+  var qs = new URLSearchParams(window.location.search);
+  var role = qs.get('role');
+  if (['started', 'joined', 'guest'].indexOf(role) === -1) role = 'started';
+  var CAP = 10;                                   /* Scott, 6 Oct: at most 10 interviewers in one room */
+  var cand = (typeof candidateName !== 'undefined' && candidateName) ? candidateName : 'Aisha Rahman';
+  var candIni = cand.split(' ').map(function (w) { return w[0]; }).join('').toUpperCase();
+  var main = document.getElementById('videoMain');
+  var pip = main.querySelector('.iv-pip');
+  var jobTitle = (document.querySelector('.iv-candidate-info-title') || {}).textContent || '';
+
+  /* Who is in the room, in the order they joined. The first one started the interview. */
+  var EMILY = { ini: 'EC', name: 'Emily Chen', role: 'Nurse Manager' };
+  var MARIA = { ini: 'ML', name: 'Maria Lopez', role: 'Clinical Director', muted: true };
+  var SCOTT = { ini: 'SH', name: 'Scott', role: 'Recruiter' };
+  /* Your role comes from the lobby's Update display name dialog (kept in localStorage). Empty means name only. */
+  try { var prof = JSON.parse(localStorage.getItem('jfxPanelProfile') || 'null'); if (prof && typeof prof.role === 'string') SCOTT.role = prof.role; } catch (e) {}
+  var DANA  = { ini: 'DR', name: (role === 'guest' && qs.get('name')) || 'Dana Reed', guest: true };
+  DANA.ini = DANA.name.trim().split(/\s+/).map(function (w) { return w[0]; }).join('').slice(0, 2).toUpperCase() || 'G';
+  var people;
+  if (role === 'started') { SCOTT.me = true; people = [SCOTT, EMILY, MARIA]; }
+  else if (role === 'joined') { SCOTT.me = true; people = [EMILY, MARIA, SCOTT]; }
+  else { DANA.me = true; people = [EMILY, SCOTT, DANA]; }
+  if (role !== 'guest' && qs.get('guest') === '1') people.push(DANA);
+  if (role !== 'guest' && qs.get('full') === '1') {
+    [['DP', 'David Park', 'Recruiter'], ['HB', 'Hannah Brooks', 'HR Manager'], ['PS', 'Priya Shah', 'Charge Nurse'], ['TR', 'Tom Reyes', 'Unit Manager'],
+     ['AR', 'Ana Ruiz', 'Recruiter'], ['BO', 'Ben Ortiz', 'Nurse Educator'], ['CN', 'Chloe Nguyen', 'HR Partner']].forEach(function (x) {
+      if (people.length < CAP) people.push({ ini: x[0], name: x[1], role: x[2] });
+    });
+  }
+  people[0].starter = true;
+  var me = people.filter(function (p) { return p.me; })[0];
+
+  var MUTED = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1l22 22"/><path d="M9 9v3a3 3 0 005.12 2.12M15 9.34V4a3 3 0 00-5.94-.6"/><path d="M17 16.95A7 7 0 015 12v-2m14 0v2c0 .76-.12 1.5-.34 2.18"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>';
+  var PEOPLE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>';
+  var CHEV = '<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
+  var LOCK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>';
+  var INFO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>';
+  var CLOCK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
+  var COPY = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>';
+  var TICK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+  /* Copies text. The modern clipboard call can be refused (it returns a rejected promise), so there is an older fallback. */
+  function legacyCopy(t) { try { var ta = document.createElement('textarea'); ta.value = t; ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); } catch (e) {} }
+  function copyText(t) {
+    try { if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(t).catch(function () { legacyCopy(t); }); return; } } catch (e) {}
+    legacyCopy(t);
+  }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
+  /* ── 1. Tiles: the candidate stays large, each interviewer gets a small tile ── */
+  var wrap = document.createElement('div');
+  wrap.className = 'pn-tiles';
+  people.forEach(function (p) {
+    if (p.me) return;                             /* your own tile is the existing self view */
+    var d = document.createElement('div');
+    d.className = 'pn-tile';
+    d.innerHTML = '<div class="av">' + esc(p.ini) + '</div><div class="pn-chip"><div class="n">' + (p.muted ? MUTED : '') + '<span class="nm">' + esc(p.name) +
+      '</span></div><div class="r">' + (p.guest ? 'Guest' : esc(p.role || '')) + '</div></div>';
+    wrap.appendChild(d);
+  });
+  main.appendChild(wrap);
+  wrap.appendChild(pip);                          /* you stay at the right-hand end, where you are today */
+  /* With many interviewers the tiles get narrower so they stay in one row. If the row reaches your own
+     name tag at the bottom left, the tag moves up above the row so nothing is covered. */
+  var selfTag = document.querySelector('.iv-floating-self');
+  function place() {
+    if (!selfTag || !wrap.firstElementChild) return;
+    selfTag.classList.remove('pn-up');
+    var a = wrap.firstElementChild.getBoundingClientRect(), b = selfTag.getBoundingClientRect();
+    if (a.left < b.right + 12) selfTag.classList.add('pn-up');
+  }
+  place();
+  window.addEventListener('resize', place);
+  if (window.ResizeObserver) new ResizeObserver(place).observe(main);     /* a side panel opening narrows the room */
+  if (role === 'guest') {
+    var av = pip.querySelector('.iv-pip-avatar'); if (av) av.textContent = me.ini;
+    var selfTag = document.querySelector('.iv-floating-self > span:last-child'); if (selfTag) selfTag.textContent = me.name + ' (You)';
+  }
+
+  /* ── 2. Counter and the list of who is in the room (the guest link lives under the list) ── */
+  var top = document.createElement('div'); top.className = 'pn-top'; main.appendChild(top);
+  var count = document.createElement('button'); count.type = 'button'; count.className = 'pn-count';
+  count.innerHTML = PEOPLE + '<span>' + people.length + ' of ' + CAP + ' interviewers</span>' + CHEV;
+  top.appendChild(count);
+
+  function row(ini, name, sub, tag, color) {
+    return '<div class="pn-row"><div class="a" style="background:' + color + '">' + esc(ini) + '</div><div class="t"><div class="n">' + name +
+      '</div>' + (sub ? '<div class="r">' + esc(sub) + '</div>' : '') + '</div>' + (tag ? '<span class="tag">' + tag + '</span>' : '') + '</div>';
+  }
+  var guestUrl = window.location.href.split('?')[0] + '?candidate=' + encodeURIComponent(cand) + '&role=guest';
+  var list = document.createElement('div'); list.className = 'pn-list';
+  var h = '<div class="pn-people"><h4>In the room</h4><div class="sub">Candidate</div>' + row(candIni, esc(cand), jobTitle, '', '#8e9aaf') +
+    '<div class="sub">Interviewers &middot; ' + people.length + ' of ' + CAP + '</div>';
+  people.forEach(function (p) {
+    h += row(p.ini, esc(p.name) + (p.me ? ' (You)' : ''), p.guest ? '' : p.role,
+      p.starter ? 'Started the interview' : (p.guest ? 'Guest' : ''), p.me ? '#0044B3' : '#6b7a90');
+  });
+  h += '</div>';
+  if (role !== 'guest') {
+    /* Title and the first two lines are Indeed's designed wording. The third line and "Copy guest link" are ours. */
+    h += '<div class="pn-g"><div class="gt">Share a link with team members</div>' +
+      '<p>' + LOCK + '<span>No login required. This link should only be shared with people on your team.</span></p>' +
+      '<p>' + INFO + '<span>Team members joining with this link cannot view resume, take notes, or submit feedback.</span></p>' +
+      '<p>' + CLOCK + '<span>This link is for this interview only.</span></p>' +
+      '<div class="gl"><span class="url">' + esc(guestUrl) + '</span><button type="button" id="pnCopyGuest">' + COPY + 'Copy guest link</button></div></div>';
+  }
+  list.innerHTML = h;
+  main.appendChild(list);
+  function setList(open) { list.classList.toggle('open', open); count.classList.toggle('open', open); }
+  count.addEventListener('click', function (e) { e.stopPropagation(); setList(!list.classList.contains('open')); });
+  list.addEventListener('click', function (e) { e.stopPropagation(); });
+  document.addEventListener('click', function () { setList(false); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') setList(false); });
+  var copyBtn = document.getElementById('pnCopyGuest');
+  if (copyBtn) copyBtn.addEventListener('click', function () {
+    copyText(guestUrl);
+    if (copyBtn.dataset.busy) return;
+    copyBtn.dataset.busy = '1';
+    var html = copyBtn.innerHTML;
+    copyBtn.innerHTML = TICK + 'Copied';
+    setTimeout(function () { copyBtn.innerHTML = html; delete copyBtn.dataset.busy; }, 2000);
+  });
+
+  /* ── 3. End and Leave. The interviewer who started has End; everyone else has Leave. ── */
+  var endWrap = document.querySelector('.iv-end-wrap');
+  var endHeader = document.querySelector('#endModal .end-modal-header');
+  if (endHeader) {
+    var note = document.createElement('div'); note.className = 'pn-endnote';
+    note.textContent = 'This ends the interview for everyone in the room.';
+    endHeader.parentNode.insertBefore(note, endHeader.nextSibling);
+  }
+  if (role !== 'started' && endWrap) {
+    endWrap.querySelector('.iv-end-label').textContent = 'Leave';
+    endWrap.setAttribute('onclick', 'JFXP.leave()');
+  }
+
+  /* ── 4. Feedback: one answer per interviewer. Guests give none. ── */
+  var toggle = document.querySelector('#recModal .rec-toggle');
+  if (toggle) {
+    var help = document.createElement('div'); help.className = 'pn-rechelp';
+    help.textContent = 'Each interviewer answers for themselves. Your team can see your answer. The candidate cannot.';
+    var hd = document.querySelector('#recModal .rec-modal-header'); if (hd) hd.style.marginBottom = '18px';
+    toggle.parentNode.insertBefore(help, toggle);
+  }
+
+  /* ── 5. Notes: every interviewer's notes in one place, each under its author. Guests have no Notes. ── */
+  if (role === 'guest') {
+    ['notesPanelBtn', 'resumePanelBtn'].forEach(function (id) { var b = document.getElementById(id); if (b) b.style.display = 'none'; });
+  } else {
+    var info = document.querySelector('#notesPanel .notes-info');
+    var ed = document.querySelector('#notesPanel .notes-editor');
+    if (info && ed) {
+      var p3 = document.createElement('p');
+      p3.innerHTML = PEOPLE + ' Every interviewer in this interview can read these notes.';
+      info.appendChild(p3);
+      var team = document.createElement('div');
+      team.innerHTML = '<div class="tn-lab" style="padding-top:14px">Notes from your team</div><div class="tn">' +
+        '<div class="e"><div class="who">Emily Chen <span>&middot; 11:04 AM</span></div><div class="tx">Five years in med-surg, two as charge nurse. Comfortable with Epic.</div></div>' +
+        '<div class="e"><div class="who">Maria Lopez <span>&middot; 11:09 AM</span></div><div class="tx">Open to night rotations. Prefers three 12-hour shifts.</div></div>' +
+        '</div><div class="tn-lab">Your notes</div>';
+      ed.parentNode.insertBefore(team, ed);
+      var ta = document.getElementById('notesTextarea'); if (ta) ta.style.minHeight = '120px';
+      var saved = document.getElementById('notesAutosave');
+      if (saved) { ed.parentNode.appendChild(saved); saved.style.padding = '0 20px 12px'; ed.style.marginBottom = '8px'; }
+    }
+  }
+
+  /* A guest has no lobby to go back to. */
+  if (role === 'guest') {
+    window.rateCallQuality = window.skipFeedback = window.submitFeedback = function () {
+      var v = document.getElementById('callRatingView'), f = document.getElementById('callFeedbackForm');
+      if (f) f.classList.remove('open');
+      if (v) { v.style.display = ''; v.innerHTML = '<div class="call-ended-title">Call ended</div><div class="call-ended-subtitle">You can close this window.</div>'; }
+    };
+  }
+
+  window.JFXP = {
+    role: role, people: people,
+    leave: function () {
+      /* No confirm step: you can rejoin from the lobby. Seat holders are asked for
+         feedback as they leave; a guest goes straight to the end screen. */
+      if (role === 'guest') { document.getElementById('callEndedScreen').classList.add('open'); return; }
+      document.getElementById('recModal').classList.add('open');
+    }
+  };
+})();
+</script>
+</body>
+</html>
