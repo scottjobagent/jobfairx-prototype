@@ -7454,6 +7454,12 @@ try {
     var tags = first.querySelector('.email-tags-input');
     if (tags) tags.innerHTML = TEAM.filter(function (p) { return !p.me; }).map(function (p) { return '<span class="email-tag">' + esc(p.e) + ' <button class="remove-tag" onclick="this.parentElement.remove()">&times;</button></span>'; }).join('') + '<input type="text" placeholder="Add email...">';
     var seats = first.querySelector('div[style*="font-size:13px"]'); if (seats) seats.innerHTML = 'Growth package <span style="color:#d4d2d0;">&middot;</span> 4 of 5 interviewer seats used';
+    /* The Dallas row on the Events tab says the same: the owner plus four seats. */
+    var drow = $('tr.ev-row[data-event="dallas"]');
+    if (drow) {
+      var cnt = drow.querySelector('.setup-summary .iv-count-tip'); if (cnt && cnt.firstChild && cnt.firstChild.nodeType === 3) cnt.firstChild.nodeValue = '5 interviewers';
+      var sc = drow.querySelector('.cell-col-count'); if (sc && /seats/.test(sc.textContent)) sc.textContent = '4 of 5 seats';
+    }
     first.insertAdjacentHTML('afterend', '<div class="modal-divider" style="margin:0 -28px;"></div><div class="iv-settings-section pn-panelsec" style="margin-top:24px;"><h4 style="margin-bottom:4px !important;">Panel interviews</h4>' +
       '<div class="iv-toggle-row" style="margin-top:14px;"><span class="iv-toggle-label">Do you want panel interviews for all interviews?</span><label class="iv-toggle-switch"><input type="checkbox" id="pnPanelAll"><span class="iv-toggle-slider"></span></label></div>' +
       '<p style="font-size:13px;color:#767676;margin-top:10px;line-height:1.5;">All the interviewers above join every interview on this event, including interviews booked after this is turned on. To change one interview, use Add interviewer on its row on the Interviews page.</p></div>');
@@ -7724,6 +7730,8 @@ try {
         showEventReport('houston');
       } else if (v === 'candidates') {
         showView('candidates');
+      } else if (v === 'settings') {
+        showView('events'); openInterviewSettings();
       }
     } catch (e) { console.error('panel deep link', e); }
   }
