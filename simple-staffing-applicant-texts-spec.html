@@ -63,7 +63,7 @@ td b{color:var(--ink);font-weight:600}
   <p class="lead">Three texts from Simple Staffing ask every Indeed applicant to <b>request an interview time on JobFairX</b>. This page carries the exact templates, every merge field, the send schedule and the rules a developer needs to build it.</p>
   <p class="meta">Spec date 7 Oct 2026, revised the same day · Replaces the wording in WorkableWebhookHandler.cs (Text 1) and CandidateIndeedSmsAutomationsSender.cs (Texts 2 and 3) as copied on 5 Oct 2026 · <a href="https://docs.google.com/document/d/1_-tbiFWY1fiIa52X_zZueEkuj-sli10qdNU2G911s8k/edit?usp=sharing">Current texts and timing</a></p>
   <nav class="jump" aria-label="Sections">
-    <a href="#texts">1 The three texts</a><a href="#fields">2 Merge fields</a><a href="#schedule">3 Send schedule</a><a href="#lead">4 Short lead times</a><a href="#replies">5 Replies inbox</a><a href="#chars">6 Characters and length</a><a href="#twilio">7 Twilio and the link</a><a href="#logging">8 Logging</a><a href="#decisions">9 Decisions to confirm</a>
+    <a href="#texts">1 The three texts</a><a href="#fields">2 Merge fields</a><a href="#schedule">3 Send schedule</a><a href="#lead">4 Short lead times</a><a href="#replies">5 Replies, STOP and HELP</a><a href="#chars">6 Characters and length</a><a href="#twilio">7 Twilio and the link</a><a href="#logging">8 Logging</a><a href="#decisions">9 Decisions to confirm</a>
   </nav>
 </header>
 
@@ -163,19 +163,16 @@ Reply STOP if you no longer want to receive texts from Simple Staffing.</pre>
 
 <section id="replies">
   <p class="num">05</p>
-  <h2>Replies: a two-way inbox in the admin</h2>
-  <p class="desc">Replies are read and answered by a person in the admin. Twilio delivers every inbound text to a webhook; the admin shows the conversation and sends the reply from the same Simple Staffing number.</p>
+  <h2>Replies, STOP and HELP</h2>
+  <p class="desc">Nobody answers replies by text. The system handles opt-outs and HELP itself; every other reply is forwarded to an email address and checked weekly.</p>
   <ul class="list">
-    <li><b>Store every inbound message</b> against the phone number and the application it belongs to, with the time and the full text. A number with several applications shows one conversation.</li>
-    <li><b>Messages page:</b> conversations newest first, unread count, filter by job and employer. <b>Thread view:</b> the texts we sent and the replies in order, with the applicant's name, job, employer, interview date and request status beside it. <b>Reply box:</b> sends through Twilio from the same number; sent replies are logged like the automated texts.</li>
-    <li><b>Notify</b> the team when a reply arrives (email, with the thread link) so an answer goes out the same day.</li>
-    <li><b>Automatic handling still runs first.</b> Twilio's keyword opt-outs (STOP, STOPALL, UNSUBSCRIBE, CANCEL, END, QUIT, REVOKE, OPTOUT) block the number at once across all jobs, cancel its queued texts and mark the conversation Opted out. HELP gets the auto-reply below.</li>
-    <li><b>Plain-language opt-outs</b> ("stop texting me", "wrong number", "not interested") are flagged in the inbox. A person confirms the block, or marks the reply as not an opt-out, within ten business days; the FCC rule treats any reasonable request to stop as an opt-out.</li>
+    <li>Keep Twilio's automatic opt-out handling on with its full keyword set (STOP, STOPALL, UNSUBSCRIBE, CANCEL, END, QUIT, REVOKE, OPTOUT). A keyword reply blocks the number at once across all jobs and cancels its queued texts.</li>
+    <li>Twilio only acts on single-word replies, so the app also checks every inbound message: if it contains <code>stop</code>, <code>quit</code>, <code>end</code>, <code>revoke</code>, <code>opt out</code>, <code>optout</code>, <code>cancel</code> or <code>unsubscribe</code>, in any case, with any punctuation, anywhere in the message, block the number the same way.</li>
+    <li><b>Every other reply is forwarded</b> to the replies mailbox with the applicant's name, job, employer and the reply text. Someone reads that mailbox at least weekly. A plain request to stop ("stop texting me", "wrong number", "not interested") is entered as an opt-out within ten business days, as the FCC rule requires. No question is answered by text.</li>
     <li>One block list serves every sending number. The follow-up check reads this list, not the literal word STOP.</li>
     <li><b>HELP auto-reply</b> (required at registration): <code>Simple Staffing: texts about jobs you applied for. Help: {support email or phone}. Reply STOP to opt out.</code> Scott supplies the contact.</li>
     <li><b>After an opt-out,</b> one confirmation text within 5 minutes is allowed, then nothing: <code>Simple Staffing: You're opted out and won't get more texts from us.</code> Scott confirms whether to send it (decision 5).</li>
   </ul>
-  <p class="note">The three templates stay as written. They do not ask a question, so a reply is the applicant's choice, and every reply now reaches a person who can answer it.</p>
 </section>
 
 <section id="chars">
@@ -223,7 +220,7 @@ Reply STOP if you no longer want to receive texts from Simple Staffing.</pre>
     <li><span class="box" aria-hidden="true"></span><span><b>5.</b> One confirmation text is sent after an opt-out.</span></li>
     <li><span class="box" aria-hidden="true"></span><span><b>6.</b> The city field holds the city only (the wording also works for "Plano, TX").</span></li>
     <li><span class="box" aria-hidden="true"></span><span><b>7.</b> No Simple Staffing jobs are outside the US. If any are, the time-zone table and quiet-hour rules need extending first.</span></li>
-    <li><span class="box" aria-hidden="true"></span><span><b>8.</b> Support contact for the HELP reply: ____________</span></li>
+    <li><span class="box" aria-hidden="true"></span><span><b>8.</b> Support contact for the HELP reply, and the mailbox that receives forwarded replies: ____________</span></li>
   </ul>
 </section>
 </div>
