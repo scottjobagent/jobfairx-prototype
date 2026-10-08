@@ -61,7 +61,7 @@ td b{color:var(--ink);font-weight:600}
   <p class="kicker">Simple Staffing · applicant texts · developer spec</p>
   <h1>Simple Staffing Applicant Texts Spec</h1>
   <p class="lead">Three texts from Simple Staffing ask every Indeed applicant to <b>request an interview time on JobFairX</b>. This page carries the exact templates, every merge field, the send schedule and the rules a developer needs to build it.</p>
-  <p class="meta">Spec date 7 Oct 2026, revised the same day · Replaces the wording in WorkableWebhookHandler.cs (Text 1) and CandidateIndeedSmsAutomationsSender.cs (Texts 2 and 3) as copied on 5 Oct 2026 · <a href="https://docs.google.com/document/d/1_-tbiFWY1fiIa52X_zZueEkuj-sli10qdNU2G911s8k/edit?usp=sharing">Current texts and timing</a></p>
+  <p class="meta">Spec date 7 Oct 2026, revised 8 Oct 2026 · Replaces the wording in WorkableWebhookHandler.cs (Text 1) and CandidateIndeedSmsAutomationsSender.cs (Texts 2 and 3) as copied on 5 Oct 2026 · <a href="https://docs.google.com/document/d/1_-tbiFWY1fiIa52X_zZueEkuj-sli10qdNU2G911s8k/edit?usp=sharing">Current texts and timing</a></p>
   <nav class="jump" aria-label="Sections">
     <a href="#texts">1 The three texts</a><a href="#fields">2 Merge fields</a><a href="#schedule">3 Send schedule</a><a href="#lead">4 Short lead times</a><a href="#replies">5 Replies, STOP and HELP</a><a href="#chars">6 Characters and length</a><a href="#twilio">7 Twilio and the link</a><a href="#logging">8 Logging</a><a href="#decisions">9 Decisions to confirm</a>
   </nav>
@@ -203,9 +203,10 @@ Reply STOP if you no longer want to receive texts from Simple Staffing.</pre>
 <section id="logging">
   <p class="num">08</p>
   <h2>Logging</h2>
-  <p class="desc">Today 40 to 50% of texted applicants request a time. Without these records the new texts cannot be compared with that.</p>
-  <p class="desc"><b>Per application and per text:</b> planned send time, actual send time, Twilio status and segment count, interview format, Indeed or non-Indeed, whether a request was made and when, which text it followed, STOP time and the exact reply wording, and every other reply.</p>
-  <p class="desc"><b>Weekly summary:</b> requests per text, STOP replies per text, undelivered messages, and the share of texts that went out as 4 segments.</p>
+  <p class="desc">Record these from the first send so the request rate can be reported every week and split by job, employer, format and text version.</p>
+  <p class="desc"><b>Per text sent:</b> application, text number (1, 2 or 3), template version, planned send time, actual send time in UTC and in the applicant's local time, the reason if it was deferred or skipped (quiet hours, short lead time, opted out, request already made), Twilio message id, Twilio status and error code, segment count, interview format, Indeed or non-Indeed.</p>
+  <p class="desc"><b>Per application:</b> job, employer, interview date, time applied, when the link was first opened and which text it followed, when a request was made and which text it followed, STOP time and the exact reply wording, and every other reply with its time and wording.</p>
+  <p class="desc"><b>Weekly summary:</b> applicants texted, requests and the request rate (requests divided by applicants texted), requests by the text they followed, link opens divided by delivered, delivered, undelivered and failed counts, STOP replies per text, replies forwarded, the share of texts at 4 segments, and the request rate by job, by employer, by format, and Indeed against non-Indeed.</p>
 </section>
 
 <section id="decisions">
