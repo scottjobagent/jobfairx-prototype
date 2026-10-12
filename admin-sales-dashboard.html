@@ -1,0 +1,945 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>JobFairX Sales Dashboard</title>
+<style>
+/* Layout: one admin screen on a cool grey canvas. A date filter row, two rows of three tiles
+   (sales, new leads), a day-by-day row (sales for each day of the month, leads for each day of
+   the week), then one full-width chart of sales by month. The review bar above and the developer
+   notes below are tooling and sit outside the screen. One light look on purpose: this is a design
+   reference for a light admin page. Type is the system UI stack so it reads like the admin. */
+:root{
+  color-scheme:light;
+  --canvas:#F3F5F9; --surface:#FFFFFF; --ink:#101B2C; --ink-2:#3D4B60; --muted:#5F6E84;
+  --line:#DDE3EC; --grid:#E9EDF3; --brand:#0044B3; --brand-hot:#2F6BD6; --last:#7E8A9B; --last-hot:#9AA5B5;
+  --up:#0A7A3D; --down:#B3261E; --seg-on:#E4E9F2;
+  --note:#FFF6DD; --note-line:#E6D08F; --note-ink:#4A3B08;
+  --bar:#101B2C; --bar-ink:#FFFFFF; --bar-muted:#B9C4D6; --bar-line:#33415A; --bar-hover:#1D2A40;
+  --shadow:rgba(16,27,44,.14);
+  --font:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --r:10px;
+}
+*{box-sizing:border-box}
+[hidden]{display:none !important}
+body{margin:0;background:var(--canvas);color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+h1,h2,h3,p,dl,dd,ul{margin:0}
+ul{padding:0;list-style:none}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.wrap{max-width:1120px;margin-inline:auto;padding-inline:20px;padding-block:20px 56px;display:flex;flex-direction:column;gap:22px}
+
+.review{background:var(--bar);color:var(--bar-ink);border-radius:var(--r);padding:10px 14px;display:flex;flex-direction:column;gap:10px;font-size:13.5px}
+.review :focus-visible{outline-color:var(--bar-ink)}
+.review-top{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px}
+.review-title{font-weight:650}
+.review-sum{color:var(--bar-muted);flex:1 1 200px;min-width:0}
+.review-link{color:var(--bar-ink);text-underline-offset:3px}
+.btn{font:inherit;font-weight:600;color:var(--bar-ink);background:transparent;border:1px solid var(--bar-line);border-radius:8px;padding:5px 12px;cursor:pointer}
+.btn:hover{background:var(--bar-hover)}
+.review-body{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;border-top:1px solid var(--bar-line);padding-top:10px}
+.ctl-label{font-weight:600}
+.seg{display:inline-flex;border:1px solid var(--bar-line);border-radius:8px;overflow:hidden}
+.seg-btn{font:inherit;color:var(--bar-muted);background:transparent;border:0;padding:5px 12px;cursor:pointer}
+.seg-btn + .seg-btn{border-left:1px solid var(--bar-line)}
+.seg-btn:hover{background:var(--bar-hover)}
+.seg-btn:focus-visible{outline-offset:-3px}
+.seg-btn.is-on,.seg-btn.is-on:hover{background:var(--bar-ink);color:var(--bar);font-weight:600}
+.seg-btn.is-on:focus-visible{outline-color:var(--bar)}
+.review-hint{color:var(--bar-muted);flex:1 1 260px;min-width:0}
+
+.screen{display:flex;flex-direction:column;gap:22px}
+.screen-head{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 16px}
+.screen-head h1{font-size:24px;font-weight:650;letter-spacing:-.01em;line-height:1.2}
+.screen-meta{font-size:13px;color:var(--muted)}
+
+.filterbar{display:flex;flex-direction:column;gap:8px}
+.filters{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:10px 14px}
+.filters-label{font-size:13px;font-weight:600;color:var(--ink-2)}
+.pickday{font-size:13px;color:var(--muted);margin-left:6px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font:inherit;font-size:13px;color:var(--ink-2);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:5px 11px;cursor:pointer}
+.chip:hover{border-color:var(--muted)}
+.chip.is-on{background:var(--seg-on);border-color:var(--seg-on);color:var(--ink);font-weight:600}
+.chip:disabled{color:var(--muted);background:var(--canvas);border-color:var(--line);cursor:not-allowed}
+.dayinput{font:inherit;font-size:13px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:4px 8px;min-height:31px}
+.asof{font-size:13.5px;color:var(--note-ink);background:var(--note);border:1px solid var(--note-line);border-radius:8px;padding:8px 12px}
+.linkbtn{font:inherit;color:var(--brand);background:none;border:0;padding:0;margin-left:6px;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+
+.group{display:flex;flex-direction:column;gap:10px}
+.group > h2,.card h2,.card h3{font-size:15px;font-weight:650}
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;min-width:0;display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:10px;align-items:baseline}
+.tile-label{font-size:13px;color:var(--muted);grid-column:1 / -1}
+.tile-num{font-size:32px;font-weight:650;letter-spacing:-.015em;line-height:1.15;margin-top:4px}
+.tile-chg{display:inline-flex;align-items:center;gap:4px;justify-self:start;font-size:14px;font-weight:650}
+.tile-chg.up{color:var(--up)}
+.tile-chg.down{color:var(--down)}
+.tile-chg.flat{color:var(--muted)}
+.tile-prev{font-size:13px;color:var(--muted);margin-top:8px;grid-column:1 / -1}
+.tile-prev b{font-weight:600;color:var(--ink-2)}
+
+.daily{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.card-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 16px}
+.card-meta{font-size:13px;color:var(--muted)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13px;color:var(--ink-2)}
+.legend li{display:flex;align-items:center;gap:7px}
+.key{display:inline-block;flex:none;width:22px;height:0;border-top:2px solid var(--brand)}
+.key-last{border-top:2px dashed var(--last)}
+.key-grey{border-top:2px solid var(--last)}
+.key-none{border-top-color:transparent}
+.swatch{display:inline-block;flex:none;width:10px;height:10px;border-radius:2px;background:var(--brand)}
+.swatch-last{background:var(--last)}
+.pick{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.pick-btn{font:inherit;font-size:13px;color:var(--muted);background:var(--surface);border:0;padding:4px 11px;cursor:pointer}
+.pick-btn + .pick-btn{border-left:1px solid var(--line)}
+.pick-btn:hover{color:var(--ink)}
+.pick-btn:focus-visible{outline-offset:-3px}
+.pick-btn.is-on{background:var(--seg-on);color:var(--ink);font-weight:600}
+.ytd{display:flex;flex-wrap:wrap;gap:10px 36px}
+.ytd dt{font-size:12.5px;color:var(--muted)}
+.ytd dd{font-size:19px;font-weight:650;display:flex;align-items:center;gap:5px}
+.ytd .up{color:var(--up)}
+.ytd .down{color:var(--down)}
+.chart{position:relative;min-width:0;border-radius:6px}
+.chart svg{display:block;width:100%;height:auto;touch-action:pan-y}
+.gridline{stroke:var(--grid);stroke-width:1}
+.baseline{stroke:var(--line);stroke-width:1}
+.axis{fill:var(--muted);font-size:12px;font-family:var(--font);font-variant-numeric:tabular-nums}
+.axis-today{fill:var(--ink);font-weight:650}
+.val{fill:var(--ink);font-size:12px;font-weight:600;font-family:var(--font)}
+.chg{fill:var(--ink-2);font-size:11px;font-family:var(--font);font-variant-numeric:tabular-nums}
+.tri-up{fill:var(--up)}
+.tri-down{fill:var(--down)}
+.ln-last{fill:none;stroke:var(--last);stroke-width:2;stroke-dasharray:6 5;stroke-linejoin:round;stroke-linecap:round}
+.ln-this{fill:none;stroke:var(--brand);stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.area-this{fill:var(--brand);fill-opacity:.08;stroke:none}
+.dot-this{fill:var(--brand);stroke:var(--surface);stroke-width:2}
+.dot-last{fill:var(--last);stroke:var(--surface);stroke-width:2}
+.bar-this{fill:var(--brand)}
+.bar-last{fill:var(--last)}
+.bar-this.is-hot{fill:var(--brand-hot)}
+.bar-last.is-hot{fill:var(--last-hot)}
+.cross{stroke:var(--muted);stroke-width:1}
+.hit{fill:transparent}
+.tip{position:absolute;z-index:2;pointer-events:none;background:var(--surface);border:1px solid var(--line);box-shadow:0 6px 20px var(--shadow);border-radius:8px;padding:8px 10px;font-size:13px;white-space:nowrap}
+.tip-title{font-weight:650;margin-bottom:4px}
+.tip-row{display:flex;align-items:center;gap:8px;font-variant-numeric:tabular-nums}
+.tip-row b{font-weight:650}
+.tip-lab{color:var(--muted)}
+.chart-note{font-size:13px;color:var(--muted)}
+.figures summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--brand);width:max-content;max-width:100%}
+.table-scroll{overflow-x:auto;margin-top:8px}
+.figures table{border-collapse:collapse;font-size:13.5px;font-variant-numeric:tabular-nums;min-width:240px}
+.figures th,.figures td{padding:6px 18px 6px 0;text-align:right;border-bottom:1px solid var(--grid)}
+.figures th:first-child{text-align:left}
+.figures thead th{font-weight:600;color:var(--muted)}
+.figures tbody th{font-weight:400}
+
+.notes{border-top:2px solid var(--ink);padding-top:18px;display:flex;flex-direction:column;gap:12px}
+.notes h2{font-size:19px;font-weight:650}
+.notes-lead{color:var(--ink-2);max-width:68ch}
+.notes-list{display:flex;flex-direction:column;border-top:1px solid var(--line)}
+.notes-list > div{display:grid;grid-template-columns:190px minmax(0,1fr);gap:4px 20px;padding:10px 0;border-bottom:1px solid var(--line)}
+.notes-list dt{font-weight:650}
+.notes-list dd{color:var(--ink-2);max-width:70ch}
+
+@media (max-width:900px){
+  .daily{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:640px){
+  .wrap{padding-inline:16px;gap:18px}
+  .screen{gap:18px}
+  .screen-head h1{font-size:21px}
+  .pickday{margin-left:0}
+  .tiles{grid-template-columns:minmax(0,1fr);gap:8px}
+  .tile{grid-template-columns:minmax(0,1fr) auto;align-items:center;column-gap:12px;padding:12px 14px}
+  .tile-label{grid-column:1;grid-row:1}
+  .tile-prev{grid-column:1;grid-row:2;margin-top:2px}
+  .tile-num{grid-column:2;grid-row:1;font-size:26px;margin-top:0;text-align:right}
+  .tile-chg{grid-column:2;grid-row:2;justify-self:end;font-size:13px}
+  .card{padding:14px}
+  .notes-list > div{grid-template-columns:minmax(0,1fr)}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <section class="review" aria-label="Design review controls">
+    <div class="review-top">
+      <strong class="review-title">Design review</strong>
+      <span class="review-sum" id="reviewSum">Showing a full year of data · sample numbers</span>
+      <a class="review-link" href="#notes">Notes for the developer</a>
+      <button type="button" class="btn" id="reviewToggle" aria-expanded="true" aria-controls="reviewBody">Hide controls</button>
+    </div>
+    <div class="review-body" id="reviewBody">
+      <span class="ctl-label" id="viewLabel">View</span>
+      <div class="seg" role="group" aria-labelledby="viewLabel">
+        <button type="button" class="seg-btn is-on" id="viewFull" data-view="full" aria-pressed="true">A full year of data</button>
+        <button type="button" class="seg-btn" id="viewDayone" data-view="dayone" aria-pressed="false">Day one</button>
+      </div>
+      <p class="review-hint">This bar is for review only and is not part of the admin page. Every number is a sample, and the sample today is Wednesday, October 14.</p>
+    </div>
+  </section>
+
+  <main class="screen" aria-labelledby="pageTitle">
+    <header class="screen-head">
+      <h1 id="pageTitle">Sales dashboard</h1>
+      <p class="screen-meta">Pacific time · Weeks run Monday to Sunday</p>
+    </header>
+
+    <div class="filterbar">
+      <section class="filters" aria-label="Date filter">
+        <span class="filters-label" id="dayLabel">Show the dashboard as of</span>
+        <div class="chips" role="group" aria-labelledby="dayLabel">
+          <button type="button" class="chip is-on" data-day="today" aria-pressed="true">Today</button>
+          <button type="button" class="chip" data-day="yesterday" aria-pressed="false">Yesterday</button>
+          <button type="button" class="chip" data-day="lastweek" aria-pressed="false">End of last week</button>
+          <button type="button" class="chip" data-day="lastmonth" aria-pressed="false">End of last month</button>
+        </div>
+        <label class="pickday" for="dayInput">Another day</label>
+        <input type="date" class="dayinput" id="dayInput" min="2025-01-01" max="2026-10-14" value="2026-10-14">
+      </section>
+      <p class="asof" id="asOfNote" hidden>Showing the end of <b id="asOfDate"></b>.<button type="button" class="linkbtn" id="backToday">Back to today</button></p>
+    </div>
+
+    <section class="group" aria-labelledby="salesH">
+      <h2 id="salesH">Sales</h2>
+      <div class="tiles">
+        <article class="tile" data-metric="sales" data-span="day">
+          <p class="tile-label">Today</p>
+          <p class="tile-num">$1,390</p>
+          <p class="tile-chg" hidden></p>
+          <p class="tile-prev"><span class="has-prev"><span class="prev-label">Yesterday by this time</span> <b class="prev-val">$895</b></span><span class="no-prev" hidden>No earlier data yet</span></p>
+        </article>
+        <article class="tile" data-metric="sales" data-span="week">
+          <p class="tile-label">This week</p>
+          <p class="tile-num">$4,865</p>
+          <p class="tile-chg" hidden></p>
+          <p class="tile-prev"><span class="has-prev"><span class="prev-label">Last week by Wednesday</span> <b class="prev-val">$5,255</b></span><span class="no-prev" hidden>No earlier data yet</span></p>
+        </article>
+        <article class="tile" data-metric="sales" data-span="month">
+          <p class="tile-label">This month</p>
+          <p class="tile-num">$17,200</p>
+          <p class="tile-chg" hidden></p>
+          <p class="tile-prev"><span class="has-prev"><span class="prev-label">Last month by the 14th</span> <b class="prev-val">$15,900</b></span><span class="no-prev" hidden>No earlier data yet</span></p>
+        </article>
+      </div>
+    </section>
+
+    <section class="group" aria-labelledby="leadsH">
+      <h2 id="leadsH">New leads</h2>
+      <div class="tiles">
+        <article class="tile" data-metric="leads" data-span="day">
+          <p class="tile-label">Today</p>
+          <p class="tile-num">4</p>
+          <p class="tile-chg" hidden></p>
+          <p class="tile-prev"><span class="has-prev"><span class="prev-label">Yesterday by this time</span> <b class="prev-val">6</b></span><span class="no-prev" hidden>No earlier data yet</span></p>
+        </article>
+        <article class="tile" data-metric="leads" data-span="week">
+          <p class="tile-label">This week</p>
+          <p class="tile-num">11</p>
+          <p class="tile-chg" hidden></p>
+          <p class="tile-prev"><span class="has-prev"><span class="prev-label">Last week by Wednesday</span> <b class="prev-val">15</b></span><span class="no-prev" hidden>No earlier data yet</span></p>
+        </article>
+        <article class="tile" data-metric="leads" data-span="month">
+          <p class="tile-label">This month</p>
+          <p class="tile-num">46</p>
+          <p class="tile-chg" hidden></p>
+          <p class="tile-prev"><span class="has-prev"><span class="prev-label">Last month by the 14th</span> <b class="prev-val">41</b></span><span class="no-prev" hidden>No earlier data yet</span></p>
+        </article>
+      </div>
+    </section>
+
+    <section class="group" aria-labelledby="dailyH">
+      <h2 id="dailyH">Day by day</h2>
+      <div class="daily">
+        <article class="card" aria-labelledby="monthH">
+          <div class="card-head">
+            <h3 id="monthH">Sales by day</h3>
+            <span class="card-meta" id="monthName">October</span>
+          </div>
+          <div class="chart" id="monthChart" tabindex="0" role="group" aria-label="Chart of sales for each day of the month. Use the left and right arrow keys to read each day.">
+            <svg role="img" aria-label="Bar chart of sales for each day of the month"></svg>
+            <div class="tip" aria-live="polite" hidden></div>
+          </div>
+          <p class="chart-note" id="monthNote" hidden></p>
+          <details class="figures">
+            <summary>Daily figures</summary>
+            <div class="table-scroll"><table id="monthFigures"></table></div>
+          </details>
+        </article>
+        <article class="card" aria-labelledby="weekH">
+          <div class="card-head">
+            <h3 id="weekH">New leads by day</h3>
+            <div class="pick" id="weekPick" role="group" aria-label="Week shown">
+              <button type="button" class="pick-btn is-on" id="weekThis" aria-pressed="true">This week</button>
+              <button type="button" class="pick-btn" id="weekLast" aria-pressed="false">Last week</button>
+            </div>
+          </div>
+          <ul class="legend" aria-label="Bars on the chart">
+            <li><span class="swatch"></span><span id="weekLegA">This week</span></li>
+            <li id="weekLegBItem"><span class="swatch swatch-last"></span><span id="weekLegB">Last week</span></li>
+          </ul>
+          <div class="chart" id="weekChart" tabindex="0" role="group" aria-label="Chart of new leads for each day of the week. Use the left and right arrow keys to read each day.">
+            <svg role="img" aria-label="Bar chart of new leads for each day of the week next to the week before"></svg>
+            <div class="tip" aria-live="polite" hidden></div>
+          </div>
+          <p class="chart-note" id="weekNote" hidden></p>
+          <details class="figures">
+            <summary>Daily figures</summary>
+            <div class="table-scroll"><table id="weekFigures"></table></div>
+          </details>
+        </article>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="chartH">
+      <div class="card-head">
+        <h2 id="chartH">Sales by month</h2>
+        <ul class="legend" aria-label="Lines on the chart">
+          <li><span class="key"></span><span id="legThis">2026</span></li>
+          <li id="legLastItem"><span class="key key-last"></span><span id="legLast">2025</span></li>
+        </ul>
+      </div>
+      <dl class="ytd">
+        <div><dt id="ytdThisLabel">2026 so far</dt><dd id="ytdThis">$331,700</dd></div>
+        <div id="ytdLastBox"><dt id="ytdLastLabel">Same dates in 2025</dt><dd id="ytdLast">$290,800</dd></div>
+        <div id="ytdChangeBox"><dt>Change</dt><dd id="ytdChange" class="up"><svg viewBox="0 0 12 12" width="13" height="13" aria-hidden="true"><path id="ytdArrow" d="M6 10.5V1.5M2.2 5.3 6 1.5l3.8 3.8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="ytdChangeText">Up 14.1%</span></dd></div>
+      </dl>
+      <div class="chart" id="yearChart" tabindex="0" role="group" aria-label="Chart of sales by month. Use the left and right arrow keys to read each month.">
+        <svg role="img" aria-label="Line chart of sales by month, this year against last year"></svg>
+        <div class="tip" aria-live="polite" hidden></div>
+      </div>
+      <p class="chart-note" id="yearNote" hidden></p>
+      <details class="figures">
+        <summary>Monthly figures</summary>
+        <div class="table-scroll"><table id="yearFigures"></table></div>
+      </details>
+    </section>
+  </main>
+
+  <section class="notes" id="notes" aria-labelledby="notesH">
+    <h2 id="notesH">Notes for the developer</h2>
+    <p class="notes-lead">Everything above this line is the page to add to the admin. The review bar at the top and these notes are not part of it.</p>
+    <dl class="notes-list">
+      <div><dt>Sales</dt><dd>Total sales for today, this week and this month. Use your own definition of a sale.</dd></div>
+      <div><dt>New leads</dt><dd>A lead is a contact added to ActiveCampaign. It counts on the day it is added.</dd></div>
+      <div><dt>Periods</dt><dd>Pacific time. Weeks run Monday to Sunday, the same as the HubSpot dashboard this page replaces. This week and this month are running totals up to now.</dd></div>
+      <div><dt>Date filter</dt><dd>The row under the title sets the day the whole page is shown for. Today is the default. Yesterday, End of last week and End of last month are shortcuts, and Another day takes any day from the first tracked day up to today. Every number and chart is then worked out as of the end of that day: the tiles show that day, its week up to that day and its month up to that day, the day charts show that month and that week, and Sales by month shows that year up to that day. The tile labels change from Today, This week and This month to the date, “Week of” the Monday, and the month name. A strip under the filter says which day is showing and has a Back to today link. Days before tracking started cannot be picked.</dd></div>
+      <div><dt>Previous period</dt><dd>The grey line under each number is the figure for the same point in the period before: yesterday by this time of day, last week through the same weekday and time, and last month through the same date and time. If last month is shorter than today's date, use its last day. When the date filter is on a past day, the comparison uses full days: the day before, the week before through the same weekday, and the month before through the same date. The arrow and percentage beside the number compare the two: green up, red down, rounded to a whole number. No arrow shows when the earlier figure is zero.</dd></div>
+      <div><dt>Day by day</dt><dd>Sales by day has one bar for each day of the month up to the day shown, and that day's bar carries its amount. New leads by day has one blue bar for each day of the week, with the count on top, next to a grey bar for the same day one week earlier. Pointing at a day, tapping it, or using the arrow keys shows the figures. Each chart opens as a table underneath.</dd></div>
+      <div><dt>Lead arrows</dt><dd>Under each day in New leads by day, an arrow and a percentage compare that day with the same day one week earlier: green up, red down. This is the comparison HubSpot showed in its “Leads this Cycle” and “Leads Last Cycle” tiles. The switch at the top of the chart moves between the two: this week against last week, and last week against the week before. Percentages are rounded to whole numbers. Today's arrow compares a part day with a full day, as HubSpot did. No arrow shows when the earlier day had no leads. If a percentage is too wide for its column, the arrow shows alone and the figure stays in the hover and the table.</dd></div>
+      <div><dt>Sales by month</dt><dd>This year is the solid blue line and last year is the dashed grey line. The current month is a running total and carries the dot. Pointing at a month, tapping it, or using the arrow keys shows both years. The same figures open as a table under the chart.</dd></div>
+      <div><dt>Year so far</dt><dd>Compares January 1 through the day shown with the same dates last year, so both totals cover the same number of days.</dd></div>
+      <div><dt>Nothing to compare yet</dt><dd>Tracking starts when this page goes live and no past data is loaded. Until an earlier period exists, the grey line under each number reads “No earlier data yet” and the arrow beside the number is left off, the day charts show only the days tracked so far, last week's bars, the lead arrows, the week switch and last year's line are left off, and the year row shows one total. The date filter shortcuts that reach before the first tracked day are greyed out. Choose “Day one” in the review bar to see it.</dd></div>
+      <div><dt>Phone</dt><dd>Below about 640px wide, each tile becomes one row with the arrow under the number. Below about 900px the two day charts stack. Every chart keeps the full width.</dd></div>
+      <div><dt>Numbers</dt><dd>Every number on this page is a sample. The sample today is Wednesday, October 14, 2026, and the sample data starts on January 1, 2025.</dd></div>
+    </dl>
+  </section>
+
+</div>
+
+<script>
+(function () {
+  var MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  var DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  var DAY_MS = 864e5, NS = 'http://www.w3.org/2000/svg', REVIEW_KEY = 'jfx-sales-dashboard-review';
+
+  /* Calendar. A day is a whole number of days, worked out in UTC so nothing shifts with the viewer's clock. */
+  function num(y, m, d) { return Math.round(Date.UTC(y, m, d) / DAY_MS); }
+  function parts(n) { var t = new Date(n * DAY_MS); return { y: t.getUTCFullYear(), m: t.getUTCMonth(), d: t.getUTCDate(), dow: (t.getUTCDay() + 6) % 7 }; }
+  function dim(y, m) { return new Date(Date.UTC(y, m + 1, 0)).getUTCDate(); }
+  function fmt(n, opts) { var o = { timeZone: 'UTC' }, k; for (k in opts) o[k] = opts[k]; return new Date(n * DAY_MS).toLocaleDateString('en-US', o); }
+  function shortDate(n) { return fmt(n, { month: 'short', day: 'numeric' }); }
+  function iso(n) { return new Date(n * DAY_MS).toISOString().slice(0, 10); }
+  function fromIso(s) { var a = String(s).split('-'); return a.length === 3 ? num(+a[0], +a[1] - 1, +a[2]) : NaN; }
+  function ordinal(d) { var s = ['th', 'st', 'nd', 'rd'], v = d % 100; return d + (s[(v - 20) % 10] || s[v] || s[0]); }
+
+  /* Sample data: one sales figure and one lead count for every day from January 1, 2025 to the sample today. */
+  var TODAY = num(2026, 9, 14), FIRST = num(2025, 0, 1), SALES = {}, LEADS = {};
+  function rng(seed) {
+    return function () {
+      seed = seed + 0x6D2B79F5 | 0;
+      var t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+  function fillSales(a, b, target, rand) {
+    var weights = [], sumW = 0, vals, sum = 0, big = 0, i;
+    for (i = a; i <= b; i++) {
+      var x = rand() < (parts(i).dow > 4 ? 0.8 : 0.3) ? 0 : 0.4 + rand();
+      weights.push(x); sumW += x;
+    }
+    if (!sumW) { weights[0] = 1; sumW = 1; }
+    vals = weights.map(function (x) { return Math.round(target * x / sumW / 5) * 5; });
+    vals.forEach(function (v, k) { sum += v; if (v > vals[big]) big = k; });
+    vals[big] += target - sum;
+    vals.forEach(function (v, k) { SALES[a + k] = v; });
+  }
+  (function () {
+    var monthly = {
+      2025: [31000, 27500, 34000, 29500, 36500, 30000, 26500, 28000, 33500, 37000, 32000, 24500],
+      2026: [28500, 30500, 38000, 33000, 41500, 35500, 31000, 36500, 40000]
+    };
+    var firstFourteen = { '2025-9': 14300, '2026-8': 15900 };
+    [2025, 2026].forEach(function (y) {
+      monthly[y].forEach(function (total, m) {
+        var rand = rng(y * 100 + m), a = num(y, m, 1), b = num(y, m, dim(y, m)), head = firstFourteen[y + '-' + m];
+        if (head) { fillSales(a, a + 13, head, rand); fillSales(a + 14, b, total - head, rand); }
+        else fillSales(a, b, total, rand);
+      });
+    });
+    [1485, 2610, 0, 0, 1880, 990, 2385, 495, 1995, 0, 495, 2580, 895, 1390].forEach(function (v, k) { SALES[num(2026, 9, 1) + k] = v; });
+
+    var rand = rng(7), i, sept = num(2026, 8, 1), sum = 0, guard = 0;
+    for (i = FIRST; i <= TODAY; i++) LEADS[i] = parts(i).dow > 4 ? (rand() < 0.6 ? 0 : Math.floor(rand() * 3)) : Math.floor(rand() * 8);
+    [4, 2, 5, 5, 3, 0, 0, 7, 5, 3, 4, 6, 0, 2, 1, 6, 4].forEach(function (v, k) { LEADS[num(2026, 8, 28) + k] = v; });
+    for (i = sept; i < sept + 14; i++) sum += LEADS[i];
+    while (sum !== 41 && guard < 2000) {
+      i = sept + guard % 14;
+      if (sum > 41 && LEADS[i] > 0) { LEADS[i] -= 1; sum -= 1; }
+      else if (sum < 41 && parts(i).dow < 5) { LEADS[i] += 1; sum += 1; }
+      guard += 1;
+    }
+  })();
+
+  /* State: which review view, the first tracked day, the day the page is shown for, and the week on the leads chart. */
+  var view = 'full', dataStart = FIRST, asOf = TODAY, weekMode = 'this', model = null;
+
+  function total(series, a, b) { var s = 0, i; for (i = Math.max(a, dataStart); i <= b; i++) s += series[i] || 0; return s; }
+  function earlier(series, a, b) { return a >= dataStart ? total(series, a, b) : null; }
+
+  function buildModel() {
+    var p = parts(asOf), live = asOf === TODAY, ws = asOf - p.dow, ms = num(p.y, p.m, 1);
+    var pm = p.m === 0 ? { y: p.y - 1, m: 11 } : { y: p.y, m: p.m - 1 }, pms = num(pm.y, pm.m, 1), pmDay = Math.min(p.d, dim(pm.y, pm.m));
+    var weekday = fmt(asOf, { weekday: 'long' }), i, m;
+
+    function tileSet(series) {
+      return {
+        day: {
+          label: live ? 'Today' : fmt(asOf, { weekday: 'short', month: 'short', day: 'numeric' }),
+          now: total(series, asOf, asOf), then: earlier(series, asOf - 1, asOf - 1),
+          thenLabel: live ? 'Yesterday by this time' : 'The day before'
+        },
+        week: {
+          label: live ? 'This week' : 'Week of ' + shortDate(ws),
+          now: total(series, ws, asOf), then: earlier(series, ws - 7, asOf - 7),
+          thenLabel: (live ? 'Last week by ' : 'Week before by ') + weekday
+        },
+        month: {
+          label: live ? 'This month' : fmt(asOf, { month: 'long' }),
+          now: total(series, ms, asOf), then: earlier(series, pms, num(pm.y, pm.m, pmDay)),
+          thenLabel: (live ? 'Last month' : fmt(pms, { month: 'long' })) + ' by the ' + ordinal(pmDay)
+        }
+      };
+    }
+    function weekVals(start) {
+      var out = [], k;
+      for (k = 0; k < 7; k++) out.push(start + k <= asOf && start + k >= dataStart ? LEADS[start + k] : null);
+      return out;
+    }
+
+    var days = dim(p.y, p.m), monthVals = [];
+    for (i = 0; i < days; i++) monthVals.push(ms + i <= asOf && ms + i >= dataStart ? SALES[ms + i] : null);
+
+    var cur = [], last = null, hasLast = num(p.y - 1, 0, 1) >= dataStart;
+    for (m = 0; m < 12; m++) {
+      var end = Math.min(num(p.y, m, dim(p.y, m)), asOf);
+      cur.push(m <= p.m && end >= dataStart ? total(SALES, num(p.y, m, 1), end) : null);
+    }
+    if (hasLast) {
+      last = [];
+      for (m = 0; m < 12; m++) last.push(total(SALES, num(p.y - 1, m, 1), num(p.y - 1, m, dim(p.y - 1, m))));
+    }
+
+    return {
+      live: live,
+      sales: tileSet(SALES),
+      leads: tileSet(LEADS),
+      month: {
+        start: ms, days: days, todayIdx: p.d - 1, vals: monthVals, live: live,
+        title: fmt(asOf, p.y === parts(TODAY).y ? { month: 'long' } : { month: 'long', year: 'numeric' })
+      },
+      week: {
+        start: ws, todayIdx: p.dow, live: live,
+        cur: weekVals(ws),
+        last: ws - 7 >= dataStart ? weekVals(ws - 7) : null,
+        before: ws - 14 >= dataStart ? weekVals(ws - 14) : null,
+        names: live ? ['This week', 'Last week', 'Week before'] : ['Week of ' + shortDate(ws), 'Week of ' + shortDate(ws - 7), 'Week of ' + shortDate(ws - 14)]
+      },
+      year: {
+        thisYear: p.y, lastYear: hasLast ? p.y - 1 : null, nowIdx: p.m, day: p.d, partial: p.d < days, live: live,
+        cur: cur, last: last,
+        soFar: total(SALES, num(p.y, 0, 1), asOf),
+        lastSameDates: hasLast ? total(SALES, num(p.y - 1, 0, 1), num(p.y - 1, p.m, Math.min(p.d, dim(p.y - 1, p.m)))) : null
+      }
+    };
+  }
+
+  /* Small helpers. */
+  function $(id) { return document.getElementById(id); }
+  function money(v) { return '$' + Math.round(v).toLocaleString('en-US'); }
+  function axisMoney(v) { return v >= 1000 ? '$' + (Math.round(v / 100) / 10) + 'K' : '$' + v; }
+  function whole(v) { return String(Math.round(v)); }
+  function f1(n) { return +n.toFixed(1); }
+  function missing(i, lastIdx, live) { return i > lastIdx ? (live ? 'No data yet' : 'After this day') : 'Not tracked'; }
+  function sideBySide() { return !window.matchMedia('(max-width:900px)').matches; }
+  function maxOf(list) { var m = 0; list.forEach(function (v) { if (v != null && v > m) m = v; }); return m; }
+  function svgEl(name, attrs, parent) {
+    var n = document.createElementNS(NS, name);
+    for (var k in attrs) n.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(n);
+    return n;
+  }
+  function scaleTop(max, wholeSteps) {
+    if (!(max > 0)) max = wholeSteps ? 4 : 1000;
+    var raw = max / 5, pow = Math.pow(10, Math.floor(Math.log10(raw))), n = raw / pow;
+    var step = (n <= 1 ? 1 : n <= 2 ? 2 : n <= 5 ? 5 : 10) * pow;
+    if (wholeSteps) step = Math.max(1, Math.round(step));
+    return { step: step, top: Math.ceil(max / step) * step };
+  }
+  function barPath(x, w, yTop, yBase) {
+    var r = Math.min(4, w / 2, yBase - yTop);
+    return 'M' + f1(x) + ' ' + f1(yBase) + 'V' + f1(yTop + r) + 'Q' + f1(x) + ' ' + f1(yTop) + ' ' + f1(x + r) + ' ' + f1(yTop) +
+      'H' + f1(x + w - r) + 'Q' + f1(x + w) + ' ' + f1(yTop) + ' ' + f1(x + w) + ' ' + f1(yTop + r) + 'V' + f1(yBase) + 'Z';
+  }
+  function tipRow(keyClass, value, label) {
+    var row = document.createElement('div'); row.className = 'tip-row';
+    var key = document.createElement('span'); key.className = 'key' + (keyClass ? ' ' + keyClass : '');
+    var val = document.createElement('b'); val.textContent = value;
+    var lab = document.createElement('span'); lab.className = 'tip-lab'; lab.textContent = label;
+    row.appendChild(key); row.appendChild(val); row.appendChild(lab);
+    return row;
+  }
+  function change(now, before) {
+    if (now == null || before == null || before === 0) return null;
+    var pct = Math.round((now - before) / before * 100);
+    return { dir: pct > 0 ? 'up' : pct < 0 ? 'down' : 'flat', pct: Math.abs(pct) };
+  }
+  function changeText(c) { return c.dir === 'flat' ? 'No change' : (c.dir === 'up' ? 'Up ' : 'Down ') + c.pct + '%'; }
+  function drawChange(svg, cx, y, c, room) {
+    var label = svgEl('text', { y: y, 'class': 'chg' }, svg);
+    label.textContent = c.pct + '%';
+    if (c.dir === 'flat') { label.setAttribute('x', f1(cx)); label.setAttribute('text-anchor', 'middle'); return; }
+    var tw = label.getComputedTextLength(), fits = 10 + tw <= room - 2, x = cx - (fits ? 10 + tw : 7) / 2;
+    if (fits) label.setAttribute('x', f1(x + 10)); else svg.removeChild(label);
+    svgEl('path', {
+      d: c.dir === 'up' ? 'M' + f1(x) + ' ' + (y - 1) + 'h7l-3.5 -6.5z' : 'M' + f1(x) + ' ' + (y - 7.5) + 'h7l-3.5 6.5z',
+      'class': c.dir === 'up' ? 'tri-up' : 'tri-down'
+    }, svg);
+  }
+
+  /* One chart: sizes itself to its box, draws the grid, and handles pointing, tapping and the arrow keys. */
+  function makeChart(cfg) {
+    var box = $(cfg.id), svg = box.querySelector('svg'), tip = box.querySelector('.tip');
+    var st = { idx: null, w: 0, g: null };
+
+    function measure() { return Math.max(240, Math.round(box.clientWidth)); }
+    function render() {
+      var d = cfg.data(), w = measure(), h = cfg.height(w);
+      var m = { l: cfg.left, r: cfg.band ? 6 : 18, t: 18, b: typeof cfg.bottom === 'function' ? cfg.bottom() : (cfg.bottom || 30) }, pw = w - m.l - m.r, ph = h - m.t - m.b;
+      var n = cfg.count(d), sc = scaleTop(cfg.max(d), cfg.wholeSteps), slot = cfg.band ? pw / n : pw / (n - 1);
+      var g = {
+        w: w, h: h, m: m, pw: pw, ph: ph, n: n, slot: slot, axisY: h - m.b + 21,
+        X: function (i) { return m.l + slot * (cfg.band ? i + 0.5 : i); },
+        Y: function (v) { return m.t + ph * (1 - v / sc.top); }
+      };
+      st.g = g; st.w = w;
+      svg.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
+      svg.setAttribute('width', w);
+      svg.setAttribute('height', h);
+      while (svg.firstChild) svg.removeChild(svg.firstChild);
+      for (var t = 0; t <= sc.top + sc.step / 1000; t += sc.step) {
+        var y = Math.round(g.Y(t)) + 0.5;
+        svgEl('line', { x1: m.l, x2: w - m.r, y1: y, y2: y, 'class': t === 0 ? 'baseline' : 'gridline' }, svg);
+        svgEl('text', { x: m.l - 8, y: y + 4, 'text-anchor': 'end', 'class': 'axis' }, svg).textContent = cfg.axis(t);
+      }
+      cfg.draw(d, g, svg);
+      svgEl('rect', { x: m.l - 10, y: 0, width: pw + 20, height: h, 'class': 'hit', 'pointer-events': 'all' }, svg);
+      if (st.idx != null) show(st.idx);
+    }
+    function show(i) {
+      var d = cfg.data(), g = st.g, info = cfg.tip(d, i);
+      st.idx = i;
+      cfg.hover(d, g, i);
+      tip.textContent = '';
+      var title = document.createElement('div'); title.className = 'tip-title'; title.textContent = info.title;
+      tip.appendChild(title);
+      info.rows.forEach(function (r) { tip.appendChild(tipRow(r[0], r[1], r[2])); });
+      tip.hidden = false;
+      var x = g.X(i), tw = tip.offsetWidth, left = x + 14;
+      if (left + tw > g.w - 4) left = x - 14 - tw;
+      if (left < 4) left = 4;
+      tip.style.left = Math.round(left) + 'px';
+      tip.style.top = '2px';
+    }
+    function hide() {
+      st.idx = null;
+      if (st.g) cfg.hover(cfg.data(), st.g, null);
+      tip.hidden = true;
+    }
+    function idxFrom(e) {
+      var r = svg.getBoundingClientRect(), g = st.g, px = (e.clientX - r.left) * (g.w / r.width) - g.m.l;
+      var i = cfg.band ? Math.floor(px / g.slot) : Math.round(px / g.slot);
+      return Math.max(0, Math.min(g.n - 1, i));
+    }
+    svg.addEventListener('pointermove', function (e) { show(idxFrom(e)); });
+    svg.addEventListener('pointerdown', function (e) { show(idxFrom(e)); });
+    svg.addEventListener('pointerleave', function (e) { if (e.pointerType === 'mouse') hide(); });
+    document.addEventListener('pointerdown', function (e) { if (!box.contains(e.target)) hide(); });
+    box.addEventListener('focus', function () { if (st.idx == null) show(cfg.start(cfg.data())); });
+    box.addEventListener('blur', hide);
+    box.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+        e.preventDefault();
+        var i = st.idx == null ? cfg.start(cfg.data()) : st.idx;
+        show(Math.max(0, Math.min(st.g.n - 1, i + (e.key === 'ArrowRight' ? 1 : -1))));
+      } else if (e.key === 'Escape') {
+        hide();
+      }
+    });
+    function resized() { if (st.g && measure() !== st.w) render(); }
+    if ('ResizeObserver' in window) new ResizeObserver(resized).observe(box);
+    else window.addEventListener('resize', resized);
+
+    return { render: render, reset: function () { st.idx = null; tip.hidden = true; } };
+  }
+
+  var monthChart = makeChart({
+    id: 'monthChart', band: true, wholeSteps: false, left: 46,
+    height: function () { return sideBySide() ? 275 : 220; },
+    bottom: function () { return sideBySide() ? 46 : 30; },
+    data: function () { return model.month; },
+    count: function (d) { return d.days; },
+    max: function (d) { return maxOf(d.vals); },
+    axis: axisMoney,
+    start: function (d) { return d.todayIdx; },
+    draw: function (d, g, svg) {
+      var bw = Math.max(2, Math.min(24, g.slot - 2)), base = g.Y(0), today = d.todayIdx + 1, everyDay = g.slot >= 22;
+      g.bars = [];
+      for (var i = 0; i < d.days; i++) {
+        var v = d.vals[i];
+        g.bars[i] = v > 0 ? svgEl('path', { d: barPath(g.X(i) - bw / 2, bw, g.Y(v), base), 'class': 'bar-this' }, svg) : null;
+      }
+      for (var day = 1; day <= d.days; day++) {
+        var regular = everyDay || day === 1 || day % 5 === 0;
+        if (!everyDay && day !== today && Math.abs(day - today) <= 2) regular = false;
+        if (regular || day === today) {
+          svgEl('text', { x: f1(g.X(day - 1)), y: g.axisY, 'text-anchor': 'middle', 'class': day === today ? 'axis axis-today' : 'axis' }, svg).textContent = day;
+        }
+      }
+      var tv = d.vals[d.todayIdx];
+      if (tv != null) {
+        var lx = g.X(d.todayIdx) - bw / 2, flip = lx + 64 > g.w - g.m.r, top = g.Y(tv);
+        var label = svgEl('text', { 'text-anchor': flip ? 'end' : 'start', 'class': 'val' }, svg);
+        label.textContent = money(tv);
+        var tw = label.getComputedTextLength(), x0 = flip ? lx + bw - tw : lx, x1 = flip ? lx + bw : lx + tw;
+        for (var k = 0; k < d.days; k++) {
+          var bx = g.X(k) - bw / 2;
+          if (d.vals[k] > 0 && bx + bw > x0 - 2 && bx < x1 + 2) top = Math.min(top, g.Y(d.vals[k]));
+        }
+        label.setAttribute('x', f1(flip ? lx + bw : lx));
+        label.setAttribute('y', f1(top - 6));
+      }
+    },
+    hover: function (d, g, i) {
+      g.bars.forEach(function (b, k) { if (b) b.setAttribute('class', k === i ? 'bar-this is-hot' : 'bar-this'); });
+    },
+    tip: function (d, i) {
+      var v = d.vals[i];
+      return {
+        title: fmt(d.start + i, { weekday: 'long', month: 'long', day: 'numeric' }),
+        rows: [['', v != null ? money(v) : missing(i, d.todayIdx, d.live), i === d.todayIdx ? (d.live ? 'Today, so far' : 'Day shown') : 'Sales']]
+      };
+    }
+  });
+
+  function weekData() {
+    var w = model.week;
+    if (weekMode === 'last' && w.last) {
+      return { a: w.last, b: w.before, aLabel: w.names[1], bLabel: w.names[2], aStart: w.start - 7, bStart: w.start - 14, todayIdx: 6, live: false, mark: false };
+    }
+    return { a: w.cur, b: w.last, aLabel: w.names[0], bLabel: w.names[1], aStart: w.start, bStart: w.start - 7, todayIdx: w.todayIdx, live: w.live, mark: true };
+  }
+  function dayOf(name, n) { return name.indexOf('Week of') === 0 ? shortDate(n) : name + ', ' + shortDate(n); }
+  function against(name) { return 'against ' + (name.indexOf('Week') === 0 ? 'the w' + name.slice(1) : name.toLowerCase()); }
+
+  var weekChart = makeChart({
+    id: 'weekChart', band: true, wholeSteps: true, left: 30, bottom: 46,
+    height: function () { return 236; },
+    data: weekData,
+    count: function () { return 7; },
+    max: function (d) { return maxOf(d.a.concat(d.b || [])); },
+    axis: whole,
+    start: function (d) { return d.mark ? d.todayIdx : 0; },
+    draw: function (d, g, svg) {
+      var pair = !!d.b, base = g.Y(0), shortNames = g.slot < 44;
+      var bw = Math.max(4, Math.min(24, pair ? (g.slot - 12) / 2 : g.slot - 12));
+      g.cur = []; g.last = [];
+      DAYS.forEach(function (name, i) {
+        var cx = g.X(i), xThis = pair ? cx + 1 : cx - bw / 2, lv = pair ? d.b[i] : null, cv = d.a[i], c = change(cv, lv);
+        g.last[i] = lv > 0 ? svgEl('path', { d: barPath(cx - 1 - bw, bw, g.Y(lv), base), 'class': 'bar-last' }, svg) : null;
+        g.cur[i] = cv > 0 ? svgEl('path', { d: barPath(xThis, bw, g.Y(cv), base), 'class': 'bar-this' }, svg) : null;
+        if (cv != null) svgEl('text', { x: f1(xThis + bw / 2), y: f1(g.Y(cv) - 6), 'text-anchor': 'middle', 'class': 'val' }, svg).textContent = whole(cv);
+        svgEl('text', { x: f1(cx), y: g.axisY, 'text-anchor': 'middle', 'class': d.mark && i === d.todayIdx ? 'axis axis-today' : 'axis' }, svg).textContent = shortNames ? name.charAt(0) : name.slice(0, 3);
+        if (c) drawChange(svg, cx, g.axisY + 17, c, g.slot);
+      });
+    },
+    hover: function (d, g, i) {
+      g.cur.forEach(function (b, k) { if (b) b.setAttribute('class', k === i ? 'bar-this is-hot' : 'bar-this'); });
+      g.last.forEach(function (b, k) { if (b) b.setAttribute('class', k === i ? 'bar-last is-hot' : 'bar-last'); });
+    },
+    tip: function (d, i) {
+      var cv = d.a[i], lv = d.b ? d.b[i] : null, c = change(cv, lv);
+      var rows = [['', cv != null ? whole(cv) : missing(i, d.todayIdx, d.live), dayOf(d.aLabel, d.aStart + i) + (d.live && cv != null && i === d.todayIdx ? ', so far' : '')]];
+      if (lv != null) rows.push(['key-grey', whole(lv), dayOf(d.bLabel, d.bStart + i)]);
+      if (c) rows.push(['key-none', changeText(c), against(d.bLabel)]);
+      return { title: DAYS[i], rows: rows };
+    }
+  });
+
+  var yearChart = makeChart({
+    id: 'yearChart', band: false, wholeSteps: false, left: 46,
+    height: function (w) { return w < 520 ? 230 : 290; },
+    data: function () { return model.year; },
+    count: function () { return 12; },
+    max: function (d) { return maxOf(d.cur.concat(d.last || [])); },
+    axis: axisMoney,
+    start: function (d) { return d.nowIdx; },
+    draw: function (d, g, svg) {
+      var shortNames = g.slot < 34, first = -1, lastI = -1, points = 0;
+      MONTHS.forEach(function (name, i) {
+        svgEl('text', { x: f1(g.X(i)), y: g.axisY, 'text-anchor': 'middle', 'class': 'axis' }, svg).textContent = shortNames ? name.charAt(0) : name.slice(0, 3);
+      });
+      function linePath(series) {
+        var s = '', on = false;
+        series.forEach(function (v, i) {
+          if (v == null) { on = false; return; }
+          s += (on ? 'L' : 'M') + f1(g.X(i)) + ' ' + f1(g.Y(v)) + ' ';
+          on = true;
+        });
+        return s.trim();
+      }
+      d.cur.forEach(function (v, i) { if (v != null) { if (first < 0) first = i; lastI = i; points += 1; } });
+      if (d.last) svgEl('path', { d: linePath(d.last), 'class': 'ln-last' }, svg);
+      if (points > 1) {
+        svgEl('path', { d: linePath(d.cur) + ' L' + f1(g.X(lastI)) + ' ' + f1(g.Y(0)) + ' L' + f1(g.X(first)) + ' ' + f1(g.Y(0)) + ' Z', 'class': 'area-this' }, svg);
+        svgEl('path', { d: linePath(d.cur), 'class': 'ln-this' }, svg);
+      }
+      if (d.cur[d.nowIdx] != null) svgEl('circle', { cx: f1(g.X(d.nowIdx)), cy: f1(g.Y(d.cur[d.nowIdx])), r: 5, 'class': 'dot-this' }, svg);
+      g.hov = svgEl('g', { hidden: '' }, svg);
+      g.cross = svgEl('line', { y1: g.m.t, y2: g.m.t + g.ph, 'class': 'cross' }, g.hov);
+      g.dLast = svgEl('circle', { r: 4, 'class': 'dot-last' }, g.hov);
+      g.dThis = svgEl('circle', { r: 4, 'class': 'dot-this' }, g.hov);
+    },
+    hover: function (d, g, i) {
+      if (i == null) { g.hov.setAttribute('hidden', ''); return; }
+      var x = f1(g.X(i));
+      function place(node, v) {
+        if (v == null) { node.setAttribute('hidden', ''); return; }
+        node.setAttribute('cx', x); node.setAttribute('cy', f1(g.Y(v))); node.removeAttribute('hidden');
+      }
+      g.cross.setAttribute('x1', x); g.cross.setAttribute('x2', x);
+      place(g.dLast, d.last ? d.last[i] : null);
+      place(g.dThis, d.cur[i]);
+      g.hov.removeAttribute('hidden');
+    },
+    tip: function (d, i) {
+      var v = d.cur[i], tail = '';
+      if (v != null && i === d.nowIdx) tail = d.live ? ', so far' : (d.partial ? ', to the ' + ordinal(d.day) : '');
+      var rows = [['', v != null ? money(v) : missing(i, d.nowIdx, d.live), d.thisYear + tail]];
+      if (d.last) rows.push(['key-last', money(d.last[i]), String(d.lastYear)]);
+      return { title: MONTHS[i], rows: rows };
+    }
+  });
+
+  var charts = [monthChart, weekChart, yearChart];
+
+  function fillTable(id, caption, heads, rows) {
+    var table = $(id);
+    table.textContent = '';
+    var cap = document.createElement('caption'); cap.className = 'sr-only'; cap.textContent = caption;
+    table.appendChild(cap);
+    var head = table.createTHead().insertRow();
+    heads.forEach(function (text) { var th = document.createElement('th'); th.scope = 'col'; th.textContent = text; head.appendChild(th); });
+    var body = table.createTBody();
+    rows.forEach(function (cells) {
+      var row = body.insertRow();
+      cells.forEach(function (text, i) {
+        if (i === 0) { var th = document.createElement('th'); th.scope = 'row'; th.textContent = text; row.appendChild(th); }
+        else row.insertCell().textContent = text;
+      });
+    });
+  }
+  function buildTables() {
+    var y = model.year, m = model.month, wd = weekData(), monthRows = [];
+    fillTable('yearFigures', 'Sales by month', ['Month', String(y.thisYear)].concat(y.last ? [String(y.lastYear)] : []), MONTHS.map(function (name, i) {
+      var row = [name, y.cur[i] != null ? money(y.cur[i]) + (y.live && i === y.nowIdx ? ' so far' : '') : missing(i, y.nowIdx, y.live)];
+      if (y.last) row.push(money(y.last[i]));
+      return row;
+    }));
+    for (var i = 0; i <= m.todayIdx; i++) {
+      if (m.vals[i] != null) monthRows.push([fmt(m.start + i, { weekday: 'short', month: 'short', day: 'numeric' }), money(m.vals[i]) + (m.live && i === m.todayIdx ? ' so far' : '')]);
+    }
+    fillTable('monthFigures', 'Sales by day', ['Day', 'Sales'], monthRows);
+    fillTable('weekFigures', 'New leads by day', ['Day', wd.aLabel].concat(wd.b ? [wd.bLabel, 'Change'] : []), DAYS.map(function (name, i) {
+      var row = [name, wd.a[i] != null ? whole(wd.a[i]) + (wd.live && i === wd.todayIdx ? ' so far' : '') : missing(i, wd.todayIdx, wd.live)];
+      if (wd.b) { var c = change(wd.a[i], wd.b[i]); row.push(wd.b[i] != null ? whole(wd.b[i]) : 'Not tracked', c ? changeText(c) : ''); }
+      return row;
+    }));
+  }
+
+  function setArrow(el, c) {
+    el.textContent = '';
+    el.hidden = !c;
+    if (!c) return;
+    el.className = 'tile-chg ' + c.dir;
+    if (c.dir !== 'flat') {
+      var icon = svgEl('svg', { viewBox: '0 0 8 7', width: 9, height: 8, 'aria-hidden': 'true' }, el);
+      svgEl('path', { d: c.dir === 'up' ? 'M0 7h8L4 0z' : 'M0 0h8L4 7z', fill: 'currentColor' }, icon);
+    }
+    var word = document.createElement('span'); word.className = 'sr-only'; word.textContent = c.dir === 'flat' ? 'No change, ' : (c.dir === 'up' ? 'Up ' : 'Down ');
+    var pct = document.createElement('span'); pct.textContent = c.pct + '%';
+    el.appendChild(word); el.appendChild(pct);
+  }
+  function renderTiles() {
+    document.querySelectorAll('.tile').forEach(function (tile) {
+      var metric = tile.getAttribute('data-metric'), t = model[metric][tile.getAttribute('data-span')], show = metric === 'sales' ? money : whole;
+      tile.querySelector('.tile-label').textContent = t.label;
+      tile.querySelector('.tile-num').textContent = show(t.now);
+      tile.querySelector('.has-prev').hidden = t.then == null;
+      tile.querySelector('.no-prev').hidden = t.then != null;
+      tile.querySelector('.prev-label').textContent = t.thenLabel;
+      tile.querySelector('.prev-val').textContent = t.then == null ? '' : show(t.then);
+      setArrow(tile.querySelector('.tile-chg'), change(t.now, t.then));
+    });
+  }
+  function renderYearHead() {
+    var y = model.year, has = y.lastSameDates != null;
+    $('legThis').textContent = y.thisYear;
+    $('legLastItem').hidden = !y.last;
+    $('ytdThisLabel').textContent = y.thisYear + (y.live ? ' so far' : ' through ' + shortDate(asOf));
+    $('ytdThis').textContent = money(y.soFar);
+    $('ytdLastBox').hidden = !has;
+    $('ytdChangeBox').hidden = !has || y.lastSameDates === 0;
+    if (!has) return;
+    $('legLast').textContent = y.lastYear;
+    $('ytdLastLabel').textContent = 'Same dates in ' + y.lastYear;
+    $('ytdLast').textContent = money(y.lastSameDates);
+    if (y.lastSameDates === 0) return;
+    var pct = (y.soFar - y.lastSameDates) / y.lastSameDates * 100, up = pct >= 0;
+    $('ytdChange').className = up ? 'up' : 'down';
+    $('ytdChangeText').textContent = (up ? 'Up ' : 'Down ') + Math.abs(pct).toFixed(1) + '%';
+    if (up) $('ytdArrow').removeAttribute('transform'); else $('ytdArrow').setAttribute('transform', 'rotate(180 6 6)');
+  }
+  function renderNotes() {
+    var started = 'Tracking started on ' + fmt(dataStart, { weekday: 'long', month: 'long', day: 'numeric' }) + '.';
+    function note(id, text) { $(id).hidden = !text; $(id).textContent = text || ''; }
+    note('monthNote', dataStart > model.month.start ? started : '');
+    note('weekNote', model.week.last ? '' : 'There is no earlier week to compare with yet.');
+    note('yearNote', model.year.last ? '' : 'There is no earlier year to compare with yet.');
+  }
+  function presets() {
+    var p = parts(TODAY);
+    return { today: TODAY, yesterday: TODAY - 1, lastweek: TODAY - p.dow - 1, lastmonth: num(p.y, p.m, 1) - 1 };
+  }
+  function renderFilter() {
+    var days = presets(), input = $('dayInput');
+    document.querySelectorAll('.chip').forEach(function (b) {
+      var n = days[b.getAttribute('data-day')], on = n === asOf;
+      b.classList.toggle('is-on', on);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+      b.disabled = n < dataStart;
+    });
+    input.min = iso(dataStart);
+    input.max = iso(TODAY);
+    input.value = iso(asOf);
+    $('asOfNote').hidden = model.live;
+    $('asOfDate').textContent = fmt(asOf, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+  }
+  function syncWeekPick() {
+    var d = weekData(), names = model.week.names;
+    [['weekThis', 'this', names[0]], ['weekLast', 'last', names[1]]].forEach(function (p) {
+      var b = $(p[0]), on = weekMode === p[1];
+      b.textContent = p[2];
+      b.classList.toggle('is-on', on);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+    $('weekPick').hidden = !model.week.last;
+    $('weekLegA').textContent = d.aLabel;
+    $('weekLegBItem').hidden = !d.b;
+    $('weekLegB').textContent = d.bLabel;
+  }
+
+  function render() {
+    model = buildModel();
+    if (!model.week.last) weekMode = 'this';
+    renderFilter();
+    renderTiles();
+    renderYearHead();
+    renderNotes();
+    syncWeekPick();
+    $('monthName').textContent = model.month.title;
+    charts.forEach(function (c) { c.reset(); c.render(); });
+    buildTables();
+  }
+  function setDay(n) {
+    if (!(n >= dataStart && n <= TODAY)) { $('dayInput').value = iso(asOf); return; }
+    asOf = n;
+    weekMode = 'this';
+    render();
+  }
+  function setWeekMode(mode) {
+    weekMode = mode;
+    syncWeekPick();
+    weekChart.reset();
+    weekChart.render();
+    buildTables();
+  }
+  function setView(next) {
+    view = next === 'dayone' ? 'dayone' : 'full';
+    dataStart = view === 'dayone' ? TODAY : FIRST;
+    asOf = TODAY;
+    weekMode = 'this';
+    ['viewFull', 'viewDayone'].forEach(function (id) {
+      var b = $(id), on = b.getAttribute('data-view') === view;
+      b.classList.toggle('is-on', on);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+    $('reviewSum').textContent = 'Showing ' + (view === 'dayone' ? 'day one, nothing to compare yet' : 'a full year of data') + ' · sample numbers';
+    render();
+  }
+  function setReview(open, save) {
+    var b = $('reviewToggle');
+    $('reviewBody').hidden = !open;
+    b.textContent = open ? 'Hide controls' : 'Show controls';
+    b.setAttribute('aria-expanded', open ? 'true' : 'false');
+    if (save) { try { localStorage.setItem(REVIEW_KEY, open ? 'open' : 'closed'); } catch (e) {} }
+  }
+
+  document.querySelectorAll('.chip').forEach(function (b) {
+    b.addEventListener('click', function () { setDay(presets()[b.getAttribute('data-day')]); });
+  });
+  $('dayInput').addEventListener('change', function () { setDay(fromIso(this.value)); });
+  $('backToday').addEventListener('click', function () { setDay(TODAY); });
+  $('weekThis').addEventListener('click', function () { setWeekMode('this'); });
+  $('weekLast').addEventListener('click', function () { setWeekMode('last'); });
+  $('viewFull').addEventListener('click', function () { setView('full'); });
+  $('viewDayone').addEventListener('click', function () { setView('dayone'); });
+  $('reviewToggle').addEventListener('click', function () { setReview($('reviewBody').hidden, true); });
+
+  var saved = null;
+  try { saved = localStorage.getItem(REVIEW_KEY); } catch (e) {}
+  setReview(saved !== 'closed', false);
+  setView(location.hash === '#day-one' ? 'dayone' : 'full');
+  window.addEventListener('hashchange', function () { if (location.hash === '#day-one') setView('dayone'); });
+})();
+</script>
+</body>
+</html>
