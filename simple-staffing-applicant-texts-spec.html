@@ -53,6 +53,11 @@ td b{color:var(--ink);font-weight:600}
 .checks li:first-child{border-top:0}
 .box{flex:0 0 18px;height:18px;margin-top:4px;border:2px solid var(--ink3);border-radius:4px}
 .note{background:var(--panel);border:1px solid var(--rule);border-radius:12px;padding:14px 16px;color:var(--ink2);max-width:76ch;margin:14px 0 0}
+.fmt-tabs{display:flex;gap:6px;margin:8px 0 2px;flex-wrap:wrap}
+.fmt-tabs button{font:inherit;font-size:13px;line-height:1;padding:7px 12px;border:1px solid var(--rule);border-radius:999px;background:transparent;color:var(--ink2);cursor:pointer}
+.fmt-tabs button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.fmt-tabs button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.fmt pre[hidden]{display:none}
 </style>
 </head>
 <body>
@@ -71,29 +76,53 @@ td b{color:var(--ink);font-weight:600}
 <section id="texts">
   <p class="num">01</p>
   <h2>The three texts</h2>
-  <p class="desc">Line breaks are part of the template. Straight apostrophes and plain hyphens only. Every text opens with Simple Staffing and the applicant's first name; no text names a person. No text asks a question. Under each text, the old message is the one going out today, read from the Twilio log on 18 Oct 2026.</p>
+  <p class="desc">Line breaks are part of the template. Straight apostrophes and plain hyphens only. Every text opens with Simple Staffing and the applicant's first name; no text names a person. No text asks a question. Under each text, the old message is the one going out today, read from the Twilio log on 18 Oct 2026. Each new message is written out for the three interview formats; the Video, In person and Phone tabs switch between them, Video first.</p>
   <h3>Text 1: new message</h3>
-<pre>Simple Staffing: Hi {First name}, we received your application for the {Job title} job on Indeed. {Company} would like to interview you on {Interview date} between 11:00 AM and 3:00 PM {Time zone}. {Format sentence}
-{Request line}
+  <div class="fmt" data-text="1"><div class="fmt-tabs" role="tablist" aria-label="Interview format for Text 1"><button type="button" role="tab" data-fmt="video" aria-selected="true" class="on">Video</button><button type="button" role="tab" data-fmt="inperson" aria-selected="false">In person</button><button type="button" role="tab" data-fmt="phone" aria-selected="false">Phone</button></div>
+<pre data-fmt="video">Simple Staffing: Hi {First name}, we received your application for the {Job title} job on Indeed. {Company} would like to interview you on {Interview date} between 11:00 AM and 3:00 PM {Time zone}. Interviews are by video on JobFairX.
+Request your interview time: {Schedule link}
 Reply STOP if you no longer want to receive texts from Simple Staffing.</pre>
+<pre data-fmt="inperson" hidden>Simple Staffing: Hi {First name}, we received your application for the {Job title} job on Indeed. {Company} would like to interview you on {Interview date} between 11:00 AM and 3:00 PM {Time zone}. Interviews are in person at their location in {City}.
+Request your interview time on JobFairX: {Schedule link}
+Reply STOP if you no longer want to receive texts from Simple Staffing.</pre>
+<pre data-fmt="phone" hidden>Simple Staffing: Hi {First name}, we received your application for the {Job title} job on Indeed. {Company} would like to interview you on {Interview date} between 11:00 AM and 3:00 PM {Time zone}. Interviews are by phone.
+Request your interview time on JobFairX: {Schedule link}
+Reply STOP if you no longer want to receive texts from Simple Staffing.</pre>
+  </div>
   <p class="desc"><b>Text 1: old message</b> (from (762) 465-9036 through the Event Notifications service, 3 segments, 15 minutes after applying)</p>
 <pre>Hi {First name},
 My name is Scott with Simple Staffing. I received your application for the {Job title} position on Indeed. {Company} would like to interview you virtually on JobFairX on {Interview date} between 11:00 AM - 3:00 PM.
 Schedule your interview here: {Schedule link}
 Reply STOP to stop receiving all text messages</pre>
   <h3>Text 2: new message</h3>
-<pre>Simple Staffing: Hi {First name}, {Company} would still like to interview you for the {Job title} job you applied for on Indeed. Interview times are open for {Interview date} between 11:00 AM and 3:00 PM {Time zone}. {Format sentence}
-{Request line}
+  <div class="fmt" data-text="2"><div class="fmt-tabs" role="tablist" aria-label="Interview format for Text 2"><button type="button" role="tab" data-fmt="video" aria-selected="true" class="on">Video</button><button type="button" role="tab" data-fmt="inperson" aria-selected="false">In person</button><button type="button" role="tab" data-fmt="phone" aria-selected="false">Phone</button></div>
+<pre data-fmt="video">Simple Staffing: Hi {First name}, {Company} would still like to interview you for the {Job title} job you applied for on Indeed. Interview times are open for {Interview date} between 11:00 AM and 3:00 PM {Time zone}. Interviews are by video on JobFairX.
+Request your interview time: {Schedule link}
 Reply STOP if you no longer want to receive texts from Simple Staffing.</pre>
+<pre data-fmt="inperson" hidden>Simple Staffing: Hi {First name}, {Company} would still like to interview you for the {Job title} job you applied for on Indeed. Interview times are open for {Interview date} between 11:00 AM and 3:00 PM {Time zone}. Interviews are in person at their location in {City}.
+Request your interview time on JobFairX: {Schedule link}
+Reply STOP if you no longer want to receive texts from Simple Staffing.</pre>
+<pre data-fmt="phone" hidden>Simple Staffing: Hi {First name}, {Company} would still like to interview you for the {Job title} job you applied for on Indeed. Interview times are open for {Interview date} between 11:00 AM and 3:00 PM {Time zone}. Interviews are by phone.
+Request your interview time on JobFairX: {Schedule link}
+Reply STOP if you no longer want to receive texts from Simple Staffing.</pre>
+  </div>
   <p class="desc"><b>Text 2: old message</b> (from (833) 419-0068 with no messaging service, 9:00 AM Pacific batch, 5 or 6 segments because the en dash makes it UCS-2)</p>
 <pre>Hi {First name},
 Are you still interested in the {Job title} position you applied for? {Company} is very interested in interviewing you on {Interview date} between 11:00 AM–3:00 PM.
 Schedule your interview here: {Schedule link}
 Reply 'STOP' to stop receiving all text messages</pre>
   <h3>Text 3: new message</h3>
-<pre>Simple Staffing: Hi {First name}, {Company} is still scheduling interviews for the {Job title} job you applied for on Indeed. Times on {Interview date} between 11:00 AM and 3:00 PM {Time zone} are open until they fill or the interviews begin. {Format sentence}
-{Request line}
+  <div class="fmt" data-text="3"><div class="fmt-tabs" role="tablist" aria-label="Interview format for Text 3"><button type="button" role="tab" data-fmt="video" aria-selected="true" class="on">Video</button><button type="button" role="tab" data-fmt="inperson" aria-selected="false">In person</button><button type="button" role="tab" data-fmt="phone" aria-selected="false">Phone</button></div>
+<pre data-fmt="video">Simple Staffing: Hi {First name}, {Company} is still scheduling interviews for the {Job title} job you applied for on Indeed. Times on {Interview date} between 11:00 AM and 3:00 PM {Time zone} are open until they fill or the interviews begin. Interviews are by video on JobFairX.
+Request your interview time: {Schedule link}
 Reply STOP if you no longer want to receive texts from Simple Staffing.</pre>
+<pre data-fmt="inperson" hidden>Simple Staffing: Hi {First name}, {Company} is still scheduling interviews for the {Job title} job you applied for on Indeed. Times on {Interview date} between 11:00 AM and 3:00 PM {Time zone} are open until they fill or the interviews begin. Interviews are in person at their location in {City}.
+Request your interview time on JobFairX: {Schedule link}
+Reply STOP if you no longer want to receive texts from Simple Staffing.</pre>
+<pre data-fmt="phone" hidden>Simple Staffing: Hi {First name}, {Company} is still scheduling interviews for the {Job title} job you applied for on Indeed. Times on {Interview date} between 11:00 AM and 3:00 PM {Time zone} are open until they fill or the interviews begin. Interviews are by phone.
+Request your interview time on JobFairX: {Schedule link}
+Reply STOP if you no longer want to receive texts from Simple Staffing.</pre>
+  </div>
   <p class="desc"><b>Text 3: old message</b> (from (833) 419-0068 with no messaging service, same batch, 2 segments; no date or time)</p>
 <pre>Hi {First name},
  Following up one last time as {Company} is about to close interviews for the {Job title} position.
@@ -232,5 +261,16 @@ Reply STOP if you no longer want to receive texts from Simple Staffing.</pre>
   </ul>
 </section>
 </div>
+<script>
+document.querySelectorAll('.fmt').forEach(function(box){
+  var tabs = box.querySelectorAll('.fmt-tabs button');
+  tabs.forEach(function(b){
+    b.addEventListener('click', function(){
+      tabs.forEach(function(x){ var on = x === b; x.classList.toggle('on', on); x.setAttribute('aria-selected', on ? 'true' : 'false'); });
+      box.querySelectorAll('pre').forEach(function(p){ p.hidden = p.getAttribute('data-fmt') !== b.getAttribute('data-fmt'); });
+    });
+  });
+});
+</script>
 </body>
 </html>
