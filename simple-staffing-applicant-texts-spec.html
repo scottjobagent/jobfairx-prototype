@@ -70,7 +70,7 @@ td b{color:var(--ink);font-weight:600}
   <p class="kicker">Simple Staffing · applicant texts · developer spec</p>
   <h1>Simple Staffing Applicant Texts Spec</h1>
   <p class="lead">Three texts from Simple Staffing ask every applicant to <b>request an interview time on JobFairX</b>. This page is the build order: the exact templates, every merge field, the send rules, the Twilio setup, the logging, and the checks that prove it works.</p>
-  <p class="meta">Version 3.2, 18 Oct 2026 · Owner: Scott Lobenberg, Simple Staffing · Developer: Brandon · Status: approved, build in the order in section 12 · Replaces the wording in WorkableWebhookHandler.cs (Text 1) and CandidateIndeedSmsAutomationsSender.cs (Texts 2 and 3) as copied on 5 Oct 2026 · Documents are in section 15</p>
+  <p class="meta">Version 3.3, 18 Oct 2026 · Owner: Scott Lobenberg, Simple Staffing · Developer: Brandon · Status: approved, build in the order in section 12 · Replaces the wording in WorkableWebhookHandler.cs (Text 1) and CandidateIndeedSmsAutomationsSender.cs (Texts 2 and 3) as copied on 5 Oct 2026 · Documents are in section 15</p>
   <nav class="jump" aria-label="Sections">
     <a href="#summary">01 Summary</a><a href="#changes">02 What changes</a><a href="#texts">03 The texts</a><a href="#fields">04 Merge fields</a><a href="#rules">05 Send rules</a><a href="#chars">06 Characters</a><a href="#twilio">07 Twilio</a><a href="#page">08 Request page</a><a href="#resume">09 Resume step</a><a href="#logging">10 Logging</a><a href="#accept">11 Acceptance</a><a href="#rollout">12 Rollout</a><a href="#outside">13 Outside the code</a><a href="#decisions">14 Decisions</a><a href="#documents">15 Documents</a>
   </nav>
@@ -309,7 +309,7 @@ Reply STOP if you no longer want to receive texts from Simple Staffing.</pre>
   <p class="num">07</p>
   <h2>Twilio setup</h2>
   <ul class="list">
-    <li><b>One messaging service:</b> send all three texts through the Event Notifications messaging service by its service SID, never with a From number, so Sticky Sender keeps each applicant on (762) 465-9036 for the whole sequence and one STOP covers every text. Today Texts 2 and 3 go out from the 833 number with no service.</li>
+    <li><b>One messaging service:</b> send all three texts through the Event Notifications messaging service by its service SID, never with a From number, so Sticky Sender keeps each applicant on (762) 465-9036 for the whole sequence, all three texts sit in one conversation on the applicant’s phone, and one STOP covers every text. Today Texts 2 and 3 go out from the 833 number with no service.</li>
     <li><b>Sender pool:</b> (762) 465-9036 and the UK number, which serves applicants with UK mobiles; keep it. The 833 number is not in the pool and sends nothing after the switch.</li>
     <li><b>A2P campaign, before the wording switch:</b> replace the sample messages with the three new texts including the real link domain, and fill in the privacy policy and terms URLs, blank today. The brand named in the texts (Simple Staffing) must match the registered brand; Brandon confirms with Twilio whether Simple Staffing must be registered alongside CloudHire LLC.</li>
     <li><b>Voice:</b> calls to (762) 465-9036 play the recorded message in section 13. The 833 number comes off Twilio’s demo greeting.</li>
@@ -421,25 +421,25 @@ Reply STOP if you no longer want to receive texts from Simple Staffing.</pre>
 
 <section id="decisions">
   <p class="num">14</p>
-  <h2>Decisions made</h2>
-  <p class="desc">Each decision is written as the spec applies it, with the date it was made.</p>
-  <ul class="checks">
-    <li><span class="box" aria-hidden="true"></span><span><b>1.</b> Applying two days before the interview: Text 2 lands the day before and is sent anyway, because the request is the goal. <span class="when">(7 Oct)</span></span></li>
-    <li><span class="box" aria-hidden="true"></span><span><b>2.</b> Text 3 for an in-person job is 4 segments. The cost is accepted rather than cutting the greeting or the title. <span class="when">(7 Oct)</span></span></li>
-    <li><span class="box" aria-hidden="true"></span><span><b>3.</b> Time zone is written as two letters (CT), not the daylight form (CDT). <span class="when">(7 Oct)</span></span></li>
-    <li><span class="box" aria-hidden="true"></span><span><b>4.</b> The closing moment: requests close when slots are full and reopen if slots are added, close while a job is paused, close for good when a job is closed or cancelled, and close for good four hours before the interview window starts. No text goes out after it. <span class="when">(18 Oct)</span></span></li>
-    <li><span class="box" aria-hidden="true"></span><span><b>5.</b> The city field holds the city only. <span class="when">(7 Oct)</span></span></li>
-    <li><span class="box" aria-hidden="true"></span><span><b>6.</b> Jobs run in the US and Canada; Canadian applicants get the same texts, schedule and window in their own time zone. <span class="when">(17 Oct)</span></span></li>
-    <li><span class="box" aria-hidden="true"></span><span><b>7.</b> Text 1 opens two ways from launch, tested side by side: A as today, “Hi {First name}, my name is Scott with Simple Staffing. I received…”, and B brand first, “Simple Staffing: Hi {First name}, we received…”. Texts 2 and 3 open “Simple Staffing: Hi {First name},” and name no person. A gap under 3 points keeps B. <span class="when">(18 Oct)</span></span></li>
-    <li><span class="box" aria-hidden="true"></span><span><b>8.</b> When slots fill, the recruiter gets an email and decides whether to add slots; the Indeed posting pauses on its own and comes back when slots are added (both in place); the app holds every text to that job while slots are full and resumes when they reopen. <span class="when">(17 and 18 Oct)</span></span></li>
-    <li><span class="box" aria-hidden="true"></span><span><b>9.</b> Text 1 says “{Company} is interviewing for this job on {Interview date}” and Text 2 “is still interviewing”, not “would like to interview you”. <span class="when">(18 Oct)</span></span></li>
-    <li><span class="box" aria-hidden="true"></span><span><b>10.</b> Every text names the board the applicant used; Workable’s own board is never named and then the site words are dropped. <span class="when">(18 Oct)</span></span></li>
-    <li><span class="box" aria-hidden="true"></span><span><b>11.</b> The interview window comes from the job as two merge fields, not fixed text. <span class="when">(18 Oct)</span></span></li>
-    <li><span class="box" aria-hidden="true"></span><span><b>12.</b> A text Twilio rejects or fails is logged and not retried; the next scheduled text runs its own checks. <span class="when">(18 Oct)</span></span></li>
-    <li><span class="box" aria-hidden="true"></span><span><b>13.</b> A STOP blocks every future text to that number for any job (in place today). <span class="when">(18 Oct)</span></span></li>
-    <li><span class="box" aria-hidden="true"></span><span><b>14.</b> Each application runs its own full sequence; a person with two applications gets two sequences. <span class="when">(7 Oct)</span></span></li>
-    <li><span class="box" aria-hidden="true"></span><span><b>15.</b> Three texts, never four. Text 3 is the final reminder, sent three days before the interview whatever the lead time, and it names the application date. A day-3 text and a fourth text were set aside until the weekly report shows how applicants with long lead times respond. <span class="when">(18 Oct)</span></span></li>
-  </ul>
+  <h2>Decisions</h2>
+  <p class="desc">Every decision below is made. The date is when Scott made it or confirmed it.</p>
+  <ol class="list">
+    <li>Applying two days before the interview: Text 2 lands the day before and is sent anyway, because the request is the goal. <span class="when">(7 Oct, confirmed 18 Oct)</span></li>
+    <li>Text 3 for an in-person job is 4 segments. The cost is accepted rather than cutting the greeting or the title. <span class="when">(7 Oct, confirmed 18 Oct)</span></li>
+    <li>Time zone is written as two letters (CT), not the daylight form (CDT). <span class="when">(7 Oct, confirmed 18 Oct)</span></li>
+    <li>The closing moment: requests close when slots are full and reopen if slots are added, close while a job is paused, close for good when a job is closed or cancelled, and close for good four hours before the interview window starts. No text goes out after it. <span class="when">(18 Oct)</span></li>
+    <li>The city field holds the city only. <span class="when">(7 Oct, confirmed 18 Oct)</span></li>
+    <li>Jobs run in the US and Canada; Canadian applicants get the same texts, schedule and window in their own time zone. <span class="when">(17 Oct)</span></li>
+    <li>Text 1 opens two ways from launch, tested side by side: A as today, “Hi {First name}, my name is Scott with Simple Staffing. I received…”, and B brand first, “Simple Staffing: Hi {First name}, we received…”. Texts 2 and 3 open “Simple Staffing: Hi {First name},” and name no person. A gap under 3 points keeps B. <span class="when">(18 Oct)</span></li>
+    <li>When slots fill, the recruiter gets an email and decides whether to add slots; the Indeed posting pauses on its own and comes back when slots are added (both in place); the app holds every text to that job while slots are full and resumes when they reopen. <span class="when">(17 and 18 Oct)</span></li>
+    <li>Text 1 says “{Company} is interviewing for this job on {Interview date}” and Text 2 “is still interviewing”, not “would like to interview you”. <span class="when">(18 Oct)</span></li>
+    <li>Every text names the board the applicant used; Workable’s own board is never named and then the site words are dropped. <span class="when">(18 Oct)</span></li>
+    <li>The interview window comes from the job as two merge fields, not fixed text. <span class="when">(18 Oct)</span></li>
+    <li>A text Twilio rejects or fails is logged and not retried; the next scheduled text runs its own checks. <span class="when">(18 Oct)</span></li>
+    <li>A STOP blocks every future text to that number for any job (in place today). <span class="when">(18 Oct)</span></li>
+    <li>Each application runs its own full sequence; a person with two applications gets two sequences. <span class="when">(7 Oct)</span></li>
+    <li>Three texts, never four. Text 3 is the final reminder, sent three days before the interview whatever the lead time, and it names the application date. A day-3 text and a fourth text were set aside until the weekly report shows how applicants with long lead times respond. <span class="when">(18 Oct)</span></li>
+  </ol>
   <h3>Open items for Brandon</h3>
   <ul class="list">
     <li>The webhook field that carries the application’s source, and the table that turns each source into a board name (Brandon).</li>
