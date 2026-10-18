@@ -61,6 +61,14 @@ td b{color:var(--ink);font-weight:600}
 .meta.docs{border-top:0;padding-top:4px;margin-top:6px;line-height:1.9}
 .meta a{text-decoration:underline;text-underline-offset:2px}
 .when{color:var(--ink3);font-size:13px}
+.cl-group{font-weight:600;margin:16px 0 4px}
+.cl{list-style:none;padding:0;margin:0;max-width:76ch}
+.cl li{display:flex;gap:10px;align-items:flex-start;padding:7px 0;border-top:1px solid var(--rule);color:var(--ink2)}
+.cl li:first-child{border-top:0}
+.cl input{flex:0 0 18px;width:18px;height:18px;margin:4px 0 0;accent-color:var(--accent)}
+.cl input:checked+label{color:var(--ink3);text-decoration:line-through}
+.cl-count{font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--ink3)}
+.cl-reset{font:inherit;font-size:12.5px;padding:3px 10px;border:1px solid var(--rule);border-radius:999px;background:transparent;color:var(--ink2);cursor:pointer;margin-left:6px}
 .list a{color:var(--accent);text-decoration:underline;text-underline-offset:2px}
 </style>
 </head>
@@ -70,9 +78,10 @@ td b{color:var(--ink);font-weight:600}
   <p class="kicker">Simple Staffing · applicant texts · developer spec</p>
   <h1>Simple Staffing Applicant Texts Spec</h1>
   <p class="lead">Three texts from Simple Staffing ask every applicant to <b>request an interview time on JobFairX</b>. This page is the build order: the exact templates, every merge field, the send rules, the Twilio setup, the logging, and the checks that prove it works.</p>
-  <p class="meta">Version 3.3, 18 Oct 2026 · Owner: Scott Lobenberg, Simple Staffing · Developer: Brandon · Status: approved, build in the order in section 12 · Replaces the wording in WorkableWebhookHandler.cs (Text 1) and CandidateIndeedSmsAutomationsSender.cs (Texts 2 and 3) as copied on 5 Oct 2026 · Documents are in section 15</p>
+  <p class="meta">Version 3.4, 18 Oct 2026 · Owner: Scott Lobenberg, Simple Staffing · Developer: Brandon · Status: approved, build in the order in section 12 and tick the checklist there · Replaces the wording in WorkableWebhookHandler.cs (Text 1) and CandidateIndeedSmsAutomationsSender.cs (Texts 2 and 3) as copied on 5 Oct 2026</p>
+  <p class="meta docs"><b>Documents</b> (each opens in a new window): <a href="https://claude.ai/code/artifact/b12b466c-7705-4df3-86ec-7cf385a0dfc8#89f75f59-1bed" target="_blank" rel="noopener">Approved conversion plan with the evidence behind these changes (17 Oct 2026)</a> · <a href="https://claude.ai/code/artifact/b12b466c-7705-4df3-86ec-7cf385a0dfc8#c4ecba2a-ad84" target="_blank" rel="noopener">Plan evidence: the screenshots, numbered by change</a> · <a href="https://claude.ai/code/artifact/e04acac0-85b1-4b7c-aa15-0ab3f0424a05" target="_blank" rel="noopener">This spec as an editable Claude Doc</a> · <a href="https://claude.ai/code/artifact/f9bc7c54-0ae0-4e45-8472-9c90449f89fc" target="_blank" rel="noopener">Workable email and Contact page (18 Oct 2026)</a> · <a href="https://scottjobagent.github.io/jobfairx-prototype/workable-resume-handoff-brief.html" target="_blank" rel="noopener">Workable to JobFairX resume handoff brief</a> · <a href="https://scottjobagent.github.io/jobfairx-prototype/admin-workable-candidates.html" target="_blank" rel="noopener">Workable Candidates tab, admin design</a> · <a href="https://docs.google.com/document/d/1_-tbiFWY1fiIa52X_zZueEkuj-sli10qdNU2G911s8k/edit?usp=sharing" target="_blank" rel="noopener">Current texts and timing, the developer's doc of the live texts (5 Oct 2026)</a> · <a href="https://claude.ai/artifact/NBHhUj7JyEDwFfeYVHNdyd" target="_blank" rel="noopener">Timing research screenshots (17 Oct 2026)</a> · <a href="https://claude.ai/artifact/JigQu6e2euGvy481ccgeXi" target="_blank" rel="noopener">Indeed message voice captures (7 Oct 2026)</a></p>
   <nav class="jump" aria-label="Sections">
-    <a href="#summary">01 Summary</a><a href="#changes">02 What changes</a><a href="#texts">03 The texts</a><a href="#fields">04 Merge fields</a><a href="#rules">05 Send rules</a><a href="#chars">06 Characters</a><a href="#twilio">07 Twilio</a><a href="#page">08 Request page</a><a href="#resume">09 Resume step</a><a href="#logging">10 Logging</a><a href="#accept">11 Acceptance</a><a href="#rollout">12 Rollout</a><a href="#outside">13 Outside the code</a><a href="#decisions">14 Decisions</a><a href="#documents">15 Documents</a>
+    <a href="#summary">01 Summary</a><a href="#changes">02 What changes</a><a href="#texts">03 The texts</a><a href="#fields">04 Merge fields</a><a href="#rules">05 Send rules</a><a href="#chars">06 Characters</a><a href="#twilio">07 Twilio</a><a href="#page">08 Request page</a><a href="#resume">09 Resume step</a><a href="#logging">10 Logging</a><a href="#accept">11 Acceptance</a><a href="#rollout">12 Rollout and checklist</a><a href="#outside">13 Outside the code</a><a href="#decisions">14 Decisions</a><a href="#documents">15 Documents</a>
   </nav>
 </header>
 
@@ -393,7 +402,7 @@ Reply STOP if you no longer want to receive texts from Simple Staffing.</pre>
 
 <section id="rollout">
   <p class="num">12</p>
-  <h2>Rollout and measurement</h2>
+  <h2>Rollout, measurement and checklist</h2>
   <p class="desc">Build in this order. Items 1 to 4 can start now; item 4 must be live before item 5.</p>
   <ol class="list">
     <li>Send checks and the closing moment (section 5).</li>
@@ -406,6 +415,58 @@ Reply STOP if you no longer want to receive texts from Simple Staffing.</pre>
     <li>Logging from the first send of anything new (section 10).</li>
   </ol>
   <p class="desc"><b>Measurement:</b> the weekly request rate, requests divided by applicants texted, read as two full weeks after a change against the two weeks before, split the same way each time. Baselines: 39% for the year to 17 Oct 2026, 35% for the last three months, 28% for 8 to 17 Oct. Held texts are reported separately because they also lift the rate by shrinking the count texted. The Text 1 opener test (section 3) runs from launch to 590 applicants per opener and is read at the end; other wording questions wait for it.</p>
+  <h3>Build checklist</h3>
+  <p class="desc">Everything the spec asks for, in one list. Tick each item as it is done; the ticks are saved in this browser. <span class="cl-count" id="cl-count"></span> <button type="button" class="cl-reset" id="cl-reset">Clear all</button></p>
+  <p class="cl-group">Send rules (section 5)</p>
+  <ul class="cl">
+    <li><input type="checkbox" id="cl01"><label for="cl01">The six send checks run at the moment each text is handed to Twilio: not requested, not opted out, slots open, job open, closing moment not passed, text number not already sent.</label></li>
+    <li><input type="checkbox" id="cl02"><label for="cl02">The closing moment: slots full closes and reopens on added slots; paused closes and reopens; closed or cancelled is final; four hours before the window is final. After it, no text and the link opens the times-no-longer-available page.</label></li>
+    <li><input type="checkbox" id="cl03"><label for="cl03">Held texts resume when a job reopens: at once inside the applicant’s window, otherwise 8:00 to 8:30 the next morning; Texts 2 and 3 reschedule from Text 1’s actual send day.</label></li>
+    <li><input type="checkbox" id="cl04"><label for="cl04">Schedule: Text 1 at 15 minutes inside 8:00 AM to 8:45 PM applicant-local (Oregon 7:45 PM), otherwise 8:00 to 8:30 the next morning; Text 2 the next day at 10:00 to 10:30; Text 3 three days before the interview with the two-days-before fallback and the skip rule.</label></li>
+    <li><input type="checkbox" id="cl05"><label for="cl05">Applicant time zone from state or province, ZIP or postal code, then area code, then the job’s zone; IANA names; time-zone data at 2026c or later.</label></li>
+    <li><input type="checkbox" id="cl06"><label for="cl06">Oregon: 7:45 PM cutoff and at most three automated texts to one number in 24 hours.</label></li>
+    <li><input type="checkbox" id="cl07"><label for="cl07">ValidityPeriod 900 seconds on every message.</label></li>
+    <li><input type="checkbox" id="cl08"><label for="cl08">Failures logged with the error code and not retried; one of each text number per application; each application runs its own sequence.</label></li>
+    <li><input type="checkbox" id="cl09"><label for="cl09">Every STOP recorded and honoured for any job.</label></li>
+  </ul>
+  <p class="cl-group">Texts and merge fields (sections 3, 4 and 6)</p>
+  <ul class="cl">
+    <li><input type="checkbox" id="cl10"><label for="cl10">The three templates built as written, with the video, in person and phone lines from the format table.</label></li>
+    <li><input type="checkbox" id="cl11"><label for="cl11">Text 1 openers A and B, assigned by the last digit of the phone number and stored on the application; Texts 2 and 3 identical for both.</label></li>
+    <li><input type="checkbox" id="cl12"><label for="cl12">{Source site} from the application’s Workable source with the board-name table; the “ on {Source site}” words dropped when the board is unknown or Workable’s own.</label></li>
+    <li><input type="checkbox" id="cl13"><label for="cl13">{Applied date}, {Interview date}, {Start time}, {End time}, {Time zone} (two-letter table, Canada included) and {City} in the formats in section 4.</label></li>
+    <li><input type="checkbox" id="cl14"><label for="cl14">Blank-value rules: a missing value holds the text with MISSING_FIELD and flags the job or application; a blank first name sends without the greeting.</label></li>
+    <li><input type="checkbox" id="cl15"><label for="cl15">Every merge value normalised to GSM-7 before the template is filled; any UCS-2 send logged.</label></li>
+  </ul>
+  <p class="cl-group">Twilio (section 7)</p>
+  <ul class="cl">
+    <li><input type="checkbox" id="cl16"><label for="cl16">All three texts through the Event Notifications service by its SID, never with a From number.</label></li>
+    <li><input type="checkbox" id="cl17"><label for="cl17">A2P campaign updated: the three new texts as samples with the real link domain, privacy policy and terms URLs filled, the brand question answered by Twilio. Live before the wording switch.</label></li>
+    <li><input type="checkbox" id="cl18"><label for="cl18">The 833 number off Twilio’s demo greeting; the voice message from section 13 on (762) 465-9036.</label></li>
+    <li><input type="checkbox" id="cl19"><label for="cl19">Twilio delivery status logged for every text to a Canadian number.</label></li>
+  </ul>
+  <p class="cl-group">Request page and link (section 8)</p>
+  <ul class="cl">
+    <li><input type="checkbox" id="cl20"><label for="cl20">Link on jobfairx.com, 39 characters or fewer, unique per applicant per text, no shortener, Twilio link shortening and click tracking off.</label></li>
+    <li><input type="checkbox" id="cl21"><label for="cl21">Page shows Simple Staffing, the employer and the job above the fold with the “Simple Staffing schedules its interviews on JobFairX” line; footer with scott@simplestaffing.co, (762) 465-9036 and the privacy policy link.</label></li>
+    <li><input type="checkbox" id="cl22"><label for="cl22">After the closing moment the link opens the times-no-longer-available page; it never says the date has passed before the interview date.</label></li>
+  </ul>
+  <p class="cl-group">Resume (section 9)</p>
+  <ul class="cl">
+    <li><input type="checkbox" id="cl23"><label for="cl23">The Workable resume (resume_url) attached to the request; upload and builder steps skipped when it exists; steps hidden when the employer does not require a resume.</label></li>
+  </ul>
+  <p class="cl-group">Logging (section 10)</p>
+  <ul class="cl">
+    <li><input type="checkbox" id="cl24"><label for="cl24">Per-text and per-application rows with every field listed, the held reason codes, and the Text 1 opener on both.</label></li>
+    <li><input type="checkbox" id="cl25"><label for="cl25">The weekly report with every split listed, including opener A against B and the STOP rate by opener.</label></li>
+  </ul>
+  <p class="cl-group">Before the switch (sections 11 and 14)</p>
+  <ul class="cl">
+    <li><input type="checkbox" id="cl26"><label for="cl26">All 20 acceptance checks run and passed.</label></li>
+    <li><input type="checkbox" id="cl27"><label for="cl27">Open item: the webhook field that carries the source named, and the board-name table written.</label></li>
+    <li><input type="checkbox" id="cl28"><label for="cl28">Open item: the privacy policy link confirmed on the request page.</label></li>
+    <li><input type="checkbox" id="cl29"><label for="cl29">Open item: Twilio’s answer on the CloudHire LLC brand against Simple Staffing.</label></li>
+  </ul>
 </section>
 
 <section id="outside">
@@ -476,6 +537,15 @@ document.querySelectorAll('.fmt').forEach(function(box){
     });
   });
 });
+(function(){
+  var boxes = Array.prototype.slice.call(document.querySelectorAll('.cl input[type=checkbox]'));
+  var key = 'ss-spec-checklist-v1'; var count = document.getElementById('cl-count'); var reset = document.getElementById('cl-reset');
+  var saved = {}; try { saved = JSON.parse(localStorage.getItem(key) || '{}'); } catch (e) { saved = {}; }
+  function update(){ var done = boxes.filter(function(b){ return b.checked; }).length; if (count) count.textContent = done + ' of ' + boxes.length + ' done'; }
+  boxes.forEach(function(b){ b.checked = !!saved[b.id]; b.addEventListener('change', function(){ saved[b.id] = b.checked; try { localStorage.setItem(key, JSON.stringify(saved)); } catch (e) {} update(); }); });
+  if (reset) reset.addEventListener('click', function(){ boxes.forEach(function(b){ b.checked = false; }); saved = {}; try { localStorage.removeItem(key); } catch (e) {} update(); });
+  update();
+})();
 </script>
 </body>
 </html>
