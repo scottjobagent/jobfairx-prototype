@@ -60,6 +60,8 @@ td b{color:var(--ink);font-weight:600}
 .fmt pre[hidden]{display:none}
 .meta.docs{border-top:0;padding-top:4px;margin-top:6px;line-height:1.9}
 .meta a{text-decoration:underline;text-underline-offset:2px}
+.when{color:var(--ink3);font-size:13px}
+.list a{color:var(--accent);text-decoration:underline;text-underline-offset:2px}
 </style>
 </head>
 <body>
@@ -67,28 +69,56 @@ td b{color:var(--ink);font-weight:600}
 <header>
   <p class="kicker">Simple Staffing · applicant texts · developer spec</p>
   <h1>Simple Staffing Applicant Texts Spec</h1>
-  <p class="lead">Three texts from Simple Staffing ask every Indeed applicant to <b>request an interview time on JobFairX</b>. This page carries the exact templates, every merge field, the send schedule and the rules a developer needs to build it.</p>
-  <p class="meta">Spec date 7 Oct 2026, revised 18 Oct 2026 with the approved conversion plan and Scott's answers · Replaces the wording in WorkableWebhookHandler.cs (Text 1) and CandidateIndeedSmsAutomationsSender.cs (Texts 2 and 3) as copied on 5 Oct 2026</p>
-  <p class="meta docs"><b>Documents</b> (each opens in a new window): <a href="https://claude.ai/code/artifact/b12b466c-7705-4df3-86ec-7cf385a0dfc8#89f75f59-1bed" target="_blank" rel="noopener">Approved conversion plan with the evidence behind these changes (17 Oct 2026)</a> · <a href="https://claude.ai/code/artifact/b12b466c-7705-4df3-86ec-7cf385a0dfc8#c4ecba2a-ad84" target="_blank" rel="noopener">Plan evidence: the screenshots, numbered by change</a> · <a href="https://claude.ai/code/artifact/e04acac0-85b1-4b7c-aa15-0ab3f0424a05" target="_blank" rel="noopener">This spec as an editable Claude Doc</a> · <a href="https://claude.ai/code/artifact/f9bc7c54-0ae0-4e45-8472-9c90449f89fc" target="_blank" rel="noopener">Workable email and Contact page (18 Oct 2026)</a> · <a href="https://scottjobagent.github.io/jobfairx-prototype/workable-resume-handoff-brief.html" target="_blank" rel="noopener">Workable to JobFairX resume handoff brief</a> · <a href="https://scottjobagent.github.io/jobfairx-prototype/admin-workable-candidates.html" target="_blank" rel="noopener">Workable Candidates tab, admin design</a> · <a href="https://docs.google.com/document/d/1_-tbiFWY1fiIa52X_zZueEkuj-sli10qdNU2G911s8k/edit?usp=sharing" target="_blank" rel="noopener">Current texts and timing, the developer's doc of the live texts (5 Oct 2026)</a> · <a href="https://claude.ai/artifact/NBHhUj7JyEDwFfeYVHNdyd" target="_blank" rel="noopener">Timing research screenshots (17 Oct 2026)</a> · <a href="https://claude.ai/artifact/JigQu6e2euGvy481ccgeXi" target="_blank" rel="noopener">Indeed message voice captures (7 Oct 2026)</a></p>
+  <p class="lead">Three texts from Simple Staffing ask every applicant to <b>request an interview time on JobFairX</b>. This page is the build order: the exact templates, every merge field, the send rules, the Twilio setup, the logging, and the checks that prove it works.</p>
+  <p class="meta">Version 3, 18 Oct 2026 · Owner: Scott Lobenberg, Simple Staffing · Developer: Brandon · Status: approved, build in the order in section 12 · Replaces the wording in WorkableWebhookHandler.cs (Text 1) and CandidateIndeedSmsAutomationsSender.cs (Texts 2 and 3) as copied on 5 Oct 2026 · Documents are in section 15</p>
   <nav class="jump" aria-label="Sections">
-    <a href="#texts">1 The three texts</a><a href="#fields">2 Merge fields</a><a href="#schedule">3 Send schedule</a><a href="#lead">4 Short lead times</a><a href="#chars">5 Characters and length</a><a href="#twilio">6 Twilio and the link</a><a href="#logging">7 Logging</a><a href="#decisions">8 Decisions to confirm</a>
+    <a href="#summary">01 Summary</a><a href="#changes">02 What changes</a><a href="#texts">03 The texts</a><a href="#fields">04 Merge fields</a><a href="#rules">05 Send rules</a><a href="#chars">06 Characters</a><a href="#twilio">07 Twilio</a><a href="#page">08 Request page</a><a href="#resume">09 Resume step</a><a href="#logging">10 Logging</a><a href="#accept">11 Acceptance</a><a href="#rollout">12 Rollout</a><a href="#outside">13 Outside the code</a><a href="#decisions">14 Decisions</a><a href="#documents">15 Documents</a>
   </nav>
 </header>
 
+<section id="summary">
+  <p class="num">01</p>
+  <h2>Summary and scope</h2>
+  <p class="desc">Simple Staffing posts its jobs through Workable; they run on Indeed and on the other boards Workable feeds. Each job has one interview day with a time window, almost always 11:00 AM to 3:00 PM, and a fixed number of interview slots. Every applicant gets up to three texts from (762) 465-9036 asking them to request an interview time on JobFairX; the employer then accepts or declines the request. Nobody reads replies; Twilio answers STOP and HELP.</p>
+  <p class="desc"><b>In scope:</b> the three texts and their merge fields; when each is sent and the checks before every send; the Twilio setup; the page the link opens; the resume step; logging and the weekly report.</p>
+  <p class="desc"><b>Out of scope:</b> wording tests (they live in the plan), the Workable email and the website Contact page (section 13, outside the code), JobFairX’s reminder emails after an employer accepts (unchanged), and RCS (later).</p>
+  <p class="desc"><b>Words used here.</b> A <b>request</b> is the applicant picking a time on JobFairX; the employer still has to accept it. The <b>closing moment</b> is defined in section 5. A <b>held</b> text failed a send check at the moment of sending. <b>Applicant-local</b> means the applicant’s own time zone; <b>job time</b> means the employer’s.</p>
+</section>
+
+<section id="changes">
+  <p class="num">02</p>
+  <h2>What changes against today</h2>
+  <p class="desc">Today’s texts were read from the Twilio log on 18 Oct 2026; they appear in full under each new text in section 3.</p>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Area</th><th>Today</th><th>New</th></tr></thead>
+    <tbody>
+      <tr><td><b>Wording</b></td><td>“Hi {First name}, My name is Scott with Simple Staffing. I received your application…”; Text 2 asks a question; Text 3 carries no date or time.</td><td>“Simple Staffing: Hi {First name}, we received your application…”; no person named, no question; every text carries the job, the company, the date, the window, the time zone and the interview format.</td></tr>
+      <tr><td><b>Source site</b></td><td>Text 1 says “on Indeed” to everyone; Texts 2 and 3 name no site.</td><td>Every text names the board the applicant used (Indeed, Monster and so on) or no board at all. Workable’s own board is never named.</td></tr>
+      <tr><td><b>Sender number</b></td><td>Text 1 from (762) 465-9036 through the Event Notifications service; Texts 2 and 3 from (833) 419-0068 with no service.</td><td>All three texts through the Event Notifications service: one conversation, one STOP.</td></tr>
+      <tr><td><b>Encoding</b></td><td>Text 2 is 5 or 6 segments because an en dash makes it UCS-2.</td><td>Every merge value normalised to GSM-7; 3 segments, 4 only for an in-person Text 3.</td></tr>
+      <tr><td><b>Send checks</b></td><td>None. Texts go to full events and past interview dates.</td><td>Six checks at the moment of each send; a held text is logged with its reason; the closing moment is defined.</td></tr>
+      <tr><td><b>Schedule</b></td><td>Text 1 at 15 minutes, held to 8:03 AM in the job’s zone; Texts 2 and 3 in a 9:00 AM Pacific batch.</td><td>The applicant’s own clock: Text 1 at 15 minutes inside 8:00 AM to 8:45 PM; Text 2 the next day at 10:00; Text 3 two days before the interview at 10:00; nothing after the closing moment.</td></tr>
+      <tr><td><b>Link and page</b></td><td>jobfairx.com/l/… opens a page naming the employer and the job only.</td><td>Same link. The page shows Simple Staffing, the employer and the job above the fold, with contact and privacy details below.</td></tr>
+      <tr><td><b>Resume</b></td><td>Every applicant uploads or builds a resume in the request flow.</td><td>The Workable resume is attached automatically; the steps are hidden when the employer does not require one.</td></tr>
+      <tr><td><b>Registration</b></td><td>A2P campaign samples are old JobFairX texts; privacy and terms URLs blank.</td><td>Samples are the three new texts; URLs filled; done before the wording switch.</td></tr>
+      <tr><td><b>Logging</b></td><td>Send log only.</td><td>Per text, per application and a weekly report (section 10).</td></tr>
+    </tbody>
+  </table></div>
+</section>
 
 <section id="texts">
-  <p class="num">01</p>
+  <p class="num">03</p>
   <h2>The three texts</h2>
-  <p class="desc">Line breaks are part of the template. Straight apostrophes and plain hyphens only. Every text opens with Simple Staffing and the applicant's first name; no text names a person. No text asks a question. Under each text, the old message is the one going out today, read from the Twilio log on 18 Oct 2026. Each new message is written out for the three interview formats; the Video, In person and Phone tabs switch between them, Video first.</p>
+  <p class="desc">Line breaks are part of the template. Straight apostrophes and plain hyphens only. Every text opens with Simple Staffing and the applicant’s first name; no text names a person and no text asks a question. Each new message is written out for the three interview formats; the Video, In person and Phone tabs switch between them, Video first. Under each new message is the message going out today.</p>
   <h3>Text 1: new message</h3>
   <div class="fmt" data-text="1"><div class="fmt-tabs" role="tablist" aria-label="Interview format for Text 1"><button type="button" role="tab" data-fmt="video" aria-selected="true" class="on">Video</button><button type="button" role="tab" data-fmt="inperson" aria-selected="false">In person</button><button type="button" role="tab" data-fmt="phone" aria-selected="false">Phone</button></div>
-<pre data-fmt="video">Simple Staffing: Hi {First name}, we received your application for the {Job title} job on Indeed. {Company} would like to interview you on {Interview date} between 11:00 AM and 3:00 PM {Time zone}. Interviews are by video on JobFairX.
+<pre data-fmt="video">Simple Staffing: Hi {First name}, we received your application for the {Job title} job on {Source site}. {Company} is interviewing for this job on {Interview date} between {Start time} and {End time} {Time zone}. Interviews are by video on JobFairX.
 Request your interview time: {Schedule link}
 Reply STOP if you no longer want to receive texts from Simple Staffing.</pre>
-<pre data-fmt="inperson" hidden>Simple Staffing: Hi {First name}, we received your application for the {Job title} job on Indeed. {Company} would like to interview you on {Interview date} between 11:00 AM and 3:00 PM {Time zone}. Interviews are in person at their location in {City}.
+<pre data-fmt="inperson" hidden>Simple Staffing: Hi {First name}, we received your application for the {Job title} job on {Source site}. {Company} is interviewing for this job on {Interview date} between {Start time} and {End time} {Time zone}. Interviews are in person at their location in {City}.
 Request your interview time on JobFairX: {Schedule link}
 Reply STOP if you no longer want to receive texts from Simple Staffing.</pre>
-<pre data-fmt="phone" hidden>Simple Staffing: Hi {First name}, we received your application for the {Job title} job on Indeed. {Company} would like to interview you on {Interview date} between 11:00 AM and 3:00 PM {Time zone}. Interviews are by phone.
+<pre data-fmt="phone" hidden>Simple Staffing: Hi {First name}, we received your application for the {Job title} job on {Source site}. {Company} is interviewing for this job on {Interview date} between {Start time} and {End time} {Time zone}. Interviews are by phone.
 Request your interview time on JobFairX: {Schedule link}
 Reply STOP if you no longer want to receive texts from Simple Staffing.</pre>
   </div>
@@ -99,13 +129,13 @@ Schedule your interview here: {Schedule link}
 Reply STOP to stop receiving all text messages</pre>
   <h3>Text 2: new message</h3>
   <div class="fmt" data-text="2"><div class="fmt-tabs" role="tablist" aria-label="Interview format for Text 2"><button type="button" role="tab" data-fmt="video" aria-selected="true" class="on">Video</button><button type="button" role="tab" data-fmt="inperson" aria-selected="false">In person</button><button type="button" role="tab" data-fmt="phone" aria-selected="false">Phone</button></div>
-<pre data-fmt="video">Simple Staffing: Hi {First name}, {Company} would still like to interview you for the {Job title} job you applied for on Indeed. Interview times are open for {Interview date} between 11:00 AM and 3:00 PM {Time zone}. Interviews are by video on JobFairX.
+<pre data-fmt="video">Simple Staffing: Hi {First name}, {Company} is still interviewing for the {Job title} job you applied for on {Source site}. Interview times are open for {Interview date} between {Start time} and {End time} {Time zone}. Interviews are by video on JobFairX.
 Request your interview time: {Schedule link}
 Reply STOP if you no longer want to receive texts from Simple Staffing.</pre>
-<pre data-fmt="inperson" hidden>Simple Staffing: Hi {First name}, {Company} would still like to interview you for the {Job title} job you applied for on Indeed. Interview times are open for {Interview date} between 11:00 AM and 3:00 PM {Time zone}. Interviews are in person at their location in {City}.
+<pre data-fmt="inperson" hidden>Simple Staffing: Hi {First name}, {Company} is still interviewing for the {Job title} job you applied for on {Source site}. Interview times are open for {Interview date} between {Start time} and {End time} {Time zone}. Interviews are in person at their location in {City}.
 Request your interview time on JobFairX: {Schedule link}
 Reply STOP if you no longer want to receive texts from Simple Staffing.</pre>
-<pre data-fmt="phone" hidden>Simple Staffing: Hi {First name}, {Company} would still like to interview you for the {Job title} job you applied for on Indeed. Interview times are open for {Interview date} between 11:00 AM and 3:00 PM {Time zone}. Interviews are by phone.
+<pre data-fmt="phone" hidden>Simple Staffing: Hi {First name}, {Company} is still interviewing for the {Job title} job you applied for on {Source site}. Interview times are open for {Interview date} between {Start time} and {End time} {Time zone}. Interviews are by phone.
 Request your interview time on JobFairX: {Schedule link}
 Reply STOP if you no longer want to receive texts from Simple Staffing.</pre>
   </div>
@@ -113,16 +143,16 @@ Reply STOP if you no longer want to receive texts from Simple Staffing.</pre>
 <pre>Hi {First name},
 Are you still interested in the {Job title} position you applied for? {Company} is very interested in interviewing you on {Interview date} between 11:00 AM–3:00 PM.
 Schedule your interview here: {Schedule link}
-Reply 'STOP' to stop receiving all text messages</pre>
+Reply &#x27;STOP&#x27; to stop receiving all text messages</pre>
   <h3>Text 3: new message</h3>
   <div class="fmt" data-text="3"><div class="fmt-tabs" role="tablist" aria-label="Interview format for Text 3"><button type="button" role="tab" data-fmt="video" aria-selected="true" class="on">Video</button><button type="button" role="tab" data-fmt="inperson" aria-selected="false">In person</button><button type="button" role="tab" data-fmt="phone" aria-selected="false">Phone</button></div>
-<pre data-fmt="video">Simple Staffing: Hi {First name}, {Company} is still scheduling interviews for the {Job title} job you applied for on Indeed. Times on {Interview date} between 11:00 AM and 3:00 PM {Time zone} are open until they fill or the interviews begin. Interviews are by video on JobFairX.
+<pre data-fmt="video">Simple Staffing: Hi {First name}, {Company} is still scheduling interviews for the {Job title} job you applied for on {Source site}. Times on {Interview date} between {Start time} and {End time} {Time zone} are open until they fill or the interviews begin. Interviews are by video on JobFairX.
 Request your interview time: {Schedule link}
 Reply STOP if you no longer want to receive texts from Simple Staffing.</pre>
-<pre data-fmt="inperson" hidden>Simple Staffing: Hi {First name}, {Company} is still scheduling interviews for the {Job title} job you applied for on Indeed. Times on {Interview date} between 11:00 AM and 3:00 PM {Time zone} are open until they fill or the interviews begin. Interviews are in person at their location in {City}.
+<pre data-fmt="inperson" hidden>Simple Staffing: Hi {First name}, {Company} is still scheduling interviews for the {Job title} job you applied for on {Source site}. Times on {Interview date} between {Start time} and {End time} {Time zone} are open until they fill or the interviews begin. Interviews are in person at their location in {City}.
 Request your interview time on JobFairX: {Schedule link}
 Reply STOP if you no longer want to receive texts from Simple Staffing.</pre>
-<pre data-fmt="phone" hidden>Simple Staffing: Hi {First name}, {Company} is still scheduling interviews for the {Job title} job you applied for on Indeed. Times on {Interview date} between 11:00 AM and 3:00 PM {Time zone} are open until they fill or the interviews begin. Interviews are by phone.
+<pre data-fmt="phone" hidden>Simple Staffing: Hi {First name}, {Company} is still scheduling interviews for the {Job title} job you applied for on {Source site}. Times on {Interview date} between {Start time} and {End time} {Time zone} are open until they fill or the interviews begin. Interviews are by phone.
 Request your interview time on JobFairX: {Schedule link}
 Reply STOP if you no longer want to receive texts from Simple Staffing.</pre>
   </div>
@@ -130,7 +160,7 @@ Reply STOP if you no longer want to receive texts from Simple Staffing.</pre>
 <pre>Hi {First name},
  Following up one last time as {Company} is about to close interviews for the {Job title} position.
 Schedule your interview here: {Schedule link}
-Reply 'STOP' to stop receiving all text messages</pre>
+Reply &#x27;STOP&#x27; to stop receiving all text messages</pre>
   <h3>The two lines that change with the interview format</h3>
   <div class="tablewrap"><table>
     <thead><tr><th>Interview format</th><th>{Format sentence}</th><th>{Request line}</th></tr></thead>
@@ -140,129 +170,264 @@ Reply 'STOP' to stop receiving all text messages</pre>
       <tr><td><b>Phone</b></td><td>Interviews are by phone.</td><td>Request your interview time on JobFairX: {Schedule link}</td></tr>
     </tbody>
   </table></div>
-  <p class="desc">Applicants who did not come from Indeed get the same texts with the words " on Indeed" removed, in all three texts. Text 1, video, as the applicant reads it:</p>
-<pre>Simple Staffing: Hi Jordan, we received your application for the Customer Service Supervisor job on Indeed. Baylor Scott &amp; White Health would like to interview you on Monday, October 12, 2026 between 11:00 AM and 3:00 PM CT. Interviews are by video on JobFairX.
+  <h3>The source site words</h3>
+  <p class="desc">“ on {Source site}” appears only when the applicant’s board is known and is one the applicant would recognise (section 4). Otherwise the words are dropped in all three texts: “for the {Job title} job.” The board is decided once, when Text 1 is prepared, and stored with the application.</p>
+  <p class="desc">Text 1, video, Indeed, as the applicant reads it:</p>
+<pre>Simple Staffing: Hi Jordan, we received your application for the Customer Service Supervisor job on Indeed. Baylor Scott &amp; White Health is interviewing for this job on Monday, October 12, 2026 between 11:00 AM and 3:00 PM CT. Interviews are by video on JobFairX.
 Request your interview time: https://jobfairx.com/l/a1b2c3d4
 Reply STOP if you no longer want to receive texts from Simple Staffing.</pre>
 </section>
 
 <section id="fields">
-  <p class="num">02</p>
+  <p class="num">04</p>
   <h2>Merge fields</h2>
-  <p class="desc">Every value comes from the job or the application, exactly as stored, after the character rules in section 5.</p>
+  <p class="desc">Every value comes from the job or the application, exactly as stored, after the character rules in section 6. A blank value that says “do not send” holds the text with the reason MISSING_FIELD and flags the job or application for a person.</p>
   <div class="tablewrap"><table>
     <thead><tr><th>Field</th><th>Source</th><th>Format</th><th>Example</th><th>If blank</th></tr></thead>
     <tbody>
-      <tr><td><b>{First name}</b></td><td>The applicant's first name as entered on the application (the Workable candidate's first name)</td><td>First name only, as stored, after the character rules in section 5; never the last name</td><td>Jordan</td><td>Send anyway: every text drops the greeting, so Text 1 opens "Simple Staffing: We received..."</td></tr>
-      <tr><td><b>{Job title}</b></td><td>The title exactly as it appears on the Indeed post</td><td>Nothing appended: no pay, shift, city or requisition number</td><td>Customer Service Supervisor</td><td>Do not send; flag the job</td></tr>
-      <tr><td><b>{Company}</b></td><td>The employer name exactly as it appears on the Indeed post</td><td>As stored</td><td>Baylor Scott &amp; White Health</td><td>Do not send; flag the job</td></tr>
-      <tr><td><b>{Interview date}</b></td><td>The job's interview day</td><td>Weekday, month, day without leading zero, year</td><td>Monday, October 12, 2026</td><td>Do not send; flag the job</td></tr>
-      <tr><td><b>Window</b></td><td>Fixed text in the template: 11:00 AM and 3:00 PM. If a job's window ever differs, fill both times from the job in the same format: 12-hour clock, minutes shown, no leading zero</td><td>11:00 AM and 3:00 PM</td><td>11:00 AM and 3:00 PM</td><td>Use the job's window</td></tr>
-      <tr><td><b>{Time zone}</b></td><td>The job's time zone (the employer's), never the applicant's, from a fixed table keyed by the job's IANA zone</td><td>Two letters: ET, CT, MT, PT, AKT, HT; Arizona is MT. Canada adds AT (Atlantic) and NT (Newfoundland); Saskatchewan is CT and British Columbia is PT</td><td>CT</td><td>Do not send; flag the job</td></tr>
-      <tr><td><b>{City}</b></td><td>The city of the in-person interview address the employer entered</td><td>City name only, no state, province, ZIP or postal code</td><td>Plano</td><td>In-person job with no city: do not send; flag the job</td></tr>
-      <tr><td><b>{Format sentence}, {Request line}</b></td><td>The job's interview format field set by the employer (video, in_person, phone), read at the moment each text is sent</td><td>One of the three rows in the table above</td><td>Interviews are by video on JobFairX.</td><td>Any other or blank value: do not send; flag the job</td></tr>
-      <tr><td><b>{Schedule link}</b></td><td>One unique link per applicant per text, as today; a request is credited to the last text sent before it</td><td>https included, at most 39 characters, on jobfairx.com (the name the texts use), never a public shortener and never Twilio link shortening or click tracking, which stays off to protect delivery. After requests close it opens a page saying times are no longer available, and it never says the date has passed while the interview date is still ahead</td><td>https://jobfairx.com/l/a1b2c3d4</td><td>Do not send; flag the application</td></tr>
-      <tr><td><b>Indeed switch</b></td><td>The application's source value, decided once when Text 1 is prepared and stored with the application; Texts 2 and 3 use the stored decision</td><td>Indeed = a fixed list of source values read from the application data; anything else or blank = non-Indeed</td><td>Indeed</td><td>Non-Indeed</td></tr>
+      <tr><td><b>{First name}</b></td><td>The applicant’s first name as entered on the application (the Workable candidate’s first name).</td><td>First name only, as stored, after the character rules in section 6; never the last name.</td><td>Jordan</td><td>Send anyway: every text drops the greeting, so Text 1 opens “Simple Staffing: We received…”.</td></tr>
+      <tr><td><b>{Job title}</b></td><td>The title exactly as it appears on the job post.</td><td>Nothing appended: no pay, shift, city or requisition number.</td><td>Customer Service Supervisor</td><td>Do not send; flag the job.</td></tr>
+      <tr><td><b>{Company}</b></td><td>The employer name exactly as it appears on the job post.</td><td>As stored.</td><td>Baylor Scott &amp; White Health</td><td>Do not send; flag the job.</td></tr>
+      <tr><td><b>{Source site}</b></td><td>The job board the applicant applied on, from the application’s source in Workable (Brandon names the exact webhook field). Decided once when Text 1 is prepared and stored with the application; Texts 2 and 3 use the stored value.</td><td>The board’s name as the applicant knows it, from a table the developer keeps: Indeed, Monster, LinkedIn, Glassdoor, ZipRecruiter and so on. Never a domain. Never “Jobs by Workable”, the Workable careers page or any Workable name: the applicant does not know Workable.</td><td>Indeed</td><td>Blank, unknown or Workable’s own board: drop the words “ on {Source site}” in all three texts, so “for the {Job title} job.”</td></tr>
+      <tr><td><b>{Interview date}</b></td><td>The job’s interview day.</td><td>Weekday, month, day without a leading zero, year.</td><td>Monday, October 12, 2026</td><td>Do not send; flag the job.</td></tr>
+      <tr><td><b>{Start time} and {End time}</b></td><td>The job’s interview window as the employer set it.</td><td>12-hour clock, minutes shown, no leading zero. Almost every job is 11:00 AM to 3:00 PM; the values still come from the job.</td><td>11:00 AM and 3:00 PM</td><td>Do not send; flag the job.</td></tr>
+      <tr><td><b>{Time zone}</b></td><td>The job’s time zone (the employer’s), never the applicant’s, from a fixed table keyed by the job’s IANA zone.</td><td>Two letters: ET, CT, MT, PT, AKT, HT; Arizona is MT. Canada adds AT (Atlantic) and NT (Newfoundland); Saskatchewan is CT and British Columbia is PT.</td><td>CT</td><td>Do not send; flag the job.</td></tr>
+      <tr><td><b>{City}</b></td><td>The city of the in-person interview address the employer entered.</td><td>City name only: no state, province, ZIP or postal code.</td><td>Plano</td><td>In-person job with no city: do not send; flag the job.</td></tr>
+      <tr><td><b>{Format sentence} and {Request line}</b></td><td>The job’s interview format field set by the employer (video, in_person, phone), read at the moment each text is sent.</td><td>One of the three rows in the format table in section 3.</td><td>Interviews are by video on JobFairX.</td><td>Any other or blank value: do not send; flag the job.</td></tr>
+      <tr><td><b>{Schedule link}</b></td><td>One unique link per applicant per text, as today. A request is credited to the last text sent before it.</td><td>https included, at most 39 characters, on jobfairx.com (the name the texts use); never a public shortener and never Twilio link shortening or click tracking, which stay off to protect delivery. After the closing moment it opens the page that says times are no longer available; it never says the date has passed while the interview date is still ahead.</td><td>https://jobfairx.com/l/a1b2c3d4</td><td>Do not send; flag the application.</td></tr>
     </tbody>
   </table></div>
 </section>
 
-<section id="schedule">
-  <p class="num">03</p>
-  <h2>Send schedule</h2>
-  <p class="desc">All send times run on the applicant's own clock. Every send is checked at the moment it is handed to Twilio, not when it was scheduled: the person has not requested a time or opted out, slots are still open, the job is open (not closed, paused or cancelled), the interviews have not begun, and the interview date has not passed. A text that fails a check is held, not sent later, and the reason is logged (section 7). When the interview slots are full, the recruiter gets an email and decides whether to add slots or leave it, and the Indeed posting is paused at once and turned back on if slots are added (already in place; Scott, 18 Oct); the app holds every text to that job while the slots are full and never keeps texting a full event. In the year to 17 Oct 2026, 366 texts went to 24 jobs two or more days after that job's last request, and 31 first texts went out on or after the interview day without a single request.</p>
+<section id="rules">
+  <p class="num">05</p>
+  <h2>Send rules</h2>
+  <h3>Before every send</h3>
+  <p class="desc">Every text is checked at the moment it is handed to Twilio, not when it was scheduled. All six must pass:</p>
+  <ol class="list">
+    <li>The applicant has not requested a time.</li>
+    <li>The number has not opted out (any STOP, for any job).</li>
+    <li>Interview slots are open.</li>
+    <li>The job is open: not paused, closed or cancelled.</li>
+    <li>The closing moment has not passed.</li>
+    <li>This text number has not already been sent for this application.</li>
+  </ol>
+  <p class="desc">A text that fails is held and logged with one of the reasons in section 10.</p>
+  <h3>The closing moment</h3>
+  <p class="desc">Requests for a job close when its interview slots are full and reopen if the employer adds slots. They close while the job is paused and reopen when it is unpaused. They close for good when the job is closed or cancelled, and they close for good <b>four hours before the interview window starts</b>: 7:00 AM job time for an 11:00 AM window. After the closing moment no text goes out and the link opens the page that says times are no longer available. When slots fill, the recruiter gets an email and decides whether to add slots, and the Indeed posting pauses on its own and comes back when slots are added; both are already in place.</p>
+  <h3>Held texts and reopening</h3>
+  <p class="desc">A text held for SLOTS_FULL or JOB_PAUSED is sent when the job reopens: at once if the applicant’s window is open and the closing moment has not passed, otherwise at 8:00 to 8:30 AM the next morning. Texts 2 and 3 are then scheduled from the day Text 1 actually went out. A text held for any other reason is never sent.</p>
+  <h3>Schedule</h3>
+  <p class="desc">All send times run on the applicant’s own clock.</p>
   <div class="tablewrap"><table>
     <thead><tr><th>Text</th><th>When</th><th>Window</th></tr></thead>
     <tbody>
-      <tr><td><b>Text 1</b></td><td>Planned send = the moment the application reaches the automation, plus 15 minutes. If the planned send falls inside the window, send then. Otherwise send at the first 8:00 AM after it, spread at random over 8:00 to 8:30 AM so a held batch does not go out in one burst.</td><td>8:00 AM to 8:45 PM applicant-local; Oregon numbers 8:00 AM to 7:45 PM</td></tr>
-      <tr><td><b>Text 2</b></td><td>10:00 AM applicant-local on the calendar day after Text 1 was actually sent, spread over 10:00 to 10:30. Never on the interview day.</td><td>Same window</td></tr>
-      <tr><td><b>Text 3</b></td><td>10:00 AM applicant-local on the calendar day two days before the interview date (counted on the job's calendar), spread over 10:00 to 10:30. Skipped when that day is the same as, or earlier than, Text 2's day. Never on the interview day.</td><td>Same window</td></tr>
+      <tr><td><b>Text 1</b></td><td>Planned send = the moment the application reaches the automation, plus 15 minutes. Inside the window: send then. Otherwise: the first 8:00 AM after it, spread at random over 8:00 to 8:30 AM so a held batch does not go out in one burst.</td><td>8:00 AM to 8:45 PM applicant-local; Oregon numbers 8:00 AM to 7:45 PM.</td></tr>
+      <tr><td><b>Text 2</b></td><td>10:00 AM applicant-local on the calendar day after Text 1 was actually sent, spread over 10:00 to 10:30. Never on the interview day.</td><td>Same window.</td></tr>
+      <tr><td><b>Text 3</b></td><td>10:00 AM applicant-local on the calendar day two days before the interview date (counted on the job’s calendar), spread over 10:00 to 10:30. Skipped when that day is the same as, or earlier than, Text 2’s day. Never on the interview day.</td><td>Same window.</td></tr>
     </tbody>
   </table></div>
-  <ul class="list">
-    <li><b>Applicant time zone:</b> from the state or province, or the ZIP or postal code, on the application; if missing, from the phone's area code; if the area code spans two zones or is not geographic, use the job's time zone. Store time zones by IANA name, never as a fixed offset, so daylight time, Arizona and Saskatchewan work. Keep the server's time-zone data current (IANA 2026c or later): British Columbia stopped changing clocks after 8 March 2026 and stays at UTC-7 all year.</li>
-    <li><b>Oregon:</b> applies when the application's state is Oregon or the area code is 503, 971, 541 or 458. Window ends 7:45 PM; at most 3 automated texts to one number in any 24 hours.</li>
-    <li><b>Canada:</b> Canadian applicants get the same texts, schedule and 8:00 AM to 8:45 PM window in their own time zone. Canada's telemarketing rules and calling hours cover calls; texts fall under Canada's anti-spam law (CASL). Its regulations exempt a message sent in response to a request or otherwise solicited by the person it goes to (Electronic Commerce Protection Regulations, s. 3(b)). A text answering the person's own job application fits that on a plain reading; counsel can confirm. If counsel says CASL applies in full, the landing page adds Simple Staffing's mailing address and an email or phone number, which the CRTC regulations allow through the link (SOR/2012-36, s. 2(2)).</li>
-    <li><b>Twilio:</b> hand every message over with ValidityPeriod 900 seconds, so a queued text can never arrive after 9:00 PM (8:00 PM Oregon).</li>
-    <li><b>Interview day:</b> nothing is sent except a Text 1 to someone who applies that morning while requests are open and at least one hour remains before the closing moment.</li>
-  </ul>
-</section>
-
-<section id="lead">
-  <p class="num">04</p>
-  <h2>Short lead times</h2>
-  <p class="desc">Jobs are posted 3 to 14 days before the interview date, sometimes less. Days count from Text 1's actual send day on the applicant's calendar; the interview date is on the job's calendar. Interview date D, application at midday.</p>
+  <h3>Short lead times</h3>
+  <p class="desc">Jobs are posted 3 to 14 days before the interview date, sometimes less. Days count from Text 1’s actual send day on the applicant’s calendar; the interview date is on the job’s calendar. Interview date D, application at midday.</p>
   <div class="tablewrap"><table>
     <thead><tr><th>Application arrives</th><th>Text 1</th><th>Text 2</th><th>Text 3</th></tr></thead>
     <tbody>
-      <tr><td>14 days before (D-14)</td><td>D-14, 15 minutes after applying</td><td>D-13, 10:00 AM</td><td>D-2, 10:00 AM</td></tr>
-      <tr><td>7 days before</td><td>D-7</td><td>D-6</td><td>D-2</td></tr>
-      <tr><td>3 days before</td><td>D-3</td><td>D-2</td><td>Skipped: same day as Text 2</td></tr>
-      <tr><td>2 days before</td><td>D-2</td><td>D-1</td><td>Skipped: earlier than Text 2</td></tr>
-      <tr><td>1 day before</td><td>D-1 only</td><td>None</td><td>None</td></tr>
-      <tr><td>Interview morning, before closing</td><td>Sent only if at least one hour remains before the closing moment</td><td>None</td><td>None</td></tr>
-      <tr><td>After 8:45 PM on D-14</td><td>D-13, 8:00 AM</td><td>D-12, 10:00 AM</td><td>D-2, 10:00 AM</td></tr>
-      <tr><td>After 8:45 PM on D-2</td><td>D-1, 8:00 AM</td><td>None: the next morning is the interview day</td><td>None</td></tr>
+      <tr><td><b>14 days before (D-14)</b></td><td>D-14, 15 minutes after applying</td><td>D-13, 10:00 AM</td><td>D-2, 10:00 AM</td></tr>
+      <tr><td><b>7 days before</b></td><td>D-7</td><td>D-6</td><td>D-2</td></tr>
+      <tr><td><b>3 days before</b></td><td>D-3</td><td>D-2</td><td>Skipped: same day as Text 2</td></tr>
+      <tr><td><b>2 days before</b></td><td>D-2</td><td>D-1</td><td>Skipped: earlier than Text 2</td></tr>
+      <tr><td><b>1 day before</b></td><td>D-1 only</td><td>None</td><td>None</td></tr>
+      <tr><td><b>Interview morning</b></td><td>Only while the closing moment, four hours before the window in job time, has not passed; in practice only when the applicant’s clock runs ahead of the job’s</td><td>None</td><td>None</td></tr>
+      <tr><td><b>After 8:45 PM on D-14</b></td><td>D-13, 8:00 AM</td><td>D-12, 10:00 AM</td><td>D-2, 10:00 AM</td></tr>
+      <tr><td><b>After 8:45 PM on D-2</b></td><td>D-1, 8:00 AM</td><td>None: the next morning is the interview day</td><td>None</td></tr>
     </tbody>
   </table></div>
-  <p class="desc">For an applicant two days out, Text 2 lands the day before the interview, inside the employer's 24-hour acceptance window. The request is the goal, so it is sent (decision 1 in section 8).</p>
+  <p class="desc">An applicant two days out gets Text 2 the day before the interview, inside the employer’s 24-hour acceptance window. The request is the goal, so it is sent (decision 1).</p>
+  <h3>Clocks and zones</h3>
+  <ul class="list">
+    <li><b>Applicant time zone:</b> from the state or province, or the ZIP or postal code, on the application; if missing, from the phone’s area code; if the area code spans two zones or is not geographic, use the job’s time zone. Store zones by IANA name, never as a fixed offset, so daylight time, Arizona and Saskatchewan work. Keep the server’s time-zone data at IANA 2026c or later: British Columbia stays at UTC-7 all year since 8 March 2026.</li>
+    <li><b>Oregon:</b> when the application’s state is Oregon or the area code is 503, 971, 541 or 458, the window ends at 7:45 PM and no number gets more than three automated texts in any 24 hours (ORS 646A.372).</li>
+    <li><b>Canada:</b> Canadian applicants get the same texts, schedule and 8:00 AM to 8:45 PM window in their own zone. Texts fall under CASL, whose regulations exempt a message sent in response to the person’s own request (Electronic Commerce Protection Regulations, s. 3(b)); a text answering their application fits that on a plain reading, and counsel can confirm. If counsel says CASL applies in full, the request page adds Simple Staffing’s mailing address and an email or phone number.</li>
+    <li><b>Interview day:</b> nothing is sent on the interview day except a Text 1 that still clears the closing moment in job time.</li>
+    <li><b>Twilio:</b> hand every message over with ValidityPeriod 900 seconds, so a queued text can never arrive after 9:00 PM (8:00 PM Oregon).</li>
+  </ul>
+  <h3>Failures, duplicates and opt-outs</h3>
+  <ul class="list">
+    <li><b>Failures:</b> a text Twilio rejects, or later marks failed or undelivered, is logged with its error code and not retried. The next scheduled text runs its own checks.</li>
+    <li><b>Duplicates:</b> an application gets each text number at most once. Each application runs its own sequence; a person with two applications gets two sequences.</li>
+    <li><b>Opt-outs:</b> Twilio’s opt-out handling answers STOP and HELP. The app records every STOP and never texts that number again for any job, as it does today; the app keeps its own record because Twilio applies a STOP per sending number or service.</li>
+  </ul>
 </section>
 
-
-
 <section id="chars">
-  <p class="num">05</p>
+  <p class="num">06</p>
   <h2>Characters and length</h2>
   <p class="desc">One character outside the GSM-7 set turns a 3-segment text into 6. Job titles and company names from Workable often carry curly quotes and en dashes, so every merge value is normalised before the template is filled.</p>
   <ul class="list">
-    <li>Curly single quotes to a straight apostrophe; curly double quotes to a straight quote; en dash, em dash and minus sign to a hyphen; ellipsis character to three periods; non-breaking and other Unicode spaces to a normal space.</li>
+    <li>Curly single quotes to a straight apostrophe; curly double quotes to a straight quote; en dash, em dash and minus sign to a hyphen; the ellipsis character to three periods; non-breaking and other Unicode spaces to a normal space.</li>
     <li>Emoji and any other character outside GSM-7 are removed. Accented letters inside GSM-7 (for example é) stay.</li>
     <li>Log any message that would still send as UCS-2, and keep the templates themselves to straight apostrophes and hyphens.</li>
-    <li><b>Measured</b> with the sample values (first name Jordan) and a 30-character link: Text 1 is 393 characters (video and phone) or 421 (in person); Text 2 is 412 or 440; Text 3 is 438 or 466. Texts 1 and 2 are 3 segments, and so is Text 3 for video and phone; Text 3 for an in-person job is 4 segments. Text 2 for an in-person job reaches 4 segments when the title and company are both long (460 with a 39-character title and 30-character company). Non-Indeed versions are 10 characters shorter.</li>
-    <li>Test-send one message with the company "Baylor Scott &amp; White Health" and confirm the ampersand arrives intact; some platforms escape it.</li>
+    <li>Measured with the sample values (first name Jordan, source Indeed) and a 30-character link: Text 1 is 394 characters (video and phone) or 422 (in person); Text 2 is 400 or 428; Text 3 is 438 or 466. Texts 1 and 2 are 3 segments, and so is Text 3 for video and phone; Text 3 for an in-person job is 4 segments. Text 2 for an in-person job stays at 3 segments even with a 39-character title and a 30-character company (443). Dropping the source site words shortens a text by 10 characters with Indeed.</li>
+    <li>Test-send one message with the company “Baylor Scott &amp; White Health” and confirm the ampersand arrives intact; some platforms escape it.</li>
   </ul>
 </section>
 
 <section id="twilio">
-  <p class="num">06</p>
-  <h2>Twilio registration and the link</h2>
-  <p class="desc">Carriers compare live traffic with the registered campaign, so the registration changes before the templates do.</p>
+  <p class="num">07</p>
+  <h2>Twilio setup</h2>
   <ul class="list">
-    <li>Replace the campaign's sample messages with the three new texts, including the real link domain, and fill in the campaign's privacy policy and terms URLs (blank today), before switching. The brand named in the texts (Simple Staffing) must match the registered brand; confirm with Twilio whether that means registering Simple Staffing alongside CloudHire LLC.</li>
-    <li><b>One messaging service:</b> send all three texts through the Event Notifications messaging service by its service SID, never with a From number, so Sticky Sender keeps each applicant on (762) 465-9036 for the whole sequence and one STOP covers every text. Today Texts 2 and 3 go out from the 833 toll-free number with no service. In the year to 17 Oct 2026, 84% of STOP replies followed an 833 text, and 833 texts lacked a delivery receipt 5 to 7% of the time against 0.1% from the 762 number. The UK number in the pool serves applicants with UK mobile numbers (4 texts in the year, all delivered); keep it.</li>
-    <li>The link stays on jobfairx.com, the name the texts use: never a public shortener such as bit.ly, and never Twilio link shortening or click tracking, which Scott keeps off to protect delivery. Keep the whole link to 39 characters or fewer, including https://.</li>
-    <li><b>The request page</b> shows Simple Staffing, the employer name and the job title above the fold, with a line such as "Simple Staffing schedules its interviews on JobFairX", so the applicant sees the same facts the text gave them before anything else. Its footer carries Simple Staffing's contact email, scott@simplestaffing.co, the texting number (762) 465-9036 and a privacy policy link; carrier rules (CTIA, AT&amp;T) require a linked page to identify its owner, with a privacy policy where it collects personal information. Indeed tells job seekers that a link outside Indeed is a scam sign, so the page has to prove who is asking at a glance.</li>
-    <li><b>Resume step:</b> when the Workable application already carries a resume, attach it to the request and skip Upload a resume and the resume builder; the employer's requirement itself stays. When the employer marks the resume as not required for a job, hide the resume steps in that job's request flow. Between 8 and 17 Oct, 30 of the 64 people who quit a request quit at these steps. Workable's candidate event webhook carries resume_url, so the app fetches the file from there.</li>
-    <li><b>Voice:</b> calls to (762) 465-9036 play a short recorded message: Simple Staffing's interview scheduling line, the texts are about the job you applied for, reply STOP to end them, and for help email scott@simplestaffing.co. The 833 number stops pointing at Twilio's demo greeting. Scott lists the texting number on the Contact page of Simple Staffing's website, simplestaffing.co/contact-us, next to the phone and email already there.</li>
-    <li><b>Advance notice:</b> Simple Staffing sends no email to applicants today, and no automation is active in its Workable account (checked 17 Oct). Scott turns on Workable's Thank you message automation (decided 18 Oct): every applicant of any job in any department gets an email from Simple Staffing minutes after applying, on all seven days, before Text 1, with the line "Simple Staffing will text you from (762) 465-9036 with a link to request your interview time on JobFairX." Scott's task in Workable's settings, outside the code; it does not go in the Indeed post, which may not send applicants to another site.</li>
-    <li><b>Canadian numbers:</b> Canadian carriers filter business texts strictly, and Twilio recommends a short code or a verified toll-free number for Canada; its Canada page says nothing about US numbers texting Canadian phones. In the year to 17 Oct 2026, 98% of texts to Canadian phones from the current US numbers were delivered. Log the Twilio delivery status of every text to a Canadian number (section 7) and move Canadian sending to a verified toll-free number if many go undelivered.</li>
+    <li><b>One messaging service:</b> send all three texts through the Event Notifications messaging service by its service SID, never with a From number, so Sticky Sender keeps each applicant on (762) 465-9036 for the whole sequence and one STOP covers every text. Today Texts 2 and 3 go out from the 833 number with no service.</li>
+    <li><b>Sender pool:</b> (762) 465-9036 and the UK number, which serves applicants with UK mobiles; keep it. The 833 number is not in the pool and sends nothing after the switch.</li>
+    <li><b>A2P campaign, before the wording switch:</b> replace the sample messages with the three new texts including the real link domain, and fill in the privacy policy and terms URLs, blank today. The brand named in the texts (Simple Staffing) must match the registered brand; Brandon confirms with Twilio whether Simple Staffing must be registered alongside CloudHire LLC.</li>
+    <li><b>Voice:</b> calls to (762) 465-9036 play the recorded message in section 13. The 833 number comes off Twilio’s demo greeting.</li>
+    <li><b>Every message:</b> ValidityPeriod 900 seconds.</li>
+    <li><b>Canadian numbers:</b> same service and number. Log the Twilio delivery status of every text to a Canadian number; if many go undelivered, move Canadian sending to a verified toll-free number, which Twilio recommends for Canada.</li>
+  </ul>
+</section>
+
+<section id="page">
+  <p class="num">08</p>
+  <h2>The request page and the link</h2>
+  <ul class="list">
+    <li><b>The link:</b> on jobfairx.com, the name the texts use; https included, 39 characters or fewer; unique per applicant per text; never a public shortener, and Twilio link shortening and click tracking stay off. After the closing moment it opens the page that says times are no longer available; it never says the date has passed while the interview date is still ahead.</li>
+    <li><b>Above the fold:</b> Simple Staffing, the employer name and the job title, with a line such as “Simple Staffing schedules its interviews on JobFairX”, so the applicant sees the same facts the text gave them before anything else.</li>
+    <li><b>Footer:</b> Simple Staffing’s contact email scott@simplestaffing.co, the texting number (762) 465-9036, and JobFairX’s privacy policy link. Carrier rules (CTIA, AT&amp;T) require a linked page to name its owner, with a privacy policy where it collects personal information.</li>
+  </ul>
+</section>
+
+<section id="resume">
+  <p class="num">09</p>
+  <h2>Resume step</h2>
+  <ul class="list">
+    <li>When the Workable application already carries a resume, attach it to the request and skip Upload a resume and the resume builder. The employer’s requirement itself stays. Workable’s candidate webhook carries resume_url; the app fetches the file from there.</li>
+    <li>When the employer marks the resume as not required for a job, hide the resume steps in that job’s request flow.</li>
   </ul>
 </section>
 
 <section id="logging">
-  <p class="num">07</p>
-  <h2>Logging</h2>
-  <p class="desc">Record these from the first send so the request rate can be reported every week and split by job, employer, format and text version.</p>
-  <p class="desc"><b>Per text sent:</b> application, text number (1, 2 or 3), template version, planned send time, actual send time in UTC and in the applicant's local time, the number it was sent from, the reason if it was held or skipped (quiet hours, short lead time, opted out, request already made, slots full, job closed or paused, interviews begun, interview date passed), Twilio message id, Twilio status and error code, segment count, interview format, Indeed or non-Indeed.</p>
-  <p class="desc"><b>Per application:</b> job, employer, interview date, time applied, resume source (attached from Workable, uploaded, built, or skipped), when the link was first opened and which text it followed, when a request was made and which text it followed (the last text sent before it; Twilio link tracking stays off), STOP time and the exact reply wording, and every other reply with its time and wording.</p>
-  <p class="desc"><b>Weekly summary:</b> applicants texted, requests and the request rate (requests divided by applicants texted), requests by the text they followed, texts held and why, link opens divided by delivered, delivered, undelivered and failed counts, texts with no delivery receipt by sending number, STOP replies per text, other replies received, the share of texts at 4 segments, and the request rate by job, by employer, by format, by days before the interview, and Indeed against non-Indeed.</p>
+  <p class="num">10</p>
+  <h2>Logging and the weekly report</h2>
+  <p class="desc">Record these from the first send, so the request rate can be reported every week and split by job, employer, format, board and text version.</p>
+  <p class="desc"><b>Per text sent:</b> application, text number (1, 2 or 3), template version, planned send time, actual send time in UTC and in the applicant’s local time, the number it was sent from, the held reason if any, Twilio message id, Twilio status and error code, segment count, interview format, source site.</p>
+  <p class="desc"><b>Per application:</b> job, employer, interview date, time applied, source site, resume source (attached from Workable, uploaded, built, or skipped), when the link was first opened and which text it followed, when a request was made and which text it followed (the last text sent before it), STOP time and the exact reply wording, and every other reply with its time and wording.</p>
+  <p class="desc"><b>Weekly report:</b> applicants texted, requests and the request rate (requests divided by applicants texted), requests by the text they followed, texts held by reason, link opens divided by delivered, delivered, undelivered and failed counts, texts with no delivery receipt by sending number, STOP replies per text, other replies received, the share of texts at 4 segments, and the request rate by job, by employer, by format, by days before the interview, by board, and US against Canada.</p>
+  <h3>Held reasons</h3>
+  <p class="desc">One code per held text. The names are Brandon’s to choose; the set is fixed.</p>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Code</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td><b>QUIET_HOURS</b></td><td>outside the applicant’s window; sent at the next 8:00 AM</td></tr>
+      <tr><td><b>REQUESTED</b></td><td>the applicant already requested a time</td></tr>
+      <tr><td><b>OPTED_OUT</b></td><td>a STOP from this number, any job</td></tr>
+      <tr><td><b>SLOTS_FULL</b></td><td>no open slots; resumes if slots are added</td></tr>
+      <tr><td><b>JOB_PAUSED</b></td><td>the job is paused; resumes if it is unpaused</td></tr>
+      <tr><td><b>JOB_CLOSED</b></td><td>the job is closed or cancelled; final</td></tr>
+      <tr><td><b>CLOSING_PASSED</b></td><td>four hours or less before the window, or the date has passed; final</td></tr>
+      <tr><td><b>SHORT_LEAD</b></td><td>Text 3 skipped because its day is not after Text 2’s</td></tr>
+      <tr><td><b>DUPLICATE</b></td><td>this text number already went to this application</td></tr>
+      <tr><td><b>MISSING_FIELD</b></td><td>a merge value is blank; the job or application is flagged</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="accept">
+  <p class="num">11</p>
+  <h2>Acceptance checks</h2>
+  <p class="desc">Run before the switch, however Brandon tests. Each is pass or fail.</p>
+  <ol class="list">
+    <li>Apply to an Indeed job at 3:00 PM applicant time. Text 1 arrives 15 minutes later from (762) 465-9036 through the Event Notifications service, 3 segments, GSM-7, the Video wording, “on Indeed”.</li>
+    <li>Apply at 9:30 PM. Text 1 arrives between 8:00 and 8:30 AM the next morning, applicant time.</li>
+    <li>Apply from an Oregon number at 7:50 PM. Text 1 waits for the next morning, and no number gets more than three texts in 24 hours.</li>
+    <li>Apply through Monster: the text says “on Monster”. Apply through Workable’s own board: the text says “for the {Job title} job.” with no site named.</li>
+    <li>In-person job: Text 1 names the city and Text 3 is 4 segments. Phone job: the phone sentence and the request line that names JobFairX.</li>
+    <li>A job title with an en dash and curly quotes: the text sends as GSM-7, 3 segments, and the log shows no UCS-2 send.</li>
+    <li>Company “Baylor Scott &amp; White Health”: the ampersand arrives intact.</li>
+    <li>Request a time after Text 1: no Text 2 or Text 3; the log shows REQUESTED for the skipped sends.</li>
+    <li>Reply STOP after Text 1: no further text to that number for any job; the STOP is logged with its wording.</li>
+    <li>Fill the job’s slots: the next text is held with SLOTS_FULL. Add a slot: the held Text 1 goes out within the window and Texts 2 and 3 follow from that day.</li>
+    <li>Pause the job: texts hold with JOB_PAUSED and resume when it is unpaused. Close the job: nothing more is sent, ever.</li>
+    <li>On the interview day at 7:01 AM job time (window 11:00 AM): no text goes out and the link shows that times are no longer available. At 6:59 AM the link still opens the request page.</li>
+    <li>Apply two days before the interview: Text 2 on D-1 at 10:00; Text 3 skipped. Apply the day before: Text 1 only.</li>
+    <li>Canadian applicant in Ontario: ET window, Twilio delivery status logged. Newfoundland: NT.</li>
+    <li>Every link is 39 characters or fewer including https, and the request page shows Simple Staffing, the employer and the job above the fold with the footer items in section 8.</li>
+    <li>Each sent text has a log row with every field in section 10, and the weekly report runs.</li>
+    <li>A person who applies to two jobs gets two sequences; no application ever receives the same text number twice.</li>
+  </ol>
+</section>
+
+<section id="rollout">
+  <p class="num">12</p>
+  <h2>Rollout and measurement</h2>
+  <p class="desc">Build in this order. Items 1 to 4 can start now; item 4 must be live before item 5.</p>
+  <ol class="list">
+    <li>Send checks and the closing moment (section 5).</li>
+    <li>Resume from Workable (section 9).</li>
+    <li>One messaging service (section 7).</li>
+    <li>A2P campaign update (section 7).</li>
+    <li>New texts, merge fields and schedule (sections 3 to 6).</li>
+    <li>Request page (section 8).</li>
+    <li>Voice on (762) 465-9036 and the 833 number off the demo greeting (section 7).</li>
+    <li>Logging from the first send of anything new (section 10).</li>
+  </ol>
+  <p class="desc"><b>Measurement:</b> the weekly request rate, requests divided by applicants texted, read as two full weeks after a change against the two weeks before, split the same way each time. Baselines: 39% for the year to 17 Oct 2026, 35% for the last three months, 28% for 8 to 17 Oct. Held texts are reported separately because they also lift the rate by shrinking the count texted. Wording questions are tested side by side only, about 590 applicants per version.</p>
+</section>
+
+<section id="outside">
+  <p class="num">13</p>
+  <h2>Outside the code</h2>
+  <ul class="list">
+    <li><b>Workable email:</b> the template “Applicant text notice” is saved in Simple Staffing’s Workable account. The Thank you message automation that sends it was switched on and then off on 18 Oct, pending a plan: the email arrives from Workable, which an Indeed applicant does not know. Status: off. Scott’s to switch.</li>
+    <li><b>Website Contact page:</b> an “Interview texts: (762) 465-9036” entry next to the phone and email already on simplestaffing.co/contact-us, with the words in the Workable email and Contact page doc (section 15).</li>
+    <li><b>Voice message for (762) 465-9036:</b> “You have reached Simple Staffing’s interview scheduling line. Our texts are about the job you applied for. Reply STOP to end them. For help, email scott@simplestaffing.co.” Recorded or text-to-speech is Brandon’s call.</li>
+    <li><b>When slots fill:</b> the recruiter’s email and the automatic Indeed pause are already in place.</li>
+  </ul>
 </section>
 
 <section id="decisions">
-  <p class="num">08</p>
-  <h2>Decisions to confirm</h2>
-  <p class="desc">Each line is written as the spec assumes it. Scott confirms or changes the words.</p>
+  <p class="num">14</p>
+  <h2>Decisions made</h2>
+  <p class="desc">Each decision is written as the spec applies it, with the date it was made.</p>
   <ul class="checks">
-    <li><span class="box" aria-hidden="true"></span><span><b>1.</b> Applying two days before the interview: Text 2 lands the day before and is sent anyway, because the request is the goal.</span></li>
-    <li><span class="box" aria-hidden="true"></span><span><b>2.</b> Text 3 for an in-person job is 4 segments (466 characters with the sample values), and Text 2 reaches 4 when the title and company are both long. Accept the cost rather than cut the greeting or the title.</span></li>
-    <li><span class="box" aria-hidden="true"></span><span><b>3.</b> Time zone is written as two letters (CT), not the daylight form Indeed uses (CDT).</span></li>
-    <li><span class="box" aria-hidden="true"></span><span><b>4.</b> Text 1 on the interview morning is sent only if at least one hour remains before the closing moment.</span></li>
-    <li><span class="box" aria-hidden="true"></span><span><b>5.</b> The city field holds the city only (the wording also works for "Plano, TX").</span></li>
-    <li><span class="box" aria-hidden="true"></span><span><b>6.</b> Jobs run in the US and Canada (confirmed by Scott, 17 Oct). Canadian applicants get the same texts, schedule and window in their own time zone.</span></li>
-    <li><span class="box" aria-hidden="true"></span><span><b>7.</b> No text names a person. All three open "Simple Staffing: Hi {First name}," and go straight to the job. Scott and Claude dropped "this is Scott" on 18 Oct: the named-sender evidence comes from senders the person already knew, and a stranger's first name is also the shape of the scam openers Indeed and the FTC describe. The first name stays.</span></li>
-    <li><span class="box" aria-hidden="true"></span><span><b>8.</b> When the interview slots are full, the recruiter gets an email and decides whether to add slots or leave it, and the Indeed posting is paused at once and turned back on if slots are added (already in place; Scott, 18 Oct); the app holds every text to that job while the slots are full.</span></li>
+    <li><span class="box" aria-hidden="true"></span><span><b>1.</b> Applying two days before the interview: Text 2 lands the day before and is sent anyway, because the request is the goal. <span class="when">(7 Oct)</span></span></li>
+    <li><span class="box" aria-hidden="true"></span><span><b>2.</b> Text 3 for an in-person job is 4 segments. The cost is accepted rather than cutting the greeting or the title. <span class="when">(7 Oct)</span></span></li>
+    <li><span class="box" aria-hidden="true"></span><span><b>3.</b> Time zone is written as two letters (CT), not the daylight form (CDT). <span class="when">(7 Oct)</span></span></li>
+    <li><span class="box" aria-hidden="true"></span><span><b>4.</b> The closing moment: requests close when slots are full and reopen if slots are added, close while a job is paused, close for good when a job is closed or cancelled, and close for good four hours before the interview window starts. No text goes out after it. <span class="when">(18 Oct)</span></span></li>
+    <li><span class="box" aria-hidden="true"></span><span><b>5.</b> The city field holds the city only. <span class="when">(7 Oct)</span></span></li>
+    <li><span class="box" aria-hidden="true"></span><span><b>6.</b> Jobs run in the US and Canada; Canadian applicants get the same texts, schedule and window in their own time zone. <span class="when">(17 Oct)</span></span></li>
+    <li><span class="box" aria-hidden="true"></span><span><b>7.</b> No text names a person. Every text opens “Simple Staffing: Hi {First name},”; the first name stays. <span class="when">(18 Oct)</span></span></li>
+    <li><span class="box" aria-hidden="true"></span><span><b>8.</b> When slots fill, the recruiter gets an email and decides whether to add slots; the Indeed posting pauses on its own and comes back when slots are added (both in place); the app holds every text to that job while slots are full and resumes when they reopen. <span class="when">(17 and 18 Oct)</span></span></li>
+    <li><span class="box" aria-hidden="true"></span><span><b>9.</b> Text 1 says “{Company} is interviewing for this job on {Interview date}” and Text 2 “is still interviewing”, not “would like to interview you”. <span class="when">(18 Oct)</span></span></li>
+    <li><span class="box" aria-hidden="true"></span><span><b>10.</b> Every text names the board the applicant used; Workable’s own board is never named and then the site words are dropped. <span class="when">(18 Oct)</span></span></li>
+    <li><span class="box" aria-hidden="true"></span><span><b>11.</b> The interview window comes from the job as two merge fields, not fixed text. <span class="when">(18 Oct)</span></span></li>
+    <li><span class="box" aria-hidden="true"></span><span><b>12.</b> A text Twilio rejects or fails is logged and not retried; the next scheduled text runs its own checks. <span class="when">(18 Oct)</span></span></li>
+    <li><span class="box" aria-hidden="true"></span><span><b>13.</b> A STOP blocks every future text to that number for any job (in place today). <span class="when">(18 Oct)</span></span></li>
+    <li><span class="box" aria-hidden="true"></span><span><b>14.</b> Each application runs its own full sequence; a person with two applications gets two sequences. <span class="when">(7 Oct)</span></span></li>
+  </ul>
+  <h3>Open items for Brandon</h3>
+  <ul class="list">
+    <li>The webhook field that carries the application’s source, and the table that turns each source into a board name (Brandon).</li>
+    <li>That the request page shows JobFairX’s privacy policy link; the public job page read on 17 Oct showed none (Brandon).</li>
+    <li>Whether texts naming Simple Staffing can run under the CloudHire LLC brand or Simple Staffing must be registered as well (Brandon asks Twilio).</li>
   </ul>
 </section>
+
+<section id="documents">
+  <p class="num">15</p>
+  <h2>Documents</h2>
+  <p class="desc">Each link opens in a new window. The Claude Doc and gallery links open for Scott’s account; the GitHub Pages and Google Doc links are public or shared.</p>
+  <ul class="list">
+    <li><a href="https://claude.ai/code/artifact/b12b466c-7705-4df3-86ec-7cf385a0dfc8#89f75f59-1bed" target="_blank" rel="noopener">Approved conversion plan with the evidence behind these changes (17 Oct 2026)</a></li>
+    <li><a href="https://claude.ai/code/artifact/b12b466c-7705-4df3-86ec-7cf385a0dfc8#c4ecba2a-ad84" target="_blank" rel="noopener">Plan evidence: the screenshots, numbered by change</a></li>
+    <li><a href="https://claude.ai/code/artifact/e04acac0-85b1-4b7c-aa15-0ab3f0424a05" target="_blank" rel="noopener">This spec as an editable Claude Doc</a></li>
+    <li><a href="https://claude.ai/code/artifact/f9bc7c54-0ae0-4e45-8472-9c90449f89fc" target="_blank" rel="noopener">Workable email and Contact page (18 Oct 2026)</a></li>
+    <li><a href="https://scottjobagent.github.io/jobfairx-prototype/workable-resume-handoff-brief.html" target="_blank" rel="noopener">Workable to JobFairX resume handoff brief</a></li>
+    <li><a href="https://scottjobagent.github.io/jobfairx-prototype/admin-workable-candidates.html" target="_blank" rel="noopener">Workable Candidates tab, admin design</a></li>
+    <li><a href="https://docs.google.com/document/d/1_-tbiFWY1fiIa52X_zZueEkuj-sli10qdNU2G911s8k/edit?usp=sharing" target="_blank" rel="noopener">Current texts and timing, the developer's doc of the live texts (5 Oct 2026)</a></li>
+    <li><a href="https://claude.ai/artifact/NBHhUj7JyEDwFfeYVHNdyd" target="_blank" rel="noopener">Timing research screenshots (17 Oct 2026)</a></li>
+    <li><a href="https://claude.ai/artifact/JigQu6e2euGvy481ccgeXi" target="_blank" rel="noopener">Indeed message voice captures (7 Oct 2026)</a></li>
+  </ul>
+</section>
+
 </div>
 <script>
 document.querySelectorAll('.fmt').forEach(function(box){
