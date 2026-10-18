@@ -70,7 +70,7 @@ td b{color:var(--ink);font-weight:600}
   <p class="kicker">Simple Staffing · applicant texts · developer spec</p>
   <h1>Simple Staffing Applicant Texts Spec</h1>
   <p class="lead">Three texts from Simple Staffing ask every applicant to <b>request an interview time on JobFairX</b>. This page is the build order: the exact templates, every merge field, the send rules, the Twilio setup, the logging, and the checks that prove it works.</p>
-  <p class="meta">Version 3.1, 18 Oct 2026 · Owner: Scott Lobenberg, Simple Staffing · Developer: Brandon · Status: approved, build in the order in section 12 · Replaces the wording in WorkableWebhookHandler.cs (Text 1) and CandidateIndeedSmsAutomationsSender.cs (Texts 2 and 3) as copied on 5 Oct 2026 · Documents are in section 15</p>
+  <p class="meta">Version 3.2, 18 Oct 2026 · Owner: Scott Lobenberg, Simple Staffing · Developer: Brandon · Status: approved, build in the order in section 12 · Replaces the wording in WorkableWebhookHandler.cs (Text 1) and CandidateIndeedSmsAutomationsSender.cs (Texts 2 and 3) as copied on 5 Oct 2026 · Documents are in section 15</p>
   <nav class="jump" aria-label="Sections">
     <a href="#summary">01 Summary</a><a href="#changes">02 What changes</a><a href="#texts">03 The texts</a><a href="#fields">04 Merge fields</a><a href="#rules">05 Send rules</a><a href="#chars">06 Characters</a><a href="#twilio">07 Twilio</a><a href="#page">08 Request page</a><a href="#resume">09 Resume step</a><a href="#logging">10 Logging</a><a href="#accept">11 Acceptance</a><a href="#rollout">12 Rollout</a><a href="#outside">13 Outside the code</a><a href="#decisions">14 Decisions</a><a href="#documents">15 Documents</a>
   </nav>
@@ -92,7 +92,7 @@ td b{color:var(--ink);font-weight:600}
   <div class="tablewrap"><table>
     <thead><tr><th>Area</th><th>Today</th><th>New</th></tr></thead>
     <tbody>
-      <tr><td><b>Wording</b></td><td>“Hi {First name}, My name is Scott with Simple Staffing. I received your application…”; Text 2 asks a question; Text 3 carries no date or time.</td><td>“Simple Staffing: Hi {First name}, we received your application…”; no person named, no question; every text carries the job, the company, the date, the window, the time zone and the interview format.</td></tr>
+      <tr><td><b>Wording</b></td><td>“Hi {First name}, My name is Scott with Simple Staffing. I received your application…”; Text 2 asks a question; Text 3 carries no date or time.</td><td>Text 1 opens one of two ways, split by phone number for a test: A as today, “Hi {First name}, my name is Scott with Simple Staffing”, or B brand first, “Simple Staffing: Hi {First name}”. After that sentence every text is the same: no question, and every text carries the job, the board, the company, the date, the window, the time zone and the interview format. Texts 2 and 3 name no person.</td></tr>
       <tr><td><b>Source site</b></td><td>Text 1 says “on Indeed” to everyone; Texts 2 and 3 name no site.</td><td>Every text names the board the applicant used (Indeed, Monster and so on) or no board at all. Workable’s own board is never named.</td></tr>
       <tr><td><b>Sender number</b></td><td>Text 1 from (762) 465-9036 through the Event Notifications service; Texts 2 and 3 from (833) 419-0068 with no service.</td><td>All three texts through the Event Notifications service: one conversation, one STOP.</td></tr>
       <tr><td><b>Encoding</b></td><td>Text 2 is 5 or 6 segments because an en dash makes it UCS-2.</td><td>Every merge value normalised to GSM-7; 3 segments, 4 only for an in-person Text 3.</td></tr>
@@ -109,9 +109,21 @@ td b{color:var(--ink);font-weight:600}
 <section id="texts">
   <p class="num">03</p>
   <h2>The three texts</h2>
-  <p class="desc">Line breaks are part of the template. Straight apostrophes and plain hyphens only. Every text opens with Simple Staffing and the applicant’s first name; no text names a person and no text asks a question. Each new message is written out for the three interview formats; the Video, In person and Phone tabs switch between them, Video first. Under each new message is the message going out today.</p>
-  <h3>Text 1: new message</h3>
-  <div class="fmt" data-text="1"><div class="fmt-tabs" role="tablist" aria-label="Interview format for Text 1"><button type="button" role="tab" data-fmt="video" aria-selected="true" class="on">Video</button><button type="button" role="tab" data-fmt="inperson" aria-selected="false">In person</button><button type="button" role="tab" data-fmt="phone" aria-selected="false">Phone</button></div>
+  <p class="desc">Line breaks are part of the template. Straight apostrophes and plain hyphens only. Text 1 has two openers, A and B, tested side by side from launch (the Text 1 test at the end of this section); everything after its first sentence is the same. Texts 2 and 3 open with Simple Staffing and the applicant’s first name and name no person. No text asks a question. Each new message is written out for the three interview formats; the Video, In person and Phone tabs switch between them, Video first. Under each new message is the message going out today.</p>
+  <h3>Text 1: new message, opener A (today’s opener)</h3>
+  <div class="fmt" data-text="1a"><div class="fmt-tabs" role="tablist" aria-label="Interview format for Text 1, opener A"><button type="button" role="tab" data-fmt="video" aria-selected="true" class="on">Video</button><button type="button" role="tab" data-fmt="inperson" aria-selected="false">In person</button><button type="button" role="tab" data-fmt="phone" aria-selected="false">Phone</button></div>
+<pre data-fmt="video">Hi {First name}, my name is Scott with Simple Staffing. I received your application for the {Job title} job on {Source site}. {Company} is interviewing for this job on {Interview date} between {Start time} and {End time} {Time zone}. Interviews are by video on JobFairX.
+Request your interview time: {Schedule link}
+Reply STOP if you no longer want to receive texts from Simple Staffing.</pre>
+<pre data-fmt="inperson" hidden>Hi {First name}, my name is Scott with Simple Staffing. I received your application for the {Job title} job on {Source site}. {Company} is interviewing for this job on {Interview date} between {Start time} and {End time} {Time zone}. Interviews are in person at their location in {City}.
+Request your interview time on JobFairX: {Schedule link}
+Reply STOP if you no longer want to receive texts from Simple Staffing.</pre>
+<pre data-fmt="phone" hidden>Hi {First name}, my name is Scott with Simple Staffing. I received your application for the {Job title} job on {Source site}. {Company} is interviewing for this job on {Interview date} between {Start time} and {End time} {Time zone}. Interviews are by phone.
+Request your interview time on JobFairX: {Schedule link}
+Reply STOP if you no longer want to receive texts from Simple Staffing.</pre>
+  </div>
+  <h3>Text 1: new message, opener B (brand first)</h3>
+  <div class="fmt" data-text="1b"><div class="fmt-tabs" role="tablist" aria-label="Interview format for Text 1, opener B"><button type="button" role="tab" data-fmt="video" aria-selected="true" class="on">Video</button><button type="button" role="tab" data-fmt="inperson" aria-selected="false">In person</button><button type="button" role="tab" data-fmt="phone" aria-selected="false">Phone</button></div>
 <pre data-fmt="video">Simple Staffing: Hi {First name}, we received your application for the {Job title} job on {Source site}. {Company} is interviewing for this job on {Interview date} between {Start time} and {End time} {Time zone}. Interviews are by video on JobFairX.
 Request your interview time: {Schedule link}
 Reply STOP if you no longer want to receive texts from Simple Staffing.</pre>
@@ -172,10 +184,24 @@ Reply &#x27;STOP&#x27; to stop receiving all text messages</pre>
   </table></div>
   <h3>The source site words</h3>
   <p class="desc">“ on {Source site}” appears only when the applicant’s board is known and is one the applicant would recognise (section 4). Otherwise the words are dropped in all three texts: “for the {Job title} job.” The board is decided once, when Text 1 is prepared, and stored with the application.</p>
-  <p class="desc">Text 1, video, Indeed, as the applicant reads it:</p>
+  <p class="desc">Text 1, video, Indeed, as the applicant reads it, opener A:</p>
+<pre>Hi Jordan, my name is Scott with Simple Staffing. I received your application for the Customer Service Supervisor job on Indeed. Baylor Scott &amp; White Health is interviewing for this job on Monday, October 12, 2026 between 11:00 AM and 3:00 PM CT. Interviews are by video on JobFairX.
+Request your interview time: https://jobfairx.com/l/a1b2c3d4
+Reply STOP if you no longer want to receive texts from Simple Staffing.</pre>
+  <p class="desc">The same with opener B:</p>
 <pre>Simple Staffing: Hi Jordan, we received your application for the Customer Service Supervisor job on Indeed. Baylor Scott &amp; White Health is interviewing for this job on Monday, October 12, 2026 between 11:00 AM and 3:00 PM CT. Interviews are by video on JobFairX.
 Request your interview time: https://jobfairx.com/l/a1b2c3d4
 Reply STOP if you no longer want to receive texts from Simple Staffing.</pre>
+  <h3>The Text 1 test</h3>
+  <p class="desc">Two openers run side by side from launch, because the opener in front of 70% of all requests has a year of results behind it and the brand-first line has none.</p>
+  <ul class="list">
+    <li><b>Assignment:</b> the last digit of the applicant’s phone number, even gets A and odd gets B, decided once when Text 1 is prepared and stored with the application. A person who applies twice gets the same opener both times.</li>
+    <li><b>Opener A, today’s:</b> “Hi {First name}, my name is Scott with Simple Staffing. I received your application for the {Job title} job on {Source site}.” <b>Opener B, brand first:</b> “Simple Staffing: Hi {First name}, we received your application for the {Job title} job on {Source site}.” Everything after that sentence is identical, and Texts 2 and 3 are identical in both arms.</li>
+    <li><b>Logging:</b> the opener goes on every text row and application row (section 10); the weekly report shows the request rate and the STOP rate by opener.</li>
+    <li><b>Size and length:</b> run to 590 applicants per opener, about 40 days at the current pace, which shows an 8-point difference. Read it at the end, not along the way.</li>
+    <li><b>Guardrail:</b> if one opener’s STOP rate after Text 1 runs at twice the other’s over at least 200 texts, stop the test and keep the lower one.</li>
+    <li><b>Decision rule, set now:</b> a gap under 3 points keeps B; a larger gap keeps the winner. Scott reads the result; Brandon then removes the losing opener.</li>
+  </ul>
 </section>
 
 <section id="fields">
@@ -189,6 +215,7 @@ Reply STOP if you no longer want to receive texts from Simple Staffing.</pre>
       <tr><td><b>{Job title}</b></td><td>The title exactly as it appears on the job post.</td><td>Nothing appended: no pay, shift, city or requisition number.</td><td>Customer Service Supervisor</td><td>Do not send; flag the job.</td></tr>
       <tr><td><b>{Company}</b></td><td>The employer name exactly as it appears on the job post.</td><td>As stored.</td><td>Baylor Scott &amp; White Health</td><td>Do not send; flag the job.</td></tr>
       <tr><td><b>{Source site}</b></td><td>The job board the applicant applied on, from the application’s source in Workable (Brandon names the exact webhook field). Decided once when Text 1 is prepared and stored with the application; Texts 2 and 3 use the stored value.</td><td>The board’s name as the applicant knows it, from a table the developer keeps: Indeed, Monster, LinkedIn, Glassdoor, ZipRecruiter and so on. Never a domain. Never “Jobs by Workable”, the Workable careers page or any Workable name: the applicant does not know Workable.</td><td>Indeed</td><td>Blank, unknown or Workable’s own board: drop the words “ on {Source site}” in all three texts, so “for the {Job title} job.”</td></tr>
+      <tr><td><b>Text 1 opener</b></td><td>The last digit of the applicant’s phone number: even is A, odd is B. Decided once when Text 1 is prepared and stored with the application (the Text 1 test in section 3).</td><td>A or B.</td><td>A</td><td>A digit that cannot be read: A.</td></tr>
       <tr><td><b>{Applied date}</b></td><td>The day the application reached the automation, on the applicant’s clock. Used in Text 3 only.</td><td>Month and day, no leading zero, no year.</td><td>October 1</td><td>Do not send; flag the application.</td></tr>
       <tr><td><b>{Interview date}</b></td><td>The job’s interview day.</td><td>Weekday, month, day without a leading zero, year.</td><td>Monday, October 12, 2026</td><td>Do not send; flag the job.</td></tr>
       <tr><td><b>{Start time} and {End time}</b></td><td>The job’s interview window as the employer set it.</td><td>12-hour clock, minutes shown, no leading zero. Almost every job is 11:00 AM to 3:00 PM; the values still come from the job.</td><td>11:00 AM and 3:00 PM</td><td>Do not send; flag the job.</td></tr>
@@ -273,7 +300,7 @@ Reply STOP if you no longer want to receive texts from Simple Staffing.</pre>
     <li>Curly single quotes to a straight apostrophe; curly double quotes to a straight quote; en dash, em dash and minus sign to a hyphen; the ellipsis character to three periods; non-breaking and other Unicode spaces to a normal space.</li>
     <li>Emoji and any other character outside GSM-7 are removed. Accented letters inside GSM-7 (for example é) stay.</li>
     <li>Log any message that would still send as UCS-2, and keep the templates themselves to straight apostrophes and hyphens.</li>
-    <li>Measured with the sample values (first name Jordan, source Indeed) and a 30-character link: Text 1 is 394 characters (video and phone) or 422 (in person); Text 2 is 400 or 428; Text 3 is 447 or 475. Texts 1 and 2 are 3 segments, and so is Text 3 for video and phone; Text 3 for an in-person job is 4 segments. Text 2 for an in-person job stays at 3 segments even with a 39-character title and a 30-character company (443). Dropping the source site words shortens a text by 10 characters with Indeed.</li>
+    <li>Measured with the sample values (first name Jordan, source Indeed) and a 30-character link: Text 1 is 415 characters (video and phone) or 443 (in person) with opener A and 394 or 422 with opener B; Text 2 is 400 or 428; Text 3 is 447 or 475. Texts 1 and 2 are 3 segments in every version, and so is Text 3 for video and phone; Text 3 for an in-person job is 4 segments. Text 2 for an in-person job stays at 3 segments even with a 39-character title and a 30-character company (443). Dropping the source site words shortens a text by 10 characters with Indeed.</li>
     <li>Test-send one message with the company “Baylor Scott &amp; White Health” and confirm the ampersand arrives intact; some platforms escape it.</li>
   </ul>
 </section>
@@ -314,9 +341,9 @@ Reply STOP if you no longer want to receive texts from Simple Staffing.</pre>
   <p class="num">10</p>
   <h2>Logging and the weekly report</h2>
   <p class="desc">Record these from the first send, so the request rate can be reported every week and split by job, employer, format, board and text version.</p>
-  <p class="desc"><b>Per text sent:</b> application, text number (1, 2 or 3), template version, planned send time, actual send time in UTC and in the applicant’s local time, the number it was sent from, the held reason if any, Twilio message id, Twilio status and error code, segment count, interview format, source site.</p>
-  <p class="desc"><b>Per application:</b> job, employer, interview date, time applied, source site, resume source (attached from Workable, uploaded, built, or skipped), when the link was first opened and which text it followed, when a request was made and which text it followed (the last text sent before it), STOP time and the exact reply wording, and every other reply with its time and wording.</p>
-  <p class="desc"><b>Weekly report:</b> applicants texted, requests and the request rate (requests divided by applicants texted), requests by the text they followed, texts held by reason, link opens divided by delivered, delivered, undelivered and failed counts, texts with no delivery receipt by sending number, STOP replies per text, other replies received, the share of texts at 4 segments, and the request rate by job, by employer, by format, by days before the interview, by board, and US against Canada.</p>
+  <p class="desc"><b>Per text sent:</b> application, text number (1, 2 or 3), template version, planned send time, actual send time in UTC and in the applicant’s local time, the number it was sent from, the held reason if any, Twilio message id, Twilio status and error code, segment count, interview format, source site, Text 1 opener (A or B).</p>
+  <p class="desc"><b>Per application:</b> job, employer, interview date, time applied, source site, Text 1 opener, resume source (attached from Workable, uploaded, built, or skipped), when the link was first opened and which text it followed, when a request was made and which text it followed (the last text sent before it), STOP time and the exact reply wording, and every other reply with its time and wording.</p>
+  <p class="desc"><b>Weekly report:</b> applicants texted, requests and the request rate (requests divided by applicants texted), requests by the text they followed, texts held by reason, link opens divided by delivered, delivered, undelivered and failed counts, texts with no delivery receipt by sending number, STOP replies per text, other replies received, the share of texts at 4 segments, and the request rate by job, by employer, by format, by days before the interview, by board, US against Canada, and Text 1 opener A against B, with the STOP rate by opener.</p>
   <h3>Held reasons</h3>
   <p class="desc">One code per held text. The names are Brandon’s to choose; the set is fixed.</p>
   <div class="tablewrap"><table>
@@ -360,6 +387,7 @@ Reply STOP if you no longer want to receive texts from Simple Staffing.</pre>
     <li>Each sent text has a log row with every field in section 10, and the weekly report runs.</li>
     <li>A person who applies to two jobs gets two sequences; no application ever receives the same text number twice.</li>
     <li>Apply with a resume through Indeed and through another board: the request flow shows no Upload a resume or resume builder step, and the request carries the Workable file. Apply with no resume: the steps appear as today. A job marked resume not required: the steps are hidden for every applicant.</li>
+    <li>A phone number ending in an even digit gets opener A and an odd digit gets opener B; the opener is logged on the text and on the application; Texts 2 and 3 are identical for both; the weekly report splits requests and STOPs by opener.</li>
   </ol>
 </section>
 
@@ -377,7 +405,7 @@ Reply STOP if you no longer want to receive texts from Simple Staffing.</pre>
     <li>Voice on (762) 465-9036 and the 833 number off the demo greeting (section 7).</li>
     <li>Logging from the first send of anything new (section 10).</li>
   </ol>
-  <p class="desc"><b>Measurement:</b> the weekly request rate, requests divided by applicants texted, read as two full weeks after a change against the two weeks before, split the same way each time. Baselines: 39% for the year to 17 Oct 2026, 35% for the last three months, 28% for 8 to 17 Oct. Held texts are reported separately because they also lift the rate by shrinking the count texted. Wording questions are tested side by side only, about 590 applicants per version.</p>
+  <p class="desc"><b>Measurement:</b> the weekly request rate, requests divided by applicants texted, read as two full weeks after a change against the two weeks before, split the same way each time. Baselines: 39% for the year to 17 Oct 2026, 35% for the last three months, 28% for 8 to 17 Oct. Held texts are reported separately because they also lift the rate by shrinking the count texted. The Text 1 opener test (section 3) runs from launch to 590 applicants per opener and is read at the end; other wording questions wait for it.</p>
 </section>
 
 <section id="outside">
@@ -402,7 +430,7 @@ Reply STOP if you no longer want to receive texts from Simple Staffing.</pre>
     <li><span class="box" aria-hidden="true"></span><span><b>4.</b> The closing moment: requests close when slots are full and reopen if slots are added, close while a job is paused, close for good when a job is closed or cancelled, and close for good four hours before the interview window starts. No text goes out after it. <span class="when">(18 Oct)</span></span></li>
     <li><span class="box" aria-hidden="true"></span><span><b>5.</b> The city field holds the city only. <span class="when">(7 Oct)</span></span></li>
     <li><span class="box" aria-hidden="true"></span><span><b>6.</b> Jobs run in the US and Canada; Canadian applicants get the same texts, schedule and window in their own time zone. <span class="when">(17 Oct)</span></span></li>
-    <li><span class="box" aria-hidden="true"></span><span><b>7.</b> No text names a person. Every text opens “Simple Staffing: Hi {First name},”; the first name stays. <span class="when">(18 Oct)</span></span></li>
+    <li><span class="box" aria-hidden="true"></span><span><b>7.</b> Text 1 opens two ways from launch, tested side by side: A as today, “Hi {First name}, my name is Scott with Simple Staffing. I received…”, and B brand first, “Simple Staffing: Hi {First name}, we received…”. Texts 2 and 3 open “Simple Staffing: Hi {First name},” and name no person. A gap under 3 points keeps B. <span class="when">(18 Oct)</span></span></li>
     <li><span class="box" aria-hidden="true"></span><span><b>8.</b> When slots fill, the recruiter gets an email and decides whether to add slots; the Indeed posting pauses on its own and comes back when slots are added (both in place); the app holds every text to that job while slots are full and resumes when they reopen. <span class="when">(17 and 18 Oct)</span></span></li>
     <li><span class="box" aria-hidden="true"></span><span><b>9.</b> Text 1 says “{Company} is interviewing for this job on {Interview date}” and Text 2 “is still interviewing”, not “would like to interview you”. <span class="when">(18 Oct)</span></span></li>
     <li><span class="box" aria-hidden="true"></span><span><b>10.</b> Every text names the board the applicant used; Workable’s own board is never named and then the site words are dropped. <span class="when">(18 Oct)</span></span></li>
