@@ -12767,7 +12767,7 @@ CD.listHTML = function(){
 
   /* title row — the scope selector IS the page title */
   h += '<div class="cd-titlerow">' +
-    '<button class="cd-scope" onclick="CD.scopeMenu(event)">' + cdEsc(CD.scope) + cdSvg(CD_ICON.caret, 24) + '</button>' +
+    '<button class="cd-scope" onclick="CD.scopeMenu(event)">' + cdEsc(CD.scope === 'All open and paused jobs' ? 'All positions' : CD.scope) + cdSvg(CD_ICON.caret, 24) + '</button>' +
     '<button class="cd-addbtn" onclick="CD.add()">Add candidate</button></div>';
 
   /* three sub-tabs */
@@ -13035,7 +13035,7 @@ CD.statusMenu = function(ev){
 };
 CD.setStatus = function(s){
   var c = CD.rows()[CD.openIdx];
-  if (c){ c.stage = s; c.act = s + ' · Applied 1 hour ago'; }
+  if (c){ c.stage = s; c.act = s + ' · just now'; }
   cdKillPop(); cdToast('Status updated', (c ? c.n : '') + ' moved to ' + s + '.');
   CD.render();
 };
@@ -13043,8 +13043,8 @@ CD.pfMenu = function(ev){
   cdPop(ev, 'pf', '<ul>' +
     '<li onclick="cdKillPop();cdToast(\'Download started\',\'resume.pdf\')">Download resume</li>' +
     '<li onclick="cdKillPop();cdToast(\'Download started\',\'application-data.pdf\')">Download application data</li>' +
-    '<li onclick="CD.setStatus(\'Rejected\')">Reject candidate</li>' +
-    '<li onclick="CD.deleteConfirm(CD.rows()[CD.openIdx].id)">Delete candidate</li></ul>', 224);
+    '<li onclick="CD.setStatus(\'Declined\')">Decline candidate</li>' +
+    '<li onclick="CD.deleteConfirm(CD.rows()[CD.openIdx].id)">Remove candidate</li></ul>', 224);
 };
 CD.saveNote = function(){
   var t = cdEl('cdNote'); if (!t || !t.value.trim()) return;
@@ -13064,7 +13064,7 @@ CD.profileHTML = function(){
 
   var h = CD.devbar() +
     '<div class="cd-titlerow">' +
-      '<button class="cd-scope" onclick="CD.scopeMenu(event)">' + cdEsc(CD.scope) + cdSvg(CD_ICON.caret, 24) + '</button>' +
+      '<button class="cd-scope" onclick="CD.scopeMenu(event)">' + cdEsc(CD.scope === 'All open and paused jobs' ? 'All positions' : CD.scope) + cdSvg(CD_ICON.caret, 24) + '</button>' +
       '<button class="cd-addbtn" onclick="CD.add()">Add candidate</button></div>' +
     '<div class="cd-tabs">' +
       [['sourcing-assistant','Recruiting Assistant'],['find','Find candidates'],['manage','Manage candidates']]
@@ -13095,11 +13095,10 @@ CD.profileHTML = function(){
   h += '<div class="cd-pfhead"><div><h1 class="cd-pfname">' + cdEsc(c.n) + '</h1>' +
     (p.title ? '<div class="cd-pfmeta">' + cdSvg(CD_ICON.brief, 16) + cdEsc(p.title) + (p.co ? ' &middot; ' + cdEsc(p.co) : '') + '</div>' : '') +
     (c.loc ? '<div class="cd-pfmeta">' + cdSvg(CD_ICON.pin, 16) + cdEsc(c.loc) + '</div>' : '') +
-    '</div><div class="r">' + CD.interestHTML(c) +
+    '</div><div class="r">' +
     '<button class="cd-more" aria-label="More actions" onclick="CD.pfMenu(event)">' + cdSvg(CD_ICON.dots, 22) + '</button></div></div>';
 
   h += '<div class="cd-pfacts">' +
-    '<button class="cd-btn pri" onclick="CD.schedule(\'' + c.id + '\')">' + cdSvg(CD_ICON.cal) + 'Set up interview</button>' +
     '<button class="cd-btn sec" onclick="CD.message(\'' + c.id + '\')">' + cdSvg(CD_ICON.chat) + 'Message</button>' +
     '<button class="cd-btn sec" onclick="CD.call(\'' + c.id + '\')">' + cdSvg(CD_ICON.phone) + 'Call</button>' +
     '<button class="cd-status" onclick="CD.statusMenu(event)"><b>Status:</b> <span class="v">' + cdEsc(c.stage) + '</span>' + cdSvg(CD_ICON.caret) + '</button>' +
@@ -13130,7 +13129,7 @@ CD.appTabHTML = function(c, p){
   var iv = p.iv;
   h += CD.sec('iv', 'Interviews', iv
     ? '<div class="cd-ivcard"><span><b>' + iv.state + '</b> &middot; ' + cdEsc(iv.slot) + '</span>' +
-      '<button onclick="CD.viewDetails(\'' + c.id + '\')">View details</button></div>'
+      '<button onclick="CD.viewDetails(\'' + c.id + '\')">View interview details</button></div>'
     : '<div class="cd-ivcard"><span>You have <b>78 time slots</b> available starting on ' +
       '<b>Tuesday, August 4 at 12:15 pm (PDT)</b>. We&rsquo;ll send your availability with the invite. </span>' +
       '<button onclick="CD.schedule(\'' + c.id + '\')">Schedule now</button></div>');
@@ -14660,7 +14659,7 @@ CX.INTEREST = [
 
 /* Activity column — five states, §11.2. Some rows carry a queued automation
    whose countdown ticks live and whose message body renders inline. */
-CX.AUTOMSG = 'Hi {first}, thanks for applying to our {job} job. We reviewed your application and ' +
+CX.AUTOMSG = 'Hi {first}, thanks for requesting an interview for our {job} position. We reviewed your request and ' +
   'would like to schedule a time to chat. What days and times are you free? Looking forward to ' +
   'hearing from you. Thanks, the team at Lincoln Dynamic Group';
 /* A queued send only exists when automations are ON — that is the whole
@@ -16621,7 +16620,7 @@ AGD.details=function(slug){
   AGD.slug=slug;
   var cands=scopedCands(a.n);
   var nAll=cands.filter(function(c){return c.stage!=='Rejected';}).length;
-  var nNew=cands.filter(function(c){return c.stage==='New';}).length;
+  var nNew=cands.filter(function(c){return c.stage==='Interview requested';}).length;
   var v=ensureView('view-agentdetails');
   var recs=['Job visibility','Edit your pay to be more competitive','Update your job title'];
   v.innerHTML=
@@ -16643,7 +16642,7 @@ AGD.details=function(slug){
     '</div>'+
     '<div class="agd-sect"><h2 class="agd-sh">Candidates</h2><div class="agd-cards">'+
       '<div class="agd-card"><div class="agd-ct">'+ICO.people+nAll+' All</div><div class="agd-cs">Applications received</div><button class="agd-cl" data-agd="ws-all">View all applications &nbsp;&#8594;</button></div>'+
-      '<div class="agd-card"><div class="agd-ct">'+ICO.doc+nNew+' New</div><div class="agd-cs">Applications received</div><button class="agd-cl" data-agd="ws-new">Review new applications &nbsp;&#8594;</button></div>'+
+      '<div class="agd-card"><div class="agd-ct">'+ICO.doc+nNew+' Interview requested</div><div class="agd-cs">Waiting on you</div><button class="agd-cl" data-agd="ws-new">Review requests &nbsp;&#8594;</button></div>'+
       '<div class="agd-card"><div class="agd-ct">'+ICO.match+'Matches</div><div class="agd-cs">Potential candidates</div><button class="agd-cl" data-agd="ws-find">Invite matches &nbsp;&#8594;</button></div>'+
     '</div></div>'+
     '<div class="agd-sect"><h2 class="agd-sh">Agent performance</h2>'+
@@ -16810,8 +16809,8 @@ document.addEventListener('click',function(e){
     if(act==='ml-back2'){AGD.multiloc(AGD.slug);return;}
     if(act==='ml-cont'){AGD.mlStep2();return;}
     if(act==='report'){if(typeof showView==='function')showView('analytics');if(typeof rnGo==='function')rnGo('overview');return;}
-    if(act==='ws-all'){AGD.toWorkspace(slug,'All applications');return;}
-    if(act==='ws-new'){AGD.toWorkspace(slug,'New');return;}
+    if(act==='ws-all'){AGD.toWorkspace(slug,'All candidates');return;}
+    if(act==='ws-new'){AGD.toWorkspace(slug,'Interview requested');return;}
     if(act==='ws-find'){AGD.toWorkspace(slug,null,'find');return;}
   }
   /* agent name -> details (was a dead hardcoded href) */
@@ -18011,7 +18010,7 @@ C.build = function(){
       '<button class="cde-search" aria-label="Search candidates">'+ICO_SEARCH+'</button></div>'+
     '<div class="cde-card">'+
       '<div class="cde-art">'+ROBOT+'</div>'+
-      '<h2>No applicants available</h2>'+
+      '<h2>No interview requests yet</h2>'+
       '<p>You don\'t have any agents running in JobFairX. Create an agent today to '+
       'seamlessly view and manage your applicants here.</p>'+
       '<button class="cde-cta" data-cde="create">Create agent</button>'+
@@ -21742,6 +21741,228 @@ function move(from, to){
 }
 MG.archive   = function(){ MG.ARCHIVED = MG.ARCHIVED || []; move(MG.INBOX || [], MG.ARCHIVED); };
 MG.unarchive = function(){ MG.INBOX = MG.INBOX || [];       move(MG.ARCHIVED || [], MG.INBOX); };
+})();
+</script>
+<!-- ═══ build84 · CANDV2 — Candidates page for the agent model (23 Oct 2026) ═══ -->
+<style>
+/* ═══ CANDV2 — Candidates (build84) ═════════════════════════════════════ */
+#view-candidates .cx-tabs{display:none !important}
+#view-candidates .cd-tabs:not([role="tablist"]){display:none !important}
+#view-candidates td:last-child .cx-menu{left:auto;right:0}
+#view-candidates table.cx-tbl{table-layout:auto;width:100%}
+#view-candidates table.cx-tbl th:nth-child(2){width:31%}
+#view-candidates table.cx-tbl th:nth-child(3){width:36%}
+#view-candidates table.cx-tbl th:nth-child(4){width:26%}
+#view-candidates table.cx-tbl th:last-child,#view-candidates table.cx-tbl td:last-child{width:1%;white-space:nowrap;text-align:right;padding-right:16px}
+#view-candidates table.cx-tbl td:last-child > span{justify-content:flex-end}
+#view-candidates .cx-tools .cx-search{flex:0 0 360px;max-width:360px}
+#view-candidates .cx-ivc b{display:block;font-size:14px;color:#2d2d2d;line-height:20px}
+#view-candidates .cx-ivc div{font-size:13px;color:#595959;line-height:18px}
+#view-candidates .cx-ivc a{display:inline-block;margin-top:4px;font-size:14px;font-weight:700;color:#004fcb;text-decoration:none;cursor:pointer}
+#view-candidates .cx-ivc a:hover{text-decoration:underline}
+#view-candidates .cx-applied a{cursor:pointer}
+</style>
+<script>
+/* ═══ CANDV2 — build84 ═══════════════════════════════════════════════
+   The Candidates page becomes the roster of people who requested an interview,
+   one agent per position. Sub-tabs and the applicant stages go; six states
+   that match the Interviews page come in. */
+(function(){
+'use strict';
+if(!window.CX || !window.CD) return;
+var V2 = window.CANDV2 = {};
+var SLUG = {'Registered Nurse':'rn-dallas','Certified Nursing Assistant':'cna-pittsburgh','Warehouse Associate':'wa-austin','RN Care Manager':'rncm-houston'};
+var FMT  = {'Registered Nurse':'Video','Certified Nursing Assistant':'Phone','Warehouse Associate':'In person','RN Care Manager':'Video'};
+V2.STAGES = ['Interview requested','Interview scheduled','Interviewed','Hired','Declined'];
+
+/* ── position templates: what a matching candidate looks like ── */
+var T = {
+ 'Registered Nurse': {titles:['Registered Nurse','Staff Nurse'], cos:['Baylor Scott & White Health','Medical City Dallas','Parkland Health','UT Southwestern Medical Center','Texas Health Presbyterian','Methodist Dallas Medical Center'],
+   quals:['RN license (TX)','BLS','ACLS','Epic','Med-surg','Telemetry'], met:5, q:['How many years of bedside nursing experience do you have?','1'],
+   b1:['Carried a six-patient med-surg assignment on nights with no missed medication passes in two years.','Precepted four new graduate nurses through orientation.'],
+   b2:['Floated between telemetry and med-surg units as needed.','Charted in Epic and handled admissions and discharges.'],
+   edu:["Bachelor of Science in Nursing",'University of Texas at Arlington · Arlington','August 2012 – May 2016']},
+ 'Certified Nursing Assistant': {titles:['Certified Nursing Assistant','Patient Care Technician'], cos:['UPMC Shadyside','Allegheny General Hospital','UPMC Presbyterian','St. Clair Health','Comfort Keepers'],
+   quals:['CNA certification (PA)','BLS','Vital signs','Patient transfers','EHR charting','Hospice care'], met:5, q:['Do you hold an active Pennsylvania CNA certification?','Yes'],
+   b1:['Provided daily care for 10 to 12 patients on a 30-bed unit.','Recorded vitals and intake in the EHR each shift.'],
+   b2:['Assisted with transfers, mobility and meals.','Covered weekend and holiday shifts.'],
+   edu:['Nurse Aide Training Program','Community College of Allegheny County · Pittsburgh','January 2019 – April 2019']},
+ 'Warehouse Associate': {titles:['Warehouse Associate','Forklift Operator'], cos:['H-E-B Distribution Center','FedEx Ground','Amazon Fulfillment Center','Tesla Gigafactory Texas','Costco Distribution'],
+   quals:['Forklift certified','RF scanner','Pallet jack','Inventory control','Safety training','Lifts 50 lb'], met:6, q:['Are you able to lift 50 pounds repeatedly during a shift?','Yes'],
+   b1:['Picked and packed 180 to 220 orders a shift with a 99.6 percent accuracy rate.','Operated stand-up and sit-down forklifts.'],
+   b2:['Received inbound freight and logged it with an RF scanner.','Kept a clean safety record over three years.'],
+   edu:['High School Diploma','Round Rock High School · Round Rock','May 2015']},
+ 'RN Care Manager': {titles:['RN Care Manager','Registered Nurse'], cos:['Memorial Hermann','Houston Methodist','MD Anderson Cancer Center',"Texas Children's Hospital",'HCA Houston Healthcare'],
+   quals:['RN license (TX)','Case management','Care planning','Epic','Discharge planning','Utilization review'], met:5, q:['How many years of care management experience do you have?','2'],
+   b1:['Managed a caseload of 60 patients with chronic conditions across two clinics.','Cut 30-day readmissions on the caseload by a third.'],
+   b2:['Coordinated discharge plans with physicians, pharmacy and home health.','Charted assessments and plans in Epic.'],
+   edu:['Bachelor of Science in Nursing','University of Houston · Houston','August 2010 – May 2014']}
+};
+/* name, position, city, state, when, date/time (for scheduled/interviewed), extra (hired/interviewed dates) */
+var P = [
+ ['Matthew Shimizu','Registered Nurse','Dallas, TX','Interview requested','32 minutes ago'],
+ ['Mubeen Ali Khan','Registered Nurse','Plano, TX','Interview scheduled','2 hours ago','Tue, Aug 5 · 10:15 AM CT'],
+ ['Abe Jahwin','Certified Nursing Assistant','Pittsburgh, PA','Interview requested','2 hours ago'],
+ ['Barry Williams','Warehouse Associate','Austin, TX','Interview scheduled','1 hour ago','Wed, Aug 6 · 4:00 PM CT'],
+ ['Andres Hincapie','RN Care Manager','Houston, TX','Interviewed','1 day ago','Mon, Aug 4 · 11:00 AM CT'],
+ ['Robin Lee','Registered Nurse','Dallas, TX','Hired','Aug 2','Jul 30 · 9:00 AM CT'],
+ ['Kevin Dinh','Certified Nursing Assistant','Pittsburgh, PA','Declined','Aug 3'],
+ ['Faisal Hayat','Warehouse Associate','Round Rock, TX','Interview requested','3 hours ago'],
+ ['David Bergstrom','Registered Nurse','Fort Worth, TX','Interview scheduled','4 hours ago','Thu, Aug 7 · 2:00 PM CT'],
+ ['Nina Mir','RN Care Manager','Pearland, TX','Interview requested','5 hours ago'],
+ ['Muhammad Khuzama','Warehouse Associate','Pflugerville, TX','Interview scheduled','Yesterday','Fri, Aug 8 · 9:30 AM CT'],
+ ['Adnan Saleem','Certified Nursing Assistant','Monroeville, PA','Interview scheduled','Yesterday','Thu, Aug 7 · 1:00 PM ET'],
+ ['Greg Stephens','Registered Nurse','Irving, TX','Interview requested','Yesterday'],
+ ['Paul Lott','Warehouse Associate','Austin, TX','Interviewed','2 days ago','Fri, Aug 1 · 3:00 PM CT'],
+ ['Tara Whitfield','Registered Nurse','Garland, TX','Interview scheduled','2 days ago','Mon, Aug 11 · 9:00 AM CT'],
+ ['Jorge Medina','Warehouse Associate','Austin, TX','Interview requested','2 days ago'],
+ ['Aisha Bello','Registered Nurse','Dallas, TX','Interviewed','3 days ago','Thu, Jul 31 · 10:00 AM CT'],
+ ['Colin Pratt','RN Care Manager','Houston, TX','Interview scheduled','3 days ago','Tue, Aug 12 · 10:30 AM CT'],
+ ['Yuki Tanaka','Certified Nursing Assistant','Bethel Park, PA','Interview requested','3 days ago'],
+ ['Dmitri Volkov','Warehouse Associate','Round Rock, TX','Hired','Jul 29','Jul 25 · 1:00 PM CT'],
+ ['Hannah Osei','Registered Nurse','Arlington, TX','Interview requested','4 days ago'],
+ ['Samuel Reyes','Registered Nurse','Dallas, TX','Interview scheduled','4 days ago','Wed, Aug 13 · 8:30 AM CT'],
+ ['Priya Raman','RN Care Manager','Sugar Land, TX','Interviewed','5 days ago','Wed, Jul 30 · 2:00 PM CT'],
+ ['Owen Clarke','Certified Nursing Assistant','Pittsburgh, PA','Interview requested','5 days ago']
+];
+function ivOf(stage, when, date, fmt){
+  if(stage === 'Interview requested') return {l1:'Waiting on you', l2:'Requested ' + when, tab:0, slot:'Waiting on you · requested ' + when};
+  if(stage === 'Interview scheduled') return {l1:date, l2:fmt + ' interview · Confirmed', tab:1, slot:fmt + ' interview · ' + date + ' · Confirmed'};
+  if(stage === 'Interviewed')         return {l1:date, l2:fmt + ' interview · Interviewed', tab:3, slot:fmt + ' interview · ' + date};
+  if(stage === 'Hired')               return {l1:'Hired ' + when, l2:'Interviewed ' + date + ' · ' + fmt, tab:3, slot:'Interviewed ' + date + ' · hired ' + when};
+  return {l1:'Request declined ' + when, l2:'', tab:1, slot:'Request declined ' + when};
+}
+V2.make = function(){
+  return P.map(function(r, i){
+    var t = T[r[1]], co1 = t.cos[i % t.cos.length], co2 = t.cos[(i + 2) % t.cos.length];
+    var y1 = 2019 + (i % 3), y0 = y1 - 3 - (i % 2);
+    var iv = ivOf(r[3], r[4], r[5] || '', FMT[r[1]]);
+    var first = r[0].split(' ')[0].toLowerCase(), last = r[0].split(' ').slice(-1)[0].toLowerCase();
+    return { id:'v' + i, n:r[0], loc:r[2], stage:r[3], applied:r[4], job:r[1],
+      roles:[[t.titles[0], co1, y1 + '–Present'], [t.titles[1], co2, y0 + '–' + y1]],
+      act: r[3] + ' · ' + ((r[3] === 'Interview scheduled' || r[3] === 'Interviewed') ? r[5] : r[4]),
+      note:null, interest:null, v2:iv,
+      p:{ title:t.titles[0], co:co1, email:first + '.' + last + '@email.com', li:'linkedin.com/in/' + first + last, zip:r[2] + ', US',
+          quals:t.quals.slice(), met:t.met, screener:[t.q[0], r[3] === 'Declined' ? '0' : String(2 + (i % 7)), t.q[1]],
+          exp:[[t.titles[0], co1, 'March ' + y1 + ' – Present', (2026 - y1) + ' yr 5 mo', r[2] + ', US', t.b1],
+               [t.titles[1], co2, 'June ' + y0 + ' – February ' + y1, (y1 - y0) + ' yr 8 mo', r[2] + ', US', t.b2]],
+          edu:[t.edu], iv:{state:r[3], slot:iv.slot} } };
+  });
+};
+
+/* ── stages, data, counts ── */
+CD.STAGES = V2.STAGES.slice();
+CD.PILLS  = ['All candidates'].concat(V2.STAGES);
+CD.build  = function(){ CD.ALL = V2.make(); CD.TOTAL = CD.ALL.length; };
+CD.build(); CD.stage = 'All'; CD.tab = 'manage';
+V2.counts = function(){
+  var live = (CD.mode === 'empty' || CD.mode === 'error') ? [] : (CD.ALL || []);
+  var c = {'All candidates': live.length};
+  V2.STAGES.forEach(function(s){ c[s] = live.filter(function(x){ return x.stage === s; }).length; });
+  return c;
+};
+CX.stage = function(p){ CD.stage = (p === 'All candidates') ? 'All' : p; CD.page = 1; CD.sel = []; CX.selectedAll = false; CX.close(); CX.paint(); };
+var _go = CX.go; CX.go = function(){ return _go.call(CX, 'manage'); };
+
+/* ── header: no sub-tabs; positions, not jobs ── */
+var _page = CX.page;
+CX.page = function(){
+  var h = _page.apply(this, arguments);
+  h = h.replace(/<div class="cx-tabs">[\s\S]*?<\/div>/, '');
+  h = h.split('Candidates for all open and paused jobs').join('Candidates for all positions');
+  h = h.split('All open and paused jobs').join('All positions');
+  h = h.replace(/ of (\d+) jobs<\/span>/, ' of $1 positions</span>');
+  h = h.split('Search by job title or reference number').join('Search positions');
+  return h;
+};
+/* ── pills, tools, table header ── */
+var _manage = CX.manage;
+CX.manage = function(){
+  var h = _manage.apply(this, arguments);
+  var c = V2.counts(), cur = CD.stage === 'All' ? 'All candidates' : CD.stage;
+  var pills = '<div class="cx-pills">' + CD.PILLS.map(function(p){
+    return '<button class="cx-pill' + (cur === p ? ' on' : '') + '" role="tab" aria-selected="' + (cur === p) +
+      '" onclick="CX.stage(\'' + p + '\')">' + p + ' &bull; ' + (c[p] || 0) + '</button>'; }).join('') + '</div>';
+  h = h.replace(/<div class="cx-pills">[\s\S]*?<\/div>/, pills);
+  h = h.replace(/<div class="cx-ctl" role="button" tabindex="0" onclick="CX\.open\(event,'interest'\)">[\s\S]*?(?=<span class="cx-search">)/, '');
+  h = h.split('Apply date').join('Request date');
+  h = h.replace(/<(button|li|div)[^>]*>\s*Interest \((?:de|a)scending\)\s*<\/\1>/g, '');
+  h = h.replace('<th>Activity</th><th>Interest</th>', '<th>Interview</th><th></th>');
+  return h;
+};
+/* ── rows ── */
+function esc(s){ return CX.esc(s == null ? '' : String(s)); }
+CX.row = function(r){
+  var on = CD.sel.indexOf(r.id) >= 0, iv = r.v2 || {};
+  return '<tr>' +
+    '<td>' + CX.cb(on, "CX.toggle(event,'" + r.id + "')") + '</td>' +
+    '<td><button class="cx-name" onclick="CX.openProfile(\'' + r.id + '\')">' + esc(r.n) + '</button>' +
+      (r.loc ? '<div class="cx-meta">' + esc(r.loc) + '</div>' : '') +
+      '<div class="cx-meta"><b>' + esc(r.stage) + '</b> &bull; ' + esc(r.applied) + '</div>' +
+      '<div class="cx-applied">Position: <a onclick="CANDV2.agent(\'' + esc(r.job).replace(/'/g, "\\'") + '\')">' + esc(r.job) + '</a></div></td>' +
+    '<td>' + (r.roles || []).slice(0, 2).map(function(x){
+        return '<div class="cx-exp"><div class="r">' + esc(x[0]) + '</div><div class="c">' + esc(x[1]) + ' (' + esc(x[2]) + ')</div></div>'; }).join('') + '</td>' +
+    '<td><div class="cx-act cx-ivc"><b>' + esc(iv.l1) + '</b>' + (iv.l2 ? '<div>' + esc(iv.l2) + '</div>' : '') +
+      '<a onclick="CANDV2.iv(\'' + r.id + '\')">View interview details</a></div></td>' +
+    '<td><span style="display:inline-flex;align-items:flex-start">' +
+      '<div class="cx-more" role="button" tabindex="0" aria-label="More actions" onclick="CX.open(event,\'row:' + r.id + '\')">' +
+        CX.IC.dots + (CX.menu === 'row:' + r.id ? CX.rowMenu() : '') + '</div></span></td></tr>';
+};
+/* ── row menu ── */
+CX.rowMenu = function(){
+  return CX.menuWrap(['Message','Call','View interview details','Mark as hired','Decline','Remove candidate'].map(function(a){
+    return '<button onclick="CX.rowAction(\'' + a + '\')">' + a + '</button>'; }).join(''));
+};
+function byId(id){ return (CD.ALL || []).filter(function(c){ return c.id === id; })[0]; }
+function toast(t, b){ if(typeof cdToast === 'function') cdToast(t, b); }
+function setStage(c, stage, when){
+  c.stage = stage; c.applied = when; c.v2 = ivOf(stage, when, (c.v2 && c.v2.l1) || '', FMT[c.job]);
+  c.p.iv = {state:stage, slot:c.v2.slot}; c.act = stage + ' · ' + when;
+}
+var _action = CX.rowAction;
+CX.rowAction = function(a){
+  var id = (CX.menu || '').replace(/^row:/, ''), c = byId(id);
+  if(a === 'View interview details'){ CX.close(); V2.iv(id); return; }
+  if(a === 'Call'){ CX.close(); toast('Call', 'JobAgentX shares a phone number once ' + (c ? c.n.split(' ')[0] : 'the candidate') + ' confirms the interview.'); CX.paint(); return; }
+  if(a === 'Mark as hired' && c){ CX.close(); setStage(c, 'Hired', 'just now'); toast('Marked as hired', c.n + ' moved to Hired.'); CX.paint(); return; }
+  if(a === 'Decline' && c){ CX.close(); setStage(c, 'Declined', 'just now'); toast('Request declined', c.n + ' moved to Declined.'); CX.paint(); return; }
+  if(a === 'Remove candidate' && c){ CX.close(); CD.ALL.splice(CD.ALL.indexOf(c), 1); toast('Candidate removed', c.n + ' was removed from this list.'); CX.paint(); return; }
+  return _action.apply(this, arguments);
+};
+/* ── routes: the position's agent, and the interview on the Interviews page ── */
+V2.agent = function(job){ var s = SLUG[job]; if(s && window.AGD && AGD.details) AGD.details(s); };
+V2.iv = function(id){
+  var c = byId(id); if(!c) return;
+  var slug = SLUG[c.job], tab = (c.v2 && c.v2.tab) || 0;
+  if(tab === 3){
+    if(typeof showView === 'function') showView('interviews');
+    setTimeout(function(){ var t = document.querySelector('.iv-tab[data-iv2="3"]'); if(t) t.click(); }, 60);
+    return;
+  }
+  if(slug && window.AGD && AGD.toInterviews){ AGD.toInterviews(slug, tab === 0 ? 0 : 1); return; }
+  if(typeof showView === 'function') showView('interviews');
+};
+CD.viewDetails = function(id){ V2.iv(id); };
+/* sort menu: no Interest options (the marks are gone); labels say Request date */
+var _sortMenu = CX.sortMenu;
+CX.sortMenu = function(){
+  var h = _sortMenu.apply(this, arguments);
+  h = h.replace(/<button[^>]*onclick="CX\.setSort\('Interest \((?:de|a)scending\)'\)">[\s\S]*?<\/button>/g, '');
+  return h.split('Apply date').join('Request date');
+};
+/* the profile view's scope menu follows the agents too */
+CD.scopeMenu = function(ev){
+  var jobs = ['All open and paused jobs'].concat((window.CX && CX.JOBS) ? CX.JOBS.map(function(j){ return j.n; }) : []);
+  if(typeof cdPop !== 'function') return;
+  cdPop(ev, 'scope', '<ul>' + jobs.map(function(j){
+    var label = (j === 'All open and paused jobs') ? 'All positions' : j;
+    return '<li class="' + (CD.scope === j ? 'on' : '') + '" onclick="CD.scope=' + JSON.stringify(j).replace(/"/g,'&quot;') + ';cdKillPop();CD.render()">' +
+      (typeof cdSvg === 'function' && window.CD_ICON ? cdSvg(CD_ICON.check, 24).replace('<svg','<svg class="ck"') : '') + esc(label) + '</li>';
+  }).join('') + '</ul>', 380);
+};
+var _vol = CD.setVolume; CD.setVolume = function(n){ CD.build(); CD.ALL = CD.ALL.slice(0, n); CD.TOTAL = n; CD.page = 1; CD.render(); };
+
+if(document.getElementById('view-candidates') && typeof CD.render === 'function') CD.render();
 })();
 </script>
 </body>
