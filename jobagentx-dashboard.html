@@ -14181,7 +14181,7 @@ MG.build = function(){
   seed.slice(0, pre.length).forEach(function(s, i){
     var name = s[0], loc = s[1], job = s[4], p = pre[i];
     var c = { id:'i'+i, name:name, loc:loc, job:job,
-      sub:'Applied to ' + job + ' in ' + loc,
+      sub:'Requested an interview for ' + job + ' in ' + loc,
       time:p.time, prev:p.prev, unread:p.unread, people:p.people,
       colour: MG.colour(name), msgs: [] };
     if (p.full){
@@ -14218,12 +14218,13 @@ MG.build = function(){
       msgs:[{ s:'out', day:'Aug 2', time:'9:04 AM', t:prev }] });
   });
 
+  MG.ARCHIVED = inbox.splice(4, 2);   /* two finished conversations start in Archived */
   MG.INBOX = inbox;
   MG.SOURCED = sourced;
 };
 
 MG.rows = function(){
-  var list = (MG.tab === 'inbox') ? (MG.INBOX||[]) : (MG.SOURCED||[]);
+  var list = (MG.tab === 'inbox') ? (MG.INBOX||[]) : (MG.ARCHIVED||[]);
   if (MG.mode === 'empty') return [];
   if (MG.unreadOnly) list = list.filter(function(c){ return c.unread; });
   if (MG.job) list = list.filter(function(c){ return c.job === MG.job; });
@@ -14291,11 +14292,11 @@ MG.render = function(){
         '<div class="mg-tabs">' +
           '<button class="mg-tab' + (MG.tab==='inbox'?' on':'') + '" role="tab" aria-selected="' + (MG.tab==='inbox') + '" onclick="MG.go(\'inbox\')">Inbox' +
             (MG.mode!=='empty' && (MG.INBOX||[]).some(function(c){return c.unread;}) ? ' <i class="mg-udot"></i>' : '') + '</button>' +
-          '<button class="mg-tab' + (MG.tab==='sourcing'?' on':'') + '" role="tab" aria-selected="' + (MG.tab==='sourcing') + '" onclick="MG.go(\'sourcing\')">Sourcing</button>' +
+          '<button class="mg-tab' + (MG.tab==='archived'?' on':'') + '" role="tab" aria-selected="' + (MG.tab==='archived') + '" onclick="MG.go(\'archived\')">Archived</button>' +
         '</div>' +
         '<div class="mg-frow">' +
-          '<button class="mg-filter" onclick="MG.toggle(event,\'job\')">Filter by job: ' +
-            MG.esc(MG.job || 'All jobs') + MG.IC.chev +
+          '<button class="mg-filter" onclick="MG.toggle(event,\'job\')">Filter by position: ' +
+            MG.esc(MG.job || 'All positions') + MG.IC.chev +
             '<span class="mg-jobmenu" id="mgJobMenu" style="display:none"></span></button>' +
           '<button class="mg-unread' + (MG.unreadOnly?' on':'') + '" onclick="MG.toggleUnread()" ' +
             'aria-label="Click to toggle displaying only unread or all conversations">' + MG.IC.unread + '</button>' +
@@ -14312,13 +14313,13 @@ MG.list = function(){
     return '<div class="mg-nolist">' +
       (MG.mode === 'empty' ? 'No conversations yet'
         : MG.unreadOnly ? 'No unread conversations'
-        : MG.job ? 'No conversations for this job' : 'No conversations yet') + '</div>';
+        : MG.job ? 'No conversations for this position' : 'No conversations yet') + '</div>';
   }
   return rows.map(function(c){
     return '<button class="mg-row' + (MG.cur && MG.cur.id===c.id ? ' on':'') + '" onclick="MG.open(\'' + c.id + '\')">' +
       '<span class="mg-av" style="background:' + c.colour + '">' + MG.AVSVG + '</span>' +
       '<span class="mg-rb">' +
-        '<span class="mg-rtop"><span class="mg-rjob">' + MG.esc(c.job ? 'Applied to ' + c.job + ' in ' + c.loc : '') + '</span>' +
+        '<span class="mg-rtop"><span class="mg-rjob">' + MG.esc(c.job ? 'Requested an interview for ' + c.job + ' in ' + c.loc : '') + '</span>' +
         '<span class="mg-rtime">' + MG.esc(c.time) + '</span></span>' +
         '<span class="mg-rname' + (c.unread?' unread':'') + '"><span>' + MG.esc(c.name) + '</span>' +
           (c.unread ? '<i class="mg-udot"></i>' : '') + '</span>' +
@@ -14371,6 +14372,7 @@ MG.thread = function(c){
         '<button class="mg-ib" onclick="MG.toggle(event,\'kebab\')" aria-label="More actions">' + MG.IC.kebab + '</button>' +
         '<div class="mg-menu" id="mgKebab">' +
           '<button onclick="MG.candidateDetails()">View candidate details</button>' +
+          (MG.tab==='archived' ? '<button onclick="MG.unarchive()">Unarchive</button>' : '<button onclick="MG.archive()">Archive</button>') +
           '<button onclick="MG.report()">Report conversation</button>' +
         '</div>' +
       '</div></div>' +
@@ -14477,7 +14479,7 @@ MG.toggle = function(e, which){
     j.innerHTML = MG.jobs().map(function(n){
       return '<button onclick="MG.setJob(event,\'' + n.replace(/'/g,"\\'") + '\')">' +
         '<span class="mg-radio' + (MG.job===n?' on':'') + '"></span>' + MG.esc(n) + '</button>';
-    }).join('') || '<button onclick="MG.setJob(event,null)"><span class="mg-radio on"></span>All jobs</button>';
+    }).join('') || '<button onclick="MG.setJob(event,null)"><span class="mg-radio on"></span>All positions</button>';
     j.style.display = 'block';
   }
 };
@@ -21721,6 +21723,25 @@ if(host) new MutationObserver(sync).observe(host, {childList:true});
 var t0 = setInterval(sync, 400);
 setTimeout(function(){ clearInterval(t0); setInterval(sync, 1500); }, 12000);
 sync();
+})();
+</script>
+
+<!-- ═══ build83 · MGARCH — Messages: Archived tab, Archive/Unarchive, position wording (23 Oct 2026) ═══ -->
+<script>
+/* ═══ MGARCH — build83 ═══════════════════════════════════════════════
+   Archive moves the open conversation from Inbox to Archived; Unarchive moves it back.
+   The list and the right pane re-render; nothing is deleted. */
+(function(){
+'use strict';
+if(!window.MG) return;
+function move(from, to){
+  var c = MG.cur; if(!c) return;
+  var i = from.indexOf(c); if(i >= 0) from.splice(i, 1);
+  if(to.indexOf(c) < 0) to.unshift(c);
+  MG.cur = null; MG.closeMenus(); MG.render();
+}
+MG.archive   = function(){ MG.ARCHIVED = MG.ARCHIVED || []; move(MG.INBOX || [], MG.ARCHIVED); };
+MG.unarchive = function(){ MG.INBOX = MG.INBOX || [];       move(MG.ARCHIVED || [], MG.INBOX); };
 })();
 </script>
 </body>
