@@ -14223,7 +14223,7 @@ MG.build = function(){
 };
 
 MG.rows = function(){
-  var list = (MG.tab === 'inbox') ? (MG.INBOX||[]) : (MG.ARCHIVED||[]);
+  var list = (MG.tab === 'inbox') ? (MG.INBOX||[]) : (MG.tab === 'sourcing') ? (MG.SOURCED||[]) : (MG.ARCHIVED||[]);
   if (MG.mode === 'empty') return [];
   if (MG.unreadOnly) list = list.filter(function(c){ return c.unread; });
   if (MG.job) list = list.filter(function(c){ return c.job === MG.job; });
@@ -14291,6 +14291,7 @@ MG.render = function(){
         '<div class="mg-tabs">' +
           '<button class="mg-tab' + (MG.tab==='inbox'?' on':'') + '" role="tab" aria-selected="' + (MG.tab==='inbox') + '" onclick="MG.go(\'inbox\')">Inbox' +
             (MG.mode!=='empty' && (MG.INBOX||[]).some(function(c){return c.unread;}) ? ' <i class="mg-udot"></i>' : '') + '</button>' +
+          '<button class="mg-tab' + (MG.tab==='sourcing'?' on':'') + '" role="tab" aria-selected="' + (MG.tab==='sourcing') + '" onclick="MG.go(\'sourcing\')">Sourcing</button>' +
           '<button class="mg-tab' + (MG.tab==='archived'?' on':'') + '" role="tab" aria-selected="' + (MG.tab==='archived') + '" onclick="MG.go(\'archived\')">Archived</button>' +
         '</div>' +
         '<div class="mg-frow">' +
@@ -21739,15 +21740,15 @@ function move(from, to){
   if(to.indexOf(c) < 0) to.unshift(c);
   MG.cur = null; MG.closeMenus(); MG.render();
 }
-MG.archive   = function(){ MG.ARCHIVED = MG.ARCHIVED || []; move(MG.INBOX || [], MG.ARCHIVED); };
-MG.unarchive = function(){ MG.INBOX = MG.INBOX || [];       move(MG.ARCHIVED || [], MG.INBOX); };
+MG.archive   = function(){ if(MG.cur) MG.cur._from = MG.tab; MG.ARCHIVED = MG.ARCHIVED || []; move(MG.tab === 'sourcing' ? (MG.SOURCED || []) : (MG.INBOX || []), MG.ARCHIVED); };
+MG.unarchive = function(){ var back = (MG.cur && MG.cur._from === 'sourcing') ? (MG.SOURCED = MG.SOURCED || []) : (MG.INBOX = MG.INBOX || []); move(MG.ARCHIVED || [], back); };
 })();
 </script>
 <!-- ═══ build84 · CANDV2 — Candidates page for the agent model (23 Oct 2026) ═══ -->
 <style>
 /* ═══ CANDV2 — Candidates (build84) ═════════════════════════════════════ */
-#view-candidates .cx-tabs{display:none !important}
-#view-candidates .cd-tabs:not([role="tablist"]){display:none !important}
+/* build87: Candidates sub-tabs shown again */
+/* build87: profile sub-tabs shown again */
 #view-candidates td:last-child .cx-menu{left:auto;right:0}
 #view-candidates table.cx-tbl{table-layout:auto;width:100%}
 #view-candidates table.cx-tbl th:nth-child(2){width:31%}
@@ -21862,13 +21863,13 @@ V2.counts = function(){
   return c;
 };
 CX.stage = function(p){ CD.stage = (p === 'All candidates') ? 'All' : p; CD.page = 1; CD.sel = []; CX.selectedAll = false; CX.close(); CX.paint(); };
-var _go = CX.go; CX.go = function(){ return _go.call(CX, 'manage'); };
+/* build87: CX.go no longer pinned to manage */
 
 /* ── header: no sub-tabs; positions, not jobs ── */
 var _page = CX.page;
 CX.page = function(){
   var h = _page.apply(this, arguments);
-  h = h.replace(/<div class="cx-tabs">[\s\S]*?<\/div>/, '');
+  /* build87: sub-tabs kept */
   h = h.split('Candidates for all open and paused jobs').join('Candidates for all positions');
   h = h.split('All open and paused jobs').join('All positions');
   h = h.replace(/ of (\d+) jobs<\/span>/, ' of $1 positions</span>');
