@@ -21973,5 +21973,609 @@ if(document.getElementById('view-candidates') && typeof CD.render === 'function'
 #view-candidates .cd-sechead{cursor:default;padding:24px 0 12px}
 #view-candidates .cd-sechead h2{font-size:20px;line-height:30px;font-weight:700;color:#2d2d2d;margin:0}
 </style>
+
+<!-- ═══ build88 · agent details for the agent model: what the agent is doing, results, instructions, matching rules, messages; candidate matches (25 Oct 2026) ═══ -->
+<style>
+/* ═══ D6 — shared ═══ */
+.d6-card{background:#fff;border:1px solid #e4e2e0;border-radius:12px;padding:20px 22px}
+.d6-row{display:flex;align-items:center;gap:12px}
+.d6-sp{flex:1 1 auto}
+.d6-muted{color:#595959}
+.d6-small{font-size:14px;line-height:20px}
+.d6-link{background:none;border:0;padding:0;font:inherit;font-weight:700;color:#004fcb;cursor:pointer;text-decoration:none}
+.d6-link:hover{text-decoration:underline}
+.d6-btn{display:inline-flex;align-items:center;gap:8px;border:1px solid #949494;background:#fff;color:#2d2d2d;border-radius:8px;padding:8px 14px;font:inherit;font-size:14px;font-weight:700;cursor:pointer}
+.d6-btn:hover{border-color:#2d2d2d}
+.d6-btn.pri{background:#0044b3;border-color:#0044b3;color:#fff}
+.d6-btn.pri:hover{background:#003399}
+.d6-chip{display:inline-flex;align-items:center;border:1px solid #d4d2d0;border-radius:999px;padding:5px 12px;font-size:14px;font-weight:600;color:#2d2d2d;background:#fff;cursor:pointer}
+.d6-chip.on{border-color:#2d2d2d;background:#2d2d2d;color:#fff}
+.d6-dot{width:9px;height:9px;border-radius:50%;display:inline-block;flex:0 0 9px}
+.d6-h3{font-size:16px;font-weight:700;color:#2d2d2d;margin:0}
+.d6-tag{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.02em;padding:2px 8px;border-radius:6px;background:#f3f2f1;color:#424242}
+
+/* agent details: two-up grid for activity + results */
+#view-agentdetails .d6-grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;margin-top:14px}
+@media (max-width:1100px){#view-agentdetails .d6-grid2{grid-template-columns:1fr}}
+/* activity feed */
+.d6-status{display:flex;align-items:center;gap:10px;font-size:15px;color:#2d2d2d;margin:0 0 14px}
+.d6-status b{font-weight:700}
+.d6-feed{list-style:none;margin:0;padding:0;display:grid;gap:0}
+.d6-feed li{display:grid;grid-template-columns:28px minmax(0,1fr);gap:10px;padding:10px 0;border-top:1px solid #efedea}
+.d6-feed li:first-child{border-top:0;padding-top:2px}
+.d6-feed .ic{width:28px;height:28px;border-radius:50%;background:#f3f2f1;display:flex;align-items:center;justify-content:center}
+.d6-feed .ic svg{width:16px;height:16px;stroke:#2d2d2d;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.d6-feed .ic.wait{background:#fdecdc}.d6-feed .ic.wait svg{stroke:#a3470d}
+.d6-feed .ic.ok{background:#e4f2e7}.d6-feed .ic.ok svg{stroke:#1f662c}
+.d6-feed .t{font-size:15px;line-height:21px;color:#2d2d2d}
+.d6-feed .w{font-size:13px;color:#767676;margin-top:2px}
+/* results funnel */
+.d6-fun{display:grid;gap:10px;margin-top:6px}
+.d6-fr{display:grid;grid-template-columns:150px 56px minmax(0,1fr) 112px;align-items:center;gap:10px}
+.d6-fr .l{font-size:15px;color:#2d2d2d}
+.d6-fr .n{font-size:18px;font-weight:700;color:#2d2d2d;text-align:right;font-variant-numeric:tabular-nums}
+.d6-fr .bar{height:12px;background:#eef2fb;border-radius:6px;overflow:hidden}
+.d6-fr .bar i{display:block;height:100%;background:#0044b3;border-radius:6px;min-width:4px}
+.d6-fr .c{font-size:13px;color:#595959;font-variant-numeric:tabular-nums}
+.d6-fr.last .bar i{background:#1f662c}
+.d6-fnote{font-size:13px;color:#767676;margin-top:12px}
+@media (max-width:700px){.d6-fr{grid-template-columns:110px 44px minmax(0,1fr)}.d6-fr .c{grid-column:1/-1;margin-top:-6px}}
+/* settings cards on agent details */
+.d6-set{display:grid;gap:12px}
+.d6-set .head{display:flex;align-items:center;gap:12px}
+.d6-two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:22px}
+@media (max-width:900px){.d6-two{grid-template-columns:1fr}}
+.d6-list{margin:6px 0 0;padding-left:20px;display:grid;gap:4px;font-size:15px;color:#2d2d2d}
+.d6-lab{font-size:13px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:#595959;margin:0}
+.d6-rules{display:grid;grid-template-columns:170px minmax(0,1fr);gap:8px 16px;font-size:15px;color:#2d2d2d;margin:0}
+.d6-rules dt{font-weight:700}
+.d6-rules dd{margin:0}
+@media (max-width:700px){.d6-rules{grid-template-columns:1fr}.d6-rules dd{margin-bottom:6px}}
+.d6-msgs{display:grid;gap:0}
+.d6-msg{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;padding:10px 0;border-top:1px solid #efedea;align-items:center}
+.d6-msg:first-child{border-top:0}
+.d6-msg .nm{font-size:15px;font-weight:700;color:#2d2d2d}
+.d6-msg .wh{font-size:14px;color:#595959}
+.d6-msg .ch{display:flex;gap:6px;justify-content:flex-end}
+
+/* drawer */
+.d6-ov{position:fixed;inset:0;background:rgba(0,0,0,.38);z-index:9500;display:flex;justify-content:flex-end}
+.d6-dr{width:min(680px,100vw);height:100%;background:#fff;display:flex;flex-direction:column;box-shadow:-8px 0 30px rgba(0,0,0,.18);font-family:"Noto Sans",-apple-system,sans-serif}
+.d6-dr .hd{display:flex;align-items:flex-start;gap:12px;padding:22px 24px 14px;border-bottom:1px solid #e4e2e0}
+.d6-dr .hd h2{font-size:22px;font-weight:700;color:#2d2d2d;margin:0}
+.d6-dr .hd p{margin:4px 0 0;font-size:15px;color:#595959}
+.d6-x{margin-left:auto;width:36px;height:36px;border:0;border-radius:50%;background:transparent;cursor:pointer;font-size:20px;color:#2d2d2d}
+.d6-x:hover{background:#f0efec}
+.d6-dr .bd{flex:1 1 auto;overflow:auto;padding:18px 24px 24px;display:grid;gap:16px;align-content:start}
+.d6-dr .ft{display:flex;justify-content:flex-end;gap:12px;padding:14px 24px;border-top:1px solid #e4e2e0;background:#fff}
+.d6-box{border:1px solid #e4e2e0;border-radius:12px;padding:16px 18px;display:grid;gap:10px}
+.d6-box h3{font-size:17px;font-weight:700;color:#2d2d2d;margin:0}
+.d6-box .s{font-size:14px;color:#595959;margin:-4px 0 0}
+.d6-res{display:flex;flex-direction:column}.d6-res .d6-fun{gap:16px}.d6-res .d6-foot{margin-top:auto;padding-top:12px}.d6-res .d6-foot .d6-fnote{margin:0 0 10px}
+.d6-ck{display:flex;align-items:flex-start;gap:10px;font-size:15px;color:#2d2d2d;cursor:pointer}
+.d6-ck input[type=checkbox]{width:18px;height:18px;accent-color:#0044b3;margin-top:2px;flex:0 0 18px}
+.d6-ck .d{display:block;font-size:13px;color:#595959}
+.d6-range{display:flex;align-items:center;gap:12px;font-size:14px;color:#595959}
+.d6-range input{flex:1 1 auto;accent-color:#0044b3}
+.d6-days{display:flex;gap:6px;flex-wrap:wrap}
+.d6-days button{width:42px;height:36px;border-radius:8px;border:1px solid #d4d2d0;background:#fff;font:inherit;font-size:14px;font-weight:600;color:#2d2d2d;cursor:pointer}
+.d6-days button.on{background:#0044b3;border-color:#0044b3;color:#fff}
+.d6-sel{border:1px solid #949494;border-radius:8px;padding:7px 10px;font:inherit;font-size:14px;background:#fff;color:#2d2d2d}
+.d6-num{display:inline-block;width:56px;height:30px;margin:-4px 4px 0;border:1px solid #949494;border-radius:8px;padding:3px 6px;font:inherit;font-size:14px;text-align:center;vertical-align:middle;background:#fff}
+/* editable lists */
+.d6-ed{display:grid;gap:8px}
+.d6-li{display:flex;gap:8px;align-items:center}
+.d6-li input{flex:1 1 auto;border:1px solid #c9c7c4;border-radius:8px;padding:8px 10px;font:inherit;font-size:15px;color:#2d2d2d}
+.d6-li .ans{flex:0 0 120px}
+.d6-rm{width:32px;height:32px;border:0;border-radius:50%;background:transparent;cursor:pointer;color:#595959;font-size:18px}
+.d6-rm:hover{background:#f0efec}
+.d6-add{justify-self:start}
+/* messages drawer */
+.d6-mlist{display:grid;gap:8px}
+.d6-mi{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 12px;align-items:center;border:1px solid #e4e2e0;border-radius:10px;padding:10px 14px;cursor:pointer}
+.d6-mi.on{border-color:#0044b3;box-shadow:inset 0 0 0 1px #0044b3}
+.d6-mi .nm{font-size:15px;font-weight:700;color:#2d2d2d}
+.d6-mi .wh{font-size:13px;color:#595959}
+.d6-tog{position:relative;width:40px;height:22px;border-radius:11px;background:#c9c7c4;border:0;cursor:pointer;flex:0 0 40px}
+.d6-tog::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:left .15s}
+.d6-tog.on{background:#0044b3}
+.d6-tog.on::after{left:21px}
+.d6-prev{display:grid;grid-template-columns:minmax(0,260px) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:640px){.d6-prev{grid-template-columns:1fr}}
+.d6-phone{background:#f3f2f1;border-radius:18px;padding:14px;display:grid;gap:8px}
+.d6-phone .lb{font-size:12px;font-weight:700;color:#767676;text-align:center}
+.d6-bub{background:#e9e9eb;color:#1d1d1f;border-radius:16px 16px 16px 4px;padding:10px 12px;font-size:14px;line-height:20px}
+.d6-mail{border:1px solid #e4e2e0;border-radius:10px;overflow:hidden}
+.d6-mail .mh{background:#faf9f8;padding:10px 14px;font-size:13px;color:#595959;border-bottom:1px solid #e4e2e0}
+.d6-mail .mh b{color:#2d2d2d}
+.d6-mail .mb{padding:14px;font-size:14px;line-height:21px;color:#2d2d2d;white-space:pre-wrap}
+.d6-f{display:inline;background:#e8efff;color:#0044b3;border-radius:5px;padding:0 4px;font-weight:600}
+.d6-ta{width:100%;min-height:120px;border:1px solid #c9c7c4;border-radius:10px;padding:10px 12px;font:inherit;font-size:14px;line-height:21px;box-sizing:border-box}
+.d6-ins{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:13px;color:#595959}
+.d6-ins button{border:1px solid #c9d8f5;background:#f2f6ff;color:#0044b3;border-radius:6px;padding:3px 8px;font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+
+/* why this candidate matches */
+.d6-why{border:1px solid #e4e2e0;border-radius:12px;padding:14px 16px;background:#fff;display:grid;gap:10px}
+.d6-why .top{font-size:14px;color:#595959}
+.d6-ev{display:grid;grid-template-columns:22px minmax(0,1fr);gap:4px 10px;align-items:start;padding:8px 0;border-top:1px solid #efedea}
+.d6-ev:first-of-type{border-top:0}
+.d6-ev .m{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700}
+.d6-ev .m.ok{background:#e4f2e7;color:#1f662c}
+.d6-ev .m.no{background:#f3f2f1;color:#767676}
+.d6-ev .r{font-size:15px;font-weight:700;color:#2d2d2d;line-height:22px}
+.d6-ev .e{grid-column:2;font-size:14px;color:#424242;line-height:20px}
+.d6-ev .src{color:#767676}
+.d6-grp{font-size:13px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:#595959;margin-top:4px}
+
+</style>
+<script>
+/* ═══ build88 (25 Oct 2026): agent details + candidate matches. The agent MATCHES people; it never contacts them. ═══ */
+(function(){
+'use strict';
+var D6 = window.D6 = {};
+function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function toast(t,b){ if(typeof cdToast==='function') cdToast(t,b); else if(typeof ssToast==='function') ssToast(t,b); }
+var SV = {
+  check:'<polyline points="20 6 9 17 4 12"/>', clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  msg:'<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>', cal:'<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
+  user:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>', filter:'<path d="M3 5h18l-7 8v6l-4 2v-8z"/>', pause:'<rect x="6" y="5" width="4" height="14"/><rect x="14" y="5" width="4" height="14"/>',
+  bell:'<path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/>',
+  match:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 10l2 2 4-4"/>'
+};
+function ic(k){ return '<svg viewBox="0 0 24 24">'+SV[k]+'</svg>'; }
+
+/* ── what each position asks for (sample, matches the candidates on the page) ── */
+D6.POS = {
+ 'Registered Nurse': { area:'Dallas–Fort Worth', who:'registered nurses',
+   must:['Active Texas or compact RN license','BLS certification','At least 1 year of bedside nursing'],
+   nice:['ACLS certification','Telemetry or med-surg experience','Epic charting'],
+   qs:[['Do you have an active Texas or compact RN license?','Yes'],['How many years of bedside nursing experience do you have?','1 or more']] },
+ 'Certified Nursing Assistant': { area:'Pittsburgh', who:'nursing assistants',
+   must:['Active Pennsylvania CNA certification','BLS certification','Available for 12-hour shifts'],
+   nice:['Hospice or long-term care experience','EHR charting'],
+   qs:[['Do you hold an active Pennsylvania CNA certification?','Yes'],['Can you work 12-hour shifts, including weekends?','Yes']] },
+ 'Warehouse Associate': { area:'Austin', who:'warehouse associates',
+   must:['Able to lift 50 lb repeatedly','Available for weekend shifts'],
+   nice:['Forklift certification','RF scanner experience'],
+   qs:[['Are you able to lift 50 pounds repeatedly during a shift?','Yes'],['Can you work weekend shifts?','Yes']] },
+ 'RN Care Manager': { area:'Houston', who:'RN care managers',
+   must:['Active Texas or compact RN license','At least 2 years of case management'],
+   nice:['Epic','Discharge planning','Utilization review'],
+   qs:[['Do you have an active Texas or compact RN license?','Yes'],['How many years of care management experience do you have?','2 or more']] }
+};
+var SLUG2POS = {'rn-dallas':'Registered Nurse','cna-pittsburgh':'Certified Nursing Assistant','wa-austin':'Warehouse Associate','rncm-houston':'RN Care Manager'};
+
+/* ── results per agent: matched, requested, scheduled, interviewed, hired (people; All time matches the sample candidates) ── */
+D6.FUN = {
+ 'rn-dallas':     {all:[46,9,6,2,1], d30:[41,8,5,2,1], d7:[31,3,2,1,0]},
+ 'cna-pittsburgh':{all:[22,5,1,0,0], d30:[18,4,1,0,0], d7:[0,1,0,0,0]},
+ 'wa-austin':     {all:[31,6,4,2,1], d30:[27,5,4,2,1], d7:[14,2,1,0,0]},
+ 'rncm-houston':  {all:[19,4,3,2,0], d30:[16,4,3,2,0], d7:[7,1,1,1,0]}
+};
+D6.STAGES = ['Matched','Interview requested','Interview scheduled','Interviewed','Hired'];
+D6.CONV = ['','requested','scheduled','interviewed','hired'];
+D6.range = 'all';
+
+D6.FEED = {
+ 'rn-dallas':[
+   ['wait','user','Matthew Shimizu requested an interview. It is waiting on you.','32 minutes ago'],
+   ['ok','cal',"Booked Mubeen Ali Khan's video interview for Tue, Aug 5 at 10:15 AM CT.",'2 hours ago'],
+   ['','match','Matched 24 registered nurses near Dallas who meet your must-haves.','Today, 8:00 AM'],
+   ['','bell','Reminded David Bergstrom about the interview tomorrow.','Yesterday, 6:00 PM'],
+   ['','pause','Paused matching for Thursday. Every interview slot that day is booked.','Yesterday, 1:15 PM'] ],
+ 'cna-pittsburgh':[
+   ['','pause','Paused by you. Booked interviews still happen.','Aug 1'],
+   ['wait','user','Abe Jahwin requested an interview. It is waiting on you.','2 hours ago'],
+   ['ok','cal',"Confirmed Adnan Saleem's phone interview for Thu, Aug 7 at 1:00 PM ET.",'Yesterday'] ],
+ 'wa-austin':[
+   ['ok','cal',"Booked Barry Williams's in-person interview for Wed, Aug 6 at 4:00 PM CT.",'1 hour ago'],
+   ['wait','user','Faisal Hayat requested an interview. It is waiting on you.','3 hours ago'],
+   ['','match','Matched 9 warehouse associates near Austin who can work weekends.','Today, 8:00 AM'] ],
+ 'rncm-houston':[
+   ['wait','user','Nina Mir requested an interview. It is waiting on you.','5 hours ago'],
+   ['ok','cal',"Booked Colin Pratt's video interview for Tue, Aug 12 at 10:30 AM CT.",'Yesterday'],
+   ['','match','Matched 7 RN care managers near Houston who meet your must-haves.','Yesterday'] ]
+};
+
+/* ── matching rules + messages state (design only, kept in memory) ── */
+D6.RULES = { pauseFull:true, pauseWaiting:true, waitingN:10, never:{cur:true,past:true} };
+D6.MSGS = [
+ {k:'confirm', nm:'Interview confirmed', wh:'When you accept a request', ch:['Text','Email'], on:true,
+  sms:'You are confirmed for a {Format} interview with {Company} on {Date} at {Time}. Details: {Link}',
+  subj:'Your interview with {Company} is confirmed',
+  mail:'Hi {First name},\n\nYour {Format} interview for {Position} is confirmed for {Date} at {Time}.\n\nDetails and how to join: {Link}\n\nThanks,\n{Company} hiring team'},
+ {k:'remind', nm:'Reminder', wh:'The day before, and 1 hour before', ch:['Text'], on:true,
+  sms:'Reminder: your {Format} interview with {Company} is {Date} at {Time}. Need a new time? {Link}', subj:'', mail:''},
+ {k:'newtime', nm:'New time proposed', wh:'When you propose a different time', ch:['Text','Email'], on:true,
+  sms:'{Company} proposed a new interview time: {Date} at {Time}. Accept it or pick another time: {Link}',
+  subj:'{Company} proposed a new interview time',
+  mail:'Hi {First name},\n\n{Company} proposed a new time for your {Position} interview: {Date} at {Time}.\n\nAccept it or pick another time: {Link}\n\nThanks,\n{Company} hiring team'},
+ {k:'decline', nm:'Not moving forward', wh:'When you decline a request', ch:['Email'], on:true, sms:'',
+  subj:'Your request to interview with {Company}',
+  mail:'Hi {First name},\n\nThank you for your interest in the {Position} role. We have decided to move forward with other candidates for now.\n\nWe wish you the best in your search.\n\n{Company} hiring team'}
+];
+D6.selMsg = 'confirm';
+function fields(s){ return esc(s).replace(/\{([A-Za-z ]+)\}/g,'<span class="d6-f">$1</span>'); }
+
+/* ═════════ agent details page ═════════ */
+function rulesSummary(){
+  var R=D6.RULES;
+  var pause=[]; if(R.pauseFull) pause.push('every interview slot is booked'); if(R.pauseWaiting) pause.push(R.waitingN+' requests are waiting on you');
+  var nv=[]; if(R.never.cur) nv.push('current employees'); if(R.never.past) nv.push('past employees');
+  return '<dl class="d6-rules">'+
+    '<dt>Pauses when</dt><dd>'+(pause.length?pause.join(', or when '):'Never pauses on its own')+'</dd>'+
+    '<dt>Never matches</dt><dd>'+(nv.length?nv.join(', '):'No one skipped')+'</dd></dl>';
+}
+function funnelHTML(slug){
+  var f=D6.FUN[slug]; if(!f) return '<p class="d6-muted d6-small" style="margin:6px 0 0">Results show up once this agent is live.</p>';
+  var v=f[D6.range]||f.all, mx=Math.max.apply(null,v)||1;
+  return '<div class="d6-fun">'+v.map(function(n,i){
+    var pct = (i>0 && v[i-1]>0) ? Math.round(n/v[i-1]*100)+'% '+D6.CONV[i] : '';
+    return '<div class="d6-fr'+(i===v.length-1?' last':'')+'"><span class="l">'+D6.STAGES[i]+'</span><span class="n">'+n+'</span>'+
+      '<span class="bar"><i style="width:'+(n/mx*100).toFixed(1)+'%"></i></span><span class="c">'+pct+'</span></div>';
+  }).join('')+'</div>';
+}
+function rangeChips(){
+  return [['d7','7 days'],['d30','30 days'],['all','All time']].map(function(r){
+    return '<button type="button" class="d6-chip'+(D6.range===r[0]?' on':'')+'" data-d6="range|'+r[0]+'">'+r[1]+'</button>'; }).join('');
+}
+function feedHTML(slug, st){
+  var f=D6.FEED[slug]||[];
+  var live = st==='Live', dot = live?'#1f8a3c':(st==='Paused'?'#c46a00':'#767676');
+  var pos=SLUG2POS[slug], P=D6.POS[pos];
+  var line = live ? '<b>Working now.</b> Looking for '+(P?P.who+' near '+P.area:'candidates')+'.' : (st==='Paused'?'<b>Paused.</b> No new matches. Booked interviews still happen.':'<b>'+esc(st)+'.</b> This agent is not working.');
+  return '<p class="d6-status"><span class="d6-dot" style="background:'+dot+'"></span><span>'+line+'</span></p>'+
+    (f.length?'<ul class="d6-feed">'+f.map(function(x){
+      return '<li><span class="ic '+x[0]+'">'+ic(x[1])+'</span><div><div class="t">'+esc(x[2])+'</div><div class="w">'+esc(x[3])+'</div></div></li>'; }).join('')+'</ul>'
+     :'<p class="d6-muted d6-small" style="margin:0">Nothing yet. Activity shows up once this agent is live.</p>')+
+    (f.length?'<div style="margin-top:10px"><button type="button" class="d6-link" data-d6="allact">View all activity &nbsp;&#8594;</button></div>':'');
+}
+function instrHTML(pos){
+  var P=D6.POS[pos]; if(!P) return '<p class="d6-muted d6-small" style="margin:0">Add must-haves when you finish this position.</p>';
+  return '<div class="d6-two">'+
+    '<div><p class="d6-lab">Must-haves</p><ul class="d6-list">'+P.must.map(function(m){return '<li>'+esc(m)+'</li>';}).join('')+'</ul>'+
+      '<p class="d6-muted d6-small" style="margin:8px 0 0">The agent only matches people who meet every must-have.</p></div>'+
+    '<div><p class="d6-lab">Nice-to-haves</p><ul class="d6-list">'+P.nice.map(function(m){return '<li>'+esc(m)+'</li>';}).join('')+'</ul>'+
+      '<p class="d6-lab" style="margin-top:14px">Screening questions</p><ul class="d6-list">'+P.qs.map(function(q){return '<li>'+esc(q[0])+' <span class="d6-muted">Needs: '+esc(q[1])+'</span></li>';}).join('')+'</ul></div>'+
+  '</div>';
+}
+function msgsHTML(){
+  return '<div class="d6-msgs">'+D6.MSGS.map(function(m){
+    return '<div class="d6-msg"><div><div class="nm">'+esc(m.nm)+(m.on?'':' <span class="d6-tag">Off</span>')+'</div><div class="wh">'+esc(m.wh)+'</div></div>'+
+      '<div class="ch">'+m.ch.map(function(c){return '<span class="d6-tag">'+c+'</span>';}).join('')+'</div></div>'; }).join('')+'</div>';
+}
+function sect(title, body, editKey, sub){
+  return '<div class="agd-sect d6-sect"><div class="d6-row" style="margin-bottom:6px"><h2 class="agd-sh" style="margin:0">'+title+'</h2><span class="d6-sp"></span>'+
+    (editKey?'<button type="button" class="d6-btn" data-d6="open|'+editKey+'">Edit</button>':'')+'</div>'+
+    (sub?'<p class="d6-muted d6-small" style="margin:0 0 12px">'+sub+'</p>':'')+
+    '<div class="d6-card">'+body+'</div></div>';
+}
+D6.enhance = function(slug){
+  var v=document.getElementById('view-agentdetails'); if(!v) return;
+  var a=(window.AGD&&AGD.A&&AGD.A[slug])||{}; var st=a.st||'Live', pos=SLUG2POS[slug]||a.n;
+  D6.slug=slug;
+  var perf=Array.prototype.filter.call(v.querySelectorAll('.agd-sect'),function(s){ var h=s.querySelector('.agd-sh'); return h&&/Agent performance/.test(h.textContent); })[0];
+  var html =
+    '<div class="agd-sect d6-sect" id="d6Work"><h2 class="agd-sh">What your agent is doing</h2>'+
+      '<div class="d6-grid2">'+
+        '<div class="d6-card" id="d6Feed">'+feedHTML(slug,st)+'</div>'+
+        '<div class="d6-card d6-res"><div class="d6-row" style="margin-bottom:10px;flex-wrap:wrap"><h3 class="d6-h3">Results</h3><span class="d6-sp"></span><span class="d6-row" style="gap:6px" id="d6Range">'+rangeChips()+'</span></div>'+
+          '<div id="d6Fun">'+funnelHTML(slug)+'</div>'+
+          '<div class="d6-foot"><p class="d6-fnote">Counts people. Each step is a share of the step above it.</p></div></div>'+
+      '</div></div>'+
+    sect('Agent instructions', instrHTML(pos), 'instr', 'What the agent screens for. Taken from the position.')+
+    sect('Matching rules', '<div id="d6RulesSum">'+rulesSummary()+'</div>', 'rules', 'When the agent pauses, and who it never matches.')+
+    sect('Messages the agent sends', msgsHTML()+'<div style="margin-top:10px"><button type="button" class="d6-link" data-d6="open|msgs">Preview messages &nbsp;&#8594;</button></div>', 'msgs', 'Every text and email goes out with your company name on it.');
+  var nSched=((window.CD&&CD.ALL)||[]).filter(function(c){ return c.job===a.n && c.stage==='Interview scheduled'; }).length;
+  Array.prototype.forEach.call(v.querySelectorAll('.agd-cards .agd-card'),function(cd){
+    var cl=cd.querySelector('.agd-cl'), cs=cd.querySelector('.agd-cs'), ct=cd.querySelector('.agd-ct'), k=cl&&cl.getAttribute('data-agd');
+    if(k==='ws-all'){ if(cs) cs.textContent='Candidates'; cl.innerHTML='View all candidates &nbsp;&#8594;'; }
+    if(k==='ws-new' && ct){ var nReq=parseInt(ct.textContent,10)||0; ct.lastChild.textContent=nReq+' '+(nReq===1?'Interview requested':'Interviews requested'); }
+    if(k==='ws-find'){
+      if(ct) ct.innerHTML='<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/></svg>'+nSched+' '+(nSched===1?'Interview scheduled':'Interviews scheduled');
+      if(cs) cs.textContent='Confirmed and coming up';
+      cl.removeAttribute('data-agd'); cl.setAttribute('data-d6','sched|'+slug); cl.innerHTML='View scheduled interviews &nbsp;&#8594;';
+    }
+  });
+  var wrap=document.createElement('div'); wrap.innerHTML=html;
+  if(perf){ perf.parentNode.insertBefore(wrap, perf); perf.remove(); }
+  else { var c=v.querySelector('.agd-wrap'); if(c) c.appendChild(wrap); }
+};
+if(window.AGD && typeof AGD.details==='function' && !AGD.details.__d6){
+  var _det=AGD.details;
+  AGD.details=function(slug){ var r=_det.apply(this,arguments); try{ D6.enhance(slug); }catch(e){ console.error(e); } return r; };
+  AGD.details.__d6=1;
+}
+
+/* ═════════ drawers ═════════ */
+function drawer(title, sub, body, saveLabel, saveKey){
+  D6.closeDrawer();
+  var ov=document.createElement('div'); ov.className='d6-ov'; ov.id='d6Ov';
+  ov.innerHTML='<div class="d6-dr" role="dialog" aria-modal="true" aria-label="'+esc(title)+'"><div class="hd"><div><h2>'+esc(title)+'</h2>'+(sub?'<p>'+sub+'</p>':'')+'</div><button type="button" class="d6-x" data-d6="close" aria-label="Close">&#10005;</button></div>'+
+    '<div class="bd" id="d6Bd">'+body+'</div><div class="ft"><button type="button" class="d6-btn" data-d6="close">Cancel</button><button type="button" class="d6-btn pri" data-d6="save|'+saveKey+'">'+saveLabel+'</button></div></div>';
+  document.body.appendChild(ov);
+  ov.addEventListener('click',function(e){ if(e.target===ov) D6.closeDrawer(); });
+}
+D6.closeDrawer=function(){ var o=document.getElementById('d6Ov'); if(o) o.remove(); };
+function rulesBody(){
+  var R=D6.RULES;
+  return ''+
+  '<div class="d6-box"><h3>Pause matching</h3><p class="s">The agent stops matching new people until there is room again.</p>'+
+    '<label class="d6-ck"><input type="checkbox" id="d6PFull"'+(R.pauseFull?' checked':'')+'><span>When every interview slot is booked<span class="d">It starts again as soon as a slot opens.</span></span></label>'+
+    '<label class="d6-ck"><input type="checkbox" id="d6PWait"'+(R.pauseWaiting?' checked':'')+'><span>When <input class="d6-num" id="d6WaitN" type="number" min="1" max="50" value="'+R.waitingN+'" aria-label="Requests waiting"> requests are waiting on you<span class="d">So the agent never gets far ahead of you.</span></span></label></div>'+
+  '<div class="d6-box"><h3>Never match</h3><p class="s">The agent skips these people.</p>'+
+    '<label class="d6-ck"><input type="checkbox" id="d6NCur"'+(R.never.cur?' checked':'')+'><span>Current employees</span></label>'+
+    '<label class="d6-ck"><input type="checkbox" id="d6NPast"'+(R.never.past?' checked':'')+'><span>Past employees</span></label>'+
+    '<div><button type="button" class="d6-link" data-d6="dnc">Add people the agent should never match</button></div></div>';
+}
+function instrBody(pos){
+  var P=D6.POS[pos]||{must:[],nice:[],qs:[]};
+  function li(v,ph){ return '<div class="d6-li"><input type="text" value="'+esc(v)+'" placeholder="'+ph+'"><button type="button" class="d6-rm" data-d6="rm" aria-label="Remove">&#10005;</button></div>'; }
+  function qi(q){ return '<div class="d6-li"><input type="text" value="'+esc(q[0])+'" aria-label="Question"><input class="ans" type="text" value="'+esc(q[1])+'" aria-label="Needed answer"><button type="button" class="d6-rm" data-d6="rm" aria-label="Remove">&#10005;</button></div>'; }
+  return ''+
+  '<div class="d6-box"><h3>Must-haves</h3><p class="s">The agent only matches people who meet every one.</p><div class="d6-ed" data-d6list="must">'+P.must.map(function(m){return li(m,'Add a must-have');}).join('')+'</div>'+
+    '<button type="button" class="d6-link d6-add" data-d6="add|must">+ Add a must-have</button></div>'+
+  '<div class="d6-box"><h3>Nice-to-haves</h3><p class="s">Not required. The agent puts people who have them first.</p><div class="d6-ed" data-d6list="nice">'+P.nice.map(function(m){return li(m,'Add a nice-to-have');}).join('')+'</div>'+
+    '<button type="button" class="d6-link d6-add" data-d6="add|nice">+ Add a nice-to-have</button></div>'+
+  '<div class="d6-box"><h3>Screening questions</h3><p class="s">Candidates answer these when they request an interview. The right column is the answer the agent needs.</p><div class="d6-ed" data-d6list="qs">'+P.qs.map(qi).join('')+'</div>'+
+    '<button type="button" class="d6-link d6-add" data-d6="add|qs">+ Add a question</button></div>';
+}
+function msgsBody(){
+  var m=D6.MSGS.filter(function(x){return x.k===D6.selMsg;})[0]||D6.MSGS[0];
+  var list='<div class="d6-mlist">'+D6.MSGS.map(function(x){
+    return '<div class="d6-mi'+(x.k===m.k?' on':'')+'" data-d6="pick|'+x.k+'"><div><div class="nm">'+esc(x.nm)+'</div><div class="wh">'+esc(x.wh)+' &middot; '+x.ch.join(' and ')+'</div></div>'+
+      '<button type="button" class="d6-tog'+(x.on?' on':'')+'" data-d6="tog|'+x.k+'" aria-pressed="'+x.on+'" aria-label="'+esc(x.nm)+' on or off"></button></div>'; }).join('')+'</div>';
+  var prev='<div class="d6-box"><div class="d6-row"><h3>'+esc(m.nm)+'</h3><span class="d6-sp"></span><button type="button" class="d6-btn" data-d6="editmsg">Edit wording</button></div>'+
+    '<div class="d6-prev" id="d6Prev">'+
+      (m.sms?'<div class="d6-phone"><div class="lb">Text message</div><div class="d6-bub">'+fields(m.sms)+'</div></div>':'<div class="d6-phone"><div class="lb">No text for this one</div></div>')+
+      (m.mail?'<div class="d6-mail"><div class="mh"><b>Subject:</b> '+fields(m.subj)+'</div><div class="mb">'+fields(m.mail)+'</div></div>':'<div class="d6-mail"><div class="mh"><b>Email</b></div><div class="mb d6-muted">This message goes out by text only.</div></div>')+
+    '</div><p class="d6-muted d6-small" style="margin:0">Blue words fill in for each person, such as their first name and the interview time.</p></div>';
+  return '<div class="d6-box"><h3>Messages</h3><p class="s">Turn a message off and the agent skips it.</p>'+list+'</div>'+prev;
+}
+function msgsEditBody(){
+  var m=D6.MSGS.filter(function(x){return x.k===D6.selMsg;})[0]||D6.MSGS[0];
+  var ins='<div class="d6-ins">Insert: '+['First name','Company','Position','City','Pay','Format','Date','Time','Link'].map(function(f){return '<button type="button" data-d6="ins|'+f+'">'+f+'</button>';}).join('')+'</div>';
+  return '<div class="d6-box"><h3>'+esc(m.nm)+'</h3>'+
+    (m.sms?'<p class="d6-lab">Text message</p><textarea class="d6-ta" id="d6TaSms">'+esc(m.sms)+'</textarea>':'')+
+    (m.mail?'<p class="d6-lab">Email subject</p><input class="d6-ta" style="min-height:0" id="d6TaSubj" value="'+esc(m.subj)+'"><p class="d6-lab">Email</p><textarea class="d6-ta" id="d6TaMail" style="min-height:180px">'+esc(m.mail)+'</textarea>':'')+
+    ins+'<p class="d6-muted d6-small" style="margin:0">Words in braces fill in for each person.</p></div>';
+}
+D6.open=function(k){
+  var pos=SLUG2POS[D6.slug]||'Registered Nurse';
+  if(k==='rules') drawer('Matching rules', esc(pos)+' &middot; When the agent pauses, and who it never matches', rulesBody(), 'Save rules', 'rules');
+  if(k==='instr') drawer('Agent instructions', esc(pos)+' &middot; What the agent screens for', instrBody(pos), 'Save instructions', 'instr');
+  if(k==='msgs') drawer('Messages the agent sends', esc(pos)+' &middot; Preview and edit', msgsBody(), 'Done', 'msgs');
+};
+function saveRules(){
+  var R=D6.RULES, g=function(id){return document.getElementById(id);};
+  R.pauseFull=g('d6PFull').checked; R.pauseWaiting=g('d6PWait').checked; R.waitingN=+g('d6WaitN').value||10;
+  R.never={cur:g('d6NCur').checked,past:g('d6NPast').checked};
+  var s=document.getElementById('d6RulesSum'); if(s) s.innerHTML=rulesSummary();
+}
+function saveInstr(){
+  var pos=SLUG2POS[D6.slug]; var P=D6.POS[pos]; if(!P) return;
+  function vals(k){ return Array.prototype.map.call(document.querySelectorAll('[data-d6list="'+k+'"] .d6-li'),function(li){ var i=li.querySelectorAll('input'); return k==='qs'?[i[0].value.trim(),(i[1]&&i[1].value.trim())||'Yes']:i[0].value.trim(); }).filter(function(x){ return k==='qs'?x[0]:x; }); }
+  P.must=vals('must'); P.nice=vals('nice'); P.qs=vals('qs');
+  if(D6.slug && window.AGD) AGD.details(D6.slug);
+}
+
+/* ═════════ why this candidate matches ═════════ */
+function ev(ok,req,evid,src){
+  return '<div class="d6-ev"><span class="m '+(ok?'ok':'no')+'">'+(ok?'&#10003;':'&ndash;')+'</span><span class="r">'+esc(req)+'</span>'+
+    '<span class="e">'+evid+(src?' <span class="src">&middot; '+src+'</span>':'')+'</span></div>';
+}
+D6.evidence = function(pos, name, title, co, since, quals, years){
+  var P=D6.POS[pos]; if(!P) return '';
+  quals=(quals||[]).map(function(q){return String(q).toLowerCase();});
+  function has(w){ return quals.some(function(q){ return q.indexOf(w)>=0; }); }
+  var mk=[], nk=[];
+  P.must.forEach(function(m){
+    var l=m.toLowerCase(), e, s;
+    if(/license|certification/.test(l) && /rn|cna/.test(l)){ e='Answered yes'; s='Screening answer'; }
+    else if(/bls/.test(l)){ e='Listed under licenses and certifications'; s='Resume'; }
+    else if(/year/.test(l)){ if(since){ e=esc(title||'')+(co?' at '+esc(co):'')+' since '+since; s='Resume'; } else { e=(years||3)+' years'; s='Screening answer'; } }
+    else if(/shift|weekend|12-hour/.test(l)){ e='Answered yes'; s='Screening answer'; }
+    else if(/lift/.test(l)){ e='Answered yes'; s='Screening answer'; }
+    else { e='Found on resume'; s='Resume'; }
+    mk.push(ev(true,m,e,s));
+  });
+  P.nice.forEach(function(m){
+    var l=m.toLowerCase(), key=l.split(' ')[0].replace(/[^a-z]/g,''), ok=has(key);
+    if(!ok && /telemetry/.test(l)) ok=has('telemetry')||has('med-surg');
+    nk.push(ev(ok,m, ok?'Listed on resume':'Not mentioned', ok?'Resume':''));
+  });
+  return '<div class="d6-why"><div class="top">Evidence from '+esc(name||'this candidate')+'\'s resume and screening answers. No score.</div>'+
+    '<div class="d6-grp">Must-haves</div>'+mk.join('')+'<div class="d6-grp">Nice-to-haves</div>'+nk.join('')+'</div>';
+};
+/* candidate profile (Candidates page) */
+if(window.CD && typeof CD.appTabHTML==='function' && !CD.appTabHTML.__d6){
+  var _app=CD.appTabHTML;
+  CD.appTabHTML=function(c,p){
+    var h=_app.apply(this,arguments);
+    try{
+      var r=(c.roles||[])[0]||[], yrs=(p&&p.screener&&+p.screener[1])||3;
+      var body=D6.evidence(c.job, c.n, r[0], r[1], (r[2]||'').split('–')[0], (p&&p.quals)||[], yrs);
+      if(body && c.stage!=='Declined') h = CD.sec('why','Why this candidate matches', body) + h;
+    }catch(e){ console.error(e); }
+    return h;
+  };
+  CD.appTabHTML.__d6=1;
+}
+/* ═════════ clicks ═════════ */
+document.addEventListener('click',function(e){
+  var t=e.target.closest && e.target.closest('[data-d6]'); if(!t) return;
+  var a=t.getAttribute('data-d6').split('|'), k=a[0], v=a[1];
+  if(k==='range'){ D6.range=v; var f=document.getElementById('d6Fun'); if(f) f.innerHTML=funnelHTML(D6.slug); var r=document.getElementById('d6Range'); if(r) r.innerHTML=rangeChips(); return; }
+  if(k==='open'){ D6.open(v); return; }
+  if(k==='close'){ D6.closeDrawer(); return; }
+  if(k==='save'){ if(v==='rules') saveRules(); if(v==='instr') saveInstr(); D6.closeDrawer();
+                  toast(v==='rules'?'Matching rules saved':v==='instr'?'Instructions saved':'Messages saved', v==='rules'?'The agent follows them from now on.':'The agent uses them from now on.'); return; }
+  if(k==='rm'){ var li=t.closest('.d6-li'); if(li) li.remove(); return; }
+  if(k==='add'){ var box=document.querySelector('[data-d6list="'+v+'"]'); if(!box) return; var d=document.createElement('div'); d.className='d6-li';
+                 d.innerHTML=(v==='qs')?'<input type="text" placeholder="Add a question" aria-label="Question"><input class="ans" type="text" placeholder="Needed answer" aria-label="Needed answer"><button type="button" class="d6-rm" data-d6="rm" aria-label="Remove">&#10005;</button>'
+                                        :'<input type="text" placeholder="Add one"><button type="button" class="d6-rm" data-d6="rm" aria-label="Remove">&#10005;</button>';
+                 box.appendChild(d); d.querySelector('input').focus(); return; }
+  if(k==='pick'){ if(e.target.closest('.d6-tog')) return; D6.selMsg=v; var bd=document.getElementById('d6Bd'); if(bd) bd.innerHTML=msgsBody(); return; }
+  if(k==='tog'){ e.stopPropagation(); var m=D6.MSGS.filter(function(x){return x.k===v;})[0]; if(m){ m.on=!m.on; } var bd2=document.getElementById('d6Bd'); if(bd2) bd2.innerHTML=msgsBody(); return; }
+  if(k==='editmsg'){ var bd3=document.getElementById('d6Bd'); if(bd3) bd3.innerHTML=msgsEditBody(); return; }
+  if(k==='ins'){ var ta=document.activeElement&&/d6Ta/.test(document.activeElement.id)?document.activeElement:document.getElementById('d6TaSms')||document.getElementById('d6TaMail');
+                 if(ta){ var p0=ta.selectionStart||ta.value.length; ta.value=ta.value.slice(0,p0)+'{'+v+'}'+ta.value.slice(p0); ta.focus(); } return; }
+  if(k==='dnc'){ toast('Never match','Add people one at a time or upload a list. The agent never matches them.'); return; }
+  if(k==='sched'){ if(window.AGD) AGD.toWorkspace(v,'Interview scheduled'); return; }
+  if(k==='allact'){ toast('All activity','The full log for this agent, newest first.'); return; }
+},true);
+document.addEventListener('keydown',function(e){ if(e.key==='Escape') D6.closeDrawer(); });
+
+/* direct links: #agent opens Registered Nurse agent details, #candidate opens Mubeen Ali Khan's profile */
+function route(){
+  var h=(location.hash||'').replace('#','');
+  if(h==='agent' && window.AGD) AGD.details('rn-dallas');
+  if(h==='candidate' && typeof showView==='function'){ showView('candidates'); if(window.CD){ CD.render(); if(window.CX) CX.openProfile('v1'); } }
+}
+setTimeout(route, 1600);
+window.addEventListener('hashchange', route);
+})();
+</script>
+<!-- ═══ build88 · candidate profile: interview card above the tabs, one match section, resume as one line (25 Oct 2026, Scott picked option 1) ═══ -->
+<style>
+/* interview, above the Application and Activity tabs */
+.pv-iv{display:flex;align-items:center;gap:16px;border:1px solid #e4e2e0;border-radius:12px;padding:16px 18px;margin-top:20px;background:#fff}
+.pv-iv .ic{flex:0 0 48px;height:48px;border-radius:12px;background:#f3f2f1;display:flex;align-items:center;justify-content:center}
+.pv-iv .ic svg{width:24px;height:24px;stroke:#2d2d2d;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.pv-iv .mid{flex:1 1 auto;min-width:0}
+.pv-iv .lab{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:#595959}
+.pv-iv .t{font-size:18px;line-height:26px;font-weight:700;color:#2d2d2d;margin-top:3px}
+.pv-iv .m{font-size:14px;line-height:21px;color:#595959;margin-top:1px}
+.pv-iv .acts{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.pv-pill{display:inline-block;font-size:12px;font-weight:700;letter-spacing:0;text-transform:none;line-height:18px;border-radius:999px;padding:2px 10px}
+.pv-pill.wait{background:#fff1d6;color:#7a4a00}
+.pv-pill.ok{background:#e4f2e7;color:#1f662c}
+.pv-pill.no{background:#fbe9e9;color:#a4262c}
+@media (max-width:900px){.pv-iv{flex-wrap:wrap}.pv-iv .acts{width:100%;justify-content:flex-start}}
+/* shorter match card */
+.pv-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0 28px}
+.pv-cols .d6-ev,.pv-one .d6-ev{padding:6px 0}
+.pv-sub{font-size:13px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:#595959;border-top:1px solid #efedea;padding-top:12px}
+.pv-qa{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 16px;padding:6px 0;border-top:1px solid #efedea}
+.pv-qa:first-child{border-top:0}
+.pv-qa .q{font-size:15px;color:#2d2d2d;line-height:22px}
+.pv-qa .a{font-size:15px;font-weight:700;color:#1f662c;text-align:right;white-space:nowrap;line-height:22px}
+.pv-qa .n{grid-column:1/-1;font-size:13px;color:#767676}
+.pv-also{display:flex;flex-wrap:wrap;gap:8px}
+.pv-res{display:flex;align-items:center;gap:8px;flex-wrap:wrap;border:1px solid #e4e2e0;border-radius:12px;padding:12px 16px}
+.pv-res .nm{font-size:15px;color:#2d2d2d}.pv-res .sp{flex:1 1 auto}
+.pv-resfull{margin-top:12px}
+</style>
+<script>
+(function(){
+function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function toast(t,b){ if(typeof cdToast==='function') cdToast(t,b); }
+var ICV = {
+  video:'<svg viewBox="0 0 24 24"><rect x="2" y="6" width="14" height="12" rx="2"/><path d="M16 10l6-3v10l-6-3z"/></svg>',
+  phone:'<svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg>',
+  person:'<svg viewBox="0 0 24 24"><path d="M12 22s7-6.1 7-12a7 7 0 0 0-14 0c0 5.9 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg>',
+  done:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12l3 3 5-6"/></svg>'
+};
+/* the time each candidate picked when they requested (design sample) */
+var REQ = { v0:'Video interview · Wed, Aug 6 · 11:00 AM CT', v2:'Phone interview · Thu, Aug 7 · 10:00 AM ET', v7:'In person interview · Thu, Aug 7 · 3:00 PM CT',
+  v9:'Video interview · Fri, Aug 8 · 1:30 PM CT', v12:'Video interview · Fri, Aug 8 · 9:00 AM CT', v15:'In person interview · Mon, Aug 11 · 10:00 AM CT',
+  v18:'Phone interview · Mon, Aug 11 · 2:00 PM ET', v20:'Video interview · Tue, Aug 12 · 9:30 AM CT', v23:'Phone interview · Tue, Aug 12 · 11:00 AM ET' };
+function fmtIcon(s){ return /phone/i.test(s)?ICV.phone:/in person/i.test(s)?ICV.person:ICV.video; }
+function cur(){ var rows=(window.CD&&CD.rows)?CD.rows():[]; return rows[CD.openIdx]; }
+
+function ivCard(c){
+  var p=c.p||{}, iv=p.iv||{}, st=iv.state||c.stage, slot=iv.slot||'', lab, title='', meta='', acts='', icon=ICV.video;
+  if(st==='Interview requested'){
+    var rq=REQ[c.id]||'Video interview'; icon=fmtIcon(rq);
+    lab='Interview requested <span class="pv-pill wait">Waiting on you</span>'; title=rq;
+    var ago=(slot.split('·')[1]||'').trim(); if(ago) meta=ago.charAt(0).toUpperCase()+ago.slice(1)+'.';
+    acts='<button class="cd-btn pri" data-pv="accept">Accept</button><button class="cd-btn sec" data-pv="resched">Reschedule</button><button class="cd-btn sec" data-pv="decline">Decline</button>';
+  } else if(st==='Interview scheduled'){
+    icon=fmtIcon(slot); lab='Interview scheduled <span class="pv-pill ok">Confirmed</span>'; title=slot.replace(/\s*·\s*Confirmed\s*$/,'');
+    acts='<button class="cd-btn sec" data-pv="resched">Reschedule</button>';
+  } else if(st==='Interviewed'){
+    icon=fmtIcon(slot); lab='Interviewed'; title=slot;
+  } else if(st==='Hired'){
+    icon=ICV.done; var hm=slot.match(/hired (.+)$/i); lab='Hired'; title='Hired '+(hm?hm[1]:''); meta=slot.replace(/\s*·\s*hired .+$/i,'')+'.';
+  } else if(st==='Declined'){
+    icon=ICV.done; lab='Request declined'; title=(slot||'').replace(/^Request declined\s*/i,'Declined ')||'Declined';
+  } else {
+    lab='No interview yet'; title='Not scheduled'; acts='<button class="cd-btn pri" data-pv="schedule">Schedule now</button>';
+  }
+  return '<div class="pv-iv" data-pv-id="'+esc(c.id)+'"><div class="ic">'+icon+'</div><div class="mid"><div class="lab">'+lab+'</div><div class="t">'+esc(title)+'</div>'+
+    (meta?'<div class="m">'+esc(meta)+'</div>':'')+'</div>'+(acts?'<div class="acts">'+acts+'</div>':'')+'</div>';
+}
+function placeCard(){
+  var main=document.querySelector('#view-candidates .cd-pfmain'); if(!main) return;
+  var tabs=main.querySelector('.cd-tabs[role=tablist]'); if(!tabs) return;
+  var c=cur(); if(!c) return;
+  var ex=main.querySelector('.pv-iv');
+  if(ex && ex.getAttribute('data-pv-id')===c.id && ex.nextElementSibling===tabs) return;
+  if(ex) ex.remove();
+  var w=document.createElement('div'); w.innerHTML=ivCard(c); tabs.parentNode.insertBefore(w.firstChild, tabs);
+}
+
+/* screening answers that agree with the resume */
+function yearsFrom(exp){ var ys=[]; (exp||[]).forEach(function(e){ (String(e[2]||'').match(/\b(19|20)\d{2}\b/g)||[]).forEach(function(y){ ys.push(+y); }); }); return ys.length?2026-Math.min.apply(null,ys):0; }
+function answers(c){
+  var P=(window.D6&&D6.POS)?D6.POS[c.job]:null; if(!P) return '';
+  var yrs=yearsFrom((c.p||{}).exp);
+  return P.qs.map(function(q){ var a=/how many years/i.test(q[0])?yrs+' years':'Yes';
+    return '<div class="pv-qa"><div class="q">'+esc(q[0])+'</div><div class="a">&#10003; '+a+'</div><div class="n">Needs: '+esc(q[1])+'</div></div>'; }).join('');
+}
+function extras(c){
+  var P=(window.D6&&D6.POS)?D6.POS[c.job]:null; if(!P) return [];
+  var want=P.must.concat(P.nice).join(' ').toLowerCase();
+  return ((c.p||{}).quals||[]).filter(function(q){ var w=q.toLowerCase().replace(/[^a-z0-9 -]/g,' ').split(/\s+/).filter(function(x){return x.length>2;})[0]||''; w=w.replace(/s$/,''); return w && want.indexOf(w)<0; });
+}
+function sectionsOf(html){
+  var t=document.createElement('template'); t.innerHTML=html; var out={}, order=[];
+  Array.prototype.forEach.call(t.content.children,function(s){ if(!s.classList.contains('cd-sec')) return; var h=s.querySelector('h2'); var k=((h&&h.textContent)||'').trim().split(/\s+/)[0].toLowerCase(); out[k]=s; order.push(k); });
+  return {t:t, s:out, order:order};
+}
+function compactWhy(sec, twoCols){
+  var w=sec&&sec.querySelector('.d6-why'); if(!w) return null;
+  var kids=Array.prototype.slice.call(w.children), top=kids.shift(), cols=[[],[]], k=-1;
+  kids.forEach(function(el){ if(el.classList.contains('d6-grp')) k++; if(k>=0) cols[Math.min(k,1)].push(el); });
+  var g=document.createElement('div'); g.className=twoCols?'pv-cols':'pv-one';
+  if(twoCols){ cols.forEach(function(col){ var d=document.createElement('div'); col.forEach(function(el){ d.appendChild(el); }); g.appendChild(d); }); }
+  else { cols[0].concat(cols[1]).forEach(function(el){ g.appendChild(el); }); }
+  w.appendChild(g); return w;
+}
+function setBody(sec, html){ var b=sec&&sec.querySelector('.cd-secbody'); if(b) b.innerHTML=html; }
+function outer(el){ return el?el.outerHTML:''; }
+
+function restructure(html, c){
+  var r=sectionsOf(html), S=r.s;
+  if(S.screener) setBody(S.screener, '<div>'+answers(c)+'</div>');
+    var w=compactWhy(S.why, true);
+    if(w){ w.insertAdjacentHTML('beforeend','<div class="pv-sub">Screening answers</div><div>'+answers(c)+'</div>');
+      var ex=extras(c); if(ex.length) w.insertAdjacentHTML('beforeend','<div class="pv-sub">Also on the resume</div><div class="pv-also">'+ex.map(function(q){return '<span class="cd-chip">'+esc(q)+'</span>';}).join('')+'</div>'); }
+    /* the resume repeats Experience and Education: one line, open it when needed */
+    var rb=S.resume&&S.resume.querySelector('.cd-secbody');
+    if(rb){ var full=rb.innerHTML; rb.innerHTML='<div class="pv-res"><span class="nm">'+esc(c.n)+' &middot; resume.pdf</span><span class="sp"></span><button class="cd-btn sec" data-pv="resview">View resume</button><button class="cd-btn sec" data-pv="resdl">Download</button></div><div class="pv-resfull" hidden>'+full+'</div>'; }
+    return outer(S.why)+outer(S.experience)+outer(S.education)+outer(S.resume);
+}
+if(window.CD && typeof CD.appTabHTML==='function' && !CD.appTabHTML.__pv){
+  var _app=CD.appTabHTML;
+  CD.appTabHTML=function(c,p){ var h=_app.apply(this,arguments); try{ h=restructure(h,c); }catch(e){ console.error(e); } return h; };
+  CD.appTabHTML.__pv=1;
+}
+document.addEventListener('click',function(e){
+  var t=e.target.closest&&e.target.closest('[data-pv]'); if(!t) return;
+  var k=t.getAttribute('data-pv'), c=cur(), nm=c?c.n:'The candidate', first=nm.split(' ')[0];
+  var rq=c&&REQ[c.id]?REQ[c.id].split(' · ').slice(1).join(' at '):'the time they picked';
+  if(k==='accept'){ toast('Interview accepted', first+' gets a confirmation for '+rq+'.'); return; }
+  if(k==='resched'){ toast('Reschedule', 'Pick a new time. '+first+' can accept it or pick another.'); return; }
+  if(k==='decline'){ toast('Request declined', first+' gets the Not moving forward email.'); return; }
+  if(k==='resview'){ var f=t.closest('.cd-secbody').querySelector('.pv-resfull'); if(f){ f.hidden=!f.hidden; t.textContent=f.hidden?'View resume':'Hide resume'; } return; }
+  if(k==='resdl'){ toast('Download started','resume.pdf'); return; }
+  if(k==='schedule'){ if(c && CD.schedule) CD.schedule(c.id); return; }
+},true);
+var host=document.getElementById('view-candidates');
+if(host) new MutationObserver(function(){ placeCard(); }).observe(host,{childList:true,subtree:true});
+setInterval(placeCard, 800);
+})();
+</script>
 </body>
 </html>
