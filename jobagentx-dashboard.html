@@ -7992,9 +7992,12 @@ function openDock(pk){var p=P[pk];if(!p)return;var d=document.getElementById("ms
  if(!d){d=document.createElement("div");d.className="dock";d.id="msgDock";document.body.appendChild(d)}
  d.setAttribute("data-pk",pk);d.classList.remove("min");
  var role=(p.w&&p.w[0]&&p.w[0][0])||"";
+ /* build89: on the Interviews page the window shows the position the candidate requested (Scott, 25 Oct 2026) */
+ var ivp=document.querySelector("#view-interviews .iv-tab-panel.active"),ivd=ivp&&ivp.querySelector(".md-det"),ivi=ivp&&ivp.querySelector(".md-it.on .md-it-a");
+ var sub=(ivd&&ivi&&ivd.getAttribute("data-mdpk")===pk)?ivi.textContent.trim().replace(/&/g,"&amp;").replace(/</g,"&lt;"):(role+" &middot; "+p.l);
  var th=(MSGS[pk]||[]);
  var body=th.length?th.map(function(m){return '<div class="dock-msg"></div>'}).join(""):'<div class="dock-em">When you contact the candidate,<br>messages will appear here.</div>';
- d.innerHTML='<div class="dock-h" data-dockmin="1"><div style="min-width:0"><div class="dock-n">'+p.n+'</div><div class="dock-s">'+role+" &middot; "+p.l+'</div></div><div style="display:flex;gap:2px;flex:0 0 auto"><button type="button" class="dock-b" data-dockmin="1">&minus;</button><button type="button" class="dock-b" data-dockx="1">&times;</button></div></div>'
+ d.innerHTML='<div class="dock-h" data-dockmin="1"><div style="min-width:0"><div class="dock-n">'+p.n+'</div><div class="dock-s">'+sub+'</div></div><div style="display:flex;gap:2px;flex:0 0 auto"><button type="button" class="dock-b" data-dockmin="1">&minus;</button><button type="button" class="dock-b" data-dockx="1">&times;</button></div></div>'
   +'<div class="dock-m" id="dockM">'+body+"</div>"
   +'<div class="dock-f"><textarea class="dock-ta" id="dockTa" placeholder="Write a message..."></textarea><button type="button" class="dock-send" id="dockSend">Send</button><div style="clear:both"></div></div>';
  var mm=d.querySelector("#dockM");
@@ -8488,11 +8491,7 @@ function agxDockSync(){
  if(!det){if(d)d.classList.remove("on");return}
  var pk=det.getAttribute("data-mdpk")||"";
  if(!pk){if(d)d.classList.remove("on");return}
- if(d&&d.getAttribute("data-pk")===pk){d.classList.add("on");return}
- var wasOpen=d&&d.classList.contains("on")&&!d.classList.contains("min");
- openDock(pk);
- d=document.getElementById("msgDock");
- if(d&&!wasOpen)d.classList.add("min");
+ /* build89: the message window no longer opens by itself when an interview is picked; Message opens it (Scott, 25 Oct 2026) */
 }
 function agxGrp(pk){return '<div class="iv2-grp" style="margin-right:8px">'
  +'<button class="ok iv2-tt" data-tip="Accept interview" data-mdact="accept|'+pk+'">'+ico("check")+'</button>'
@@ -21974,7 +21973,7 @@ if(document.getElementById('view-candidates') && typeof CD.render === 'function'
 #view-candidates .cd-sechead h2{font-size:20px;line-height:30px;font-weight:700;color:#2d2d2d;margin:0}
 </style>
 
-<!-- ═══ build88 · agent details for the agent model: what the agent is doing, results, instructions, matching rules, messages; candidate matches (25 Oct 2026) ═══ -->
+<!-- ═══ build88-89 · agent details for the agent model: what the agent is doing, results, instructions, matching rules, messages; candidate matches on the profile and on interview requests (25 Oct 2026) ═══ -->
 <style>
 /* ═══ D6 — shared ═══ */
 .d6-card{background:#fff;border:1px solid #e4e2e0;border-radius:12px;padding:20px 22px}
@@ -22106,6 +22105,7 @@ if(document.getElementById('view-candidates') && typeof CD.render === 'function'
 .d6-ev .e{grid-column:2;font-size:14px;color:#424242;line-height:20px}
 .d6-ev .src{color:#767676}
 .d6-grp{font-size:13px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:#595959;margin-top:4px}
+#view-interviews .d6-why{margin-top:14px}
 
 </style>
 <script>
@@ -22401,6 +22401,27 @@ if(window.CD && typeof CD.appTabHTML==='function' && !CD.appTabHTML.__d6){
   };
   CD.appTabHTML.__d6=1;
 }
+/* interview request detail (Interviews page) */
+function ivInjectOne(det){
+  if(!det || det.querySelector('.d6-why')) return;
+  var chip0=det.querySelector('.md-ic .md-chip'); if(!chip0 || !/request/i.test(chip0.textContent)) return;
+  var tabOn=det.querySelector('.md-tab.on'); if(!tabOn || !/Application/.test(tabOn.textContent)) return;
+  var panel=det.closest('.iv-tab-panel')||document;
+  var it=panel.querySelector('.md-it.on .md-it-a'); var pos=it?it.textContent.split('\u00b7')[0].trim():'';
+  if(!D6.POS[pos]) return;
+  var nm=(det.querySelector('.md-nm')||{}).textContent||'';
+  var fd=det.querySelector('.md-fd'), fe=det.querySelector('.md-fe');
+  var co=fe?fe.textContent.split('(')[0].trim():'', since=fe&&/\((\d{4})/.test(fe.textContent)?fe.textContent.match(/\((\d{4})/)[1]:'';
+  var quals=Array.prototype.map.call(det.querySelectorAll('.md-q'),function(q){return q.textContent;});
+  if(pos==='Registered Nurse') quals=quals.concat(['Telemetry','Epic']);
+  var firstSh=det.querySelector('.md-sh'); if(!firstSh) return;
+  var w=document.createElement('div'); w.innerHTML='<div class="md-sh">Why this candidate matches</div>'+D6.evidence(pos,nm,fd?fd.textContent:'',co,since,quals,4);
+  firstSh.parentNode.insertBefore(w,firstSh);
+}
+function ivInject(){ document.querySelectorAll('#view-interviews .md-det').forEach(ivInjectOne); }
+var ivHost=document.getElementById('view-interviews');
+if(ivHost) new MutationObserver(function(){ ivInject(); }).observe(ivHost,{childList:true,subtree:true});
+
 /* ═════════ clicks ═════════ */
 document.addEventListener('click',function(e){
   var t=e.target.closest && e.target.closest('[data-d6]'); if(!t) return;
@@ -22489,7 +22510,7 @@ function ivCard(c){
     var rq=REQ[c.id]||'Video interview'; icon=fmtIcon(rq);
     lab='Interview requested <span class="pv-pill wait">Waiting on you</span>'; title=rq;
     var ago=(slot.split('·')[1]||'').trim(); if(ago) meta=ago.charAt(0).toUpperCase()+ago.slice(1)+'.';
-    acts='<button class="cd-btn pri" data-pv="accept">Accept</button><button class="cd-btn sec" data-pv="resched">Reschedule</button><button class="cd-btn sec" data-pv="decline">Decline</button>';
+    acts='<button class="cd-btn pri" data-pv="accept">Accept</button><button class="cd-btn sec" data-pv="resched">Propose new time</button><button class="cd-btn sec" data-pv="decline">Decline</button>';
   } else if(st==='Interview scheduled'){
     icon=fmtIcon(slot); lab='Interview scheduled <span class="pv-pill ok">Confirmed</span>'; title=slot.replace(/\s*·\s*Confirmed\s*$/,'');
     acts='<button class="cd-btn sec" data-pv="resched">Reschedule</button>';
@@ -22575,6 +22596,117 @@ document.addEventListener('click',function(e){
 var host=document.getElementById('view-candidates');
 if(host) new MutationObserver(function(){ placeCard(); }).observe(host,{childList:true,subtree:true});
 setInterval(placeCard, 800);
+})();
+</script>
+<!-- ═══ build89 · Interviews page request panel: interview card on top with Accept / Propose new time / Decline, one match section, resume as one line (25 Oct 2026, Scott picked option 1) ═══ -->
+<style>
+#view-interviews .ivx-hide{display:none !important}
+#view-interviews .pv-iv{margin-top:14px}
+#view-interviews .pv-iv{flex-wrap:wrap;align-items:flex-start}
+#view-interviews .pv-iv .acts{flex:1 1 100%;justify-content:flex-start;padding-left:64px}
+#view-interviews .pv-cols{gap:0 20px}
+.ivx-acts{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ivx-acts .cd-btn{height:40px;font-size:15px;padding:7px 14px;display:inline-flex;align-items:center;gap:6px}
+.ivx-acts .cd-btn svg{width:18px;height:18px}
+.ivx-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;width:100%}
+.ivx-meta .sp{flex:1 1 auto}
+.ivx-sec{margin:6px 0 4px}
+.ivx-item{padding:8px 0;border-top:1px solid #efedea}
+.ivx-item:first-child{border-top:0}
+.ivx-item .t{font-size:15px;font-weight:700;color:#2d2d2d}
+.ivx-item .d{font-size:14px;color:#595959;line-height:20px}
+</style>
+<script>
+(function(){
+var MID = 'Propose new time';
+function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+var ICV = {
+  video:'<svg viewBox="0 0 24 24"><rect x="2" y="6" width="14" height="12" rx="2"/><path d="M16 10l6-3v10l-6-3z"/></svg>',
+  phone:'<svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg>',
+  person:'<svg viewBox="0 0 24 24"><path d="M12 22s7-6.1 7-12a7 7 0 0 0-14 0c0 5.9 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg>'
+};
+function fmtIcon(s){ return /phone/i.test(s)?ICV.phone:/in person/i.test(s)?ICV.person:ICV.video; }
+function acts(){ return '<button class="cd-btn pri" data-ivx="ok">Accept</button><button class="cd-btn sec" data-ivx="re">'+MID+'</button><button class="cd-btn sec" data-ivx="no">Decline</button>'; }
+/* resume body → work experience, education, screening answers */
+function readResume(rs){
+  var out={exp:[],edu:[],qa:[]}, cur=null, item=null;
+  Array.prototype.forEach.call(rs?rs.children:[],function(el){
+    var cls=el.className||'', tx=(el.textContent||'').trim();
+    if(!cls){ cur=/work/i.test(tx)?'exp':/educ/i.test(tx)?'edu':/screen/i.test(tx)?'qa':null; item=null; return; }
+    if(!cur) return;
+    if(/md-fd/.test(cls)){ item={t:tx,d:[]}; out[cur].push(item); }
+    else if(/md-fe/.test(cls) && item){ item.d.push(tx); }
+  });
+  out.qa=out.qa.map(function(x){ return {q:x.t, a:(x.d[0]||'').replace(/^Answer:\s*/i,'')}; });
+  return out;
+}
+function extras(pos, quals){
+  var P=(window.D6&&D6.POS)?D6.POS[pos]:null; if(!P) return [];
+  var want=P.must.concat(P.nice).join(' ').toLowerCase();
+  return quals.filter(function(q){ var w=q.toLowerCase().replace(/[^a-z0-9 -]/g,' ').split(/\s+/).filter(function(x){return x.length>1;})[0]||''; w=w.replace(/s$/,''); return w && want.indexOf(w)<0; });
+}
+function items(list){ return list.map(function(x){ return '<div class="ivx-item"><div class="t">'+esc(x.t)+'</div>'+x.d.map(function(d){return '<div class="d">'+esc(d)+'</div>';}).join('')+'</div>'; }).join(''); }
+
+function process(det){
+  if(!det || det.querySelector('.pv-iv')) return;
+  var ic=det.querySelector('.md-ic'), chip=ic&&ic.querySelector('.md-chip');
+  if(!chip || !/request/i.test(chip.textContent)) return;
+  var why=det.querySelector('.d6-why'); if(!why) return;
+  var panel=det.closest('.iv-tab-panel')||document;
+  var it=panel.querySelector('.md-it.on .md-it-a'); var pos=it?it.textContent.split('·')[0].trim():'';
+  var fmt=((ic.querySelector(':scope > div > span')||{}).textContent||'Video interview').trim();
+  var lbls=ic.querySelectorAll('.md-lbl'), when=((lbls[0]||{}).textContent||'').trim(), who=((lbls[1]||{}).textContent||'').replace(/^\s*Interviewers?:\s*/i,'').trim();
+  var mdb=Array.prototype.slice.call(ic.querySelectorAll('.md-acts .md-b'));
+  /* no "Interview is live" on a request that nobody has accepted */
+  var live=det.querySelector('.md-cd'); if(live) live.remove();
+  /* status */
+  var st=det.querySelector('.md-status > span'); if(st) st.innerHTML='<b>Status:</b> Interview requested';
+  /* header: the three icons go (the actions are in the card) */
+  var disp=det.querySelector('.md-disp');
+  if(disp) disp.remove();
+  /* the row under the name: Message and Call (same as the profile), no repeated time */
+  var meta=det.querySelector('.md-meta'), ml=meta&&meta.querySelector('.agx-metal'); if(ml) ml.remove();
+  if(meta){ var mm=document.createElement('div'); mm.className='ivx-acts';
+    mdb.slice(0,2).forEach(function(b,i){ var n=document.createElement('button'); n.className='cd-btn sec'; n.setAttribute('data-ivx','mb'+i); n.innerHTML=b.innerHTML; mm.appendChild(n); });
+    meta.insertBefore(mm, meta.firstChild); meta.classList.add('ivx-meta'); var sp=document.createElement('span'); sp.className='sp'; meta.insertBefore(sp, mm.nextSibling); }
+  /* the interview, above the tabs */
+  var tabs=det.querySelector('.md-tabs');
+  tabs.insertAdjacentHTML('beforebegin','<div class="pv-iv"><div class="ic">'+fmtIcon(fmt)+'</div><div class="mid"><div class="lab">Interview requested <span class="pv-pill wait">Waiting on you</span></div>'+
+    '<div class="t">'+esc(fmt+' · '+when)+'</div>'+(who?'<div class="m">Interviewer: '+esc(who)+'</div>':'')+'</div>'+'<div class="acts ivx-acts">'+acts()+'</div>'+'</div>');
+  /* sections: the old Interviews block stays hidden (its buttons do the work), Qualifications folds into the match card */
+  var heads=Array.prototype.slice.call(det.querySelectorAll('.md-sh'));
+  function head(name){ return heads.filter(function(h){ return h.textContent.trim()===name; })[0]; }
+  var hIv=head('Interviews'); if(hIv){ hIv.classList.add('ivx-hide'); ic.classList.add('ivx-hide'); }
+  var quals=Array.prototype.map.call(det.querySelectorAll('.md-q'),function(q){ return q.textContent.trim(); });
+  var hQ=head('Qualifications'); if(hQ){ var n1=hQ.nextElementSibling, n2=n1&&n1.nextElementSibling; [hQ,n1,n2].forEach(function(x){ if(x) x.classList.add('ivx-hide'); }); }
+  var rs=det.querySelector('.md-rs'), body=rs&&rs.querySelector('.md-rs-b'), R=readResume(body);
+  /* match card: two columns, screening answers, anything else on the resume */
+  var kids=Array.prototype.slice.call(why.children), top=kids.shift(), cols=[[],[]], k=-1;
+  kids.forEach(function(el){ if(el.classList.contains('d6-grp')) k++; if(k>=0) cols[Math.min(k,1)].push(el); });
+  var g=document.createElement('div'); g.className='pv-cols'; cols.forEach(function(col){ var d=document.createElement('div'); col.forEach(function(el){ d.appendChild(el); }); g.appendChild(d); }); why.appendChild(g);
+  if(R.qa.length) why.insertAdjacentHTML('beforeend','<div class="pv-sub">Screening answers</div><div>'+R.qa.map(function(x){ return '<div class="pv-qa"><div class="q">'+esc(x.q)+'</div><div class="a">&#10003; '+esc(x.a)+'</div></div>'; }).join('')+'</div>');
+  var ex=extras(pos, quals); if(ex.length) why.insertAdjacentHTML('beforeend','<div class="pv-sub">Also on the resume</div><div class="pv-also">'+ex.map(function(q){return '<span class="cd-chip">'+esc(q)+'</span>';}).join('')+'</div>');
+  /* experience and education, then the resume as one line */
+  var hR=head('Resume');
+  if(hR){
+    hR.insertAdjacentHTML('beforebegin', (R.exp.length?'<div class="md-sh">Experience</div><div class="ivx-sec">'+items(R.exp)+'</div>':'')+(R.edu.length?'<div class="md-sh">Education</div><div class="ivx-sec">'+items(R.edu)+'</div>':''));
+    var nm=(det.querySelector('.md-nm')||{}).textContent||'';
+    hR.insertAdjacentHTML('afterend','<div class="pv-res ivx-resbar"><span class="nm">'+esc(nm)+' &middot; resume.pdf</span><span class="sp"></span><button class="cd-btn sec" data-ivx="rv">View resume</button><button class="cd-btn sec" data-ivx="rd">Download</button></div>');
+    if(rs) rs.classList.add('ivx-hide');
+  }
+}
+function run(){ document.querySelectorAll('#view-interviews .md-det').forEach(function(d){ try{ process(d); }catch(e){ console.error(e); } }); }
+document.addEventListener('click',function(e){
+  var t=e.target.closest&&e.target.closest('[data-ivx]'); if(!t) return;
+  var det=t.closest('.md-det'); if(!det) return; var k=t.getAttribute('data-ivx'), ic=det.querySelector('.md-ic');
+  if(k==='ok'||k==='re'||k==='no'){ var b=ic&&ic.querySelector('.iv2-grp .'+k); if(b) b.click(); return; }
+  if(k==='mb0'||k==='mb1'){ var m=ic&&ic.querySelectorAll('.md-acts .md-b')[+k.slice(2)]; if(m) m.click(); return; }
+  if(k==='rv'){ var rs=det.querySelector('.md-rs'); if(rs){ rs.classList.toggle('ivx-hide'); t.textContent=rs.classList.contains('ivx-hide')?'View resume':'Hide resume'; } return; }
+  if(k==='rd'){ var dl=det.querySelector('.md-rs-h .md-b'); if(dl) dl.click(); return; }
+},true);
+var host=document.getElementById('view-interviews');
+if(host) new MutationObserver(function(){ run(); }).observe(host,{childList:true,subtree:true});
+setInterval(run, 800);
 })();
 </script>
 </body>
