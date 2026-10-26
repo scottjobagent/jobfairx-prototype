@@ -3237,6 +3237,31 @@ if (document.readyState !== 'loading') renderSlots();
 #interviewSettingsExpand .owner-checkbox-row{display:none !important}
 #pnPanelGroup .toggle-row{margin-top:0}
 #pnPanelLine{font-size:13px;font-weight:400;color:#767676;margin-top:10px;line-height:1.5}
+/* Interviewer list with Resend (26 Oct, Scott's pick: option C) */
+.pn-inv-err{display:none;align-items:center;gap:8px;color:#991b1b;font-size:13.5px;font-weight:600;margin:10px 0 2px}
+.pn-inv-err.show{display:flex}
+.pn-inv-err svg{width:16px;height:16px;flex-shrink:0}
+.pn-inv-hd{display:flex;align-items:center;justify-content:space-between;margin:18px 0 8px;font-size:14px;font-weight:700;color:#2d2d2d}
+.pn-inv-all{border:none;background:none;padding:0;font-family:inherit;color:#0044B3;font-weight:600;font-size:14px;text-decoration:underline;text-underline-offset:2px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.pn-inv-all svg{width:15px;height:15px}
+.pn-inv-rows{border:1px solid #e4e2e0;border-radius:10px}
+.pn-inv-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:11px 14px}
+.pn-inv-row + .pn-inv-row{border-top:1px solid #f0eeeb}
+.pn-inv-em{font-size:14px;font-weight:600;color:#2d2d2d;word-break:break-all}
+.pn-inv-you{color:#767676;font-weight:400;font-size:13px;margin-left:4px}
+.pn-inv-st{font-size:13px;color:#767676;margin-top:2px}
+.pn-inv-st.ok{color:#1a7f37}
+.pn-inv-st svg{width:13px;height:13px;vertical-align:-2px;margin-right:3px}
+.pn-inv-acts{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.pn-inv-rs{border:1px solid #d4d2d0;background:#fff;border-radius:8px;padding:6px 12px;font-family:inherit;font-size:13px;font-weight:600;color:#0044B3;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.pn-inv-rs:hover{background:#f0f5ff;border-color:#0044B3}
+.pn-inv-rs svg{width:14px;height:14px}
+.pn-inv-rs[disabled]{color:#a8a8a8;cursor:default;background:#fff;border-color:#e4e2e0}
+.pn-inv-rm{border:none;background:none;font-size:20px;line-height:1;color:#767676;width:28px;height:28px;cursor:pointer;border-radius:6px;font-family:inherit}
+.pn-inv-rm:hover{background:#f3f2ef;color:#2d2d2d}
+/* The page's own chips stay in the box (its seat counter counts them) but are shown as the list below instead. */
+#interviewerEmailBox .is-email-chip{display:none !important}
+#pnInvList .pn-inv-hd{margin-top:20px}
 </style>
 <script>
 /* ═══ PANEL INTERVIEWS (8 Oct 2026): the event's edit page (edit-post-v3-panel.html, a copy of edit-post-v3.html) ═══
@@ -3291,10 +3316,60 @@ if (document.readyState !== 'loading') renderSlots();
     });
     if (can) can.addEventListener('click', function () { syncSwitch(); });
   }
+  /* ══ Resend the interviewer invite (Scott, 26 Oct, option C) ══
+     The page's own chips stay in the box (its seat counter and limit message count them) but are hidden; this list
+     shows each interviewer with when the invite was sent, a Resend button and the remove x. "Resend invite to all"
+     sits on the list header. Example dates. */
+  var RS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>';
+  var TICK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+  var SENTON = { 'emily.chen@example.com': 'Apr 8', 'maria.lopez@example.com': 'Apr 8', 'david.park@example.com': 'Apr 8', 'hannah.brooks@example.com': 'Apr 15' };
+  var ME_EMAIL = 'scott@jobfairx.com';
+  var SAVED = {}, STATE = {};
+  function esc(t) { return String(t).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function chipFor(e) { return $$('#interviewerEmailBox .is-email-chip').filter(function (c) { var t = c.firstChild; while (t && t.nodeType !== 3) t = t.nextSibling; return t && t.nodeValue.trim() === e; })[0]; }
+  function renderList() {
+    var wrap = $('#pnInvList'); if (!wrap) return;
+    var list = emails();
+    wrap.innerHTML = '<div class="pn-inv-hd"><span>Interviewers (' + list.length + ')</span><button type="button" class="pn-inv-all" onclick="JFXE.all()">' + RS + 'Resend invite to all</button></div>' +
+      '<div class="pn-inv-rows">' + list.map(function (e) {
+        var me = e === ME_EMAIL, saved = !!SAVED[e], x = STATE[e] || {};
+        var st = me ? '' : !saved ? 'Invite sends when you click Update' : x.just ? TICK + 'Invite sent just now' : 'Invite sent ' + (SENTON[e] || 'Apr 8');
+        var btn = (me || !saved) ? '' : x.lock ? '<button type="button" class="pn-inv-rs" disabled>Sent</button>'
+          : '<button type="button" class="pn-inv-rs" onclick="JFXE.resend(\'' + esc(e) + '\')">' + RS + 'Resend</button>';
+        return '<div class="pn-inv-row" data-e="' + esc(e) + '"><div><div class="pn-inv-em">' + esc(e) + (me ? '<span class="pn-inv-you">(you)</span>' : '') + '</div>' +
+          (st ? '<div class="pn-inv-st' + (x.just && saved ? ' ok' : '') + '">' + st + '</div>' : '') + '</div>' +
+          '<div class="pn-inv-acts">' + btn + '<button type="button" class="pn-inv-rm" title="Remove" aria-label="Remove ' + esc(e) + '" onclick="JFXE.remove(\'' + esc(e) + '\')">&times;</button></div></div>';
+      }).join('') + '</div>';
+  }
+  function send(list) {
+    list.forEach(function (e) {
+      STATE[e] = { just: true, lock: true };
+      setTimeout(function () { if (STATE[e]) STATE[e].lock = false; renderList(); }, 60000);     /* one resend a minute per person */
+    });
+    renderList();
+  }
+  window.JFXE = {
+    resend: function (e) { if ((STATE[e] || {}).lock) return; send([e]); if (typeof showToast === 'function') showToast('Invite sent to ' + e); },
+    all: function () {
+      var list = emails().filter(function (e) { return e !== ME_EMAIL && SAVED[e] && !(STATE[e] || {}).lock; });
+      if (!list.length) { if (typeof showToast === 'function') showToast('Invites were just sent'); return; }
+      send(list); if (typeof showToast === 'function') showToast('Invites sent to ' + list.length + ' interviewer' + (list.length === 1 ? '' : 's'));
+    },
+    remove: function (e) { var c = chipFor(e), x = c && c.querySelector('.is-email-chip-x'); if (x && typeof removeInterviewerChip === 'function') removeInterviewerChip(x); renderList(); }
+  };
+  function listInit() {
+    emails().forEach(function (e) { SAVED[e] = true; });
+    var anchor = $('#seatLimitMsg'); if (!anchor || $('#pnInvList')) return;
+    anchor.insertAdjacentHTML('afterend', '<div id="pnInvList"></div>');
+    if (window.MutationObserver) new MutationObserver(renderList).observe($('#interviewerEmailBox'), { childList: true });
+    var upd = $('#interviewSettingsExpand .ce-btn-update');
+    if (upd) upd.addEventListener('click', function () { emails().forEach(function (e) { if (!SAVED[e]) { SAVED[e] = true; STATE[e] = { just: true }; } }); renderList(); });
+    renderList();
+  }
   function init() {
     /* Scott, 8 Oct: Starter has two interviewer seats, Growth five, Pro no limit. */
     if (window.PACKAGE_SEAT_LIMITS) PACKAGE_SEAT_LIMITS.starter = 2;
-    load(); seed(); block(); syncSwitch(); summary();
+    load(); seed(); block(); syncSwitch(); summary(); listInit();
     if (/[?&]open=interviewers/.test(window.location.search) && typeof toggleInterviewSettings === 'function') {
       toggleInterviewSettings(true);
       var sec = $('#interviewSettingsSummary'); if (sec && sec.parentNode && sec.parentNode.parentNode) sec.parentNode.parentNode.scrollIntoView({ block: 'start' });
