@@ -1024,16 +1024,13 @@ setTimeout(function() {
       <div class="im-err" id="imAddrErr"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4" stroke="#fff" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="16" r="1" fill="#fff"/></svg>Please complete the interview address (street, city, state, and ZIP).</div>
     </div>
     <div class="im-gap">
-      <label class="im-fld-label" for="imParking">Parking instructions</label>
-      <textarea class="im-ta" id="imParking" placeholder="e.g., Visitor parking is available behind Building A."></textarea>
-    </div>
-    <div class="im-gap">
-      <label class="im-fld-label" for="imArrival">Arrival instructions</label>
-      <textarea class="im-ta" id="imArrival" placeholder="e.g., Check in with the receptionist on the 2nd floor and ask for Human Resources."></textarea>
+      <label class="im-fld-label" for="imAttend">How to attend</label>
+      <textarea class="im-ta" id="imAttend" placeholder="e.g., Visitor parking is behind Building A. Enter through the main lobby and check in with the receptionist on the 2nd floor, then ask for Human Resources."></textarea>
+      <p class="im-fld-hint">Parking, which entrance to use, and who to ask for when they arrive.</p>
     </div>
     <div class="im-note">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>
-      <p>The address, parking, and arrival details are included in every candidate&rsquo;s interview confirmation.</p>
+      <p>The address and these details are included in every candidate&rsquo;s interview confirmation.</p>
     </div>
   </div>
 </div>
@@ -1093,6 +1090,22 @@ setTimeout(function() {
 })();
 </script>
 <!-- ═══════════ /INTERVIEW METHOD v3 ═══════════ -->
+
+        <!-- Interview time slot duration: 15 or 30 minutes, locked once the jobs are published -->
+        <div class="id-field" id="slotDurField">
+          <div class="id-field-label">Interview time slot duration</div>
+          <p class="id-field-hint">Choose how often candidates can schedule an interview.</p>
+          <div class="pay-custom-select" id="slotDurSelect">
+            <div class="pay-custom-trigger" onclick="togglePaySelect('slotDurSelect')">
+              <span id="slotDurLabel">30 minutes</span>
+              <svg class="pay-custom-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+            <div class="pay-custom-panel">
+              <div class="pay-custom-option" data-value="15" onclick="slotPickStep(this)"><svg class="pco-check hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>15 minutes</div>
+              <div class="pay-custom-option selected" data-value="30" onclick="slotPickStep(this)"><svg class="pco-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>30 minutes</div>
+            </div>
+          </div>
+        </div>
 
         <!-- Interviews per time slot -->
         <div class="id-field">
@@ -1438,7 +1451,7 @@ function toggleInterviewDetails(show) {
   }
 }
 
-// ── Interview capacity per 30-minute slot ──────────────────────────────
+// ── Interview capacity per time slot (15 or 30 minutes, SLOT_STEP) ─────
 // Slots are generated from the event window, not typed in. 0 closes a slot.
 // A slot can never go below the number of interviews already booked in it:
 // setting it equal to the booked count means the slot is full and no one
@@ -1502,8 +1515,8 @@ function renderSlots() {
   var sum = document.getElementById('interviewDetailsSummary');
   if (sum) {
     sum.textContent = (total === 0)
-      ? (window.__imName||'JobFairX Video interviews')+' | '+'No interview capacity set | Start Advertising Date: 04/07/2026 | Attendance instructions added'
-      : (window.__imName||'JobFairX Video interviews')+' | '+total + ' interviews across ' + open + ' time slot' + (open === 1 ? '' : 's') + ' | Start Advertising Date: 04/07/2026 | Attendance instructions added';
+      ? (window.__imName||'JobFairX Video interviews')+' | '+SLOT_STEP+'-minute time slots | No interview capacity set | Start Advertising Date: 04/07/2026 | Attendance instructions added'
+      : (window.__imName||'JobFairX Video interviews')+' | '+SLOT_STEP+'-minute time slots | '+total + ' interviews across ' + open + ' time slot' + (open === 1 ? '' : 's') + ' | Start Advertising Date: 04/07/2026 | Attendance instructions added';
   }
 }
 function slotAdj(i, d) {
@@ -1557,6 +1570,7 @@ function slotUndoApply() {
 // Driven by the setup-state toggle. Interview details not set up yet means no
 // capacity and no bookings; complete means the seeded event.
 function slotApplySetup(interviewOk) {
+  if (typeof slotSetStep === 'function') slotSetStep(30, true);   /* the seeded events run 30-minute slots */
   if (interviewOk) {
     SLOT_BOOKED = [0, 2, 3, 1, 0, 0, 0, 0];
     SLOT_VALS   = [3, 4, 4, 4, 3, 3, 0, 0];
@@ -3132,115 +3146,261 @@ document.addEventListener('DOMContentLoaded', renderSlots);
 if (document.readyState !== 'loading') renderSlots();
 </script>
 
-<!-- ═══════════ CHANGE INTERVIEW METHOD AFTER PUBLISHING ═══════════
-     Changing the method used to take two clicks with no warning and no
-     re-notification — 16 confirmed candidates could be sent to the wrong
-     kind of interview silently. The employer now chooses, for the whole
-     confirmed batch: keep them on their original method, or move everyone
-     and notify them. Built on the End-interview modal pattern, which is
-     already this app's shape for "pick one of two consequences". ═══════ -->
+<!-- ═══════════════ PANEL INTERVIEWS (6 Oct 2026) ═══════════════
+     Several interviewers in one interview. Everything for it is in this block.
+     ═════════════════════════════════════════════════════════════ -->
 <style>
-.jmc-ov { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,.5); z-index:99999; align-items:center; justify-content:center; }
-.jmc-ov.open { display:flex; }
-.jmc-modal { background:#fff; border-radius:14px; width:560px; max-width:92vw; box-shadow:0 8px 32px rgba(0,0,0,.2); font-family:inherit; }
-.jmc-head { display:flex; align-items:flex-start; justify-content:space-between; padding:24px 24px 0; }
-.jmc-head h3 { font-size:18px; font-weight:700; color:#2d2d2d; margin:0; line-height:1.4; }
-.jmc-x { width:28px; height:28px; border:none; background:none; cursor:pointer; color:#595959; border-radius:6px; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-left:12px; }
-.jmc-x:hover { background:#f3f2ef; }
-.jmc-warn { display:flex; gap:12px; align-items:flex-start; background:#fdf6ec; border-left:4px solid #b8730f; border-radius:0 6px 6px 0; padding:13px 16px; margin:16px 24px 0; }
-.jmc-warn svg { width:17px; height:17px; flex:0 0 17px; stroke:#b8730f; fill:none; stroke-width:2; margin-top:2px; }
-.jmc-warn p { font-size:13.5px; line-height:1.5; color:#5c4a2e; margin:0; }
-.jmc-opts { padding:20px 24px 0; display:flex; flex-direction:column; gap:16px; }
-.jmc-opt { display:flex; align-items:flex-start; gap:12px; cursor:pointer; }
-.jmc-opt input[type="radio"] { width:18px; height:18px; accent-color:#0044B3; margin-top:2px; flex-shrink:0; cursor:pointer; }
-.jmc-opt label { font-size:14px; color:#2d2d2d; line-height:1.5; cursor:pointer; }
-.jmc-sub { display:block; font-size:13px; color:#767676; margin-top:5px; line-height:1.5; }
-.jmc-acts { display:flex; justify-content:flex-end; gap:12px; padding:24px; }
-.jmc-acts button { padding:10px 20px; border-radius:8px; font-size:14px; font-weight:600; cursor:pointer; font-family:inherit; }
-.jmc-cancel { background:#fff; border:1px solid #d4d2d0; color:#2d2d2d; }
-.jmc-cancel:hover { background:#f3f2ef; }
-.jmc-save { background:#0044B3; border:none; color:#fff; }
-.jmc-save:hover { background:#003399; }
+/* ═══ PANEL INTERVIEWS (8 Oct 2026): the event's edit page. Interviewers & updates gets the Panel interviews switch. ═══ */
+/* Scott, 8 Oct: the owner's "I will be interviewing" box is not live any more. The interviewers are the pills. */
+#interviewSettingsExpand .owner-checkbox-row{display:none !important}
+#pnPanelGroup .toggle-row{margin-top:0}
+#pnPanelLine{font-size:13px;font-weight:400;color:#767676;margin-top:10px;line-height:1.5}
+/* Interviewer list with Resend (26 Oct, Scott's pick: option C) */
+.pn-inv-err{display:none;align-items:center;gap:8px;color:#991b1b;font-size:13.5px;font-weight:600;margin:10px 0 2px}
+.pn-inv-err.show{display:flex}
+.pn-inv-err svg{width:16px;height:16px;flex-shrink:0}
+.pn-inv-hd{display:flex;align-items:center;justify-content:space-between;margin:18px 0 8px;font-size:14px;font-weight:700;color:#2d2d2d}
+.pn-inv-all{border:none;background:none;padding:0;font-family:inherit;color:#0044B3;font-weight:600;font-size:14px;text-decoration:underline;text-underline-offset:2px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.pn-inv-all svg{width:15px;height:15px}
+.pn-inv-rows{border:1px solid #e4e2e0;border-radius:10px}
+.pn-inv-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:11px 14px}
+.pn-inv-row + .pn-inv-row{border-top:1px solid #f0eeeb}
+.pn-inv-em{font-size:14px;font-weight:600;color:#2d2d2d;word-break:break-all}
+.pn-inv-you{color:#767676;font-weight:400;font-size:13px;margin-left:4px}
+.pn-inv-st{font-size:13px;color:#767676;margin-top:2px}
+.pn-inv-st.ok{color:#1a7f37}
+.pn-inv-st svg{width:13px;height:13px;vertical-align:-2px;margin-right:3px}
+.pn-inv-acts{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.pn-inv-rs{border:1px solid #d4d2d0;background:#fff;border-radius:8px;padding:6px 12px;font-family:inherit;font-size:13px;font-weight:600;color:#0044B3;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.pn-inv-rs:hover{background:#f0f5ff;border-color:#0044B3}
+.pn-inv-rs svg{width:14px;height:14px}
+.pn-inv-rs[disabled]{color:#a8a8a8;cursor:default;background:#fff;border-color:#e4e2e0}
+.pn-inv-rm{border:none;background:none;font-size:20px;line-height:1;color:#767676;width:28px;height:28px;cursor:pointer;border-radius:6px;font-family:inherit}
+.pn-inv-rm:hover{background:#f3f2ef;color:#2d2d2d}
+/* The page's own chips stay in the box (its seat counter counts them) but are shown as the list below instead. */
+#interviewerEmailBox .is-email-chip{display:none !important}
+#pnInvList .pn-inv-hd{margin-top:20px}
 </style>
-<div class="jmc-ov" id="jmcOv">
-  <div class="jmc-modal">
-    <div class="jmc-head">
-      <h3>Change interview method to <span id="jmcTo"></span>?</h3>
-      <button class="jmc-x" onclick="JMC.close()" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="18" height="18"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
-    </div>
-    <div class="jmc-warn">
-      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01" stroke-linecap="round"/></svg>
-      <p><b id="jmcCount">16 candidates</b> have confirmed interviews for this event. Their scheduled times won't change either way.</p>
-    </div>
-    <div class="jmc-opts">
-      <div class="jmc-opt" onclick="document.getElementById('jmcKeep').checked=true">
-        <input type="radio" name="jmcChoice" id="jmcKeep" value="keep" checked>
-        <label for="jmcKeep"><b>Keep their original method.</b> The <span class="jmc-n">16</span> confirmed candidates stay on <span id="jmcFrom"></span>. Only new requests will use <span class="jmc-toi"></span>.
-          <span class="jmc-sub">Nobody is re-notified. Your event will run both methods on the day, and your Lobby will show which is which.</span></label>
-      </div>
-      <div class="jmc-opt" onclick="document.getElementById('jmcAll').checked=true">
-        <input type="radio" name="jmcChoice" id="jmcAll" value="all">
-        <label for="jmcAll"><b>Move everyone to <span class="jmc-toi"></span>.</b> All <span class="jmc-n">16</span> confirmed candidates are notified with the new details.
-          <span class="jmc-sub">Each candidate gets an updated confirmation. This is logged to their activity feed.</span></label>
-      </div>
-    </div>
-    <div class="jmc-acts">
-      <button class="jmc-cancel" onclick="JMC.close()">Cancel</button>
-      <button class="jmc-save" onclick="JMC.go()">Save changes</button>
-    </div>
-  </div>
-</div>
 <script>
-(function(){
-  var LABEL = { video:'Video', phone:'Phone', person:'In person' };
-  var CONFIRMED = 16;               /* prototype seed — the event's confirmed count */
-  var original = null, pending = null;
-
-  function current(){ return (window.__imState && window.__imState.format) || 'video'; }
-
-  window.JMC = {
-    close: function(){ document.getElementById('jmcOv').classList.remove('open'); pending = null; },
-    go: function() {
-      var choice = document.querySelector('input[name="jmcChoice"]:checked').value;
-      document.getElementById('jmcOv').classList.remove('open');
-      original = current();
-      if (typeof toggleInterviewDetails === 'function') toggleInterviewDetails(false);
-      if (typeof showToast === 'function') showToast();
-      if (choice === 'all') {
-        console.log('[method] all ' + CONFIRMED + ' confirmed candidates moved to ' + current() + ' and notified');
-      } else {
-        console.log('[method] ' + CONFIRMED + ' confirmed candidates kept on ' + original + '; event is now mixed');
-      }
-      pending = null;
-    }
+/* ═══ PANEL INTERVIEWS (8 Oct 2026, healthcare copy 28 Oct): the event's edit page, same block as edit-post-v3-panel.html ═══
+   Interviewers & updates: the owner box is gone (Scott, 8 Oct: not live any more), the Dallas interviewers are the
+   same two people as the healthcare dashboard, seats follow the package (Starter 2, Growth 5, Pro unlimited), and after the
+   interviewer list sits the Panel interviews switch from the dashboard's Interview settings dialog. The switch reads
+   and writes the same per-event setting as the dashboard (localStorage jfxPanelEventTeams), so on here = on there.
+   Open the section straight away with ?event=dallas&open=interviewers. Nothing talks to a server. */
+(function () {
+  function $(q, r) { return (r || document).querySelector(q); }
+  function $$(q, r) { return [].slice.call((r || document).querySelectorAll(q)); }
+  var EVENTS = { dallas: 'Dallas Hiring Event', chicago: 'Chicago Healthcare Hiring Event', atlanta: 'Atlanta Diversity Hiring Event' };
+  var NAMES = { 'demo@jobfairx.com': 'Demo', 'demo1@jobfairx.com': 'Demo 1' };
+  var SEED = { dallas: ['demo@jobfairx.com', 'demo1@jobfairx.com'] };
+  var LINE = 'Panel interviews let more than one interviewer join the same interview. With this on, all the interviewers above join every interview on this event. You can still change the interviewers on any single interview from its row.';
+  function eventKey() { return (typeof getEventKey === 'function') ? getEventKey() : 'dallas'; }
+  function eventName() { return EVENTS[eventKey()] || eventKey(); }
+  var EVTEAM = {};
+  function load() { EVTEAM = {}; try { var s = JSON.parse(localStorage.getItem('jfxPanelEventTeams') || '{}') || {}; Object.keys(s).forEach(function (k) { if (Array.isArray(s[k])) EVTEAM[k] = s[k]; }); } catch (e) {} }
+  function persist() { try { localStorage.setItem('jfxPanelEventTeams', JSON.stringify(EVTEAM)); } catch (e) {} }
+  function isOn() { var t = EVTEAM[eventName()]; return !!(t && t.length); }
+  function nameFor(email) {
+    if (NAMES[email]) return NAMES[email];
+    return email.split('@')[0].split(/[._-]+/).map(function (p) { return p.charAt(0).toUpperCase() + p.slice(1); }).join(' ');
+  }
+  function emails() { return $$('#interviewerEmailBox .is-email-chip').map(function (c) { var t = c.firstChild; while (t && t.nodeType !== 3) t = t.nextSibling; return t ? t.nodeValue.trim() : ''; }).filter(Boolean); }
+  function summary() {
+    var n = emails().length, el = $('#interviewSettingsSummary');
+    if (el) el.textContent = n + ' interviewer(s) added | Panel interviews ' + (isOn() ? 'on' : 'off') + ' | 1 daily update recipient(s)';
+  }
+  function syncSwitch() { var s = $('#pnPanelAll'); if (s) s.checked = isOn(); }
+  function seed() {
+    var inp = $('#interviewerEmailInput'); if (!inp || typeof addInterviewerEmail !== 'function') return;
+    (SEED[eventKey()] || []).forEach(function (e) { inp.value = e; addInterviewerEmail(inp); });
+    inp.value = '';
+    if (typeof updateSeatCounter === 'function') updateSeatCounter();
+    /* one update recipient, like the summary line has always said */
+    var chip = $('#interviewerEmailBox .is-email-chip'), box = $$('#interviewSettingsExpand .is-email-box')[1];
+    if (chip && box && !box.querySelector('.is-email-chip')) { var c = chip.cloneNode(true); var t = c.firstChild; while (t && t.nodeType !== 3) t = t.nextSibling; if (t) t.nodeValue = 'demo@jobfairx.com '; box.insertBefore(c, box.firstChild); }
+  }
+  function block() {
+    var groups = $$('#interviewSettingsExpand .is-group'); if (groups.length < 2 || $('#pnPanelGroup')) return;
+    groups[1].insertAdjacentHTML('beforebegin',
+      '<div class="is-group" id="pnPanelGroup"><div class="is-group-label">Panel interviews</div>' +
+      '<div class="toggle-row"><span class="toggle-label">Do you want panel interviews for all interviews?</span><label class="toggle-switch"><input type="checkbox" id="pnPanelAll"><span class="toggle-slider"></span></label></div>' +
+      '<div id="pnPanelLine">' + LINE + '</div></div><div class="is-divider"></div>');
+    var upd = $('#interviewSettingsExpand .ce-btn-update'), can = $('#interviewSettingsExpand .ce-btn-cancel');
+    if (upd) upd.addEventListener('click', function () {
+      var on = $('#pnPanelAll').checked, ev = eventName();
+      if (on) EVTEAM[ev] = emails().map(nameFor); else delete EVTEAM[ev];
+      persist(); summary();
+    });
+    if (can) can.addEventListener('click', function () { syncSwitch(); });
+  }
+  /* ══ Resend the interviewer invite (Scott, 26 Oct, option C) ══
+     The page's own chips stay in the box (its seat counter and limit message count them) but are hidden; this list
+     shows each interviewer with when the invite was sent, a Resend button and the remove x. "Resend invite to all"
+     sits on the list header. Example dates. */
+  var RS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>';
+  var TICK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+  var SENTON = { 'demo1@jobfairx.com': 'Apr 8' };
+  var ME_EMAIL = 'demo@jobfairx.com';
+  var SAVED = {}, STATE = {};
+  function esc(t) { return String(t).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function chipFor(e) { return $$('#interviewerEmailBox .is-email-chip').filter(function (c) { var t = c.firstChild; while (t && t.nodeType !== 3) t = t.nextSibling; return t && t.nodeValue.trim() === e; })[0]; }
+  function renderList() {
+    var wrap = $('#pnInvList'); if (!wrap) return;
+    var list = emails();
+    wrap.innerHTML = '<div class="pn-inv-hd"><span>Interviewers (' + list.length + ')</span><button type="button" class="pn-inv-all" onclick="JFXE.all()">' + RS + 'Resend invite to all</button></div>' +
+      '<div class="pn-inv-rows">' + list.map(function (e) {
+        var me = e === ME_EMAIL, saved = !!SAVED[e], x = STATE[e] || {};
+        var st = me ? '' : !saved ? 'Invite sends when you click Update' : x.just ? TICK + 'Invite sent just now' : 'Invite sent ' + (SENTON[e] || 'Apr 8');
+        var btn = (me || !saved) ? '' : x.lock ? '<button type="button" class="pn-inv-rs" disabled>Sent</button>'
+          : '<button type="button" class="pn-inv-rs" onclick="JFXE.resend(\'' + esc(e) + '\')">' + RS + 'Resend</button>';
+        return '<div class="pn-inv-row" data-e="' + esc(e) + '"><div><div class="pn-inv-em">' + esc(e) + (me ? '<span class="pn-inv-you">(you)</span>' : '') + '</div>' +
+          (st ? '<div class="pn-inv-st' + (x.just && saved ? ' ok' : '') + '">' + st + '</div>' : '') + '</div>' +
+          '<div class="pn-inv-acts">' + btn + '<button type="button" class="pn-inv-rm" title="Remove" aria-label="Remove ' + esc(e) + '" onclick="JFXE.remove(\'' + esc(e) + '\')">&times;</button></div></div>';
+      }).join('') + '</div>';
+  }
+  function send(list) {
+    list.forEach(function (e) {
+      STATE[e] = { just: true, lock: true };
+      setTimeout(function () { if (STATE[e]) STATE[e].lock = false; renderList(); }, 60000);     /* one resend a minute per person */
+    });
+    renderList();
+  }
+  window.JFXE = {
+    resend: function (e) { if ((STATE[e] || {}).lock) return; send([e]); if (typeof showToast === 'function') showToast('Invite sent to ' + e); },
+    all: function () {
+      var list = emails().filter(function (e) { return e !== ME_EMAIL && SAVED[e] && !(STATE[e] || {}).lock; });
+      if (!list.length) { if (typeof showToast === 'function') showToast('Invites were just sent'); return; }
+      send(list); if (typeof showToast === 'function') showToast('Invites sent to ' + list.length + ' interviewer' + (list.length === 1 ? '' : 's'));
+    },
+    remove: function (e) { var c = chipFor(e), x = c && c.querySelector('.is-email-chip-x'); if (x && typeof removeInterviewerChip === 'function') removeInterviewerChip(x); renderList(); }
   };
-
-  function open(from, to) {
-    document.getElementById('jmcTo').textContent = LABEL[to];
-    document.getElementById('jmcFrom').textContent = LABEL[from];
-    document.querySelectorAll('.jmc-toi').forEach(function(e){ e.textContent = LABEL[to]; });
-    document.getElementById('jmcCount').textContent = CONFIRMED + ' candidates';
-    document.querySelectorAll('.jmc-n').forEach(function(e){ e.textContent = CONFIRMED; });
-    document.getElementById('jmcKeep').checked = true;
-    document.getElementById('jmcOv').classList.add('open');
+  function listInit() {
+    emails().forEach(function (e) { SAVED[e] = true; });
+    var anchor = $('#seatLimitMsg'); if (!anchor || $('#pnInvList')) return;
+    anchor.insertAdjacentHTML('afterend', '<div id="pnInvList"></div>');
+    if (window.MutationObserver) new MutationObserver(renderList).observe($('#interviewerEmailBox'), { childList: true });
+    var upd = $('#interviewSettingsExpand .ce-btn-update');
+    if (upd) upd.addEventListener('click', function () { emails().forEach(function (e) { if (!SAVED[e]) { SAVED[e] = true; STATE[e] = { just: true }; } }); renderList(); });
+    renderList();
   }
-
-  function hook() {
-    original = current();
-    var orig = window.imValidateDetailsUpdate;
-    if (typeof orig !== 'function') return;
-    window.imValidateDetailsUpdate = function() {
-      if (!window.imValidate()) return;          /* fields still invalid — no modal */
-      var now = current();
-      if (now === original || !CONFIRMED) return orig.apply(this, arguments);
-      open(original, now);
-    };
-    var ov = document.getElementById('jmcOv');
-    if (ov) ov.addEventListener('click', function(e){ if (e.target === this) JMC.close(); });
+  function init() {
+    /* Scott, 8 Oct: Starter has two interviewer seats, Growth five, Pro no limit. */
+    if (window.PACKAGE_SEAT_LIMITS) PACKAGE_SEAT_LIMITS.starter = 2;
+    load(); seed(); block(); syncSwitch(); summary(); listInit();
+    if (/[?&]open=interviewers/.test(window.location.search) && typeof toggleInterviewSettings === 'function') {
+      toggleInterviewSettings(true);
+      var sec = $('#interviewSettingsSummary'); if (sec && sec.parentNode && sec.parentNode.parentNode) sec.parentNode.parentNode.scrollIntoView({ block: 'start' });
+    }
   }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+})();
+</script>
 
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', hook);
-  else hook();
+<!-- ═══════════════ SLOT LENGTH + LOCKED AFTER PUBLISHING (28 Oct 2026) ═══════════════
+     Interview time slot duration: 15 or 30 minutes, the app's own drop-down (setup wizard's pay-custom-select).
+     Scott, 23 Oct: "Interview location cannot be changed once you publish your job." The help center says the
+     same for the slot length. Once the jobs are published and the interview details are set, the two questions
+     are replaced by one box at the top of the card that lists both (Scott, 28 Oct: "Option C, one box at the top").
+     The old "Change interview method" dialog is gone. ?open=details opens the card on load. ═══ -->
+<style>
+.pay-custom-select { position: relative; display: inline-block; }
+.pay-custom-trigger { display: flex; align-items: center; gap: 8px; padding: 12px 40px 12px 16px; border: 2px solid #a8a8a8; border-radius: 10px; background: #fff; cursor: pointer; font-size: 16px; font-family: inherit; color: #2d2d2d; white-space: nowrap; transition: border-color 0.15s; position: relative; min-width: 160px; }
+.pay-custom-trigger:hover { border-color: #595959; }
+.pay-custom-select.open .pay-custom-trigger { border-color: #0044B3; box-shadow: 0 0 0 2px #0044B3; }
+.pay-custom-arrow { width: 16px; height: 16px; position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #767676; transition: transform 0.2s ease; pointer-events: none; }
+.pay-custom-select.open .pay-custom-arrow { transform: translateY(-50%) rotate(180deg); }
+.pay-custom-panel { position: absolute; top: calc(100% + 4px); left: 0; min-width: 100%; background: #fff; border: 1px solid #d4d2d0; border-radius: 10px; box-shadow: 0 4px 16px rgba(0,0,0,0.12); z-index: 100; display: none; overflow: hidden; }
+.pay-custom-select.open .pay-custom-panel { display: block; }
+.pay-custom-option { display: flex; align-items: center; gap: 10px; padding: 14px 18px; font-size: 16px; color: #2d2d2d; cursor: pointer; transition: background 0.1s; white-space: nowrap; }
+.pay-custom-option:hover { background: #f3f2ef; }
+.pay-custom-option.selected { background: #f3f2ef; }
+.pay-custom-option .pco-check { width: 18px; height: 18px; flex-shrink: 0; color: #2d2d2d; }
+.pay-custom-option .pco-check.hidden { visibility: hidden; }
+
+/* Locked: one box at the top lists both settings; the two questions are hidden */
+.jl-ic { width: 18px; height: 18px; flex: 0 0 18px; color: #595959; }
+.jl-box { display: none; background: #f6f5f3; border-radius: 10px; padding: 16px 20px; margin-bottom: 28px; max-width: 640px; }
+.jl-box-hd { display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 700; color: #2d2d2d; margin-bottom: 12px; }
+.jl-row { display: grid; grid-template-columns: 230px 1fr; gap: 12px; font-size: 15px; line-height: 1.5; padding: 8px 0; border-top: 1px solid #e8e6e3; }
+.jl-k { color: #595959; }
+.jl-v { color: #2d2d2d; font-weight: 700; }
+body.jl-on #imWrap, body.jl-on #imWrap + .im-divider, body.jl-on #slotDurField { display: none !important; }
+body.jl-on .jl-box { display: block; }
+</style>
+<script>
+/* The app's drop-down (same as the setup wizard). */
+function togglePaySelect(id) {
+  var sel = document.getElementById(id), was = sel.classList.contains('open');
+  document.querySelectorAll('.pay-custom-select').forEach(function (x) { x.classList.remove('open'); });
+  if (!was) sel.classList.add('open');
+}
+document.addEventListener('click', function (e) {
+  if (!e.target.closest('.pay-custom-select')) document.querySelectorAll('.pay-custom-select').forEach(function (x) { x.classList.remove('open'); });
+});
+/* 15 or 30 minutes. Before publishing nothing is booked, so the table simply starts again at the new length. */
+function slotSetStep(step, quiet) {
+  SLOT_STEP = step;
+  SLOT_TIMES = [];
+  for (var t = SLOT_START; t < SLOT_END; t += SLOT_STEP) SLOT_TIMES.push(t);
+  var el = document.getElementById('slotBulkVal'), bulk = el ? (parseInt(el.value, 10) || 0) : 0;
+  SLOT_VALS = SLOT_TIMES.map(function () { return bulk; });
+  SLOT_BOOKED = SLOT_TIMES.map(function () { return 0; });
+  var lab = document.getElementById('slotDurLabel'); if (lab) lab.textContent = step + ' minutes';
+  document.querySelectorAll('#slotDurSelect .pay-custom-option').forEach(function (o) {
+    var on = o.getAttribute('data-value') === String(step);
+    o.classList.toggle('selected', on); o.querySelector('.pco-check').classList.toggle('hidden', !on);
+  });
+  if (!quiet) { SLOT_UNDO = null; slotShowUndo(false); renderSlots(); if (window.JL) JL.render(); }
+}
+function slotPickStep(opt) {
+  document.getElementById('slotDurSelect').classList.remove('open');
+  slotSetStep(parseInt(opt.getAttribute('data-value'), 10));
+}
+
+/* Locked once the jobs are published (and the interview details are set). */
+(function () {
+  function $(id) { return document.getElementById(id); }
+  var LOCK = '<svg class="jl-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>';
+  function published() {
+    var c = document.body.classList;
+    return !c.contains('setup-jobs-incomplete') && !c.contains('setup-interview-incomplete');
+  }
+  function locText() {
+    var S = window.__imState || {};
+    if (S.format === 'phone') return 'Phone';
+    if (S.format === 'person') {
+      var parts = ['imAddrStreet', 'imAddrCity', 'imAddrState'].map(function (id) { var e = $(id); return e ? e.value.trim() : ''; }).filter(Boolean);
+      return 'In-Person' + (parts.length ? ' &middot; ' + parts.join(', ') : '');
+    }
+    return 'Video &middot; ' + (S.videoMode === 'third' ? 'Third-party video conferencing' : 'JobFairX video call');
+  }
+  function build() {
+    var exp = $('interviewDetailsExpand');
+    if (!exp || $('jlBox')) return;
+    exp.insertAdjacentHTML('afterbegin',
+      '<div class="jl-box" id="jlBox"><div class="jl-box-hd">' + LOCK + 'You can&rsquo;t change these after you publish.</div>' +
+      '<div class="jl-row"><span class="jl-k">Interview location</span><span class="jl-v" id="jlBoxLoc"></span></div>' +
+      '<div class="jl-row"><span class="jl-k">Interview time slot duration</span><span class="jl-v" id="jlBoxDur"></span></div></div>');
+  }
+  function render() {
+    build();
+    document.body.classList.toggle('jl-on', published());
+    var loc = $('jlBoxLoc'), dur = $('jlBoxDur');
+    if (loc) loc.innerHTML = locText();
+    if (dur) dur.textContent = SLOT_STEP + ' minutes';
+  }
+  window.JL = { render: render };
+  function init() {
+    var orig = window.applySetupState;
+    if (typeof orig === 'function') window.applySetupState = function () { var r = orig.apply(this, arguments); render(); return r; };
+    render();
+    if (/[?&]open=details/.test(window.location.search) && typeof toggleInterviewDetails === 'function') {
+      toggleInterviewDetails(true);
+      var sec = $('interviewDetailsSection'); if (sec) sec.scrollIntoView({ block: 'start' });
+    }
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();
 </script>
 
