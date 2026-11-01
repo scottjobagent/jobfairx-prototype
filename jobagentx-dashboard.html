@@ -13451,11 +13451,15 @@ CD.schedSend = function(){
   /* a row with a custom go() must still route through it */
   var _go = IA.go;
   IA.go = function(id){
+    var self = this, args = arguments;
+    var swap = function(){
     var n = IA.index[id];
     if (n && n.id === 'tools' && typeof n.go === 'function') {
       IA.closeFly(); n.go(); IA.current = id; IA.sync(); return;
     }
-    return _go.apply(this, arguments);
+    return _go.apply(self, args);
+    };
+    if (document.startViewTransition) { document.startViewTransition(swap); } else { swap(); }
   };
 
   function boot(){
@@ -22009,6 +22013,17 @@ if(document.getElementById('view-candidates') && typeof CD.render === 'function'
 #view-candidates .cd-sechead h2{font-size:20px;line-height:30px;font-weight:700;color:#2d2d2d;margin:0}
 </style>
 
+<style>
+/* page fade on main nav clicks (view transitions); the side rail and the top bar hold still */
+#sidebar { view-transition-name: sidebar; }
+.topbar { view-transition-name: topbar; }
+::view-transition-old(root) { animation: none; }
+::view-transition-new(root) { animation: vt-fade-in 0.3s cubic-bezier(0.27,0,0.51,1) both; }
+@keyframes vt-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
+}
+</style>
 <!-- ═══ build88-93 · agent details for the agent model: what the agent is doing, results from sourcing to hire, instructions, outreach rules, messages; candidate matches on the profile and on interview requests; the Close window (25 Oct, 1 Nov 2026) ═══ -->
 <style>
 /* ═══ D6 — shared ═══ */
