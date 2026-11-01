@@ -5873,6 +5873,7 @@ var AGX=[
 {slug:"cna-pittsburgh",n:"Certified Nursing Assistant",l:"Pittsburgh, PA",st:"Paused",pend:1,up:4,setup:"1 interviewer",ago:"5 days ago",date:"July 25, 2026",ts:20260725},
 {slug:"wa-austin",n:"Warehouse Associate",l:"Austin, TX",st:"Live",pend:0,up:6,setup:"1 interviewer",ago:"1 week ago",date:"July 23, 2026",ts:20260723},
 {slug:"rncm-houston",n:"RN Care Manager",l:"Houston, TX",st:"Live",pend:2,up:9,setup:"2 interviewers",ago:"2 weeks ago",date:"July 16, 2026",ts:20260716},
+{slug:"ma-phoenix",n:"Medical Assistant",l:"Phoenix, AZ",st:"Live",pend:0,up:0,setup:"1 interviewer",ago:"Yesterday",date:"July 29, 2026",ts:20260729},
 {slug:"se-chicago",n:"Software Engineer",l:"Chicago, IL",st:"Draft",pend:0,up:0,setup:"Incomplete",ago:"3 days ago",date:"July 27, 2026",ts:20260727},
 {slug:"fe-atlanta",n:"Frontend Developer",l:"Atlanta, GA",st:"Draft",pend:0,up:0,setup:"Incomplete",ago:"Yesterday",date:"July 29, 2026",ts:20260729},
 {slug:"rbt-houston",n:"Registered Behavior Technician",l:"Houston, TX",st:"Closed",pend:0,up:0,setup:"1 interviewer",ago:"7 weeks ago",date:"June 12, 2026",ts:20260612}
@@ -16574,6 +16575,7 @@ AGD.A = {
                    pay:'$38.00 - $52.75 per hour',
                    desc:'We are seeking an experienced RN Care Manager in Houston to coordinate care plans, manage a panel of patients, and partner with providers and families to drive outcomes.',
                    kpi:[391,163,41,null,11]},
+ 'ma-phoenix':    {n:'Medical Assistant',l:'Phoenix, AZ',st:'Live',pend:0,up:0,setup:'1 interviewer',date:'July 29, 2026',pay:'',desc:'',kpi:[0,0,0,null,0]},
  'se-chicago':    {n:'Software Engineer',l:'Chicago, IL',st:'Draft',pend:0,up:0,setup:'Incomplete',date:'July 27, 2026',pay:'',desc:'',kpi:[0,0,0,null,0]},
  'fe-atlanta':    {n:'Frontend Developer',l:'Atlanta, GA',st:'Draft',pend:0,up:0,setup:'Incomplete',date:'July 29, 2026',pay:'',desc:'',kpi:[0,0,0,null,0]},
  'rbt-houston':   {n:'Registered Behavior Technician',l:'Houston, TX',st:'Closed',pend:0,up:0,setup:'1 interviewer',date:'June 12, 2026',pay:'',desc:'',kpi:[0,0,0,null,0]}
@@ -16933,6 +16935,7 @@ ACT.latest = {
  'cna-pittsburgh':{txt:'Messaged 2 new applicants', t:'Today'},
  'wa-austin':     {txt:'Sourced 9 candidates', t:'Yesterday'},
  'rncm-houston':  {txt:'Screened Priya Raman \u2014 passed', t:'1 hour ago'},
+ 'ma-phoenix':    {txt:'Sourcing candidates', t:null, mut:1},
  'se-chicago':    {txt:'No activity yet', t:null, mut:1},
  'fe-atlanta':    {txt:'No activity yet', t:null, mut:1},
  'rbt-houston':   {txt:'No recent activity', t:null, mut:1}
@@ -21678,9 +21681,14 @@ NX.demo = (function(){
 })();
 function icon(k){ return '<svg class="nx-ic" viewBox="0 0 24 24" aria-hidden="true">'+(ICON[k]||ICON.video)+'</svg>'; }
 
-NX.cell = function(slug){
+NX.cell = function(slug, td){
   var n = NX.NEXT[slug];
-  if(!n) return '<div class="nx-wrap"><div class="agx-stats nx-box nx-none">No interview scheduled</div></div>';
+  if(!n){
+    /* nothing booked (1 Nov 2026): a Live or Paused agent is still working, so say so; a Draft or Closed agent shows nothing */
+    var tr = (td && td.closest) ? td.closest('tr') : null, cap = tr ? tr.querySelector('.agx-cap') : null, st = cap ? cap.textContent.trim() : '';
+    if(st === 'Live' || st === 'Paused') return '<div class="nx-wrap"><div class="agx-stats nx-box nx-none">Sourcing candidates</div></div>';
+    return '<div class="nx-wrap"><div class="nx-box nx-none" style="display:none"></div></div>';
+  }
   var when = n.when, time = n.time;
   if(n.live && NX.demo){ when = NX.demo[0]; time = NX.demo[1]; }
   return '<div class="nx-wrap"><div class="agx-stats nx-box">'+icon(n.ic)+
@@ -21695,7 +21703,7 @@ NX.fill = function(){
     var slug = td.getAttribute('data-agslug');
     if(td.getAttribute('data-nx') === slug && td.querySelector('.nx-box')) return;
     td.setAttribute('data-nx', slug);
-    td.innerHTML = NX.cell(slug);
+    td.innerHTML = NX.cell(slug, td);
   });
 };
 
@@ -21996,7 +22004,7 @@ if(document.getElementById('view-candidates') && typeof CD.render === 'function'
 #view-candidates .cd-sechead h2{font-size:20px;line-height:30px;font-weight:700;color:#2d2d2d;margin:0}
 </style>
 
-<!-- ═══ build88-90 · agent details for the agent model: what the agent is doing, results from sourcing to hire, instructions, outreach rules, messages; candidate matches on the profile and on interview requests (25 Oct, 1 Nov 2026) ═══ -->
+<!-- ═══ build88-91 · agent details for the agent model: what the agent is doing, results from sourcing to hire, instructions, outreach rules, messages; candidate matches on the profile and on interview requests; the Close window (25 Oct, 1 Nov 2026) ═══ -->
 <style>
 /* ═══ D6 — shared ═══ */
 .d6-card{background:#fff;border:1px solid #e4e2e0;border-radius:12px;padding:20px 22px}
@@ -22130,11 +22138,21 @@ if(document.getElementById('view-candidates') && typeof CD.render === 'function'
 .d6-grp{font-size:13px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:#595959;margin-top:4px}
 #view-interviews .d6-why{margin-top:14px}
 
+/* close reasons inside the existing Close agent window */
+.d6-why-close{padding:16px 26px 0;display:grid;gap:10px}
+.d6-why-close .q{font-size:15px;font-weight:700;color:#2d2d2d}
+.d6-why-close .q span{font-weight:400;color:#767676}
+.d6-why-close .q.d6-q2{margin-top:6px}
+.d6-rs{display:flex;flex-wrap:wrap;gap:8px}
+.d6-rs button{border:1px solid #c9c7c4;background:#fff;border-radius:999px;padding:7px 14px;font:inherit;font-size:14px;color:#2d2d2d;cursor:pointer}
+.d6-rs button.on{border-color:#0044b3;background:#eef3ff;color:#0044b3;font-weight:700}
+
 #nav-sourcing{display:none !important}
 #view-candidates .cx-pills{flex-wrap:wrap;row-gap:8px}
+#view-candidates .cx-tabs,#view-candidates .cd-tabs:not([role=tablist]){display:none !important}
 </style>
 <script>
-/* ═══ build88-90 (25 Oct, 1 Nov 2026): agent details, candidate matches, outreach. The agent sources candidates, texts and emails them, and books the interviews. ═══ */
+/* ═══ build88-91 (25 Oct, 1 Nov 2026): agent details, candidate matches, outreach, the Close window. The agent sources candidates, texts and emails them, and books the interviews. ═══ */
 (function(){
 'use strict';
 var D6 = window.D6 = {};
@@ -22472,6 +22490,25 @@ function ivInject(){ document.querySelectorAll('#view-interviews .md-det').forEa
 var ivHost=document.getElementById('view-interviews');
 if(ivHost) new MutationObserver(function(){ ivInject(); }).observe(ivHost,{childList:true,subtree:true});
 
+/* ═════════ AI agents page: close reasons, next position ═════════ */
+/* close agent: ask why (inside the existing Close agent window) */
+function closeReasons(){
+  var t=document.getElementById('agxMT'), ch=document.getElementById('agxMC'), ov=document.getElementById('agxOv');
+  if(!t || !ov || ov.style.display==='none') return;
+  var mdl=ov.querySelector('.agx-mdl'); if(!mdl) return;
+  var ex=mdl.querySelector('.d6-why-close');
+  if(!/^Close this agent/.test(t.textContent)){ if(ex) ex.remove(); return; }
+  if(ex) return;
+  var w=document.createElement('div'); w.className='d6-why-close';
+  var chips=function(list){ return '<div class="d6-rs">'+list.map(function(r){ return '<button type="button" data-d6="why">'+r+'</button>'; }).join('')+'</div>'; };
+  w.innerHTML='<div class="q">Did you hire for this position?</div>'+chips(['Yes, through this agent','Yes, somewhere else','No'])+
+    '<div class="q d6-q2">Why are you closing it? <span>Optional</span></div>'+chips(['Hiring is on hold','Not enough candidates','Other']);
+  var ft=mdl.querySelector('.ft'); mdl.insertBefore(w, ft);
+}
+document.addEventListener('click',function(){ setTimeout(closeReasons,30); },true);
+var agxObs=new MutationObserver(function(){ closeReasons(); });
+function watchAgx(){ var ov=document.getElementById('agxOv'); if(ov && !ov.__d6){ ov.__d6=1; agxObs.observe(ov,{attributes:true,childList:true,subtree:true,characterData:true}); } }
+
 /* ═════════ clicks ═════════ */
 document.addEventListener('click',function(e){
   var t=e.target.closest && e.target.closest('[data-d6]'); if(!t) return;
@@ -22494,8 +22531,15 @@ document.addEventListener('click',function(e){
   if(k==='dnc'){ toast('Never contact','Add people one at a time or upload a list. The agent never texts or emails them.'); return; }
   if(k==='sched'){ if(window.AGD) AGD.toWorkspace(v,'Interview scheduled'); return; }
   if(k==='allact'){ toast('All activity','The full log for this agent, newest first.'); return; }
+  if(k==='why'){ t.parentNode.querySelectorAll('button').forEach(function(b){ b.classList.toggle('on', b===t && !b.classList.contains('on')); }); return; }
 },true);
 document.addEventListener('keydown',function(e){ if(e.key==='Escape') D6.closeDrawer(); });
+
+/* keep the injections current */
+function sync(){ try{ watchAgx(); closeReasons(); }catch(e){} }
+var host=document.getElementById('agxRows'); if(host) new MutationObserver(sync).observe(host,{childList:true,subtree:true});
+var t0=setInterval(sync,500); setTimeout(function(){ clearInterval(t0); setInterval(sync,1500); },12000);
+sync();
 
 /* direct links: #agent opens Registered Nurse agent details, #candidate opens Mubeen Ali Khan's profile */
 function route(){
@@ -22507,7 +22551,7 @@ setTimeout(route, 1600);
 window.addEventListener('hashchange', route);
 })();
 </script>
-<!-- ═══ build89-90 · candidate profile: interview or outreach card above the tabs, one match section, messages the agent sent, resume as one line (25 Oct, 1 Nov 2026) ═══ -->
+<!-- ═══ build89-91 · candidate profile: interview or outreach card above the tabs, one match section, messages the agent sent, resume as one line (25 Oct, 1 Nov 2026) ═══ -->
 <style>
 /* interview, above the Application and Activity tabs */
 .pv-iv{display:flex;align-items:center;gap:16px;border:1px solid #e4e2e0;border-radius:12px;padding:16px 18px;margin-top:20px;background:#fff}
