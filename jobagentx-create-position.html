@@ -895,6 +895,9 @@ paint();
 body.embed nav.sidebar,body.embed .topbar{display:none !important}
 body.embed .main{margin-left:0 !important;padding-top:0 !important}
 body.embed{background:#fff}
+/* inside the dashboard frame nothing may size itself to the viewport, or the frame and the page grow each other forever */
+html.embed,body.embed,body.embed .layout,body.embed .main,body.embed .content,body.embed .wide,body.embed .col{min-height:0 !important;height:auto !important}
+body.embed{overflow:hidden}
 .np-grid{display:grid;grid-template-columns:2fr 1fr;gap:10px;margin-top:10px}.np-grid3{display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px;margin-top:10px}
 .np-ta{width:100%;min-height:76px;border:1px solid #949494;border-radius:8px;padding:10px 12px;font:inherit;font-size:14px;resize:vertical;box-sizing:border-box}
 .np-info{display:flex;gap:8px;align-items:flex-start;background:#f3f6fc;border-left:3px solid #0044B3;border-radius:6px;padding:10px 12px;font-size:13px;color:#2d2d2d;margin-top:12px}
@@ -916,13 +919,14 @@ body.embed .ov{align-items:flex-start !important;padding-top:48px}
 (function(){
 var NP = window.NP = {};
 var EMBED = (window.self !== window.top) || /[?&]embed=1/.test(location.search);
-if(EMBED) document.body.classList.add('embed');
+if(EMBED){ document.body.classList.add('embed'); document.documentElement.classList.add('embed'); }
 var S4 = window.__s4;
 var OWNER = 'scott@jobfairx.com (you)';
 function $(id){ return document.getElementById(id); }
 function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function post(m){ if(EMBED && window.parent) try{ window.parent.postMessage(m,'*'); }catch(e){} }
-function height(){ post({type:'jfx-np-height', h: Math.max(document.documentElement.scrollHeight, document.body.scrollHeight)}); }
+var lastH=0;
+function height(){ var m=document.querySelector('.main')||document.body; var r=m.getBoundingClientRect(); var h=Math.ceil(r.top+window.scrollY+r.height); var ov=[].slice.call(document.querySelectorAll('.ov.on .mdl')).map(function(d){ return d.getBoundingClientRect().bottom+window.scrollY; }); ov.forEach(function(b){ if(b>h) h=Math.ceil(b); }); if(Math.abs(h-lastH)<4) return; lastH=h; post({type:'jfx-np-height', h:h}); }
 
 /* ── 1 · In-Person as a third format ── */
 var seg=document.querySelector('#step4 .fmt-seg');
