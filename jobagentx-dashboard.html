@@ -22855,8 +22855,8 @@ setInterval(run, 800);
 </script>
 
 <style>
-/* ═══ NEW POSITION flow (1 Nov 2026): the chooser loses the chat card; the form opens inside the dashboard ═══ */
-#intkOptChat{display:none !important}
+/* ═══ NEW POSITION flow (1 Nov 2026): no chooser at launch; Create new position lands on the form inside the dashboard ═══ */
+#intkOptChat,#intkOptPaste{display:none !important}
 #npView{display:none;padding:12px 8px 0}#npView.on{display:block}
 .np-crumb{font-size:14px;color:#595959;margin:4px 0 10px}.np-crumb a{color:#0044B3;font-weight:700;cursor:pointer;text-decoration:none}
 #npFrame{width:100%;border:0;background:#fff;border-radius:12px;min-height:900px;display:block}
@@ -22880,11 +22880,30 @@ NP.open=function(){ var v=$('view-events'); if(!v) return;
   $('npFrame').src='jobagentx-create-position.html?embed=1'; np.classList.add('on'); window.scrollTo(0,0); };
 NP.close=function(){ var np=$('npView'); if(np) np.classList.remove('on'); hidden.forEach(function(p){ p[0].style.display=p[1]; }); hidden=[]; var fr=$('npFrame'); if(fr) fr.src='about:blank'; window.scrollTo(0,0); };
 window.addEventListener('message',function(e){ var m=e.data||{}; if(m.type==='jfx-np-height'){ var fr=$('npFrame'); if(fr) fr.style.height=(Math.max(900,m.h)+40)+'px'; }
-  if(m.type==='jfx-position-created'){ NP.close(); toast('Position created', 'Your agent is sourcing candidates for '+(m.title||'the position')+'.'); } });
-/* the chooser: two cards, and Fill out the form stays in the dashboard */
-function wire(){ var f=$('intkOptForm'); if(!f || f.__np) return; f.__np=1;
-  f.onclick=function(){ var ov=$('intkOv'); if(ov) ov.classList.remove('on'); NP.open(); };
-  var sub=document.querySelector('#intkOv .intk-modal .sub'); if(sub && /Three ways in/.test(sub.textContent)) sub.textContent=sub.textContent.replace('Three ways in','Two ways in'); }
+  if(m.type==='jfx-position-created'){ NP.close(); NP.addRow(m.title||'New position', m.location||''); toast('Position created', 'Your agent is sourcing candidates for '+(m.title||'the position')+'.'); }
+  if(m.type==='jfx-np-scrolltop'){ var np=$('npView'); if(np){ var y=np.getBoundingClientRect().top+window.scrollY-12; window.scrollTo({top:Math.max(0,y),behavior:'smooth'}); } } });
+/* Create new position (top right, and the empty state) lands straight on the form; the chooser is retired for launch (Scott, 1 Nov 2026) */
+function wire(){ if(window.showRegView!==NP.open){ window.showRegView=NP.open; }
+  var f=$('intkOptForm'); if(f && !f.__np){ f.__np=1; f.onclick=function(){ var ov=$('intkOv'); if(ov) ov.classList.remove('on'); NP.open(); }; } }
+/* positions created in this prototype: a Live row at the top of the list, kept across re-renders and reloads */
+NP.rows=[]; try{ NP.rows=JSON.parse(localStorage.getItem('jfxNewPositions')||'[]')||[]; }catch(e){}
+NP.addRow=function(title,loc){ NP.rows.unshift({id:'np'+Date.now(), t:title, l:loc}); try{ localStorage.setItem('jfxNewPositions', JSON.stringify(NP.rows)); }catch(e){} NP.paintRows(); };
+NP.paintRows=function(){ var tb=$('agxRows'); if(!tb || !NP.rows.length) return;
+  var base=[].slice.call(tb.querySelectorAll('tr')).filter(function(tr){ return !tr.hasAttribute('data-np'); }); if(!base.length) return;
+  var src=base.filter(function(tr){ return /Sourcing candidates/.test(tr.textContent); })[0]||base[0];
+  var missing=NP.rows.filter(function(r){ return !tb.querySelector('tr[data-np="'+r.id+'"]'); }); if(!missing.length) return;
+  missing.slice().reverse().forEach(function(r){ var tr=src.cloneNode(true); tr.setAttribute('data-np',r.id);
+    var nm=tr.querySelector('.agx-name'); if(nm){ nm.textContent=r.t; nm.removeAttribute('href'); nm.style.cursor='default'; nm.onclick=function(e){ e.preventDefault(); e.stopPropagation(); }; }
+    var lc=tr.querySelector('.agx-loc'); if(lc) lc.textContent=r.l;
+    tr.querySelectorAll('[data-agslug]').forEach(function(td){ td.setAttribute('data-agslug',r.id); td.setAttribute('data-nx',r.id); });
+    tr.querySelectorAll('[data-slug]').forEach(function(x){ x.setAttribute('data-slug',r.id); }); tr.querySelectorAll('[data-sslug]').forEach(function(x){ x.setAttribute('data-sslug',r.id); });
+    var act=tr.querySelector('.agx-actcell'); if(act) act.innerHTML='<div class="nx-wrap"><div class="agx-stats nx-box nx-none">Sourcing candidates</div></div>';
+    var keb=tr.querySelector('.agx-kebab'), menu=tr.querySelector('.agx-menu'); if(keb&&menu){ keb.onclick=function(e){ e.stopPropagation(); var on=menu.style.display==='block'; document.querySelectorAll('.agx-menu,.agx-smenu').forEach(function(x){ x.style.display='none'; }); menu.style.display=on?'none':'block'; }; }
+    var cap=tr.querySelector('.agx-cap'), sm=tr.querySelector('.agx-smenu'); if(cap&&sm){ cap.onclick=function(e){ e.stopPropagation(); var on=sm.style.display==='block'; document.querySelectorAll('.agx-menu,.agx-smenu').forEach(function(x){ x.style.display='none'; }); sm.style.display=on?'none':'block'; }; sm.querySelectorAll('button').forEach(function(b){ b.onclick=function(e){ e.stopPropagation(); sm.style.display='none'; }; }); }
+    tb.insertBefore(tr, tb.firstChild); });
+  var c=$('agxCount'); if(c){ var n=base.length+NP.rows.length; c.textContent=n+(n===1?' result':' results'); } };
+(function(){ var host=$('agxRows'); if(host){ new MutationObserver(function(){ setTimeout(NP.paintRows,0); }).observe(host,{childList:true}); } setTimeout(NP.paintRows,1800); })();
+document.addEventListener('click',function(){ document.querySelectorAll('tr[data-np] .agx-menu, tr[data-np] .agx-smenu').forEach(function(x){ x.style.display='none'; }); });
 /* agent details: who interviews and when they are available */
 var DN=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 function t2s(i){ var h=Math.floor(i/2), m=(i%2?'30':'00'), ap=h<12?'AM':'PM', hh=h%12; if(hh===0) hh=12; return hh+':'+m+' '+ap; }

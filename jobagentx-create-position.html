@@ -320,7 +320,7 @@ body.step6{background:#f3f2ef}
 <label class="radio-row"><input type="radio" name="mode" value="new" checked><span class="radio-label">Create a brand new position</span></label>
 <div id="tplBlock" class="hide">
 <div class="tpl-card">
-<div class="tpl-search-wrap"><div class="tpl-search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><input type="text" id="tplSearch" placeholder="Search by agent title"></div></div>
+<div class="tpl-search-wrap"><div class="tpl-search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><input type="text" id="tplSearch" placeholder="Search by position title"></div></div>
 <div class="tpl-count"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg><span id="tplCount">4 results</span></div>
 <div id="tplList"></div>
 </div></div>
@@ -908,6 +908,7 @@ body.embed{background:#fff}
 .np-row{display:flex;gap:10px;margin-top:8px;flex-wrap:wrap}
 .np-pill{display:inline-block;background:#eef4ff;color:#0044B3;border-radius:999px;padding:2px 10px;font-size:12.5px;font-weight:700;margin-left:8px}
 #npAvail.hide{display:none}
+body.embed .ov{align-items:flex-start !important;padding-top:48px}
 </style>
 
 <script>
@@ -946,6 +947,31 @@ var ivSec=$('npIvSec'), ivBox=$('ebInterviewers');
 if(S4.interviewers.indexOf(OWNER)<0) S4.interviewers.unshift(OWNER);
 ivBox.insertAdjacentHTML('afterend','<div class="sec-help" style="margin-top:10px;margin-bottom:0">Each interviewer gets their own login and sees only this agent. They set their own interview availability after they log in. Invites go out when you create the position.</div><div class="np-err" id="npIvErr">Add at least one interviewer.</div>');
 if(window.__redraw4) window.__redraw4();
+/* you stay on the list when a template fills it; only your own click on the chip's x takes you off */
+NP.ownerRemoved=false;
+ivBox.addEventListener('click',function(e){ var x=e.target.closest('.eb-tag button'); if(x && /\(you\)/.test(x.parentNode.textContent)) NP.ownerRemoved=true; },true);
+function keepOwner(){ if(!NP.ownerRemoved && S4.interviewers.indexOf(OWNER)<0){ S4.interviewers.unshift(OWNER); if(window.__redraw4) window.__redraw4(); } }
+/* only real email addresses become chips (both boxes) */
+var EMAIL=/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+['ebInterviewers','ebUpdates'].forEach(function(id){ var box=$(id); if(!box) return; var inp=box.querySelector('input');
+  box.insertAdjacentHTML('afterend','<div class="np-err" id="'+id+'Err">Enter a valid email address.</div>');
+  var guard=function(e){ var v=(inp.value||'').trim().replace(/,$/,''); var isEnter=(e.type==='keydown' && (e.key==='Enter'||e.key===',')); if((isEnter||e.type==='blur') && v && !EMAIL.test(v)){ e.stopImmediatePropagation(); if(isEnter) e.preventDefault(); $(id+'Err').classList.add('show'); } else if(v===''||EMAIL.test(v)){ $(id+'Err').classList.remove('show'); } };
+  inp.addEventListener('keydown',guard,true); inp.addEventListener('blur',guard,true); });
+/* a template fills the title and location the moment it is picked */
+document.addEventListener('click',function(e){ var t=e.target.closest('.tpl-item'); if(!t) return; setTimeout(function(){ var nm=(t.querySelector('.tpl-name')||{}).textContent||'', meta=(t.querySelector('.tpl-meta')||{}).textContent||''; var jt=$('jobTitle'), li=$('locInput'); if(jt && nm) jt.value=nm.trim(); if(li && meta) li.value=meta.split('\u00b7')[0].trim(); },0); },true);
+/* skills: type one and press Enter (a matching suggestion is used as typed in the list) */
+(function(){ var sk=$('skIn'); if(!sk) return; sk.addEventListener('keydown',function(e){ if(e.key!=='Enter') return; var v=(sk.value||'').trim(); if(!v) return; e.preventDefault(); e.stopImmediatePropagation(); var list=window.__skills?window.__skills():null; if(!list) return; var hit=[].slice.call(document.querySelectorAll('#skMenu .sk-opt')).map(function(b){ return b.getAttribute('data-v'); }).filter(function(x){ return x && x.toLowerCase()===v.toLowerCase(); })[0]; var val=hit||v; if(list.some(function(x){ return x.toLowerCase()===val.toLowerCase(); })){ sk.value=''; return; } list.push(val); sk.value=''; var m=$('skMenu'); if(m) m.classList.remove('on'); if(window.__skillsRedraw) window.__skillsRedraw(); },true); })();
+/* picked a template, then chose "Create a brand new position": the form starts over, empty */
+NP.tplUsed=false;
+document.addEventListener('click',function(e){ if(e.target.closest('.tpl-item')) NP.tplUsed=true; },true);
+Array.prototype.forEach.call(document.querySelectorAll('input[name=mode]'),function(r){ r.addEventListener('change',function(){ if(r.value==='new' && r.checked && NP.tplUsed){ location.replace(location.href); } }); });
+/* required: a job title to leave step 1, at least 2 skills to leave step 2 */
+(function(){ var jt=$('jobTitle'); if(jt && !$('npTitleErr')) jt.insertAdjacentHTML('afterend','<div class="np-err" id="npTitleErr">Add a job title.</div>'); var sc=$('skChips'); if(sc && !$('npSkillErr')) sc.insertAdjacentHTML('afterend','<div class="np-err" id="npSkillErr">Add at least 2 skills.</div>'); })();
+NP.validTitle=function(){ var ok=!!($('jobTitle')&&$('jobTitle').value.trim()); $('npTitleErr').classList.toggle('show',!ok); if(!ok) $('npTitleErr').scrollIntoView({block:'center'}); return ok; };
+NP.validSkills=function(){ var n=document.querySelectorAll('#skChips .sk-chip').length; var ok=n>=2; $('npSkillErr').classList.toggle('show',!ok); if(!ok) $('npSkillErr').scrollIntoView({block:'center'}); return ok; };
+/* the Continue buttons of steps 1 and 2 call the page's own go() directly, so the checks sit on the buttons themselves */
+(function(){ var c1=$('s1Continue'); if(c1) c1.addEventListener('click',function(e){ if(!NP.validTitle()){ e.stopImmediatePropagation(); e.preventDefault(); } },true);
+  var c2=$('s2Continue')||document.querySelector('#step2 .btn-primary'); if(c2) c2.addEventListener('click',function(e){ if(!NP.validSkills()){ e.stopImmediatePropagation(); e.preventDefault(); } },true); })();
 
 /* ── 3 · your interview availability (while you are on the list) ── */
 var DN=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
@@ -993,7 +1019,10 @@ $('togPanel').addEventListener('click',function(){ NP.panel=!NP.panel; this.clas
 
 /* ── 5 · required interviewers on Continue; height after every step ── */
 var _go=window.__go;
-window.__go=function(n){ if(n===5 && !S4.interviewers.length){ $('npIvErr').classList.add('show'); $('npIvErr').scrollIntoView({block:'center'}); return; } $('npIvErr').classList.remove('show'); if(n===5) save(); _go(n); setTimeout(height,60); setTimeout(height,400); };
+window.__go=function(n){ var from=[1,2,3,4,5,6].filter(function(k){ var s=$('step'+k); return s && !s.classList.contains('hide'); })[0];
+  if(n===2 && from===1 && !NP.validTitle()) return;
+  if(n===3 && from===2 && !NP.validSkills()) return;
+  if(n===5 && !S4.interviewers.length){ $('npIvErr').classList.add('show'); $('npIvErr').scrollIntoView({block:'center'}); return; } $('npIvErr').classList.remove('show'); if(n===5) save(); _go(n); if(n===4) keepOwner(); setTimeout(height,60); setTimeout(height,400); };
 
 /* ── 6 · review step: In-Person address, availability, panel ── */
 var _r6=window.__r6;
@@ -1006,6 +1035,8 @@ window.__r6=function(){ if(_r6) _r6(); var set=$('rv6Set'); if(!set) return;
 NP.finish=function(){ var jt=$('jobTitle'), li=$('locInput'); save();
   if(EMBED) post({type:'jfx-position-created', title:(jt&&jt.value.trim())||'New position', location:(li&&li.value.trim())||''}); else window.location.href='jobagentx-dashboard.html#view=events'; };
 window.addEventListener('load',height); setTimeout(height,300); setInterval(height,1500); window.addEventListener('resize',height);
+/* when a dialog opens inside the embedded form, ask the dashboard to scroll the form's top into view */
+if(EMBED){ var ovs=document.querySelectorAll('.ov'); var mo=new MutationObserver(function(ms){ ms.forEach(function(m){ if(m.target.classList.contains('on')) post({type:'jfx-np-scrolltop'}); }); }); Array.prototype.forEach.call(ovs,function(o){ mo.observe(o,{attributes:true,attributeFilter:['class']}); }); }
 })();
 </script>
 </body>
