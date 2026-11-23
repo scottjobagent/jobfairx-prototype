@@ -1478,6 +1478,7 @@ body #view-candidates .cd-railcard .n{font-weight:400}
 body #view-candidates .mx-tbl .jm{font-weight:400}
 /* "Couldn't make it" is longer than "No-show": on smaller laptops the tabs sit a little closer so all eight fit */
 @media (max-width:1365px){ body #view-candidates .mx-pills .cx-pill{padding:16px 9px} }
+body #view-candidates .cx-title.cx-plain{cursor:default}
 body #view-candidates .cd-phpop .cd-phcopy{margin-top:10px;border:0;background:none;padding:0;font-family:inherit;font-size:14px;font-weight:700;color:#004fcb;text-decoration:underline;text-underline-offset:2px;cursor:pointer}
 </style>
 </head>
@@ -7340,11 +7341,7 @@ function setRowStage(key,s){
 /* ── list view ── */
 function listHtml(){
   var rows=list();
-  var h='<div class="cx-titlerow"><div><span class="cx-titlewrap"><button class="cx-title" onclick="CXX.toggleScope(event)">'+esc(evScope||'All events')+ico('chev')+'</button>'
-    + (scopeOpen?'<span class="cx-menu" style="display:block;left:0;top:48px">'
-        +['','Dallas Hiring Event','Houston Healthcare Event','Chicago Healthcare Hiring Event'].map(function(e){
-            return '<button onclick="CXX.setScope(event,\''+e+'\')">'+(evScope===e?'<span class="tick">'+ico('tick')+'</span>':'')+(e||'All events')+'</button>';}).join('')
-      +'</span>':'')
+  var h='<div class="cx-titlerow"><div><span class="cx-titlewrap"><span class="cx-title cx-plain">Candidates</span>'
     +'</span></div></div>';
 
   h+='<div class="cx-pills mx-pills">'+PILLS.map(function(p){
@@ -7354,7 +7351,7 @@ function listHtml(){
   h+='<div class="cx-tools">'
     +ctl('sort','<b>Sort by:</b> '+sortBy, SORTS.map(function(o){return [o,o,sortBy===o];}), 'setSort')
     +ctlMulti('job', multiLabel('Job',jobFil), jobsList().map(function(j){return [j,j,jobFil.indexOf(j)>-1];}), 'setJob')
-    +ctlMulti('evd', multiLabel('Event date',evdFil), evDates().map(function(d){return [d,d,evdFil.indexOf(d)>-1];}), 'setEvd')
+    +ctlMulti('evd', multiLabel('Event',evdFil.map(evLbl)), evDates().map(function(d){return [d,evLbl(d),evdFil.indexOf(d)>-1];}), 'setEvd')
     +ctlMulti('rate', multiLabel('Feedback',rateFil), RATES.filter(function(r){return r[0];}).map(function(r){return [r[0],r[1],rateFil.indexOf(r[0])>-1];}), 'setRate')
     +'<div class="cx-search">'+ico('search')+'<input id="cxSearch" placeholder="Search candidates" value="'+esc(q).replace(/"/g,'&quot;')+'" oninput="CXX.setQ(this.value)"></div></div>';
   if(selRows.length) h+='<div class="cx-bulk"><span class="cx-bulklbl">'+selRows.length+' candidate'+(selRows.length===1?' is':'s are')+' selected</span>'
@@ -7827,9 +7824,10 @@ function lxNext(r){
   if(st==='invited'){ var sm=(window.SRC&&SRC.summary)?SRC.summary(c.sid):null;
     return (sm?'<div class="sx-prog">'+sm.dots+'<span class="sx-ptxt">'+sm.line+'</span>'+sm.sig+'</div>':'')+'<div class="cx-cell sub">'+esc(ev)+'</div>'
       +'<a class="lx-link" onclick="CXX.srcPanel('+id+')">View messages</a>'; }
-  if(st==='requested'&&c.prop) return '<div class="lx-h blue">Proposed &middot; awaiting candidate</div><div class="cx-cell">'+propHtml(c)+'</div>'+evl;
-  if(st==='requested') return '<div class="lx-h blue">Waiting on you</div><div class="cx-cell">'+dt+'</div>'+evl
-    +'<button class="mx-inv lx-btn lx-pri" onclick="CXX.accept('+id+')">Accept</button>';
+  /* a request starts with its time; Accept, Reschedule and Decline are in the three dots and on the candidate's page
+     (Scott, November 23, 2026: no "Waiting on you", no buttons under Interview) */
+  if(st==='requested'&&c.prop) return '<div class="lx-h">'+propHtml(c)+'</div>'+evl;
+  if(st==='requested') return '<div class="lx-h">'+dt+'</div>'+evl+'<a class="lx-link" onclick="CXX.open_('+id+')">View interview details</a>';
   if(st==='scheduled') return '<div class="lx-h">'+dt+'</div>'+evl+'<a class="lx-link" onclick="CXX.open_('+id+');CXX.setPTab(\'iv\')">View interview details</a>';
   if(st==='interviewed') return '<div class="lx-h">'+dt+'</div>'+evl+'<div class="lx-fb">'+fbPill(r)+'</div>';
   if(st==='noshow') return '<div class="lx-h red">Couldn’t make it</div><div class="cx-cell">'+dt+'</div>'+evl;
@@ -7842,7 +7840,7 @@ function lxMenu(r){
   var c=r.c, id=c.id, st=r.stage, it=[];
   if(st==='sourced') it=[['Not a fit','CXX.notFit('+id+')']];
   else if(st==='invited') it=[['Cancel invite','CXX.srcCancel('+id+')',1]];
-  else if(st==='requested') it=c.prop?[['Cancel proposed times','CXX.cancelProp('+id+')',1]]:[['Decline','CXX.decline('+id+')',1],['Reschedule','CXX.sched('+id+')']];
+  else if(st==='requested') it=c.prop?[['Cancel proposed times','CXX.cancelProp('+id+')',1]]:[['Accept','CXX.accept('+id+')'],['Reschedule','CXX.sched('+id+')'],['Decline','CXX.decline('+id+')',1]];
   else if(st==='scheduled') it=[['Reschedule interview','CXX.sched('+id+')'],['Cancel interview','CXX.cancelIv('+id+')',1]];
   else if(st==='interviewed') it=[['Schedule another interview','CXX.sched('+id+')']];
   else if(st==='noshow') it=[['Mark as interviewed','CXX.markIv('+id+')'],['Schedule interview','CXX.sched('+id+')']];
@@ -8102,6 +8100,10 @@ if(!window.__cdPhDoc){ window.__cdPhDoc=1;
   document.addEventListener('keydown',function(e){ if(e.key==='Escape') closePh(); });
 }
 function goLobby(){ window.location.href='lobby-v3-healthcare.html'; }
+/* the Event filter names each event by its city and day: "Dallas, April 22" (Scott, November 23, 2026) */
+var EV_CITY={'Dallas Hiring Event':'Dallas','Houston Healthcare Event':'Houston','Chicago Healthcare Hiring Event':'Chicago'};
+function evLbl(d){ var n=''; for(var k in EVS){ if(EVS[k].d===d) n=EVS[k].n; } var city=EV_CITY[n]||String(n).split(' ')[0];
+  return esc(city)+', '+esc(fullM(String(d).split(',')[0])); }
 
 function render(){hookSrc();var r=document.getElementById('cxRoot');r.innerHTML = sel? profileHtml() : listHtml(); spellMonths(r); syncStuck();}
 window.addEventListener('scroll',syncStuck,{passive:true});
