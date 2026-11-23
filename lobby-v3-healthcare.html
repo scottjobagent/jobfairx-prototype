@@ -7790,12 +7790,12 @@ a.jm-cp-num:hover { color:#0044B3; }
     return ov;
   }
   function close(){ var ov = document.getElementById('srcOverlay'); if (ov) { ov.classList.remove('open'); ov.innerHTML = ''; } }
-  function openInvite(p){
+  function openInvite(p, where){
     if (!p) return;
     var e = EV[p.e] || {}, f = esc(first(p.n)), ov = overlay();
     ov.innerHTML = '<div class="src-dlg" role="dialog" aria-modal="true" aria-label="Invite to interview">'
       + '<div class="src-t">Invite ' + esc(p.n) + ' to interview</div>'
-      + '<div class="src-b">' + f + ' gets this message from you. When ' + f + ' picks a time, the interview goes straight to Upcoming.'
+      + '<div class="src-b">' + f + ' gets this message from you. When ' + f + ' picks a time, the interview ' + (where === 'candidates' ? 'moves to Scheduled.' : 'goes straight to Upcoming.')
       + '<span class="src-lbl">Message</span><div class="src-msg"><p>Hi ' + f + ',</p>'
       + '<p>Thanks for your interest in the ' + esc(p.j) + ' job. We\'d like to interview you on ' + esc(e.when) + ', between ' + esc(e.hours) + '. ' + esc(e.how) + '</p>'
       + '<p><span class="src-pick">Pick your interview time</span></p><p>Regards,<br>' + esc(CFG.sender) + '<br>' + esc(CFG.company) + '</p></div>'
@@ -8029,7 +8029,7 @@ a.jm-cp-num:hover { color:#0044B3; }
     }, 120);
   }
   window.SRC = {
-    invite: function(id){ openInvite(get(id)); },
+    invite: function(id, where){ openInvite(get(id), where); },   /* where: 'candidates' when opened from the Candidates page */
     close: close,
     send: function(id){
       var p = get(id); if (!p) return;
@@ -8046,14 +8046,17 @@ a.jm-cp-num:hover { color:#0044B3; }
     pick: function(id){
       var p = get(id); if (!p) return;
       var time = PAGE === 'lobby' ? addLobbyUpcoming(p) : addDashUpcoming(p);
-      p.st = 'upcoming'; redraw();
+      p.st = 'upcoming'; p.time = time; redraw();
       var when = ((EV[p.e] || {}).date || '') + (time ? ' at ' + time : '');
       if (PAGE === 'lobby') toast(esc(p.n) + ' picked ' + when + ' and moved to Candidates with upcoming interviews.' + link('View it', "SRC.go('notyet','" + id + "')"));
       else toast(esc(p.n) + ' picked ' + when + '. The interview is in Upcoming.' + link('View in Upcoming', "SRC.go('upcoming','" + id + "')"));
     },
     more: function(){ S.showAll = !S.showAll; redraw(); },
     go: go,
-    state: function(){ return P.map(function(p){ return { id: p.id, n: p.n, e: p.e, st: p.st }; }); }
+    state: function(){ return P.map(function(p){ return { id: p.id, n: p.n, e: p.e, st: p.st }; }); },
+    /* the Candidates page reads the same people, so both pages always agree (November 22, 2026) */
+    people: function(){ return P; },
+    setSt: function(id, st){ var p = get(id); if (!p) return; p.st = st; if (st === 'sourced') delete p.sent; redraw(); }
   };
 
   function init(){ try { if (PAGE === 'dashboard') initDashboard(); else initLobby(); } catch (e) { if (window.console) console.error('Sourced tab:', e); } }
