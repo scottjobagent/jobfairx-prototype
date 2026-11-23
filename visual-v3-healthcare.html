@@ -1497,6 +1497,7 @@ body #view-candidates .mx-tbl .jm{font-weight:400}
 /* "Couldn't make it" is longer than "No-show": on smaller laptops the tabs sit a little closer so all eight fit */
 @media (max-width:1365px){ body #view-candidates .mx-pills .cx-pill{padding:16px 9px} }
 body #view-candidates .cx-title.cx-plain{cursor:default}
+body #view-candidates .mx-tabnote{margin:14px 0 0;font-size:14px;line-height:1.45;color:#595959}
 body #view-candidates .cd-phpop .cd-phcopy{margin-top:10px;border:0;background:none;padding:0;font-family:inherit;font-size:14px;font-weight:700;color:#004fcb;text-decoration:underline;text-underline-offset:2px;cursor:pointer}
 </style>
 </head>
@@ -7162,8 +7163,8 @@ var C=[
   ed:[['Practical Nursing Diploma','Malcolm X College','2021 – 2023']],
   iv:[{ev:'chicago',k:'dec',t:'May 6 · 10:30 AM CT',by:'Not assigned',st:'Declined'}]}
 ];
-var PILLS=[{k:'',l:'All'},{k:'sourced',l:'Sourced'},{k:'invited',l:'Invited'},{k:'requested',l:'Requested'},{k:'scheduled',l:'Scheduled'},{k:'interviewed',l:'Interviewed'},{k:'noshow',l:'Couldn’t make it'},{k:'declined',l:'Declined'}];
-var STAGEL={sourced:'Sourced',invited:'Invited',requested:'Requested',scheduled:'Scheduled',interviewed:'Interviewed',noshow:'Couldn’t make it',declined:'Declined'};
+var PILLS=[{k:'',l:'All'},{k:'sourced',l:'Matched'},{k:'invited',l:'Invited'},{k:'requested',l:'Requested'},{k:'scheduled',l:'Scheduled'},{k:'interviewed',l:'Interviewed'},{k:'noshow',l:'Couldn’t make it'},{k:'declined',l:'Declined'}];
+var STAGEL={sourced:'Matched',invited:'Invited',requested:'Requested',scheduled:'Scheduled',interviewed:'Interviewed',noshow:'Couldn’t make it',declined:'Declined'};
 var pill='', sel=null, evScope='', secOpen={iv:1,q:1,sq:1,ex:1,ed:1,res:1}, ptab='app', menu=false, stpop=false, scopeOpen=false;
 var sortBy='Interview time (earliest first)', jobFil=[], rateFil=[], evdFil=[], openMenu='', selRows=[], q='';
 var SORTS=['Interview time (earliest first)','Interview time (latest first)','Request date (newest first)','Request date (oldest first)','Name (A to Z)','Name (Z to A)'];
@@ -7365,6 +7366,7 @@ function listHtml(){
   h+='<div class="cx-pills mx-pills">'+PILLS.map(function(p){
     return '<button class="cx-pill'+(pill===p.k?' on':'')+'" onclick="CXX.setPill(\''+p.k+'\')">'+p.l+' &bull; '+countFor(p.k)+'</button>';
   }).join('')+'</div>';
+  if(pill==='sourced') h+='<p class="mx-tabnote">People we matched to your jobs who haven’t scheduled an interview yet.</p>';
 
   h+='<div class="cx-tools">'
     +ctl('sort','<b>Sort by:</b> '+sortBy, SORTS.map(function(o){return [o,o,sortBy===o];}), 'setSort')
@@ -7735,7 +7737,7 @@ function profileHtml(){
     +'<span class="of">'+(i+1)+' of '+rows.length+'</span></div></div></div>';
 
   h+='<div class="cd-rail">'+rows.map(function(x){
-    var y=x.c, when=y.notFit?'marked as not a fit':x.stage==='sourced'?'Matched '+(y.matched||''):(x.stage==='invited'?'Not picked yet':fullM(rTime(x)).split(' · ')[0]);
+    var y=x.c, when=y.notFit?'marked as not a fit':x.stage==='sourced'?(y.matched||''):(x.stage==='invited'?'Not picked yet':fullM(rTime(x)).split(' · ')[0]);
     return '<div class="cd-railcard'+(y.id===sel?' on':'')+'" onclick="CXX.open_('+y.id+')">'
       +'<div class="n">'+esc(y.n)+'</div><div class="s">'+esc(y.job)+'</div>'
       +'<div class="a">'+STAGEL[x.stage]+' &middot; '+esc(when)+'</div></div>';
@@ -7810,7 +7812,7 @@ var SRCC={};
 var LX_ACT={requested:/^Requested/,interviewed:/^Interviewed/,scheduled:/^Interview confirmed/,noshow:/^Did not attend/,declined:/^You declined/};
 function lxWhen(r){ var c=r.c, st=r.stage;
   if(st==='declined'&&c.notFit) return 'marked as not a fit';
-  if(st==='sourced') return 'matched '+esc(c.matched||'');
+  if(st==='sourced') return esc(c.matched||'');
   if(st==='invited') return esc(c.sent||'');
   if(st==='requested'&&c.prop) return 'proposed times';
   var a=String(c.act||''); if(LX_ACT[st]&&LX_ACT[st].test(a)&&a.indexOf('·')>0) return esc(a.split('·').pop().trim());
@@ -7828,7 +7830,7 @@ function lxNext(r){
   var c=r.c, id=c.id, st=r.stage, ev=EVS[r.ev]?EVS[r.ev].n:'', chip=cxChip(c).replace(' &bull; ','');
   var evl='<div class="cx-cell sub mx-evline">'+esc(ev)+' '+chip+'</div>';
   var dt='<span class="mx-dt">'+fullM(rTime(r)).split(' · ').map(function(x){return '<span class="nw">'+esc(x)+'</span>';}).join(' · ')+'</span>';
-  if(st==='sourced') return '<div class="lx-h">Not invited yet</div>'+(c.prevInvite?'<div class="cx-cell sub">'+esc(c.prevInvite)+'</div>':'')+'<div class="cx-cell sub">'+esc(ev)+'</div>'
+  if(st==='sourced') return '<div class="lx-h">Hasn’t scheduled yet</div>'+(c.prevInvite?'<div class="cx-cell sub">'+esc(c.prevInvite)+'</div>':'')+'<div class="cx-cell sub">'+esc(ev)+'</div>'
     +'<button class="mx-inv lx-btn" onclick="CXX.srcInvite('+id+')">Invite to interview</button>';
   if(st==='invited'){ var sm=(window.SRC&&SRC.summary)?SRC.summary(c.sid):null;
     return (sm?'<div class="sx-prog">'+sm.dots+'<span class="sx-ptxt">'+sm.line+'</span>'+sm.sig+'</div>':'')+'<div class="cx-cell sub">'+esc(ev)+'</div>'
@@ -7853,7 +7855,7 @@ function lxMenu(r){
   else if(st==='scheduled') it=[['Reschedule interview','CXX.sched('+id+')'],['Cancel interview','CXX.cancelIv('+id+')',1]];
   else if(st==='interviewed') it=[['Schedule another interview','CXX.sched('+id+')']];
   else if(st==='noshow') it=[['Mark as interviewed','CXX.markIv('+id+')'],['Schedule interview','CXX.sched('+id+')']];
-  else if(st==='declined') it=c.notFit?[['Move back to Sourced','CXX.unNotFit('+id+')']]:[['Accept','CXX.reAccept('+id+')']];
+  else if(st==='declined') it=c.notFit?[['Move back to Matched','CXX.unNotFit('+id+')']]:[['Accept','CXX.reAccept('+id+')']];
   it=it.concat([['View resume','CXX.rowAct('+id+',\'View resume\')']]).concat(st==='invited'?[]:[['Send a message','CXX.openDock('+id+')']]);
   return '<div class="mx-acts">'+mxMenu(c,it)+'</div>';
 }
@@ -7978,7 +7980,7 @@ function toastUndo(msg,undo){
   toast(msg.replace(/<[^>]+>/g,''));
 }
 function unNotFit(id){ var c=get(id); if(!c||!c.sid||!window.SRC||!SRC.setSt) return; openMenu=''; SRC.setSt(c.sid,'sourced'); render();
-  if(typeof showToast==='function') showToast('success', esc(c.n)+' moved back to Sourced. <a class="src-tl" onclick="CXX.goPill(\'sourced\')">View in Sourced</a>'); }
+  if(typeof showToast==='function') showToast('success', esc(c.n)+' moved back to Matched. <a class="src-tl" onclick="CXX.goPill(\'sourced\')">View in Matched</a>'); }
 function notFit(id){
   var c=get(id); if(!c||!c.sid||!window.SRC||!SRC.setSt) return;
   openMenu=''; SRC.setSt(c.sid,'notfit'); render();
@@ -7992,7 +7994,7 @@ function cxSrcToast(f,id){
   var p=srcById(id); if(!p||typeof showToast!=='function') return;
   var go=function(k,l){ return ' <a class="src-tl" onclick="CXX.goPill(\''+k+'\')">'+l+'</a>'; };
   if(f==='send') showToast('success','Invite sent. '+esc(p.n)+' moved to Invited.'+go('invited','View in Invited'));
-  if(f==='cancelYes') showToast('success','Invite canceled. '+esc(p.n)+' is back in Sourced.'+go('sourced','View in Sourced'));
+  if(f==='cancelYes') showToast('success','Invite canceled. '+esc(p.n)+' is back in Matched.'+go('sourced','View in Matched'));
 }
 function hookSrc(){
   if(!window.SRC||SRC.__cx) return; SRC.__cx=1;
@@ -8024,9 +8026,10 @@ function statusCard(c){
   var r=scRow(c), st=r.stage, id=c.id, f=esc(c.n.split(' ')[0]), ev=EVS[r.ev]?EVS[r.ev].n:(EVS[c.ev]?EVS[c.ev].n:'');
   var k='', tag='', t='', sub='', acts='', icon=scIco(c), fmt=SC_FMT[cxM(c)]||'Interview';
   if(st==='sourced'){
-    icon=ico('search'); k='Sourced'; tag=c.prevInvite?scTag('Invited before','grey'):scTag('Not invited yet','grey');
-    t='Matched '+esc(c.matched||'')+' &middot; '+esc(ev);
-    sub=c.prevInvite?esc(c.prevInvite)+'. Invite again to send new messages.':'Our three scheduling texts went out, and '+f+' hasn&rsquo;t picked a time yet.';
+    /* "Matched", not "Sourced" (Scott, November 23, 2026) */
+    icon=ico('search'); k='Matched'; tag=c.prevInvite?scTag('Invited before','grey'):'';
+    t='Hasn&rsquo;t scheduled an interview yet';
+    sub='Matched '+esc(c.matched||'')+' &middot; '+esc(ev)+'. '+(c.prevInvite?esc(c.prevInvite)+'. Invite again to send new messages.':'Our three scheduling texts went out.');
     acts=scB('p','CXX.srcInvite('+id+')','Invite to interview');
   } else if(st==='invited'){
     var p=(window.SRC&&SRC.people)?SRC.people().filter(function(x){return x.id===c.sid;})[0]:null, sm=(window.SRC&&SRC.summary)?SRC.summary(c.sid):null;
@@ -8065,7 +8068,7 @@ function statusCard(c){
     acts=scB('p','CXX.sched('+id+')','Schedule interview')+scB('o','CXX.markIv('+id+')','Mark as interviewed');
   } else if(st==='declined'&&c.notFit){
     icon=ico('x'); k='Declined'; t='Marked as not a fit'; sub=esc(ev);
-    acts=scB('o','CXX.unNotFit('+id+')','Move back to Sourced');
+    acts=scB('o','CXX.unNotFit('+id+')','Move back to Matched');
   } else if(st==='declined'){
     k='Request declined'; var ago2=scAgo(c,/^You declined/);
     t='You declined '+(ago2?esc(ago2):'this request'); sub=esc(ev)+' &middot; '+scWhen(rTime(r));
@@ -8681,7 +8684,7 @@ document.addEventListener('click', function(e){
     check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
     chev: '<svg class="collapsible-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 15 12 9 18 15"/></svg>'
   };
-  var SUB = 'We matched them to your jobs. They haven\'t picked an interview time yet.';
+  var SUB = 'People we matched to your jobs who haven’t scheduled an interview yet.';
 
   function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function first(n){ return String(n).split(' ')[0]; }
@@ -8878,7 +8881,7 @@ document.addEventListener('click', function(e){
       skip = [false, !pl.m2, !pl.m3];
     }
     var steps = (X.autoOn ? [0, 1, 2] : [0]).map(function(i){ return msgBlock(p, i, { dot: skip[i] ? 'x' : 'n', when: whens[i], solid: i === 0, editable: !skip[i] }); }).join('')
-      + (X.autoOn ? '' : '<div class="sx-offnote">The reminders are off, because <b>Invite sourced candidates</b> is turned off on the Automations page.</div>');
+      + (X.autoOn ? '' : '<div class="sx-offnote">The reminders are off, because <b>Invite matched candidates</b> is turned off on the Automations page.</div>');
     return '<div class="sx-dim' + sl + '" onclick="SRC.closeAsk()"></div><aside class="sx-panel' + sl + (busy ? ' editing' : '') + '" role="dialog" aria-label="Invite ' + esc(p.n) + ' to interview">'
       + top('Invite ' + esc(p.n) + ' to interview', esc(p.j) + ' &middot; ' + esc(p.e))
       + '<div class="sx-pstate"><span class="sx-pinv">Matched ' + esc(p.m) + ' &middot; ' + (p.prevInvite ? esc(p.prevInvite) : 'not invited yet') + '</span></div>'
@@ -8999,7 +9002,7 @@ document.addEventListener('click', function(e){
     var steps = M.map(function(m, i){
       var waiting = (m.st === 'next' || m.st === 'later'), paused = waiting && !X.autoOn;
       if (m.st === 'skipped') return msgBlock(p, i, { dot: 'x', when: 'Not sent: too close to the event', chips: '<span class="sx-chip">Skipped</span>', solid: false, editable: false });
-      var when = m.st === 'sent' ? 'Sent ' + m.when : (paused ? 'Waiting: Invite sourced candidates is turned off' : (waiting ? 'Goes out ' + m.when : (m.st === 'stopped' ? 'Not sent: ' + f + ' replied' : 'Not sent: you stopped the messages')));
+      var when = m.st === 'sent' ? 'Sent ' + m.when : (paused ? 'Waiting: Invite matched candidates is turned off' : (waiting ? 'Goes out ' + m.when : (m.st === 'stopped' ? 'Not sent: ' + f + ' replied' : 'Not sent: you stopped the messages')));
       var chips = m.sig.length ? m.sig.map(chip).join('') : (paused ? '<span class="sx-chip">Paused</span>' : (waiting ? '<span class="sx-chip' + (p.bounced || p.textStop ? ' bad' : '') + '">' + channels(p) + '</span>' : '<span class="sx-chip">Stopped</span>'));
       return msgBlock(p, i, { dot: m.st === 'sent' ? 's' : (waiting ? 'n' : 'x'), when: when, chips: chips, solid: m.st === 'sent', html: m.st === 'sent' ? m.html : null, editable: waiting && !p.reply && !p.stopped });
     }).join('');
@@ -9026,7 +9029,7 @@ document.addEventListener('click', function(e){
     var p = get(X.confirm); if (!p) return '';
     return '<div class="sx-ov top" onclick="if(event.target===this)SRC.confirmClose()"><div class="src-dlg" role="dialog" aria-modal="true" aria-label="Cancel invite" style="width:480px;">'
       + '<div class="src-t">Cancel the invite to ' + esc(p.n) + '?</div>'
-      + '<div class="src-b">The link in the messages stops working, no more messages go out, and ' + esc(first(p.n)) + ' goes back to Sourced.</div>'
+      + '<div class="src-b">The link in the messages stops working, no more messages go out, and ' + esc(first(p.n)) + ' goes back to Matched.</div>'
       + '<div class="src-f"><button type="button" class="src-bt o" onclick="SRC.confirmClose()">Keep invite</button>'
       + '<button type="button" class="src-bt d" onclick="SRC.cancelYes(\'' + p.id + '\')">Cancel invite</button></div></div></div>';
   }
@@ -9068,11 +9071,11 @@ document.addEventListener('click', function(e){
       return '<div class="sx-eblock"><div class="sx-ehead"><span class="sx-sn">' + (i + 1) + '</span><div><div class="sx-et">Message ' + (i + 1) + '</div><div class="sx-ew">' + WHEN[i] + '</div></div>'
         + '<div class="sx-ech"><span>' + I.check + ' Email</span><span>' + I.check + ' Text</span></div></div>' + note + sub + tpl + '</div>';
     }).join('');
-    return '<div class="sx-ov ed" onclick="if(event.target===this)SRC.editorClose()"><div class="src-dlg sx-editor" role="dialog" aria-modal="true" aria-label="Automation: Invite sourced candidates">'
-      + '<div class="sx-edh"><div class="src-t">Automation: Invite sourced candidates</div><button type="button" class="sx-px" onclick="SRC.editorClose()" title="Close" aria-label="Close">' + XI.x + '</button></div>'
+    return '<div class="sx-ov ed" onclick="if(event.target===this)SRC.editorClose()"><div class="src-dlg sx-editor" role="dialog" aria-modal="true" aria-label="Automation: Invite matched candidates">'
+      + '<div class="sx-edh"><div class="src-t">Automation: Invite matched candidates</div><button type="button" class="sx-px" onclick="SRC.editorClose()" title="Close" aria-label="Close">' + XI.x + '</button></div>'
       + '<div class="src-b"><div class="sx-scope"><span class="sx-rad on"><span class="sx-rdot"></span>Turn on automation for all jobs at all events</span>'
       + '<span class="sx-rad" title="Not part of this prototype"><span class="sx-rdot"></span>Turn on automation for individual jobs</span></div>'
-      + '<div class="sx-eintro">When you invite a sourced candidate, they get these 3 messages by email and text. The messages stop as soon as the candidate picks a time or replies.</div>' + blocks
+      + '<div class="sx-eintro">When you invite a matched candidate, they get these 3 messages by email and text. The messages stop as soon as the candidate picks a time or replies.</div>' + blocks
       + '<div class="sx-fnote">Texts start with your company name and end with &ldquo;Reply STOP to opt out.&rdquo; Bold, italic and lists show in emails; texts go out as plain words. Reminders don\'t go out on the day of the event. After an event, the date, times and format come from the times you suggest when you invite.</div></div>'
       + '<div class="src-f">' + (X.autoOn ? '<a class="sx-tlnk" onclick="SRC.offAsk()">Turn off</a>' : '<a class="sx-tlnk on" onclick="SRC.autoOn()">Turn on</a>')
       + '<button type="button" class="src-bt p" onclick="SRC.editorSave()">Save</button></div></div></div>';
@@ -9081,7 +9084,7 @@ document.addEventListener('click', function(e){
   function offHtml(){
     if (!X.offAsk) return '';
     return '<div class="sx-ov top" onclick="if(event.target===this)SRC.offCancel()"><div class="src-dlg" role="dialog" aria-modal="true" aria-label="Turn off automation" style="width:480px;">'
-      + '<div class="src-t">Turn off automation</div><div class="src-b">Are you sure you want to turn off the automation <b>Invite sourced candidates</b> for <b>all jobs at all events</b>?'
+      + '<div class="src-t">Turn off automation</div><div class="src-b">Are you sure you want to turn off the automation <b>Invite matched candidates</b> for <b>all jobs at all events</b>?'
       + ' Invite to interview still sends the first message. The two reminders don\'t go out until you turn it back on.</div>'
       + '<div class="src-f"><button type="button" class="src-bt o" onclick="SRC.offCancel()">Cancel</button><button type="button" class="src-bt d" onclick="SRC.offYes()">Turn off</button></div></div></div>';
   }
@@ -9261,16 +9264,16 @@ document.addEventListener('click', function(e){
   }
   seedInvites();
 
-  /* ---------- the Automations page: Invite sourced candidates ---------- */
+  /* ---------- the Automations page: Invite matched candidates ---------- */
   function autoRowHtml(){
-    return '<div><span class="nx-pill' + (X.autoOn ? '' : ' off') + '">' + (X.autoOn ? 'On' : 'Off') + '</span></div><div>Invite sourced candidates<span class="sx-new">New</span></div>'
+    return '<div><span class="nx-pill' + (X.autoOn ? '' : ' off') + '">' + (X.autoOn ? 'On' : 'Off') + '</span></div><div>Invite matched candidates<span class="sx-new">New</span></div>'
       + '<div class="nx-scope">All jobs</div><div>All hiring events</div><div>' + esc(X.savedOn) + '</div>'
       + '<div><button class="nx-pencil" title="Edit automation" onclick="SRC.editor()">' + XI.pencil + '</button></div>';
   }
   function ensureAutoRow(){
     var rows = document.getElementById('nxRows'); if (!rows) return;
     var emp = document.getElementById('nxEmpty'), nom = document.getElementById('nxNoMatch'), q = document.getElementById('nxSearch');
-    var match = !q || !q.value || 'invite sourced candidates'.indexOf(q.value.trim().toLowerCase()) >= 0;
+    var match = !q || !q.value || 'invite matched candidates'.indexOf(q.value.trim().toLowerCase()) >= 0;
     var want = match && !(emp && !emp.hidden) && !(nom && !nom.hidden);
     var mine = rows.querySelector('[data-sx-auto]');
     if (!want) { if (mine) rows.removeChild(mine); return; }
@@ -9285,7 +9288,7 @@ document.addEventListener('click', function(e){
     ensureAutoRow();
     if (g && !g.querySelector('[data-sx-auto]')) {
       var c = document.createElement('div'); c.className = 'nx-card sx-card'; c.setAttribute('data-sx-auto', '1');
-      c.innerHTML = '<span class="sx-new sx-newtag">New</span><h3>Invite sourced candidates</h3><div class="nx-flow"><div class="nx-step"><span class="nx-ico">' + XI.send + '</span><span>When you invite a sourced candidate</span></div>'
+      c.innerHTML = '<span class="sx-new sx-newtag">New</span><h3>Invite matched candidates</h3><div class="nx-flow"><div class="nx-step"><span class="nx-ico">' + XI.send + '</span><span>When you invite a matched candidate</span></div>'
         + '<div class="nx-conn"></div><div class="nx-step"><span class="nx-ico">' + XI.msg + '</span><span>Send them 3 messages</span></div></div>'
         + '<button class="nx-btn nx-ghost nx-setup" onclick="SRC.editor()">Edit</button>';
       g.appendChild(c);
@@ -9339,7 +9342,7 @@ document.addEventListener('click', function(e){
     var card = document.getElementById('ivSourcedCard'), empty = document.getElementById('ivSourcedEmpty');
     if (card) {
       card.querySelector('tbody').innerHTML = src.map(sourcedRow).join('');
-      card.querySelector('.iv-live-section-title').textContent = 'Sourced candidates (' + src.length + ')';
+      card.querySelector('.iv-live-section-title').textContent = 'Matched candidates (' + src.length + ')';
       var full = m3 !== 'empty' && src.length > 0;
       card.style.display = full ? '' : 'none';
       if (empty) empty.style.display = full ? 'none' : '';
@@ -9363,15 +9366,15 @@ document.addEventListener('click', function(e){
     if (!tabsBox || !wrap || !pend || document.getElementById('iv-panel-3') || document.querySelectorAll('.iv-tab').length !== 3) return false;
     var tab = document.createElement('div');
     tab.className = 'iv-tab'; tab.id = 'ivSourcedTab'; tab.setAttribute('onclick', 'switchIvTab(3)');
-    tab.innerHTML = 'Sourced<span class="iv-count">0</span>';
+    tab.innerHTML = 'Matched<span class="iv-count">0</span>';
     tabsBox.appendChild(tab);
     var plant = document.querySelector('#ivPendingEmpty svg');
     var panel = document.createElement('div');
     panel.className = 'iv-tab-panel'; panel.id = 'iv-panel-3';
     panel.innerHTML = '<div class="iv-live-panel-section" id="ivSourcedCard"><div class="iv-live-section-header"><div class="src-hd">' + I.person
-      + '<div class="iv-live-section-title">Sourced candidates (0)</div><div class="src-sub">' + SUB + '</div></div></div>'
+      + '<div class="iv-live-section-title">Matched candidates (0)</div><div class="src-sub">' + SUB + '</div></div></div>'
       + '<div class="iv-collapsible-body"><table class="iv-live-table"><thead>' + heads('sourced') + '</thead><tbody></tbody></table></div></div>'
-      + '<div class="iv-empty-state" id="ivSourcedEmpty" style="display:none;"><h2>No sourced candidates right now</h2><p>Candidates we match to your jobs show up here until they pick an interview time.</p>' + (plant ? plant.outerHTML : '') + '</div>';
+      + '<div class="iv-empty-state" id="ivSourcedEmpty" style="display:none;"><h2>No matched candidates right now</h2><p>Candidates we match to your jobs show up here until they pick an interview time.</p>' + (plant ? plant.outerHTML : '') + '</div>';
     wrap.appendChild(panel);
     var box = document.createElement('div');
     box.id = 'ivPendingInvited'; box.style.display = 'none';
@@ -9423,7 +9426,7 @@ document.addEventListener('click', function(e){
       mine.className = 'tab'; mine.setAttribute('data-src-tab', '1'); mine.setAttribute('onclick', "switchTab(this, 'sourced')");
       box.appendChild(mine);
     }
-    var t = 'Sourced (' + P.filter(function(p){ return p.st === 'sourced'; }).length + ')';
+    var t = 'Matched (' + P.filter(function(p){ return p.st === 'sourced'; }).length + ')';
     if (mine.textContent !== t) mine.textContent = t;
   }
   function notyetCount(){
@@ -9438,7 +9441,7 @@ document.addEventListener('click', function(e){
     var card = document.getElementById('lobSourcedCard'), empty = document.getElementById('lobSourcedEmpty');
     if (card) {
       card.querySelector('tbody').innerHTML = src.map(sourcedRow).join('');
-      card.querySelector('.live-section-title').textContent = 'Sourced candidates (' + src.length + ')';
+      card.querySelector('.live-section-title').textContent = 'Matched candidates (' + src.length + ')';
       card.style.display = src.length ? '' : 'none';
       if (empty) empty.style.display = src.length ? 'none' : '';
     }
@@ -9462,9 +9465,9 @@ document.addEventListener('click', function(e){
     var panel = document.createElement('div');
     panel.className = 'tab-panel'; panel.id = 'panel-sourced'; panel.style.display = 'none';
     panel.innerHTML = '<div class="tab-panel-wrapper"><div class="src-sec" id="lobSourcedCard"><div class="live-section-header" style="cursor:default;"><div class="src-hd">' + I.person
-      + '<div class="live-section-title">Sourced candidates (0)</div><div class="src-sub">' + SUB + '</div></div></div>'
+      + '<div class="live-section-title">Matched candidates (0)</div><div class="src-sub">' + SUB + '</div></div></div>'
       + '<div class="collapsible-body"><table class="live-table"><thead>' + heads('sourced') + '</thead><tbody></tbody></table></div></div>'
-      + '<div class="review-section" id="lobSourcedEmpty" style="display:none;"><div class="review-header" style="cursor:default;"><h3 style="font-size:24px;font-weight:700;color:#2d2d2d;">No sourced candidates right now</h3></div></div></div>';
+      + '<div class="review-section" id="lobSourcedEmpty" style="display:none;"><div class="review-header" style="cursor:default;"><h3 style="font-size:24px;font-weight:700;color:#2d2d2d;">No matched candidates right now</h3></div></div></div>';
     notyet.parentNode.insertBefore(panel, notyet.nextSibling);
     ['notyetActive', 'notyetLive'].forEach(function(id){
       var host = document.getElementById(id); if (!host) return;
@@ -9551,8 +9554,8 @@ document.addEventListener('click', function(e){
       var c = cand() || (window.CXX && document.getElementById('view-candidates') && document.getElementById('view-candidates').classList.contains('active'));
       p.st = 'sourced'; delete p.sent; delete p.msgs; delete p.custom; p.fromInvite = false; p.reply = null; p.stopped = false; delete p.bounced; delete p.textStop;
       X.confirm = null; X.panel = null; X.edit = null; X.where = ''; sxRender(); changed();
-      if (c) say('Invite canceled. ' + esc(p.n) + ' is back in Sourced.' + link('View in Sourced', "CXX.goPill('sourced')"));
-      else say('Invite canceled. ' + esc(p.n) + ' is back in Sourced.' + link('View in Sourced', "SRC.go('sourced','" + id + "')"));
+      if (c) say('Invite canceled. ' + esc(p.n) + ' is back in Matched.' + link('View in Matched', "CXX.goPill('sourced')"));
+      else say('Invite canceled. ' + esc(p.n) + ' is back in Matched.' + link('View in Matched', "SRC.go('sourced','" + id + "')"));
     },
     pick: function(id){
       var p = get(id); if (!p) return;
@@ -9619,9 +9622,9 @@ document.addEventListener('click', function(e){
     offAsk: function(){ X.offAsk = true; sxRender(); },
     offCancel: function(){ X.offAsk = false; sxRender(); },
     offYes: function(){ X.offAsk = false; X.autoOn = false; X.editor = null; backFromEditor(); sxRender(); ensureAutoRow(); changed();
-      say('Automation turned off. Invite sourced candidates won\'t run until you turn it back on. Invites still send the first message.'); },
+      say('Automation turned off. Invite matched candidates won\'t run until you turn it back on. Invites still send the first message.'); },
     autoOn: function(){ X.autoOn = true; X.editor = null; backFromEditor(); sxRender(); ensureAutoRow(); changed();
-      say('Automation turned on. Invite sourced candidates is turned on for all jobs at all events.'); },
+      say('Automation turned on. Invite matched candidates is turned on for all jobs at all events.'); },
     /* the three dots: Not a fit (Scott, November 22: "The 3 dots, great way to say not a fit") */
     menu: function(id, btn){
       if (X.menu && X.menu.id === id) { X.menu = null; sxRender(); return; }
