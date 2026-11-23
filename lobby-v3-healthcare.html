@@ -8052,7 +8052,7 @@ a.jm-cp-num:hover { color:#0044B3; }
     var M = msgsOf(p), sent = M.filter(function(m){ return m.st === 'sent'; }).length, all = M.filter(function(m){ return m.st !== 'skipped'; }).length;
     if (all === 1 && !p.reply) return ['Invite sent &middot; No reminders', '<span class="sx-sg">' + (M[0].sig.indexOf('Email opened') >= 0 ? 'Opened' : 'Delivered, not opened yet') + '</span>'];
     if (!X.autoOn && !p.reply && !p.stopped && M.some(function(m){ return m.st === 'next' || m.st === 'later'; })) return [sent + ' of ' + all + ' sent &middot; Reminders paused', '<span class="sx-sg">Automation turned off</span>'];
-    if (p.reply) return ['Replied ' + esc(CFG.today), '<span class="sx-sg ok">Messages stopped</span>'];
+    if (p.reply) return ['Replied ' + esc(p.reply.day || CFG.today), '<span class="sx-sg ok">Messages stopped</span>'];
     if (p.stopped) return [sent + ' of ' + all + ' sent', '<span class="sx-sg">Messages stopped by you</span>'];
     var nx = M.filter(function(m){ return m.st === 'next'; })[0];
     var line = nx ? sent + ' of ' + all + ' sent &middot; Next ' + nx.when.split(', ')[1] : 'All ' + all + ' sent &middot; No reply yet';
@@ -8091,7 +8091,7 @@ a.jm-cp-num:hover { color:#0044B3; }
     var state = p.reply ? '<span class="sx-st ok">Replied</span>' : '<span class="sx-st">Invited &middot; awaiting candidate</span>';
     return '<div class="sx-dim' + sl + '" onclick="SRC.closeAsk()"></div><aside class="sx-panel' + sl + (busy ? ' editing' : '') + '" role="dialog" aria-label="Messages to ' + esc(p.n) + '">'
       + top(esc(p.n), esc(p.j) + ' &middot; ' + esc(p.e))
-      + '<div class="sx-pstate">' + state + '<span class="sx-pinv">Invited by ' + esc(CFG.sender) + ' on ' + todayLong() + '</span></div>'
+      + '<div class="sx-pstate">' + state + '<span class="sx-pinv">Invited by ' + esc(CFG.sender) + ' on ' + (p.sentLong || todayLong()) + '</span></div>'
       + '<div class="sx-pnote">Messages stop as soon as ' + f + ' picks a time or replies.</div></div>'
       + '<div class="sx-pbody">' + (demo && !busy ? '<div class="sx-pdemo">' + demo + '</div>' : '') + reply + '<div class="sx-tl">' + steps + '</div></div>'
       + (busy ? editBar(p) : '<div class="sx-pf"><button type="button" class="src-bt p" onclick="SRC.msg(\'' + p.id + '\')">Message ' + f + '</button>' + stop
@@ -8198,7 +8198,7 @@ a.jm-cp-num:hover { color:#0044B3; }
 
   /* ---------- what happens ---------- */
   function doSend(p){
-    p.st = 'invited'; p.sent = CFG.today; p.fromInvite = true; p.stopped = false; p.reply = null; delete p.bounced; delete p.textStop;
+    p.st = 'invited'; p.sent = CFG.today; p.sentLong = todayLong(); p.fromInvite = true; p.stopped = false; p.reply = null; delete p.bounced; delete p.textStop;
     p.msgs = [{ st: 'sent', when: todayLong() + ', ' + clockText(), sig: ['Email delivered', 'Text delivered'], html: msgHtml(p, 0) }];
     if (X.autoOn) {
       var pl = plan(p);
@@ -8290,6 +8290,40 @@ a.jm-cp-num:hover { color:#0044B3; }
     X.menu = null; sxRender();
   }, true);
   window.addEventListener('scroll', function(){ if (X.menu) { X.menu = null; sxRender(); } }, true);
+
+  /* ---------- people already invited when the page opens ----------
+     Scott, November 23, 2026: "Invited, we need to show some candidates in invited so I can see that." Four people were
+     invited before today, each at a different point in the 3 messages; the reminder rules decide what went out. */
+  function matchedIso(m){ var a = String(m || '').split(' '), mi = MONTHS.indexOf(a[0]); return mi < 0 ? null : isoOf(new Date(isoDate(CFG.todayIso).getFullYear(), mi, +a[1])); }
+  function seedOne(p, sentIso, at, sigs, reply){
+    var mi = matchedIso(p.m); if (mi && mi > sentIso) sentIso = mi;
+    var today = CFG.todayIso, ev = evOf(p).iso;
+    p.st = 'invited'; p.fromInvite = true; p.stopped = false; p.reply = null; p.seeded = true;
+    p.sent = MONTHS[isoDate(sentIso).getMonth()] + ' ' + isoDate(sentIso).getDate(); p.sentLong = dayLong(sentIso);
+    var m3 = ev ? addDays(ev, -1) : null, m2 = addDays(sentIso, 2);
+    var go3 = !!m3 && m3 > sentIso, go2 = !!ev && m2 < ev && (!go3 || m2 < m3);
+    var steps = [{ d: sentIso, t: at }, go2 ? { d: m2, t: '10:00 AM' } : null, go3 ? { d: m3, t: '10:00 AM' } : null], waiting = false;
+    p.msgs = steps.map(function(x, i){
+      if (!x) return { st: 'skipped', when: '', sig: [] };
+      var when = dayLong(x.d) + ', ' + x.t, gone = x.d < today || (x.d === today && i > 0);   /* 10:00 AM today is before the page's now */
+      if (gone) return { st: 'sent', when: when, sig: sigs[i] || ['Email delivered', 'Text delivered'], html: msgHtml(p, i) };
+      if (reply) return { st: 'stopped', when: when, sig: [] };
+      var m = { st: waiting ? 'later' : 'next', when: when, sig: [] }; waiting = true; return m;
+    });
+    if (reply) p.reply = reply;
+  }
+  function seedInvites(){
+    if (!CFG.todayIso) return;
+    var byEv = {}; P.forEach(function(p){ (byEv[p.e] = byEv[p.e] || []).push(p); });
+    var names = Object.keys(EV), one = byEv[names[0]] || [], two = byEv[names[1]] || [];
+    var t = CFG.todayIso;
+    if (one[3]) seedOne(one[3], addDays(t, -4), '11:05 AM', [['Email opened', 'Text delivered'], ['Email delivered', 'Text delivered']]);
+    if (one[6]) seedOne(one[6], addDays(t, -3), '9:40 AM', [['Email opened', 'Text delivered'], ['Email opened', 'Clicked the link', 'Text delivered']]);
+    if (one[9]) seedOne(one[9], addDays(t, -1), '4:20 PM', [['Email delivered', 'Text delivered']]);
+    if (two[2]) seedOne(two[2], addDays(t, -2), '2:15 PM', [['Email opened', 'Text delivered'], ['Email opened', 'Text delivered']],
+                        { when: todayLong() + ', 11:48 AM', day: CFG.today, text: 'Could you call me after 2 PM? I work mornings.' });
+  }
+  seedInvites();
 
   /* ---------- the Automations page: Invite sourced candidates ---------- */
   function autoRowHtml(){
@@ -8585,7 +8619,7 @@ a.jm-cp-num:hover { color:#0044B3; }
     },
     /* demo only: time passes, replies, a bounced email, a STOP reply */
     next: function(id){ var p = get(id); if (!p) return; advance(p); sxRender(); changed(); },
-    reply: function(id){ var p = get(id); if (!p) return; p.reply = { when: todayLong() + ', 6:42 PM', text: 'Is there a time after 2 PM? I work mornings.' };
+    reply: function(id){ var p = get(id); if (!p) return; p.reply = { when: todayLong() + ', 6:42 PM', day: CFG.today, text: 'Is there a time after 2 PM? I work mornings.' };
       (p.msgs || []).forEach(function(m){ if (m.st !== 'sent' && m.st !== 'skipped') m.st = 'stopped'; }); if (X.edit && X.edit.who === id) X.edit = null; sxRender(); changed(); },
     bounce: function(id){ var p = get(id); if (!p) return; p.bounced = true; var lb = (p.msgs || []).filter(function(m){ return m.st === 'sent'; }).pop();
       if (lb) lb.sig = lb.sig.map(function(x){ return x === 'Email delivered' || x === 'Email opened' ? 'Email bounced' : x; }).filter(function(x){ return x !== 'Clicked the link'; }); sxRender(); changed(); },

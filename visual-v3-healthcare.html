@@ -1307,32 +1307,40 @@ tr.src-flash td { animation:srcFlash 2.8s ease-out; }
 
 <style id="candidates-page-nov22-css">
 /* Candidates page (Scott, November 22, 2026): columns that fit a laptop, the stage as a label, each stage's actions */
-body #view-candidates .cx-tbl.mx-tbl{min-width:930px;width:100%}
+/* Scott, November 23, 2026: "we need to use the space ... The three dots should be over here ... using the space all evenly
+   so everything's not so crammed in together. Do you see all this white space on each tab?" Each tab's columns size to what
+   that tab shows, a long note can't take over the row, and the actions (three dots last) sit at the right edge. */
+body #view-candidates .cx-tbl.mx-tbl{table-layout:auto;min-width:0;width:100%}
 body #view-candidates .mx-tbl col.m1{width:44px}
-body #view-candidates .mx-tbl col.m2{width:17%}
-body #view-candidates .mx-tbl col.m3{width:12%}
-body #view-candidates .mx-tbl col.m4{width:18%}
-body #view-candidates .mx-tbl col.m5{width:11.5%}
-body #view-candidates .mx-tbl col.m6{width:12.5%}
-body #view-candidates .mx-tbl col.m7{width:24.5%}
+body #view-candidates .mx-tbl th:last-child,body #view-candidates .mx-tbl td:last-child{text-align:right}
+body #view-candidates .mx-acts{justify-content:flex-end}
+body #view-candidates .mx-aw{flex-direction:column;align-items:flex-end;gap:3px}
+body #view-candidates .mx-tbl td:nth-child(5){min-width:150px}
+body #view-candidates .mx-awtop{justify-content:flex-end}
+body #view-candidates .mx-aw .mx-tip{left:auto;right:0;transform:none}
+body #view-candidates .mx-tbl .cx-name{white-space:nowrap}
+body #view-candidates .mx-tbl .cx-note{max-width:260px}
+@media (min-width:1440px){ body #view-candidates .mx-tbl .mx-dt{white-space:nowrap} }
+/* the smallest laptops (under 1366 wide): a long name may take two lines so the whole table still fits */
+@media (max-width:1365px){ body #view-candidates .mx-tbl .cx-name{white-space:normal} body #view-candidates .mx-tbl td:nth-child(2){min-width:138px}
+  body #view-candidates .mx-tbl th:first-child,body #view-candidates .mx-tbl td:first-child{padding-right:0}
+  body #view-candidates .mx-tbl td:nth-child(5){min-width:104px}
+  body #view-candidates .mx-tbl .cx-stat.mx-stat{padding:0 8px}
+  body #view-candidates .mx-tbl .fbp-btn{padding-left:8px;padding-right:8px} }
 body #view-candidates .cx-stat.mx-stat{cursor:default;min-width:0;padding:0 12px;white-space:nowrap}
-/* smaller laptops (for example 1366 and 1280 wide): a little less space around each cell so the whole table still fits */
-@media (max-width:1439px){
-  body #view-candidates .mx-tbl th,body #view-candidates .mx-tbl td{padding-left:12px;padding-right:8px}
-  body #view-candidates .mx-tbl col.m1{width:40px}
-  body #view-candidates .mx-tbl col.m2{width:16%}
-  body #view-candidates .mx-tbl col.m3{width:12%}
-  body #view-candidates .mx-tbl col.m4{width:15%}
-  body #view-candidates .mx-tbl col.m5{width:12%}
-  body #view-candidates .mx-tbl col.m6{width:13.5%}
-  body #view-candidates .mx-tbl col.m7{width:26.9%}
-  body #view-candidates .cx-stat.mx-stat{padding:0 10px}
-  body #view-candidates .mx-grp span{padding:0 10px}
-}
 body #view-candidates .cx-stat.st-sourced{background:#F3F2EF;color:#2D2D2D;box-shadow:inset 0 0 0 1px #D4D2D0}
 body #view-candidates .cx-stat.st-invited{background:#E8F0FE;color:#0B3B8C}
 body #view-candidates .mx-evline{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:2px}
 body #view-candidates .mx-dash{color:#A8A8A8;font-size:14px}
+body #view-candidates .mx-awtop{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+body #view-candidates .mx-awtimes{font-size:13px;font-weight:500;line-height:1.4;color:#2d2d2d}
+body #view-candidates button.mx-cx{background:none;border:0;padding:0;font-family:inherit}
+body #view-candidates .mx-more{position:relative;margin-left:4px;color:#0044B3;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;outline:none}
+body #view-candidates .mx-tip{display:none;position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);z-index:40;background:#2d2d2d;color:#fff;font-size:12px;font-weight:400;line-height:1.6;padding:6px 10px;border-radius:6px;white-space:nowrap;text-align:left}
+body #view-candidates .mx-more:hover .mx-tip,body #view-candidates .mx-more:focus .mx-tip{display:block}
+/* the Feedback menu and the row menus open fully below the last row (Scott, November 23: "For feedback I should be able to
+   have an option on what I select" - the table's frame was cutting the menus off) */
+body #view-candidates .cx-scroll{overflow:visible}
 body #view-candidates .mx-tbl .iv-review-actions{flex-wrap:wrap;column-gap:14px;row-gap:2px}
 body #view-candidates .mx-tbl .iv-review-actions a{white-space:nowrap;flex-shrink:0}
 body #view-candidates .mx-tbl .nw{white-space:nowrap}
@@ -1364,6 +1372,18 @@ body #view-candidates .cx-tools .cx-ctl{white-space:nowrap}
 body #view-candidates .cx-tools .cx-search{min-width:240px}
 body #view-candidates .cx-tools .cx-search input{min-width:0;width:100%}
 body #cxdk .cxdk-empty{padding:16px;font-size:14px;line-height:1.5;color:#595959}
+/* the small-laptop rules come last so they win over the rules above */
+/* smaller laptops (for example 1366 and 1280 wide): a little less space around each cell so the whole table still fits */
+@media (max-width:1439px){
+  body #view-candidates .mx-tbl th,body #view-candidates .mx-tbl td{padding-left:12px;padding-right:8px}
+  body #view-candidates .mx-tbl col.m1{width:40px}
+  body #view-candidates .mx-tbl .cx-note{max-width:200px}
+  body #view-candidates .mx-tbl td:nth-child(5){min-width:112px}
+  body #view-candidates .mx-tbl .fbp-btn{min-width:0}
+  body #view-candidates .mx-tbl .cx-note.empty{white-space:nowrap}
+  body #view-candidates .cx-stat.mx-stat{padding:0 10px}
+  body #view-candidates .mx-grp span{padding:0 9px}
+}
 </style>
 </head>
 <body>
@@ -7257,7 +7277,7 @@ function listHtml(){
       +'<div class="iv-review-actions" style="margin-top:2px"><a onclick="CXX.rowAct('+c.id+',\'View resume\')" style="cursor:pointer">View resume</a> <a onclick="CXX.openDock('+c.id+')" style="cursor:pointer">Message</a></div></td>'
       +'<td>'+mxStat(r.stage)+'</td>'
       +'<td>'+mxWhen(r)+'</td>'
-      +'<td>'+(quiet?'<span class="mx-dash">&mdash;</span>':noteCell(c))+'</td>'
+      +'<td>'+noteCell(c)+'</td>'
       +'<td>'+(r.stage==='interviewed'?fbPill(r):'<span class="mx-dash">&mdash;</span>')+'</td>'
       +'<td>'+mxActs(r)+'</td></tr>';
   });
@@ -7421,6 +7441,7 @@ function sched(id){
   openScheduleModal(null);
   document.getElementById('scheduleTitle').textContent='Schedule with '+c.n;
   document.getElementById('scheduleMsgLabel').textContent='Message to '+c.n;
+  window.__cxSchedId=id;
 }
 function cancelIv(id){
   var c=get(id);var m=unhide('cancelInterviewModal');if(!m)return;
@@ -7463,7 +7484,7 @@ function actsFor(c){
   if(c.stage==='sourced') return btn('pri','CXX.srcInvite('+c.id+')','Invite to interview','send')+msg+res;
   if(c.stage==='invited') return btn('pri','CXX.srcPanel('+c.id+')','View messages','msg')+btn('dgr','CXX.srcCancel('+c.id+')','Cancel invite','x')+msg;
   if(c.stage==='requested'){
-    if(c.prop) return btn('sec','return false','Cancel proposal','x')+msg;
+    if(c.prop) return btn('sec','CXX.cancelProp('+c.id+')','Cancel proposal','x')+msg;
     return btn('pri','CXX.accept('+c.id+')','Accept','cal')+btn('dgr','CXX.decline('+c.id+')','Decline','x')+btn('sec','CXX.sched('+c.id+')','Reschedule','clock')+msg;
   }
   if(c.stage==='scheduled')
@@ -7692,6 +7713,60 @@ var SAMPLE_DUTY={'Registered Nurse':'Cared for five to six patients a shift on a
   'Licensed Practical Nurse':'Gave medications and wound care to 20 residents a shift.'};
 var SAMPLE_SCHOOL={'Registered Nurse':'Associate Degree in Nursing','Medical Assistant':'Medical Assistant Certificate','Licensed Practical Nurse':'Practical Nursing Certificate'};
 var SRCC={};
+/* ---------- proposed times, shown the way the lobby shows them (Scott, November 23, 2026: "For requested, proposed,
+   this should show the proposed times. Like we show in the lobby when an employer proposes times.") ---------- */
+var MONTHS_LONG=['January','February','March','April','May','June','July','August','September','October','November','December'];
+C.forEach(function(c){ if(c.prop&&!c.props){ c.props=['April 22 · 1:00 – 1:30 PM CT','April 22 · 2:00 – 2:30 PM CT','April 22 · 3:00 – 3:30 PM CT']; c.prop=c.props[0]; } });
+function propLine(x){ return '<span class="mx-dt">'+fullM(String(x).replace(/&middot;/g,'·')).split(' · ').map(function(y){return '<span class="nw">'+esc(y)+'</span>';}).join(' · ')+'</span>'; }
+function propHtml(c){
+  var a=c.props||(c.prop?[c.prop]:[]); if(!a.length) return '';
+  return propLine(a[0])+(a.length>1?' <span class="mx-more" tabindex="0">+'+(a.length-1)+' more<span class="mx-tip" role="tooltip">'
+    +a.slice(1).map(function(x){return esc(fullM(String(x).replace(/&middot;/g,'·')));}).join('<br>')+'</span></span>':'');
+}
+var skipPropWarn=false, pendingProp=null;
+function ensurePropModal(){
+  if(document.getElementById('cxPropModal')) return;
+  var d=document.createElement('div'); d.className='decline-modal-overlay'; d.id='cxPropModal';
+  d.innerHTML='<div class="decline-modal"><div class="decline-modal-header">Cancel proposed interview</div><div class="decline-modal-body" id="cxPropBody"></div>'
+    +'<label class="decline-modal-checkbox"><input type="checkbox" id="cxPropDontAsk"><span>Don’t show this message when I cancel</span></label>'
+    +'<div class="decline-modal-actions"><button class="decline-cancel" onclick="CXX.closeProp()">Keep request</button><button class="decline-confirm" onclick="CXX.confirmProp()">Cancel request</button></div></div>';
+  document.body.appendChild(d);
+  d.addEventListener('click',function(e){ if(e.target===d) CXX.closeProp(); });
+}
+/* the lobby's own window and words: "Cancel proposed interview" ... "the original requested time will be restored" */
+function cancelProp(id){
+  if(skipPropWarn) return doCancelProp(id);
+  var c=get(id); if(!c) return; pendingProp=id; openMenu=''; ensurePropModal();
+  document.getElementById('cxPropBody').innerHTML='Are you sure you want to cancel your interview time request for <span class="candidate-name">'+esc(c.n)
+    +'</span>? The candidate will be notified and the original requested time will be restored.';
+  document.getElementById('cxPropModal').classList.add('open');
+}
+function closeProp(){ var m=document.getElementById('cxPropModal'); if(m) m.classList.remove('open'); pendingProp=null; }
+function confirmProp(){ var cb=document.getElementById('cxPropDontAsk'); if(cb&&cb.checked) skipPropWarn=true; if(cb) cb.checked=false; var id=pendingProp; closeProp(); if(id!=null) doCancelProp(id); }
+function doCancelProp(id){
+  var c=get(id); if(!c) return;
+  c.prop=null; c.props=null; c.act='Proposal canceled · just now'; openMenu=''; render();
+  if(typeof showToast==='function') showToast('success','Proposal canceled for '+esc(c.n)+'. The requested time is back, for you to accept, decline or reschedule.');
+}
+/* Reschedule on a request, then Send: the row turns into the proposed look with the times picked */
+function tmin(t){ var m=String(t).match(/(\d{1,2}):(\d{2})\s*([AP]M)/i); if(!m) return 0; var h=+m[1]%12+(/p/i.test(m[3])?12:0); return h*60+(+m[2]); }
+(function(){
+  var oOpen=window.openScheduleModal, oSub=window.submitScheduleModal;
+  if(typeof oOpen==='function') window.openScheduleModal=function(){ window.__cxSchedId=null; return oOpen.apply(this,arguments); };
+  if(typeof oSub==='function') window.submitScheduleModal=function(){
+    var id=window.__cxSchedId, c=id!=null?get(id):null, times=[];
+    if(c) [].forEach.call(document.querySelectorAll('#scheduleSlots .schedule-slot'),function(sl){
+      var d=(sl.querySelector('[data-field="date"] .schedule-input')||{}).value, t=(sl.querySelector('[data-field="time"] .schedule-select')||{}).value;
+      if(d&&t) times.push([d,t]); });
+    var r=oSub.apply(this,arguments), m=document.getElementById('scheduleModal');
+    if(c&&times.length&&!(m&&m.classList.contains('open'))&&c.stage==='requested'){
+      times.sort(function(a,b){ return a[0]<b[0]?-1:(a[0]>b[0]?1:tmin(a[1])-tmin(b[1])); });
+      c.props=times.map(function(x){ var d=new Date(+x[0].slice(0,4),+x[0].slice(5,7)-1,+x[0].slice(8,10)); return MONTHS_LONG[d.getMonth()]+' '+d.getDate()+' · '+x[1]+' CT'; });
+      c.prop=c.props[0]; c.act='You proposed new times · just now'; window.__cxSchedId=null; render();
+    }
+    return r;
+  };
+})();
 function srcPeople(){ try { return (window.SRC&&SRC.people)?SRC.people():[]; } catch(e){ return []; } }
 function srcCand(p){
   var id=1000+parseInt(String(p.id).replace(/\D/g,''),10), c=SRCC[id];
@@ -7717,7 +7792,7 @@ function mxWhen(r){
   if(r.stage==='invited'){ var sm=(window.SRC&&SRC.summary)?SRC.summary(c.sid):null;
     if(sm) return '<div class="sx-prog">'+sm.dots+'<span class="sx-ptxt">'+sm.line+'</span>'+sm.sig+'</div><div class="cx-cell sub">'+esc(ev)+'</div>';
     return '<div class="cx-cell">Not picked yet</div><div class="cx-cell sub">Invite sent '+esc(c.sent||'')+'</div><div class="cx-cell sub">'+esc(ev)+'</div>'; }
-  var when=fullM(rTime(r)).split(' · ').map(function(x){return '<span class="nw">'+esc(x)+'</span>';}).join(' · ');
+  var when=(r.stage==='requested'&&c.prop)?propHtml(c):'<span class="mx-dt">'+fullM(rTime(r)).split(' · ').map(function(x){return '<span class="nw">'+esc(x)+'</span>';}).join(' · ')+'</span>';
   return '<div class="cx-cell">'+when+'</div><div class="cx-cell sub mx-evline">'+esc(ev)+' '+cxChip(c).replace(' &bull; ','')+'</div>';
 }
 function mxMenu(c,items){
@@ -7732,7 +7807,8 @@ function mxActs(r){
   if(st==='sourced') return '<div class="mx-acts"><button class="mx-inv" onclick="CXX.srcInvite('+id+')">Invite to interview</button>'+mxMenu(c,[['Not a fit','CXX.notFit('+id+')']])+'</div>';
   if(st==='invited') return '<div class="mx-acts"><button class="mx-inv" onclick="CXX.srcPanel('+id+')">View messages</button><span class="mx-cx" onclick="CXX.srcCancel('+id+')">Cancel invite</span></div>';
   if(st==='requested'){
-    if(c.prop) return '<div class="mx-aw"><span class="mx-awst">Proposed &middot; awaiting candidate</span><span class="mx-cx" onclick="return false">Cancel proposal</span></div>';
+    if(c.prop) return '<div class="mx-aw"><div class="mx-awtop"><span class="mx-awst">Proposed &middot; awaiting candidate</span><button type="button" class="mx-cx" onclick="CXX.cancelProp('+id+')" title="Cancel proposed interview time">Cancel</button></div>'
+      +'<div class="mx-awtimes">'+propHtml(c)+'</div></div>';
     return '<span class="mx-grp"><span class="a" onclick="CXX.accept('+id+')">Accept</span><span onclick="CXX.decline('+id+')">Decline</span><span onclick="CXX.sched('+id+')">Reschedule</span></span>';
   }
   if(st==='scheduled') return '<div class="mx-acts">'+mxMenu(c,[['Reschedule interview','CXX.sched('+id+')'],['Cancel interview','CXX.cancelIv('+id+')',1]])+'</div>';
@@ -7846,7 +7922,7 @@ document.addEventListener('click',function(e){
     if(inQ)focusQ();
   }
 },true);
-window.CXX={srcInvite:srcInvite,srcCancel:srcCancel,srcPanel:srcPanel,notFit:notFit,markIv:markIv,goPill:goPill,accept:accept,back:back,closeDecline:closeDecline,confirmDecline:confirmDecline,sched:sched,cancelIv:cancelIv,reAccept:reAccept,setFb:setFb,openNotes:openNotes,_noteSave:_noteSave,clearSel:clearSel,decline:decline,noshow:noshow,om:om,openDock:openDock,open_:open_,reinstate:reinstate,rowAct:rowAct,selAll:selAll,setPTab:setPTab,setPill:setPill,setScope:setScope,setStage:setStage,setRowStage:setRowStage,setRowFb:setRowFb,setEvd:setEvd,step:step,togSel:togSel,toggleMenu:toggleMenu,toggleScope:toggleScope,toggleSec:toggleSec,toggleSt:toggleSt,setSort:setSort,setJob:setJob,setRate:setRate,closeDock:closeDock,render:render,setQ:setQ,exportSel:exportSel};
+window.CXX={srcInvite:srcInvite,srcCancel:srcCancel,srcPanel:srcPanel,notFit:notFit,markIv:markIv,goPill:goPill,cancelProp:cancelProp,closeProp:closeProp,confirmProp:confirmProp,accept:accept,back:back,closeDecline:closeDecline,confirmDecline:confirmDecline,sched:sched,cancelIv:cancelIv,reAccept:reAccept,setFb:setFb,openNotes:openNotes,_noteSave:_noteSave,clearSel:clearSel,decline:decline,noshow:noshow,om:om,openDock:openDock,open_:open_,reinstate:reinstate,rowAct:rowAct,selAll:selAll,setPTab:setPTab,setPill:setPill,setScope:setScope,setStage:setStage,setRowStage:setRowStage,setRowFb:setRowFb,setEvd:setEvd,step:step,togSel:togSel,toggleMenu:toggleMenu,toggleScope:toggleScope,toggleSec:toggleSec,toggleSt:toggleSt,setSort:setSort,setJob:setJob,setRate:setRate,closeDock:closeDock,render:render,setQ:setQ,exportSel:exportSel};
 
 /* ---------- bootstrap ---------- */
 try {
@@ -8498,7 +8574,7 @@ document.addEventListener('click', function(e){
     var M = msgsOf(p), sent = M.filter(function(m){ return m.st === 'sent'; }).length, all = M.filter(function(m){ return m.st !== 'skipped'; }).length;
     if (all === 1 && !p.reply) return ['Invite sent &middot; No reminders', '<span class="sx-sg">' + (M[0].sig.indexOf('Email opened') >= 0 ? 'Opened' : 'Delivered, not opened yet') + '</span>'];
     if (!X.autoOn && !p.reply && !p.stopped && M.some(function(m){ return m.st === 'next' || m.st === 'later'; })) return [sent + ' of ' + all + ' sent &middot; Reminders paused', '<span class="sx-sg">Automation turned off</span>'];
-    if (p.reply) return ['Replied ' + esc(CFG.today), '<span class="sx-sg ok">Messages stopped</span>'];
+    if (p.reply) return ['Replied ' + esc(p.reply.day || CFG.today), '<span class="sx-sg ok">Messages stopped</span>'];
     if (p.stopped) return [sent + ' of ' + all + ' sent', '<span class="sx-sg">Messages stopped by you</span>'];
     var nx = M.filter(function(m){ return m.st === 'next'; })[0];
     var line = nx ? sent + ' of ' + all + ' sent &middot; Next ' + nx.when.split(', ')[1] : 'All ' + all + ' sent &middot; No reply yet';
@@ -8537,7 +8613,7 @@ document.addEventListener('click', function(e){
     var state = p.reply ? '<span class="sx-st ok">Replied</span>' : '<span class="sx-st">Invited &middot; awaiting candidate</span>';
     return '<div class="sx-dim' + sl + '" onclick="SRC.closeAsk()"></div><aside class="sx-panel' + sl + (busy ? ' editing' : '') + '" role="dialog" aria-label="Messages to ' + esc(p.n) + '">'
       + top(esc(p.n), esc(p.j) + ' &middot; ' + esc(p.e))
-      + '<div class="sx-pstate">' + state + '<span class="sx-pinv">Invited by ' + esc(CFG.sender) + ' on ' + todayLong() + '</span></div>'
+      + '<div class="sx-pstate">' + state + '<span class="sx-pinv">Invited by ' + esc(CFG.sender) + ' on ' + (p.sentLong || todayLong()) + '</span></div>'
       + '<div class="sx-pnote">Messages stop as soon as ' + f + ' picks a time or replies.</div></div>'
       + '<div class="sx-pbody">' + (demo && !busy ? '<div class="sx-pdemo">' + demo + '</div>' : '') + reply + '<div class="sx-tl">' + steps + '</div></div>'
       + (busy ? editBar(p) : '<div class="sx-pf"><button type="button" class="src-bt p" onclick="SRC.msg(\'' + p.id + '\')">Message ' + f + '</button>' + stop
@@ -8644,7 +8720,7 @@ document.addEventListener('click', function(e){
 
   /* ---------- what happens ---------- */
   function doSend(p){
-    p.st = 'invited'; p.sent = CFG.today; p.fromInvite = true; p.stopped = false; p.reply = null; delete p.bounced; delete p.textStop;
+    p.st = 'invited'; p.sent = CFG.today; p.sentLong = todayLong(); p.fromInvite = true; p.stopped = false; p.reply = null; delete p.bounced; delete p.textStop;
     p.msgs = [{ st: 'sent', when: todayLong() + ', ' + clockText(), sig: ['Email delivered', 'Text delivered'], html: msgHtml(p, 0) }];
     if (X.autoOn) {
       var pl = plan(p);
@@ -8736,6 +8812,40 @@ document.addEventListener('click', function(e){
     X.menu = null; sxRender();
   }, true);
   window.addEventListener('scroll', function(){ if (X.menu) { X.menu = null; sxRender(); } }, true);
+
+  /* ---------- people already invited when the page opens ----------
+     Scott, November 23, 2026: "Invited, we need to show some candidates in invited so I can see that." Four people were
+     invited before today, each at a different point in the 3 messages; the reminder rules decide what went out. */
+  function matchedIso(m){ var a = String(m || '').split(' '), mi = MONTHS.indexOf(a[0]); return mi < 0 ? null : isoOf(new Date(isoDate(CFG.todayIso).getFullYear(), mi, +a[1])); }
+  function seedOne(p, sentIso, at, sigs, reply){
+    var mi = matchedIso(p.m); if (mi && mi > sentIso) sentIso = mi;
+    var today = CFG.todayIso, ev = evOf(p).iso;
+    p.st = 'invited'; p.fromInvite = true; p.stopped = false; p.reply = null; p.seeded = true;
+    p.sent = MONTHS[isoDate(sentIso).getMonth()] + ' ' + isoDate(sentIso).getDate(); p.sentLong = dayLong(sentIso);
+    var m3 = ev ? addDays(ev, -1) : null, m2 = addDays(sentIso, 2);
+    var go3 = !!m3 && m3 > sentIso, go2 = !!ev && m2 < ev && (!go3 || m2 < m3);
+    var steps = [{ d: sentIso, t: at }, go2 ? { d: m2, t: '10:00 AM' } : null, go3 ? { d: m3, t: '10:00 AM' } : null], waiting = false;
+    p.msgs = steps.map(function(x, i){
+      if (!x) return { st: 'skipped', when: '', sig: [] };
+      var when = dayLong(x.d) + ', ' + x.t, gone = x.d < today || (x.d === today && i > 0);   /* 10:00 AM today is before the page's now */
+      if (gone) return { st: 'sent', when: when, sig: sigs[i] || ['Email delivered', 'Text delivered'], html: msgHtml(p, i) };
+      if (reply) return { st: 'stopped', when: when, sig: [] };
+      var m = { st: waiting ? 'later' : 'next', when: when, sig: [] }; waiting = true; return m;
+    });
+    if (reply) p.reply = reply;
+  }
+  function seedInvites(){
+    if (!CFG.todayIso) return;
+    var byEv = {}; P.forEach(function(p){ (byEv[p.e] = byEv[p.e] || []).push(p); });
+    var names = Object.keys(EV), one = byEv[names[0]] || [], two = byEv[names[1]] || [];
+    var t = CFG.todayIso;
+    if (one[3]) seedOne(one[3], addDays(t, -4), '11:05 AM', [['Email opened', 'Text delivered'], ['Email delivered', 'Text delivered']]);
+    if (one[6]) seedOne(one[6], addDays(t, -3), '9:40 AM', [['Email opened', 'Text delivered'], ['Email opened', 'Clicked the link', 'Text delivered']]);
+    if (one[9]) seedOne(one[9], addDays(t, -1), '4:20 PM', [['Email delivered', 'Text delivered']]);
+    if (two[2]) seedOne(two[2], addDays(t, -2), '2:15 PM', [['Email opened', 'Text delivered'], ['Email opened', 'Text delivered']],
+                        { when: todayLong() + ', 11:48 AM', day: CFG.today, text: 'Could you call me after 2 PM? I work mornings.' });
+  }
+  seedInvites();
 
   /* ---------- the Automations page: Invite sourced candidates ---------- */
   function autoRowHtml(){
@@ -9031,7 +9141,7 @@ document.addEventListener('click', function(e){
     },
     /* demo only: time passes, replies, a bounced email, a STOP reply */
     next: function(id){ var p = get(id); if (!p) return; advance(p); sxRender(); changed(); },
-    reply: function(id){ var p = get(id); if (!p) return; p.reply = { when: todayLong() + ', 6:42 PM', text: 'Is there a time after 2 PM? I work mornings.' };
+    reply: function(id){ var p = get(id); if (!p) return; p.reply = { when: todayLong() + ', 6:42 PM', day: CFG.today, text: 'Is there a time after 2 PM? I work mornings.' };
       (p.msgs || []).forEach(function(m){ if (m.st !== 'sent' && m.st !== 'skipped') m.st = 'stopped'; }); if (X.edit && X.edit.who === id) X.edit = null; sxRender(); changed(); },
     bounce: function(id){ var p = get(id); if (!p) return; p.bounced = true; var lb = (p.msgs || []).filter(function(m){ return m.st === 'sent'; }).pop();
       if (lb) lb.sig = lb.sig.map(function(x){ return x === 'Email delivered' || x === 'Email opened' ? 'Email bounced' : x; }).filter(function(x){ return x !== 'Clicked the link'; }); sxRender(); changed(); },
