@@ -1462,19 +1462,37 @@ body #view-candidates .sc-fbl{font-size:13px;font-weight:600;color:#595959}
 body #view-candidates .cd-exp .d .sc-dur{color:#767676}
 body #view-candidates .sc-file{display:flex;align-items:center;gap:10px;margin:0 0 12px;font-size:14px;color:#2d2d2d}
 body #view-candidates .sc-file svg{width:18px;height:18px;color:#595959}
+/* the resume, shown as the page the candidate uploaded (Scott, November 23, 2026) */
+body #view-candidates .rv-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:4px 0 12px}
+body #view-candidates .rv-file{display:flex;align-items:center;gap:8px;font-size:14px;color:#2d2d2d}
+body #view-candidates .rv-file svg{width:18px;height:18px;color:#595959}
+body #view-candidates .rv-tools{display:flex;align-items:center;gap:8px}
+body #view-candidates .rv-dl{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;border:1px solid #d4d2d0;border-radius:8px;background:#fff;color:#004fcb;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer}
+body #view-candidates .rv-dl svg{width:16px;height:16px}
+body #view-candidates .rv-stage{background:#eeedeb;border:1px solid #e4e2e0;border-radius:12px;padding:28px}
+body #view-candidates .rv-page{max-width:760px;margin:0 auto;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.12),0 8px 24px rgba(0,0,0,.06);padding:48px 56px 56px;color:#222;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:1.5}
+body #view-candidates .rv-name{font-size:24px;font-weight:700;text-align:center;letter-spacing:.5px;color:#111}
+body #view-candidates .rv-contact{text-align:center;margin-top:4px;color:#333}
+body #view-candidates .rv-h{margin:22px 0 8px;padding-bottom:4px;border-bottom:1px solid #222;font-size:12.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#111}
+body #view-candidates .rv-p{margin:0}
+body #view-candidates .rv-row{display:flex;justify-content:space-between;gap:16px;margin-top:8px}
+body #view-candidates .rv-dt{white-space:nowrap;color:#333}
+body #view-candidates .rv-ul{margin:4px 0 0;padding-left:18px}
+body #view-candidates .rv-ul li{margin:2px 0}
 body #view-candidates .cd-phwrap{position:relative;display:inline-flex}
 body #view-candidates .cd-phpop{position:absolute;left:0;top:calc(100% + 8px);z-index:900;background:#fff;border-radius:12px;padding:14px 18px;min-width:236px;text-align:left;box-shadow:rgba(45,45,45,.16) 0 0 2px 0,rgba(45,45,45,.12) 0 6px 18px 0}
 body #view-candidates .cd-phpop .l{font-size:14px;color:#595959;white-space:nowrap}
 body #view-candidates .cd-phpop .n{font-size:24px;font-weight:700;color:#2d2d2d;margin-top:6px;letter-spacing:.4px;white-space:nowrap}
 /* Scott, November 23, 2026: "I don't think we need anything bolded" - the Candidates list and the side list on a
-   candidate's page are regular weight; buttons keep theirs, and the name stays the largest, darkest text */
-body #view-candidates .mx-tbl .cx-name{font-weight:400}
+   candidate's page are regular weight; buttons keep theirs. Later the same day, like JobAgentX: "only bold the name of
+   the candidate" - the name is the one bold thing in a row */
+body #view-candidates .mx-tbl .cx-name{font-weight:700}
 body #view-candidates .lx-st b{font-weight:400;color:#2d2d2d}
 body #view-candidates .lx-wt{font-weight:400}
 body #view-candidates .lx-h{font-weight:400}
 body #view-candidates .mx-tbl .sx-ptxt{font-weight:400}
 body #view-candidates .mx-tbl .lx-link,body #view-candidates .mx-tbl .mx-more{font-weight:400}
-body #view-candidates .cd-railcard .n{font-weight:400}
+body #view-candidates .cd-railcard .n{font-weight:700}
 body #view-candidates .mx-tbl .jm{font-weight:400}
 /* "Couldn't make it" is longer than "No-show": on smaller laptops the tabs sit a little closer so all eight fit */
 @media (max-width:1365px){ body #view-candidates .mx-pills .cx-pill{padding:16px 9px} }
@@ -7146,7 +7164,7 @@ var C=[
 ];
 var PILLS=[{k:'',l:'All'},{k:'sourced',l:'Sourced'},{k:'invited',l:'Invited'},{k:'requested',l:'Requested'},{k:'scheduled',l:'Scheduled'},{k:'interviewed',l:'Interviewed'},{k:'noshow',l:'Couldn’t make it'},{k:'declined',l:'Declined'}];
 var STAGEL={sourced:'Sourced',invited:'Invited',requested:'Requested',scheduled:'Scheduled',interviewed:'Interviewed',noshow:'Couldn’t make it',declined:'Declined'};
-var pill='', sel=null, evScope='', secOpen={iv:1,q:1,sq:1,ex:1,ed:1,res:0}, ptab='app', menu=false, stpop=false, scopeOpen=false;
+var pill='', sel=null, evScope='', secOpen={iv:1,q:1,sq:1,ex:1,ed:1,res:1}, ptab='app', menu=false, stpop=false, scopeOpen=false;
 var sortBy='Interview time (earliest first)', jobFil=[], rateFil=[], evdFil=[], openMenu='', selRows=[], q='';
 var SORTS=['Interview time (earliest first)','Interview time (latest first)','Request date (newest first)','Request date (oldest first)','Name (A to Z)','Name (Z to A)'];
 var RATES=[['','Any feedback'],['yes','Yes'],['no','No'],['maybe','Maybe'],['none','No feedback']];
@@ -7515,7 +7533,7 @@ function rowAct(id,a){
   if(a==='Accept')return reAccept(id);
   if(a==='Send a Message'||a==='Message')return (render(),openDock(id));
   if(a==='Schedule follow-up interview'||a==='Schedule interview')return (render(),sched(id));
-  if(a==='View resume'){sel=id;ptab='app';secOpen.res=1;render();return;}
+  if(a==='View resume'){sel=id;ptab='app';secOpen.res=1;render();var rv=document.querySelector('#cxRoot .rv-bar');if(rv)window.scrollTo({top:Math.max(0,rv.getBoundingClientRect().top+window.scrollY-190),behavior:'smooth'});return;}
   render();
 }
 /* Reuse the existing schedule / cancel / notes modals. They live inside a
@@ -7707,13 +7725,7 @@ function profileHtml(){
       +'<div class="d">'+esc(e[1])+' &middot; '+esc(e[2])+'</div></div></div>';
   }).join('');
 
-  var resBody='<div class="sc-file">'+ico('doc')+'<span><b>'+esc(c.n.toLowerCase().replace(/[^a-z]+/g,'-'))+'-resume.pdf</b></span></div>'+'<div class="cd-resbar"><button class="cd-zoom">&minus;</button><span class="cd-zoomlvl">100%</span><button class="cd-zoom">+</button>'
-    +'<button class="cd-dl">'+ico('doc')+'Download resume</button></div>'
-    +'<div class="cd-resume"><h3>'+esc(c.n)+'</h3><div class="role">'+esc(c.job)+'</div>'
-    +'<div class="contact">'+esc(c.loc)+' &middot; <a>'+esc(c.em)+'</a> &middot; '+esc(c.ph)+'</div>'
-    +'<h4>Experience</h4>'+c.w.map(function(w){return '<p><b>'+esc(w[0])+'</b>, '+esc(w[1])+' ('+esc(w[2])+')</p>'+w[3].map(function(b){return '<p>'+esc(b)+'</p>';}).join('');}).join('')
-    +'<h4>Education</h4>'+c.ed.map(function(e){return '<p>'+esc(e[0])+', '+esc(e[1])+' ('+esc(e[2])+')</p>';}).join('')
-    +'</div>';
+  var resBody=rvHtml(c);
 
   var h='<div class="cd-pf"><div class="cd-pfsticky" id="cxSticky">'
     +'<div class="cd-pftop">'
@@ -7741,8 +7753,6 @@ function profileHtml(){
   } else if(ptab==='app'){
     h+=sec('q','Qualifications',qBody,'<span class="cd-meter">'+c.sk.map(function(s){return '<i class="'+(s[1]?'on':'')+'"></i>';}).join('')+'</span>');
     h+=sec('sq','Screener questions',sqBody);
-    h+=sec('ex','Experience',exBody);
-    h+=sec('ed','Education',edBody);
     h+=sec('res','Resume',resBody);
   } else {
     h+='<div class="cd-sec"><div style="padding:24px 0 12px"><h2 style="font-size:20px;line-height:30px;margin:0">Activity feed</h2></div>'
@@ -8100,6 +8110,27 @@ if(!window.__cdPhDoc){ window.__cdPhDoc=1;
   document.addEventListener('keydown',function(e){ if(e.key==='Escape') closePh(); });
 }
 function goLobby(){ window.location.href='lobby-v3-healthcare.html'; }
+/* the resume the candidate uploaded, shown as its page, like the live site's View resume (Scott, November 23, 2026) */
+var RV_DL='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>';
+function rvAnd(a){ return a.length<2?a.join(''):a.slice(0,-1).join(', ')+' and '+a[a.length-1]; }
+function rvHtml(c){
+  var file=c.n.toLowerCase().replace(/[^a-z]+/g,'-')+'-resume.pdf', sk=c.sk.map(function(s){return s[0];}), w0=c.w[0]||['','',''];
+  var sum=c.job+' with hands-on experience'+(w0[1]?' at '+w0[1]:'')+(sk.length?'. Skilled in '+rvAnd(sk.slice(0,4))+'.':'.');
+  return '<div class="rv-bar"><span class="rv-file">'+ico('doc')+'<b>'+esc(file)+'</b></span>'
+    +'<span class="rv-tools"><button class="cd-zoom">&minus;</button><span class="cd-zoomlvl">100%</span><button class="cd-zoom">+</button>'
+    +'<button class="rv-dl" onclick="return false">'+RV_DL+'Download</button></span></div>'
+    +'<div class="rv-stage"><div class="rv-page">'
+    +'<div class="rv-name">'+esc(c.n)+'</div>'
+    +'<div class="rv-contact">'+esc(c.loc)+' &nbsp;|&nbsp; '+esc(c.em)+' &nbsp;|&nbsp; '+esc(c.ph)+'</div>'
+    +'<div class="rv-h">Professional Summary</div><p class="rv-p">'+esc(sum)+'</p>'
+    +'<div class="rv-h">Experience</div>'+c.w.map(function(w){
+        return '<div class="rv-row"><div><b>'+esc(w[0])+'</b><br>'+esc(w[1])+'</div><div class="rv-dt">'+esc(w[2])+'</div></div>'
+          +'<ul class="rv-ul">'+w[3].map(function(b){return '<li>'+esc(b)+'</li>';}).join('')+'</ul>'; }).join('')
+    +'<div class="rv-h">Education</div>'+c.ed.map(function(e){
+        return '<div class="rv-row"><div><b>'+esc(e[0])+'</b><br>'+esc(e[1])+'</div><div class="rv-dt">'+esc(e[2])+'</div></div>'; }).join('')
+    +'<div class="rv-h">Skills</div><p class="rv-p">'+sk.map(esc).join(' &nbsp;&middot;&nbsp; ')+'</p>'
+    +'</div></div>';
+}
 /* the Event filter names each event by its city and day: "Dallas, April 22" (Scott, November 23, 2026) */
 var EV_CITY={'Dallas Hiring Event':'Dallas','Houston Healthcare Event':'Houston','Chicago Healthcare Hiring Event':'Chicago'};
 function evLbl(d){ var n=''; for(var k in EVS){ if(EVS[k].d===d) n=EVS[k].n; } var city=EV_CITY[n]||String(n).split(' ')[0];
