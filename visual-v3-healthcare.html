@@ -1507,7 +1507,7 @@ body #view-candidates .cd-phpop .cd-phcopy{margin-top:10px;border:0;background:n
 #view-interviews .iv-tabs-wrapper{margin-left:-28px;margin-right:-28px;width:calc(100% + 56px)}
 #view-interviews .iv-tabs{padding:0 28px}
 #view-interviews .iv-panel-wrapper{margin-left:-28px;margin-right:-28px;width:calc(100% + 56px);padding-left:28px;padding-right:28px}
-#view-interviews .iv2-on > :not(.iv2){display:none !important}
+#view-interviews .iv2-on > :not(.iv2):not(.iv2-inv){display:none !important}
 #ivSourcedTab,#iv-panel-3{display:none !important}
 #ivHeaderLobbyBtn{margin-left:auto}
 #view-interviews .iv2{background:#fff;border:1px solid #e4e2e0;border-radius:12px;padding:20px 24px 8px;margin-top:20px}
@@ -1609,6 +1609,13 @@ body #view-candidates .cd-phpop .cd-phcopy{margin-top:10px;border:0;background:n
   font-family:inherit !important;font-size:16px !important;line-height:24px;font-weight:600 !important;color:#0044B3 !important;
   text-decoration:underline !important;text-decoration-thickness:1px !important;text-underline-offset:3px}
 #view-interviews .iv2-name:hover,body #view-candidates .mx-tbl .cx-name:hover{color:#003399 !important;text-decoration-thickness:2px !important}
+/* Pending, second box: Candidates you invited (the same card and table; the Candidates page's own message bars) */
+#view-interviews .iv2-inv{background:#fff;border:1px solid #e4e2e0;border-radius:12px;padding:20px 24px 8px;margin-top:20px}
+#view-interviews .iv2-note{font-size:14px;color:#595959}
+#view-interviews .iv2-tbl .sx-prog{gap:2px}
+#view-interviews .iv2-tbl .sx-ptxt{font-size:14px;font-weight:400;line-height:1.45;color:#2d2d2d;white-space:nowrap}
+#view-interviews .iv2-tbl .sx-sg{font-size:12px;white-space:nowrap}
+#view-interviews .iv2-inv .iv2-actw .iv2-link{margin-left:8px}
 </style>
 </head>
 <body>
@@ -8288,6 +8295,7 @@ function evLbl(d){ var n=''; for(var k in EVS){ if(EVS[k].d===d) n=EVS[k].n; } v
 function ivRows(){ return allRows().map(function(r){ var c=r.c;
   return {id:c.id, n:c.n, job:c.job, loc:c.loc||'', stage:r.stage, ev:EVS[r.ev]?EVS[r.ev].n:'', time:fullM(rTime(r)), chip:cxChip(c).replace(' &bull; ',''), m:cxM(c),
     by:(r.lead&&r.lead.by&&r.lead.by!=='Not assigned')?r.lead.by:'', prop:(r.stage==='requested'&&c.prop)?fullM(propHtml(c)):'', props:(r.stage==='requested'&&c.prop)?(c.props||[c.prop]).map(function(x){return fullM(String(x).replace(/&middot;/g,'·'));}):[], fb:rFb(r)||'',
+    sid:c.sid||'', sent:c.sent||'', sum:(r.stage==='invited'&&window.SRC&&SRC.summary)?SRC.summary(c.sid):null,
     today:(c.iv||[]).some(function(x){return x.k==='soon'&&x.ev===TODAY;}), act:String(c.act||'')}; }); }
 
 function render(){hookSrc();if(window.IV2&&IV2.draw)setTimeout(IV2.draw,0);var r=document.getElementById('cxRoot');r.innerHTML = sel? profileHtml() : listHtml(); spellMonths(r); syncStuck();}
@@ -9160,7 +9168,7 @@ document.addEventListener('click', function(e){
     }).join('');
     var reply = p.reply ? '<div class="sx-reply"><div class="rh">Reply from ' + f + ' &middot; ' + p.reply.when + '</div><div class="rb">' + esc(p.reply.text) + '</div><a class="rl" onclick="SRC.msg(\'' + p.id + '\')">Answer ' + f + '</a></div>' : '';
     var canNext = X.autoOn && !p.reply && !p.stopped && M.some(function(m){ return m.st === 'next'; });
-    var demo = (cand() && p.st === 'invited' ? '<button type="button" class="src-demo" title="Demo only: acts as the candidate picking a time" onclick="SRC.pick(\'' + p.id + '\')">&#9654; Demo: ' + f + ' picks a time</button>' : '')
+    var demo = (p.st === 'invited' ? '<button type="button" class="src-demo" title="Demo only: acts as the candidate picking a time" onclick="SRC.pick(\'' + p.id + '\')">&#9654; Demo: ' + f + ' picks a time</button>' : '')
       + (canNext ? '<button type="button" class="src-demo" title="Demo only: time passes" onclick="SRC.next(\'' + p.id + '\')">&#9654; Demo: the next message goes out</button>' : '')
       + (!p.reply ? '<button type="button" class="src-demo" title="Demo only: acts as the candidate" onclick="SRC.reply(\'' + p.id + '\')">&#9654; Demo: ' + f + ' replies</button>' : '')
       + (!p.reply && !p.bounced ? '<button type="button" class="src-demo" title="Demo only" onclick="SRC.bounce(\'' + p.id + '\')">&#9654; Demo: the email bounces</button>' : '')
@@ -9707,8 +9715,8 @@ document.addEventListener('click', function(e){
       var c = cand() || (window.CXX && document.getElementById('view-candidates') && document.getElementById('view-candidates').classList.contains('active'));
       p.st = 'sourced'; delete p.sent; delete p.msgs; delete p.custom; p.fromInvite = false; p.reply = null; p.stopped = false; delete p.bounced; delete p.textStop;
       X.confirm = null; X.panel = null; X.edit = null; X.where = ''; sxRender(); changed();
-      if (c) say('Invite canceled. ' + esc(p.n) + ' is back in Applied.' + link('View in Applied', "CXX.goPill('sourced')"));
-      else say('Invite canceled. ' + esc(p.n) + ' is back in Applied.' + link('View in Applied', "SRC.go('sourced','" + id + "')"));
+      if (c) say('Invite canceled. ' + esc(p.n) + ' is back in Applied.' + link('View in Applied', "showView('candidates');CXX.goPill('sourced')"));
+      else say('Invite canceled. ' + esc(p.n) + ' is back in Applied.' + link('View in Applied', "showView('candidates');CXX.goPill('sourced')"));
     },
     pick: function(id){
       var p = get(id); if (!p) return;
@@ -9853,6 +9861,8 @@ document.addEventListener('click', function(e){
     rate:function(id){ KEEP=true; RPICK=(RPICK===id)?null:id; OPEN=''; FOPEN=-1; JOPEN=false; ROPEN=false; draw(); },
     setRate:function(id,v){ RPICK=null; CXX.setFb(id,v); },
     act:function(fn,id){ OPEN=''; var r=rowOf(id); WATCH=((fn==='accept'||fn==='decline')&&r)?{id:id,stage:r.stage,n:r.n}:null; draw(); CXX[fn](id); },
+    msgs:function(id){ OPEN=''; var r=rowOf(id); if(r&&r.sid&&window.SRC) SRC.panel(r.sid,'interviews'); },
+    cancelInv:function(id){ OPEN=''; var r=rowOf(id); if(r&&r.sid&&window.SRC) SRC.cancelAsk(r.sid); },
     go:function(k){ if(typeof dismissToast==='function'){ try{ dismissToast(); }catch(e){} } switchIvTab(k); window.scrollTo(0,0); },
     goCand:function(p){ if(typeof dismissToast==='function'){ try{ dismissToast(); }catch(e){} } showView('candidates'); CXX.goPill(p); },
     /* like the live site: first click A to Z (or earliest first), second click the other way, third click off */
@@ -9938,9 +9948,25 @@ document.addEventListener('click', function(e){
     if(!rows.length) h+=empty(6,'No upcoming interviews here.');
     return {h:h+'</tbody></table>', n:all.length};
   }
+  /* ---- Pending, second box: the people you invited who have not picked a time yet (Scott, November 23, 2026: "yes") ---- */
+  function invited(R){
+    var rows=R.filter(function(r){return r.stage==='invited';});
+    if(!rows.length) return {h:'', ids:[], n:0};
+    var h='<div class="iv2-hd"><h3>Candidates you invited ('+rows.length+')</h3><span class="iv2-note">Waiting on the candidate to pick a time</span></div>';
+    h+='<table class="iv2-tbl"><colgroup><col class="p1"><col class="p2"><col class="p3"><col class="p4"><col class="p5"></colgroup>'
+      +'<thead><tr><th>Candidate</th><th>Messages</th><th>Interview location</th><th>Job</th><th>Actions</th></tr></thead><tbody>';
+    rows.forEach(function(r){ var sm=r.sum;
+      h+='<tr><td>'+who(r)+'</td><td>'+(sm?'<div class="sx-prog">'+sm.dots+'<span class="sx-ptxt">'+sm.line+'</span>'+sm.sig+'</div>':'<span class="iv2-muted">Invite sent '+esc(r.sent)+'</span>')+'</td>'
+        +'<td>'+r.chip+'</td><td>'+esc(r.job)+'</td>'
+        +'<td class="iv2-acts"><div class="iv2-actw"><button class="iv2-b o" onclick="IV2.msgs('+r.id+')">View messages</button>'
+        +'<a class="iv2-link" onclick="IV2.cancelInv('+r.id+')">Cancel invite</a></div></td></tr>';
+    });
+    return {h:h+'</tbody></table>', ids:rows.map(function(r){return r.id;}), n:rows.length};
+  }
   function pending(R){
     var all=R.filter(function(r){return r.stage==='requested';}), o=opts(all), rows=shown(1,all,o);
-    IDS[1]=rows.map(function(r){return r.id;});
+    var inv=invited(R);
+    IDS[1]=rows.map(function(r){return r.id;}).concat(inv.ids);
     var h='<div class="iv2-hd">'+title(1,'Requests waiting on you',rows.length,all.length,o)+'</div>';
     h+='<table class="iv2-tbl"><colgroup><col class="p1"><col class="p2"><col class="p3"><col class="p4"><col class="p5"></colgroup>'
       +'<thead><tr>'+sortTh(1,'name','Candidate')+sortTh(1,'time','Requested time')+filTh(1,'Interview location',o)+'<th>Job</th><th>Actions</th></tr></thead><tbody>';
@@ -9953,7 +9979,7 @@ document.addEventListener('click', function(e){
         +'<td class="iv2-acts"><div class="iv2-actw">'+acts+'</div></td></tr>';
     });
     if(!rows.length) h+=empty(5,'No requests waiting on you here.');
-    return {h:h+'</tbody></table>', n:all.length};
+    return {h:h+'</tbody></table>', h2:inv.h, n:all.length+inv.n};
   }
   function past(R){
     var all=R.filter(function(r){return r.stage==='interviewed'||r.stage==='noshow';}), o=opts(all), ro=resOpts(all);
@@ -9971,7 +9997,7 @@ document.addEventListener('click', function(e){
     return {h:h+'</tbody></table>', n:all.length};
   }
   function evName(){ var s=document.querySelector('.iv-event-dropdown-item.selected'); return s?(s.getAttribute('data-event')||s.textContent.trim()):'All hiring events'; }
-  var IVST={scheduled:1,requested:1,interviewed:1,noshow:1};
+  var IVST={scheduled:1,requested:1,invited:1,interviewed:1,noshow:1};
   function jobMenu(Rev){
     var hd=document.querySelector('#view-interviews .iv-header'), ef=hd?hd.querySelector('.iv-event-filter'):null; if(!hd||!ef) return;
     var box=document.getElementById('iv2JobF');
@@ -9996,6 +10022,9 @@ document.addEventListener('click', function(e){
       p.classList.add('iv2-on');
       var box=p.querySelector(':scope > .iv2'); if(!box){ box=document.createElement('div'); box.className='iv2'; p.insertBefore(box,p.firstChild); }
       box.innerHTML=parts[k].h;
+      if(k===1){ var ib=p.querySelector(':scope > .iv2-inv');
+        if(parts[1].h2){ if(!ib){ ib=document.createElement('div'); ib.className='iv2-inv'; p.insertBefore(ib,box.nextSibling); } ib.innerHTML=parts[1].h2; ib.style.display=''; }
+        else if(ib){ ib.innerHTML=''; ib.style.display='none'; } }
       var tab=document.querySelector('[onclick="switchIvTab('+k+')"] .iv-count'); if(tab) tab.textContent=parts[k].n;
     });
     var lb=document.getElementById('ivHeaderLobbyBtn');
