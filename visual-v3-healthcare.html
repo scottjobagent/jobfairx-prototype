@@ -1502,14 +1502,21 @@ body #view-candidates .mx-tbl .jm{font-weight:400}
 /* "Couldn't make it" is longer than "No-show": on smaller laptops the tabs sit a little closer so all eight fit */
 @media (max-width:1365px){ body #view-candidates .mx-pills .cx-pill{padding:16px 9px} }
 body #view-candidates .cx-title.cx-plain{cursor:default}
-/* the Applied tab explains itself in a hover note (the Automations page's own info icon and dark note), so no line under the tabs
-   pushes the filters and the list down (Scott, November 23, 2026: "we don't want that to jump like that") */
-body #view-candidates .mx-pti{position:relative;display:inline-flex;margin-left:6px;vertical-align:-3px;color:#595959}
-/* a roomier spot to point at than the 16px drawing, without moving anything */
-body #view-candidates .mx-pti::after{content:"";position:absolute;top:-8px;right:-8px;bottom:-8px;left:-6px}
-body #view-candidates .mx-pti svg{width:16px;height:16px}
-body #view-candidates .mx-ptip{display:none;position:absolute;top:calc(100% + 8px);left:0;width:300px;box-sizing:border-box;z-index:45;background:#2d2d2d;color:#fff;font-family:"Noto Sans",-apple-system,BlinkMacSystemFont,sans-serif;font-size:14px;line-height:21px;font-weight:400;border-radius:12px;padding:8px 16px;text-align:left;white-space:normal;box-shadow:0 0 2px rgba(45,45,45,.16),0 4px 8px rgba(45,45,45,.08);pointer-events:none}
-body #view-candidates .mx-pti:hover + .mx-ptip,body #view-candidates .cx-pill:focus-visible .mx-ptip{display:block}
+/* the Applied tab explains itself in a note that shows when the mouse rests on the tab (Scott, November 24, 2026: no "i";
+   "I want them just to be able to hover over Applied and see it ... and then to remove the message if they don't want to see it
+   again"). No line under the tabs pushes the filters and the list down (November 23: "we don't want that to jump like that").
+   The note waits a moment before it shows, stays while the mouse is on the tab or on the note, and keeps quiet right after a
+   click on the tab so it does not cover the filters (a click redraws the tabs, so the keyboard rule below does not fire then).
+   With the keyboard, tabbing onto Applied shows it and the next Tab reaches its tick box. It is the Automations page's own
+   dark note. */
+body #view-candidates .mx-pw{position:relative;display:flex}
+body #view-candidates .mx-ptip{visibility:hidden;opacity:0;position:absolute;top:calc(100% + 8px);left:0;width:300px;box-sizing:border-box;z-index:45;background:#2d2d2d;color:#fff;font-family:"Noto Sans",-apple-system,BlinkMacSystemFont,sans-serif;font-size:14px;line-height:21px;font-weight:400;border-radius:12px;padding:8px 16px 10px;text-align:left;white-space:normal;box-shadow:0 0 2px rgba(45,45,45,.16),0 4px 8px rgba(45,45,45,.08);cursor:default;transition:opacity .12s linear,visibility 0s linear .12s}
+/* the mouse can cross from the tab into the note without the note closing */
+body #view-candidates .mx-ptip::before{content:"";position:absolute;left:0;right:0;top:-8px;height:8px}
+body #view-candidates .mx-pw:hover .mx-ptip,body #view-candidates .mx-pw:focus-within .mx-ptip{visibility:visible;opacity:1;transition:opacity .12s linear .4s,visibility 0s linear .4s}
+body #view-candidates .mx-pw.quiet .mx-ptip{visibility:hidden;opacity:0;transition:none}
+body #view-candidates .mx-ptck{display:flex;align-items:center;gap:8px;margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.24);font-size:13px;line-height:20px;cursor:pointer}
+body #view-candidates .mx-ptck input{width:16px;height:16px;margin:0;accent-color:#fff;cursor:pointer}
 body #view-candidates .cd-phpop .cd-phcopy{margin-top:10px;border:0;background:none;padding:0;font-family:inherit;font-size:14px;font-weight:700;color:#004fcb;text-decoration:underline;text-underline-offset:2px;cursor:pointer}
 </style>
 
@@ -7548,7 +7555,12 @@ function listHtml(){
     +'</span></div></div>';
 
   h+='<div class="cx-pills mx-pills">'+PILLS.map(function(p){
-    return '<button class="cx-pill'+(pill===p.k?' on':'')+'" onclick="CXX.setPill(\''+p.k+'\')">'+p.l+' &bull; '+countFor(p.k)+(p.k==='sourced'?'<span class="mx-pti" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><circle cx="12" cy="8" r=".5" fill="currentColor"/></svg></span><span class="mx-ptip" role="tooltip">People who applied to your jobs and haven’t scheduled an interview yet. Some never started scheduling, and some started and didn’t finish.</span>':'')+'</button>';
+    var b='<button class="cx-pill'+(pill===p.k?' on':'')+'" onclick="'+(p.k==='sourced'?'CXX.tipQuiet();':'')+'CXX.setPill(\''+p.k+'\')">'+p.l+' &bull; '+countFor(p.k)+'</button>';
+    /* Scott, November 24, 2026: no "i" on the Applied tab. Resting the mouse on the tab shows the note, and the note has a tick
+       box to stop it from showing again. The tab sits in a wrapper so the note and its tick box are beside the button, not
+       inside it (a tick box inside a button would press the tab too). */
+    return (p.k==='sourced'&&!tipOff)?'<span class="mx-pw'+(tipQ?' quiet':'')+'" onmouseleave="CXX.tipLeave(this)">'+b
+      +'<span class="mx-ptip" role="tooltip">People who applied to your jobs and haven’t scheduled an interview yet. Some never started scheduling, and some started and didn’t finish.<label class="mx-ptck"><input type="checkbox" onchange="CXX.tipOff()"><span>Don’t show me this again</span></label></span></span>':b;
   }).join('')+'</div>';
 
   h+='<div class="cx-tools">'
@@ -8387,7 +8399,12 @@ document.addEventListener('click',function(e){
     if(inQ)focusQ();
   }
 },true);
-window.CXX={ivRows:ivRows,unNotFit:unNotFit,call:call,copyPh:copyPh,goLobby:goLobby,srcInvite:srcInvite,srcCancel:srcCancel,srcPanel:srcPanel,notFit:notFit,markIv:markIv,goPill:goPill,cancelProp:cancelProp,closeProp:closeProp,confirmProp:confirmProp,accept:accept,back:back,closeDecline:closeDecline,confirmDecline:confirmDecline,sched:sched,cancelIv:cancelIv,reAccept:reAccept,setFb:setFb,openNotes:openNotes,_noteSave:_noteSave,clearSel:clearSel,decline:decline,noshow:noshow,om:om,openDock:openDock,open_:open_,reinstate:reinstate,rowAct:rowAct,selAll:selAll,setPTab:setPTab,setPill:setPill,setScope:setScope,setStage:setStage,setRowStage:setRowStage,setRowFb:setRowFb,setEvd:setEvd,step:step,togSel:togSel,toggleMenu:toggleMenu,toggleScope:toggleScope,toggleSec:toggleSec,toggleSt:toggleSt,setSort:setSort,setJob:setJob,setRate:setRate,closeDock:closeDock,render:render,setQ:setQ,exportSel:exportSel};
+/* the Applied tab's note: gone once its box is ticked; quiet right after a click on the tab, until the mouse leaves */
+var tipOff=false, tipQ=false;
+function tipOffNow(){ tipOff=true; render(); }
+function tipQuiet(){ tipQ=true; }
+function tipLeave(el){ tipQ=false; if(el) el.classList.remove('quiet'); }
+window.CXX={tipOff:tipOffNow,tipQuiet:tipQuiet,tipLeave:tipLeave,ivRows:ivRows,unNotFit:unNotFit,call:call,copyPh:copyPh,goLobby:goLobby,srcInvite:srcInvite,srcCancel:srcCancel,srcPanel:srcPanel,notFit:notFit,markIv:markIv,goPill:goPill,cancelProp:cancelProp,closeProp:closeProp,confirmProp:confirmProp,accept:accept,back:back,closeDecline:closeDecline,confirmDecline:confirmDecline,sched:sched,cancelIv:cancelIv,reAccept:reAccept,setFb:setFb,openNotes:openNotes,_noteSave:_noteSave,clearSel:clearSel,decline:decline,noshow:noshow,om:om,openDock:openDock,open_:open_,reinstate:reinstate,rowAct:rowAct,selAll:selAll,setPTab:setPTab,setPill:setPill,setScope:setScope,setStage:setStage,setRowStage:setRowStage,setRowFb:setRowFb,setEvd:setEvd,step:step,togSel:togSel,toggleMenu:toggleMenu,toggleScope:toggleScope,toggleSec:toggleSec,toggleSt:toggleSt,setSort:setSort,setJob:setJob,setRate:setRate,closeDock:closeDock,render:render,setQ:setQ,exportSel:exportSel};
 
 /* ---------- bootstrap ---------- */
 try {
