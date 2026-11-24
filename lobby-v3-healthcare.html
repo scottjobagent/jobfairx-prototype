@@ -8227,7 +8227,7 @@ a.jm-cp-num:hover { color:#0044B3; }
   /* the three dots on a Sourced row */
   function menuHtml(){
     var m = X.menu; if (!m || !get(m.id)) return '';
-    return '<div class="sx-menu" role="menu" style="top:' + m.top + 'px;left:' + m.left + 'px;"><button type="button" role="menuitem" onclick="SRC.notFit(\'' + m.id + '\')">Not a fit</button></div>';
+    return '<div class="sx-menu" role="menu" style="top:' + m.top + 'px;left:' + m.left + 'px;"><button type="button" role="menuitem" onclick="SRC.notFit(\'' + m.id + '\')">Not a fit</button>' + ((window.LOBN && LOBN.srcItems) ? LOBN.srcItems(m.id) : '') + '</div>';
   }
 
   /* ---------- drawing ---------- */
@@ -8841,6 +8841,56 @@ a.jm-cp-num:hover { color:#0044B3; }
   function start(){ enhance(); try{ new MutationObserver(soon).observe(document.body,{childList:true,subtree:true}); }catch(e){} }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',start); else start();
   window.addEventListener('load',function(){ setTimeout(function(){ restore(); enhance(); },60); });
+})();
+</script>
+
+<style id="lobby-more-css">
+/* one link under Name: "View resume" and "Message" moved into the three dots at the end of the line (Scott, November 24, 2026).
+   The two links stay in the page, not drawn, because the lobby's own code still reaches for them. */
+.live-table td .review-actions{display:none}
+.live-table td .lb-actwrap{display:flex;align-items:center;gap:8px}
+.live-table td .lb-more{position:relative;display:inline-flex;flex:0 0 auto}
+.live-table td .lb-more .row-dots{width:36px;height:36px}
+</style>
+
+<script id="lobby-more-js">
+/* Three dots at the end of every lobby line hold "View resume" and "Send a message" (Scott, November 24, 2026: "I feel like
+   there's too many clickable items between resume, message, and the name"; Indeed keeps Message behind the three dots on a
+   line, and the Candidates page keeps both there already). They open the same windows as the two small links did. */
+(function(){
+  var DOTS='<svg viewBox="0 0 24 24" fill="#0044B3"><circle cx="6" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="18" cy="12" r="2"/></svg>';
+  function named(tr){ var td=tr.children[0]; if(!td||tr.children.length<3) return false; var d=td.querySelector('div'); return !!(d&&!d.classList.contains('review-actions')); }
+  function item(like,fn,label){ var e=document.createElement(like?like.tagName:'DIV'); e.className='row-menu-item lb-item'; if(e.tagName==='BUTTON') e.type='button'; e.setAttribute('onclick',fn+'(this)'); e.textContent=label; return e; }
+  function more(tr){
+    var links=tr.querySelector('.review-actions'); if(!links||!named(tr)) return;
+    if(tr.querySelector('.src-dots')) return;                        /* an Applied line: its own three dots get the two lines (srcItems) */
+    var res=links.querySelector('a[onclick*="openResumeModal"]'), msg=links.querySelector('a[onclick*="openMsgModal"]'), menu=tr.querySelector('.row-menu');
+    if(!menu){ if(!res&&!msg) return;
+      var td=tr.lastElementChild, w=null; [].forEach.call(td.children,function(c){ if(c.classList.contains('lb-actwrap')) w=c; });
+      if(!w){ w=document.createElement('div'); w.className='lb-actwrap'; while(td.firstChild) w.appendChild(td.firstChild); td.appendChild(w); }
+      w.insertAdjacentHTML('beforeend','<span class="row-actions lb-more"><button type="button" class="row-dots" aria-label="More actions" title="More actions" onclick="toggleRowMenu(event, this)">'+DOTS+'</button><div class="row-menu"></div></span>');
+      menu=w.querySelector('.lb-more .row-menu'); }
+    var first=menu.querySelector('.row-menu-item'), m=null;
+    [].forEach.call(menu.querySelectorAll('.row-menu-item'),function(it){ if(/openMsgModal/.test(it.getAttribute('onclick')||'')){ m=it; if(it.textContent.trim()==='Message') it.textContent='Send a message'; } });
+    if(res&&!menu.querySelector('[onclick*="openResumeModal"]')){ var r=item(first,'openResumeModal','View resume'); if(m) menu.insertBefore(r,m); else menu.appendChild(r); }
+    if(msg&&!m) menu.appendChild(item(first,'openMsgModal','Send a message'));
+  }
+  /* the dots line up in one column in each list, whatever sits before them on the line */
+  function align(tb){ var ms=[].filter.call(tb.querySelectorAll('tbody tr .lb-actwrap > .lb-more'),function(m){ return m.offsetParent!==null; }), max=0, at=[];
+    ms.forEach(function(m){ m.style.marginLeft=''; }); ms.forEach(function(m,i){ at[i]=m.getBoundingClientRect().left-m.parentNode.getBoundingClientRect().left; if(at[i]>max) max=at[i]; });
+    ms.forEach(function(m,i){ if(max-at[i]>0.5) m.style.marginLeft=(max-at[i])+'px'; }); }
+  function all(){ [].forEach.call(document.querySelectorAll('table.live-table tbody tr'),more); [].forEach.call(document.querySelectorAll('table.live-table'),align); }
+  var tm=null; function soon(){ if(tm) return; tm=setTimeout(function(){ tm=null; all(); },40); }
+  /* an Applied line's three dots are drawn by the shared code: these are its two extra lines */
+  window.LOBN=window.LOBN||{};
+  LOBN.srcItems=function(id){ return '<button type="button" role="menuitem" onclick="LOBN.srcAct(\''+id+'\',0)">View resume</button><button type="button" role="menuitem" onclick="LOBN.srcAct(\''+id+'\',1)">Send a message</button>'; };
+  LOBN.srcAct=function(id,i){ var tr=[].filter.call(document.querySelectorAll('tr[data-src-id="'+id+'"]'),function(r){ return r.offsetParent!==null; })[0]; if(!tr) return;
+    var a=tr.querySelectorAll('.review-actions a')[i]; document.body.click(); if(a) a.click(); };
+  function start(){ all(); try{ new MutationObserver(soon).observe(document.body,{childList:true,subtree:true}); }catch(e){} }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',start); else start();
+  window.addEventListener('load',function(){ setTimeout(all,80); });
+  document.addEventListener('click',soon,true);       /* a list that was hidden is measured once its tab is open */
+  window.addEventListener('resize',soon);
 })();
 </script>
 </body>
