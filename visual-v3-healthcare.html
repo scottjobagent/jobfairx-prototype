@@ -5833,7 +5833,7 @@ function assignInterviewer(option, name) {
 
   // Open after a small delay so dashboard renders first
   window.addEventListener('DOMContentLoaded', function() {
-    if (!shouldShow()) return;
+    if (!shouldShow() || /[?&]lobby=/.test(location.search)) return;
     setTimeout(function() {
       jaxOpenModal();
     }, 700);
@@ -7371,9 +7371,11 @@ function rateOf(c){var r=null;c.iv.forEach(function(x){if(x.rate)r=x.rate;});ret
 function tOf(c){var x=c.iv[c.iv.length-1];return x?x.t:'';}
 
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');}
-function get(id){for(var i=0;i<C.length;i++)if(C[i].id===id)return C[i];var s=srcCands();for(var j=0;j<s.length;j++)if(s[j].id===id)return s[j];return SRCC[id]||null;}
+var LOBC=[];   /* people opened from the lobby who are not on the Candidates page: here only while that page is open */
+function get(id){for(var i=0;i<C.length;i++)if(C[i].id===id)return C[i];var s=srcCands();for(var j=0;j<s.length;j++)if(s[j].id===id)return s[j];if(SRCC[id])return SRCC[id];for(var k=0;k<LOBC.length;k++)if(LOBC[k].id===id)return LOBC[k];return null;}
 function inScope(c){return !evScope||c.iv.some(function(x){return EVS[x.ev].n===evScope;});}
-function list(){ if(window.__fromIv&&window.__ivIds&&sel!=null){ var A=allRows(); return window.__ivIds.map(function(id){ for(var i=0;i<A.length;i++){ if(A[i].c.id===id) return A[i]; } return null; }).filter(Boolean); }
+function list(){ if(window.__fromLobby&&window.__lobIds&&sel!=null){ var B=allRows(); return window.__lobIds.map(function(id){ for(var i=0;i<B.length;i++){ if(B[i].c.id===id) return B[i]; } return null; }).filter(Boolean); }
+  if(window.__fromIv&&window.__ivIds&&sel!=null){ var A=allRows(); return window.__ivIds.map(function(id){ for(var i=0;i<A.length;i++){ if(A[i].c.id===id) return A[i]; } return null; }).filter(Boolean); }
   var rows=allRows().filter(function(r){
     var c=r.c;
     if(pill&&r.stage!==pill)return false;
@@ -7918,7 +7920,7 @@ function profileHtml(){
 
   var h='<div class="cd-pf"><div class="cd-pfsticky" id="cxSticky">'
     +'<div class="cd-pftop">'
-    +'<button class="cd-back" onclick="CXX.back()">'+ico('back')+(window.__fromIv?'Back to interviews':'Back to list')+'</button>'
+    +'<button class="cd-back" onclick="CXX.back()">'+ico('back')+(window.__fromLobby?'Back to lobby':(window.__fromIv?'Back to interviews':'Back to list'))+'</button>'
     +'<span class="cd-stname">'+esc(c.n)+'</span>'
     +'<div class="cd-pfnav"><button onclick="CXX.step(-1)">'+ico('arrL')+'</button><button onclick="CXX.step(1)">'+ico('arrR')+'</button>'
     +'<span class="of">'+(i+1)+' of '+rows.length+'</span></div></div></div>';
@@ -8133,7 +8135,58 @@ function srcCand(p){
 }
 /* Not a fit puts the person in Declined, "Marked as not a fit" (Scott, November 23, 2026) */
 function srcCands(){ return srcPeople().filter(function(p){return p.st==='sourced'||p.st==='invited'||p.st==='upcoming'||p.st==='requested'||p.st==='notfit';}).map(srcCand); }
-function everyone(){ return C.concat(srcCands()); }
+/* ---------- arriving from the lobby (Scott, November 24, 2026: "I can't click into the name, so we would want to update these
+   like we did for the interviews page"). The lobby's name link carries the list it was clicked in. People the Candidates
+   page already has open as themselves; the others get a page built from their lobby line. ---------- */
+var LOB_EMP=['Lone Star Supply Co.','Trinity River Partners','Bluebonnet Systems','North Texas Freight'];
+var LOB_JOB={
+ 'Software Engineer':[[['JavaScript',1],['Python',1],['SQL',1],['Cloud services',0]],'Built and looked after web applications on a team of eight engineers.','B.S. in Computer Science'],
+ 'Customer Service Representative':[[['Phone support',1],['Order entry',1],['Conflict resolution',1],['Spanish',0]],'Answered about 60 customer calls and chats a day.','High school diploma'],
+ 'Data Analyst':[[['SQL',1],['Excel',1],['Dashboards',1],['Python',0]],'Built weekly sales and inventory reports for the operations team.','B.S. in Statistics'],
+ 'HR Business Partner':[[['Employee relations',1],['Recruiting',1],['Benefits',1],['HRIS',0]],'Supported 300 employees across three sites.','B.A. in Human Resources'],
+ 'Marketing Manager':[[['Campaign planning',1],['Email marketing',1],['Budgeting',1],['SEO',0]],'Ran the regional campaigns and a yearly budget.','B.A. in Marketing'],
+ 'Sales Representative':[[['Prospecting',1],['CRM',1],['Negotiation',1],['Territory planning',0]],'Managed a territory of 80 business accounts.','B.B.A. in Business'],
+ 'Operations Coordinator':[[['Scheduling',1],['Vendor management',1],['Inventory',1],['Reporting',0]],'Scheduled crews and kept supplies stocked for two locations.','A.A. in Business'],
+ 'Project Manager':[[['Planning',1],['Budgeting',1],['Stakeholder updates',1],['Agile',0]],'Led projects of up to twelve people from kickoff to delivery.','B.S. in Management'],
+ 'UX Designer':[[['Wireframes',1],['User research',1],['Prototyping',1],['Design systems',0]],'Designed and tested new screens for a customer app.','B.F.A. in Design'],
+ 'Data Engineer':[[['SQL',1],['Python',1],['Data pipelines',1],['Cloud services',0]],'Built the pipelines that feed the company reports.','B.S. in Computer Science'],
+ 'Product Marketing Manager':[[['Positioning',1],['Launch planning',1],['Sales enablement',1],['Pricing',0]],'Launched four products with the sales team.','B.A. in Marketing'],
+ 'Account Executive':[[['Prospecting',1],['Demos',1],['Negotiation',1],['Forecasting',0]],'Closed new business with mid-size companies.','B.B.A. in Business'],
+ 'Customer Success Manager':[[['Onboarding',1],['Renewals',1],['Account reviews',1],['Upsell',0]],'Looked after 40 customer accounts through renewal.','B.A. in Communications']};
+var LOB_STAGE={await:'requested',upcoming:'scheduled',room:'scheduled',waitroom:'scheduled',inprog:'scheduled',done:'interviewed',noshow:'noshow'};
+/* the lobby writes "9:00 AM - 9:30 AM PDT", "Apr 15 9:00 AM - 9:30 AM CDT" or "Apr 22, 11:00 AM PDT"; this page writes "Apr 22 · 9:00 AM PDT" */
+function lobParts(s){ s=String(s||''); var d=s.match(/\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]* (\d{1,2})\b/), z=s.match(/\b([A-Z]{1,3}T)\b/);
+  return {d:d?d[1]+' '+d[2]:EVS.dallas.d.split(',')[0], z:z?z[1]:'CT'}; }
+function lobWhen(s){ s=String(s||''); var t=s.match(/(\d{1,2}:\d{2})\s*([AP]M)/), p=lobParts(s); return t?p.d+' · '+t[1]+' '+t[2]+' '+p.z:''; }
+function lobRange(s){ s=String(s||''); var m=s.match(/(\d{1,2}:\d{2})\s*([AP]M)\s*[-–]\s*(\d{1,2}:\d{2})\s*([AP]M)/), p=lobParts(s); if(!m) return lobWhen(s);
+  return p.d+' · '+(m[2]===m[4]?m[1]+' – '+m[3]+' '+m[4]:m[1]+' '+m[2]+' – '+m[3]+' '+m[4])+' '+p.z; }
+function lobCand(L,i,key,method){
+  var id=5000+i, J=LOB_JOB[L.job], st=LOB_STAGE[key]||'scheduled', k=STAGE_K[st]||'soon';
+  var c={id:id,lob:1,n:L.n,job:L.job,loc:L.loc,em:L.n.toLowerCase().replace(/[^a-z]+/g,'.')+'@email.com',ph:scPhone(L.loc,id),int:null,notes:'',stage:st,ev:'dallas',
+    fm:{video:'video',phone:'phone',person:'person'}[method]||'video',
+    sk:SKILLS_BY_JOB[L.job]||(J?J[0]:[['Communication',1],['Teamwork',1],['Scheduling',1],['Reporting',0]]),
+    sc:[['Are you available on the event day?','Yes','Yes']],
+    w:[[L.job,(SAMPLE_EMP[L.job]||LOB_EMP)[id%4],(2018+id%5)+'–Present',[SAMPLE_DUTY[L.job]||(J?J[1]:'Handled the day-to-day work of the role for a team of ten.')]]],
+    ed:[[SAMPLE_SCHOOL[L.job]||(J?J[2]:'Bachelor’s degree'),SAMPLE_SCHOOL[L.job]?'Community college':'State university',(2014+id%5)+' – '+(2016+id%5)]]};
+  var x={ev:'dallas',k:k,t:lobWhen(L.when),by:(L.by&&L.by!=='—')?L.by:'Not assigned',
+    st:{req:'Awaiting your response',soon:'Confirmed',done:'Interviewed',noshow:'Couldn’t make it'}[k]||''};
+  if(k==='done'){ var r=String(L.fb||'').toLowerCase(); if(r==='yes'||r==='no'||r==='maybe') x.rate=r; }
+  c.iv=[x];
+  c.act={req:'Requested an interview · 2 days ago',soon:'Interview confirmed · 3 days ago',done:'Interviewed · today',noshow:'Did not attend · today'}[k]||'';
+  if(st==='requested'&&L.prop&&L.prop.length){ c.props=L.prop.map(lobRange); c.prop=c.props[0]; c.act='You proposed new times · 2 days ago'; }
+  return c; }
+/* P = {list, same, method, i, back, rows:[{n, job, loc, when, prop, fb, by}]}: open row i, with the list's people in the side list */
+function lobArrive(P){
+  if(!P||!P.rows||!P.rows.length) return false;
+  var known=C.concat(srcCands()), ids=[]; LOBC=[];
+  P.rows.forEach(function(L,i){ var hit=null;
+    if(P.same){ for(var k=0;k<known.length;k++){ if(known[k].n===L.n){ hit=known[k]; break; } } }
+    if(!hit){ hit=lobCand(L,i,P.list,P.method); LOBC.push(hit); }
+    ids.push(hit.id); });
+  window.__fromIv=false; window.__lobIds=ids; window.__fromLobby={back:P.back||'lobby-v3-healthcare.html'};
+  pill=''; evScope=''; q=''; openMenu='';
+  sel=ids[Math.max(0,Math.min(ids.length-1,P.i|0))]; ptab='app'; menu=false; stpop=false; render(); return true; }
+function everyone(){ return C.concat(srcCands()).concat(window.__fromLobby?LOBC:[]); }
 function evTime(ev){ var e=EVS[ev]; return e?Date.parse(e.d):0; }
 function mxStat(st){ return '<span class="cx-stat mx-stat st-'+st+'"><span class="cx-statlbl">'+STAGEL[st]+'</span></span>'; }
 function mxWhen(r){
@@ -8347,7 +8400,8 @@ window.addEventListener('scroll',syncStuck,{passive:true});
 window.addEventListener('resize',syncStuck);
 function setPill(k){pill=k;var r=list();if(sel&&!r.some(function(x){return x.c.id===sel;}))sel=r.length?r[0].c.id:null;render();}
 function open_(id){sel=id;ptab='app';menu=false;stpop=false;render();}
-function back(){var f=window.__fromIv;window.__fromIv=false;sel=null;menu=false;stpop=false;render();if(f){showView('interviews');}}
+function back(){if(window.__fromLobby){window.location.href=window.__fromLobby.back;return;}var f=window.__fromIv;window.__fromIv=false;sel=null;menu=false;stpop=false;render();if(f){showView('interviews');}}
+function closeP(){sel=null;menu=false;stpop=false;render();}
 function step(d){var r=list(),i=r.findIndex(function(x){return x.c.id===sel;});if(i<0)return;i=(i+d+r.length)%r.length;sel=r[i].c.id;menu=false;stpop=false;render();}
 function setPTab(t){ptab=t;menu=false;stpop=false;render();}
 function toggleSec(k){secOpen[k]=!secOpen[k];render();}
@@ -8421,7 +8475,7 @@ var tipOff=false, tipQ=false;
 function tipOffNow(){ tipOff=true; render(); }
 function tipQuiet(){ tipQ=true; }
 function tipLeave(el){ tipQ=false; if(el) el.classList.remove('quiet'); }
-window.CXX={tipOff:tipOffNow,tipQuiet:tipQuiet,tipLeave:tipLeave,ivRows:ivRows,unNotFit:unNotFit,call:call,copyPh:copyPh,goLobby:goLobby,srcInvite:srcInvite,srcCancel:srcCancel,srcPanel:srcPanel,notFit:notFit,markIv:markIv,goPill:goPill,cancelProp:cancelProp,closeProp:closeProp,confirmProp:confirmProp,accept:accept,back:back,closeDecline:closeDecline,confirmDecline:confirmDecline,sched:sched,cancelIv:cancelIv,reAccept:reAccept,setFb:setFb,openNotes:openNotes,_noteSave:_noteSave,clearSel:clearSel,decline:decline,noshow:noshow,om:om,openDock:openDock,open_:open_,reinstate:reinstate,rowAct:rowAct,selAll:selAll,setPTab:setPTab,setPill:setPill,setScope:setScope,setStage:setStage,setRowStage:setRowStage,setRowFb:setRowFb,setEvd:setEvd,step:step,togSel:togSel,toggleMenu:toggleMenu,toggleScope:toggleScope,toggleSec:toggleSec,toggleSt:toggleSt,setSort:setSort,setJob:setJob,setRate:setRate,closeDock:closeDock,render:render,setQ:setQ,exportSel:exportSel};
+window.CXX={closeP:closeP,lobArrive:lobArrive,tipOff:tipOffNow,tipQuiet:tipQuiet,tipLeave:tipLeave,ivRows:ivRows,unNotFit:unNotFit,call:call,copyPh:copyPh,goLobby:goLobby,srcInvite:srcInvite,srcCancel:srcCancel,srcPanel:srcPanel,notFit:notFit,markIv:markIv,goPill:goPill,cancelProp:cancelProp,closeProp:closeProp,confirmProp:confirmProp,accept:accept,back:back,closeDecline:closeDecline,confirmDecline:confirmDecline,sched:sched,cancelIv:cancelIv,reAccept:reAccept,setFb:setFb,openNotes:openNotes,_noteSave:_noteSave,clearSel:clearSel,decline:decline,noshow:noshow,om:om,openDock:openDock,open_:open_,reinstate:reinstate,rowAct:rowAct,selAll:selAll,setPTab:setPTab,setPill:setPill,setScope:setScope,setStage:setStage,setRowStage:setRowStage,setRowFb:setRowFb,setEvd:setEvd,step:step,togSel:togSel,toggleMenu:toggleMenu,toggleScope:toggleScope,toggleSec:toggleSec,toggleSt:toggleSt,setSort:setSort,setJob:setJob,setRate:setRate,closeDock:closeDock,render:render,setQ:setQ,exportSel:exportSel};
 
 /* ---------- bootstrap ---------- */
 try {
@@ -10136,6 +10190,27 @@ document.addEventListener('click', function(e){
   var fe=window.filterIvByEvent; if(fe) window.filterIvByEvent=function(){ var r=fe.apply(this,arguments); setTimeout(draw,0); return r; };
   var ub=window.updateIvLiveBanner; if(ub) window.updateIvLiveBanner=function(){ var r=ub.apply(this,arguments); setTimeout(draw,0); return r; };
   window.addEventListener('load',function(){ setTimeout(draw,300); });
+})();
+</script>
+
+<script id="lobby-arrive-js">
+/* A name clicked in the lobby lands here: open that candidate's page, with "Back to lobby" (Scott, November 24, 2026). */
+(function(){
+  var m=location.search.match(/[?&]lobby=([^&]+)/); if(!m) return;
+  var P=null; try{ P=JSON.parse(decodeURIComponent(m[1])); }catch(e){ return; }
+  function go(){
+    if(!window.CXX||!CXX.lobArrive||typeof showView!=='function') return;
+    /* leaving through the left menu puts the Candidates page back to normal */
+    var sv=window.showView; window.showView=function(){
+      if(!window.__lobOpening&&window.__fromLobby){ window.__fromLobby=null; window.__lobIds=null; if(CXX.closeP) CXX.closeP(); }
+      return sv.apply(this,arguments); };
+    window.__lobOpening=true; try{ showView('candidates'); } finally { window.__lobOpening=false; }
+    /* the lobby belongs to an event: keep Events lit in the left menu */
+    document.querySelectorAll('.nav-item').forEach(function(n){ n.classList.remove('active'); });
+    var nv=document.getElementById('nav-events'); if(nv) nv.classList.add('active');
+    CXX.lobArrive(P); window.scrollTo(0,0);
+  }
+  if(document.readyState==='complete') setTimeout(go,0); else window.addEventListener('load',function(){ setTimeout(go,0); });
 })();
 </script>
 </body></html>
