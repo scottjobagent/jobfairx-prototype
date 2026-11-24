@@ -1599,13 +1599,13 @@ body #view-candidates .cd-phpop .cd-phcopy{margin-top:10px;border:0;background:n
 #view-interviews .iv2-link:hover{color:#003399}
 #cxPropBody .iv2-ptl{margin-top:14px;padding:10px 12px;border-radius:8px;background:#f6f5f3;font-size:14px;line-height:1.6;color:#2d2d2d}
 #cxPropBody .iv2-ptl b{display:block;font-weight:600;margin-bottom:2px}
-/* The two filters sit on their own line under the title "Interviews", above the tabs, and are the Candidates page's
-   own kind (Scott, November 23, 2026). Sizes, colours and spacing are the Candidates page's own values; the buttons set no
-   font, exactly like the Candidates ones, so both pages draw them the same way. The title, the header box and the
-   Upcoming / Pending / Past tabs are not touched. The old event menu and the Go to lobby button are hidden ("the lobby
-   is specific to each event"). */
+/* The two filters sit on their own line under the Upcoming / Pending / Past tabs, above the list box (above both boxes
+   on Pending), in the Candidates page's order: title, tabs, filters, list (Scott, November 24, 2026). They are the
+   Candidates page's own kind (November 23). Sizes, colours and spacing are the Candidates page's own values; the buttons
+   set no font, exactly like the Candidates ones, so both pages draw them the same way. The title and the tabs are not
+   touched. The old event menu and the Go to lobby button are hidden ("the lobby is specific to each event"). */
 #view-interviews .iv-header .iv-event-filter,#view-interviews #ivHeaderLobbyBtn{display:none !important}
-#view-interviews .iv3-tools{display:flex;align-items:center;gap:12px;flex-wrap:wrap;row-gap:12px;margin-top:16px}
+#view-interviews .iv3-tools{display:flex;align-items:center;gap:12px;flex-wrap:wrap;row-gap:12px}
 #view-interviews .iv3-ctl{height:44px;border:1px solid #595959;background:#fff;border-radius:12px;padding:9px 12px;box-sizing:border-box;font-size:16px;line-height:24px;color:#2d2d2d;cursor:pointer;display:inline-flex;align-items:center;gap:8px;position:relative;white-space:nowrap}
 #view-interviews .iv3-ctl b{font-weight:700}
 #view-interviews .iv3-ctl svg{width:24px;height:24px;flex:0 0 24px;margin-left:auto}
@@ -10042,9 +10042,10 @@ document.addEventListener('click', function(e){
     return {h:h+'</tbody></table>', n:all.length};
   }
   var IVST={scheduled:1,requested:1,invited:1,interviewed:1,noshow:1};
-  /* ---- the two filters, under the title "Interviews" and above the tabs: the Candidates page's own kind of filter
-     (Scott, November 23, 2026: "update the interviews to match these types of filters", then "the filters probably above
-     it, underneath interviews and above"). The tabs are not touched. No Go to lobby here: "the lobby is specific to each event". ---- */
+  /* ---- the two filters, under the Upcoming / Pending / Past tabs and above the list, where the Candidates page has its own
+     (Scott, November 24, 2026: "Are these supposed to be underneath upcoming, pending, and past? What is the enterprise way of
+     adding filters?"). They are the Candidates page's own kind of filter (November 23: "update the interviews to match these
+     types of filters"). The tabs are not touched. No Go to lobby here: "the lobby is specific to each event". ---- */
   var CHEV3='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>';
   var TICK3='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6L9 17l-5-5"/></svg>';
   function topLabel(name,arr){ return '<b>'+name+':</b> '+(!arr.length?'All':(arr.length===1?arr[0]:arr.length+' selected')); }
@@ -10053,9 +10054,9 @@ document.addEventListener('click', function(e){
       +(TOPEN===key?'<span class="iv3-menu" onclick="IV2.keep()">'+opts.map(function(o){
           return '<button type="button" data-v="'+esc(o[0])+'"><span class="iv3-mopt"><span class="iv3-mbox'+(o[2]?' on':'')+'">'+TICK3+'</span>'+o[1]+'</span></button>'; }).join('')+'</span>':'')+'</span>'; }
   function drawTop(jobs,evs){
-    var hc=document.querySelector('#view-interviews > .header-card'); if(!hc) return;
+    var pw=document.querySelector('#view-interviews > .iv-panel-wrapper'); if(!pw) return;
     var box=document.getElementById('iv3Tools');
-    if(!box){ box=document.createElement('div'); box.id='iv3Tools'; box.className='iv3-tools'; hc.appendChild(box); }
+    if(!box){ box=document.createElement('div'); box.id='iv3Tools'; box.className='iv3-tools'; pw.insertBefore(box,pw.firstChild); }
     box.innerHTML=topCtl('job',topLabel('Job',JOBF.map(esc)),jobs.map(function(j){return [j,esc(j),JOBF.indexOf(j)>=0];}))
       +topCtl('evd',topLabel('Event',EVF.map(function(d){ for(var i=0;i<evs.length;i++){ if(evs[i][0]===d) return evs[i][1]; } return esc(d); })),
               evs.map(function(e){return [e[0],e[1],EVF.indexOf(e[0])>=0];}));
