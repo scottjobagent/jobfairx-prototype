@@ -1497,7 +1497,14 @@ body #view-candidates .mx-tbl .jm{font-weight:400}
 /* "Couldn't make it" is longer than "No-show": on smaller laptops the tabs sit a little closer so all eight fit */
 @media (max-width:1365px){ body #view-candidates .mx-pills .cx-pill{padding:16px 9px} }
 body #view-candidates .cx-title.cx-plain{cursor:default}
-body #view-candidates .mx-tabnote{margin:14px 0 0;font-size:14px;line-height:1.45;color:#595959}
+/* the Applied tab explains itself in a hover note (the Automations page's own info icon and dark note), so no line under the tabs
+   pushes the filters and the list down (Scott, November 23, 2026: "we don't want that to jump like that") */
+body #view-candidates .mx-pti{position:relative;display:inline-flex;margin-left:6px;vertical-align:-3px;color:#595959}
+/* a roomier spot to point at than the 16px drawing, without moving anything */
+body #view-candidates .mx-pti::after{content:"";position:absolute;top:-8px;right:-8px;bottom:-8px;left:-6px}
+body #view-candidates .mx-pti svg{width:16px;height:16px}
+body #view-candidates .mx-ptip{display:none;position:absolute;top:calc(100% + 8px);left:0;width:300px;box-sizing:border-box;z-index:45;background:#2d2d2d;color:#fff;font-family:"Noto Sans",-apple-system,BlinkMacSystemFont,sans-serif;font-size:14px;line-height:21px;font-weight:400;border-radius:12px;padding:8px 16px;text-align:left;white-space:normal;box-shadow:0 0 2px rgba(45,45,45,.16),0 4px 8px rgba(45,45,45,.08);pointer-events:none}
+body #view-candidates .mx-pti:hover + .mx-ptip,body #view-candidates .cx-pill:focus-visible .mx-ptip{display:block}
 body #view-candidates .cd-phpop .cd-phcopy{margin-top:10px;border:0;background:none;padding:0;font-family:inherit;font-size:14px;font-weight:700;color:#004fcb;text-decoration:underline;text-underline-offset:2px;cursor:pointer}
 </style>
 
@@ -7522,9 +7529,8 @@ function listHtml(){
     +'</span></div></div>';
 
   h+='<div class="cx-pills mx-pills">'+PILLS.map(function(p){
-    return '<button class="cx-pill'+(pill===p.k?' on':'')+'" onclick="CXX.setPill(\''+p.k+'\')">'+p.l+' &bull; '+countFor(p.k)+'</button>';
+    return '<button class="cx-pill'+(pill===p.k?' on':'')+'" onclick="CXX.setPill(\''+p.k+'\')">'+p.l+' &bull; '+countFor(p.k)+(p.k==='sourced'?'<span class="mx-pti" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><circle cx="12" cy="8" r=".5" fill="currentColor"/></svg></span><span class="mx-ptip" role="tooltip">People who applied to your jobs and haven’t scheduled an interview yet. Some never started scheduling, and some started and didn’t finish.</span>':'')+'</button>';
   }).join('')+'</div>';
-  if(pill==='sourced') h+='<p class="mx-tabnote">People who applied to your jobs and haven’t scheduled an interview yet.</p>';
 
   h+='<div class="cx-tools">'
     +ctl('sort','<b>Sort by:</b> '+sortBy, SORTS.map(function(o){return [o,o,sortBy===o];}), 'setSort')
