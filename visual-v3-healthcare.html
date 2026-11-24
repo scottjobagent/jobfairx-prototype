@@ -7171,9 +7171,6 @@ var tpl=document.getElementById("anxViewTpl");var main=document.querySelector(".
 /* profile header, Indeed model: name + rating on one line, 3 actions + stage below */
 #view-candidates .cd-pftop{display:flex;align-items:center;gap:16px;height:58px}
 #view-candidates .cd-pfhead{display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap}
-#view-candidates .cd-cond{display:none;flex:1 1 auto;align-items:center;gap:12px;min-width:0}
-#view-candidates .cd-cond .cd-btn .lbl{display:none}
-#view-candidates .cd-cond .cd-btn{width:56px;padding:9px 0;justify-content:center;gap:0}
 #view-candidates .cd-pfid{flex:1 1 auto;min-width:0}
 #view-candidates .cd-pfhead .r{margin-left:auto;display:flex;align-items:center;flex:0 0 auto}
 #view-candidates .cd-pfacts{display:flex;align-items:center;gap:12px;margin:16px 0 0;flex:1 0 100%;padding-bottom:12px;flex-wrap:wrap}
@@ -7181,8 +7178,25 @@ var tpl=document.getElementById("anxViewTpl");var main=document.querySelector(".
 /* condensed bar once the header sticks */
 #view-candidates .cd-pfsticky.stuck{padding-top:0;border-bottom:1px solid #e4e2e0}
 #view-candidates .cd-pfsticky.stuck .cd-pftop{height:70px}
-#view-candidates .cd-pfsticky.stuck .cd-cond{display:flex}
-#view-candidates .cd-pfsticky.stuck .cd-pfnav{display:none}
+/* Scott, November 24, 2026: no icons in the bar. It keeps Back to list and the previous / next arrows, and shows the person's
+   name once the big name has scrolled under it */
+#view-candidates .cd-stname{display:none;min-width:0;font-size:16px;line-height:24px;font-weight:700;color:#2d2d2d;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-left:16px;border-left:1px solid #d4d2d0}
+#view-candidates .cd-pfsticky.named .cd-stname{display:block}
+#view-candidates .cd-pfhead .cx-menu button.dgr{color:#a9252b}
+/* a section opens and closes with the words Hide / Show, not an arrow */
+#view-candidates .cd-sechead .cd-tog{margin-left:auto;font-size:14px;line-height:20px;font-weight:600;color:#0044B3;text-decoration:underline;text-underline-offset:2px}
+#view-candidates .cd-sechead:hover .cd-tog{color:#003399}
+/* the Interviews tab: one box for each interview, in the status box's own sizes and colours */
+#view-candidates .ivc-list{padding:8px 0 4px}
+#view-candidates .ivc{display:flex;align-items:flex-start;gap:16px;margin:16px 0 0;border:1px solid #e4e2e0;border-radius:12px;background:#fff;padding:16px 18px;box-sizing:border-box}
+#view-candidates .ivc-ico{flex:0 0 44px;width:44px;height:44px;border-radius:10px;background:#f3f2ef;color:#2d2d2d;display:flex;align-items:center;justify-content:center}
+#view-candidates .ivc-ico svg{width:22px;height:22px}
+#view-candidates .ivc-main{flex:1;min-width:0}
+#view-candidates .ivc-k{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#595959}
+#view-candidates .ivc-t{margin-top:4px;font-size:17px;font-weight:700;line-height:1.4;color:#2d2d2d}
+#view-candidates .ivc-s{margin-top:3px;font-size:14px;line-height:1.45;color:#595959}
+#view-candidates .ivc-x{margin-top:10px;font-size:14px;line-height:1.6;color:#2d2d2d}
+#view-candidates .ivc-x span{display:block;font-size:12px;line-height:18px;color:#595959}
 /* labels shed before anything can overflow */
 @media (max-width:1200px){
   #view-candidates .cd-btn .lbl{display:none}
@@ -7742,30 +7756,13 @@ function _noteSave(text){
 function sec(key,title,bodyHtml,right){
   var open=!!secOpen[key];
   return '<div class="cd-sec"><button class="cd-sechead" aria-expanded="'+open+'" onclick="CXX.toggleSec(\''+key+'\')">'
-    +'<h2>'+title+'</h2>'+(right||'')+ico('cv')+'</button>'
+    +'<h2>'+title+'</h2>'+(right||'')+'<span class="cd-tog">'+(open?'Hide':'Show')+'</span></button>'
     +'<div class="cd-secbody"'+(open?'':' hidden')+'>'+bodyHtml+'</div></div>';
 }
 function lbl(t){return '<span class="lbl">'+t+'</span>';}
 function btn(kind,click,text,icon){
   if(kind==='dgr')kind='sec dgr';
   return '<button class="cd-btn '+kind+'" onclick="'+click+'" title="'+text+'">'+ico(icon)+lbl(text)+'</button>';
-}
-function actsFor(c){
-  /* each stage's own buttons; Schedule interview and Reschedule open the page's "Schedule with [name]" window */
-  var today=c.iv.some(function(x){return x.k==='soon'&&x.ev===TODAY;});
-  var msg=btn('sec','CXX.openDock('+c.id+')','Message','msg')+callBtn(c);
-  var res=btn('sec','CXX.rowAct('+c.id+',&quot;View resume&quot;)','View resume','doc');
-  if(c.stage==='sourced') return btn('pri','CXX.srcInvite('+c.id+')','Invite to interview','send')+msg+res;
-  if(c.stage==='invited') return btn('pri','CXX.srcPanel('+c.id+')','View messages','msg')+btn('dgr','CXX.srcCancel('+c.id+')','Cancel invite','x')+msg;
-  if(c.stage==='requested'){
-    if(c.prop) return btn('sec','CXX.cancelProp('+c.id+')','Cancel proposal','x')+msg;
-    return btn('pri','CXX.accept('+c.id+')','Accept','cal')+btn('dgr','CXX.decline('+c.id+')','Decline','x')+btn('sec','CXX.sched('+c.id+')','Reschedule','clock')+msg;
-  }
-  if(c.stage==='scheduled')
-    return (today?btn('pri','CXX.goLobby()','Go to lobby',cxIco(c))+btn('sec','CXX.sched('+c.id+')','Reschedule','clock'):btn('pri','CXX.sched('+c.id+')','Reschedule','clock'))
-      +btn('dgr','CXX.cancelIv('+c.id+')','Cancel interview','x')+msg;
-  if(c.stage==='declined') return btn('pri','CXX.reAccept('+c.id+')','Accept','cal')+msg+res;
-  return btn('pri','CXX.sched('+c.id+')','Schedule interview','cal')+msg+res;
 }
 /* Phase 3 — a candidate's method comes from the event they requested. */
 var CX_EVM={dallas:'video',chicago:'phone',atlanta:'person',houston:'video'};
@@ -7801,16 +7798,6 @@ function fbProf(c){
   if(c.stage!=='interviewed') return '';
   return '<span class="cd-status" style="margin-left:auto;cursor:default"><b>Feedback:</b>'+fbInner(c,'fbp'+c.id,false)+'</span>';
 }
-function condFb(c){
-  if(c.stage!=='interviewed') return '';
-  return fbInner(c,'fbc'+c.id,true);
-}
-function condHtml(c){
-  /* Shown only when the top bar sticks: icon-only actions, the stage as a label, the feedback chip after an interview. */
-  return '<div class="cd-cond">'+actsFor(c)
-    +'<span style="position:relative;margin-left:auto"><span class="cd-status mx-stage"><b>Stage:</b><span class="v">'+STAGEL[c.stage]+'</span></span></span>'
-    +condFb(c)+'</div>';
-}
 function headHtml(c){
   /* the row under the name: Message, Call, View resume and the Stage label; the stage's own buttons live in the status card */
   return '<div class="cd-pfhead"><div class="cd-pfid">'
@@ -7819,6 +7806,8 @@ function headHtml(c){
     +'<div class="cd-pfmeta">'+ico('pin')+esc(c.loc)+'</div></div>'
     +'<div class="r"><span style="position:relative"><button class="cd-more" onclick="CXX.toggleMenu(event)">'+ico('dots')+'</button>'
     +(menu?'<span class="cx-menu" style="display:block;right:0;top:48px;left:auto">'
+        +(c.stage==='scheduled'?'<button class="dgr" onclick="CXX.toggleMenu(event);CXX.cancelIv('+c.id+')">Cancel interview</button>':'')
+        +(c.stage==='interviewed'?'<button onclick="CXX.toggleMenu(event);CXX.sched('+c.id+')">Schedule another interview</button>':'')
         +'<button onclick="return false">Download resume</button>'
         +'<button onclick="return false">Download application data</button>'
       +'</span>':'')+'</span></div>'
@@ -7831,29 +7820,34 @@ function ivTabHtml(c){
     return c.stage==='sourced'
       ? '<div class="mx-empty"><h3>No interviews yet</h3><p>'+f+' applied for your '+esc(c.job)+' job for the '+esc(EVS[c.ev].n)+' on '+esc(c.matched||'')+'. Our three scheduling texts went out, and no time has been picked yet.</p>'+btn('pri','CXX.srcInvite('+c.id+')','Invite to interview','send')+'</div>'
       : '<div class="mx-empty"><h3>Invited, no time picked yet</h3><p>You invited '+f+' on '+esc(c.sent||'')+'. View messages shows every message and what happened.</p>'+btn('pri','CXX.srcPanel('+c.id+')','View messages','msg')+'</div>'; }
-  var UP={soon:1,req:1};
-  function group(list,title){
-    if(!list.length) return '';
-    var order=[],byEv={};
-    list.forEach(function(x){if(!byEv[x.ev]){byEv[x.ev]=[];order.push(x.ev);}byEv[x.ev].push(x);});
-    var h='<div class="cx-ivgrp"><h3>'+title+'</h3>';
-    order.forEach(function(k){
-      var rows=byEv[k];
-      h+='<div class="cx-ivev">'+esc(EVS[k].n)+'<span>'+esc(EVS[k].d)+'</span></div><ul class="cx-ivlist">';
-      rows.forEach(function(x,i){
-        var t=String(x.t).split(' \u00b7 ').pop();
-        var lbl=(rows.length>1?'Interview '+(i+1)+' \u00b7 ':'')+esc(t);
-        var by=(x.by&&x.by!=='Not assigned')?'<span class="by">'+esc(x.by)+'</span>':'';
-        h+='<li><span class="t1">'+lbl+'</span>'+by+'</li>';
-      });
-      h+='</ul>';
-    });
-    return h+'</div>';
+  /* Scott, November 24, 2026 ("this interview should look a little different ... just plain text"): each interview is a box in
+     the status box's own style and words: where it stands, what kind, the day and time, the event and the interviewer. The
+     buttons stay in the status box at the top, in one place. Still open first, then the rest, newest first. */
+  /* the interview the status box is about takes the status box's own kind (video, phone, in person), so the two never disagree;
+     any other interview takes its event's kind */
+  var fn=esc(c.n.split(' ')[0]), r0=scRow(c), lt=(r0.lead&&r0.lead.t)||'';
+  function ivBox(icon,k,tag,t,sub,more){
+    return '<div class="ivc"><div class="ivc-ico">'+icon+'</div><div class="ivc-main"><div class="ivc-k">'+k+(tag?' '+tag:'')+'</div>'
+      +'<div class="ivc-t">'+t+'</div>'+(sub?'<div class="ivc-s">'+sub+'</div>':'')+(more||'')+'</div></div>';
   }
-  var up=c.iv.filter(function(x){return UP[x.k];});
-  var past=c.iv.filter(function(x){return !UP[x.k];});
-  var out=group(up,'Upcoming')+group(past,'Past');
-  return out||'<div class="cx-ivgrp"><h3>No interviews yet</h3></div>';
+  function one(x){
+    var m=(x.ev===r0.ev&&x.t===lt)?cxM(c):(CX_EVM[x.ev]||'video'), fmt=esc(SC_FMT[m]||'Interview'), icon=m==='phone'?ico('mphone'):m==='person'?ico('mperson'):SC_VID;
+    var ev=esc(EVS[x.ev]?EVS[x.ev].n:''), by=(x.by&&x.by!=='Not assigned')?' &middot; Interviewer: '+esc(x.by):'', when=scWhen(x.t);
+    if(x.k==='req'&&c.stage==='requested'&&c.prop){
+      var ps=(c.props||[c.prop]).map(function(p){return '<div>'+esc(fullM(String(p).replace(/&middot;/g,'·')))+'</div>';}).join('');
+      return ivBox(icon,'New times proposed',scTag('Awaiting candidate','blue'),fmt,ev+' &middot; '+fn+' asked for '+when+'.',
+        '<div class="ivc-x"><span>Your proposed times</span>'+ps+'</div>');
+    }
+    if(x.k==='req') return ivBox(icon,'Interview requested',scTag('Waiting on you','amber'),fmt+' &middot; '+when,ev);
+    if(x.k==='soon') return ivBox(icon,'Interview scheduled',scTag('Confirmed','green'),fmt+' &middot; '+when,ev+by);
+    if(x.k==='done') return ivBox(icon,'Interviewed',x.rate?scTag('Your feedback: '+esc(FBL[x.rate]||x.rate),x.rate==='yes'?'green':(x.rate==='no'?'red':'amber')):scTag('Not rated yet','grey'),fmt+' &middot; '+when,ev+by);
+    if(x.k==='noshow') return ivBox(icon,'Couldn’t make it','',fmt+' &middot; '+when,ev+by);
+    if(x.k==='dec') return ivBox(icon,'Request declined','',fmt+' &middot; '+when,ev);
+    return ivBox(icon,esc(x.label||'Interview'),x.st?scTag(esc(x.st),'grey'):'',fmt+' &middot; '+when,ev+by);
+  }
+  var open=c.iv.filter(function(x){return x.k==='req'||x.k==='soon';}), rest=c.iv.filter(function(x){return x.k!=='req'&&x.k!=='soon';}).reverse();
+  var out=open.concat(rest).map(one).join('');
+  return out?'<div class="ivc-list">'+out+'</div>':'<div class="cx-ivgrp"><h3>No interviews yet</h3></div>';
 }
 function profileHtml(){
   var c=get(sel), rows=list(), i=rows.findIndex(function(x){return x.c.id===sel;});
@@ -7901,7 +7895,7 @@ function profileHtml(){
   var h='<div class="cd-pf"><div class="cd-pfsticky" id="cxSticky">'
     +'<div class="cd-pftop">'
     +'<button class="cd-back" onclick="CXX.back()">'+ico('back')+(window.__fromIv?'Back to interviews':'Back to list')+'</button>'
-    +condHtml(c)
+    +'<span class="cd-stname">'+esc(c.n)+'</span>'
     +'<div class="cd-pfnav"><button onclick="CXX.step(-1)">'+ico('arrL')+'</button><button onclick="CXX.step(1)">'+ico('arrR')+'</button>'
     +'<span class="of">'+(i+1)+' of '+rows.length+'</span></div></div></div>';
 
@@ -7945,6 +7939,9 @@ function syncStuck(){
   if(!el)return;
   var on=el.getBoundingClientRect().top<=56.5;
   if(on!==el.classList.contains('stuck'))el.classList.toggle('stuck',on);
+  /* the person's name joins the bar only once the big name has gone under it, so the name never shows twice */
+  var nm=document.querySelector('#cxRoot .cd-pfname'), named=!!nm&&nm.getBoundingClientRect().bottom<=el.getBoundingClientRect().bottom;
+  if(named!==el.classList.contains('named'))el.classList.toggle('named',named);
 }
 function toast(m){
   var v=document.getElementById('view-candidates');if(!v)return;
