@@ -8102,6 +8102,11 @@ function tmin(t){ var m=String(t).match(/(\d{1,2}):(\d{2})\s*([AP]M)/i); if(!m) 
       times.sort(function(a,b){ return a[0]<b[0]?-1:(a[0]>b[0]?1:tmin(a[1])-tmin(b[1])); });
       c.props=times.map(function(x){ var d=new Date(+x[0].slice(0,4),+x[0].slice(5,7)-1,+x[0].slice(8,10)); return MONTHS_LONG[d.getMonth()]+' '+d.getDate()+' · '+x[1]+' CT'; });
       c.prop=c.props[0]; c.act='You proposed new times · just now'; window.__cxSchedId=null; render();
+      /* on the Interviews list the line has just moved down to "Waiting on the candidate", so the message says where it went
+         (Scott, November 24, 2026); on the Candidates page and on the person's own page nothing moves, so the message stays */
+      var ivOn=document.getElementById('view-interviews');
+      if(ivOn&&ivOn.classList.contains('active')&&typeof showToast==='function')
+        showToast('success',(times.length===1?'Interview time sent to ':'Interview times sent to ')+esc(c.n)+'. '+esc(c.n.split(' ')[0])+' is now under Waiting on the candidate, lower on this page.');
     }
     return r;
   };
