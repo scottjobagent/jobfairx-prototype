@@ -8393,7 +8393,7 @@ function ivRows(){ return allRows().map(function(r){ var c=r.c;
   return {id:c.id, n:c.n, job:c.job, loc:c.loc||'', stage:r.stage, ev:EVS[r.ev]?EVS[r.ev].n:'', evd:EVS[r.ev]?EVS[r.ev].d:'', evl:EVS[r.ev]?evLbl(EVS[r.ev].d):'', time:fullM(rTime(r)), chip:cxChip(c).replace(' &bull; ',''), m:cxM(c),
     by:(r.lead&&r.lead.by&&r.lead.by!=='Not assigned')?r.lead.by:'', prop:(r.stage==='requested'&&c.prop)?fullM(propHtml(c)):'', props:(r.stage==='requested'&&c.prop)?(c.props||[c.prop]).map(function(x){return fullM(String(x).replace(/&middot;/g,'·'));}):[], fb:rFb(r)||'',
     sid:c.sid||'', sent:c.sent||'', sum:(r.stage==='invited'&&window.SRC&&SRC.summary)?SRC.summary(c.sid):null,
-    today:(c.iv||[]).some(function(x){return x.k==='soon'&&x.ev===TODAY;}), act:String(c.act||'')}; }); }
+    today:(c.iv||[]).some(function(x){return x.k==='soon'&&x.ev===TODAY;}), act:String(c.act||''), nt:!!String(c.notes||'').trim()}; }); }
 
 function render(){hookSrc();if(window.IV2&&IV2.draw)setTimeout(IV2.draw,0);var r=document.getElementById('cxRoot');r.innerHTML = sel? profileHtml() : listHtml(); spellMonths(r); syncStuck();}
 window.addEventListener('scroll',syncStuck,{passive:true});
@@ -9948,10 +9948,15 @@ document.addEventListener('click', function(e){
 <script id="interviews-page-js">
 /* The Interviews page as the schedule (Scott, November 23, 2026): Upcoming, Pending and Past are drawn from the same
    people as the Candidates page; sort and filter in the headings like the live site; a Job menu at the top.
-   The name is the link to the person. Actions: Upcoming = three dots (Reschedule, Cancel interview); Pending = Accept,
+   The name is the link to the person. Actions: Upcoming = three dots (View details, Reschedule, Add a note, Cancel
+   interview); Pending = Accept,
    Reschedule, Decline on the line; the second group, Waiting on the candidate, holds a line with proposed times (every time
    listed, a normal Cancel proposed times button) and the invited people (View messages, a small Cancel invite link);
-   Past = the rating picker in the Result column, a Result filter, and three dots (Schedule another interview, Add a note). */
+   Past = the rating picker in the Result column, a Result filter, and three dots (View details, Schedule follow-up
+   interview, Add a note, Send a message). View details opens the same page as the name; "Add a note" reads "View note"
+   once the person has a note (Scott, November 24, 2026: "when you click on actions, you should always be able to click
+   view details"; Indeed's Interviews tab offers notes before and after an interview, a follow-up interview and a message
+   after it). */
 (function(){
   function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
   var MON={January:0,February:1,March:2,April:3,May:4,June:5,July:6,August:7,September:8,October:9,November:10,December:11};
@@ -9984,6 +9989,7 @@ document.addEventListener('click', function(e){
       CXX.open_(id); window.scrollTo(0,0); },
     /* the page's notes window reads and writes its note on the button it was opened from: give it one */
     note:function(id){ OPEN=''; draw(); if(CXX.openNotes) CXX.openNotes(id, document.createElement('button')); },
+    msg:function(id){ OPEN=''; draw(); if(CXX.openDock) CXX.openDock(id); },
     keep:function(){ KEEP=true; },
     dots:function(k){ KEEP=true; OPEN=(OPEN===k)?'':k; FOPEN=-1; TOPEN=''; ROPEN=false; RPICK=null; draw(); },
     resMenu:function(){ KEEP=true; ROPEN=!ROPEN; OPEN=''; FOPEN=-1; TOPEN=''; RPICK=null; draw(); },
@@ -10009,6 +10015,8 @@ document.addEventListener('click', function(e){
   function menu(k,items){ return '<span class="iv2-mw"><button class="iv2-dots" title="More actions" onclick="IV2.dots(\''+k+'\')"><span></span><span></span><span></span></button>'
     +(OPEN===k?'<span class="iv2-menu" onclick="IV2.keep()">'+items.map(function(x){return '<button'+(x[2]?' class="dgr"':'')+' onclick="'+x[1]+'">'+x[0]+'</button>';}).join('')+'</span>':'')+'</span>'; }
   function who(r){ return '<button class="iv2-name" onclick="IV2.open('+r.id+')">'+esc(r.n)+'</button>'; }
+  /* the three dots' note entry: "View note" once the person has a note (the same window shows it and lets you change it) */
+  function noteLbl(r){ return r.nt?'View note':'Add a note'; }
   function by(r){ return r.by?esc(r.by):'<span class="iv2-muted">Not assigned</span>'; }
   function empty(n,t){ return '<tr><td colspan="'+n+'" class="iv2-empty">'+t+'</td></tr>'; }
   var FB={yes:['Yes','#16a34a'],maybe:['Maybe','#c2410c'],no:['No','#991b1b']};
@@ -10074,7 +10082,7 @@ document.addEventListener('click', function(e){
     rows.forEach(function(r){
       h+='<tr><td>'+who(r)+'</td><td>'+when(r.time)+'</td><td>'+r.chip+'</td><td>'+esc(r.job)+'</td><td>'+by(r)+'</td>'
         +'<td class="iv2-acts"><div class="iv2-actw">'
-        +menu('u'+r.id,[['Reschedule','IV2.act(\'sched\','+r.id+')'],['Cancel interview','IV2.act(\'cancelIv\','+r.id+')',1]])+'</div></td></tr>';
+        +menu('u'+r.id,[['View details','IV2.open('+r.id+')'],['Reschedule','IV2.act(\'sched\','+r.id+')'],[noteLbl(r),'IV2.note('+r.id+')'],['Cancel interview','IV2.act(\'cancelIv\','+r.id+')',1]])+'</div></td></tr>';
     });
     if(!rows.length) h+=empty(6,'No upcoming interviews here.');
     return {h:h+'</tbody></table>', n:all.length};
@@ -10127,7 +10135,7 @@ document.addEventListener('click', function(e){
       +'<thead><tr>'+sortTh(2,'name','Candidate')+sortTh(2,'time','Interview time')+filTh(2,'Interview location',o)+'<th>Job</th><th>Interviewer</th>'+resTh(ro)+'<th>Actions</th></tr></thead><tbody>';
     rows.forEach(function(r){
       h+='<tr><td>'+who(r)+'</td><td>'+when(r.time)+'</td><td>'+r.chip+'</td><td>'+esc(r.job)+'</td><td>'+by(r)+'</td><td>'+resCell(r)+'</td>'
-        +'<td class="iv2-acts"><div class="iv2-actw">'+menu('x'+r.id,[['Schedule another interview','IV2.act(\'sched\','+r.id+')'],['Add a note','IV2.note('+r.id+')']])+'</div></td></tr>';
+        +'<td class="iv2-acts"><div class="iv2-actw">'+menu('x'+r.id,[['View details','IV2.open('+r.id+')'],['Schedule follow-up interview','IV2.act(\'sched\','+r.id+')'],[noteLbl(r),'IV2.note('+r.id+')'],['Send a message','IV2.msg('+r.id+')']])+'</div></td></tr>';
     });
     if(!rows.length) h+=empty(7,'No past interviews match.');
     return {h:h+'</tbody></table>', n:all.length};
