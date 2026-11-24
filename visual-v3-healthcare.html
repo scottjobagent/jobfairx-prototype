@@ -1600,7 +1600,7 @@ body #view-candidates .cd-phpop .cd-phcopy{margin-top:10px;border:0;background:n
 #view-interviews .iv2-rpm button.on .tk{visibility:visible}
 #view-interviews .iv2-rpm .tk svg{width:14px;height:14px}
 #view-interviews .iv2-fd{width:8px;height:8px;border-radius:50%;flex:0 0 8px;display:inline-block}
-/* a line with proposed times: every time listed, and a small link to cancel; the cancel window lists them too */
+/* a line with proposed times: every time listed (the cancel window lists them too); it sits in the second group, with a normal button to cancel */
 #view-interviews .iv2-pl{white-space:nowrap;line-height:1.55}
 #view-interviews .iv2-link{font-size:13px;color:#0044B3;cursor:pointer;text-decoration:underline;text-underline-offset:2px;white-space:nowrap}
 #view-interviews .iv2-link:hover{color:#003399}
@@ -1647,7 +1647,7 @@ body #view-candidates .cd-phpop .cd-phcopy{margin-top:10px;border:0;background:n
   font-family:inherit !important;font-size:16px !important;line-height:24px;font-weight:600 !important;color:#0044B3 !important;
   text-decoration:underline !important;text-decoration-thickness:1px !important;text-underline-offset:3px}
 #view-interviews .iv2-name:hover,body #view-candidates .mx-tbl .cx-name:hover{color:#003399 !important;text-decoration-thickness:2px !important}
-/* Pending, second box: Candidates you invited (the same card and table; the Candidates page's own message bars) */
+/* Pending, second group: Waiting on the candidate (the same card and table; the Candidates page's own message bars for the invited people) */
 #view-interviews .iv2-inv{background:#fff;border:1px solid #e4e2e0;border-radius:12px;padding:20px 24px 8px;margin-top:20px}
 #view-interviews .iv2-note{font-size:14px;color:#595959}
 #view-interviews .iv2-tbl .sx-prog{gap:2px}
@@ -9890,7 +9890,8 @@ document.addEventListener('click', function(e){
 /* The Interviews page as the schedule (Scott, November 23, 2026): Upcoming, Pending and Past are drawn from the same
    people as the Candidates page; sort and filter in the headings like the live site; a Job menu at the top.
    The name is the link to the person. Actions: Upcoming = three dots (Reschedule, Cancel interview); Pending = Accept,
-   Reschedule, Decline on the line (a line with proposed times lists them, with a small Cancel proposed times link);
+   Reschedule, Decline on the line; the second group, Waiting on the candidate, holds a line with proposed times (every time
+   listed, a normal Cancel proposed times button) and the invited people (View messages, a small Cancel invite link);
    Past = the rating picker in the Result column, a Result filter, and three dots (Schedule another interview, Add a note). */
 (function(){
   function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
@@ -10019,35 +10020,40 @@ document.addEventListener('click', function(e){
     if(!rows.length) h+=empty(6,'No upcoming interviews here.');
     return {h:h+'</tbody></table>', n:all.length};
   }
-  /* ---- Pending, second box: the people you invited who have not picked a time yet (Scott, November 23, 2026: "yes") ---- */
+  /* ---- Pending, second group: everyone who is waiting on the CANDIDATE (Scott, November 24, 2026: "the times aren't next to
+     the cancel button, and the text link looks a little odd. How would Indeed handle this?" Indeed keeps what waits on the
+     candidate apart from what waits on the employer). It holds the people you proposed new times to, then the people you
+     invited who have not picked a time yet. The requests list above holds only what waits on the employer. ---- */
   function invited(R){
-    var rows=R.filter(function(r){return r.stage==='invited';});
-    if(!rows.length) return {h:'', ids:[], n:0};
-    var h='<div class="iv2-hd"><h3>Candidates you invited ('+rows.length+')</h3><span class="iv2-note">Waiting on the candidate to pick a time</span></div>';
+    var props=R.filter(function(r){return r.stage==='requested'&&r.prop;}), rows=R.filter(function(r){return r.stage==='invited';}), n=props.length+rows.length;
+    if(!n) return {h:'', ids:[], n:0};
+    var h='<div class="iv2-hd"><h3>Waiting on the candidate ('+n+')</h3></div>';
     h+='<table class="iv2-tbl"><colgroup><col class="p1"><col class="p2"><col class="p3"><col class="p4"><col class="p5"></colgroup>'
-      +'<thead><tr><th>Candidate</th><th>Messages</th><th>Interview location</th><th>Job</th><th>Actions</th></tr></thead><tbody>';
+      +'<thead><tr><th>Candidate</th><th>What you sent</th><th>Interview location</th><th>Job</th><th>Actions</th></tr></thead><tbody>';
+    props.forEach(function(r){
+      h+='<tr><td>'+who(r)+'</td><td><div class="iv2-muted iv2-small">Your proposed times</div>'+r.props.map(function(x){return '<div class="iv2-pl">'+esc(x)+'</div>';}).join('')+'</td>'
+        +'<td>'+r.chip+'</td><td>'+esc(r.job)+'</td>'
+        +'<td class="iv2-acts"><div class="iv2-actw"><button class="iv2-b o" onclick="IV2.act(\'cancelProp\','+r.id+')">Cancel proposed times</button></div></td></tr>';
+    });
     rows.forEach(function(r){ var sm=r.sum;
       h+='<tr><td>'+who(r)+'</td><td>'+(sm?'<div class="sx-prog">'+sm.dots+'<span class="sx-ptxt">'+sm.line+'</span>'+sm.sig+'</div>':'<span class="iv2-muted">Invite sent '+esc(r.sent)+'</span>')+'</td>'
         +'<td>'+r.chip+'</td><td>'+esc(r.job)+'</td>'
         +'<td class="iv2-acts"><div class="iv2-actw"><button class="iv2-b o" onclick="IV2.msgs('+r.id+')">View messages</button>'
         +'<a class="iv2-link" onclick="IV2.cancelInv('+r.id+')">Cancel invite</a></div></td></tr>';
     });
-    return {h:h+'</tbody></table>', ids:rows.map(function(r){return r.id;}), n:rows.length};
+    return {h:h+'</tbody></table>', ids:props.concat(rows).map(function(r){return r.id;}), n:n};
   }
   function pending(R){
-    var all=R.filter(function(r){return r.stage==='requested';}), o=opts(all), rows=shown(1,all,o);
+    var all=R.filter(function(r){return r.stage==='requested'&&!r.prop;}), o=opts(all), rows=shown(1,all,o);
     var inv=invited(R);
     IDS[1]=rows.map(function(r){return r.id;}).concat(inv.ids);
     var h='<div class="iv2-hd">'+title(1,'Requests waiting on you',rows.length,all.length,o)+'</div>';
     h+='<table class="iv2-tbl"><colgroup><col class="p1"><col class="p2"><col class="p3"><col class="p4"><col class="p5"></colgroup>'
       +'<thead><tr>'+sortTh(1,'name','Candidate')+sortTh(1,'time','Requested time')+filTh(1,'Interview location',o)+'<th>Job</th><th>Actions</th></tr></thead><tbody>';
     rows.forEach(function(r){
-      var t=r.prop?'<div class="iv2-muted iv2-small">Your proposed times</div>'+r.props.map(function(x){return '<div class="iv2-pl">'+esc(x)+'</div>';}).join(''):when(r.time);
-      var acts=r.prop?'<a class="iv2-link" onclick="IV2.act(\'cancelProp\','+r.id+')">Cancel proposed times</a>'
-        :'<button class="iv2-b p" onclick="IV2.act(\'accept\','+r.id+')">Accept</button><button class="iv2-b o" onclick="IV2.act(\'sched\','+r.id+')">Reschedule</button>'
-          +'<button class="iv2-b o" onclick="IV2.act(\'decline\','+r.id+')">Decline</button>';
-      h+='<tr><td>'+who(r)+'</td><td>'+t+'</td><td>'+r.chip+'</td><td>'+esc(r.job)+'</td>'
-        +'<td class="iv2-acts"><div class="iv2-actw">'+acts+'</div></td></tr>';
+      h+='<tr><td>'+who(r)+'</td><td>'+when(r.time)+'</td><td>'+r.chip+'</td><td>'+esc(r.job)+'</td>'
+        +'<td class="iv2-acts"><div class="iv2-actw"><button class="iv2-b p" onclick="IV2.act(\'accept\','+r.id+')">Accept</button><button class="iv2-b o" onclick="IV2.act(\'sched\','+r.id+')">Reschedule</button>'
+        +'<button class="iv2-b o" onclick="IV2.act(\'decline\','+r.id+')">Decline</button></div></td></tr>';
     });
     if(!rows.length) h+=empty(5,'No requests waiting on you here.');
     return {h:h+'</tbody></table>', h2:inv.h, n:all.length+inv.n};
