@@ -1299,8 +1299,6 @@ tr.src-flash td { animation:srcFlash 2.8s ease-out; }
 .sx-sg.bad { color:#A9252B; }
 .sx-sg.blue { color:#0044B3; }
 .sx-vlink { margin-top:2px; font-size:12px; font-weight:600; color:#0044B3; text-decoration:underline; text-underline-offset:2px; cursor:pointer; align-self:flex-start; }
-.sx-sum { margin-left:auto; display:flex; gap:16px; align-items:center; font-size:14px; line-height:20px; font-weight:400; color:#595959; }
-.sx-sum a { font-weight:600; color:#0044B3; text-decoration:underline; text-underline-offset:2px; cursor:pointer; }
 /* the live automation editor: Message template box, bold / italic / list, placeholder buttons under it */
 .sx-fl { display:block; margin:12px 0 5px; font-size:13px; font-weight:600; color:#2D2D2D; }
 .sx-flsub { font-weight:400; color:#595959; }
@@ -8135,12 +8133,9 @@ a.jm-cp-num:hover { color:#0044B3; }
     if (sig.indexOf('Email opened') >= 0) return [line, '<span class="sx-sg">Opened</span>'];
     return [line, '<span class="sx-sg">Delivered, not opened yet</span>'];
   }
-  function totals(){
-    var inv = list('invited'), picked = P.filter(function(p){ return p.st === 'upcoming' && p.fromInvite && shown(p); }).length;
-    var rep = inv.filter(function(p){ return p.reply; }).length;
-    return (inv.length + picked) + ' invited &middot; ' + picked + ' picked a time &middot; ' + rep + ' replied';
-  }
-  function sumHtml(){ return '<span>' + totals() + '</span><a onclick="event.stopPropagation();SRC.editor()">Edit the words for every invite</a>'; }
+  /* no invite summary line ("3 invited · 0 picked a time · 0 replied" and its link to the words for every invite) on any page
+     (Scott, November 25, 2026: "I don't want any of this and the link, remove it, so it's not on any pages"); the words
+     for every invite are changed on the Automations page (Invite applicants) */
 
   /* View messages: everything the person got and what happened */
   function viewHtml(){
@@ -8505,7 +8500,6 @@ a.jm-cp-num:hover { color:#0044B3; }
     if (box) {
       box.querySelector('tbody').innerHTML = inv.map(function(p, i){ return invitedRow(p, i >= 5 && !S.showAll); }).join('');
       box.querySelector('.iv-live-section-title').textContent = 'Candidates you invited (' + inv.length + ')';
-      box.querySelector('.sx-sum').innerHTML = sumHtml();
       var more = box.querySelector('.src-more'); more.textContent = moreText(inv.length); more.style.display = inv.length > 5 ? '' : 'none';
       var on = m1 !== 'empty' && inv.length > 0;
       box.style.display = on ? '' : 'none';
@@ -8532,7 +8526,7 @@ a.jm-cp-num:hover { color:#0044B3; }
     var box = document.createElement('div');
     box.id = 'ivPendingInvited'; box.style.display = 'none';
     box.innerHTML = '<div class="iv-live-panel-section"><div class="iv-live-section-header"><div class="src-hd">' + I.plane
-      + '<div class="iv-live-section-title">Candidates you invited (0)</div><span class="sx-sum"></span></div></div>'
+      + '<div class="iv-live-section-title">Candidates you invited (0)</div></div></div>'
       + '<div class="iv-collapsible-body"><table class="iv-live-table"><thead>' + heads('invited') + '</thead><tbody></tbody></table>'
       + '<div class="src-more" onclick="SRC.more()" style="display:none;"></div></div></div>';
     pend.appendChild(box);
@@ -8601,7 +8595,6 @@ a.jm-cp-num:hover { color:#0044B3; }
     [].forEach.call(document.querySelectorAll('.src-sec[data-src-host]'), function(sec){
       sec.querySelector('tbody:not(.lx-prop)').innerHTML = inv.map(function(p, i){ return invitedRow(p, i >= 5 && !S.showAll); }).join('');
       sec.setAttribute('data-lx-inv', inv.length); sec.querySelector('.live-section-title').textContent = 'Waiting on the candidate (' + (inv.length + (window.LX ? LX.nprop(sec) : 0)) + ')';
-      sec.querySelector('.sx-sum').innerHTML = sumHtml();
       var more = sec.querySelector('.src-more'); more.textContent = moreText(inv.length); more.style.display = inv.length > 5 ? '' : 'none';
       sec.style.display = (inv.length || (window.LX && LX.nprop(sec))) ? '' : 'none';
     });
@@ -8628,7 +8621,7 @@ a.jm-cp-num:hover { color:#0044B3; }
       var sec = document.createElement('div');
       sec.className = 'src-sec'; sec.setAttribute('data-src-host', id); sec.style.display = 'none';
       sec.innerHTML = '<div class="live-section-header" onclick="toggleLiveSection(this)"><div class="src-hd">' + I.chev + I.plane
-        + '<div class="live-section-title">Waiting on the candidate (0)</div><span class="sx-sum"></span></div></div>'
+        + '<div class="live-section-title">Waiting on the candidate (0)</div></div></div>'
         + '<div class="collapsible-body"><table class="live-table"><thead>' + heads('invited') + '</thead><tbody></tbody></table>'
         + '<div class="src-more" onclick="SRC.more()" style="display:none;"></div></div>';
       if (secs[1]) secs[1].parentNode.insertBefore(sec, secs[1]); else host.appendChild(sec);
