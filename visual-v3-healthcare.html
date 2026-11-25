@@ -1156,11 +1156,6 @@ document.addEventListener('DOMContentLoaded', function(){
 .src-bt.p:hover { background:#003399; }
 .src-bt.d { border:1px solid #991b1b; background:#991b1b; color:#fff; }
 .src-bt.d:hover { background:#7f1d1d; }
-/* the small Invite to interview window: the link to the messages, and the app's own "Don't show this message" tick box */
-.src-dlg .sx-asklk { display:inline-block; margin-top:10px; font-size:13px; font-weight:600; color:#0044B3; text-decoration:underline; text-underline-offset:2px; cursor:pointer; }
-.src-dlg .sx-asklk:hover { color:#003399; }
-.src-dlg .sx-askck { display:flex; align-items:center; gap:8px; padding:20px 24px 0; font-size:13px; color:#595959; cursor:pointer; }
-.src-dlg .sx-askck input { width:16px; height:16px; margin:0; accent-color:#0044B3; cursor:pointer; }
 .src-tl { margin-left:4px; font-weight:700; color:#0044B3; text-decoration:underline; text-underline-offset:2px; cursor:pointer; white-space:nowrap; }
 tr.src-flash td { animation:srcFlash 2.8s ease-out; }
 @keyframes srcFlash { 0%, 35% { background:#FFF3BF; } 100% { background:transparent; } }
@@ -9070,7 +9065,7 @@ document.addEventListener('click', function(e){
     if (sc.format === 'phone') return 'The interview is by phone, and we\'ll call you at the time you pick.';
     return sc.vprov === 'third' ? 'The interview is by video, and you\'ll get the link when you confirm.' : 'The interview is by video.';
   }
-  var X = { ask: null, skipAsk: false, modal: null, panel: null, where: '', edit: null, discard: null, confirm: null, menu: null, editor: null, offAsk: false,
+  var X = { modal: null, panel: null, where: '', edit: null, discard: null, confirm: null, menu: null, editor: null, offAsk: false,
             msgs: MSGS.map(function(m){ return { subject: m.subject, body: m.body }; }), autoOn: true, savedOn: 'April 1, 2026',
             clock: 130, slide: false, shown: '', editScroll: null, editFocus: false, draftFocus: null, returnTo: null, returnView: null, undo: null };
   function evOf(p){ return EV[p.e] || {}; }
@@ -9302,20 +9297,6 @@ document.addEventListener('click', function(e){
   }
 
   /* ---------- the windows in the middle ---------- */
-  /* the small window Invite to interview opens before the event: what the candidate gets, in one sentence */
-  function askHtml(){
-    var p = get(X.ask); if (!p || p.st !== 'sourced') return '';
-    var f = esc(first(p.n)), e = evOf(p), pl = X.autoOn ? (plan(p, null) || {}) : {}, n = (pl.m2 ? 1 : 0) + (pl.m3 ? 1 : 0);
-    var rem = n === 2 ? ' Two reminders follow, and they stop as soon as ' + f + ' picks a time or replies.'
-            : (n === 1 ? ' One reminder follows, unless ' + f + ' picks a time or replies first.' : '');
-    return '<div class="sx-ov top" onclick="if(event.target===this)SRC.askClose()"><div class="src-dlg" role="dialog" aria-modal="true" aria-label="Invite ' + esc(p.n) + ' to interview" style="width:480px;">'
-      + '<div class="src-t">Invite ' + esc(p.n) + ' to interview?</div>'
-      + '<div class="src-b">' + f + ' gets your invite by email and text, with a link to pick an interview time at the ' + esc(p.e) + (e.date ? ' on ' + esc(e.date) : '') + '.' + rem
-      + '<div><a class="sx-asklk" onclick="SRC.askView(\'' + p.id + '\')">View the messages</a></div></div>'
-      + '<label class="sx-askck"><input type="checkbox" id="sxAskSkip"><span>Don’t show this message when I invite</span></label>'
-      + '<div class="src-f"><button type="button" class="src-bt o" onclick="SRC.askClose()">Cancel</button>'
-      + '<button type="button" class="src-bt p" onclick="SRC.askYes(\'' + p.id + '\')">Send invite</button></div></div></div>';
-  }
   function cancelHtml(){
     var p = get(X.confirm); if (!p) return '';
     return '<div class="sx-ov top" onclick="if(event.target===this)SRC.confirmClose()"><div class="src-dlg" role="dialog" aria-modal="true" aria-label="Cancel invite" style="width:480px;">'
@@ -9392,7 +9373,7 @@ document.addEventListener('click', function(e){
     var r = sxRoot(), key = openKey();
     var pb = r.querySelector('.sx-pbody'), pbTop = pb ? pb.scrollTop : 0, same = !!key && X.shown === key;
     var ed = r.querySelector('.sx-ov.ed'), edTop = ed ? ed.scrollTop : 0;
-    r.innerHTML = inviteHtml() + pickedHtml() + viewHtml() + editorHtml() + offHtml() + cancelHtml() + askHtml() + discardHtml() + menuHtml();
+    r.innerHTML = inviteHtml() + pickedHtml() + viewHtml() + editorHtml() + offHtml() + cancelHtml() + discardHtml() + menuHtml();
     pb = r.querySelector('.sx-pbody'); if (pb && same) pb.scrollTop = pbTop;
     ed = r.querySelector('.sx-ov.ed'); if (ed) ed.scrollTop = edTop;
     X.shown = key; X.slide = false;
@@ -9503,7 +9484,6 @@ document.addEventListener('click', function(e){
     if (X.discard) X.discard = null;
     else if (X.offAsk) X.offAsk = false;
     else if (X.confirm) X.confirm = null;
-    else if (X.ask) { X.ask = null; X.where = ''; }
     else if (X.menu) X.menu = null;
     else if (X.edit) askOrClose('edit');
     else if (X.editor) askOrClose('editor');
@@ -9812,23 +9792,12 @@ document.addEventListener('click', function(e){
   function cxId(p){ return 1000 + parseInt(String(p.id).replace(/\D/g, ''), 10); }
   window.SRC = {
     /* where: 'candidates' when opened from the Candidates page */
-    /* Scott, November 24, 2026: Invite to interview no longer opens the three messages. Before the event it asks once in a small
-       window (its tick box turns the window off) and sends; after the event the slide-out still opens, for the format and times */
-    invite: function(id, where){ var p = get(id); if (!p) return;
-      if (p.st === 'sourced' && !isOver(p)) { X.where = where || ''; X.menu = null; X.modal = null; X.panel = null; X.edit = null;
-        if (X.skipAsk) { SRC.send(id); return; }       /* the new toast takes the old one's place */
-        dismiss(); X.ask = id; sxRender(); return; }
-      SRC.inviteFull(id, where); },
-    /* today's slide-out with the messages: after the event, and from "View the messages" */
-    inviteFull: function(id, where){ var p = get(id); if (!p) return; X.ask = null; X.modal = id; X.where = where || ''; X.panel = null; X.edit = null; X.menu = null; X.slide = true;
+    invite: function(id, where){ var p = get(id); if (!p) return; X.modal = id; X.where = where || ''; X.panel = null; X.edit = null; X.menu = null; X.slide = true;
       X.sched = isOver(p) ? newSched() : null; dismiss(); sxRender(); },
-    askClose: function(){ X.ask = null; X.where = ''; sxRender(); },
-    askYes: function(id){ var b = document.getElementById('sxAskSkip'); if (b && b.checked) X.skipAsk = true; X.ask = null; SRC.send(id); },
-    askView: function(id){ var w = X.where; SRC.inviteFull(id, w); },
     panel: function(id, where){ if (!get(id)) return; X.panel = id; X.where = where || ''; X.modal = null; X.edit = null; X.menu = null; X.slide = true; dismiss(); sxRender(); },
     /* the close button, the dimmed page and Cancel: asks first when words would be lost */
     closeAsk: function(){ askOrClose(X.modal ? 'invite' : 'panel'); sxRender(); },
-    close: function(){ X.ask = X.modal = X.panel = X.confirm = X.discard = X.menu = X.editor = X.edit = null; X.offAsk = false; sxRender(); },
+    close: function(){ X.modal = X.panel = X.confirm = X.discard = X.menu = X.editor = X.edit = null; X.offAsk = false; sxRender(); },
     cedit: function(id, i){ var p = get(id); if (!p || X.edit) return; X.edit = { who: id, i: i, html: tplFor(p, i), err: null, tab: 'edit', dirty: false }; X.editFocus = true; X.editScroll = i; sxRender(); },
     mtab: function(tab){ if (!X.edit) return; X.edit.tab = tab === 'preview' ? 'preview' : 'edit'; if (X.edit.tab === 'edit') X.editFocus = true; X.editScroll = X.edit.i; sxRender(); },
     editDone: function(){ if (!X.edit) return; var i = X.edit.i; if (!saveEdit()) { X.editScroll = i; sxRender(); return; } X.edit = null; X.editScroll = i; sxRender(); },
