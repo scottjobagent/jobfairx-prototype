@@ -8064,7 +8064,7 @@ function lxMenu(r){
   if(st==='requested'&&!c.prop) it=[['Accept','CXX.accept('+id+')'],['Reschedule','CXX.sched('+id+')'],['Decline','CXX.decline('+id+')',1],VD,SM];
   else if(st==='requested') it=[VD,SM,['Cancel proposed times','CXX.cancelProp('+id+')',1]];
   else if(st==='invited') it=[VD,SM];
-  else if(st==='sourced') it=[VD,['Not a fit','CXX.notFit('+id+')'],SM];
+  else if(st==='sourced') it=(window.SRC&&SRC.hasSetup&&SRC.hasSetup(c.sid))?[VD,['Invite with changes','CXX.srcInviteFull('+id+')'],['Not a fit','CXX.notFit('+id+')'],SM]:[VD,['Not a fit','CXX.notFit('+id+')'],SM];
   else if(st==='scheduled') it=[VD,['Reschedule','CXX.sched('+id+')'],SM,['Cancel interview','CXX.cancelIv('+id+')',1]];
   else if(st==='interviewed') it=[VD,['Schedule follow-up interview','CXX.sched('+id+')'],SM];
   else if(st==='noshow') it=[VD,['Mark as interviewed','CXX.markIv('+id+')'],['Schedule interview','CXX.sched('+id+')'],SM];
@@ -8244,6 +8244,7 @@ function mxActs(r){
   return '';
 }
 function srcInvite(id){ var c=get(id); if(c&&c.sid&&window.SRC) SRC.invite(c.sid,'candidates'); }
+function srcInviteFull(id){ var c=get(id); if(c&&c.sid&&window.SRC) SRC.inviteFull(c.sid,'candidates'); }
 function srcCancel(id){ var c=get(id); if(c&&c.sid&&window.SRC) SRC.cancelAsk(c.sid); }
 function srcPanel(id){ var c=get(id); if(c&&c.sid&&window.SRC) SRC.panel(c.sid,'candidates'); }
 function toastUndo(msg,undo){
@@ -8512,7 +8513,7 @@ var tipOff=false, tipQ=false;
 function tipOffNow(){ tipOff=true; render(); }
 function tipQuiet(){ tipQ=true; }
 function tipLeave(el){ tipQ=false; if(el) el.classList.remove('quiet'); }
-window.CXX={closeP:closeP,lobArrive:lobArrive,tipOff:tipOffNow,tipQuiet:tipQuiet,tipLeave:tipLeave,ivRows:ivRows,unNotFit:unNotFit,call:call,copyPh:copyPh,goLobby:goLobby,srcInvite:srcInvite,srcCancel:srcCancel,srcPanel:srcPanel,notFit:notFit,markIv:markIv,goPill:goPill,cancelProp:cancelProp,closeProp:closeProp,confirmProp:confirmProp,accept:accept,back:back,closeDecline:closeDecline,confirmDecline:confirmDecline,sched:sched,cancelIv:cancelIv,reAccept:reAccept,setFb:setFb,openNotes:openNotes,_noteSave:_noteSave,clearSel:clearSel,decline:decline,noshow:noshow,om:om,openDock:openDock,open_:open_,reinstate:reinstate,rowAct:rowAct,selAll:selAll,setPTab:setPTab,setPill:setPill,setScope:setScope,setStage:setStage,setRowStage:setRowStage,setRowFb:setRowFb,setEvd:setEvd,step:step,togSel:togSel,toggleMenu:toggleMenu,toggleScope:toggleScope,toggleSec:toggleSec,toggleSt:toggleSt,setSort:setSort,setJob:setJob,setRate:setRate,closeDock:closeDock,render:render,setQ:setQ,exportSel:exportSel};
+window.CXX={closeP:closeP,lobArrive:lobArrive,tipOff:tipOffNow,tipQuiet:tipQuiet,tipLeave:tipLeave,ivRows:ivRows,unNotFit:unNotFit,call:call,copyPh:copyPh,goLobby:goLobby,srcInvite:srcInvite,srcInviteFull:srcInviteFull,srcCancel:srcCancel,srcPanel:srcPanel,notFit:notFit,markIv:markIv,goPill:goPill,cancelProp:cancelProp,closeProp:closeProp,confirmProp:confirmProp,accept:accept,back:back,closeDecline:closeDecline,confirmDecline:confirmDecline,sched:sched,cancelIv:cancelIv,reAccept:reAccept,setFb:setFb,openNotes:openNotes,_noteSave:_noteSave,clearSel:clearSel,decline:decline,noshow:noshow,om:om,openDock:openDock,open_:open_,reinstate:reinstate,rowAct:rowAct,selAll:selAll,setPTab:setPTab,setPill:setPill,setScope:setScope,setStage:setStage,setRowStage:setRowStage,setRowFb:setRowFb,setEvd:setEvd,step:step,togSel:togSel,toggleMenu:toggleMenu,toggleScope:toggleScope,toggleSec:toggleSec,toggleSt:toggleSt,setSort:setSort,setJob:setJob,setRate:setRate,closeDock:closeDock,render:render,setQ:setQ,exportSel:exportSel};
 
 /* ---------- bootstrap ---------- */
 try {
@@ -9169,29 +9170,52 @@ document.addEventListener('click', function(e){
       + ' When ' + f + ' picks a time, the interview ' + dest + '.';
   }
   /* Invite to interview */
+  /* the optional message goes into the invitation, before the sign-off */
+  function addNote(p, note){ note = String(note || '').trim(); if (!note || !p.msgs || !p.msgs[0]) return;
+    var h = p.msgs[0].html || '', k = h.lastIndexOf('Regards'), s = k >= 0 ? Math.max(h.lastIndexOf('<p', k), h.lastIndexOf('<div', k)) : -1, add = '<p>' + esc(note).replace(/\n/g, '<br>') + '</p>';
+    p.msgs[0].html = s >= 0 ? h.slice(0, s) + add + h.slice(s) : h + add; }
   function inviteHtml(){
+    /* Invite to interview works like Indeed's Set up interview (Scott, November 25, 2026, "green light"). The interview details, the invitation said
+       plainly (its words are not shown, as on Indeed), an optional message added to it, two follow-ups on or off, and,
+       before the event, "Use this for every invite to the [event]". */
     var p = get(X.modal); if (!p || p.st !== 'sourced') return '';
-    var f = esc(first(p.n)), busy = X.edit && X.edit.who === p.id, over = isOver(p), sc = over ? X.sched : null, pl = plan(p, sc), sl = X.slide ? ' sx-slide' : '';
-    var whens = ['Today, when you click Send invite', '', ''], skip = [false, false, false];
-    if (!pl) whens[1] = whens[2] = 'Goes out once you pick a date and start time';
-    else {
-      var near = over ? 'Not sent: too close to the first time you suggest' : 'Not sent: too close to the event';
-      whens[1] = pl.m2 ? dayLong(pl.m2) + ', 10:00 AM &middot; a reminder, if ' + f + ' hasn\'t picked a time' : near;
-      whens[2] = pl.m3 ? dayLong(pl.m3) + ', 10:00 AM &middot; the last reminder, the day before' : near;
-      skip = [false, !pl.m2, !pl.m3];
-    }
-    var steps = (X.autoOn ? [0, 1, 2] : [0]).map(function(i){ return msgBlock(p, i, { dot: skip[i] ? 'x' : 'n', when: whens[i], solid: i === 0, editable: !skip[i] }); }).join('')
-      + (X.autoOn ? '' : '<div class="sx-offnote">The reminders are off, because <b>Invite applicants</b> is turned off on the Automations page.</div>');
-    return '<div class="sx-dim' + sl + '" onclick="SRC.closeAsk()"></div><aside class="sx-panel' + sl + (busy ? ' editing' : '') + '" role="dialog" aria-label="Invite ' + esc(p.n) + ' to interview">'
+    var f = esc(first(p.n)), over = isOver(p), sl = X.slide ? ' sx-slide' : '', e = evOf(p), set = (X.setup || {})[p.e];
+    if (X.rem == null) X.rem = X.autoOn && (set ? set.rem : true);
+    if (X.keep == null) X.keep = !!set;
+    if (X.note == null) X.note = set ? set.note : '';
+    var dest = cand() ? 'Scheduled' : 'Upcoming';
+    function fact(k, v){ return '<div class="ix-k">' + k + '</div><div class="ix-v">' + v + '</div>'; }
+    var fmt = e.method === 'phone' ? 'Phone' : (e.method === 'inperson' ? 'In person' : 'Video &middot; JobFairX video call');
+    var details = over
+      ? schedForm(p)
+        + '<div class="ix-sec"><div class="sx-fl">Interview length</div><select class="sx-inp ix-len" onchange="SRC.ixLen(this.value)">'
+        + ['15', '30', '45', '60'].map(function(m){ return '<option value="' + m + '"' + ((X.len || '30') === m ? ' selected' : '') + '>' + m + ' minutes</option>'; }).join('') + '</select></div>'
+        + '<div class="ix-sec"><div class="sx-fl">Interviewers (optional)</div><div class="ix-team">'
+        + ['Emily Chen', 'Dana Whitfield'].map(function(n){ var on = (X.team || []).indexOf(n) >= 0; return '<label class="ix-chk2"><input type="checkbox"' + (on ? ' checked' : '') + ' onchange="SRC.ixTeam(\'' + n + '\', this.checked)"> ' + n + '</label>'; }).join('')
+        + '</div></div>'
+      : '<div class="sx-sched"><div class="sx-sh">Interview details</div><div class="ix-facts">'
+        + fact('Event', esc(p.e)) + fact('Date', esc(e.when || '')) + fact('Time', f + ' picks a time between ' + esc(e.hours || ''))
+        + fact('Format', fmt) + fact('Length', '30 minutes') + '</div><span class="sx-help">These come from the event.</span></div>';
+    var inv = (over
+      ? f + ' gets an invitation by email and text with the times you suggest, and picks one.'
+      : f + ' gets an invitation by email and text to interview at the ' + esc(p.e) + ' on ' + esc(e.when || '') + ', with a link to pick a time.')
+      + ' When ' + f + ' picks a time, the interview moves to ' + dest + '.';
+    return '<div class="sx-dim' + sl + '" onclick="SRC.closeAsk()"></div><aside class="sx-panel' + sl + '" role="dialog" aria-label="Invite ' + esc(p.n) + ' to interview">'
       + top('Invite ' + esc(p.n) + ' to interview', esc(p.j) + ' &middot; ' + esc(p.e))
-      + '<div class="sx-pstate"><span class="sx-pinv">Applied ' + esc(p.m) + ' &middot; ' + (p.prevInvite ? esc(p.prevInvite) : 'not invited yet') + '</span></div>'
-      + '<div class="sx-pnote">' + inviteNote(f, p) + '</div></div>'
+      + '<div class="sx-pstate"><span class="sx-pinv">Applied ' + esc(p.m) + ' &middot; ' + (p.prevInvite ? esc(p.prevInvite) : 'not invited yet') + '</span></div></div>'
       + '<div class="sx-pbody">'
-      + (busy || over ? '' : '<div class="sx-pdemo"><button type="button" class="src-demo" title="Demo only: acts as the candidate" onclick="SRC.selfPick(\'' + p.id + '\')">&#9654; Demo: ' + f + ' picks a time from our earlier texts</button></div>')
-      + (over && !busy ? schedForm(p) : '') + '<div class="sx-tl">' + steps + '</div>'
-      + '<div class="sx-via"><span>' + I.check + ' Email</span><span>' + I.check + ' Text message</span></div>'
-      + (busy ? '' : '<a class="sx-alllink" onclick="SRC.editor(true)">Edit the words for every invite</a>') + '</div>'
-      + (busy ? editBar(p) : '<div class="sx-pf"><button type="button" class="src-bt p" onclick="SRC.send(\'' + p.id + '\')">Send invite</button><button type="button" class="src-bt o" onclick="SRC.closeAsk()">Cancel</button></div>')
+      + (over ? '' : '<div class="sx-pdemo"><button type="button" class="src-demo" title="Demo only: acts as the candidate" onclick="SRC.selfPick(\'' + p.id + '\')">&#9654; Demo: ' + f + ' picks a time from our earlier texts</button></div>')
+      + details
+      + '<div class="ix-sec"><div class="sx-sh">Your invitation</div><div class="ix-inv">' + inv + '</div></div>'
+      + '<div class="ix-sec"><label class="sx-fl" for="ixNote">Add a message (optional)</label>'
+      + '<textarea id="ixNote" class="sx-inp sx-ta" rows="3" placeholder="Like what to bring or who ' + f + ' will meet." oninput="SRC.ixNote(this.value)">' + esc(X.note || '') + '</textarea>'
+      + '<span class="sx-help">It&rsquo;s added to the invitation.</span></div>'
+      + (X.autoOn
+        ? '<label class="ix-chk"><input type="checkbox"' + (X.rem ? ' checked' : '') + ' onchange="SRC.ixRem(this.checked)"><span><b>Send 2 follow-ups</b><span class="sx-help">If ' + f + ' hasn&rsquo;t picked a time, we send two more messages by email and text.</span></span></label>'
+        : '<label class="ix-chk off"><input type="checkbox" disabled><span><b>Send 2 follow-ups</b><span class="sx-help">Follow-ups are turned off for every invite on the Automations page (Invite applicants).</span></span></label>')
+      + (over ? '' : '<label class="ix-chk"><input type="checkbox"' + (X.keep ? ' checked' : '') + ' onchange="SRC.ixKeep(this.checked)"><span><b>Use this for every invite to the ' + esc(p.e) + '</b><span class="sx-help">After this, Invite to interview sends right away for this event, with these choices. To change them, use Invite with changes in a line&rsquo;s three dots.</span></span></label>')
+      + '</div>'
+      + '<div class="sx-pf"><button type="button" class="src-bt p" onclick="SRC.send(\'' + p.id + '\')">Send invite</button><button type="button" class="src-bt o" onclick="SRC.closeAsk()">Cancel</button></div>'
       + '</aside>';
   }
 
@@ -9407,7 +9431,12 @@ document.addEventListener('click', function(e){
     ed = r.querySelector('.sx-ov.ed'); if (ed) ed.scrollTop = edTop;
     X.shown = key; X.slide = false;
     /* the open message moves to the top of the slide-out, so the box, its buttons and its link fit on a laptop screen */
-    if (X.editScroll != null && pb) { var stp = pb.querySelector('.sx-step[data-step="' + X.editScroll + '"]'); if (stp) pb.scrollTop += stp.getBoundingClientRect().top - pb.getBoundingClientRect().top - 12; }
+    if (X.editScroll != null && pb) { var stp = pb.querySelector('.sx-step[data-step="' + X.editScroll + '"]'); if (stp) { pb.scrollTop += stp.getBoundingClientRect().top - pb.getBoundingClientRect().top - 12;
+        /* the editor's links must not hide under the buttons (View messages on a 1280 x 720 screen): scroll a little further,
+           never past the top of the box (November 25, 2026) */
+        var ml = stp.querySelector('.sx-mlinks'), bx = stp.querySelector('.sx-rte-wrap');
+        if (ml && bx) { var over = ml.getBoundingClientRect().bottom - pb.getBoundingClientRect().bottom + 8, room = bx.getBoundingClientRect().top - pb.getBoundingClientRect().top - 8;
+          if (over > 0 && room > 0) pb.scrollTop += Math.min(over, room); } } }
     X.editScroll = null;
     if (X.editFocus) { var ce = r.querySelector('.sx-rte[data-idx="c"]'); if (ce) caretEnd(ce); X.editFocus = false; }
     if (X.draftFocus != null) { var de = r.querySelector('.sx-editor .sx-rte[data-idx="' + X.draftFocus + '"]'); if (de) caretEnd(de); X.draftFocus = null; }
@@ -9822,7 +9851,20 @@ document.addEventListener('click', function(e){
   function cxId(p){ return 1000 + parseInt(String(p.id).replace(/\D/g, ''), 10); }
   window.SRC = {
     /* where: 'candidates' when opened from the Candidates page */
-    invite: function(id, where){ var p = get(id); if (!p) return; X.modal = id; X.where = where || ''; X.panel = null; X.edit = null; X.menu = null; X.slide = true;
+    invite: function(id, where){ var p = get(id); if (!p) return;
+      /* once the event is set up ("Use this for every invite to the ..."), one click sends; otherwise the window */
+      var set = (X.setup || {})[p.e], full = X.full; X.full = false;
+      if (set && !isOver(p) && !full) {
+        X.where = where || ''; X.edit = null; X.menu = null; X.sched = null; X.panel = null; X.modal = null;
+        doSend(p); addNote(p, set.note); if (!set.rem && p.msgs) p.msgs = p.msgs.slice(0, 1);
+        var c = cand(); X.where = ''; sxRender(); changed();
+        var back = function(){ p.st = 'sourced'; delete p.sent; delete p.sentLong; delete p.msgs; delete p.custom; p.fromInvite = false; p.reply = null; p.stopped = false; delete p.bounced; delete p.textStop; X.panel = null; };
+        var dest = c ? 'Invited' : (PAGE === 'lobby' ? 'Not yet interviewed, under Waiting on the candidate' : 'Pending, under Waiting on the candidate');
+        undoToast('Invite sent to ' + esc(p.n) + '. ' + esc(first(p.n)) + ' moved to ' + dest + '.' + link('View messages', "SRC.panel('" + id + "')") + ' &middot;', back);
+        return;
+      }
+      X.note = null; X.rem = null; X.keep = null; X.len = null; X.team = null;
+      X.modal = id; X.where = where || ''; X.panel = null; X.edit = null; X.menu = null; X.slide = true;
       X.sched = isOver(p) ? newSched() : null; dismiss(); sxRender(); },
     panel: function(id, where){ if (!get(id)) return; X.panel = id; X.where = where || ''; X.modal = null; X.edit = null; X.menu = null; X.slide = true; dismiss(); sxRender(); },
     /* the close button, the dimmed page and Cancel: asks first when words would be lost */
@@ -9842,7 +9884,9 @@ document.addEventListener('click', function(e){
         else if (sc.format === 'video' && sc.vprov === 'third' && !/^https:\/\/\S+\.\S+/.test(sc.url)) serr = 'Enter a valid meeting URL starting with https://';
         if (serr) { sc.err = serr; sxRender(); return; }
       }
-      X.edit = null; doSend(p); X.modal = null; X.panel = null; X.sched = null;
+      X.edit = null; doSend(p); addNote(p, X.note); if (X.rem === false && p.msgs) p.msgs = p.msgs.slice(0, 1);
+      if (!isOver(p)) { X.setup = X.setup || {}; if (X.keep) X.setup[p.e] = { note: X.note || '', rem: X.rem !== false }; else delete X.setup[p.e]; }
+      X.note = null; X.rem = null; X.keep = null; X.len = null; X.team = null; X.modal = null; X.panel = null; X.sched = null;
       var c = cand(); X.where = ''; sxRender(); changed();
       /* Scott, November 22, 2026: the slide-out closes, nothing lights up, and the toast says the invite went out and where the candidate moved */
       if (c) say('Invite sent to ' + esc(p.n) + '. ' + esc(first(p.n)) + ' moved to Invited.' + link('View in Invited', "CXX.goPill('invited')"));
@@ -9900,6 +9944,14 @@ document.addEventListener('click', function(e){
     },
     undo: function(){ var f = X.undo; X.undo = null; dismiss(); if (f) { f(); sxRender(); changed(); } },
     msg: function(id){ var p = get(id); if (p) msgTo(p); },
+    /* Invite with changes: the window, even when the event is set up */
+    inviteFull: function(id, where){ X.full = true; window.SRC.invite(id, where); },
+    hasSetup: function(id){ var p = get(id); return !!(p && X.setup && X.setup[p.e] && !isOver(p)); },
+    ixNote: function(v){ X.note = v; },
+    ixRem: function(b){ X.rem = !!b; },
+    ixKeep: function(b){ X.keep = !!b; },
+    ixLen: function(v){ X.len = v; },
+    ixTeam: function(n, on){ X.team = (X.team || []).filter(function(x){ return x !== n; }); if (on) X.team.push(n); },
     discardKeep: function(){ X.discard = null; sxRender(); },
     discardYes: function(){
       var d = X.discard; X.discard = null; if (!d) return;
@@ -10653,5 +10705,24 @@ body.ntx-open .jfx-toast{z-index:10060}
   #view-interviews .iv2-req col.p2{width:15%}
   #view-interviews .iv2-req col.p5{width:37%}
 }
+</style>
+<style id="ix-invite-css">
+/* Invite to interview, like Indeed's Set up interview (November 25, 2026) */
+.ix-facts{display:grid;grid-template-columns:76px 1fr;gap:10px 14px;margin:10px 0 8px}
+.ix-k{font-size:13px;line-height:20px;color:#595959}
+.ix-v{font-size:14px;line-height:20px;color:#2d2d2d}
+.ix-sec{margin-top:18px}
+.ix-sec .sx-fl{margin-bottom:6px;display:block}
+.ix-sec .sx-sh{margin-bottom:6px}
+.ix-sec .sx-help{display:block;margin-top:4px}
+.ix-inv{padding:12px 14px;border-radius:10px;background:#f6f5f3;font-size:14px;line-height:20px;color:#2d2d2d}
+.ix-team{display:flex;gap:18px;flex-wrap:wrap}
+.ix-chk2{display:inline-flex;align-items:center;gap:8px;font-size:14px;color:#2d2d2d;cursor:pointer}
+.ix-chk2 input,.ix-chk input{width:18px;height:18px;accent-color:#0044B3;flex:0 0 auto}
+.ix-chk{display:flex;gap:10px;align-items:flex-start;margin-top:18px;cursor:pointer;font-size:14px;color:#2d2d2d}
+.ix-chk input{margin-top:1px}
+.ix-chk .sx-help{display:block;margin-top:3px}
+.ix-chk.off{color:#767676;cursor:default}
+select.ix-len{max-width:220px}
 </style>
 </body></html>
