@@ -10250,9 +10250,8 @@ body #view-candidates #cxRoot .cd-tab.on .ct{color:#fff;opacity:.8}
 
 <script id="cdx-js">
 /* Redraws the top of the candidate's page after the page's own code has drawn it (see the style block above).
-   OPT is 2, the look Scott picked; the lines for 1 and 3 belong to the two looks he did not pick. The second step of
-   the progress line reads Invited or Requested: a real build takes that from the person's history; this page only
-   knows the current stage. */
+   OPT is 2, the look Scott picked; the lines for 1 and 3 belong to the two looks he did not pick. The progress line's
+   first step says how the person came in, Applied or Matched (see applicant() and steps() below). */
 (function(){
   var OPT=2;
   var TONE={'Applied':'grey','Invited':'blue','Requested':'amber','Scheduled':'green','Interviewed':'navy','Declined':'red'};
@@ -10260,9 +10259,15 @@ body #view-candidates #cxRoot .cd-tab.on .ct{color:#fff;opacity:.8}
   function tone(s){ return /^Couldn.t make it$/.test(s)?'red':(TONE[s]||'grey'); }
   function initials(n){ var p=String(n).trim().split(/\s+/); return ((p[0]||' ')[0]+(p.length>1?p[p.length-1][0]:'')).toUpperCase(); }
   function stageOf(){ var v=document.querySelector('#cxRoot .cd-status .v'); return v?v.textContent.trim():''; }
-  function steps(st){
-    var two=(st==='Requested'||st==='Declined')?'Requested':'Invited', L=['Applied',two,'Scheduled','Interviewed'], cur={Applied:0,Invited:1,Requested:1,Scheduled:2,Interviewed:3}[st];
-    if(st==='Declined'){ L[2]='Declined'; cur=2; }
+  /* how the person came in (Scott, November 24, 2026: "not every candidate applied. Some are matched and some applied"):
+     an applicant is someone from the Applied list (they applied to the job); everyone else was matched to the job by us */
+  function applicant(name,st){ if(st==='Applied'||st==='Invited') return true;
+    try{ return !!(window.SRC&&SRC.state&&SRC.state().some(function(p){ return p.n===name; })); }catch(e){ return false; } }
+  /* applicants: Applied, Invited, Scheduled, Interviewed; matched candidates: Matched, Requested, Scheduled, Interviewed.
+     The second step always names the stage the person is in when that stage is Invited or Requested. */
+  function steps(st,ap){
+    var two=st==='Requested'?'Requested':(st==='Invited'?'Invited':(ap?'Invited':'Requested')), L=[ap?'Applied':'Matched',two,'Scheduled','Interviewed'], cur={Applied:0,Invited:1,Requested:1,Scheduled:2,Interviewed:3}[st];
+    if(st==='Declined'){ if(ap){ L[1]='Declined'; cur=1; } else { L[2]='Declined'; cur=2; } }      /* an applicant marked not a fit was never invited */
     if(/^Couldn.t make it$/.test(st)){ L[3]=st; cur=3; }
     if(cur===undefined) cur=0;
     return '<ol class="cdx-steps tone-'+tone(st)+'" aria-label="Stage: '+st+'">'+L.map(function(l,i){ var k=i<cur?'done':(i===cur?'cur':'');
@@ -10281,7 +10286,7 @@ body #view-candidates #cxRoot .cd-tab.on .ct{color:#fff;opacity:.8}
     id.insertBefore(row,id.firstChild); row.appendChild(av); row.appendChild(txt); txt.appendChild(nl); nl.appendChild(name);
     if(OPT===1&&st){ var tg=document.createElement('span'); tg.className='cdx-stage t-'+tn; tg.textContent=st; nl.appendChild(tg); }
     var mw=document.createElement('div'); mw.className='cdx-meta'; metas.forEach(function(m){ mw.appendChild(m); }); txt.appendChild(mw);
-    if(OPT>=2&&st) id.insertAdjacentHTML('beforeend',steps(st));
+    if(OPT>=2&&st) id.insertAdjacentHTML('beforeend',steps(st,applicant(name.textContent.trim(),st)));
     if(OPT===3){ var r=h.querySelector(':scope > .r'); if(r){ r.classList.add('cdx-dots'); row.style.alignItems='flex-start'; txt.style.flex='1 1 auto'; nl.appendChild(r); } }
   }
   function rail(){ [].forEach.call(document.querySelectorAll('#cxRoot .cd-railcard .a'),function(a){ if(a.getAttribute('data-cdx')) return; a.setAttribute('data-cdx','1');
