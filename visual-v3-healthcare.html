@@ -8058,14 +8058,18 @@ function lxNext(r){
 /* everything else sits behind the three dots, at the right edge on every tab */
 function lxMenu(r){
   var c=r.c, id=c.id, st=r.stage, it=[];
-  if(st==='sourced') it=[['Not a fit','CXX.notFit('+id+')']];
-  else if(st==='invited') it=[['Cancel invite','CXX.srcCancel('+id+')',1]];
-  else if(st==='requested') it=c.prop?[['Cancel proposed times','CXX.cancelProp('+id+')',1]]:[['Accept','CXX.accept('+id+')'],['Reschedule','CXX.sched('+id+')'],['Decline','CXX.decline('+id+')',1]];
-  else if(st==='scheduled') it=[['Reschedule','CXX.sched('+id+')'],['Cancel interview','CXX.cancelIv('+id+')',1]];
-  else if(st==='interviewed') it=[['Schedule follow-up interview','CXX.sched('+id+')']];
-  else if(st==='noshow') it=[['Mark as interviewed','CXX.markIv('+id+')'],['Schedule interview','CXX.sched('+id+')']];
-  else if(st==='declined') it=c.notFit?[['Move back to Applied','CXX.unNotFit('+id+')']]:[['Accept','CXX.reAccept('+id+')']];
-  it=it.concat([['View resume','CXX.rowAct('+id+',\'View resume\')']]).concat([['Send a message','CXX.openDock('+id+')']]);
+  /* one menu for each kind of line (November 25, 2026): View details first, the line's own choices, Send a message, red last;
+     a request keeps Accept, Reschedule, Decline first; Cancel invite stays on the line only; no Add a note (the Notes column) */
+  var VD=['View details','CXX.open_('+id+')'], SM=['Send a message','CXX.openDock('+id+')'];
+  if(st==='requested'&&!c.prop) it=[['Accept','CXX.accept('+id+')'],['Reschedule','CXX.sched('+id+')'],['Decline','CXX.decline('+id+')',1],VD,SM];
+  else if(st==='requested') it=[VD,SM,['Cancel proposed times','CXX.cancelProp('+id+')',1]];
+  else if(st==='invited') it=[VD,SM];
+  else if(st==='sourced') it=[VD,['Not a fit','CXX.notFit('+id+')'],SM];
+  else if(st==='scheduled') it=[VD,['Reschedule','CXX.sched('+id+')'],SM,['Cancel interview','CXX.cancelIv('+id+')',1]];
+  else if(st==='interviewed') it=[VD,['Schedule follow-up interview','CXX.sched('+id+')'],SM];
+  else if(st==='noshow') it=[VD,['Mark as interviewed','CXX.markIv('+id+')'],['Schedule interview','CXX.sched('+id+')'],SM];
+  else if(st==='declined') it=[VD,c.notFit?['Move back to Applied','CXX.unNotFit('+id+')']:['Accept','CXX.reAccept('+id+')'],SM];
+  else it=[VD,SM];
   return '<div class="mx-acts">'+mxMenu(c,it)+'</div>';
 }
 
@@ -10061,7 +10065,7 @@ document.addEventListener('click', function(e){
   function resOf(r){ return r.stage==='noshow'?'noshow':(r.fb||'none'); }
   function resOpts(rows){ return RK.map(function(v){ return {v:v,l:RL[v],n:rows.filter(function(r){return resOf(r)===v;}).length}; }).filter(function(x){return x.n>0;}); }
   function resTh(o){ var on=RES.length>0;
-    var h='<th class="iv2-hb iv2-hf'+(on?' on':'')+'"><button type="button" onclick="IV2.resMenu()">Result'
+    var h='<th class="iv2-hb iv2-hf'+(on?' on':'')+'"><button type="button" onclick="IV2.resMenu()">Feedback'
       +'<svg viewBox="0 0 24 24" fill="'+(on?'#0044B3':'none')+'" stroke="'+(on?'#0044B3':'#767676')+'" stroke-width="1.9" stroke-linejoin="round"><path d="M3 4h18l-7 8.2V20l-4-2.2v-5.6L3 4z"></path></svg>'
       +(on?'<span class="iv2-fn">'+RES.length+'</span>':'')+'</button>';
     if(ROPEN){ h+='<div class="iv2-fdd" onclick="IV2.keep()">'+o.map(function(x){ var sel=RES.indexOf(x.v)>=0;
@@ -10071,7 +10075,7 @@ document.addEventListener('click', function(e){
         +'<div class="iv2-ff"><button type="button"'+(on?'':' disabled')+' onclick="IV2.resClear()">Clear</button></div></div>'; }
     return h+'</th>'; }
   function resChip(o){ if(!RES.length) return '';
-    return '<span class="iv2-chipf">Result: '+o.filter(function(x){return RES.indexOf(x.v)>=0;}).map(function(x){return x.l;}).join(', ')
+    return '<span class="iv2-chipf">Feedback: '+o.filter(function(x){return RES.indexOf(x.v)>=0;}).map(function(x){return x.l;}).join(', ')
       +'<button type="button" aria-label="Clear the filter" onclick="IV2.resClear()">&times;</button></span>'; }
   function resCell(r){
     if(r.stage==='noshow') return '<span class="iv2-cmi">Couldn’t make it</span>';
@@ -10086,11 +10090,11 @@ document.addEventListener('click', function(e){
     IDS[0]=rows.map(function(r){return r.id;});
     var h='<div class="iv2-hd">'+title(0,'Upcoming interviews',rows.length,all.length,o)+'</div>';
     h+='<table class="iv2-tbl"><colgroup><col class="u1"><col class="u3"><col class="u4"><col class="u2"><col class="u5"><col class="u6"></colgroup>'
-      +'<thead><tr>'+sortTh(0,'name','Candidate')+filTh(0,'Interview location',o)+'<th>Job</th>'+sortTh(0,'time','Interview time')+'<th>Interviewer</th><th>Actions</th></tr></thead><tbody>';
+      +'<thead><tr>'+sortTh(0,'name','Candidate')+filTh(0,'Interview location',o)+'<th>Job</th>'+sortTh(0,'time','Interview time')+'<th>Interviewer</th><th></th></tr></thead><tbody>';
     rows.forEach(function(r){
       h+='<tr><td>'+who(r)+'</td><td>'+r.chip+'</td><td>'+esc(r.job)+'</td><td>'+when(r.time)+'</td><td>'+by(r)+'</td>'
         +'<td class="iv2-acts"><div class="iv2-actw">'
-        +menu('u'+r.id,[['View details','IV2.open('+r.id+')'],['Reschedule','IV2.act(\'sched\','+r.id+')'],[noteLbl(r),'IV2.note('+r.id+')'],['Cancel interview','IV2.act(\'cancelIv\','+r.id+')',1]])+'</div></td></tr>';
+        +menu('u'+r.id,[['View details','IV2.open('+r.id+')'],['Reschedule','IV2.act(\'sched\','+r.id+')'],[noteLbl(r),'IV2.note('+r.id+')'],['Send a message','IV2.msg('+r.id+')'],['Cancel interview','IV2.act(\'cancelIv\','+r.id+')',1]])+'</div></td></tr>';
     });
     if(!rows.length) h+=empty(6,'No upcoming interviews here.');
     return {h:h+'</tbody></table>', n:all.length};
@@ -10108,13 +10112,13 @@ document.addEventListener('click', function(e){
     props.forEach(function(r){
       h+='<tr><td>'+who(r)+'</td><td>'+r.chip+'</td><td>'+esc(r.job)+'</td>'
         +'<td><div class="iv2-muted iv2-small">Your proposed times</div>'+r.props.map(function(x){return '<div class="iv2-pl">'+esc(x)+'</div>';}).join('')+'</td>'
-        +'<td class="iv2-acts"><div class="iv2-actw"><button class="iv2-b o" onclick="IV2.act(\'cancelProp\','+r.id+')">Cancel proposed times</button></div></td></tr>';
+        +'<td class="iv2-acts"><div class="iv2-actw"><button class="iv2-b o" onclick="IV2.act(\'cancelProp\','+r.id+')">Cancel proposed times</button>'+menu('w'+r.id,[['View details','IV2.open('+r.id+')'],[noteLbl(r),'IV2.note('+r.id+')'],['Send a message','IV2.msg('+r.id+')']])+'</div></td></tr>';
     });
     rows.forEach(function(r){ var sm=r.sum;
       h+='<tr><td>'+who(r)+'</td><td>'+r.chip+'</td><td>'+esc(r.job)+'</td>'
         +'<td>'+(sm?'<div class="sx-prog">'+sm.dots+'<span class="sx-ptxt">'+sm.line+'</span>'+sm.sig+'</div>':'<span class="iv2-muted">Invite sent '+esc(r.sent)+'</span>')+'</td>'
         +'<td class="iv2-acts"><div class="iv2-actw"><button class="iv2-b o" onclick="IV2.msgs('+r.id+')">View messages</button>'
-        +'<a class="iv2-link" onclick="IV2.cancelInv('+r.id+')">Cancel invite</a></div></td></tr>';
+        +'<a class="iv2-link" onclick="IV2.cancelInv('+r.id+')">Cancel invite</a>'+menu('w'+r.id,[['View details','IV2.open('+r.id+')'],[noteLbl(r),'IV2.note('+r.id+')'],['Send a message','IV2.msg('+r.id+')']])+'</div></td></tr>';
     });
     return {h:h+'</tbody></table>', ids:props.concat(rows).map(function(r){return r.id;}), n:n};
   }
@@ -10123,12 +10127,12 @@ document.addEventListener('click', function(e){
     var inv=invited(R);
     IDS[1]=rows.map(function(r){return r.id;}).concat(inv.ids);
     var h='<div class="iv2-hd">'+title(1,'Requests waiting on you',rows.length,all.length,o)+'</div>';
-    h+='<table class="iv2-tbl"><colgroup><col class="p1"><col class="p3"><col class="p4"><col class="p2"><col class="p5"></colgroup>'
+    h+='<table class="iv2-tbl iv2-req"><colgroup><col class="p1"><col class="p3"><col class="p4"><col class="p2"><col class="p5"></colgroup>'
       +'<thead><tr>'+sortTh(1,'name','Candidate')+filTh(1,'Interview location',o)+'<th>Job</th>'+sortTh(1,'time','Requested time')+'<th>Actions</th></tr></thead><tbody>';
     rows.forEach(function(r){
       h+='<tr><td>'+who(r)+'</td><td>'+r.chip+'</td><td>'+esc(r.job)+'</td><td>'+when(r.time)+'</td>'
         +'<td class="iv2-acts"><div class="iv2-actw"><button class="iv2-b p" onclick="IV2.act(\'accept\','+r.id+')">Accept</button><button class="iv2-b o" onclick="IV2.act(\'sched\','+r.id+')">Reschedule</button>'
-        +'<button class="iv2-b o" onclick="IV2.act(\'decline\','+r.id+')">Decline</button></div></td></tr>';
+        +'<button class="iv2-b o" onclick="IV2.act(\'decline\','+r.id+')">Decline</button>'+menu('r'+r.id,[['View details','IV2.open('+r.id+')'],[noteLbl(r),'IV2.note('+r.id+')'],['Send a message','IV2.msg('+r.id+')']])+'</div></td></tr>';
     });
     if(!rows.length) h+=empty(5,'No requests waiting on you here.');
     return {h:h+'</tbody></table>', h2:inv.h, n:all.length+inv.n};
@@ -10140,7 +10144,7 @@ document.addEventListener('click', function(e){
     IDS[2]=rows.map(function(r){return r.id;});
     var h='<div class="iv2-hd">'+title(2,'Past interviews',rows.length,all.length,o,resChip(ro))+'</div>';
     h+='<table class="iv2-tbl"><colgroup><col class="q1"><col class="q3"><col class="q4"><col class="q2"><col class="q5"><col class="q6"><col class="q7"></colgroup>'
-      +'<thead><tr>'+sortTh(2,'name','Candidate')+filTh(2,'Interview location',o)+'<th>Job</th>'+sortTh(2,'time','Interview time')+'<th>Interviewer</th>'+resTh(ro)+'<th>Actions</th></tr></thead><tbody>';
+      +'<thead><tr>'+sortTh(2,'name','Candidate')+filTh(2,'Interview location',o)+'<th>Job</th>'+sortTh(2,'time','Interview time')+'<th>Interviewer</th>'+resTh(ro)+'<th></th></tr></thead><tbody>';
     rows.forEach(function(r){
       h+='<tr><td>'+who(r)+'</td><td>'+r.chip+'</td><td>'+esc(r.job)+'</td><td>'+when(r.time)+'</td><td>'+by(r)+'</td><td>'+resCell(r)+'</td>'
         +'<td class="iv2-acts"><div class="iv2-actw">'+menu('x'+r.id,[['View details','IV2.open('+r.id+')'],['Schedule follow-up interview','IV2.act(\'sched\','+r.id+')'],[noteLbl(r),'IV2.note('+r.id+')'],['Send a message','IV2.msg('+r.id+')']])+'</div></td></tr>';
@@ -10632,4 +10636,22 @@ body.ntx-open .jfx-toast{z-index:10060}
   redraw();
 })();
 </script>
+<style id="lx-dash-css">
+/* one layout for an interview line (November 25, 2026): a request line holds Accept, Reschedule, Decline and the three dots
+   (about 326px with the cell's padding). The requests list gives its last column that room from its time column, keeping
+   each screen size's columns at 100% so Candidate, Interview location, Job and the time start where the other lists' do.
+   Under 1366 wide the requested time takes two lines (the date, then the time). */
+@media (min-width:1440px) and (max-width:1511px){
+  #view-interviews .iv2-req col.p2{width:19%}
+  #view-interviews .iv2-req col.p5{width:29.8%}
+}
+@media (min-width:1366px) and (max-width:1439px){
+  #view-interviews .iv2-req col.p2{width:19%}
+  #view-interviews .iv2-req col.p5{width:32%}
+}
+@media (max-width:1365px){
+  #view-interviews .iv2-req col.p2{width:15%}
+  #view-interviews .iv2-req col.p5{width:37%}
+}
+</style>
 </body></html>
