@@ -7497,8 +7497,9 @@ function fbPill(r){ return fbpMarkup(rFb(r),' data-rk="'+r.key+'"'); }
 function noteCell(c){
   var t=(c.notes||'').trim();
   var pen='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg>';
-  return '<button class="cx-note'+(t?'':' empty')+'" data-notes="'+esc(t).replace(/"/g,'&quot;')+'" onclick="CXX.openNotes('+c.id+',this)">'
+  var _h='<button class="cx-note'+(t?'':' empty')+'" data-notes="'+esc(t).replace(/"/g,'&quot;')+'" onclick="CXX.openNotes('+c.id+',this)">'
     + pen + (t?esc(t):'Add a note') + '</button>';
+  return window.NTX ? NTX.cell(c,_h,pen) : _h;
 }
 
 /* Indeed's filters are checkbox lists, not single-select dropdowns - verified
@@ -7772,8 +7773,9 @@ function reAccept(id){reinstate(id);accept(id);}
 function setFb(id,v){var c=get(id);var x=ivFor(c);
   if(x){ if(v) x.rate=v; else delete x.rate; }
   openMenu='';render();}
-function openNotes(id,btn){
-  var c=get(id);if(!unhide('ivNotesModal')||typeof ivOpenNotesModal!=='function')return;
+function openNotes(id,btn,how){
+  var c=get(id); if(window.NTX && NTX.take(c,how)){ NTX.open(c,how); return; }
+  if(!unhide('ivNotesModal')||typeof ivOpenNotesModal!=='function')return;
   ivOpenNotesModal(c.n,btn);
   document.getElementById('ivNotesModalText').value=c.notes||'';
   window.__cxNotesId=id;
@@ -10434,5 +10436,200 @@ window.fxDockSend=function(){ var ta=document.querySelector('#cxdk textarea'), b
   var n=new Date(), w=n.toLocaleDateString('en-US',{month:'long',day:'numeric'})+', '+n.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
   var div=document.createElement('div'); div.className='bub us'; div.textContent=v; var t=document.createElement('div'); t.className='t'; t.textContent=w; div.appendChild(t); b.appendChild(div); b.scrollTop=b.scrollHeight; ta.value='';
   if(typeof showToast==='function') showToast('success','Message sent to '+((document.getElementById('cxdkN')||{}).textContent||'the candidate')+'.'); };
+</script>
+
+<style id="ntx-css">
+/* ── AI notes and your team's notes (Scott, November 25, 2026, "green light" for option 2) ── */
+#view-candidates .ntx-cell{display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+#view-candidates .ntx-ai{display:inline-flex;gap:7px;align-items:center;color:#0044B3;background:none;border:0;padding:0;font-family:inherit;font-size:14px;line-height:21px;font-weight:400;cursor:pointer;white-space:nowrap}
+#view-candidates .ntx-ai svg{width:15px;height:15px;flex:0 0 15px}
+#view-candidates .ntx-ai:hover{text-decoration:underline}
+#view-candidates .cx-note .ntx-t{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ntx-ov{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:10050;display:none;align-items:center;justify-content:center}
+.ntx-ov.open{display:flex}
+.ntx-win{background:#fff;border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,.2);width:640px;max-width:calc(100vw - 48px);max-height:calc(100vh - 64px);display:flex;flex-direction:column;font-family:"Noto Sans",-apple-system,system-ui,sans-serif;color:#2d2d2d;text-align:left}
+.ntx-win.wide{width:1080px;height:calc(100vh - 96px)}
+.ntx-hd{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:20px 24px;border-bottom:1px solid #e4e2e0;flex:0 0 auto}
+.ntx-hd h3{font-size:18px;line-height:27px;font-weight:700;margin:0}
+.ntx-hdr{display:flex;align-items:center;gap:8px}
+.ntx-x{width:28px;height:28px;border:0;background:none;border-radius:6px;color:#595959;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
+.ntx-x:hover{background:#f3f2ef;color:#2d2d2d}
+.ntx-x svg{width:18px;height:18px}
+.ntx-bd{overflow:auto;padding:0 24px 24px;flex:1 1 auto;min-height:0}
+.ntx-cols{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);flex:1 1 auto;min-height:0}
+.ntx-cols > .ntx-col{overflow:auto;padding:0 24px 24px;min-height:0}
+.ntx-cols > .ntx-col + .ntx-col{border-left:1px solid #e4e2e0;background:#fff}
+.ntx-sec{padding-top:20px}
+.ntx-sec + .ntx-sec{margin-top:20px;border-top:1px solid #e4e2e0}
+.ntx-sh{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px;min-height:36px}
+.ntx-sh h4{font-size:16px;line-height:24px;font-weight:700;margin:0;display:flex;align-items:center;gap:8px}
+.ntx-sh h4 svg{width:18px;height:18px;color:#0044B3}
+.ntx-sh h4 .n{font-weight:400;color:#767676}
+.ntx-acts{display:flex;gap:8px}
+.ntx-add textarea{display:block;width:100%;min-height:68px;border:1px solid #d4d2d0;border-radius:8px;padding:10px 12px;font:inherit;font-size:14px;line-height:21px;color:#2d2d2d;resize:vertical;box-sizing:border-box}
+.ntx-add textarea:focus{outline:none;border-color:#0044B3;box-shadow:0 0 0 3px rgba(0,68,179,.12)}
+.ntx-add .row{display:flex;justify-content:flex-end;margin-top:8px}
+.ntx-btn{height:36px;padding:0 14px;border-radius:8px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;border:1px solid #d4d2d0;background:#fff;color:#2d2d2d;display:inline-flex;align-items:center;gap:6px;box-sizing:border-box;white-space:nowrap}
+.ntx-btn:hover{background:#f6f5f3}
+.ntx-btn.p{background:#0044B3;border-color:#0044B3;color:#fff}
+.ntx-btn.p:hover{background:#003399}
+.ntx-btn.p:disabled{background:#e4e2e0;border-color:#e4e2e0;color:#767676;cursor:default}
+.ntx-btn svg{width:16px;height:16px}
+.ntx-list{margin-top:6px}
+.ntx-note{padding:12px 0;border-top:1px solid #efedeb}
+.ntx-note:first-child{border-top:0}
+.ntx-nh{display:flex;justify-content:space-between;align-items:baseline;gap:12px;font-size:13px;line-height:20px;color:#767676}
+.ntx-nh b{color:#2d2d2d;font-weight:600}
+.ntx-na{display:flex;gap:14px;flex:0 0 auto}
+.ntx-na a{color:#595959;cursor:pointer;text-decoration:none}
+.ntx-na a:hover{text-decoration:underline;color:#2d2d2d}
+.ntx-nt{font-size:14px;line-height:21px;margin-top:4px;white-space:pre-wrap}
+.ntx-none{font-size:14px;line-height:21px;color:#767676;padding:4px 0}
+.ntx-meta{font-size:13px;line-height:20px;color:#595959}
+.ntx-ed{font-size:13px;line-height:20px;color:#595959;display:flex;gap:6px;align-items:center;margin-top:2px}
+.ntx-ed svg{width:14px;height:14px;color:#767676}
+.ntx-warn{font-size:13px;line-height:20px;color:#767676;margin-top:2px}
+.ntx-body{margin-top:14px;font-size:14px;line-height:21px;border:1px solid transparent;border-radius:8px}
+.ntx-body h5{font-size:14px;line-height:21px;font-weight:700;margin:16px 0 4px}
+.ntx-body h5:first-child{margin-top:0}
+.ntx-body ul{margin:0;padding-left:20px}
+.ntx-body li{margin:2px 0}
+.ntx-body[contenteditable=true]{outline:none;border-color:#0044B3;box-shadow:0 0 0 3px rgba(0,68,179,.12);padding:10px 12px}
+.ntx-note.editing .ntx-edta{display:block;width:100%;min-height:88px;margin-top:6px;border:1px solid #0044B3;box-shadow:0 0 0 3px rgba(0,68,179,.12);border-radius:8px;padding:10px 12px;font-family:inherit;font-size:14px;line-height:21px;color:#2d2d2d;resize:vertical;box-sizing:border-box;outline:none}
+.ntx-note.editing .row{display:flex;justify-content:flex-end;gap:8px;margin-top:8px}
+/* the page's green message shows above the notes window */
+body.ntx-open .jfx-toast{z-index:10060}
+</style>
+
+<script id="ntx-js">
+/* AI notes and your team's notes (Scott, November 25, 2026, "green light" for option 2). AI notes come only from a JobFairX
+   video interview. One window: with AI notes, AI notes on the left and your team's notes on the right; without, your team's
+   notes alone. The person's note (c.notes) follows the team's latest note, so the Interviews page's "View note" stays right. */
+(function(){
+  var DATA = {"Marcus Thompson": {"when": "April 22 · 9:00 AM CT", "edited": ["Emily Chen", "April 22, 10:05 AM"], "ai": [["Can you tell me a little about yourself?", ["Marcus has been a registered nurse at Parkland since 2021, on a medical-surgical floor.", "He trains new graduate nurses and fills in as charge nurse.", "Holds BLS and ACLS certifications."]], ["Why are you interested in this role?", ["Wants a hospital closer to home in Grand Prairie and a steadier schedule."]], ["Tell me about a time you handled an upset patient or family.", ["A family was upset about a late discharge. He explained each step and checked back with them every hour until the patient left."]], ["What shifts can you work?", ["Three 12-hour night shifts a week. Open to some weekends."]], ["Questions from Marcus", ["Asked how many patients each nurse has on the unit.", "Asked whether there is a sign-on bonus."]]], "notes": [["Emily Chen", "April 22, 10:12 AM", "Strong clinical answers, but he only wants nights and this opening is days. Not a fit for this one."], ["Dana Whitfield", "April 3, 2:15 PM", "Called him before the event. He can start May 15 and asked about parking."]]}, "David Kim": {"when": "April 22 · 9:30 AM CT", "ai": [["Can you tell me a little about yourself?", ["David has been a medical assistant at Baylor Scott & White Clinic since 2022.", "He rooms patients, takes vitals and updates charts.", "Certified Clinical Medical Assistant."]], ["Why are you interested in this role?", ["His clinic cut his hours to 30 a week and he wants full time."]], ["How do you handle a busy clinic day?", ["Preps charts the night before and keeps a list of patients waiting on results."]], ["What shifts can you work?", ["Weekdays. Not available on Saturdays."]], ["Questions from David", ["Asked whether the role includes drawing blood and if training is provided."]]], "notes": []}, "Priya Sharma": {"when": "April 22 · 11:40 AM CT", "ai": [["Can you tell me a little about yourself?", ["Priya has been a physical therapist at Select Physical Therapy since 2020, mostly with patients recovering from surgery."]], ["Why are you interested in this role?", ["Wants to work in a hospital setting with a larger team."]], ["What shifts can you work?", ["Weekdays. Can cover one weekend a month."]], ["Questions from Priya", ["Asked about continuing education support."]]], "notes": [["Dana Whitfield", "April 2, 11:30 AM", "Asked if the role includes weekend coverage. She prefers weekdays."]]}, "Tyler Washington": {"when": "March 18 · 11:00 AM CT", "ai": null, "notes": [["Emily Chen", "March 18, 11:45 AM", "Great bedside manner. Ready to start in two weeks."]]}};
+  var ME = 'Emily Chen';
+  var SPARK = "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z\"/><path d=\"M19 15l.7 1.8 1.8.7-1.8.7L19 20l-.7-1.8-1.8-.7 1.8-.7z\"/></svg>";
+  var PEN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg>';
+  var XS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>';
+  var DL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>';
+  var S = {}, CUR = null, EDIT = false, SAVED = '', NED = -1;
+  function esc(t){ return String(t==null?'':t).replace(/[&<>"]/g,function(ch){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch];}); }
+  function st(c){
+    if(!S[c.id]){
+      var d = DATA[c.n] || {};
+      S[c.id] = { n:c.n, c:c, when:d.when||'', ai:d.ai||null, edited:d.edited||null,
+        notes:(d.notes||[]).map(function(x){ return {by:x[0], at:x[1], t:x[2]}; }) };
+      var own = String(c.notes||'').trim();
+      if(own && !S[c.id].notes.length) S[c.id].notes.push({by:ME, at:'Earlier', t:own});
+      if(!own && S[c.id].notes.length) c.notes = S[c.id].notes[0].t;
+    }
+    S[c.id].c = c;
+    return S[c.id];
+  }
+  /* the person's note follows the team's latest note */
+  function sync(){ var s=S[CUR]; if(s && s.c) s.c.notes = s.notes.length ? s.notes[0].t : ''; }
+  function aiHtml(ai){
+    return ai.map(function(q){ return '<h5>'+esc(q[0])+'</h5><ul>'+q[1].map(function(b){ return '<li>'+esc(b)+'</li>'; }).join('')+'</ul>'; }).join('');
+  }
+  /* the Notes column: "AI notes" on a line with a JobFairX video interview, then the team's latest note or "Add a note" */
+  window.NTX = {
+    cell: function(c, html, pen){
+      var s = st(c), last = s.notes[0];
+      var note = '<button class="cx-note'+(last?'':' empty')+'" onclick="CXX.openNotes('+c.id+',this,\'note\')">'+pen
+        + (last ? '<span class="ntx-t">'+esc(last.t)+'</span>' : 'Add a note') + '</button>';
+      if(!s.ai) return note;
+      return '<div class="ntx-cell"><button class="ntx-ai" onclick="CXX.openNotes('+c.id+',this,\'ai\')">'+SPARK+'AI notes</button>'+note+'</div>';
+    },
+    take: function(c, how){ return true; },
+    open: function(c, how){ st(c); CUR = c.id; EDIT = false; NED = -1; document.body.classList.add('ntx-open'); draw(how); },
+    close: function(){ var o=document.getElementById('ntxOv'); if(o){ o.classList.remove('open'); o.innerHTML=''; } CUR=null; EDIT=false; NED=-1; document.body.classList.remove('ntx-open'); },
+    typed: function(el){ var b=document.getElementById('ntxAddBtn'); if(b) b.disabled = !el.value.trim(); },
+    add: function(){ var ta=document.getElementById('ntxTa'); var t=(ta&&ta.value||'').trim(); if(!t) return;
+      S[CUR].notes.unshift({by:ME, at:'Just now', t:t}); if(NED>=0) NED++; sync(); drawTeam(true); redraw();
+      say('Your note for '+esc(S[CUR].n)+' was saved.'); },
+    del: function(i){ S[CUR].notes.splice(i,1); if(NED===i) NED=-1; else if(NED>i) NED--; sync(); drawTeam(); redraw(); },
+    /* Edit on a team note: the note turns into a text box with Cancel and Save, in place */
+    editNote: function(i){ NED=i; drawTeam(); var ta=document.getElementById('ntxEd'); if(ta){ ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); } },
+    noteTyped: function(el){ var b=document.getElementById('ntxEdSave'); if(b) b.disabled = !el.value.trim(); },
+    noteCancel: function(){ NED=-1; drawTeam(); },
+    noteSave: function(){ var ta=document.getElementById('ntxEd'); var t=(ta&&ta.value||'').trim(); if(!t || NED<0) return;
+      var cur=S[CUR].notes[NED]; var changed = (t!==cur.t); cur.t=t; if(changed) cur.edited=true; NED=-1; sync(); drawTeam(); redraw();
+      say('Your changes to the note for '+esc(S[CUR].n)+' were saved.'); },
+    edit: function(){ var b=document.getElementById('ntxBody'); if(!b) return; SAVED=b.innerHTML; EDIT=true; b.setAttribute('contenteditable','true'); b.focus(); acts(); },
+    cancel: function(){ var b=document.getElementById('ntxBody'); if(b){ b.innerHTML=SAVED; b.removeAttribute('contenteditable'); } EDIT=false; acts(); },
+    save: function(){ var b=document.getElementById('ntxBody'); if(b){ S[CUR].html=b.innerHTML; b.removeAttribute('contenteditable'); }
+      S[CUR].edited=[ME,'Just now']; EDIT=false; draw();
+      say('Your changes to the AI notes for '+esc(S[CUR].n)+' were saved.'); },
+    dl: function(){ say('AI notes downloaded.'); }
+  };
+  function redraw(){ try{ CXX.render(); }catch(e){} }
+  /* the page's own green message (top right), shown above the notes window */
+  function say(msg){ if(typeof window.showToast==='function') window.showToast('success', msg); }
+  /* redraw only the team's notes, keeping what is typed in the add box (unless the note was just added) */
+  function drawTeam(clear){
+    var box=document.getElementById('ntxTeam'); if(!box) return draw();
+    var ta=document.getElementById('ntxTa'), keep=(!clear && ta) ? ta.value : '';
+    box.outerHTML = teamHtml(S[CUR]);
+    var ta2=document.getElementById('ntxTa'); if(ta2 && keep){ ta2.value=keep; NTX.typed(ta2); }
+  }
+  function acts(){
+    var a=document.getElementById('ntxAiActs'); if(!a) return;
+    a.innerHTML = EDIT ? '<button class="ntx-btn" onclick="NTX.cancel()">Cancel</button><button class="ntx-btn p" onclick="NTX.save()">Save changes</button>'
+      : '<button class="ntx-btn" onclick="NTX.edit()">'+PEN+'Edit</button><button class="ntx-btn" onclick="NTX.dl()">'+DL+'Download</button>';
+  }
+  function teamHtml(s){
+    var first = String(s.n).split(' ')[0];
+    var h = '<div class="ntx-sh"><h4>Your team’s notes'+(s.notes.length?' <span class="n">('+s.notes.length+')</span>':'')+'</h4></div>'
+      + '<div class="ntx-add"><textarea id="ntxTa" placeholder="Add a note about '+esc(first)+'…" oninput="NTX.typed(this)"></textarea>'
+      + '<div class="row"><button class="ntx-btn p" id="ntxAddBtn" disabled onclick="NTX.add()">Add note</button></div></div>';
+    h += '<div class="ntx-list">' + (s.notes.length ? s.notes.map(function(x,i){
+        var who = '<span><b>'+esc(x.by)+'</b> · '+esc(x.at)+(x.edited?' · Edited':'')+'</span>';
+        if(i===NED) return '<div class="ntx-note editing"><div class="ntx-nh">'+who+'</div>'
+          + '<textarea class="ntx-edta" id="ntxEd" oninput="NTX.noteTyped(this)">'+esc(x.t)+'</textarea>'
+          + '<div class="row"><button class="ntx-btn" onclick="NTX.noteCancel()">Cancel</button><button class="ntx-btn p" id="ntxEdSave" onclick="NTX.noteSave()">Save</button></div></div>';
+        return '<div class="ntx-note"><div class="ntx-nh">'+who
+          + (x.by===ME && NED<0 ? '<span class="ntx-na"><a onclick="NTX.editNote('+i+')">Edit</a><a onclick="NTX.del('+i+')">Delete</a></span>' : '')
+          + '</div><div class="ntx-nt">'+esc(x.t)+'</div></div>';
+      }).join('') : '<div class="ntx-none">No notes yet. Notes are only seen by your team.</div>') + '</div>';
+    return '<div id="ntxTeam">' + h + '</div>';
+  }
+  function aiSecHtml(s){
+    return '<div class="ntx-sh"><h4>'+SPARK+'AI notes</h4><div class="ntx-acts" id="ntxAiActs"></div></div>'
+      + '<div class="ntx-meta">From the video interview on '+esc(s.when)+'</div>'
+      + (s.edited ? '<div class="ntx-ed">'+PEN+'Edited by '+esc(s.edited[0])+' · '+esc(s.edited[1])+'</div>' : '')
+      + '<div class="ntx-warn">AI can make mistakes. Review and edit as needed.</div>'
+      + '<div class="ntx-body" id="ntxBody">'+(s.html || aiHtml(s.ai))+'</div>';
+  }
+  function ov(){
+    var o=document.getElementById('ntxOv');
+    if(!o){ o=document.createElement('div'); o.id='ntxOv'; o.className='ntx-ov';
+      o.addEventListener('click',function(e){ if(e.target===o) NTX.close(); });
+      document.body.appendChild(o); }
+    return o;
+  }
+  function draw(how){
+    var s=S[CUR], o=ov(), h, ta0=document.getElementById('ntxTa'), keep=ta0?ta0.value:'', ed0=document.getElementById('ntxEd'), keepEd=ed0?ed0.value:null;
+    setTimeout(function(){
+      var t=document.getElementById('ntxTa'); if(t && keep && !t.value){ t.value=keep; NTX.typed(t); }
+      var e=document.getElementById('ntxEd'); if(e && keepEd!=null){ e.value=keepEd; NTX.noteTyped(e); }
+    }, 0);
+    var head = function(title){ return '<div class="ntx-hd"><h3>'+esc(title)+'</h3><div class="ntx-hdr"><button class="ntx-x" title="Close" onclick="NTX.close()">'+XS+'</button></div></div>'; };
+    if(s.ai){
+      h = '<div class="ntx-win wide">' + head('Notes for '+s.n)
+        + '<div class="ntx-cols"><div class="ntx-col"><div class="ntx-sec">'+aiSecHtml(s)+'</div></div>'
+        + '<div class="ntx-col"><div class="ntx-sec">'+teamHtml(s)+'</div></div></div></div>';
+    } else {
+      h = '<div class="ntx-win">' + head('Notes for '+s.n)
+        + '<div class="ntx-bd"><div class="ntx-sec">'+teamHtml(s)+'</div></div></div>';
+    }
+    o.innerHTML = h; o.classList.add('open'); acts();
+  }
+  document.addEventListener('keydown', function(e){
+    if(e.key!=='Escape' || CUR==null) return;
+    if(NED>=0){ NTX.noteCancel(); return; }
+    if(!EDIT) NTX.close();
+  });
+  redraw();
+})();
 </script>
 </body></html>
