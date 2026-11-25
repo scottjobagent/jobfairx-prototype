@@ -1356,14 +1356,11 @@ body #view-candidates .mx-tbl .cx-name{white-space:nowrap}
 @media (max-width:1365px){ body #view-candidates .mx-tbl .cx-name{white-space:normal} }
 body #view-candidates .lx-st{margin-top:5px;font-size:13px;line-height:1.4;color:#595959}
 body #view-candidates .lx-st b{font-weight:700;color:#2d2d2d}
-body #view-candidates .lx-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:1px;background:#767676}
-body #view-candidates .lx-dot.st-sourced{background:#A8A29E}
-body #view-candidates .lx-dot.st-invited{background:#2563EB}
-body #view-candidates .lx-dot.st-requested{background:#767676}
-body #view-candidates .lx-dot.st-scheduled{background:#0044B3}
-body #view-candidates .lx-dot.st-interviewed{background:#16A34A}
-body #view-candidates .lx-dot.st-noshow{background:#C2410C}
-body #view-candidates .lx-dot.st-declined{background:#991B1B}
+/* one look for every normal status; color only when the path stopped (Scott, November 24, 2026, audit number 1: "should we
+   just have them all the same color? It says couldn't make it, interviewed, scheduled"; "green light a"). The same rule
+   colors the tags and the progress line on the candidate's page (candidate_look.py). */
+body #view-candidates .lx-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:1px;background:#8A8A8A}
+body #view-candidates .lx-dot.st-noshow,body #view-candidates .lx-dot.st-declined{background:#C2410C}
 body #view-candidates .lx-wt{font-size:14px;font-weight:600;line-height:1.45;color:#2d2d2d}
 body #view-candidates .lx-we{font-size:13px;line-height:1.45;color:#595959}
 body #view-candidates .lx-h{font-size:14px;font-weight:700;line-height:1.45;color:#2d2d2d}
@@ -10217,10 +10214,10 @@ body #view-candidates #cxRoot .cd-pfname{font-size:32px;line-height:40px}
 body #view-candidates #cxRoot .cdx-meta{display:flex;flex-wrap:wrap;column-gap:18px;row-gap:2px;margin-top:4px}
 body #view-candidates #cxRoot .cdx-meta .cd-pfmeta{margin-top:0}
 body #view-candidates #cxRoot .cd-status{display:none}
-body #view-candidates #cxRoot .t-grey{background:#f3f2ef;color:#595959} body #view-candidates #cxRoot .t-blue{background:#E8F0FE;color:#0B3B8C} body #view-candidates #cxRoot .t-amber{background:#FEF3C7;color:#92400E}
-body #view-candidates #cxRoot .t-green{background:#E8F3EA;color:#1F662C} body #view-candidates #cxRoot .t-navy{background:#E6EAF2;color:#00245B} body #view-candidates #cxRoot .t-red{background:#FDF1F1;color:#A9252B}
-body #view-candidates #cxRoot .tone-grey{--tone:#767676;--soft:#ecebe8} body #view-candidates #cxRoot .tone-blue{--tone:#0044B3;--soft:#D9E5FB} body #view-candidates #cxRoot .tone-amber{--tone:#B45309;--soft:#FDE9B8}
-body #view-candidates #cxRoot .tone-green{--tone:#1F7A33;--soft:#D3EBD8} body #view-candidates #cxRoot .tone-navy{--tone:#00245B;--soft:#D5DCEA} body #view-candidates #cxRoot .tone-red{--tone:#A9252B;--soft:#F8DADB}
+/* one look for every normal status (a grey tag, a blue progress line); color only when the path stopped: Couldn't make it and
+   Declined, in the app's own "Couldn't make it" red-orange. The Candidates list's dots follow the same rule. */
+body #view-candidates #cxRoot .t-plain{background:#EFEDEB;color:#2D2D2D} body #view-candidates #cxRoot .t-stopped{background:#FCEBE1;color:#C2410C}
+body #view-candidates #cxRoot .tone-plain{--tone:#0044B3;--soft:#D9E5FB} body #view-candidates #cxRoot .tone-stopped{--tone:#C2410C;--soft:#FAD9C9}
 
 body #view-candidates #cxRoot .cdx-steps{list-style:none;display:flex;margin:18px 0 2px;padding:0;max-width:620px}
 body #view-candidates #cxRoot .cdx-steps li{flex:1 1 0;position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:6px;font-size:14px;line-height:20px;color:#767676;padding-right:8px;box-sizing:border-box}
@@ -10254,9 +10251,9 @@ body #view-candidates #cxRoot .cd-tab.on .ct{color:#fff;opacity:.8}
    first step says how the person came in, Applied or Matched (see applicant() and steps() below). */
 (function(){
   var OPT=2;
-  var TONE={'Applied':'grey','Invited':'blue','Requested':'amber','Scheduled':'green','Interviewed':'navy','Declined':'red'};
   var CHECK='<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>';
-  function tone(s){ return /^Couldn.t make it$/.test(s)?'red':(TONE[s]||'grey'); }
+  /* 'stopped' when the path ended (Couldn't make it, Declined), 'plain' for every other status */
+  function tone(s){ return /^(Couldn.t make it|Declined)$/.test(s)?'stopped':'plain'; }
   function initials(n){ var p=String(n).trim().split(/\s+/); return ((p[0]||' ')[0]+(p.length>1?p[p.length-1][0]:'')).toUpperCase(); }
   function stageOf(){ var v=document.querySelector('#cxRoot .cd-status .v'); return v?v.textContent.trim():''; }
   /* how the person came in (Scott, November 24, 2026: "not every candidate applied. Some are matched and some applied"):
