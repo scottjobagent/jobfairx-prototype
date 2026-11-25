@@ -8240,8 +8240,20 @@ function notFit(id){
   openMenu=''; SRC.setSt(c.sid,'notfit'); render();
   toastUndo(esc(c.n)+' marked as not a fit and moved to Declined. Nothing is sent to '+esc(c.n.split(' ')[0])+'. <a class="src-tl" onclick="CXX.goPill(\'declined\')">View in Declined</a> &middot;', function(){ SRC.setSt(c.sid,'sourced'); render(); });
 }
-function markIv(id){ var c=get(id); if(!c) return; c.stage='interviewed'; c.iv.forEach(function(x){ if(x.k==='noshow'){ x.k='done'; x.st='Interviewed'; } }); c.act='Marked as interviewed · just now'; openMenu=''; render(); }
+function markIv(id){ var c=get(id); if(!c) return; c.stage='interviewed'; c.iv.forEach(function(x){ if(x.k==='noshow'){ x.k='done'; x.st='Interviewed'; } }); c.act='Marked as interviewed · just now'; openMenu=''; render(); cxSaid(c,'markIv'); }
 function cxActive(){ var v=document.getElementById('view-candidates'); return !!(v&&v.classList.contains('active')); }
+/* The Candidates page says what happened after Accept, Mark as interviewed and Decline, in the page's own green message,
+   the way the Interviews page does (audit number 2, Scott, November 24, 2026: example in the chat, then "green light").
+   Only while the Candidates page is the open one: an Accept or Decline started on the Interviews page keeps that page's
+   own message, so there is never a second one. */
+function cxSaid(c,what){
+  if(!c||!cxActive()||typeof showToast!=='function') return;
+  var f=esc(c.n.split(' ')[0]), go=function(k,t){ return ' <a class="src-tl" onclick="CXX.goPill(\''+k+'\')">'+t+'</a>'; };
+  if(what==='accept'){ var w=''; try{ window.CXX.ivRows().forEach(function(r){ if(r.id===c.id) w=r.time; }); }catch(e){}
+    showToast('success','Interview with '+esc(c.n)+' is confirmed'+(w?' for '+esc(w):'')+'. '+f+' moved to Scheduled.'+go('scheduled','View in Scheduled')); }
+  else if(what==='markIv') showToast('success',esc(c.n)+' marked as interviewed and moved to Interviewed.'+go('interviewed','View in Interviewed'));
+  else if(what==='decline') showToast('success','Request from '+esc(c.n)+' declined. '+f+' moved to Declined.'+go('declined','View in Declined'));
+}
 function goPill(k){ if(typeof dismissToast==='function'){ try{ dismissToast(); }catch(e){} } sel=null; openMenu=''; pill=k; render(); window.scrollTo(0,0); }
 function srcById(id){ var a=srcPeople(); for(var i=0;i<a.length;i++) if(a[i].id===id) return a[i]; return null; }
 function cxSrcToast(f,id){
@@ -8415,7 +8427,8 @@ function toggleSt(e){e.stopPropagation();stpop=!stpop;menu=false;render();}
 function toggleScope(e){e.stopPropagation();scopeOpen=!scopeOpen;render();}
 function setScope(e,v){e.stopPropagation();evScope=v;scopeOpen=false;var r=list();if(sel&&!r.some(function(x){return x.c.id===sel;}))sel=r.length?r[0].c.id:null;render();}
 function setStage(id,k){var c=get(id);c.stage=k;stpop=false;render();}
-function accept(id){var c=get(id);c.stage='scheduled';c.iv.forEach(function(x){if(x.k==='req'){x.k='soon';x.st='Confirmed';x.by='Emily Chen';}});c.act='Interview confirmed · just now';render();}
+function accept(id){accept0(id);cxSaid(get(id),'accept');}
+function accept0(id){var c=get(id);c.stage='scheduled';c.iv.forEach(function(x){if(x.k==='req'){x.k='soon';x.st='Confirmed';x.by='Emily Chen';}});c.act='Interview confirmed · just now';render();}
 /* F3: Decline confirms first, same modal as the Lobby. */
 var skipDeclineWarning=false, pendingDecline=null;
 function ensureDeclineModal(){
@@ -8448,7 +8461,8 @@ function confirmDecline(){
   document.getElementById('cxDeclineModal').classList.remove('open');
   if(id!=null)doDecline(id);
 }
-function doDecline(id){var c=get(id);c.stage='declined';c.iv.forEach(function(x){if(x.k==='req'){x.k='dec';x.st='Declined';}});c.act='You declined · just now';menu=false;render();}
+function doDecline(id){doDecline0(id);cxSaid(get(id),'decline');}
+function doDecline0(id){var c=get(id);c.stage='declined';c.iv.forEach(function(x){if(x.k==='req'){x.k='dec';x.st='Declined';}});c.act='You declined · just now';menu=false;render();}
 function reinstate(id){var c=get(id);c.stage='requested';c.iv.forEach(function(x){if(x.k==='dec'){x.k='req';x.st='Awaiting your response';}});c.act='Reinstated · just now';menu=false;render();}
 function noshow(id){var c=get(id);c.stage='noshow';c.iv.forEach(function(x){if(x.k==='soon'){x.k='noshow';x.st='Couldn’t make it';}});c.act='Did not attend · just now';menu=false;render();}
 function openDock(id){var c=get(id); if(!c) return;
