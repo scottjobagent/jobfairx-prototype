@@ -7959,9 +7959,9 @@ function profileHtml(){
       +(c.sid?'<div style="padding:14px 0;border-top:1px solid #e4e2e0"><div style="font-size:14px;color:#767676">'+esc(c.sent||c.matched||'')+'</div><div style="font-size:16px;margin-top:3px">'+(c.stage==='invited'?'You invited '+esc(c.n)+' to interview':(c.stage==='scheduled'?esc(c.n)+' picked a time from your invite':'Applied for '+esc(c.job)+' · '+esc(EVS[c.ev].n)+'. Our three scheduling texts went out; no time picked yet.'))+'</div></div>':'')
       +(c.sid?'':'<div style="padding:14px 0;border-top:1px solid #e4e2e0"><div style="font-size:14px;color:#767676">Apr 20, 9:12 AM</div><div style="font-size:16px;margin-top:3px">Automation sent <b>Message new candidates</b></div></div>'
       +'<div style="padding:14px 0;border-top:1px solid #e4e2e0"><div style="font-size:14px;color:#767676">Apr 20, 9:11 AM</div><div style="font-size:16px;margin-top:3px">'+esc(c.n)+' requested an interview for '+esc(c.job)+'</div></div>')
-      +'<div style="padding:24px 0 12px"><h2 style="font-size:20px;line-height:30px;margin:0">Write a private note</h2></div>'
-      +'<textarea style="width:100%;min-height:120px;border:1px solid #767676;border-radius:12px;padding:12px;font-family:inherit;font-size:16px"></textarea>'
-      +'<div style="margin-top:12px"><button class="cd-btn sec">Save note</button></div></div>';
+      /* the person's notes: the same window as everywhere else, in place of a separate note box (November 25, 2026) */
+      +'<div style="padding:24px 0 12px"><h2 style="font-size:20px;line-height:30px;margin:0">Notes</h2></div>'
+      +'<button class="cd-btn sec cdx-notes" onclick="CXX.openNotes('+c.id+',this,\'note\')">'+((window.NTX&&NTX.has(c))?'View notes':'Add a note')+'</button></div>';
   }
   h+='</div></div>';
   return h;
@@ -10079,8 +10079,9 @@ document.addEventListener('click', function(e){
   function menu(k,items){ return '<span class="iv2-mw"><button class="iv2-dots" title="More actions" onclick="IV2.dots(\''+k+'\')"><span></span><span></span><span></span></button>'
     +(OPEN===k?'<span class="iv2-menu" onclick="IV2.keep()">'+items.map(function(x){return '<button'+(x[2]?' class="dgr"':'')+' onclick="'+x[1]+'">'+x[0]+'</button>';}).join('')+'</span>':'')+'</span>'; }
   function who(r){ return '<button class="iv2-name" onclick="IV2.open('+r.id+')">'+esc(r.n)+'</button>'; }
-  /* the three dots' note entry: "View note" once the person has a note (the same window shows it and lets you change it) */
-  function noteLbl(r){ return r.nt?'View note':'Add a note'; }
+  /* the three dots' note entry: "View notes" once the person has any notes, AI notes included, "Add a note" before: the
+     Candidates list's words (November 25, 2026); the same window shows them and lets you add or change them */
+  function noteLbl(r){ return (r.nt || (window.NTX && NTX.hasAI(r.n))) ? 'View notes' : 'Add a note'; }
   function by(r){ return r.by?esc(r.by):'<span class="iv2-muted">Not assigned</span>'; }
   function empty(n,t){ return '<tr><td colspan="'+n+'" class="iv2-empty">'+t+'</td></tr>'; }
   var FB={yes:['Yes','#16a34a'],maybe:['Maybe','#c2410c'],no:['No','#991b1b']};
@@ -10587,22 +10588,25 @@ body.ntx-open .jfx-toast{z-index:10060}
   function aiHtml(ai){
     return ai.map(function(q){ return '<h5>'+esc(q[0])+'</h5><ul>'+q[1].map(function(b){ return '<li>'+esc(b)+'</li>'; }).join('')+'</ul>'; }).join('');
   }
-  /* the Notes column: "AI notes" on a line with a JobFairX video interview, then the team's latest note or "Add a note" */
+  /* the Notes column: one link, "View notes" or "Add a note" (November 25, 2026; before, "AI notes" and the team's latest note) */
   window.NTX = {
     cell: function(c, html, pen){
-      var s = st(c), last = s.notes[0];
-      var note = '<button class="cx-note'+(last?'':' empty')+'" onclick="CXX.openNotes('+c.id+',this,\'note\')">'+pen
-        + (last ? '<span class="ntx-t">'+esc(last.t)+'</span>' : 'Add a note') + '</button>';
-      if(!s.ai) return note;
-      return '<div class="ntx-cell"><button class="ntx-ai" onclick="CXX.openNotes('+c.id+',this,\'ai\')">'+SPARK+'AI notes</button>'+note+'</div>';
+      /* one link for all of a person's notes, the same words everywhere (Scott, November 25, 2026: "just a way they click
+         to see their notes"; "green light"): "View notes" when there are any, AI notes included, "Add a note" when none */
+      var has = NTX.has(c);
+      return '<button class="cx-note empty" onclick="CXX.openNotes('+c.id+',this,\'note\')">'+pen+(has?'View notes':'Add a note')+'</button>';
     },
+    has: function(c){ var s = st(c); return !!(s.ai || s.notes.length); },
+    hasAI: function(n){ var d = DATA[n]; return !!(d && d.ai); },
     take: function(c, how){ return true; },
     open: function(c, how){ st(c); CUR = c.id; EDIT = false; NED = -1; document.body.classList.add('ntx-open'); draw(how); },
     close: function(){ var o=document.getElementById('ntxOv'); if(o){ o.classList.remove('open'); o.innerHTML=''; } CUR=null; EDIT=false; NED=-1; document.body.classList.remove('ntx-open'); },
     typed: function(el){ var b=document.getElementById('ntxAddBtn'); if(b) b.disabled = !el.value.trim(); },
     add: function(){ var ta=document.getElementById('ntxTa'); var t=(ta&&ta.value||'').trim(); if(!t) return;
-      S[CUR].notes.unshift({by:ME, at:'Just now', t:t}); if(NED>=0) NED++; sync(); drawTeam(true); redraw();
-      say('Your note for '+esc(S[CUR].n)+' was saved.'); },
+      /* the window closes after Add note; the green message says it was saved (Scott, November 25, 2026: "Once I click
+         Add Note, the box should leave") */
+      var nm=S[CUR].n; S[CUR].notes.unshift({by:ME, at:'Just now', t:t}); sync(); NTX.close(); redraw();
+      say('Your note for '+esc(nm)+' was saved.'); },
     del: function(i){ S[CUR].notes.splice(i,1); if(NED===i) NED=-1; else if(NED>i) NED--; sync(); drawTeam(); redraw(); },
     /* Edit on a team note: the note turns into a text box with Cancel and Save, in place */
     editNote: function(i){ NED=i; drawTeam(); var ta=document.getElementById('ntxEd'); if(ta){ ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); } },

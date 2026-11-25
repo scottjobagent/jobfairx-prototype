@@ -9238,23 +9238,26 @@ body.ntx-open .jfx-toast{z-index:10060}
   function aiHtml(ai){
     return ai.map(function(q){ return '<h5>'+esc(q[0])+'</h5><ul>'+q[1].map(function(b){ return '<li>'+esc(b)+'</li>'; }).join('')+'</ul>'; }).join('');
   }
-  /* the Notes column: "AI notes" on a line with a JobFairX video interview, then the team's latest note or "Add a note" */
+  /* the Notes column: one link, "View notes" or "Add a note" (November 25, 2026; before, "AI notes" and the team's latest note) */
   window.NTX = {
     cell: function(c, html, pen){
-      var s = st(c), last = s.notes[0];
-      var note = '<button class="cx-note'+(last?'':' empty')+'" onclick="CXX.openNotes('+c.id+',this,\'note\')">'+pen
-        + (last ? '<span class="ntx-t">'+esc(last.t)+'</span>' : 'Add a note') + '</button>';
-      if(!s.ai) return note;
-      return '<div class="ntx-cell"><button class="ntx-ai" onclick="CXX.openNotes('+c.id+',this,\'ai\')">'+SPARK+'AI notes</button>'+note+'</div>';
+      /* one link for all of a person's notes, the same words everywhere (Scott, November 25, 2026: "just a way they click
+         to see their notes"; "green light"): "View notes" when there are any, AI notes included, "Add a note" when none */
+      var has = NTX.has(c);
+      return '<button class="cx-note empty" onclick="CXX.openNotes('+c.id+',this,\'note\')">'+pen+(has?'View notes':'Add a note')+'</button>';
     },
+    has: function(c){ var s = st(c); return !!(s.ai || s.notes.length); },
+    hasAI: function(n){ var d = DATA[n]; return !!(d && d.ai); },
     take: function(c, how){ return true; },
     count: function(c){ return st(c).notes.length; },
     open: function(c, how){ st(c); CUR = c.id; EDIT = false; NED = -1; document.body.classList.add('ntx-open'); draw(how); },
     close: function(){ var o=document.getElementById('ntxOv'); if(o){ o.classList.remove('open'); o.innerHTML=''; } CUR=null; EDIT=false; NED=-1; document.body.classList.remove('ntx-open'); },
     typed: function(el){ var b=document.getElementById('ntxAddBtn'); if(b) b.disabled = !el.value.trim(); },
     add: function(){ var ta=document.getElementById('ntxTa'); var t=(ta&&ta.value||'').trim(); if(!t) return;
-      S[CUR].notes.unshift({by:ME, at:'Just now', t:t}); if(NED>=0) NED++; sync(); drawTeam(true); redraw();
-      say('Your note for '+esc(S[CUR].n)+' was saved.'); },
+      /* the window closes after Add note; the green message says it was saved (Scott, November 25, 2026: "Once I click
+         Add Note, the box should leave") */
+      var nm=S[CUR].n; S[CUR].notes.unshift({by:ME, at:'Just now', t:t}); sync(); NTX.close(); redraw();
+      say('Your note for '+esc(nm)+' was saved.'); },
     del: function(i){ S[CUR].notes.splice(i,1); if(NED===i) NED=-1; else if(NED>i) NED--; sync(); drawTeam(); redraw(); },
     /* Edit on a team note: the note turns into a text box with Cancel and Save, in place */
     editNote: function(i){ NED=i; drawTeam(); var ta=document.getElementById('ntxEd'); if(ta){ ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); } },
@@ -9418,7 +9421,7 @@ body.ntx-open .jfx-toast{z-index:10060}
     var sig=times.join('|'); if(box.getAttribute('data-sig')!==sig){ box.innerHTML='<div class="lx-pl">Your proposed times</div>'+times.map(function(x){ return '<div class="lx-pt">'+timeHtml(x)+'</div>'; }).join(''); box.setAttribute('data-sig',sig); }
     var b=tr.querySelector('.proposed-cancel'); if(b){ tog(b,'fx-b',true); tog(b,'o',true); } }
   function ivrCell(tr,k,bc){ var v=bc?txt(bc):''; if(!v||v==='—') v=BY[nameOf(tr)]||''; return v; }
-  function word(tr){ return (window.LXN && LXN.count(tr)) ? 'View note' : 'Add a note'; }
+  function word(tr){ return (window.LXN && LXN.has(tr)) ? 'View notes' : 'Add a note'; }   /* the dashboard's words (November 25, 2026) */
   function items(tr,k){
     var VD=['View details','LOBN.open(this)'], SM=['Send a message','openMsgModal(this)'], NT=[word(tr),'LXN.note(this)'];
     if(k==='req'||k==='wait') return [VD,NT,SM];
@@ -9479,6 +9482,7 @@ body.ntx-open .jfx-toast{z-index:10060}
     return {id:'lb:'+n, n:n, notes:b?(b.getAttribute('data-notes')||''):'', when:tm.length?tm[tm.length-1]:''}; }
   window.LXN={
     count:function(tr){ return window.NTX ? NTX.count(person(tr)) : 0; },
+    has:function(tr){ return window.NTX ? NTX.has(person(tr)) : false; },
     note:function(el){ var tr=el.closest('tr'); if(!tr||!window.NTX) return; [].forEach.call(document.querySelectorAll('.row-menu.open'),function(m){ m.classList.remove('open'); }); NTX.open(person(tr)); },
     openByName:function(name,btn){ if(!window.NTX) return false; var tr=btn&&btn.closest?btn.closest('tr'):null; NTX.open(tr?person(tr):{id:'lb:'+name, n:name, notes:''}); return true; },
     sync:function(){ run(); }
