@@ -9302,8 +9302,8 @@ body.ntx-open .jfx-toast{z-index:10060}
   var ALIAS = {'Name':'Candidate','Desired job':'Job','Action':'Actions'};
   var TITLE = {req:'Candidates awaiting your response', up:'Candidates with upcoming interviews'};   /* the live site's words (November 26, 2026); no waiting list */
   var CFG = {
-    req:  {hide:['Desired location'], w:{'Candidate':22,'Job':20,'Requested time':22,'Actions':36}, time:'Requested time'},
-    up:   {hide:['Desired location'], ivr:'Interview time', blank:['Actions'], w:{'Candidate':22,'Job':20,'Interview time':22,'Interviewer':18,'Actions':18}, time:'Interview time'},
+    req:  {hide:['Desired location'], w:{'Candidate':16,'Job':15,'Requested time':16,'Actions':14}, time:'Requested time'},
+    up:   {hide:['Desired location'], ivr:'Interview time', blank:['Actions'], w:{'Candidate':16,'Job':15,'Interview time':16,'Interviewer':10,'Actions':4}, time:'Interview time'},
     room: {hide:['Desired location'], ivr:'Interview time', w:{'Candidate':18,'Job':16,'Interview time':18,'Interviewer':14,'Wait time':10,'Status':10,'Actions':14},
            w2:{'Candidate':18,'Job':16,'Interview time':18,'Interviewer':14,'Wait time':10,'Status':24}, time:'Interview time'},
     prog: {hide:['Desired location','Interview location','Interviewer'], ivr:'Interview time', w:{'Candidate':18,'Job':16,'Interview time':20,'Interviewer':16,'Interview duration':14,'Actions':16}, time:'Interview time'},
@@ -9312,7 +9312,7 @@ body.ntx-open .jfx-toast{z-index:10060}
   var RNG = /(\d{1,2}:\d{2})(\s?[AP]M)?\s*[–-]\s*\d{1,2}:\d{2}\s?([AP]M)/;
   function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
   function txt(e){ return e ? e.textContent.replace(/\s+/g,' ').trim() : ''; }
-  function base(tr){ return [].filter.call(tr.children,function(c){ return !c.classList.contains('lx-ivr'); }); }
+  function base(tr){ return [].filter.call(tr.children,function(c){ return !c.classList.contains('lx-ivr') && !c.classList.contains('ia-col'); }); }   /* the added columns are not the lobby's own (November 26, 2026) */
   function hname(th){ var b=th.getAttribute('data-lx-base'); if(b==null){ b=txt(th); b=ALIAS[b]||b; th.setAttribute('data-lx-base',b); } return b; }
   function tog(e,c,on){ on=!!on; if(e.classList.contains(c)!==on) e.classList.toggle(c,on); }
   function setTxt(e,s){ if(e.textContent!==s) e.textContent=s; }
@@ -9369,7 +9369,7 @@ body.ntx-open .jfx-toast{z-index:10060}
     if((k==='req'||k==='up')&&prop){ away(tr,host); return; }
     if(ti>=0){ var iv=null; [].forEach.call(tr.children,function(x){ if(x.classList.contains('lx-ivr')) iv=x; });
       if(!iv){ iv=document.createElement('td'); iv.className='lx-ivr'; }
-      if(c[ti].nextElementSibling!==iv) tr.insertBefore(iv, c[ti].nextSibling);
+      var af=c[ti]; while(af.nextElementSibling&&af.nextElementSibling.classList.contains('ia-col')) af=af.nextElementSibling; if(af.nextElementSibling!==iv) tr.insertBefore(iv, af.nextSibling);   /* after the added columns (November 26, 2026) */
       var v=ivrCell(tr,k,bi>=0?c[bi]:null), sig=v||'-';
       if(iv.getAttribute('data-sig')!==sig){ iv.innerHTML=v?esc(v):'<span class="lx-na">Not assigned</span>'; iv.setAttribute('data-sig',sig); } }
     else dropIvr(tr);
@@ -9381,7 +9381,7 @@ body.ntx-open .jfx-toast{z-index:10060}
     hb.forEach(function(th,i){ var n=names[i]; tog(th,'lx-h',cf.hide.indexOf(n)>=0);
       if(th.children.length===0){ var want=(cf.ren&&cf.ren[n]!=null)?cf.ren[n]:((cf.blank&&cf.blank.indexOf(n)>=0)?'':null); if(want!=null) setTxt(th,want); } });
     var ti=cf.ivr?names.indexOf(cf.ivr):-1, hv=null; [].forEach.call(hr.children,function(x){ if(x.classList.contains('lx-ivr')) hv=x; });
-    if(ti>=0){ if(!hv){ hv=document.createElement('th'); hv.className='lx-ivr'; hv.textContent='Interviewer'; } if(hb[ti].nextElementSibling!==hv) hr.insertBefore(hv, hb[ti].nextSibling); }
+    if(ti>=0){ if(!hv){ hv=document.createElement('th'); hv.className='lx-ivr'; hv.textContent='Interviewer'; } var hf=hb[ti]; while(hf.nextElementSibling&&hf.nextElementSibling.classList.contains('ia-col')) hf=hf.nextElementSibling; if(hf.nextElementSibling!==hv) hr.insertBefore(hv, hf.nextSibling); }
     else if(hv) hv.remove();
     var W=(cf.w2&&names.indexOf('Actions')<0)?cf.w2:cf.w;
     hb.forEach(function(th,i){ if(W[names[i]]!=null&&names[i]!=='Interviewer') setW(th,W[names[i]]); });
@@ -9436,5 +9436,140 @@ body.ntx-open .jfx-toast{z-index:10060}
 .ix-chk.off{color:#767676;cursor:default}
 select.ix-len{max-width:220px}
 </style>
+<style id="icon-actions-css">/* Accept, Reschedule and Decline: one small box of three icon buttons, the word on hover (like Indeed's Interest box) */
+.ia-hide{display:none!important}
+.ia-ig{display:inline-flex;align-items:center;border:1px solid #d4d2d0;border-radius:8px;background:#fff;height:36px;box-sizing:border-box;vertical-align:middle;flex-shrink:0}
+.ia-ib{position:relative;display:inline-flex;align-items:center;justify-content:center;width:40px;height:34px;border:0;background:transparent;color:#2d2d2d;cursor:pointer;padding:0;margin:0;font:inherit}
+.ia-ib:first-child{border-radius:7px 0 0 7px}.ia-ib:last-child{border-radius:0 7px 7px 0}
+.ia-ib svg{width:18px;height:18px;display:block}
+.ia-ib.ok:hover,.ia-ib.ok.ia-h{background:#e6f4ea;color:#1e7b34}
+.ia-ib.rs:hover,.ia-ib.rs.ia-h{background:#e8f0fe;color:#0044B3}
+.ia-ib.no:hover,.ia-ib.no.ia-h{background:#fdecec;color:#A9252B}
+.ia-tip{position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:#2d2d2d;color:#fff;font:600 12px/16px 'Noto Sans',system-ui,sans-serif;padding:6px 10px;border-radius:6px;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .12s;z-index:60}
+.ia-tip:after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:#2d2d2d}
+.ia-ib:hover .ia-tip,.ia-ib.ia-h .ia-tip{opacity:1}
+/* how long a request has waited; Work experience and Activity columns; the Interviews page's widths for them */
+.ia-wait{font-size:13px;line-height:18px;color:#767676;margin-top:3px;font-weight:400}
+.ia-act{font-size:14px;line-height:20px;color:#595959;white-space:nowrap}
+.ia-a1{font-size:14px;line-height:20px;color:#2d2d2d}
+.ia-a2{font-size:13px;line-height:18px;color:#767676}
+.ia-w1{font-size:14px;line-height:20px;color:#2d2d2d}
+.ia-w2{font-size:13px;line-height:18px;color:#767676}
+.iv2-tbl:has(col.u1) col.u1,.iv2-tbl:has(col.p1) col.p1{width:12.5%!important}
+.iv2-tbl:has(col.u1) col.u3,.iv2-tbl:has(col.p1) col.p3{width:10.5%!important}
+.iv2-tbl:has(col.u1) col.u4,.iv2-tbl:has(col.p1) col.p4{width:13%!important}
+.iv2-tbl col.ia-work{width:15.5%}
+.iv2-tbl col.ia-act{width:13%}
+.iv2-tbl:has(col.u1) col.u2,.iv2-tbl.iv2-req col.p2{width:16%!important}
+.iv2-tbl:has(col.u1) col.u5{width:12%!important}.iv2-tbl:has(col.u1) col.u6{width:7.5%!important}
+.iv2-tbl:not(.iv2-req):has(col.p1) col.p2{width:auto!important}.iv2-tbl:not(.iv2-req):has(col.p1) col.p5{width:300px!important}
+/* the box sits right next to the three dots (his Loom "Improve Lobby Spacing in Action UI") */
+.iv2-actw[data-ia]{justify-content:flex-end;gap:8px}
+.iv2-actw[data-ia] > .iv2-mw{margin-left:0}
+.iv2-tbl.iv2-req col.p5{width:auto!important}
+.lb-actwrap:has(.pending-actions[data-ia]){justify-content:flex-end;gap:8px}
+.lb-actwrap:has(.pending-actions[data-ia]) .lb-more{margin-left:0!important}
+</style>
+<script id="icon-actions-js">/* Scott, November 26, 2026 (Looms "Indeed Candidate Filters and Card Actions", "Improve Lobby Spacing in Action UI", "Organizing
+   Candidate Job, Experience, and Interviews", then "green light"): Accept, Reschedule and Decline as one small box of three
+   icons with the word on hover, right next to the three dots; Work experience and Activity columns in the order an employer
+   works (who and the job, their experience, the activity, the time, then the buttons), as Indeed's Candidates list does;
+   how long a request has waited; the whole line opens the person. Past keeps its columns. */
+(function(){
+  var AGE = {"Priya Patel":"1 day","Keisha Brown":"3 hours","Daniel Ortiz":"1 day","Aisha Mohammed":"2 days","Marcus Johnson":"5 days"};
+  /* each person's latest job (the Candidates page's Work experience) and when an upcoming interview was accepted */
+  var WORK = {"Jordan Lee": ["Staff Nurse", "Parkland (2022–Present)"], "Tyler Washington": ["Registered Nurse", "Baylor Scott & White (2015–Present)"], "Marcus Thompson": ["Registered Nurse", "Parkland (2021–Present)"], "David Kim": ["Medical Assistant", "Baylor Scott & White Clinic (2022–Present)"], "Priya Patel": ["Medical Assistant", "Kelsey-Seybold Clinic (2022–Present)"], "Michael Sanchez Reyes": ["Registered Nurse", "Methodist Dallas (2020–Present)"], "Michael Duvenary": ["Registered Nurse", "Parkland (2021–Present)"], "Jonathan Kleve": ["Registered Nurse", "Medical City Dallas (2022–Present)"], "Priya Sharma": ["Physical Therapist", "Select Physical Therapy (2020–Present)"], "Andy Pham": ["Medical Assistant", "Kelsey-Seybold Clinic (2015–Present)"], "Sarah Kim": ["Medical Assistant", "Texas Health Family Care (2016–Present)"], "Tamara Williams": ["Staff Nurse", "Baylor Scott & White (2023–Present)"], "Keisha Brown": ["Registered Nurse", "Medical City Dallas (2018–Present)"], "David Chen": ["Medical Assistant", "CareNow Urgent Care (2017–Present)"], "Rachel Foster": ["Staff Nurse", "Memorial Hermann (2021–Present)"], "Daniel Ortiz": ["Registered Nurse", "Baylor Scott & White (2019–Present)"], "Aisha Mohammed": ["Licensed Practical Nurse", "The Plaza at Richardson (2020–Present)"], "Babar Nawaz": ["Licensed Practical Nurse", "Symphony Post Acute Network (2024–Present)"], "Marcus Johnson": ["Surgical Technologist", "Molina Healthcare (2025–Present)"], "Jude Wexler": ["Registered Nurse", "Riverbend Regional Hospital (2019–Present)"], "Vera Dalton": ["Registered Nurse", "Cedar Hills Hospital (2020–Present)"], "Erin Quarles": ["Medical Assistant", "Willow Creek Urgent Care (2021–Present)"], "Simone Rowland": ["Registered Nurse", "Lakeside Medical Center (2022–Present)"], "Wendell Tucker": ["Registered Nurse", "Riverbend Regional Hospital (2018–Present)"], "Yvonne Pope": ["Medical Assistant", "Bluebonnet Pediatrics (2019–Present)"], "Carmen Fairbanks": ["Registered Nurse", "Prairie View Medical Center (2020–Present)"], "Quentin Irwin": ["Medical Assistant", "Oak Street Family Clinic (2021–Present)"], "Felix Talley": ["Medical Assistant", "Northgate Primary Care (2022–Present)"], "Terrell McCall": ["Medical Assistant", "Bluebonnet Pediatrics (2018–Present)"], "Hazel Langford": ["Medical Assistant", "Willow Creek Urgent Care (2019–Present)"], "Joelle Benson": ["Registered Nurse", "Lakeside Medical Center (2020–Present)"], "Maeve Pope": ["Medical Assistant", "Northgate Primary Care (2021–Present)"], "Nolan Kirby": ["Registered Nurse", "Cedar Hills Hospital (2022–Present)"], "Wyatt Upton": ["Registered Nurse", "Prairie View Medical Center (2018–Present)"], "Bryce Hale": ["Licensed Practical Nurse", "Maple Grove Care Center (2019–Present)"], "Theo Gaines": ["Licensed Practical Nurse", "Lakeshore Rehabilitation (2020–Present)"], "Heath Whitley": ["Licensed Practical Nurse", "Elm Park Senior Living (2021–Present)"], "Opal Lyons": ["Registered Nurse", "Prairie View Medical Center (2022–Present)"], "Felix McCall": ["Registered Nurse", "Lakeside Medical Center (2018–Present)"], "Preston Fairbanks": ["Licensed Practical Nurse", "Lakeshore Rehabilitation (2019–Present)"], "Vera Sutton": ["Licensed Practical Nurse", "Elm Park Senior Living (2020–Present)"], "Jalen Stanton": ["Registered Nurse", "Prairie View Medical Center (2021–Present)"], "Vera Paxton": ["Registered Nurse", "Lakeside Medical Center (2022–Present)"], "Jasper Crowley": ["Registered Nurse", "Riverbend Regional Hospital (2018–Present)"], "Rhea Fletcher": ["Registered Nurse", "Cedar Hills Hospital (2019–Present)"], "Nora Vickers": ["Medical Assistant", "Willow Creek Urgent Care (2020–Present)"], "Zane Holloway": ["Medical Assistant", "Oak Street Family Clinic (2021–Present)"]};
+  var ACC = {"Michael Sanchez Reyes":"April 2 · 9:41 AM","Michael Duvenary":"April 2 · 1:15 PM","Jonathan Kleve":"April 3 · 10:02 AM",
+    "Andy Pham":"April 3 · 4:27 PM","Sarah Kim":"April 4 · 8:50 AM","David Chen":"April 4 · 11:36 AM","Rachel Foster":"April 4 · 3:08 PM",
+    "Babar Nawaz":"April 1 · 2:20 PM","Dayo Awobeku":"April 3 · 6:45 PM"};
+  function esc(x){ return String(x).replace(/[&<>"]/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+  function workHtml(n){ var w=WORK[n]; return w ? '<div class="ia-w1">'+esc(w[0])+'</div><div class="ia-w2">'+esc(w[1])+'</div>' : ''; }
+  function two(a,b){ return '<div class="ia-a1">'+esc(a)+'</div>'+(b?'<div class="ia-a2">'+esc(b)+'</div>':''); }
+  function waitHtml(n){ var a=AGE[n]; return a ? two('Waiting on you', a) : ''; }
+  function accHtml(n){ var a=ACC[n]; return two('Accepted', a || 'Today'); }
+  function cell(tag, k, html){ var e=document.createElement(tag); e.className='ia-col ia-'+k; e.setAttribute('data-ia',k); e.innerHTML=html; return e; }
+  /* the lobby's Not yet interviewed lists: Work experience and Activity before the time; the interviewer after the time */
+  function lobbyLine(tr, tag, kind, name){
+    var sig=kind+'|'+name; if(tr.getAttribute('data-ias')===sig && tr.querySelector('.ia-col')) return;
+    [].slice.call(tr.children).forEach(function(c){ if(c.classList.contains('ia-col')) c.remove(); });
+    var b=LX.base(tr), t=b[3]; if(!t) return;
+    var w=cell(tag,'work', tag==='th' ? 'Work experience' : workHtml(name));
+    var a=cell(tag,'act', tag==='th' ? 'Activity' : (kind==='req' ? waitHtml(name) : accHtml(name)));
+    if(tag==='th'){ w.style.width='21%'; a.style.width='18%'; }
+    tr.insertBefore(w, t); tr.insertBefore(a, t);   /* Candidate, Job, Work experience, Activity, the time, then Actions */
+    tr.setAttribute('data-ias', sig);
+  }
+  function lobbyCols(){
+    if(!window.LX || !LX.base) return;
+    [].forEach.call(document.querySelectorAll('#notyetActive .live-panel-section, #notyetLive .live-panel-section'),function(sec){
+      var t=txt(sec.querySelector('.live-section-title')).toLowerCase(), kind=/awaiting your response/.test(t)?'req':(/upcoming interviews/.test(t)?'up':'');
+      if(!kind) return; var tb=sec.querySelector('table.live-table'), hr=tb&&tb.querySelector('thead tr'); if(!hr) return;
+      lobbyLine(hr,'th',kind,'');
+      var cols=[].filter.call(hr.children,function(x){ return getComputedStyle(x).display!=='none'; }).length;
+      [].forEach.call(tb.querySelectorAll('tbody tr'),function(tr){ var ph=tr.querySelector('td[colspan]'); if(ph){ if(+ph.getAttribute('colspan')!==cols) ph.setAttribute('colspan',cols); return; }
+        var an=tr.querySelector('.lb-name'), d=tr.children[0]&&tr.children[0].querySelector('div'); lobbyLine(tr,'td',kind, txt(an)||txt(d)); });
+    });
+  }
+  /* the Interviews page: Upcoming and Pending get Work experience and Activity after Job, before the time ("Waiting on the
+     candidate" gets Work experience; What you sent is its activity); Past keeps its columns */
+  function ivTable(tb, kind){
+    var cg=tb.querySelector('colgroup'); if(!cg) return;
+    if(!cg.querySelector('col.ia-work')){ var t0=cg.children[3]; var cw=document.createElement('col'); cw.className='ia-work'; cg.insertBefore(cw, t0); if(kind!=='wait'){ var ca=document.createElement('col'); ca.className='ia-act'; cg.insertBefore(ca, t0); } }
+    var hr=tb.querySelector('thead tr');
+    if(hr && !hr.querySelector('.ia-col')){ var h3=hr.children[3]; hr.insertBefore(cell('th','work','Work experience'), h3); if(kind!=='wait') hr.insertBefore(cell('th','act','Activity'), h3); }
+    var n=hr?hr.children.length:0;
+    [].forEach.call(tb.querySelectorAll('tbody tr'),function(tr){ if(tr.querySelector('.ia-col')) return; var ph=tr.querySelector('td[colspan]');
+      if(ph){ if(+ph.getAttribute('colspan')!==n) ph.setAttribute('colspan',n); return; }
+      var tds=[].slice.call(tr.children), nm=txt(tr.querySelector('.iv2-name')); if(tds.length<4) return;
+      tr.insertBefore(cell('td','work',workHtml(nm)), tds[3]);
+      if(kind!=='wait') tr.insertBefore(cell('td','act', kind==='req' ? waitHtml(nm) : accHtml(nm)), tds[3]); });
+  }
+  function ivCols(){
+    [].forEach.call(document.querySelectorAll('table.iv2-tbl'),function(tb){
+      var kind = tb.classList.contains('iv2-req') ? 'req' : (tb.querySelector('col.u1') ? 'up' : (tb.querySelector('col.p1') ? 'wait' : ''));
+      if(kind) ivTable(tb, kind); });
+  }
+  var IC = {
+    ok:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
+    rs:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="17" rx="2"/><line x1="16" y1="2.5" x2="16" y2="6.5"/><line x1="8" y1="2.5" x2="8" y2="6.5"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',
+    no:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'
+  };
+  var KEY = {Accept:'ok', Reschedule:'rs', Decline:'no'};
+  function label(b){ var t=''; for(var i=0;i<b.childNodes.length;i++){ var n=b.childNodes[i]; if(n.nodeType===3) t+=n.nodeValue; } t=t.replace(/\s+/g,' ').trim(); return t || (b.innerText||'').trim(); }
+  function group(par){
+    if(!par || par.getAttribute('data-ia') || par.classList.contains('ia-ig')) return;
+    var map={}; [].forEach.call(par.children,function(b){ if(b.tagName==='BUTTON'){ var l=label(b); if(KEY[l]&&!map[l]) map[l]=b; } });
+    if(!(map.Accept&&map.Reschedule&&map.Decline)) return;
+    par.setAttribute('data-ia','1');
+    var g=document.createElement('div'); g.className='ia-ig';
+    ['Accept','Reschedule','Decline'].forEach(function(l){ var o=map[l]; o.classList.add('ia-hide');
+      var b=document.createElement('button'); b.type='button'; b.className='ia-ib '+KEY[l]; b.setAttribute('aria-label',l);
+      b.innerHTML=IC[KEY[l]]+'<span class="ia-tip">'+l+'</span>';
+      b.addEventListener('click',function(ev){ ev.stopPropagation(); o.click(); }); g.appendChild(b); });
+    par.insertBefore(g, map.Accept);
+  }
+  function txt(e){ return e?(e.textContent||'').replace(/\s+/g,' ').trim():''; }
+  function pass(){
+    [].forEach.call(document.querySelectorAll('button:not(.ia-ib)'),function(b){ if(label(b)==='Accept' && b.parentElement) group(b.parentElement); });
+    /* the Interviews page (Upcoming, Pending) and the lobby: Work experience and Activity */
+    ivCols(); lobbyCols();
+    /* the Candidates page: a request's Interview column */
+    [].forEach.call(document.querySelectorAll('.lx-dot.st-requested'),function(dot){ var tr=dot.closest('tr'); if(!tr) return; var h=tr.querySelector('.lx-h'); if(!h||!h.parentNode) return;
+      if(h.parentNode.querySelector('.ia-wait')) return; var a=AGE[txt(tr.querySelector('.cx-name'))]; if(!a) return;
+      var d=document.createElement('div'); d.className='ia-wait'; d.style.marginTop='0'; d.textContent='Waiting on you · '+a; h.parentNode.insertBefore(d, h.nextSibling); });
+  }
+  /* the whole line opens the person: anywhere but a button, a link, a box or a menu */
+  document.addEventListener('click',function(e){
+    var t=e.target; if(!t.closest) return; var tr=t.closest('tr'); if(!tr) return;
+    if(t.closest('a,button,input,select,textarea,label,[role=menu],.row-menu,.ia-ig,.mx-menu,.iv2-menu,.lx-fb')) return;
+    var oc=t.closest('[onclick]'); if(oc && oc!==tr && tr.contains(oc)) return;
+    var nm=tr.querySelector('button.cx-name, button.iv2-name, a.lb-name'); if(nm) nm.click();
+  });
+  var tm=null; function soon(){ if(tm) return; tm=setTimeout(function(){ tm=null; try{ pass(); }catch(e){ if(window.console) console.error('icon actions:',e); } },60); }
+  function start(){ pass(); try{ new MutationObserver(soon).observe(document.body,{childList:true,subtree:true}); }catch(e){} }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',start); else start();
+  window.addEventListener('load',function(){ setTimeout(soon,200); });
+})();
+</script>
 </body>
 </html>
