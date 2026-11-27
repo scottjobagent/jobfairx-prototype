@@ -8112,13 +8112,14 @@ function ctTime(r){
   if(st==='requested'&&c.prop) return '<div class="ct-t1">'+propHtml(c)+'</div>';
   return '<div class="ct-t1">'+dt+'</div>';
 }
+function ctWb(k,l,fn){ return '<button type="button" class="ia-wb '+k+'" onclick="event.stopPropagation();'+fn+'">'+l+'</button>'; } /* November 27, 2026: words */
 function ctIb(k,l,fn){ return '<button type="button" class="ia-ib '+k+'" aria-label="'+l+'" onclick="event.stopPropagation();'+fn+'">'+CT_IC[k]+'<span class="ia-tip">'+l+'</span></button>'; }
 /* Actions (centered under its heading) and the three dots (their own column at the far right): two cells */
 function ctActs(r){
   var c=r.c, id=c.id, st=r.stage, it, pre='', under='';
   var VD=['View details','CXX.open_('+id+')'], SM=['Send a message','CXX.openDock('+id+')'];
   if(st==='requested'&&!c.prop){ it=[VD,SM];
-    pre='<div class="ia-ig" data-ia="1">'+ctIb('ok','Accept','CXX.accept('+id+')')+ctIb('rs','Reschedule','CXX.sched('+id+')')+ctIb('no','Decline','CXX.decline('+id+')')+'</div>'; }
+    pre='<div class="ia-ig ia-words" data-ia="1">'+ctWb('ok','Accept','CXX.accept('+id+')')+ctWb('no','Decline','CXX.decline('+id+')')+ctWb('rs','Reschedule','CXX.sched('+id+')')+'</div>'; }
   else if(st==='requested') it=[VD,SM,['Cancel proposed times','CXX.cancelProp('+id+')',1]];
   else if(st==='invited'){ it=[VD,SM]; pre='<a class="fx-lk" onclick="CXX.srcCancel('+id+')">Cancel invite</a>'; }   /* "We would just want cancel invite. They can view the messages by clicking in." */
   else if(st==='sourced'){ it=(window.SRC&&SRC.hasSetup&&SRC.hasSetup(c.sid))?[VD,['Invite with changes','CXX.srcInviteFull('+id+')'],['Not a fit','CXX.notFit('+id+')'],SM]:[VD,['Not a fit','CXX.notFit('+id+')'],SM];
@@ -10347,7 +10348,7 @@ document.addEventListener('click', function(e){
   function invited(R){
     var props=R.filter(function(r){return r.stage==='requested'&&r.prop;}), rows=R.filter(function(r){return r.stage==='invited';}), n=props.length+rows.length;
     if(!n) return {h:'', ids:[], n:0};
-    var h='<div class="iv2-hd pt-hd"><span class="pt-ic pt-ic-c" aria-hidden="true">'+CLOCK+'</span><h3>Waiting on the candidate\'s response ('+n+')</h3></div>';
+    var h='<div class="iv2-hd pt-hd"><svg class="pt-svg" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#E8970C"/><path d="M12 7.5V12l3 2" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><h3>Waiting on the candidate\'s response ('+n+')</h3></div>';
     h+='<table class="iv2-tbl pt-tbl">'+cols()
       +'<thead><tr><th>Name</th><th>Desired job</th><th>Job location</th><th>What you sent</th>'+'<th>Actions</th></tr></thead><tbody>';
     props.forEach(function(r){
@@ -10366,7 +10367,7 @@ document.addEventListener('click', function(e){
     var all=R.filter(function(r){return r.stage==='requested'&&!r.prop;}), o=opts(all), rows=shown(1,all,o);
     var inv=invited(R);
     IDS[1]=rows.map(function(r){return r.id;}).concat(inv.ids);
-    var h='<div class="iv2-hd pt-hd"><span class="pt-ic pt-ic-y" aria-hidden="true">!</span>'+title(1,'Candidates awaiting your response',rows.length,all.length,o)+'</div>';
+    var h='<div class="iv2-hd pt-hd"><svg class="pt-svg" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#991b1b"/><path d="M12 8v4M12 16h.01" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>'+title(1,'Candidates awaiting your response',rows.length,all.length,o)+'</div>';
     h+='<table class="iv2-tbl pt-tbl">'+cols()
       +'<thead><tr>'+sortTh(1,'name','Name')+'<th>Desired job</th><th>Job location</th>'+sortTh(1,'time','Requested time')+'<th>Actions</th></tr></thead><tbody>';
     rows.forEach(function(r){
@@ -11025,10 +11026,10 @@ select.ix-len{max-width:220px}
     var map={}; [].forEach.call(par.children,function(b){ if(b.tagName==='BUTTON'){ var l=label(b); if(KEY[l]&&!map[l]) map[l]=b; } });
     if(!(map.Accept&&map.Reschedule&&map.Decline)) return;
     par.setAttribute('data-ia','1');
-    var g=document.createElement('div'); g.className='ia-ig';
-    ['Accept','Reschedule','Decline'].forEach(function(l){ var o=map[l]; o.classList.add('ia-hide');
-      var b=document.createElement('button'); b.type='button'; b.className='ia-ib '+KEY[l]; b.setAttribute('aria-label',l);
-      b.innerHTML=IC[KEY[l]]+'<span class="ia-tip">'+l+'</span>';
+    /* Scott, November 27, 2026 ("Yes, words in all three places", then "green light"): words, not icons, in the live site's order */
+    var g=document.createElement('div'); g.className='ia-ig ia-words';
+    ['Accept','Decline','Reschedule'].forEach(function(l){ var o=map[l]; o.classList.add('ia-hide');
+      var b=document.createElement('button'); b.type='button'; b.className='ia-wb '+KEY[l]; b.textContent=l;
       b.addEventListener('click',function(ev){ ev.stopPropagation(); o.click(); }); g.appendChild(b); });
     par.insertBefore(g, map.Accept);
   }
@@ -11167,42 +11168,12 @@ body #view-candidates .lx-tbl.ct-tbl.ct-nt col.l2{width:25.65%}body #view-candid
 </style>
 <style id="waiting-on-you-css">
 /* amber = waiting on you (Scott, November 27, 2026, "Yes, green light") */
-/* 1. the left menu: a number beside Interviews (the app's own menu badge shape, in amber) */
-.nav-item .rq-badge{margin-left:auto;flex:0 0 auto;box-sizing:border-box;min-width:24px;padding:2px 8px;border-radius:10px;background:#F0A92E;color:#2d2d2d;font-size:12px;line-height:16px;font-weight:700;text-align:center}
-.nav-item .rq-badge[hidden]{display:none}
-.sidebar.collapsed .nav-item .rq-badge{position:absolute;top:1px;right:5px;min-width:18px;padding:1px 5px;font-size:11px;line-height:14px;border-radius:9px}
 /* 2. the Requested tab: a small dot, and how many when the mouse rests on the tab */
 #view-candidates .cx-pill .rq-dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#E8970C;margin-left:7px;vertical-align:middle;position:relative;top:-1px}
 #view-candidates .cx-pill .rq-tip{position:absolute;top:calc(100% + 6px);left:50%;transform:translateX(-50%);z-index:40;background:#2d2d2d;color:#fff;font:600 12px/16px 'Noto Sans',system-ui,sans-serif;padding:6px 10px;border-radius:6px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .12s}
 #view-candidates .cx-pill .rq-tip:after{content:"";position:absolute;bottom:100%;left:50%;transform:translateX(-50%);border:5px solid transparent;border-bottom-color:#2d2d2d}
 #view-candidates .cx-pill.rq-has:hover .rq-tip,#view-candidates .cx-pill.rq-has:focus-visible .rq-tip{opacity:1}
 </style>
-<script id="waiting-on-you-js">
-/* the amber number beside Interviews in the left menu = the people waiting on you, all events (Scott, November 27, 2026,
-   "Yes, green light"). While it shows, clicking Interviews opens Pending, which opens on You. */
-(function(){
-  function waitN(){ try{ return (window.CXX&&CXX.ivRows?CXX.ivRows():[]).filter(function(r){ return r.stage==='requested'&&!r.prop; }).length; }catch(e){ return 0; } }
-  function draw(){
-    var a=document.getElementById('nav-interviews'); if(!a) return;
-    var b=document.getElementById('rqNavBadge');
-    if(!b){ b=document.createElement('span'); b.id='rqNavBadge'; b.className='rq-badge'; b.hidden=true; a.appendChild(b); }
-    var n=waitN(), t=n?String(n):'';
-    if(b.textContent!==t){ b.textContent=t; }
-    if(b.hidden!==!n){ b.hidden=!n; }
-    var say=n?(n+' waiting on you'):'';
-    if((b.getAttribute('title')||'')!==say){ if(say){ b.setAttribute('title',say); b.setAttribute('aria-label',say); } else { b.removeAttribute('title'); b.removeAttribute('aria-label'); } }
-  }
-  var tm=null; function soon(){ if(tm) return; tm=setTimeout(function(){ tm=null; try{ draw(); }catch(e){ if(window.console) console.error('waiting-on-you number:',e); } },80); }
-  function start(){
-    draw();
-    var a=document.getElementById('nav-interviews');
-    if(a) a.addEventListener('click',function(){ if(waitN()>0) setTimeout(function(){ if(typeof switchIvTab==='function') switchIvTab(1); },0); });
-    try{ new MutationObserver(function(ms){ for(var i=0;i<ms.length;i++){ var n=ms[i].target; if(n.nodeType!==1) n=n.parentNode; if(n&&n.id==='rqNavBadge') continue; soon(); return; } }).observe(document.body,{childList:true,subtree:true}); }catch(e){}
-  }
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',start); else start();
-  window.addEventListener('load',function(){ setTimeout(soon,300); });
-})();
-</script>
 <style id="interviews-tables-css">
 /* the Interviews page as tables; Pending as two tables (Scott, November 27, 2026, "Option 1 green light") */
 #view-interviews #iv-panel-1 > .iv2 > .iv2-hd.pt-hd{display:flex!important}
@@ -11228,5 +11199,26 @@ body #view-candidates .lx-tbl.ct-tbl.ct-nt col.l2{width:25.65%}body #view-candid
 #view-interviews .pt-b.pt-p{background:#0044B3;color:#fff}
 #view-interviews .pt-b.pt-p:hover{background:#003399}
 #view-interviews .pt-b:focus-visible{outline:2px solid #0044B3;outline-offset:-2px}
+</style>
+<style id="action-words-css">
+/* Accept, Decline and Reschedule as words, the Interviews page's look (Scott, November 27, 2026, "green light") */
+.ia-ig.ia-words{height:auto;border:1px solid #c7c5c2;border-radius:8px;overflow:hidden;background:#fff}
+.ia-wb{border:0;border-left:1px solid #c7c5c2;background:#fff;padding:7px 12px;margin:0;font-family:inherit;font-size:14px;line-height:20px;font-weight:600;color:#2d2d2d;cursor:pointer;white-space:nowrap}
+.ia-wb:first-child{border-left:0}
+.ia-wb:hover{background:#f3f2ef}
+.ia-wb.ok{background:#0044B3;color:#fff}
+.ia-wb.ok:hover{background:#003399}
+.ia-wb:focus-visible{outline:2px solid #0044B3;outline-offset:-2px}
+</style>
+<style id="action-words-dash-css">
+/* the lobby's 18px circles beside the two headings on Pending: red, then orange (Scott, November 27, 2026, "green light") */
+#view-interviews .pt-hd{gap:8px}
+#view-interviews .pt-svg{width:18px;height:18px;flex:0 0 18px;display:block}
+/* the Candidates table makes room for the three words wherever a request shows (Requested, All); measured at 1512, 1440, 1366 and 1280 */
+body #view-candidates .lx-tbl.ct-tbl:has(.ia-words) col.l2{width:200px}body #view-candidates .lx-tbl.ct-tbl:has(.ia-words) col.l3{width:128px}body #view-candidates .lx-tbl.ct-tbl:has(.ia-words) col.l4{width:168px}body #view-candidates .lx-tbl.ct-tbl:has(.ia-words) col.l5{width:130px}body #view-candidates .lx-tbl.ct-tbl:has(.ia-words) col.l6{width:175px}body #view-candidates .lx-tbl.ct-tbl:has(.ia-words) col.l7{width:260px}
+@media (max-width:1499px){body #view-candidates .lx-tbl.ct-tbl:has(.ia-words) col.l2{width:175px}body #view-candidates .lx-tbl.ct-tbl:has(.ia-words) col.l3{width:118px}body #view-candidates .lx-tbl.ct-tbl:has(.ia-words) col.l4{width:150px}body #view-candidates .lx-tbl.ct-tbl:has(.ia-words) col.l5{width:116px}body #view-candidates .lx-tbl.ct-tbl:has(.ia-words) col.l6{width:175px}body #view-candidates .lx-tbl.ct-tbl:has(.ia-words) col.l7{width:260px}}
+@media (max-width:1439px){body #view-candidates .ct-tbl .ia-wb{font-size:13px;padding:6px 9px}body #view-candidates .lx-tbl.ct-tbl:has(.ia-words) col.l2{width:170px}body #view-candidates .lx-tbl.ct-tbl:has(.ia-words) col.l3{width:112px}body #view-candidates .lx-tbl.ct-tbl:has(.ia-words) col.l4{width:140px}body #view-candidates .lx-tbl.ct-tbl:has(.ia-words) col.l5{width:110px}body #view-candidates .lx-tbl.ct-tbl:has(.ia-words) col.l6{width:175px}body #view-candidates .lx-tbl.ct-tbl:has(.ia-words) col.l7{width:228px}}
+@media (max-width:1399px){body #view-candidates .lx-tbl.ct-tbl:has(.ia-words) col.l2{width:150px}body #view-candidates .lx-tbl.ct-tbl:has(.ia-words) col.l3{width:100px}body #view-candidates .lx-tbl.ct-tbl:has(.ia-words) col.l4{width:125px}body #view-candidates .lx-tbl.ct-tbl:has(.ia-words) col.l5{width:100px}body #view-candidates .lx-tbl.ct-tbl:has(.ia-words) col.l6{width:170px}body #view-candidates .lx-tbl.ct-tbl:has(.ia-words) col.l7{width:228px}}
+@media (max-width:1319px){body #view-candidates .lx-tbl.ct-tbl:has(.ia-words) col.l2{width:140px}body #view-candidates .lx-tbl.ct-tbl:has(.ia-words) col.l3{width:92px}body #view-candidates .lx-tbl.ct-tbl:has(.ia-words) col.l4{width:115px}body #view-candidates .lx-tbl.ct-tbl:has(.ia-words) col.l5{width:92px}body #view-candidates .lx-tbl.ct-tbl:has(.ia-words) col.l6{width:160px}body #view-candidates .lx-tbl.ct-tbl:has(.ia-words) col.l7{width:228px}}
 </style>
 </body></html>
