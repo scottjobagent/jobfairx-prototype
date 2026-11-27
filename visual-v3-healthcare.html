@@ -10211,6 +10211,7 @@ document.addEventListener('click', function(e){
   var DEF=[1,1,-1];              /* with no heading picked: by time, earliest first (Past: latest first) */
   var SORT=[null,null,null];     /* {col:'name'|'time', dir:'asc'|'desc'}, like the live site */
   var FIL=[[],[],[]], FOPEN=-1, KEEP=false;
+  var WAITF=''; /* Scott, November 27, 2026 ("green light"): the Pending filter: '' = All, 'req' = Waiting on you, 'wait' = Waiting on the candidate */
   var JOBF=[], EVF=[], TOPEN='';   /* the Job and Event filters under the title (tick boxes), and which of the two menus is open */
   var RES=[], ROPEN=false, RPICK=null;   /* Past: the Result filter and the open rating picker */
   var WATCH=null;   /* an Accept or Decline started on this page: {id, stage, n} */
@@ -10250,7 +10251,9 @@ document.addEventListener('click', function(e){
     filTog:function(k,v){ KEEP=true; var i=FIL[k].indexOf(v); if(i>=0) FIL[k].splice(i,1); else FIL[k].push(v); draw(); },
     filClear:function(k){ KEEP=(FOPEN===k); FIL[k]=[]; draw(); },
     topMenu:function(key){ KEEP=true; TOPEN=(TOPEN===key)?'':key; OPEN=''; FOPEN=-1; ROPEN=false; RPICK=null; draw(); },
-    topTog:function(key,v){ KEEP=true; var a=(key==='job')?JOBF:EVF, i=a.indexOf(v); if(i>=0) a.splice(i,1); else a.push(v); draw(); }
+    waitF:function(){ return WAITF; }, setWaitF:function(v){ if(WAITF!==v){ WAITF=v; draw(); } }, waitOpen:function(){ return TOPEN==='wait'; }, /* November 27, 2026 */
+    topTog:function(key,v){ if(key==='wait'){ WAITF=v; TOPEN=''; draw(); return; } /* November 27, 2026: one choice, then the menu closes */
+      KEEP=true; var a=(key==='job')?JOBF:EVF, i=a.indexOf(v); if(i>=0) a.splice(i,1); else a.push(v); draw(); }
   };
   document.addEventListener('click',function(){ if(KEEP){ KEEP=false; return; }
     if(OPEN||FOPEN>=0||TOPEN||ROPEN||RPICK!=null){ OPEN=''; FOPEN=-1; TOPEN=''; ROPEN=false; RPICK=null; draw(); } });
@@ -10400,9 +10403,9 @@ document.addEventListener('click', function(e){
     var box=document.getElementById('iv3Tools');
     if(!box){ box=document.createElement('div'); box.id='iv3Tools'; box.className='iv3-tools'; pw.insertBefore(box,pw.firstChild); }
     /* Event first, then Job (Scott, November 26, 2026: "I want to switch the filters, I want event to be first, then job.") */
-    box.innerHTML=topCtl('evd',topLabel('Event',EVF.map(function(d){ for(var i=0;i<evs.length;i++){ if(evs[i][0]===d) return evs[i][1]; } return esc(d); })),
+    box.innerHTML=topCtl('evd',topLabel('Events',EVF.map(function(d){ for(var i=0;i<evs.length;i++){ if(evs[i][0]===d) return evs[i][1]; } return esc(d); })),
               evs.map(function(e){return [e[0],e[1],EVF.indexOf(e[0])>=0];}))
-      +topCtl('job',topLabel('Job',JOBF.map(esc)),jobs.map(function(j){return [j,esc(j),JOBF.indexOf(j)>=0];}));
+      +topCtl('job',topLabel('Jobs',JOBF.map(esc)),jobs.map(function(j){return [j,esc(j),JOBF.indexOf(j)>=0];}));
     [].forEach.call(box.querySelectorAll('.iv3-menu button'),function(b){ b.onclick=function(){ IV2.topTog(TOPEN,b.getAttribute('data-v')); }; });
   }
   function draw(){
@@ -11188,7 +11191,7 @@ body #view-candidates .lx-tbl.ct-tbl.ct-nt col.l2{width:25.65%}body #view-candid
   function start(){
     draw();
     var a=document.getElementById('nav-interviews');
-    if(a) a.addEventListener('click',function(){ if(waitN()>0) setTimeout(function(){ if(typeof switchIvTab==='function') switchIvTab(1); },0); });
+    if(a) a.addEventListener('click',function(){ if(waitN()>0) setTimeout(function(){ if(typeof switchIvTab==='function') switchIvTab(1); if(window.IV2&&IV2.setWaitF) IV2.setWaitF('req'); },0); });
     try{ new MutationObserver(function(ms){ for(var i=0;i<ms.length;i++){ var n=ms[i].target; if(n.nodeType!==1) n=n.parentNode; if(n&&n.id==='rqNavBadge') continue; soon(); return; } }).observe(document.body,{childList:true,subtree:true}); }catch(e){}
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',start); else start();
@@ -11928,8 +11931,9 @@ body #tpWrap .lx-tbl.ct-tbl.ct-nt col.l5{width:17.42%}
   var SEL = {};
   /* Pending shows one kind at a time (Scott, November 27, 2026: "click between waiting on me to respond or waiting on the
      candidate to respond"; "green light"): 'req' = the people waiting on you, 'wait' = the people you are waiting on */
-  var SUB = 'req', LASTT = null, TOP = false, FOCUS = false;
-  function none(){ return tab()===1 ? (SUB==='req' ? 'Nobody is waiting on you.' : 'You are not waiting on any candidates.') : 'No interviews here.'; }
+  var SUB = '', LASTT = null, TOP = false, FOCUS = false, WASSUB = ''; /* November 27, 2026: SUB follows the Pending filter under the tabs ('' = All) */
+  var PCHEV='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>', PTICK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6L9 17l-5-5"/></svg>';
+  function none(){ return tab()===1 ? (SUB==='req' ? 'Nobody is waiting on you.' : (SUB==='wait' ? 'You are not waiting on any candidates.' : 'No pending interviews here.')) : 'No interviews here.'; }
   var METHOD = {video:'Video interview', phone:'Phone interview', person:'In-person interview'};
   function esc(x){ return String(x==null?'':x).replace(/[&<>"]/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
   function tab(){ var t=[].slice.call(document.querySelectorAll('#view-interviews .iv-tab')); for(var i=0;i<t.length;i++) if(t[i].classList.contains('active')) return i; return 0; }
@@ -11964,11 +11968,12 @@ body #tpWrap .lx-tbl.ct-tbl.ct-nt col.l5{width:17.42%}
       +'<div class="tp-r2">'+esc(r.job)+' · '+esc(METHOD[r.m]||'Interview').replace(' interview','')+'</div><div class="tp-r3">'+tagFor(r,kind)+'</div></button>';
   }
   function list(gs, R, sel){
-    var h='';
+    var h='', titles={req:'Waiting on you', wait:'Waiting on the candidate'};
     gs.forEach(function(g){
       if(!g.ids.length) return;
       /* Pending: no heading inside the list since November 27, 2026; the two buttons above the list say which kind and how many */
-      if(g.kind==='req'||g.kind==='wait'){ g.ids.forEach(function(id){ if(R[id]) h+=item(R[id],g.kind,id===sel); }); return; }
+      if(g.kind==='req'||g.kind==='wait'){ if(!SUB) h+='<div class="tp-gh"><span>'+titles[g.kind]+'</span><b>'+g.ids.length+'</b></div>'; /* November 27, 2026: headings when the filter is on All */
+        g.ids.forEach(function(id){ if(R[id]) h+=item(R[id],g.kind,id===sel); }); return; }
       var last='';
       g.ids.forEach(function(id){ var r=R[id]; if(!r) return; var d=day(r.time); if(d!==last){ h+='<div class="tp-gh"><span>'+esc(weekday(d))+'</span></div>'; last=d; } h+=item(r,g.kind,id===sel); });
     });
@@ -11994,20 +11999,24 @@ body #tpWrap .lx-tbl.ct-tbl.ct-nt col.l5{width:17.42%}
       var tp=document.getElementById('tpWrap'); if(!tp){ tp=document.createElement('div'); tp.id='tpWrap'; tp.className='tp'; tp.innerHTML='<div class="tp-left"><div class="tp-tabs"></div><div class="tp-sub" role="group" aria-label="Waiting on" hidden></div><div class="tp-list"></div></div><div class="tp-pane"></div>'; wrap.appendChild(tp);
         tp.addEventListener('click',function(e){
           var sb=e.target.closest&&e.target.closest('.tp-sb'); if(sb){ var k=sb.getAttribute('data-sub'); if(k!==SUB){ SUB=k; TOP=true; } FOCUS=true; draw(); return; }
-          var it=e.target.closest&&e.target.closest('.tp-it'); if(!it) return; var t0=tab(); SEL[t0===1?t0+SUB:t0]=+it.getAttribute('data-id'); draw(); }); }
+          var it=e.target.closest&&e.target.closest('.tp-it'); if(!it) return; var t0=tab(); SEL[t0===1?t0+(SUB||'all'):t0]=+it.getAttribute('data-id'); draw(); }); }
       /* Pending lists one kind at a time (November 27, 2026) and opens on the people waiting on you every time you come to it */
-      var t=tab(), pend=(t===1); if(t!==LASTT){ if(pend) SUB='req'; LASTT=t; }
+      var t=tab(), pend=(t===1); LASTT=t; SUB=(window.IV2&&IV2.waitF)?IV2.waitF():''; if(SUB!==WASSUB){ WASSUB=SUB; TOP=true; } /* November 27, 2026: the filter decides, and it stays until you change it */
       var G=groups(), nq=0, nw=0; G.forEach(function(g){ if(g.kind==='req') nq+=g.ids.length; else if(g.kind==='wait') nw+=g.ids.length; });
-      var gs=pend ? G.filter(function(g){ return g.kind===SUB; }) : G, R=rowsById(), all=[]; gs.forEach(function(g){ g.ids.forEach(function(id){ all.push([id,g.kind]); }); });
-      var key=pend ? t+SUB : t, sel=SEL[key]; if(!all.some(function(x){ return x[0]===sel; })) sel=SEL[key]=(all[0]||[null])[0];
+      var gs=pend ? G.filter(function(g){ return !SUB||g.kind===SUB; }) : G, R=rowsById(), all=[]; gs.forEach(function(g){ g.ids.forEach(function(id){ all.push([id,g.kind]); }); });
+      var key=pend ? t+(SUB||'all') : t, sel=SEL[key]; if(!all.some(function(x){ return x[0]===sel; })) sel=SEL[key]=(all[0]||[null])[0];
       /* Upcoming, Pending and Past in the top of the list box: the page's own tabs (hidden) keep the counts and switch the lists */
       var TB=[].slice.call(document.querySelectorAll('#view-interviews .iv-tab')).filter(function(x){ return /switchIvTab\([012]\)/.test(x.getAttribute('onclick')||''); });
       var TH=TB.map(function(x,k){ var c=x.querySelector('.iv-count'), f=x.firstChild, lab=(f&&f.nodeType===3?f.nodeValue:'').trim()||['Upcoming','Pending','Past'][k];
         return '<button type="button" class="tp-tab'+(k===t?' on':'')+'" onclick="switchIvTab('+k+')">'+esc(lab)+'<span class="tp-ct">('+esc(c?c.textContent.trim():'0')+')</span></button>'; }).join('');
       var te=tp.querySelector('.tp-tabs'); if(te.getAttribute('data-sig')!==TH){ te.innerHTML=TH; te.setAttribute('data-sig',TH); }
       /* "Waiting on  [You (5)] [The candidate (16)]" right under the tabs, on Pending only */
-      var se=tp.querySelector('.tp-sub'), SH=pend ? '<span class="tp-sl">Waiting on</span>'+[['req','You',nq],['wait','The candidate',nw]].map(function(b){
-        return '<button type="button" class="tp-sb'+(b[0]===SUB?' on':'')+'" data-sub="'+b[0]+'" aria-pressed="'+(b[0]===SUB)+'">'+b[1]+' ('+b[2]+')</button>'; }).join('') : '';
+      /* Scott, November 27, 2026 ("green light"): on Pending, the Pending filter right under the tabs: All / Waiting on you / Waiting on the candidate */
+      var se=tp.querySelector('.tp-sub'), PO=(window.IV2&&IV2.waitOpen)?IV2.waitOpen():false,
+        PL=[['','All',nq+nw],['req','Waiting on you',nq],['wait','Waiting on the candidate',nw]],
+        PC=PL.filter(function(o){ return o[0]===SUB; })[0]||PL[0],
+        SH=pend ? '<span class="tp-pf"><button type="button" class="iv3-ctl tp-pfb" aria-haspopup="true" aria-expanded="'+PO+'" onclick="IV2.topMenu(\'wait\')"><span class="tp-pfl"><b>Pending:</b> '+PC[1]+'</span>'+PCHEV+'</button>'
+          +(PO?'<span class="iv3-menu tp-pfm" onclick="IV2.keep()">'+PL.map(function(o){ return '<button type="button" onclick="IV2.topTog(\'wait\',\''+o[0]+'\')"><span class="iv3-mopt"><span class="iv3-mbox'+(o[0]===SUB?' on':'')+'">'+PTICK+'</span>'+o[1]+' ('+o[2]+')</span></button>'; }).join('')+'</span>':'')+'</span>' : '';
       if(se.getAttribute('data-sig')!==SH){ se.innerHTML=SH; se.setAttribute('data-sig',SH); se.hidden=!SH; }
       if(FOCUS){ FOCUS=false; var fb=se.querySelector('.tp-sb.on'); if(fb){ try{ fb.focus({preventScroll:true}); }catch(e){ fb.focus(); } } }
       var L=list(gs,R,sel), le=tp.querySelector('.tp-list'), pe=tp.querySelector('.tp-pane');
@@ -12034,5 +12043,16 @@ body #tpWrap .lx-tbl.ct-tbl.ct-nt col.l5{width:17.42%}
 /* the one you're on: light blue with a dark blue edge (the tabs above keep the solid dark blue box) */
 .tp-sb.on{background:#e8f0fe;border-color:#00245B;color:#00245B;box-shadow:inset 0 0 0 1px #00245B}
 .tp-sb:focus-visible{outline:2px solid #0044B3;outline-offset:2px}
+</style>
+<style id="interviews-pending-filter-css">
+/* Scott, November 27, 2026 ("green light"): the Pending filter right under the tabs, inside the list box (one choice, so round marks) */
+#tpWrap .tp-sub{padding:10px 12px}
+#tpWrap .tp-pf{position:relative;display:block;flex:1 1 auto;min-width:0}
+#view-interviews #tpWrap .tp-pfb{width:100%;height:40px;padding:7px 10px 7px 12px;font-size:14px;line-height:20px;justify-content:space-between;gap:6px}
+#tpWrap .tp-pfl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+#view-interviews #tpWrap .tp-pfb svg{width:20px;height:20px;flex:0 0 20px;margin-left:0}
+#view-interviews #tpWrap .tp-pfm{top:44px;left:0;right:0;min-width:0}
+#view-interviews #tpWrap .tp-pfm button{font-size:15px;padding:9px 10px}
+#tpWrap .tp-pfm .iv3-mbox{border-radius:50%}
 </style>
 </body></html>
