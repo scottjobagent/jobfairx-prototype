@@ -10644,9 +10644,13 @@ body.ntx-open .jfx-toast{z-index:10060}
   /* the Notes column: one link, "View notes" or "Add a note" (November 25, 2026; before, "AI notes" and the team's latest note) */
   window.NTX = {
     cell: function(c, html, pen){
-      /* one link for all of a person's notes, the same words everywhere (Scott, November 25, 2026: "just a way they click
-         to see their notes"; "green light"): "View notes" when there are any, AI notes included, "Add a note" when none */
-      var has = NTX.has(c);
+      /* one link for all of a person's notes (Scott, November 25, 2026: "just a way they click to see their notes"). Since
+         November 27, 2026 ("I should have some sort of little indication showing a preview of the notes"; "green light")
+         the link shows the first words of the team's newest note, two lines at most, and how many notes there are; a
+         person with only AI notes keeps "View notes", a person with none keeps "Add a note" */
+      var has = NTX.has(c), s = st(c), n = s.notes.length;
+      if(n) return '<button class="cx-note np-has" aria-label="View notes" onclick="CXX.openNotes('+c.id+',this,\'note\')">'+pen
+        +'<span class="np-w"><span class="ntx-t">'+esc(s.notes[0].t)+'</span><span class="np-n">'+n+(n===1?' note':' notes')+'</span></span></button>';
       return '<button class="cx-note empty" onclick="CXX.openNotes('+c.id+',this,\'note\')">'+pen+(has?'View notes':'Add a note')+'</button>';
     },
     has: function(c){ var s = st(c); return !!(s.ai || s.notes.length); },
@@ -10946,6 +10950,15 @@ body #view-candidates .ct-ctl{display:inline-flex;flex-direction:column;align-it
 body #view-candidates .ct-ctl .lx-fb{margin-top:0;display:inline-flex}
 body #view-candidates .ct-ctl .fbp-btn{height:36px}
 body #view-candidates .ct-ctl .fbp-menu{left:auto;right:0;text-align:left}
+</style>
+<style id="notes-preview-css">
+/* the Candidates page's Notes column: the newest note's first words (two lines at most) and how many notes there are
+   (Scott, November 27, 2026, "green light") */
+#view-candidates .cx-note.np-has{max-width:100%;min-width:0}
+#view-candidates .cx-note.np-has .np-w{display:block;min-width:0;flex:1 1 auto;text-align:left;padding-top:1px}
+#view-candidates .cx-note.np-has .ntx-t{color:#2d2d2d;font-size:13px;line-height:18px;overflow-wrap:anywhere}
+#view-candidates .cx-note.np-has .np-n{display:block;margin-top:2px;font-size:12px;line-height:17px;color:#767676}
+#view-candidates .cx-note.np-has:hover .ntx-t{text-decoration:underline}
 </style>
 <style id="interviews-split-cx-copy">
 /* the Candidates page's styles for the candidate's full page on the Interviews page (copied when the page is built, #view-candidates -> #tpWrap) */
@@ -11600,6 +11613,11 @@ body #tpWrap .ct-ctl{display:inline-flex;flex-direction:column;align-items:cente
 body #tpWrap .ct-ctl .lx-fb{margin-top:0;display:inline-flex}
 body #tpWrap .ct-ctl .fbp-btn{height:36px}
 body #tpWrap .ct-ctl .fbp-menu{left:auto;right:0;text-align:left}
+#tpWrap .cx-note.np-has{max-width:100%;min-width:0}
+#tpWrap .cx-note.np-has .np-w{display:block;min-width:0;flex:1 1 auto;text-align:left;padding-top:1px}
+#tpWrap .cx-note.np-has .ntx-t{color:#2d2d2d;font-size:13px;line-height:18px;overflow-wrap:anywhere}
+#tpWrap .cx-note.np-has .np-n{display:block;margin-top:2px;font-size:12px;line-height:17px;color:#767676}
+#tpWrap .cx-note.np-has:hover .ntx-t{text-decoration:underline}
 </style>
 <style id="interviews-split-css">
 /* the Interviews page as a list on the left and the person you pick on the right, with the person's full details
