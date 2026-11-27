@@ -7592,12 +7592,12 @@ function listHtml(){
     +'<button class="cx-b out" onclick="CXX.clearSel()">Clear selected</button>'
     +'<button class="cx-b pri" onclick="CXX.exportSel()">Export candidates'+ico('chev')+'</button></div>';
 
-  h+='<div class="cx-scroll"><table class="cx-tbl mx-tbl lx-tbl"><colgroup><col class="l1"><col class="l2"><col class="l3"><col class="l4"><col class="l5"><col class="l6"></colgroup>'
-    +'<thead><tr><th><span class="cx-cb'+(selRows.length&&selRows.length===rows.length?' on':'')+'" onclick="CXX.'+(selRows.length===rows.length?'clearSel()':'selAll()')+'">'+ico('tick')+'</span></th><th>Candidate</th><th>Work experience</th><th>Interview</th><th>Notes</th><th></th></tr></thead><tbody>';
+  h+='<div class="cx-scroll"><table class="cx-tbl mx-tbl lx-tbl ct-tbl"><colgroup><col class="l1"><col class="l2"><col class="l3"><col class="l4"><col class="l5"><col class="l6"><col class="l7"><col class="l8"></colgroup>'
+    +'<thead><tr><th><span class="cx-cb'+(selRows.length&&selRows.length===rows.length?' on':'')+'" onclick="CXX.'+(selRows.length===rows.length?'clearSel()':'selAll()')+'">'+ico('tick')+'</span></th><th>Candidate</th><th>Job</th><th>Activity</th><th>Notes</th><th>'+ctHead()+'</th><th class="ct-ah">Actions</th><th></th></tr></thead><tbody>';
   rows.forEach(function(r){
     var c=r.c;
     h+='<tr><td><span class="cx-cb'+(selRows.indexOf(r.key)>-1?' on':'')+'" onclick="CXX.togSel(\''+r.key+'\')">'+ico('tick')+'</span></td>'
-      +'<td>'+lxWho(r)+'</td><td>'+lxWork(c)+'</td><td>'+lxNext(r)+'</td><td>'+noteCell(c)+'</td><td>'+lxMenu(r)+'</td></tr>';
+      +'<td>'+ctWho(r)+'</td><td>'+ctSecond(r)+'</td><td>'+ctAct(r)+'</td><td>'+noteCell(c)+'</td><td>'+ctTime(r)+'</td>'+ctActs(r)+'</tr>';
   });
   h+='</tbody></table></div>';
   if(!rows.length) h+='<div style="padding:56px 0;text-align:center;color:#767676">No candidates in this filter.</div>';
@@ -8053,6 +8053,66 @@ function lxNext(r){
   return mxWhen(r);
 }
 /* everything else sits behind the three dots, at the right edge on every tab */
+/* Scott, November 27, 2026 ("green light"): the Candidates table in the lobby's order. The stage line moves from under the name
+   to Activity; what you need next sits on the line under Actions; the three dots keep their own column. */
+var CT_IC={
+  ok:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
+  rs:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="17" rx="2"/><line x1="16" y1="2.5" x2="16" y2="6.5"/><line x1="8" y1="2.5" x2="8" y2="6.5"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',
+  no:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'
+};
+function ctHead(){ return pill==='requested'?'Requested time':'Interview time'; }
+function ctWho(r){ var c=r.c, w=(c.w&&c.w[0])||null;
+  return '<button class="cx-name" onclick="CXX.open_('+c.id+')">'+esc(c.n)+'</button>'
+    +(w?'<div class="ct-w1">'+esc(w[0])+'</div><div class="ct-w2">'+esc(w[1])+' <span class="nw">('+esc(w[2])+')</span></div>':'')
+    +(c.loc?'<div class="ct-w2">'+esc(c.loc)+'</div>':''); }
+function ctSecond(r){ var ev=EVS[r.ev]?EVS[r.ev].n:'';
+  return '<div class="ct-t1">'+esc(r.c.job)+'</div>'+(ev?'<div class="ct-w2">'+esc(ev)+'</div>':''); }
+function ctAge(c){ var w=String(c.act||'').split('·').pop().trim(); if(/yesterday/.test(w)) return '1 day';
+  var m=w.match(/(\d+)\s+(hour|day|week)s?/); return m?m[1]+' '+m[2]+(m[1]==='1'?'':'s'):''; }
+function ctTwo(st,a,b){ return '<div class="ct-a1'+(st==='noshow'?' red':'')+'">'+a+'</div>'+(b?'<div class="ct-a2">'+b+'</div>':''); }
+function ctAct(r){
+  var c=r.c, st=r.stage, w=lxWhen(r);
+  if(st==='sourced') return ctTwo(st,'Applied',esc(c.matched||''))+(c.prevInvite?'<div class="ct-a2">'+esc(c.prevInvite)+'</div>':'');
+  if(st==='invited'){ var sm=(window.SRC&&SRC.summary)?SRC.summary(c.sid):null;
+    return ctTwo(st,'Invited',esc(c.sent||''))+(sm?'<div class="sx-prog ct-prog">'+sm.dots+'<span class="sx-ptxt">'+sm.line+'</span>'+sm.sig+'</div>':''); }
+  if(st==='requested'&&c.prop) return ctTwo(st,'Waiting on the candidate','New times sent');
+  if(st==='requested') return ctTwo(st,'Waiting on you',esc(ctAge(c)));
+  if(st==='scheduled') return ctTwo(st,'Accepted',w);
+  if(st==='interviewed') return ctTwo(st,'Interviewed',w);
+  if(st==='noshow') return ctTwo(st,'Couldn’t make it',w);
+  if(st==='declined'&&c.notFit) return ctTwo(st,'Marked as not a fit','');
+  if(st==='declined') return ctTwo(st,'Request declined',w);
+  return ctTwo(st,STAGEL[st]||'',w);
+}
+/* the time: on every tab, the date and the time only (Scott, November 27: "this would just say the date and the time ...
+   not the name of the hiring event, and not the type of interview"); a person with no time yet (Applied, Invited) shows
+   nothing there ("where we have the line, let's get rid of that, we don't want the line"). The event name sits under the
+   job title in the Job column. */
+function ctTime(r){
+  var c=r.c, st=r.stage;
+  var dt='<span class="mx-dt">'+fullM(rTime(r)).split(' · ').map(function(x){return '<span class="nw">'+esc(x)+'</span>';}).join(' · ')+'</span>';
+  if(st==='sourced'||st==='invited'||(st==='declined'&&c.notFit)) return '';
+  if(st==='requested'&&c.prop) return '<div class="ct-t1">'+propHtml(c)+'</div>';
+  return '<div class="ct-t1">'+dt+'</div>';
+}
+function ctIb(k,l,fn){ return '<button type="button" class="ia-ib '+k+'" aria-label="'+l+'" onclick="event.stopPropagation();'+fn+'">'+CT_IC[k]+'<span class="ia-tip">'+l+'</span></button>'; }
+/* Actions (centered under its heading) and the three dots (their own column at the far right): two cells */
+function ctActs(r){
+  var c=r.c, id=c.id, st=r.stage, it, pre='', under='';
+  var VD=['View details','CXX.open_('+id+')'], SM=['Send a message','CXX.openDock('+id+')'];
+  if(st==='requested'&&!c.prop){ it=[VD,SM];
+    pre='<div class="ia-ig" data-ia="1">'+ctIb('ok','Accept','CXX.accept('+id+')')+ctIb('rs','Reschedule','CXX.sched('+id+')')+ctIb('no','Decline','CXX.decline('+id+')')+'</div>'; }
+  else if(st==='requested') it=[VD,SM,['Cancel proposed times','CXX.cancelProp('+id+')',1]];
+  else if(st==='invited'){ it=[VD,SM]; pre='<a class="fx-lk" onclick="CXX.srcCancel('+id+')">Cancel invite</a>'; }   /* "We would just want cancel invite. They can view the messages by clicking in." */
+  else if(st==='sourced'){ it=(window.SRC&&SRC.hasSetup&&SRC.hasSetup(c.sid))?[VD,['Invite with changes','CXX.srcInviteFull('+id+')'],['Not a fit','CXX.notFit('+id+')'],SM]:[VD,['Not a fit','CXX.notFit('+id+')'],SM];
+    pre='<button class="mx-inv" onclick="CXX.srcInvite('+id+')">Invite to interview</button>'; }
+  else if(st==='scheduled') it=[VD,['Reschedule','CXX.sched('+id+')'],SM,['Cancel interview','CXX.cancelIv('+id+')',1]];
+  else if(st==='interviewed'){ it=[VD,['Schedule follow-up interview','CXX.sched('+id+')'],SM]; pre='<span class="lx-fb">'+fbPill(r)+'</span>'; }
+  else if(st==='noshow') it=[VD,['Mark as interviewed','CXX.markIv('+id+')'],['Schedule interview','CXX.sched('+id+')'],SM];
+  else if(st==='declined') it=[VD,c.notFit?['Move back to Applied','CXX.unNotFit('+id+')']:['Accept','CXX.reAccept('+id+')'],SM];
+  else it=[VD,SM];
+  return '<td class="ct-ac">'+(pre?'<div class="ct-ctl">'+pre+under+'</div>':'')+'</td><td class="ct-dc"><div class="mx-acts">'+mxMenu(c,it)+'</div></td>';
+}
 function lxMenu(r){
   var c=r.c, id=c.id, st=r.stage, it=[];
   /* one menu for each kind of line (November 25, 2026): View details first, the line's own choices, Send a message, red last;
@@ -10857,6 +10917,36 @@ select.ix-len{max-width:220px}
   window.addEventListener('load',function(){ setTimeout(soon,200); });
 })();
 </script>
+<style id="candidates-table-actions-css">
+/* The Candidates table in the lobby's order, the actions on the line (Scott, November 27, 2026, "green light") */
+body #view-candidates .lx-tbl.ct-tbl col.l1{width:40px}
+body #view-candidates .lx-tbl.ct-tbl col.l7{width:154px}
+body #view-candidates .lx-tbl.ct-tbl col.l8{width:52px}
+body #view-candidates .lx-tbl.ct-tbl col.l2{width:22.39%}body #view-candidates .lx-tbl.ct-tbl col.l3{width:13.25%}body #view-candidates .lx-tbl.ct-tbl col.l4{width:16.07%}body #view-candidates .lx-tbl.ct-tbl col.l5{width:11.54%}body #view-candidates .lx-tbl.ct-tbl col.l6{width:15.73%}
+@media (max-width:1499px){body #view-candidates .lx-tbl.ct-tbl col.l2{width:19.31%}body #view-candidates .lx-tbl.ct-tbl col.l3{width:12.57%}body #view-candidates .lx-tbl.ct-tbl col.l4{width:17.12%}body #view-candidates .lx-tbl.ct-tbl col.l5{width:12.11%}body #view-candidates .lx-tbl.ct-tbl col.l6{width:16.48%}}
+@media (max-width:1439px){body #view-candidates .lx-tbl.ct-tbl col.l2{width:18.53%}body #view-candidates .lx-tbl.ct-tbl col.l3{width:13.8%}body #view-candidates .lx-tbl.ct-tbl col.l4{width:15.12%}body #view-candidates .lx-tbl.ct-tbl col.l5{width:12.57%}body #view-candidates .lx-tbl.ct-tbl col.l6{width:16.35%}}
+@media (max-width:1399px){body #view-candidates .lx-tbl.ct-tbl col.l2{width:18.4%}body #view-candidates .lx-tbl.ct-tbl col.l3{width:13.5%}body #view-candidates .lx-tbl.ct-tbl col.l4{width:14.1%}body #view-candidates .lx-tbl.ct-tbl col.l5{width:13.4%}body #view-candidates .lx-tbl.ct-tbl col.l6{width:15.34%}}
+@media (max-width:1319px){body #view-candidates .lx-tbl.ct-tbl col.l2{width:18.34%}body #view-candidates .lx-tbl.ct-tbl col.l3{width:13.43%}body #view-candidates .lx-tbl.ct-tbl col.l4{width:14.07%}body #view-candidates .lx-tbl.ct-tbl col.l5{width:13.75%}body #view-candidates .lx-tbl.ct-tbl col.l6{width:14.18%}}
+/* Candidate: the latest job and the city under the name */
+body #view-candidates .ct-w1{font-size:14px;line-height:20px;color:#2d2d2d;margin-top:2px}
+body #view-candidates .ct-w2{font-size:13px;line-height:19px;color:#595959}
+/* Activity: what happened, then when or how long (two lines, the lobby's Activity) */
+body #view-candidates .ct-a1{font-size:14px;line-height:20px;color:#2d2d2d}
+body #view-candidates .ct-a1.red{color:#C2410C}
+body #view-candidates .ct-a2{font-size:13px;line-height:18px;color:#767676}
+body #view-candidates .ct-prog{margin-top:6px}
+body #view-candidates .ct-tbl .cx-note.empty{white-space:nowrap}
+/* the time and the job: their own columns */
+body #view-candidates .ct-t1{font-size:14px;line-height:1.45;color:#2d2d2d}
+/* Actions: the heading and the buttons centered on the same line; the three dots in their own column at the far right */
+body #view-candidates .ct-tbl thead th.ct-ah{text-align:center;padding-left:4px;padding-right:4px}
+body #view-candidates .ct-tbl tbody td.ct-ac{text-align:center;padding-left:4px;padding-right:4px}
+body #view-candidates .ct-tbl tbody td.ct-dc{padding-left:4px;padding-right:12px}
+body #view-candidates .ct-ctl{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;min-height:36px;gap:7px;vertical-align:top}
+body #view-candidates .ct-ctl .lx-fb{margin-top:0;display:inline-flex}
+body #view-candidates .ct-ctl .fbp-btn{height:36px}
+body #view-candidates .ct-ctl .fbp-menu{left:auto;right:0;text-align:left}
+</style>
 <style id="interviews-split-cx-copy">
 /* the Candidates page's styles for the candidate's full page on the Interviews page (copied when the page is built, #view-candidates -> #tpWrap) */
 body #tpWrap .cx-tbl.mx-tbl.lx-tbl{table-layout:fixed;width:100%;min-width:930px}
@@ -11483,6 +11573,33 @@ body #tpWrap .mx-inv.lx-pri{background:#0044B3;border-color:#0044B3;color:#fff}
 #tpWrap .ntx-ai svg{width:15px;height:15px;flex:0 0 15px}
 #tpWrap .ntx-ai:hover{text-decoration:underline}
 #tpWrap .cx-note .ntx-t{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+body #tpWrap .lx-tbl.ct-tbl col.l1{width:40px}
+body #tpWrap .lx-tbl.ct-tbl col.l7{width:154px}
+body #tpWrap .lx-tbl.ct-tbl col.l8{width:52px}
+body #tpWrap .lx-tbl.ct-tbl col.l2{width:22.39%}
+body #tpWrap .lx-tbl.ct-tbl col.l3{width:13.25%}
+body #tpWrap .lx-tbl.ct-tbl col.l4{width:16.07%}
+body #tpWrap .lx-tbl.ct-tbl col.l5{width:11.54%}
+body #tpWrap .lx-tbl.ct-tbl col.l6{width:15.73%}
+@media (max-width:1499px){body #tpWrap .lx-tbl.ct-tbl col.l2{width:19.31%}body #tpWrap .lx-tbl.ct-tbl col.l3{width:12.57%}body #tpWrap .lx-tbl.ct-tbl col.l4{width:17.12%}body #tpWrap .lx-tbl.ct-tbl col.l5{width:12.11%}body #tpWrap .lx-tbl.ct-tbl col.l6{width:16.48%}}
+@media (max-width:1439px){body #tpWrap .lx-tbl.ct-tbl col.l2{width:18.53%}body #tpWrap .lx-tbl.ct-tbl col.l3{width:13.8%}body #tpWrap .lx-tbl.ct-tbl col.l4{width:15.12%}body #tpWrap .lx-tbl.ct-tbl col.l5{width:12.57%}body #tpWrap .lx-tbl.ct-tbl col.l6{width:16.35%}}
+@media (max-width:1399px){body #tpWrap .lx-tbl.ct-tbl col.l2{width:18.4%}body #tpWrap .lx-tbl.ct-tbl col.l3{width:13.5%}body #tpWrap .lx-tbl.ct-tbl col.l4{width:14.1%}body #tpWrap .lx-tbl.ct-tbl col.l5{width:13.4%}body #tpWrap .lx-tbl.ct-tbl col.l6{width:15.34%}}
+@media (max-width:1319px){body #tpWrap .lx-tbl.ct-tbl col.l2{width:18.34%}body #tpWrap .lx-tbl.ct-tbl col.l3{width:13.43%}body #tpWrap .lx-tbl.ct-tbl col.l4{width:14.07%}body #tpWrap .lx-tbl.ct-tbl col.l5{width:13.75%}body #tpWrap .lx-tbl.ct-tbl col.l6{width:14.18%}}
+body #tpWrap .ct-w1{font-size:14px;line-height:20px;color:#2d2d2d;margin-top:2px}
+body #tpWrap .ct-w2{font-size:13px;line-height:19px;color:#595959}
+body #tpWrap .ct-a1{font-size:14px;line-height:20px;color:#2d2d2d}
+body #tpWrap .ct-a1.red{color:#C2410C}
+body #tpWrap .ct-a2{font-size:13px;line-height:18px;color:#767676}
+body #tpWrap .ct-prog{margin-top:6px}
+body #tpWrap .ct-tbl .cx-note.empty{white-space:nowrap}
+body #tpWrap .ct-t1{font-size:14px;line-height:1.45;color:#2d2d2d}
+body #tpWrap .ct-tbl thead th.ct-ah{text-align:center;padding-left:4px;padding-right:4px}
+body #tpWrap .ct-tbl tbody td.ct-ac{text-align:center;padding-left:4px;padding-right:4px}
+body #tpWrap .ct-tbl tbody td.ct-dc{padding-left:4px;padding-right:12px}
+body #tpWrap .ct-ctl{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;min-height:36px;gap:7px;vertical-align:top}
+body #tpWrap .ct-ctl .lx-fb{margin-top:0;display:inline-flex}
+body #tpWrap .ct-ctl .fbp-btn{height:36px}
+body #tpWrap .ct-ctl .fbp-menu{left:auto;right:0;text-align:left}
 </style>
 <style id="interviews-split-css">
 /* the Interviews page as a list on the left and the person you pick on the right, with the person's full details
