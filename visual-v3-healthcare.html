@@ -11879,6 +11879,10 @@ body #tpWrap .lx-tbl.ct-tbl.ct-nt col.l5{width:17.42%}
   var ACC = {"Michael Sanchez Reyes":"April 2 · 9:41 AM","Michael Duvenary":"April 2 · 1:15 PM","Jonathan Kleve":"April 3 · 10:02 AM",
     "Andy Pham":"April 3 · 4:27 PM","Sarah Kim":"April 4 · 8:50 AM","David Chen":"April 4 · 11:36 AM","Rachel Foster":"April 4 · 3:08 PM"};
   var SEL = {};
+  /* Pending shows one kind at a time (Scott, November 27, 2026: "click between waiting on me to respond or waiting on the
+     candidate to respond"; "green light"): 'req' = the people waiting on you, 'wait' = the people you are waiting on */
+  var SUB = 'req', LASTT = null, TOP = false, FOCUS = false;
+  function none(){ return tab()===1 ? (SUB==='req' ? 'Nobody is waiting on you.' : 'You are not waiting on any candidates.') : 'No interviews here.'; }
   var METHOD = {video:'Video interview', phone:'Phone interview', person:'In-person interview'};
   function esc(x){ return String(x==null?'':x).replace(/[&<>"]/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
   function tab(){ var t=[].slice.call(document.querySelectorAll('#view-interviews .iv-tab')); for(var i=0;i<t.length;i++) if(t[i].classList.contains('active')) return i; return 0; }
@@ -11913,14 +11917,15 @@ body #tpWrap .lx-tbl.ct-tbl.ct-nt col.l5{width:17.42%}
       +'<div class="tp-r2">'+esc(r.job)+' · '+esc(METHOD[r.m]||'Interview').replace(' interview','')+'</div><div class="tp-r3">'+tagFor(r,kind)+'</div></button>';
   }
   function list(gs, R, sel){
-    var h='', titles={req:'Waiting on you', wait:'Waiting on the candidate'};
+    var h='';
     gs.forEach(function(g){
       if(!g.ids.length) return;
-      if(g.kind==='req'||g.kind==='wait'){ h+='<div class="tp-gh"><span>'+titles[g.kind]+'</span><b>'+g.ids.length+'</b></div>'; g.ids.forEach(function(id){ if(R[id]) h+=item(R[id],g.kind,id===sel); }); return; }
+      /* Pending: no heading inside the list since November 27, 2026; the two buttons above the list say which kind and how many */
+      if(g.kind==='req'||g.kind==='wait'){ g.ids.forEach(function(id){ if(R[id]) h+=item(R[id],g.kind,id===sel); }); return; }
       var last='';
       g.ids.forEach(function(id){ var r=R[id]; if(!r) return; var d=day(r.time); if(d!==last){ h+='<div class="tp-gh"><span>'+esc(weekday(d))+'</span></div>'; last=d; } h+=item(r,g.kind,id===sel); });
     });
-    return h || '<div class="tp-empty">No interviews here.</div>';
+    return h || '<div class="tp-empty">'+none()+'</div>';
   }
   /* the candidate page (#cxRoot) lives on the Candidates page; it is lent to the right side here and given back after */
   var HOME=null, CUR=null;
@@ -11936,22 +11941,33 @@ body #tpWrap .lx-tbl.ct-tbl.ct-nt col.l5{width:17.42%}
     if(busy) return; busy=true;
     try{
       var v=document.getElementById('view-interviews'), on=!!(v&&v.classList.contains('active'));
-      if(!on){ if(WAS){ WAS=false; var root=document.getElementById('cxRoot'), inPane=root&&root.closest&&root.closest('#tpWrap'); home(); if(inPane && !window.__fromIv && window.CXX && CXX.closeP) CXX.closeP(); } return; }
+      if(!on){ LASTT=null; if(WAS){ WAS=false; var root=document.getElementById('cxRoot'), inPane=root&&root.closest&&root.closest('#tpWrap'); home(); if(inPane && !window.__fromIv && window.CXX && CXX.closeP) CXX.closeP(); } return; }
       WAS=true;
       var wrap=v.querySelector('.iv-panel-wrapper'); if(!wrap) return;
-      var tp=document.getElementById('tpWrap'); if(!tp){ tp=document.createElement('div'); tp.id='tpWrap'; tp.className='tp'; tp.innerHTML='<div class="tp-left"><div class="tp-tabs"></div><div class="tp-list"></div></div><div class="tp-pane"></div>'; wrap.appendChild(tp);
-        tp.addEventListener('click',function(e){ var it=e.target.closest&&e.target.closest('.tp-it'); if(!it) return; SEL[tab()]=+it.getAttribute('data-id'); draw(); }); }
-      var gs=groups(), R=rowsById(), all=[]; gs.forEach(function(g){ g.ids.forEach(function(id){ all.push([id,g.kind]); }); });
-      var t=tab(), sel=SEL[t]; if(!all.some(function(x){ return x[0]===sel; })) sel=SEL[t]=(all[0]||[null])[0];
+      var tp=document.getElementById('tpWrap'); if(!tp){ tp=document.createElement('div'); tp.id='tpWrap'; tp.className='tp'; tp.innerHTML='<div class="tp-left"><div class="tp-tabs"></div><div class="tp-sub" role="group" aria-label="Waiting on" hidden></div><div class="tp-list"></div></div><div class="tp-pane"></div>'; wrap.appendChild(tp);
+        tp.addEventListener('click',function(e){
+          var sb=e.target.closest&&e.target.closest('.tp-sb'); if(sb){ var k=sb.getAttribute('data-sub'); if(k!==SUB){ SUB=k; TOP=true; } FOCUS=true; draw(); return; }
+          var it=e.target.closest&&e.target.closest('.tp-it'); if(!it) return; var t0=tab(); SEL[t0===1?t0+SUB:t0]=+it.getAttribute('data-id'); draw(); }); }
+      /* Pending lists one kind at a time (November 27, 2026) and opens on the people waiting on you every time you come to it */
+      var t=tab(), pend=(t===1); if(t!==LASTT){ if(pend) SUB='req'; LASTT=t; }
+      var G=groups(), nq=0, nw=0; G.forEach(function(g){ if(g.kind==='req') nq+=g.ids.length; else if(g.kind==='wait') nw+=g.ids.length; });
+      var gs=pend ? G.filter(function(g){ return g.kind===SUB; }) : G, R=rowsById(), all=[]; gs.forEach(function(g){ g.ids.forEach(function(id){ all.push([id,g.kind]); }); });
+      var key=pend ? t+SUB : t, sel=SEL[key]; if(!all.some(function(x){ return x[0]===sel; })) sel=SEL[key]=(all[0]||[null])[0];
       /* Upcoming, Pending and Past in the top of the list box: the page's own tabs (hidden) keep the counts and switch the lists */
       var TB=[].slice.call(document.querySelectorAll('#view-interviews .iv-tab')).filter(function(x){ return /switchIvTab\([012]\)/.test(x.getAttribute('onclick')||''); });
       var TH=TB.map(function(x,k){ var c=x.querySelector('.iv-count'), f=x.firstChild, lab=(f&&f.nodeType===3?f.nodeValue:'').trim()||['Upcoming','Pending','Past'][k];
         return '<button type="button" class="tp-tab'+(k===t?' on':'')+'" onclick="switchIvTab('+k+')">'+esc(lab)+'<span class="tp-ct">('+esc(c?c.textContent.trim():'0')+')</span></button>'; }).join('');
       var te=tp.querySelector('.tp-tabs'); if(te.getAttribute('data-sig')!==TH){ te.innerHTML=TH; te.setAttribute('data-sig',TH); }
+      /* "Waiting on  [You (5)] [The candidate (16)]" right under the tabs, on Pending only */
+      var se=tp.querySelector('.tp-sub'), SH=pend ? '<span class="tp-sl">Waiting on</span>'+[['req','You',nq],['wait','The candidate',nw]].map(function(b){
+        return '<button type="button" class="tp-sb'+(b[0]===SUB?' on':'')+'" data-sub="'+b[0]+'" aria-pressed="'+(b[0]===SUB)+'">'+b[1]+' ('+b[2]+')</button>'; }).join('') : '';
+      if(se.getAttribute('data-sig')!==SH){ se.innerHTML=SH; se.setAttribute('data-sig',SH); se.hidden=!SH; }
+      if(FOCUS){ FOCUS=false; var fb=se.querySelector('.tp-sb.on'); if(fb){ try{ fb.focus({preventScroll:true}); }catch(e){ fb.focus(); } } }
       var L=list(gs,R,sel), le=tp.querySelector('.tp-list'), pe=tp.querySelector('.tp-pane');
       if(le.getAttribute('data-sig')!==L){ le.innerHTML=L; le.setAttribute('data-sig',L); }
+      if(TOP){ TOP=false; le.scrollTop=0; }
       if(sel!=null) host(pe, sel);
-      else { home(); pe.innerHTML='<div class="tp-empty">No interviews here.</div>'; }
+      else { home(); pe.innerHTML='<div class="tp-empty">'+none()+'</div>'; }
     } finally { busy=false; }
   }
   var tm=null; function soon(){ if(tm) return; tm=setTimeout(function(){ tm=null; try{ draw(); }catch(e){ if(window.console) console.error('interviews split view:',e); } },60); }
@@ -11960,4 +11976,16 @@ body #tpWrap .lx-tbl.ct-tbl.ct-nt col.l5{width:17.42%}
   window.addEventListener('load',function(){ setTimeout(soon,300); });
 })();
 </script>
+<style id="interviews-pending-switch-css">
+/* the Interviews page's Pending tab: "Waiting on" and two buttons right under the tabs, You and The candidate
+   (Scott, November 27, 2026, "green light") */
+.tp-sub{flex:none;display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:10px 12px;border-bottom:1px solid #e4e2e0;background:#faf9f8}
+.tp-sub[hidden]{display:none}
+.tp-sl{font-size:13px;line-height:18px;font-weight:600;color:#595959;margin-right:2px;white-space:nowrap}
+.tp-sb{font-family:inherit;font-size:13px;line-height:18px;font-weight:600;color:#2d2d2d;background:#fff;border:1px solid #c7c5c2;border-radius:999px;padding:5px 10px;white-space:nowrap;cursor:pointer}
+.tp-sb:hover{background:#f3f2ef}
+/* the one you're on: light blue with a dark blue edge (the tabs above keep the solid dark blue box) */
+.tp-sb.on{background:#e8f0fe;border-color:#00245B;color:#00245B;box-shadow:inset 0 0 0 1px #00245B}
+.tp-sb:focus-visible{outline:2px solid #0044B3;outline-offset:2px}
+</style>
 </body></html>
