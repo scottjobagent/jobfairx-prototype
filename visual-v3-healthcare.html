@@ -7402,7 +7402,9 @@ function tKey(t){ var M={Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,O
   var m=String(t).replace(/&middot;/g,'·').match(/([A-Z][a-z]+)\s+(\d+)\D+?(\d+):(\d+)(?:\s*[–-]\s*\d+:\d+)?\s*(AM|PM)/); if(!m||M[m[1]]==null) return 9e9;
   return M[m[1]]*1e5+(+m[2])*1e3+((+m[3]%12)+(m[5]==='PM'?12:0))*60+(+m[4]); }
 
-function countFor(k){return allRows().filter(function(r){
+/* November 27, 2026: the people waiting on you = a request you have not accepted, rescheduled or declined */
+  function waitingOnYou(){return allRows().filter(function(r){ return r.stage==='requested'&&!(r.c&&r.c.prop)&&(!evScope||(EVS[r.ev]&&EVS[r.ev].n===evScope));}).length;}
+  function countFor(k){return allRows().filter(function(r){
   return (!k||r.stage===k)&&(!evScope||(EVS[r.ev]&&EVS[r.ev].n===evScope));}).length;}
 function ico(n){
   var m={send:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>',
@@ -7573,7 +7575,10 @@ function listHtml(){
     +'</span></div></div>';
 
   h+='<div class="cx-pills mx-pills">'+PILLS.map(function(p){
-    var b='<button class="cx-pill'+(pill===p.k?' on':'')+'" onclick="'+(p.k==='sourced'?'CXX.tipQuiet();':'')+'CXX.setPill(\''+p.k+'\')">'+p.l+' ('+countFor(p.k)+')'+'</button>';
+    var wn=(p.k==='requested')?waitingOnYou():0; /* November 27, 2026: an amber dot on Requested = someone there is waiting on you */
+      var b='<button class="cx-pill'+(pill===p.k?' on':'')+(wn?' rq-has':'')+'" onclick="'+(p.k==='sourced'?'CXX.tipQuiet();':'')+'CXX.setPill(\''+p.k+'\')"'
+        +(wn?' aria-label="'+p.l+' ('+countFor(p.k)+'), '+wn+' waiting on you"':'')+'>'+p.l+' ('+countFor(p.k)+')'
+        +(wn?'<span class="rq-dot" aria-hidden="true"></span><span class="rq-tip" aria-hidden="true">'+wn+' waiting on you</span>':'')+'</button>';
     /* Scott, November 24, 2026: no "i" on the Applied tab. Resting the mouse on the tab shows the note, and the note has a tick
        box to stop it from showing again. The tab sits in a wrapper so the note and its tick box are beside the button, not
        inside it (a tick box inside a button would press the tab too). */
@@ -8198,7 +8203,7 @@ function tmin(t){ var m=String(t).match(/(\d{1,2}):(\d{2})\s*([AP]M)/i); if(!m) 
          (Scott, November 24, 2026); on the Candidates page and on the person's own page nothing moves, so the message stays */
       var ivOn=document.getElementById('view-interviews');
       if(ivOn&&ivOn.classList.contains('active')&&typeof showToast==='function')
-        showToast('success',(times.length===1?'Interview time sent to ':'Interview times sent to ')+esc(c.n)+'. '+esc(c.n.split(' ')[0])+' is now under Waiting on the candidate, lower on this page.');
+        showToast('success',(times.length===1?'Interview time sent to ':'Interview times sent to ')+esc(c.n)+'. '+esc(c.n.split(' ')[0])+' is now under Waiting on the candidate.'); /* November 27, 2026: the words about being lower on the page are gone; Pending lists one kind at a time now */
     }
     return r;
   };
@@ -9413,7 +9418,7 @@ document.addEventListener('click', function(e){
     if (p.reply) return ['', '<span class="sx-sg ok">Replied ' + esc(p.reply.day || CFG.today) + '</span>'];
     if (reachSig(p)) return ['', reachSig(p)];
     var sg1 = [].concat.apply([], M.map(function(m){ return m.sig; }));
-    if (sg1.indexOf('Clicked the link') >= 0) return ['', '<span class="sx-sg blue">Clicked the link, no time picked</span>'];
+    if (sg1.indexOf('Clicked the link') >= 0) return ['', '<span class="sx-sg">Clicked the link, no time picked</span>']; /* November 27, 2026: plain, not blue ("makes it look clickable") */
     if (sg1.indexOf('Email opened') >= 0) return ['', '<span class="sx-sg">Opened</span>'];
     return ['', '<span class="sx-sg">Delivered, not opened yet</span>'];
     if (!X.autoOn && !p.reply && !p.stopped && M.some(function(m){ return m.st === 'next' || m.st === 'later'; })) return [sent + ' of ' + all + ' sent &middot; Reminders paused', '<span class="sx-sg">Automation turned off</span>'];
@@ -9423,7 +9428,7 @@ document.addEventListener('click', function(e){
     var line = nx ? sent + ' of ' + all + ' sent &middot; Next ' + nx.when.split(', ')[1] : 'All ' + all + ' sent &middot; No reply yet';
     if (reachSig(p)) return [line, reachSig(p)];
     var sig = [].concat.apply([], M.map(function(m){ return m.sig; }));
-    if (sig.indexOf('Clicked the link') >= 0) return [line, '<span class="sx-sg blue">Clicked the link, no time picked</span>'];
+    if (sig.indexOf('Clicked the link') >= 0) return [line, '<span class="sx-sg">Clicked the link, no time picked</span>']; /* November 27, 2026: plain, not blue ("makes it look clickable") */
     if (sig.indexOf('Email opened') >= 0) return [line, '<span class="sx-sg">Opened</span>'];
     return [line, '<span class="sx-sg">Delivered, not opened yet</span>'];
   }
@@ -11152,6 +11157,44 @@ body #view-candidates .lx-tbl.ct-tbl.ct-nt col.l2{width:25.65%}body #view-candid
 .au-chk{display:flex;align-items:center;gap:10px;font-size:15px;line-height:22px;color:#2D2D2D;cursor:pointer}
 .au-chk input{width:18px;height:18px;flex:0 0 18px;margin:0;accent-color:#0044B3;cursor:pointer}
 </style>
+<style id="waiting-on-you-css">
+/* amber = waiting on you (Scott, November 27, 2026, "Yes, green light") */
+/* 1. the left menu: a number beside Interviews (the app's own menu badge shape, in amber) */
+.nav-item .rq-badge{margin-left:auto;flex:0 0 auto;box-sizing:border-box;min-width:24px;padding:2px 8px;border-radius:10px;background:#F0A92E;color:#2d2d2d;font-size:12px;line-height:16px;font-weight:700;text-align:center}
+.nav-item .rq-badge[hidden]{display:none}
+.sidebar.collapsed .nav-item .rq-badge{position:absolute;top:1px;right:5px;min-width:18px;padding:1px 5px;font-size:11px;line-height:14px;border-radius:9px}
+/* 2. the Requested tab: a small dot, and how many when the mouse rests on the tab */
+#view-candidates .cx-pill .rq-dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#E8970C;margin-left:7px;vertical-align:middle;position:relative;top:-1px}
+#view-candidates .cx-pill .rq-tip{position:absolute;top:calc(100% + 6px);left:50%;transform:translateX(-50%);z-index:40;background:#2d2d2d;color:#fff;font:600 12px/16px 'Noto Sans',system-ui,sans-serif;padding:6px 10px;border-radius:6px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .12s}
+#view-candidates .cx-pill .rq-tip:after{content:"";position:absolute;bottom:100%;left:50%;transform:translateX(-50%);border:5px solid transparent;border-bottom-color:#2d2d2d}
+#view-candidates .cx-pill.rq-has:hover .rq-tip,#view-candidates .cx-pill.rq-has:focus-visible .rq-tip{opacity:1}
+</style>
+<script id="waiting-on-you-js">
+/* the amber number beside Interviews in the left menu = the people waiting on you, all events (Scott, November 27, 2026,
+   "Yes, green light"). While it shows, clicking Interviews opens Pending, which opens on You. */
+(function(){
+  function waitN(){ try{ return (window.CXX&&CXX.ivRows?CXX.ivRows():[]).filter(function(r){ return r.stage==='requested'&&!r.prop; }).length; }catch(e){ return 0; } }
+  function draw(){
+    var a=document.getElementById('nav-interviews'); if(!a) return;
+    var b=document.getElementById('rqNavBadge');
+    if(!b){ b=document.createElement('span'); b.id='rqNavBadge'; b.className='rq-badge'; b.hidden=true; a.appendChild(b); }
+    var n=waitN(), t=n?String(n):'';
+    if(b.textContent!==t){ b.textContent=t; }
+    if(b.hidden!==!n){ b.hidden=!n; }
+    var say=n?(n+' waiting on you'):'';
+    if((b.getAttribute('title')||'')!==say){ if(say){ b.setAttribute('title',say); b.setAttribute('aria-label',say); } else { b.removeAttribute('title'); b.removeAttribute('aria-label'); } }
+  }
+  var tm=null; function soon(){ if(tm) return; tm=setTimeout(function(){ tm=null; try{ draw(); }catch(e){ if(window.console) console.error('waiting-on-you number:',e); } },80); }
+  function start(){
+    draw();
+    var a=document.getElementById('nav-interviews');
+    if(a) a.addEventListener('click',function(){ if(waitN()>0) setTimeout(function(){ if(typeof switchIvTab==='function') switchIvTab(1); },0); });
+    try{ new MutationObserver(function(ms){ for(var i=0;i<ms.length;i++){ var n=ms[i].target; if(n.nodeType!==1) n=n.parentNode; if(n&&n.id==='rqNavBadge') continue; soon(); return; } }).observe(document.body,{childList:true,subtree:true}); }catch(e){}
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',start); else start();
+  window.addEventListener('load',function(){ setTimeout(soon,300); });
+})();
+</script>
 <style id="interviews-split-cx-copy">
 /* the Candidates page's styles for the candidate's full page on the Interviews page (copied when the page is built, #view-candidates -> #tpWrap) */
 body #tpWrap .cx-tbl.mx-tbl.lx-tbl{table-layout:fixed;width:100%;min-width:930px}
@@ -11829,6 +11872,10 @@ body #tpWrap .lx-tbl.ct-tbl.ct-nt col.l5{width:17.42%}
 #tpWrap .au-tx b{font-weight:700}
 #tpWrap .au-lk{flex:0 0 auto;white-space:nowrap;font-size:14px;line-height:20px}
 #tpWrap .au-demo{flex:0 0 auto;margin:0;align-self:center}
+#tpWrap .cx-pill .rq-dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#E8970C;margin-left:7px;vertical-align:middle;position:relative;top:-1px}
+#tpWrap .cx-pill .rq-tip{position:absolute;top:calc(100% + 6px);left:50%;transform:translateX(-50%);z-index:40;background:#2d2d2d;color:#fff;font:600 12px/16px 'Noto Sans',system-ui,sans-serif;padding:6px 10px;border-radius:6px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .12s}
+#tpWrap .cx-pill .rq-tip:after{content:"";position:absolute;bottom:100%;left:50%;transform:translateX(-50%);border:5px solid transparent;border-bottom-color:#2d2d2d}
+#tpWrap .cx-pill.rq-has:hover .rq-tip,#tpWrap .cx-pill.rq-has:focus-visible .rq-tip{opacity:1}
 </style>
 <style id="interviews-split-css">
 /* the Interviews page as a list on the left and the person you pick on the right, with the person's full details
