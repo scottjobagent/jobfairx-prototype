@@ -7592,12 +7592,13 @@ function listHtml(){
     +'<button class="cx-b out" onclick="CXX.clearSel()">Clear selected</button>'
     +'<button class="cx-b pri" onclick="CXX.exportSel()">Export candidates'+ico('chev')+'</button></div>';
 
-  h+='<div class="cx-scroll"><table class="cx-tbl mx-tbl lx-tbl ct-tbl"><colgroup><col class="l1"><col class="l2"><col class="l3"><col class="l4"><col class="l5"><col class="l6"><col class="l7"><col class="l8"></colgroup>'
-    +'<thead><tr><th><span class="cx-cb'+(selRows.length&&selRows.length===rows.length?' on':'')+'" onclick="CXX.'+(selRows.length===rows.length?'clearSel()':'selAll()')+'">'+ico('tick')+'</span></th><th>Candidate</th><th>Job</th><th>Activity</th><th>Notes</th><th>'+ctHead()+'</th><th class="ct-ah">Actions</th><th></th></tr></thead><tbody>';
+  var noT=(pill==='sourced'||pill==='invited');   /* November 27, 2026: nobody on Applied or Invited has an interview time yet, so those two tabs have no time column */
+  h+='<div class="cx-scroll"><table class="cx-tbl mx-tbl lx-tbl ct-tbl'+(noT?' ct-nt':'')+'"><colgroup><col class="l1"><col class="l2"><col class="l3"><col class="l4"><col class="l5">'+(noT?'':'<col class="l6">')+'<col class="l7"><col class="l8"></colgroup>'
+    +'<thead><tr><th><span class="cx-cb'+(selRows.length&&selRows.length===rows.length?' on':'')+'" onclick="CXX.'+(selRows.length===rows.length?'clearSel()':'selAll()')+'">'+ico('tick')+'</span></th><th>Candidate</th><th>Job</th><th>Activity</th><th>Notes</th>'+(noT?'':'<th>'+ctHead()+'</th>')+'<th class="ct-ah">Actions</th><th></th></tr></thead><tbody>';
   rows.forEach(function(r){
     var c=r.c;
     h+='<tr><td><span class="cx-cb'+(selRows.indexOf(r.key)>-1?' on':'')+'" onclick="CXX.togSel(\''+r.key+'\')">'+ico('tick')+'</span></td>'
-      +'<td>'+ctWho(r)+'</td><td>'+ctSecond(r)+'</td><td>'+ctAct(r)+'</td><td>'+noteCell(c)+'</td><td>'+ctTime(r)+'</td>'+ctActs(r)+'</tr>';
+      +'<td>'+ctWho(r)+'</td><td>'+ctSecond(r)+'</td><td>'+ctAct(r)+'</td><td>'+noteCell(c)+'</td>'+(noT?'':'<td>'+ctTime(r)+'</td>')+ctActs(r)+'</tr>';
   });
   h+='</tbody></table></div>';
   if(!rows.length) h+='<div style="padding:56px 0;text-align:center;color:#767676">No candidates in this filter.</div>';
@@ -8074,7 +8075,7 @@ function ctAct(r){
   var c=r.c, st=r.stage, w=lxWhen(r);
   if(st==='sourced') return ctTwo(st,'Applied',esc(c.matched||''))+(c.prevInvite?'<div class="ct-a2">'+esc(c.prevInvite)+'</div>':'');
   if(st==='invited'){ var sm=(window.SRC&&SRC.summary)?SRC.summary(c.sid):null;
-    return ctTwo(st,'Invited',esc(c.sent||''))+(sm?'<div class="sx-prog ct-prog">'+sm.dots+'<span class="sx-ptxt">'+sm.line+'</span>'+sm.sig+'</div>':''); }
+    return ctTwo(st,'Invited',esc(c.sent||''))+(sm?'<div class="ct-a2 om-sig">'+sm.sig+'</div>':''); }
   if(st==='requested'&&c.prop) return ctTwo(st,'Waiting on the candidate','New times sent');
   if(st==='requested') return ctTwo(st,'Waiting on you',esc(ctAge(c)));
   if(st==='scheduled') return ctTwo(st,'Accepted',w);
@@ -8378,13 +8379,13 @@ function statusCard(c){
     var M=(p&&p.msgs)||[], sent=M.filter(function(m){return m.st==='sent';}).length, all=M.filter(function(m){return m.st!=='skipped';}).length||1;
     var nx=M.filter(function(m){return m.st==='next';})[0], left=M.some(function(m){return m.st==='next'||m.st==='later';}), sig=sm?String(sm.sig).replace(/<[^>]+>/g,''):'';
     icon=ico('send'); k='Invited';
-    if(p&&p.reply){ tag=scTag('Replied','green'); t=esc(sent+' of '+all+' messages sent')+' &middot; replied '+esc(p.reply.day||''); sub='&ldquo;'+esc(p.reply.text)+'&rdquo; Messages stopped.'; }
+    /* November 27, 2026: one message */
+    if(p&&p.reply){ tag=scTag('Replied','green'); t='Replied '+esc(p.reply.day||''); sub='&ldquo;'+esc(p.reply.text)+'&rdquo;'; }
     else { tag=sig?scTag(esc(sig),/bounced|STOP/.test(sig)?'red':(/Clicked/.test(sig)?'blue':(/Opened/.test(sig)?'green':'grey'))):'';
-      t=esc(sent+' of '+all+' messages sent');
-      sub=(nx&&!(p&&p.stopped)?'Next message: '+esc(nx.when)+'<br>':'')+'Invited by Dana Whitfield on '+esc((p&&p.sentLong)||c.sent||'')+'. '
-        +(p&&p.stopped?'You stopped the messages.':(left?'The messages stop as soon as '+f+' picks a time or replies.':'No more messages will go out.')); }
+      t='Invitation sent';
+      sub='Invited by Dana Whitfield on '+esc((p&&p.sentLong)||c.sent||'')+'.'; }
     /* Stop messages stays at the foot of the View messages panel, so the card keeps two buttons */
-    acts=scB('p','CXX.srcPanel('+id+')','View messages')+scB('o','CXX.srcCancel('+id+')','Cancel invite');
+    acts=scB('p','CXX.srcPanel('+id+')','View message')+scB('o','CXX.srcCancel('+id+')','Cancel invite');
   } else if(st==='requested'&&c.prop){
     k='New times proposed'; tag=scTag('Awaiting candidate','blue');
     t=propHtml(c); sub=esc(ev)+' &middot; '+f+' picks one of your times.';
@@ -9106,16 +9107,16 @@ document.addEventListener('click', function(e){
      Scott, November 22, 2026, evening: "The invite here is still the older pop-up in the middle with one message. It isn't
      the three-message slide-out from the demo." -> "make the updates". Copied from the demo he approved (Version 13). */
   var MSGS = [
-    { subject: 'Interview invitation: {JOB_TITLE} at {COMPANY}',
-      body: '<p>Hi {CANDIDATE_FIRSTNAME},</p><p>You applied for the {JOB_TITLE} job at {COMPANY}, and we\'d like to interview you {INTERVIEW_TIMES}. {INTERVIEW_FORMAT}</p><p>{PICK_TIME_LINK}</p><p>Regards,<br>{RECRUITER_NAME}<br>{COMPANY}</p>' },
+    { subject: '{COMPANY} has invited you to interview',
+      body: '<p>Hi {CANDIDATE_FIRSTNAME},</p><p>I work at {COMPANY} and I saw that you applied for our {JOB_TITLE} job. We\'re conducting interviews {INTERVIEW_EVENT}, and I\'d like you to request one.</p><p>{PICK_TIME_LINK}</p><p>Regards,<br>{RECRUITER_NAME}<br>{COMPANY}</p>' },
     { subject: '',
       body: '<p>Hi {CANDIDATE_FIRSTNAME},</p><p>We still have interview times open on {INTERVIEW_DATE} for the {JOB_TITLE} job. If you have any questions about the job first, just reply to this message.</p><p>{PICK_TIME_LINK}</p><p>Regards,<br>{RECRUITER_NAME}<br>{COMPANY}</p>' },
     { subject: '',
       body: '<p>Hi {CANDIDATE_FIRSTNAME},</p><p>Interviews for the {JOB_TITLE} job are tomorrow, {INTERVIEW_DATE}, and this is our last reminder. If you\'d still like to interview, pick a time below. If tomorrow doesn\'t work, reply and let us know, and we\'ll keep you in mind.</p><p>{PICK_TIME_LINK}</p><p>Regards,<br>{RECRUITER_NAME}<br>{COMPANY}</p>' }
   ];
   /* the live editor's placeholders first, then the four the invite needs, named the same way */
-  var TOKS = ['CANDIDATE_FIRSTNAME', 'JOB_TITLE', 'COMPANY', 'RECRUITER_NAME', 'INTERVIEW_DATE', 'INTERVIEW_TIMES', 'INTERVIEW_FORMAT', 'PICK_TIME_LINK'];
-  var WHEN = ['Right away, when you click Send invite', '2 days later, 10:00 AM their time', 'The day before the event, 10:00 AM their time'];
+  var TOKS = ['CANDIDATE_FIRSTNAME', 'JOB_TITLE', 'COMPANY', 'RECRUITER_NAME', 'INTERVIEW_EVENT', 'INTERVIEW_DATE', 'INTERVIEW_TIMES', 'INTERVIEW_FORMAT', 'PICK_TIME_LINK'];
+  var WHEN = ['Right away, when you click Send', '2 days later, 10:00 AM their time', 'The day before the event, 10:00 AM their time'];
   var XI = {
     x: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>',
     list: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1" fill="currentColor"/><circle cx="4.5" cy="12" r="1" fill="currentColor"/><circle cx="4.5" cy="18" r="1" fill="currentColor"/></svg>',
@@ -9171,6 +9172,7 @@ document.addEventListener('click', function(e){
     var map = { CANDIDATE_FIRSTNAME: esc(first(p.n)), JOB_TITLE: esc(p.j), COMPANY: esc(CFG.company), RECRUITER_NAME: esc(CFG.sender),
                 INTERVIEW_DATE: sc ? (g.length ? dayLong(g[0].d) : '<span class="sx-phx">[the date you suggest]</span>') : esc(e.when || ''),
                 INTERVIEW_TIMES: sc ? whenPhrase(sc) : 'on ' + esc(e.when || '') + ', between ' + esc(e.hours || ''),
+                INTERVIEW_EVENT: sc ? whenPhrase(sc) : 'at the ' + esc(p.e || 'hiring event') + (e.when ? ' on ' + esc(e.when) : ''),   /* November 27, 2026: "at the Dallas Hiring Event on Wednesday, April 22" */
                 INTERVIEW_HOURS: sc ? whenPhrase(sc) : esc(e.hours || ''), INTERVIEW_FORMAT: sc ? formatSentence(sc) : esc(e.how || ''),
                 PICK_TIME_LINK: '<span class="src-pick">Pick your interview time</span>' };
     return String(html).replace(/\{([A-Z_]+)\}/g, function(m, k){ return Object.prototype.hasOwnProperty.call(map, k) ? map[k] : m; });
@@ -9205,8 +9207,8 @@ document.addEventListener('click', function(e){
       body = '<div class="sx-mbox' + (o.solid ? '' : ' faint') + '">' + (o.html || msgHtml(p, i)) + '</div>'
         + (o.editable && !busy ? '<div class="sx-mlinks"><a class="sx-mlink" onclick="SRC.cedit(\'' + p.id + '\',' + i + ')">Edit message</a></div>' : '');
     }
-    return '<div class="sx-step' + (open ? ' open' : '') + '" data-step="' + i + '"><span class="sx-dot ' + o.dot + '">' + (i + 1) + '</span>'
-      + '<div class="sx-ttl">Message ' + (i + 1) + tag + '</div><div class="sx-when">' + o.when + '</div>'
+    return '<div class="sx-step' + (open ? ' open' : '') + '" data-step="' + i + '"><span class="sx-dot ' + o.dot + '"></span>'
+      + '<div class="sx-ttl">Your invitation' + tag + '</div><div class="sx-when">' + o.when + '</div>'
       + (o.chips ? '<div class="sx-sig">' + o.chips + '</div>' : '') + body + '</div>';
   }
   function editBar(p){
@@ -9231,6 +9233,10 @@ document.addEventListener('click', function(e){
   function addNote(p, note){ note = String(note || '').trim(); if (!note || !p.msgs || !p.msgs[0]) return;
     var h = p.msgs[0].html || '', k = h.lastIndexOf('Regards'), s = k >= 0 ? Math.max(h.lastIndexOf('<p', k), h.lastIndexOf('<div', k)) : -1, add = '<p>' + esc(note).replace(/\n/g, '<br>') + '</p>';
     p.msgs[0].html = s >= 0 ? h.slice(0, s) + add + h.slice(s) : h + add; }
+  /* November 27, 2026: the invitation as it will be sent (the words of Message 1), with the optional message inside it */
+  function omBody(p){ return msgHtml(p, 0); }
+  function omSubject(p){ return fillHtml(esc(X.msgs[0].subject), p); }
+  function omDirty(){ var E = X.omEdit; return !!E && (E.subject !== X.msgs[0].subject || E.body !== X.msgs[0].body); }
   function inviteHtml(){
     /* Invite to interview works like Indeed's Set up interview (Scott, November 25, 2026, "green light"). The interview details, the invitation said
        plainly (its words are not shown, as on Indeed), an optional message added to it, two follow-ups on or off, and,
@@ -9241,6 +9247,9 @@ document.addEventListener('click', function(e){
     if (X.keep == null) X.keep = !!set;
     if (X.note == null) X.note = set ? set.note : '';
     var dest = cand() ? 'Scheduled' : 'Upcoming';
+    /* November 27, 2026: Edit message is done here, in the slide-out (no window in the middle, the page underneath stays) */
+    if (X.omEdit && (over || X.omEdit.pid !== p.id)) X.omEdit = null;
+    var E = X.omEdit;
     function fact(k, v){ return '<div class="ix-k">' + k + '</div><div class="ix-v">' + v + '</div>'; }
     var fmt = e.method === 'phone' ? 'Phone' : (e.method === 'inperson' ? 'In person' : 'Video &middot; JobFairX video call');
     var details = over
@@ -9250,9 +9259,15 @@ document.addEventListener('click', function(e){
         + '<div class="ix-sec"><div class="sx-fl">Interviewers (optional)</div><div class="ix-team">'
         + ['Emily Chen', 'Dana Whitfield'].map(function(n){ var on = (X.team || []).indexOf(n) >= 0; return '<label class="ix-chk2"><input type="checkbox"' + (on ? ' checked' : '') + ' onchange="SRC.ixTeam(\'' + n + '\', this.checked)"> ' + n + '</label>'; }).join('')
         + '</div></div>'
-      : '<div class="sx-sched"><div class="sx-sh">Interview details</div><div class="ix-facts">'
-        + fact('Event', esc(p.e)) + fact('Date', esc(e.when || '')) + fact('Time', f + ' picks a time between ' + esc(e.hours || ''))
-        + fact('Format', fmt) + fact('Length', '30 minutes') + '</div><span class="sx-help">These come from the event.</span></div>';
+      : (E
+        ? '<div class="ix-sec om-wrap om-ed"><div class="sx-sh">Edit message</div>'
+          + '<label class="sx-fl" for="omSubject">Email subject</label><input class="sx-inp" id="omSubject" value="' + esc(E.subject) + '">'
+          + '<div class="sx-fl">Message template <span class="sx-req">*</span></div>' + rteBox('om', E.body, E.err) + '</div>'
+        : '<div class="ix-sec om-wrap"><div class="sx-sh">Message</div><div class="om-msg">'
+          + '<div class="om-ml"><b>From:</b> ' + esc(CFG.sender) + ' via JobFairX (donotreply@jobfairx.com)</div>'
+          + '<div class="om-ml"><b>Subject:</b> ' + omSubject(p) + '</div>'
+          + '<div class="sx-mbox om-body" id="omBody">' + omBody(p) + '</div></div>'
+          + '<div class="sx-mlinks om-edit"><a class="sx-mlink" onclick="SRC.omEdit()">Edit message</a></div></div>');
     var inv = (over
       ? f + ' gets an invitation by email and text with the times you suggest, and picks one.'
       : f + ' gets an invitation by email and text to interview at the ' + esc(p.e) + ' on ' + esc(e.when || '') + ', with a link to pick a time.')
@@ -9261,18 +9276,15 @@ document.addEventListener('click', function(e){
       + top('Invite ' + esc(p.n) + ' to interview', esc(p.j) + ' &middot; ' + esc(p.e))
       + '<div class="sx-pstate"><span class="sx-pinv">Applied ' + esc(p.m) + ' &middot; ' + (p.prevInvite ? esc(p.prevInvite) : 'not invited yet') + '</span></div></div>'
       + '<div class="sx-pbody">'
-      + (over ? '' : '<div class="sx-pdemo"><button type="button" class="src-demo" title="Demo only: acts as the candidate" onclick="SRC.selfPick(\'' + p.id + '\')">&#9654; Demo: ' + f + ' picks a time from our earlier texts</button></div>')
+      + (over || E ? '' : '<div class="sx-pdemo"><button type="button" class="src-demo" title="Demo only: acts as the candidate" onclick="SRC.selfPick(\'' + p.id + '\')">&#9654; Demo: ' + f + ' picks a time from our earlier texts</button></div>')
       + details
-      + '<div class="ix-sec"><div class="sx-sh">Your invitation</div><div class="ix-inv">' + inv + '</div></div>'
-      + '<div class="ix-sec"><label class="sx-fl" for="ixNote">Add a message (optional)</label>'
-      + '<textarea id="ixNote" class="sx-inp sx-ta" rows="3" placeholder="Like what to bring or who ' + f + ' will meet." oninput="SRC.ixNote(this.value)">' + esc(X.note || '') + '</textarea>'
-      + '<span class="sx-help">It&rsquo;s added to the invitation.</span></div>'
-      + (X.autoOn
-        ? '<label class="ix-chk"><input type="checkbox"' + (X.rem ? ' checked' : '') + ' onchange="SRC.ixRem(this.checked)"><span><b>Send 2 follow-ups</b><span class="sx-help">If ' + f + ' hasn&rsquo;t picked a time, we send two more messages by email and text.</span></span></label>'
-        : '<label class="ix-chk off"><input type="checkbox" disabled><span><b>Send 2 follow-ups</b><span class="sx-help">Follow-ups are turned off for every invite on the Automations page (Invite applicants).</span></span></label>')
-      + (over ? '' : '<label class="ix-chk"><input type="checkbox"' + (X.keep ? ' checked' : '') + ' onchange="SRC.ixKeep(this.checked)"><span><b>Use this for every invite to the ' + esc(p.e) + '</b><span class="sx-help">After this, Invite to interview sends right away for this event, with these choices. To change them, use Invite with changes in a line&rsquo;s three dots.</span></span></label>')
+      + (over ? '<div class="ix-sec"><div class="sx-sh">Your invitation</div><div class="ix-inv">' + inv + '</div></div>' : '')
+      + ''   /* November 27, 2026: no added-message box; it is just the message (as on Indeed) */
+      + ''   /* November 27, 2026: no follow-ups box; one message */
+      + (over || E ? '' : '<label class="ix-chk"><input type="checkbox"' + (X.keep ? ' checked' : '') + ' onchange="SRC.ixKeep(this.checked)"><span><b>Send without previewing next time</b><span class="sx-help">This default message will be sent for all invitations to the ' + esc(p.e) + '.</span></span></label>')
       + '</div>'
-      + '<div class="sx-pf"><button type="button" class="src-bt p" onclick="SRC.send(\'' + p.id + '\')">Send invite</button><button type="button" class="src-bt o" onclick="SRC.closeAsk()">Cancel</button></div>'
+      + (E ? '<div class="sx-pf om-pf"><button type="button" class="src-bt p" onclick="SRC.omSave()">Save</button><button type="button" class="src-bt o" onclick="SRC.omCancel()">Cancel</button><span class="sx-pfnote">Changes apply to every new invite.</span></div>'
+           : '<div class="sx-pf"><button type="button" class="src-bt p" onclick="SRC.send(\'' + p.id + '\')">Send</button><button type="button" class="src-bt o" onclick="SRC.closeAsk()">Cancel</button></div>')
       + '</aside>';
   }
 
@@ -9357,7 +9369,13 @@ document.addEventListener('click', function(e){
   function progDots(p){ return '<span class="sx-pdots">' + msgsOf(p).map(function(m){ return '<i class="' + (m.st === 'sent' ? 's' : (m.st.indexOf('stopped') === 0 || m.st === 'skipped' ? 'x' : '')) + '"></i>'; }).join('') + '</span>'; }
   function summary(p){
     var M = msgsOf(p), sent = M.filter(function(m){ return m.st === 'sent'; }).length, all = M.filter(function(m){ return m.st !== 'skipped'; }).length;
-    if (all === 1 && !p.reply) return ['Invite sent &middot; No reminders', '<span class="sx-sg">' + (M[0].sig.indexOf('Email opened') >= 0 ? 'Opened' : 'Delivered, not opened yet') + '</span>'];
+    /* November 27, 2026: one message, so no "2 of 3 sent" line; only what the candidate did with it */
+    if (p.reply) return ['', '<span class="sx-sg ok">Replied ' + esc(p.reply.day || CFG.today) + '</span>'];
+    if (reachSig(p)) return ['', reachSig(p)];
+    var sg1 = [].concat.apply([], M.map(function(m){ return m.sig; }));
+    if (sg1.indexOf('Clicked the link') >= 0) return ['', '<span class="sx-sg blue">Clicked the link, no time picked</span>'];
+    if (sg1.indexOf('Email opened') >= 0) return ['', '<span class="sx-sg">Opened</span>'];
+    return ['', '<span class="sx-sg">Delivered, not opened yet</span>'];
     if (!X.autoOn && !p.reply && !p.stopped && M.some(function(m){ return m.st === 'next' || m.st === 'later'; })) return [sent + ' of ' + all + ' sent &middot; Reminders paused', '<span class="sx-sg">Automation turned off</span>'];
     if (p.reply) return ['Replied ' + esc(p.reply.day || CFG.today), '<span class="sx-sg ok">Messages stopped</span>'];
     if (p.stopped) return [sent + ' of ' + all + ' sent', '<span class="sx-sg">Messages stopped by you</span>'];
@@ -9397,9 +9415,9 @@ document.addEventListener('click', function(e){
     return '<div class="sx-dim' + sl + '" onclick="SRC.closeAsk()"></div><aside class="sx-panel' + sl + (busy ? ' editing' : '') + '" role="dialog" aria-label="Messages to ' + esc(p.n) + '">'
       + top(esc(p.n), esc(p.j) + ' &middot; ' + esc(p.e))
       + '<div class="sx-pstate">' + state + '<span class="sx-pinv">Invited by ' + esc(CFG.sender) + ' on ' + (p.sentLong || todayLong()) + '</span></div>'
-      + '<div class="sx-pnote">Messages stop as soon as ' + f + ' picks a time or replies.</div></div>'
+      + '</div>'
       + '<div class="sx-pbody">' + (demo && !busy ? '<div class="sx-pdemo">' + demo + '</div>' : '') + reply + '<div class="sx-tl">' + steps + '</div></div>'
-      + (busy ? editBar(p) : '<div class="sx-pf"><button type="button" class="src-bt p" onclick="SRC.msg(\'' + p.id + '\')">Message ' + f + '</button>' + stop
+      + (busy ? editBar(p) : '<div class="sx-pf"><button type="button" class="src-bt p" onclick="SRC.msg(\'' + p.id + '\')">Message ' + f + '</button>'
         + '<button type="button" class="src-cx" onclick="SRC.cancelAsk(\'' + p.id + '\')">Cancel invite</button></div>') + '</aside>';
   }
 
@@ -9418,8 +9436,8 @@ document.addEventListener('click', function(e){
   function discardHtml(){
     var d = X.discard; if (!d) return '';
     var p = d.id ? get(d.id) : null, f = p ? esc(first(p.n)) : '';
-    var title = d.kind === 'editor' ? 'Discard your changes?' : 'Discard your changes for ' + f + '?';
-    var body = d.kind === 'editor' ? 'Your changes to the 3 messages won\'t be saved.'
+    var title = (d.kind === 'editor' || d.kind === 'om') ? 'Discard your changes?' : 'Discard your changes for ' + f + '?';
+    var body = (d.kind === 'editor' || d.kind === 'om') ? 'Your changes to the message won\'t be saved.'
       : (d.kind === 'invite' ? (schedChanged() && !(p && p.custom && p.custom.some(function(x){ return x != null; })) ? 'The times and details you entered for ' + f + ' won\'t be saved, and nothing is sent.' : 'The words you changed for ' + f + ' won\'t be saved, and nothing is sent.') : 'Your changes to this message won\'t be saved.');
     return '<div class="sx-ov top" onclick="if(event.target===this)SRC.discardKeep()"><div class="src-dlg" role="dialog" aria-modal="true" aria-label="' + title + '" style="width:480px;">'
       + '<div class="src-t">' + title + '</div><div class="src-b">' + body + '</div>'
@@ -9428,6 +9446,7 @@ document.addEventListener('click', function(e){
   /* closing asks first when something would be lost */
   function dropDraft(){ var d = get(X.modal); if (d && d.st === 'sourced') delete d.custom; X.edit = null; }
   function askOrClose(kind){
+    if (kind === 'invite' && X.omEdit) { if (omDirty()) { X.discard = { kind: 'om' }; return; } X.omEdit = null; }
     if (kind === 'invite') { var ip = get(X.modal); if (hasInviteChanges(ip)) { X.discard = { kind: 'invite', id: ip.id }; return; } dropDraft(); X.modal = null; X.sched = null; return; }
     if (kind === 'panel') { if (X.edit && X.edit.who === X.panel && X.edit.dirty) { X.discard = { kind: 'panel', id: X.panel }; return; } X.panel = null; X.edit = null; return; }
     if (kind === 'edit') { if (X.edit && X.edit.dirty) { X.discard = { kind: 'edit', id: X.edit.who }; return; } X.edit = null; return; }
@@ -9438,7 +9457,7 @@ document.addEventListener('click', function(e){
   function editorHtml(){
     var D = X.editor; if (!D) return '';
     var john = sample();
-    var blocks = [0, 1, 2].map(function(i){
+    var blocks = [0].map(function(i){   /* November 27, 2026: one message */
       var tpl = D.tab[i] === 'preview'
         ? '<div class="sx-fl">Preview <span class="sx-flsub">with a sample candidate, John</span></div><div class="sx-mbox">' + fillHtml(D.body[i], john) + '</div>'
           + '<div class="sx-mlinks"><a class="sx-mlink" onclick="SRC.dtab(' + i + ',\'edit\')">Edit message</a></div>'
@@ -9447,15 +9466,15 @@ document.addEventListener('click', function(e){
       var sub = i === 0 ? '<label class="sx-fl" for="sxEdSubject">Email subject</label><input class="sx-inp" id="sxEdSubject" value="' + esc(D.subject) + '">'
         : '<div class="sx-reply-note">Sent as a reply in the same email</div>';
       var note = i === 1 ? '<div class="sx-enote">Skipped if it falls on the day of the event or the same day as Message 3.</div>' : '';
-      return '<div class="sx-eblock"><div class="sx-ehead"><span class="sx-sn">' + (i + 1) + '</span><div><div class="sx-et">Message ' + (i + 1) + '</div><div class="sx-ew">' + WHEN[i] + '</div></div>'
+      return '<div class="sx-eblock"><div class="sx-ehead"><span class="sx-sn">' + (i + 1) + '</span><div><div class="sx-et">Invitation</div><div class="sx-ew">' + WHEN[i] + '</div></div>'
         + '<div class="sx-ech"><span>' + I.check + ' Email</span><span>' + I.check + ' Text</span></div></div>' + note + sub + tpl + '</div>';
     }).join('');
     return '<div class="sx-ov ed" onclick="if(event.target===this)SRC.editorClose()"><div class="src-dlg sx-editor" role="dialog" aria-modal="true" aria-label="Automation: Invite applicants">'
       + '<div class="sx-edh"><div class="src-t">Automation: Invite applicants</div><button type="button" class="sx-px" onclick="SRC.editorClose()" title="Close" aria-label="Close">' + XI.x + '</button></div>'
       + '<div class="src-b"><div class="sx-scope"><span class="sx-rad on"><span class="sx-rdot"></span>Turn on automation for all jobs at all events</span>'
       + '<span class="sx-rad" title="Not part of this prototype"><span class="sx-rdot"></span>Turn on automation for individual jobs</span></div>'
-      + '<div class="sx-eintro">When you invite an applicant, they get these 3 messages by email and text. The messages stop as soon as the candidate picks a time or replies.</div>' + blocks
-      + '<div class="sx-fnote">Texts start with your company name and end with &ldquo;Reply STOP to opt out.&rdquo; Bold, italic and lists show in emails; texts go out as plain words. Reminders don\'t go out on the day of the event. After an event, the date, times and format come from the times you suggest when you invite.</div></div>'
+      + '<div class="sx-eintro">When you invite an applicant, they get this message by email and text.</div>' + blocks
+      + '<div class="sx-fnote">Texts start with your company name and end with &ldquo;Reply STOP to opt out.&rdquo; Bold, italic and lists show in emails; texts go out as plain words. After an event, the date, times and format come from the times you suggest when you invite.</div></div>'
       + '<div class="src-f">' + (X.autoOn ? '<a class="sx-tlnk" onclick="SRC.offAsk()">Turn off</a>' : '<a class="sx-tlnk on" onclick="SRC.autoOn()">Turn on</a>')
       + '<button type="button" class="src-bt p" onclick="SRC.editorSave()">Save</button></div></div></div>';
   }
@@ -9493,6 +9512,7 @@ document.addEventListener('click', function(e){
           if (over > 0 && room > 0) pb.scrollTop += Math.min(over, room); } } }
     X.editScroll = null;
     if (X.editFocus) { var ce = r.querySelector('.sx-rte[data-idx="c"]'); if (ce) caretEnd(ce); X.editFocus = false; }
+    if (X.omFocus) { var oe = r.querySelector('.sx-rte[data-idx="om"]'); if (oe) caretEnd(oe); if (pb) pb.scrollTop = 0; X.omFocus = false; }
     if (X.draftFocus != null) { var de = r.querySelector('.sx-editor .sx-rte[data-idx="' + X.draftFocus + '"]'); if (de) caretEnd(de); X.draftFocus = null; }
     placeToast();
   }
@@ -9514,7 +9534,7 @@ document.addEventListener('click', function(e){
     if (sc) { sc.times = goodTimes(sc); sc.err = null; p.sched = sc; } else delete p.sched;
     p.st = 'invited'; p.sent = CFG.today; p.sentLong = todayLong(); p.fromInvite = true; p.stopped = false; p.reply = null; delete p.bounced; delete p.textStop;
     p.msgs = [{ st: 'sent', when: todayLong() + ', ' + clockText(), sig: ['Email delivered', 'Text delivered'], html: msgHtml(p, 0) }];
-    if (X.autoOn) {
+    if (false) {   /* November 27, 2026: one message, no follow-ups */
       var pl = plan(p, p.sched || null) || { m2: null, m3: null };
       p.msgs.push(pl.m2 ? { st: 'next', when: dayLong(pl.m2) + ', 10:00 AM', sig: [] } : { st: 'skipped', when: '', sig: [] });
       p.msgs.push(pl.m3 ? { st: pl.m2 ? 'later' : 'next', when: dayLong(pl.m3) + ', 10:00 AM', sig: [] } : { st: 'skipped', when: '', sig: [] });
@@ -9567,6 +9587,7 @@ document.addEventListener('click', function(e){
   /* ---------- typing in the editors ---------- */
   function syncEd(ed){
     var i = ed.getAttribute('data-idx');
+    if (i === 'om') { if (X.omEdit) X.omEdit.body = ed.innerHTML; return; }   /* November 27, 2026: the message edited in the invite slide-out */
     if (i === 'c') { if (X.edit) { X.edit.html = ed.innerHTML; X.edit.dirty = true; } }
     else if (X.editor && i !== null) X.editor.body[+i] = ed.innerHTML;
   }
@@ -9574,6 +9595,7 @@ document.addEventListener('click', function(e){
     var t = e.target; if (!t || !t.closest || !t.closest('#sxRoot')) return;
     if (t.classList.contains('sx-rte')) { syncEd(t); return; }
     if (t.id === 'sxEdSubject' && X.editor) X.editor.subject = t.value;
+    if (t.id === 'omSubject' && X.omEdit) X.omEdit.subject = t.value;
     if (t.getAttribute('data-sf') && X.sched) X.sched[t.getAttribute('data-sf')] = t.value;
   });
   document.addEventListener('change', function(e){
@@ -9631,6 +9653,9 @@ document.addEventListener('click', function(e){
       if (reply) return { st: 'stopped', when: when, sig: [] };
       var m = { st: waiting ? 'later' : 'next', when: when, sig: [] }; waiting = true; return m;
     });
+    /* November 27, 2026: one message; what the candidate did with the invite sits on that one message */
+    var all1 = []; sigs.forEach(function(a){ a.forEach(function(x){ if (all1.indexOf(x) < 0) all1.push(x); }); });
+    p.msgs = p.msgs.slice(0, 1); if (p.msgs[0] && p.msgs[0].st === 'sent') p.msgs[0].sig = all1;
     if (reply) p.reply = reply;
   }
   function seedInvites(){
@@ -9673,7 +9698,7 @@ document.addEventListener('click', function(e){
     if (g && !g.querySelector('[data-sx-auto]')) {
       var c = document.createElement('div'); c.className = 'nx-card sx-card'; c.setAttribute('data-sx-auto', '1');
       c.innerHTML = '<span class="sx-new sx-newtag">New</span><h3>Invite applicants</h3><div class="nx-flow"><div class="nx-step"><span class="nx-ico">' + XI.send + '</span><span>When you invite an applicant</span></div>'
-        + '<div class="nx-conn"></div><div class="nx-step"><span class="nx-ico">' + XI.msg + '</span><span>Send them 3 messages</span></div></div>'
+        + '<div class="nx-conn"></div><div class="nx-step"><span class="nx-ico">' + XI.msg + '</span><span>Send them a message</span></div></div>'
         + '<button class="nx-btn nx-ghost nx-setup" onclick="SRC.editor()">Edit</button>';
       g.appendChild(c);
     }
@@ -10011,10 +10036,23 @@ document.addEventListener('click', function(e){
       if (d.kind === 'panel') { X.edit = null; X.panel = null; }
       if (d.kind === 'edit') X.edit = null;
       if (d.kind === 'editor') { X.editor = null; backFromEditor(); }
+      if (d.kind === 'om') { X.omEdit = null; dropDraft(); X.modal = null; X.sched = null; }   /* November 27, 2026: the slide-out was closed while editing */
       sxRender();
     },
     /* the words for every invite: the automation window */
     editor: function(fromInvite){ openEditor(!!fromInvite); sxRender(); },
+    /* November 27, 2026: Edit message inside the invite slide-out. The words are the ones every invite uses (the same words the
+       Automations page edits), so Save changes this invite and the ones after it. */
+    omEdit: function(){ var p = get(X.modal); if (!p || p.st !== 'sourced' || isOver(p)) return;
+      X.omEdit = { pid: p.id, subject: X.msgs[0].subject, body: X.msgs[0].body, err: null }; X.omFocus = true; dismiss(); sxRender(); },
+    omCancel: function(){ X.omEdit = null; sxRender(); },
+    omSave: function(){ var E = X.omEdit; if (!E) return;
+      E.err = checkTpl(E.body); if (E.err) { sxRender(); return; }
+      var was = omDirty();
+      X.msgs = [{ subject: E.subject, body: E.body }].concat(X.msgs.slice(1));
+      if (was && CFG.todayIso) X.savedOn = MONTHS[isoDate(CFG.todayIso).getMonth()] + ' ' + isoDate(CFG.todayIso).getDate() + ', ' + isoDate(CFG.todayIso).getFullYear();
+      X.omEdit = null; sxRender(); ensureAutoRow(); changed();
+      say('Message saved. New invites use your words.'); },
     editorClose: function(){ askOrClose('editor'); sxRender(); },
     dtab: function(i, tab){ if (!X.editor) return; X.editor.tab[i] = tab === 'preview' ? 'preview' : 'edit'; if (X.editor.tab[i] === 'edit') X.draftFocus = i; sxRender(); },
     editorSave: function(){
@@ -10024,7 +10062,7 @@ document.addEventListener('click', function(e){
       X.msgs = [{ subject: D.subject, body: D.body[0] }, { subject: '', body: D.body[1] }, { subject: '', body: D.body[2] }];
       X.editor = null; X.savedOn = CFG.todayIso ? MONTHS[isoDate(CFG.todayIso).getMonth()] + ' ' + isoDate(CFG.todayIso).getDate() + ', ' + isoDate(CFG.todayIso).getFullYear() : X.savedOn;
       backFromEditor(); sxRender(); ensureAutoRow(); changed();
-      say('Messages saved. New invites, and messages that haven\'t gone out yet, use your words.');
+      say('Message saved. New invites use your words.');
     },
     offAsk: function(){ X.offAsk = true; sxRender(); },
     offCancel: function(){ X.offAsk = false; sxRender(); },
@@ -10960,6 +10998,60 @@ body #view-candidates .ct-ctl .fbp-menu{left:auto;right:0;text-align:left}
 #view-candidates .cx-note.np-has .np-n{display:block;margin-top:2px;font-size:12px;line-height:17px;color:#767676}
 #view-candidates .cx-note.np-has:hover .ntx-t{text-decoration:underline}
 </style>
+<style id="invite-one-message-css">
+/* Invite to interview sends one message, shown in the slide-out the way Indeed shows its message, and edited there;
+   a welcome window the first time Applied is clicked; Applied and Invited have no Interview time column
+   (Scott, November 27, 2026, "green light") */
+.om-msg{border:0;border-radius:8px;background:#f3f2f1;padding:18px 20px}
+.om-ml{font-size:14px;line-height:22px;color:#2d2d2d;margin:0 0 12px}
+.om-ml b{font-weight:700}
+.om-msg .om-body.sx-mbox{margin:0;padding:0;border:0;background:transparent;font-size:14px;line-height:22px;color:#2d2d2d}
+.om-msg .om-body p{margin:0 0 12px}
+.om-msg .om-body p:last-child{margin-bottom:0}
+.om-edit{margin-top:10px}
+/* the message is edited inside the slide-out */
+.om-ed .sx-sh + .sx-fl{margin-top:4px}
+.sx-panel .om-ed .sx-rte{min-height:210px;max-height:none}
+.sx-pf.om-pf .sx-pfnote{margin-right:auto}
+/* Applied and Invited have no time column; the other columns share its space so they stay evenly spaced */
+body #view-candidates .lx-tbl.ct-tbl.ct-nt col.l2{width:25.65%}body #view-candidates .lx-tbl.ct-tbl.ct-nt col.l3{width:17.10%}body #view-candidates .lx-tbl.ct-tbl.ct-nt col.l4{width:18.81%}body #view-candidates .lx-tbl.ct-tbl.ct-nt col.l5{width:17.42%}
+@media (max-width:1499px){body #view-candidates .lx-tbl.ct-tbl.ct-nt col.l2{width:22.72%}body #view-candidates .lx-tbl.ct-tbl.ct-nt col.l3{width:16.61%}body #view-candidates .lx-tbl.ct-tbl.ct-nt col.l4{width:19.99%}body #view-candidates .lx-tbl.ct-tbl.ct-nt col.l5{width:18.27%}}
+@media (max-width:1439px){body #view-candidates .lx-tbl.ct-tbl.ct-nt col.l2{width:21.91%}body #view-candidates .lx-tbl.ct-tbl.ct-nt col.l3{width:17.81%}body #view-candidates .lx-tbl.ct-tbl.ct-nt col.l4{width:17.96%}body #view-candidates .lx-tbl.ct-tbl.ct-nt col.l5{width:18.69%}}
+@media (max-width:1399px){body #view-candidates .lx-tbl.ct-tbl.ct-nt col.l2{width:21.58%}body #view-candidates .lx-tbl.ct-tbl.ct-nt col.l3{width:17.26%}body #view-candidates .lx-tbl.ct-tbl.ct-nt col.l4{width:16.77%}body #view-candidates .lx-tbl.ct-tbl.ct-nt col.l5{width:19.14%}}
+@media (max-width:1319px){body #view-candidates .lx-tbl.ct-tbl.ct-nt col.l2{width:21.28%}body #view-candidates .lx-tbl.ct-tbl.ct-nt col.l3{width:16.90%}body #view-candidates .lx-tbl.ct-tbl.ct-nt col.l4{width:16.54%}body #view-candidates .lx-tbl.ct-tbl.ct-nt col.l5{width:19.05%}}
+#view-candidates .om-sig{margin-top:2px}
+/* the note on resting the mouse on the Applied tab is replaced by the welcome window */
+#view-candidates .mx-ptip{display:none!important}
+.wl-ov{position:fixed;inset:0;z-index:9500;background:rgba(45,45,45,.55);display:flex;align-items:center;justify-content:center;padding:24px}
+.wl-box{width:560px;max-width:100%;background:#fff;border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.25);padding:32px 32px 24px;text-align:center;font-family:'Noto Sans',system-ui,sans-serif}
+.wl-t{margin:0 0 10px;font-size:22px;line-height:30px;font-weight:700;color:#2d2d2d}
+.wl-p{margin:0 auto;max-width:440px;font-size:16px;line-height:24px;color:#2d2d2d}
+.wl-f{margin-top:24px;display:flex;justify-content:flex-end}
+.wl-b{height:44px;padding:0 20px;border-radius:8px;border:1px solid #0044B3;background:#0044B3;color:#fff;font:700 15px/1 inherit;cursor:pointer}
+.wl-b:hover{background:#003399;border-color:#003399}
+</style>
+<script id="invite-one-message-js">
+/* November 27, 2026: a welcome window the first time Applied is clicked (Indeed shows "Welcome to matched candidates" the same way) */
+(function(){
+  function show(){
+    if (document.getElementById('wlOv')) return;
+    var o = document.createElement('div'); o.id = 'wlOv'; o.className = 'wl-ov';
+    o.innerHTML = '<div class="wl-box" role="dialog" aria-modal="true" aria-label="Welcome to Applied"><h2 class="wl-t">Welcome to Applied</h2>'
+      + '<p class="wl-p">These people applied to your jobs and haven’t scheduled an interview yet. Invite them, and each one gets one message with a link to pick a time.</p>'
+      + '<div class="wl-f"><button type="button" class="wl-b" id="wlGo">See applicants</button></div></div>';
+    document.body.appendChild(o);
+    o.addEventListener('click', function(e){ if (e.target === o || e.target.id === 'wlGo') o.remove(); });
+  }
+  function hook(){
+    if (!window.CXX || !CXX.setPill) return false;
+    if (CXX.__wl) return true;
+    var old = CXX.setPill; CXX.__wl = 1;
+    CXX.setPill = function(k){ var r = old.apply(this, arguments); if (k === 'sourced' && !window.__wlSeen) { window.__wlSeen = 1; show(); } return r; };
+    return true;
+  }
+  if (!hook()) { var n = 0, t = setInterval(function(){ if (hook() || ++n > 80) clearInterval(t); }, 100); }
+})();
+</script>
 <style id="interviews-split-cx-copy">
 /* the Candidates page's styles for the candidate's full page on the Interviews page (copied when the page is built, #view-candidates -> #tpWrap) */
 body #tpWrap .cx-tbl.mx-tbl.lx-tbl{table-layout:fixed;width:100%;min-width:930px}
@@ -11618,6 +11710,16 @@ body #tpWrap .ct-ctl .fbp-menu{left:auto;right:0;text-align:left}
 #tpWrap .cx-note.np-has .ntx-t{color:#2d2d2d;font-size:13px;line-height:18px;overflow-wrap:anywhere}
 #tpWrap .cx-note.np-has .np-n{display:block;margin-top:2px;font-size:12px;line-height:17px;color:#767676}
 #tpWrap .cx-note.np-has:hover .ntx-t{text-decoration:underline}
+body #tpWrap .lx-tbl.ct-tbl.ct-nt col.l2{width:25.65%}
+body #tpWrap .lx-tbl.ct-tbl.ct-nt col.l3{width:17.10%}
+body #tpWrap .lx-tbl.ct-tbl.ct-nt col.l4{width:18.81%}
+body #tpWrap .lx-tbl.ct-tbl.ct-nt col.l5{width:17.42%}
+@media (max-width:1499px){body #tpWrap .lx-tbl.ct-tbl.ct-nt col.l2{width:22.72%}body #tpWrap .lx-tbl.ct-tbl.ct-nt col.l3{width:16.61%}body #tpWrap .lx-tbl.ct-tbl.ct-nt col.l4{width:19.99%}body #tpWrap .lx-tbl.ct-tbl.ct-nt col.l5{width:18.27%}}
+@media (max-width:1439px){body #tpWrap .lx-tbl.ct-tbl.ct-nt col.l2{width:21.91%}body #tpWrap .lx-tbl.ct-tbl.ct-nt col.l3{width:17.81%}body #tpWrap .lx-tbl.ct-tbl.ct-nt col.l4{width:17.96%}body #tpWrap .lx-tbl.ct-tbl.ct-nt col.l5{width:18.69%}}
+@media (max-width:1399px){body #tpWrap .lx-tbl.ct-tbl.ct-nt col.l2{width:21.58%}body #tpWrap .lx-tbl.ct-tbl.ct-nt col.l3{width:17.26%}body #tpWrap .lx-tbl.ct-tbl.ct-nt col.l4{width:16.77%}body #tpWrap .lx-tbl.ct-tbl.ct-nt col.l5{width:19.14%}}
+@media (max-width:1319px){body #tpWrap .lx-tbl.ct-tbl.ct-nt col.l2{width:21.28%}body #tpWrap .lx-tbl.ct-tbl.ct-nt col.l3{width:16.90%}body #tpWrap .lx-tbl.ct-tbl.ct-nt col.l4{width:16.54%}body #tpWrap .lx-tbl.ct-tbl.ct-nt col.l5{width:19.05%}}
+#tpWrap .om-sig{margin-top:2px}
+#tpWrap .mx-ptip{display:none!important}
 </style>
 <style id="interviews-split-css">
 /* the Interviews page as a list on the left and the person you pick on the right, with the person's full details
